@@ -79,21 +79,21 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
     const barColor = isCritical ? vq.red[500] : isWarning ? vq.amber[500] : color;
 
     return (
-        <div className="bg-slate-950/40 border border-white/[0.06] rounded-2xl p-5 shadow-inner">
+        <div className="bg-neutral-950/40 border border-white/[0.06] rounded-2xl p-5 shadow-inner">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.03]">
                         <Icon size={16} color={color} />
                     </div>
-                    <span className="text-xs font-bold text-slate-300">{label}</span>
+                    <span className="text-xs font-bold text-neutral-300">{label}</span>
                 </div>
                 {isCritical && <AlertTriangle size={14} className="text-red-500" />}
             </div>
 
-            <div className={`text-2xl font-black mb-1 ${isCritical ? 'text-red-500' : 'text-white'}`}>
+            <div className={`text-2xl font-bold mb-1 ${isCritical ? 'text-red-500' : 'text-white'}`}>
                 {isUnlimited
-                    ? <span className="flex items-center gap-1.5">{used} <span className="text-xs text-slate-500 font-medium">/ ∞</span></span>
-                    : <span>{used} <span className="text-sm font-medium text-slate-500">/ {limit}</span></span>
+                    ? <span className="flex items-center gap-1.5">{used} <span className="text-xs text-ink-muted font-medium">/ ∞</span></span>
+                    : <span>{used} <span className="text-sm font-medium text-ink-muted">/ {limit}</span></span>
                 }
             </div>
 
@@ -102,9 +102,9 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
             ) : (
                 <>
                     <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden mb-1.5 mt-2">
-                        <div style={{ width: `${pct}%`, backgroundColor: barColor }} className="h-full rounded-full transition-all duration-700" />
+                        <div style={{ width: `${pct}%`, backgroundColor: barColor }} className="h-full rounded-full transition-all duration-slower" />
                     </div>
-                    <div className={`text-2xs font-bold ${isCritical ? 'text-red-500' : 'text-slate-500'} uppercase tracking-wider`}>
+                    <div className={`text-2xs font-bold ${isCritical ? 'text-red-500' : 'text-ink-muted'} uppercase tracking-wider`}>
                         {pct}% used
                     </div>
                 </>
@@ -190,7 +190,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 
     return (
         <div 
-            className={`relative p-6 rounded-3xl border transition-all duration-300 ${
+            className={`relative p-6 rounded-2xl border transition-all duration-slow ${
                 isCurrent 
                 ? 'bg-purple-950/10 border-purple-500/35 shadow-[0_0_30px_rgba(168,85,247,0.06)]' 
                 : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.035] hover:border-white/10'
@@ -198,13 +198,13 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
         >
             {isCurrent && (
                 <div 
-                    className="absolute -top-3 left-6 px-3 py-1 rounded-full text-2xs font-black tracking-widest text-white bg-purple-600"
+                    className="absolute -top-3 left-6 px-3 py-1 rounded-full text-2xs font-bold tracking-widest text-white bg-purple-600"
                 >
                     CURRENT PLAN
                 </div>
             )}
             {savingsNote && (
-                <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-2xs font-black tracking-widest text-white bg-emerald-600">
+                <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-2xs font-bold tracking-widest text-white bg-emerald-600">
                     {savingsNote}
                 </div>
             )}
@@ -218,7 +218,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
                     <div className="text-sm font-bold mt-1" style={{ color: meta.color }}>
                         {displayMonthly}
                         {displayAnnualNote && (
-                            <span className="text-2xs text-slate-500 font-semibold block mt-0.5">
+                            <span className="text-2xs text-ink-muted font-semibold block mt-0.5">
                                 {displayAnnualNote}
                             </span>
                         )}
@@ -239,8 +239,8 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
                         <div key={f.key} className="flex items-center gap-3 text-xs">
                             {enabled
                                 ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                                : <XCircle size={14} className="text-slate-600 shrink-0" />}
-                            <span className={`font-medium ${enabled ? 'text-slate-300' : 'text-slate-500 line-through opacity-50'}`}>
+                                : <XCircle size={14} className="text-ink-secondary shrink-0" />}
+                            <span className={`font-medium ${enabled ? 'text-neutral-300' : 'text-ink-muted line-through opacity-50'}`}>
                                 {f.label}
                                 {typeof val === 'number' ? `: ${val}` : ''}
                                 {val === null ? ': Unlimited' : ''}
@@ -255,26 +255,26 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
                     <button
                         onClick={() => onCheckout?.(planKey, checkoutCycle, currencyDisplay)}
                         disabled={isCheckingOut}
-                        className="w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white shadow-lg shadow-purple-500/10"
+                        className="w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white shadow-lg "
                     >
                         {isCheckingOut ? 'Opening secure checkout…' : <>Activate Subscription <ArrowRight size={16} /></>}
                     </button>
                 ) : (
-                    <div className="text-center py-3 text-xs font-black text-purple-400 uppercase tracking-widest bg-purple-500/5 border border-purple-500/10 rounded-2xl flex items-center justify-center gap-2">
+                    <div className="text-center py-3 text-xs font-bold text-purple-400 uppercase tracking-widest bg-purple-500/5 border border-purple-500/10 rounded-2xl flex items-center justify-center gap-2">
                         <CheckCircle2 size={14} /> Active Plan
                     </div>
                 )
             ) : isLtd ? (
-                <div className="text-center py-3 text-xs font-black text-slate-500 uppercase tracking-widest bg-white/5 rounded-2xl">
+                <div className="text-center py-3 text-xs font-bold text-ink-muted uppercase tracking-widest bg-white/5 rounded-2xl">
                     Lifetime Supporter
                 </div>
             ) : (
                 <button
                     onClick={() => onSelectPlan(planKey)}
-                    className={`w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 ${
+                    className={`w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 ${
                         thisIdx > currentIdx
-                        ? 'bg-white text-void-950 hover:bg-slate-100'
-                        : 'border border-slate-700 hover:border-slate-500 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-white text-void-950 hover:bg-interactive-hover'
+                        : 'border border-neutral-700 hover:border-line-strong text-neutral-300 hover:bg-interactive-hover'
                     }`}
                 >
                     {thisIdx > currentIdx ? `Upgrade to ${meta.label}` : `Downgrade to ${meta.label}`} <ArrowRight size={16} />
@@ -1016,7 +1016,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                 {/* View-Only Mode Warning Banner */}
                 {isViewOnly && (
-                    <div className="mb-8 p-6 rounded-[2rem] bg-gradient-to-r from-red-900/80 via-red-950 to-black border border-red-500/30 shadow-2xl relative overflow-hidden">
+                    <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-red-900/80 via-red-950 to-black border border-red-500/30 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
                         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="flex items-start gap-4">
@@ -1024,8 +1024,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     <AlertTriangle size={24} className="text-red-400" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-white leading-none mb-2">View-Only Mode Active</h2>
-                                    <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                                    <h2 className="text-xl font-bold text-white leading-none mb-2">View-Only Mode Active</h2>
+                                    <p className="text-xs text-neutral-300 max-w-xl leading-relaxed">
                                         Your evaluation period or subscription has expired. You can view reports and download your database backup, but writing transactions and inventory is locked. 
                                         <span className="text-red-400 font-bold block mt-1">Your store data will be permanently deleted in {viewOnlyDaysLeft} days if you do not subscribe.</span>
                                     </p>
@@ -1040,7 +1040,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 </button>
                                 <button
                                     onClick={() => handleSelectPlan('growth')}
-                                    className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-colors whitespace-nowrap"
+                                    className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap"
                                 >
                                     Activate Store Now
                                 </button>
@@ -1050,15 +1050,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 )}
 
                 {/* Header Profile Summary */}
-                <div className={`mb-8 p-6 md:p-8 rounded-[2.5rem] border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-void-950 border-white/[0.06]`}>
+                <div className={`mb-8 p-6 md:p-8 rounded-2xl border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-void-950 border-white/[0.06]`}>
                     <div className="flex items-center gap-5 relative z-10">
-                        <div className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-lg" style={{ background: currentMeta.color + '15' }}>
+                        <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg" style={{ background: currentMeta.color + '15' }}>
                             <currentMeta.Icon size={32} color={currentMeta.color} />
                         </div>
                         <div>
-                            <div className="text-2xs font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Active Plan</div>
-                            <div className="text-2xl font-black text-white">{currentMeta.label}</div>
-                            <div className="text-xs font-bold text-slate-400 mt-1">
+                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-[0.2em] mb-1">Active Plan</div>
+                            <div className="text-2xl font-bold text-white">{currentMeta.label}</div>
+                            <div className="text-xs font-bold text-ink-muted mt-1">
                                 {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)`
                                     : tenant?.status === 'suspended' ? 'Trial Expired / Suspended'
                                     : isTrial ? (trialDaysLeft !== null
@@ -1075,7 +1075,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 had the subscription on trial. */}
                             {isTrial && !isViewOnly && trialDaysLeft !== null && (
                                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span className={`text-1xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                    <span className={`text-1xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                                         trialDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
                                         : trialDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
                                         : 'bg-purple-500/10 text-purple-300'
@@ -1084,7 +1084,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     </span>
                                     <button
                                         onClick={() => setActiveTab('payments')}
-                                        className="text-1xs font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
+                                        className="text-1xs font-bold text-ink-muted hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
                                     >
                                         View payment history
                                     </button>
@@ -1097,7 +1097,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 here to proof of payment. */}
                             {!isTrial && !isLtd && !isViewOnly && subDaysLeft !== null && (
                                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span className={`text-1xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                    <span className={`text-1xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                                         subDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
                                         : subDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
                                         : 'bg-emerald-500/10 text-emerald-400'
@@ -1106,7 +1106,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     </span>
                                     <button
                                         onClick={() => setActiveTab('payments')}
-                                        className="text-1xs font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
+                                        className="text-1xs font-bold text-ink-muted hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
                                     >
                                         View payment history
                                     </button>
@@ -1138,7 +1138,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 {isTrial && (
                                     <button
                                         onClick={handleCancelTrial}
-                                        className="px-4 py-3 bg-transparent hover:bg-white/[0.04] text-slate-400 hover:text-white rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
+                                        className="px-4 py-3 bg-transparent hover:bg-white/[0.04] text-ink-muted hover:text-white rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
                                     >
                                         Cancel Trial
                                     </button>
@@ -1146,7 +1146,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <button
                                     disabled={checkoutBusy === currentPlanKey}
                                     onClick={() => handlePlanCheckout(currentPlanKey, billingCycle, currencyDisplay)}
-                                    className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+                                    className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
                                 >
                                     <Zap size={14} className="fill-white" />
                                     {checkoutBusy === currentPlanKey ? 'Opening…' : 'Pay Now'}
@@ -1176,7 +1176,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 href={history.subscription.update_card_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-300 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
+                                className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-neutral-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
                             >
                                 <CreditCard size={14} /> Update Card
                             </a>
@@ -1189,7 +1189,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         {confirmedPaying && !isLtd && !isViewOnly && !history?.subscription?.is_cancelled && (
                             <button
                                 onClick={() => setCancelOpen(true)}
-                                className="px-4 py-3 bg-transparent hover:bg-red-500/10 text-slate-500 hover:text-red-400 rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
+                                className="px-4 py-3 bg-transparent hover:bg-red-500/10 text-ink-muted hover:text-red-400 rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
                             >
                                 Cancel Subscription
                             </button>
@@ -1200,7 +1200,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <button
                                 onClick={submitResumeSubscription}
                                 disabled={resumeBusy}
-                                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-wait text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+                                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
                             >
                                 <RefreshCw size={14} className={resumeBusy ? 'animate-spin' : ''} />
                                 {resumeBusy ? 'Resuming…' : 'Resume Subscription'}
@@ -1219,13 +1219,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 onClick={() => runSubscriptionSync()}
                                 disabled={isSyncing}
                                 title="Already paid but your plan hasn't updated? Click to re-check with Lemon Squeezy."
-                                className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-slate-400 hover:text-white font-bold text-xs transition-all flex items-center gap-2 whitespace-nowrap"
+                                className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-ink-muted hover:text-white font-bold text-xs transition-all flex items-center gap-2 whitespace-nowrap"
                             >
                                 <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
                                 {isSyncing ? 'Checking…' : 'Already Paid?'}
                             </button>
                         )}
-                        <div className="px-5 py-2 rounded-full font-black text-xs tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 text-purple-300">
+                        <div className="px-5 py-2 rounded-full font-bold text-xs tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 text-purple-300">
                             {currentPlanKey}
                         </div>
                     </div>
@@ -1237,15 +1237,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         <div className="flex items-center gap-3">
                             <AlertTriangle className="text-amber-400 shrink-0" size={20} />
                             <div>
-                                <h4 className="text-xs font-black text-white uppercase tracking-wider">Scheduled Downgrade Pending</h4>
-                                <p className="text-xs text-slate-300 mt-1">
+                                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Scheduled Downgrade Pending</h4>
+                                <p className="text-xs text-neutral-300 mt-1">
                                     Your plan is scheduled to downgrade to <span className="font-bold text-amber-300 uppercase">{tenant.plan_limits.pending_downgrade.plan}</span> on <span className="font-bold text-white">{new Date(tenant.plan_limits.pending_downgrade.effective_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>.
                                 </p>
                             </div>
                         </div>
                         <button
                             onClick={handleCancelDowngrade}
-                            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-xl text-xs font-black uppercase tracking-wider transition-colors whitespace-nowrap"
+                            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-xl text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
                         >
                             Cancel Downgrade
                         </button>
@@ -1269,10 +1269,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-6 py-4 text-xs font-black uppercase tracking-wider border-b-2 transition-all whitespace-nowrap
+                                className={`flex items-center gap-2 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all whitespace-nowrap
                                     ${isActive 
                                         ? 'border-purple-500 text-white' 
-                                        : 'border-transparent text-slate-500 hover:text-slate-300'
+                                        : 'border-transparent text-ink-muted hover:text-neutral-300'
                                     }`}
                             >
                                 <TabIcon size={14} /> {tab.label}
@@ -1295,7 +1295,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                         {/* Usage meters */}
                         <div>
-                            <div className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
+                            <div className="text-xs font-bold text-ink-muted uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
                                  <BarChart2 size={16} /> Plan Resource Usage
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1319,13 +1319,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                         {/* Upgrade Options */}
                         <div className="pt-6">
-                            <div className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">
+                            <div className="text-xs font-bold text-ink-muted uppercase tracking-[0.3em] mb-6 text-center">
                                 {isLtd ? 'Your Early Supporter Perks' : '🚀 Scale your system as you grow'}
                             </div>
 
                             {/* Pakistan Regional Pricing Unlocked Banner */}
                             {isPK && (
-                                <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-slate-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
+                                <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-neutral-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
                                     <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
                                     
                                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
@@ -1335,15 +1335,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="px-2.5 py-0.5 rounded-full text-2xs font-black uppercase tracking-widest bg-emerald-500 text-black">
+                                                    <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-widest bg-emerald-500 text-black">
                                                         SPECIAL GIFT UNLOCKED 🎁
                                                     </span>
                                                     <span className="text-xs font-bold text-emerald-400">Exclusive Regional Pricing</span>
                                                 </div>
-                                                <h3 className="text-base font-black text-white tracking-tight">
+                                                <h3 className="text-base font-bold text-white tracking-tight">
                                                     Special Pakistan Business Subsidized Rates Active!
                                                 </h3>
-                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                <p className="text-xs text-ink-muted mt-0.5">
                                                     Because you operate in Pakistan, we have unlocked special subsidized local PKR rates for your business.
                                                 </p>
                                             </div>
@@ -1352,20 +1352,20 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 shrink-0">
                                             <button
                                                 onClick={() => setCurrencyDisplay('PKR')}
-                                                className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                                className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
                                                     currencyDisplay === 'PKR'
-                                                        ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
-                                                        : 'text-slate-400 hover:text-white'
+                                                        ? 'bg-emerald-500 text-black shadow-lg  scale-[1.02]'
+                                                        : 'text-ink-muted hover:text-white'
                                                 }`}
                                             >
                                                 🇵🇰 Subsidized PKR Price
                                             </button>
                                             <button
                                                 onClick={() => setCurrencyDisplay('USD')}
-                                                className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                                className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
                                                     currencyDisplay === 'USD'
-                                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 scale-[1.02]'
-                                                        : 'text-slate-400 hover:text-white'
+                                                        ? 'bg-brand-600 text-white shadow-lg  scale-[1.02]'
+                                                        : 'text-ink-muted hover:text-white'
                                                 }`}
                                             >
                                                 🌐 Global USD Price
@@ -1381,24 +1381,24 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.07]">
                                         <button
                                             onClick={() => setBillingCycle('monthly')}
-                                            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                                            className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                                                 billingCycle === 'monthly'
                                                     ? 'bg-white text-void-950 shadow-md'
-                                                    : 'text-slate-400 hover:text-white'
+                                                    : 'text-ink-muted hover:text-white'
                                             }`}
                                         >
                                             Monthly
                                         </button>
                                         <button
                                             onClick={() => setBillingCycle('annual')}
-                                            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+                                            className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
                                                 billingCycle === 'annual'
                                                     ? 'bg-emerald-600 text-white shadow-md'
-                                                    : 'text-slate-400 hover:text-white'
+                                                    : 'text-ink-muted hover:text-white'
                                             }`}
                                         >
                                             Annual
-                                            <span className={`text-3xs px-1.5 py-0.5 rounded-full font-black ${
+                                            <span className={`text-3xs px-1.5 py-0.5 rounded-full font-bold ${
                                                 billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-400'
                                             }`}>SAVE ~17%</span>
                                         </button>
@@ -1455,13 +1455,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {activeTab === 'payments' && (
                     <div className="space-y-6 animate-fadeIn">
                         <div className="flex items-center justify-between flex-wrap gap-3">
-                            <h3 className="text-1xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <h3 className="text-1xs font-bold text-ink-muted uppercase tracking-[0.2em] flex items-center gap-2">
                                 <History size={14} /> Billing Period & Payments
                             </h3>
                             <button
                                 onClick={() => loadHistory(true)}
                                 disabled={historyLoading}
-                                className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-slate-400 hover:text-white font-bold text-xs transition-all flex items-center gap-2"
+                                className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-ink-muted hover:text-white font-bold text-xs transition-all flex items-center gap-2"
                             >
                                 <RefreshCw size={13} className={historyLoading ? 'animate-spin' : ''} />
                                 {historyLoading ? 'Loading…' : 'Refresh'}
@@ -1488,10 +1488,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 {history.subscription && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <BadgeCheck size={12} /> Status
                                             </div>
-                                            <div className="text-lg font-black text-white capitalize">
+                                            <div className="text-lg font-bold text-white capitalize">
                                                 {history.subscription.status_formatted || history.subscription.status || '—'}
                                             </div>
                                             {history.subscription.is_cancelled && (
@@ -1505,10 +1505,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         </div>
 
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Clock size={12} /> {history.subscription.is_cancelled ? 'Access Ends' : 'Next Charge'}
                                             </div>
-                                            <div className="text-lg font-black text-white">
+                                            <div className="text-lg font-bold text-white">
                                                 {fmtDay(history.subscription.expires_at)}
                                             </div>
                                             {history.subscription.days_until_expiry !== null && (
@@ -1523,22 +1523,22 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         </div>
 
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <CreditCard size={12} /> Payment Method
                                             </div>
-                                            <div className="text-lg font-black text-white">
+                                            <div className="text-lg font-bold text-white">
                                                 {history.subscription.card || 'Not on file'}
                                             </div>
                                         </div>
 
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Receipt size={12} /> Total Paid
                                             </div>
-                                            <div className="text-lg font-black text-white">
+                                            <div className="text-lg font-bold text-white">
                                                 {history.lifetime_usd || '$0.00'}
                                             </div>
-                                            <div className="text-1xs font-bold text-slate-500 mt-1">
+                                            <div className="text-1xs font-bold text-ink-muted mt-1">
                                                 {history.invoice_count} {history.invoice_count === 1 ? 'invoice' : 'invoices'}
                                             </div>
                                         </div>
@@ -1553,13 +1553,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
                                         <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                                         <span>
-                                            Lemon Squeezy reports this subscription as{' '}
+                                            Lemon Squeezy reports this subscription as{''}
                                             <span className="font-bold">{history.subscription?.status_formatted || lsStatus}</span>,
-                                            but this store is saved locally as{' '}
+                                            but this store is saved locally as{''}
                                             <span className="font-bold">{tenant?.status}</span>.
                                             {lsIsTrialling
                                                 ? ' No payment has been taken yet — Pay Now is available above.'
-                                                : ' Lemon Squeezy is correct.'}{' '}
+                                                : ' Lemon Squeezy is correct.'}{''}
                                             Click <span className="font-bold">Already Paid?</span> to re-sync the record.
                                         </span>
                                     </div>
@@ -1575,7 +1575,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         <span>
                                             This subscription is in a Lemon&nbsp;Squeezy free-trial period, so the
                                             first invoice is <span className="font-bold">$0.00</span>. The first real
-                                            charge happens on{' '}
+                                            charge happens on{''}
                                             <span className="font-bold">{fmtDay(history.subscription?.expires_at)}</span>.
                                         </span>
                                     </div>
@@ -1606,8 +1606,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                                 {history.message && (
                                     <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-center">
-                                        <Receipt size={28} className="mx-auto text-slate-600 mb-3" />
-                                        <p className="text-xs font-bold text-slate-400">{history.message}</p>
+                                        <Receipt size={28} className="mx-auto text-ink-secondary mb-3" />
+                                        <p className="text-xs font-bold text-ink-muted">{history.message}</p>
                                     </div>
                                 )}
 
@@ -1619,7 +1619,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                 <thead>
                                                     <tr className="border-b border-white/[0.06]">
                                                         {['Paid On', 'Period Covered', 'Days', 'Amount', 'Credit Applied', 'Status', ''].map(h => (
-                                                            <th key={h} className="px-5 py-3.5 text-2xs font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                                                            <th key={h} className="px-5 py-3.5 text-2xs font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap">
                                                                 {h}
                                                             </th>
                                                         ))}
@@ -1629,49 +1629,49 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                     {history.invoices.map(inv => (
                                                         <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
                                                             <td className="px-5 py-4 whitespace-nowrap">
-                                                                <div className="text-xs font-black text-white">{fmtDay(inv.paid_at)}</div>
-                                                                <div className="text-2xs font-bold text-slate-500 capitalize mt-0.5">
+                                                                <div className="text-xs font-bold text-white">{fmtDay(inv.paid_at)}</div>
+                                                                <div className="text-2xs font-bold text-ink-muted capitalize mt-0.5">
                                                                     {inv.billing_reason === 'initial' ? 'First payment'
                                                                         : inv.billing_reason === 'renewal' ? 'Renewal'
                                                                         : inv.billing_reason === 'updated' ? 'Plan change'
                                                                         : inv.billing_reason}
                                                                 </div>
                                                             </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap text-xs font-bold text-slate-300">
+                                                            <td className="px-5 py-4 whitespace-nowrap text-xs font-bold text-neutral-300">
                                                                 {inv.period_end
                                                                     ? `${fmtDay(inv.period_start)} → ${fmtDay(inv.period_end)}`
                                                                     : fmtDay(inv.period_start)}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
                                                                 {inv.period_days !== null ? (
-                                                                    <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 text-1xs font-black">
+                                                                    <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 text-1xs font-bold">
                                                                         {inv.period_days} days
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-1xs font-bold text-slate-600">—</span>
+                                                                    <span className="text-1xs font-bold text-ink-secondary">—</span>
                                                                 )}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
-                                                                <div className="text-xs font-black text-white">{inv.total}</div>
+                                                                <div className="text-xs font-bold text-white">{inv.total}</div>
                                                                 {inv.has_discount && (
-                                                                    <div className="text-2xs font-bold text-slate-500 mt-0.5 line-through">
+                                                                    <div className="text-2xs font-bold text-ink-muted mt-0.5 line-through">
                                                                         {inv.subtotal}
                                                                     </div>
                                                                 )}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
                                                                 {inv.has_discount ? (
-                                                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-1xs font-black flex items-center gap-1 w-fit">
+                                                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-1xs font-bold flex items-center gap-1 w-fit">
                                                                         <Zap size={10} className="fill-emerald-400" /> −{inv.discount_total}
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-1xs font-bold text-slate-600">—</span>
+                                                                    <span className="text-1xs font-bold text-ink-secondary">—</span>
                                                                 )}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
-                                                                <span className={`px-2.5 py-1 rounded-lg text-1xs font-black border ${
+                                                                <span className={`px-2.5 py-1 rounded-lg text-1xs font-bold border ${
                                                                     inv.refunded || inv.status === 'refunded'
-                                                                        ? 'bg-slate-500/10 border-slate-500/20 text-slate-400'
+                                                                        ? 'bg-neutral-500/10 border-line-strong text-ink-muted'
                                                                         : inv.status === 'paid'
                                                                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                                                         : inv.status === 'pending'
@@ -1687,7 +1687,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                                         href={inv.invoice_url}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-400 hover:text-white text-1xs font-bold transition-all"
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-ink-muted hover:text-white text-1xs font-bold transition-all"
                                                                     >
                                                                         <FileText size={11} /> Invoice
                                                                     </a>
@@ -1701,7 +1701,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     </div>
                                 )}
 
-                                <p className="text-2xs font-bold text-slate-600 text-center">
+                                <p className="text-2xs font-bold text-ink-secondary text-center">
                                     Read live from Lemon Squeezy · updated {history.fetched_at ? new Date(history.fetched_at).toLocaleTimeString() : '—'}
                                 </p>
                             </>
@@ -1711,12 +1711,12 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                 {activeTab === 'extra_features' && (
                     <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.06]">
+                        <div className="p-6 md:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                             <div className="flex items-center gap-3 mb-2">
                                 <Lock className="text-purple-400" size={24} />
-                                <h3 className="text-lg font-black text-white">Extra Features Control</h3>
+                                <h3 className="text-lg font-bold text-white">Extra Features Control</h3>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed mb-8 max-w-xl">
+                            <p className="text-xs text-ink-muted leading-relaxed mb-8 max-w-xl">
                                 If you have configured features that are not included in your current plan, you can deactivate/remove them here to restore normal operations. Alternatively, upgrade your plan to unlock full access.
                             </p>
 
@@ -1726,7 +1726,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     return (
                                         <div 
                                             key={feat.key} 
-                                            className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                                            className={`p-5 rounded-2xl border transition-all duration-slow flex flex-col md:flex-row md:items-center justify-between gap-4 ${
                                                 feat.is_active && feat.is_locked
                                                 ? 'bg-red-500/[0.02] border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.03)]'
                                                 : feat.is_active
@@ -1736,7 +1736,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         >
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="text-sm font-black text-white">{feat.name}</span>
+                                                    <span className="text-sm font-bold text-white">{feat.name}</span>
                                                     
                                                     {feat.is_active && feat.is_locked && (
                                                         <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
@@ -1749,17 +1749,17 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                         </span>
                                                     )}
                                                     {!feat.is_active && feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-neutral-800 text-ink-muted border border-neutral-700">
                                                             Locked (Upgrade to unlock)
                                                         </span>
                                                     )}
                                                     {!feat.is_active && !feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-slate-800 text-emerald-400 border border-slate-700">
+                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-neutral-800 text-emerald-400 border border-neutral-700">
                                                             Available
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-slate-400 mt-2 leading-relaxed max-w-xl">{feat.description}</p>
+                                                <p className="text-xs text-ink-muted mt-2 leading-relaxed max-w-xl">{feat.description}</p>
                                             </div>
 
                                             <div className="flex items-center gap-3 self-end md:self-center">
@@ -1774,16 +1774,16 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                 {feat.is_locked && (
                                                     <button
                                                         onClick={() => handleSelectPlan(targetPlan)}
-                                                        className="px-4 py-2 bg-white text-void-950 hover:bg-slate-100 rounded-xl font-black text-xs uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md"
+                                                        className="px-4 py-2 bg-white text-void-950 hover:bg-interactive-hover rounded-xl font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md"
                                                     >
                                                         <Sparkles size={12} /> Keep & Upgrade
                                                     </button>
                                                 )}
                                                 {!feat.is_locked && feat.is_active && (
-                                                    <span className="text-xs font-semibold text-slate-500">Configured & Healthy</span>
+                                                    <span className="text-xs font-semibold text-ink-muted">Configured & Healthy</span>
                                                 )}
                                                 {!feat.is_locked && !feat.is_active && (
-                                                    <span className="text-xs font-semibold text-slate-500">Not Configured</span>
+                                                    <span className="text-xs font-semibold text-ink-muted">Not Configured</span>
                                                 )}
                                             </div>
                                         </div>
@@ -1797,34 +1797,34 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {/* TAB CONTENT 3: AI & SYNC ADD-ONS */}
                 {activeTab === 'addons' && (
                     <div className="space-y-8 animate-fadeIn">
-                        <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.06]">
+                        <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                             <div className="flex items-center gap-3 mb-4">
                                 <Cpu className="text-purple-400" size={24} />
-                                <h3 className="text-lg font-black text-white">AI Engine Add-on</h3>
+                                <h3 className="text-lg font-bold text-white">AI Engine Add-on</h3>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                            <p className="text-xs text-ink-muted leading-relaxed mb-6">
                                 Supercharge your store with AI-powered scanning (SmartCapture) and interactive assistant tools. Every store starts with 10 free credits to test out the capabilities.
                             </p>
 
                             {/* Status Card & Progress */}
-                            <div className="p-5 rounded-2xl bg-slate-950/40 border border-white/[0.05] mb-8">
+                            <div className="p-5 rounded-2xl bg-neutral-950/40 border border-white/[0.05] mb-8">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
-                                        <span className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Active Level</span>
-                                        <div className="text-2xl font-black text-white mt-1 capitalize">
+                                        <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Active Level</span>
+                                        <div className="text-2xl font-bold text-white mt-1 capitalize">
                                             {tenant?.ai_status === 'none' ? 'Free Starter Tier (10 Credits)' : tenant?.ai_status}
                                         </div>
                                     </div>
 
                                     {tenant?.ai_status === 'none' && (
                                         <div className="flex-1 max-w-xs">
-                                            <div className="flex justify-between text-xs text-slate-400 mb-1">
+                                            <div className="flex justify-between text-xs text-ink-muted mb-1">
                                                 <span>Free Pages Used:</span>
                                                 <span className="font-bold text-white">{(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / 10</span>
                                             </div>
                                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                                                 <div 
-                                                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500" 
+                                                    className="h-full bg-gradient-to-r from-purple-500 to-brand-500 transition-all duration-slower" 
                                                     style={{ width: `${Math.min(100, (((tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)) / 10) * 100)}%` }}
                                                 />
                                             </div>
@@ -1834,14 +1834,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     {tenant?.ai_status === 'managed' && (
                                         <div className="flex gap-4">
                                             <div className="text-right">
-                                                <div className="text-2xs text-slate-500 font-bold uppercase">Pages</div>
-                                                <div className="text-sm font-black text-white">
+                                                <div className="text-2xs text-ink-muted font-bold uppercase">Pages</div>
+                                                <div className="text-sm font-bold text-white">
                                                     {(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / {(tenant?.ai_pages_limit ?? tenant?.plan_limits?.ai_pages_limit ?? 500)}
                                                 </div>
                                             </div>
                                             <div className="text-right border-l border-white/10 pl-4">
-                                                <div className="text-2xs text-slate-500 font-bold uppercase">Queries</div>
-                                                <div className="text-sm font-black text-white">
+                                                <div className="text-2xs text-ink-muted font-bold uppercase">Queries</div>
+                                                <div className="text-sm font-bold text-white">
                                                     {(tenant?.ai_queries_used ?? tenant?.plan_limits?.ai_queries_used ?? 0)} / {(tenant?.ai_queries_limit ?? tenant?.plan_limits?.ai_queries_limit ?? 2500)}
                                                 </div>
                                             </div>
@@ -1857,7 +1857,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             </div>
 
                             {/* Upgrade Options Header */}
-                            <h4 className="text-sm font-black text-white mb-4 flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                                 <Sparkles size={16} className="text-amber-400" /> Choose Your Upgrade Path
                             </h4>
 
@@ -1869,10 +1869,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                                 Bring Your Own Key
                                             </span>
-                                            <div className="text-xl font-black text-white">$5 <span className="text-xs font-normal text-slate-400">once</span></div>
+                                            <div className="text-xl font-bold text-white">$5 <span className="text-xs font-normal text-ink-muted">once</span></div>
                                         </div>
-                                        <h5 className="text-sm font-black text-white mb-2">Lifetime BYOK License</h5>
-                                        <p className="text-1xs text-slate-400 leading-relaxed">
+                                        <h5 className="text-sm font-bold text-white mb-2">Lifetime BYOK License</h5>
+                                        <p className="text-1xs text-ink-muted leading-relaxed">
                                             Bypass platform scanning fees forever. Provide your own API keys for Gemini, Claude, OpenAI, or DeepSeek and pay nothing else.
                                         </p>
                                     </div>
@@ -1885,7 +1885,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             <button
                                                 onClick={() => handlePurchaseAddon('ai_byok')}
                                                 disabled={isPurchasingAddon !== null}
-                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-void-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-void-950 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
                                             >
                                                 {isPurchasingAddon === 'ai_byok' ? <Loader2 size={14} className="animate-spin" /> : 'Buy BYOK Unlock'}
                                             </button>
@@ -1900,10 +1900,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
                                                 Managed API
                                             </span>
-                                            <span className="text-xs text-slate-400">Monthly Subscriptions</span>
+                                            <span className="text-xs text-ink-muted">Monthly Subscriptions</span>
                                         </div>
-                                        <h5 className="text-sm font-black text-white mb-2">Managed AI Subscriptions</h5>
-                                        <p className="text-1xs text-slate-400 leading-relaxed mb-4">
+                                        <h5 className="text-sm font-bold text-white mb-2">Managed AI Subscriptions</h5>
+                                        <p className="text-1xs text-ink-muted leading-relaxed mb-4">
                                             No developer keys or setup required. Use our fast platform credentials directly. Pick the tier that matches your monthly volume:
                                         </p>
 
@@ -1915,10 +1915,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                     className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-purple-500/30 hover:bg-purple-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
                                                 >
                                                     <div className="flex justify-between items-center mb-1">
-                                                        <span className="text-xs font-black text-white group-hover:text-purple-300 transition-colors">AI {tier.name || key.toUpperCase()}</span>
-                                                        <span className="text-xs font-black text-purple-400">${tier.price_monthly}</span>
+                                                        <span className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">AI {tier.name || key.toUpperCase()}</span>
+                                                        <span className="text-xs font-bold text-purple-400">${tier.price_monthly}</span>
                                                     </div>
-                                                    <div className="text-3xs text-slate-500">
+                                                    <div className="text-3xs text-ink-muted">
                                                         {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
                                                     </div>
                                                 </div>
@@ -1930,18 +1930,18 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         </div>
 
                         {/* Synchronizations Sync Section */}
-                        <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.06]">
+                        <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                             <div className="flex items-center gap-3 mb-4">
-                                <Globe2 className="text-indigo-400" size={24} />
-                                <h3 className="text-lg font-black text-white">Platform Sync Channels</h3>
+                                <Globe2 className="text-brand-400" size={24} />
+                                <h3 className="text-lg font-bold text-white">Platform Sync Channels</h3>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                            <p className="text-xs text-ink-muted leading-relaxed mb-6">
                                 Keep your inventory in sync with WooCommerce and other platforms automatically.
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="p-5 rounded-2xl bg-slate-950/40 border border-white/[0.05]">
-                                    <span className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Subscribed Channels</span>
+                                <div className="p-5 rounded-2xl bg-neutral-950/40 border border-white/[0.05]">
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Subscribed Channels</span>
                                     <div className="space-y-2 mt-3">
                                         {tenant?.sync_channels && tenant.sync_channels.length > 0 ? (
                                             tenant.sync_channels.map(ch => (
@@ -1951,16 +1951,16 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-xs text-slate-500">No active sync channels.</div>
+                                            <div className="text-xs text-ink-muted">No active sync channels.</div>
                                         )}
                                     </div>
                                 </div>
 
                                 <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
                                     <div>
-                                        <span className="text-2xs font-bold text-indigo-400 uppercase tracking-widest">Platform Sync</span>
-                                        <h4 className="text-sm font-black text-white mt-1">WooCommerce Sync Add-on</h4>
-                                        <p className="text-1xs text-slate-500 mt-2 leading-relaxed">
+                                        <span className="text-2xs font-bold text-brand-400 uppercase tracking-widest">Platform Sync</span>
+                                        <h4 className="text-sm font-bold text-white mt-1">WooCommerce Sync Add-on</h4>
+                                        <p className="text-1xs text-ink-muted mt-2 leading-relaxed">
                                             Automatic inventory and order syncing with WooCommerce.
                                         </p>
                                     </div>
@@ -1973,7 +1973,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         ) : (
                                             <button
                                                 onClick={() => handlePurchaseAddon('sync_woocommerce')}
-                                                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                                                className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
                                             >
                                                 Subscribe to WooCommerce Sync ($10/mo)
                                             </button>
@@ -1984,8 +1984,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
                                     <div>
                                         <span className="text-2xs font-bold text-amber-400 uppercase tracking-widest">Marketplace Sync</span>
-                                        <h4 className="text-sm font-black text-white mt-1">Amazon SP-API Sync Add-on</h4>
-                                        <p className="text-1xs text-slate-500 mt-2 leading-relaxed">
+                                        <h4 className="text-sm font-bold text-white mt-1">Amazon SP-API Sync Add-on</h4>
+                                        <p className="text-1xs text-ink-muted mt-2 leading-relaxed">
                                             2-way stock, order, and FBA/FBM inventory sync with Amazon.
                                         </p>
                                     </div>
@@ -1998,7 +1998,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         ) : (
                                             <button
                                                 onClick={() => handlePurchaseAddon('sync_amazon')}
-                                                className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                                                className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
                                             >
                                                 Subscribe to Amazon Sync ($10/mo)
                                             </button>
@@ -2013,12 +2013,12 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {/* TAB CONTENT 4: ONBOARDING SERVICES */}
                 {activeTab === 'services' && (
                     <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-b from-slate-950 to-black border border-white/[0.06]">
+                        <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-b from-neutral-950 to-black border border-white/[0.06]">
                             <div className="flex items-center gap-3 mb-2">
                                 <Calendar className="text-purple-400" size={24} />
-                                <h3 className="text-lg font-black text-white">Professional Product Upload Service</h3>
+                                <h3 className="text-lg font-bold text-white">Professional Product Upload Service</h3>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed mb-8 max-w-xl">
+                            <p className="text-xs text-ink-muted leading-relaxed mb-8 max-w-xl">
                                 Let our catalog engineering team structure and upload your inventory. Use the calculator below to estimate the dynamic cost of importing your products.
                             </p>
 
@@ -2028,19 +2028,19 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     <button
                                         key={key}
                                         onClick={() => setSelectedService(key)}
-                                        className={`text-left p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between min-h-[140px]
+                                        className={`text-left p-5 rounded-2xl border transition-all duration-slow flex flex-col justify-between min-h-[140px]
                                             ${selectedService === key 
                                                 ? 'bg-purple-600/10 border-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.06)]' 
                                                 : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/10'
                                             }`}
                                     >
                                         <div>
-                                            <div className="text-white font-black text-sm">{tier.name}</div>
-                                            <div className="text-2xs text-slate-500 mt-1 leading-relaxed">{tier.desc}</div>
+                                            <div className="text-white font-bold text-sm">{tier.name}</div>
+                                            <div className="text-2xs text-ink-muted mt-1 leading-relaxed">{tier.desc}</div>
                                         </div>
                                         <div className="flex justify-between items-baseline mt-4 pt-3 border-t border-white/[0.04] w-full">
                                             <span className="text-2xs text-purple-400 font-semibold">{tier.sla}</span>
-                                            <span className="text-white font-black text-sm">{fmt(tier.priceUSD, tier.pricePKR)}<span className="text-2xs text-slate-500 font-medium">/ea</span></span>
+                                            <span className="text-white font-bold text-sm">{fmt(tier.priceUSD, tier.pricePKR)}<span className="text-2xs text-ink-muted font-medium">/ea</span></span>
                                         </div>
                                     </button>
                                 ))}
@@ -2050,7 +2050,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pt-6 border-t border-white/[0.06]">
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">How many products?</label>
+                                        <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">How many products?</label>
                                         <input
                                             type="number"
                                             placeholder="e.g. 100"
@@ -2060,7 +2060,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Average variants per product?</label>
+                                        <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Average variants per product?</label>
                                         <input
                                             type="number"
                                             placeholder="First 5 variants free (e.g. 8)"
@@ -2068,23 +2068,23 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             onChange={(e) => setCalcVariants(e.target.value)}
                                             className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-white text-sm outline-none focus:border-purple-500 transition-colors"
                                         />
-                                        <span className="text-3xs text-slate-500 mt-1 block">First 5 variants included. {fmt(serviceTier.extraUSD, serviceTier.extraPKR)} per block of 5 extra variants.</span>
+                                        <span className="text-3xs text-ink-muted mt-1 block">First 5 variants included. {fmt(serviceTier.extraUSD, serviceTier.extraPKR)} per block of 5 extra variants.</span>
                                     </div>
                                 </div>
 
                                 <div className="p-5 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col justify-between">
                                     <div>
-                                        <span className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Cost Estimate Details</span>
+                                        <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Cost Estimate Details</span>
                                         <div className="space-y-2 mt-4">
-                                            <div className="flex justify-between text-xs text-slate-400">
+                                            <div className="flex justify-between text-xs text-ink-muted">
                                                 <span>Tier Base Rate:</span>
                                                 <span className="text-white font-bold">{fmt(serviceTier.priceUSD, serviceTier.pricePKR)}</span>
                                             </div>
-                                            <div className="flex justify-between text-xs text-slate-400">
+                                            <div className="flex justify-between text-xs text-ink-muted">
                                                 <span>Extra Variant Surcharge:</span>
                                                 <span className="text-white font-bold">+{fmt(extraBlocks * serviceTier.extraUSD, extraBlocks * serviceTier.extraPKR)}</span>
                                             </div>
-                                            <div className="flex justify-between text-xs text-slate-400">
+                                            <div className="flex justify-between text-xs text-ink-muted">
                                                 <span>Final Price Per Product:</span>
                                                 <span className="text-white font-bold">{fmt(usdPricePerProduct, pkrPricePerProduct)}</span>
                                             </div>
@@ -2092,8 +2092,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     </div>
 
                                     <div className="pt-4 border-t border-white/[0.05] flex justify-between items-center mt-4">
-                                        <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Estimated Total</span>
-                                        <span className="text-2xl font-black text-purple-400">{fmt(usdTotalSetupCost, pkrTotalSetupCost)}</span>
+                                        <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Estimated Total</span>
+                                        <span className="text-2xl font-bold text-purple-400">{fmt(usdTotalSetupCost, pkrTotalSetupCost)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -2103,7 +2103,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <button
                                     onClick={handleOrderSetupService}
                                     disabled={calcProductsNum === 0 || isOrderingService}
-                                    className="px-8 py-3.5 bg-white text-void-950 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-50 disabled:shadow-none rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                                    className="px-8 py-3.5 bg-white text-void-950 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-50 disabled:shadow-none rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2"
                                 >
                                     {isOrderingService ? (
                                         <>
@@ -2122,7 +2122,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {/* TAB CONTENT 5: DESKTOP APPLICATION */}
                 {activeTab === 'desktop_app' && (
                     <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-b from-slate-950 to-black border border-white/[0.06] relative overflow-hidden">
+                        <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-b from-neutral-950 to-black border border-white/[0.06] relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
                             
                             <div className="flex items-start gap-4 mb-8">
@@ -2130,8 +2130,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     <Monitor className="text-purple-400" size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-black text-white">VenQore Station for Windows</h3>
-                                    <p className="text-xs text-slate-400 leading-relaxed mt-1 max-w-2xl">
+                                    <h3 className="text-lg font-bold text-white">VenQore Station for Windows</h3>
+                                    <p className="text-xs text-ink-muted leading-relaxed mt-1 max-w-2xl">
                                         VenQore Station is our native enterprise desktop application that acts as a direct hardware bridge to your registers. It enables raw receipt printing, automatic cash drawer kicks, barcode scanning, scale readings, and cashier security audits with focus-loss tracking.
                                     </p>
                                 </div>
@@ -2143,17 +2143,17 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <div className="p-6 rounded-2xl border border-white/[0.05] bg-white/[0.01] hover:border-purple-500/20 transition-all flex flex-col justify-between">
                                     <div>
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-sm font-black text-white">Windows Setup Installer</span>
+                                            <span className="text-sm font-bold text-white">Windows Setup Installer</span>
                                             <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">Official Build</span>
                                         </div>
-                                        <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                                        <p className="text-xs text-ink-muted leading-relaxed mb-6">
                                             Official setup installer. Establishes secure system directories, registers start menu entries, registers shell protocol endpoints, and supports silent auto-updates. Requires standard system installation to prevent unapproved cashier portable copies.
                                         </p>
                                     </div>
                                     <a
                                         href="/downloads/VenQore_Station_Setup.exe"
                                         download
-                                        className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-black uppercase tracking-widest text-center transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-purple-500/10"
+                                        className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest text-center transition-all flex items-center justify-center gap-2 shadow-lg hover:"
                                     >
                                         <Download size={14} /> Download Setup Installer (.exe)
                                     </a>
@@ -2162,7 +2162,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                             {/* Pairing and Quick Start Guide */}
                             <div className="pt-6 border-t border-white/[0.06]">
-                                <h4 className="text-xs font-black text-white uppercase tracking-wider mb-4">Quick Setup &amp; Pairing Instructions</h4>
+                                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Quick Setup &amp; Pairing Instructions</h4>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     {[
@@ -2172,11 +2172,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         { step: '4', title: 'Configure Hardware', desc: 'Click the Gear icon in the top notch bar to set receipt printers, scale baud rates, or exit passcodes.' },
                                     ].map((guide) => (
                                         <div key={guide.step} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.04]">
-                                            <div className="w-6 h-6 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-black text-xs mb-3">
+                                            <div className="w-6 h-6 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs mb-3">
                                                 {guide.step}
                                             </div>
                                             <h5 className="text-xs font-bold text-white mb-1">{guide.title}</h5>
-                                            <p className="text-2xs text-slate-400 leading-relaxed">{guide.desc}</p>
+                                            <p className="text-2xs text-ink-muted leading-relaxed">{guide.desc}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -2187,10 +2187,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                 {/* AppSumo Promo Banner */}
                 {false && (
-                    <div className="mt-16 p-6 rounded-3xl bg-white/[0.01] border border-white/[0.04] text-center">
-                        <p className="text-xs text-slate-500 font-medium">
-                            Have an AppSumo promo code? Redeem your codes at{' '}
-                            <a href="/redeem" className="text-purple-400 font-black underline decoration-2 underline-offset-4">
+                    <div className="mt-16 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.04] text-center">
+                        <p className="text-xs text-ink-muted font-medium">
+                            Have an AppSumo promo code? Redeem your codes at{''}
+                            <a href="/redeem" className="text-purple-400 font-bold underline decoration-2 underline-offset-4">
                                 /redeem
                             </a>.
                         </p>
@@ -2200,10 +2200,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
             {/* Change Plan Confirmation Modal */}
             <Modal show={isChangeModalOpen} onClose={() => setIsChangeModalOpen(false)} maxWidth="md">
-                <div className="relative overflow-hidden bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
+                <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
                     
-                    <h3 className="text-lg font-black tracking-tight flex items-center gap-2 mb-4">
+                    <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-4">
                         <Sparkles className="text-purple-400" size={20} />
                         Confirm Subscription {isUpgrade ? 'Upgrade' : 'Downgrade'}
                     </h3>
@@ -2212,21 +2212,21 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                     <div className="space-y-4 mb-6">
                         <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
                             <div className="text-center flex-1">
-                                <div className="text-2xs text-slate-500 font-bold uppercase tracking-wider">Current Plan</div>
-                                <div className="text-sm font-black mt-1 capitalize text-slate-300">{currentPlanKey}</div>
-                                <div className="text-xs text-slate-500 mt-0.5">{fmt(currentPriceUSD, currentPricePKR)}/mo</div>
+                                <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider">Current Plan</div>
+                                <div className="text-sm font-bold mt-1 capitalize text-neutral-300">{currentPlanKey}</div>
+                                <div className="text-xs text-ink-muted mt-0.5">{fmt(currentPriceUSD, currentPricePKR)}/mo</div>
                             </div>
-                            <ArrowRight className="text-slate-600 shrink-0" size={16} />
+                            <ArrowRight className="text-ink-secondary shrink-0" size={16} />
                             <div className="text-center flex-1">
                                 <div className="text-2xs text-purple-400 font-bold uppercase tracking-wider">New Plan</div>
-                                <div className="text-sm font-black mt-1 capitalize text-purple-300">{selectedPlan}</div>
+                                <div className="text-sm font-bold mt-1 capitalize text-purple-300">{selectedPlan}</div>
                                 <div className="text-xs text-purple-400 mt-0.5">{fmt(targetPriceUSD, targetPricePKR)}/mo</div>
                             </div>
                         </div>
 
                         {/* gained or lost features list */}
                         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                            <div className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-2">
+                            <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-2">
                                 {isUpgrade ? '🎁 Features You Will Unlock:' : '⚠️ Features You Will Lose after billing cycle:'}
                             </div>
                             <div className="space-y-2">
@@ -2237,25 +2237,25 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         ) : (
                                             <AlertTriangle size={12} className="text-amber-500 shrink-0 mt-0.5" />
                                         )}
-                                        <span className="text-slate-300">{feat}</span>
+                                        <span className="text-neutral-300">{feat}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
                         {/* Billing schedule description */}
-                        <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 text-xs leading-relaxed text-slate-300">
+                        <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 text-xs leading-relaxed text-neutral-300">
                             {isTrial ? (
                                 <p>
                                     Your store is currently in the **Evaluation Period**. Switching to the <span className="font-bold text-white capitalize">{selectedPlan}</span> trial is **free of charge** and will take effect immediately. Your free trial ends on <span className="text-white font-semibold">{tenant.trial_ends_at ? new Date(tenant.trial_ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>.
                                 </p>
                             ) : isUpgrade ? (
                                 <p>
-                                    Your upgrade takes effect **instantly**. Today you will only be charged a prorated surplus difference of <span className="text-emerald-400 font-black text-sm">{fmt(proratedEstUSD, proratedEstPKR)}</span> for the remaining <span className="text-white font-semibold">{remainingDays} days</span> of your current billing month. Starting <span className="text-white font-semibold">{nextBillingDateStr}</span>, you will be charged the full price of <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
+                                    Your upgrade takes effect **instantly**. Today you will only be charged a prorated surplus difference of <span className="text-emerald-400 font-bold text-sm">{fmt(proratedEstUSD, proratedEstPKR)}</span> for the remaining <span className="text-white font-semibold">{remainingDays} days</span> of your current billing month. Starting <span className="text-white font-semibold">{nextBillingDateStr}</span>, you will be charged the full price of <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
                                 </p>
                             ) : (
                                 <p>
-                                    Your downgrade is **scheduled** and will take effect on <span className="text-amber-400 font-black">{nextBillingDateStr}</span> at the end of your paid billing month. You will keep your current features and limits until then. Starting on that date, your plan will become <span className="text-white font-bold capitalize">{selectedPlan}</span>, and your monthly billing will drop to <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
+                                    Your downgrade is **scheduled** and will take effect on <span className="text-amber-400 font-bold">{nextBillingDateStr}</span> at the end of your paid billing month. You will keep your current features and limits until then. Starting on that date, your plan will become <span className="text-white font-bold capitalize">{selectedPlan}</span>, and your monthly billing will drop to <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
                                 </p>
                             )}
                         </div>
@@ -2264,15 +2264,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                     <div className="flex gap-3 justify-end">
                         <button
                             onClick={() => setIsChangeModalOpen(false)}
-                            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-semibold text-xs transition-colors"
+                            className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white font-semibold text-xs transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleConfirmPlanChange}
-                            className={`px-5 py-2.5 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all hover:shadow-lg ${
+                            className={`px-5 py-2.5 rounded-xl text-black font-bold text-xs uppercase tracking-wider transition-all hover:shadow-lg ${
                                 isUpgrade 
-                                ? 'bg-white hover:bg-slate-100'
+                                ? 'bg-white hover:bg-interactive-hover'
                                 : 'bg-amber-500 hover:bg-amber-400'
                             }`}
                         >
@@ -2290,41 +2290,41 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 server-side percentage that mints the real discount. */}
             <Modal show={!!pendingCreditSummary} onClose={() => setPendingCheckout(null)} maxWidth="md">
                 {pendingCreditSummary && (
-                    <div className="relative overflow-hidden bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
+                    <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
                         <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-                        <h3 className="text-lg font-black tracking-tight flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-2">
                             <Zap className="text-emerald-400 fill-emerald-400" size={20} />
                             You keep your {pendingCreditSummary.daysRemaining} free {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'}
                         </h3>
-                        <p className="text-xs text-slate-400 leading-relaxed mb-5">
+                        <p className="text-xs text-ink-muted leading-relaxed mb-5">
                             You still have {pendingCreditSummary.daysRemaining} unused {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'} of
-                            free trial. Rather than lose {pendingCreditSummary.daysRemaining === 1 ? 'it' : 'them'}, we take{' '}
+                            free trial. Rather than lose {pendingCreditSummary.daysRemaining === 1 ? 'it' : 'them'}, we take{''}
                             {pendingCreditSummary.percent}% off your first payment — the exact value of the time you have not used.
                         </p>
 
                         <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] divide-y divide-white/[0.05] mb-5">
                             <div className="flex items-center justify-between px-4 py-3">
-                                <span className="text-xs font-bold text-slate-400">
+                                <span className="text-xs font-bold text-ink-muted">
                                     {pendingCreditSummary.planLabel} — per {pendingCreditSummary.cycleLabel}
                                 </span>
-                                <span className="text-xs font-bold text-slate-300">{pendingCreditSummary.fullPrice}</span>
+                                <span className="text-xs font-bold text-neutral-300">{pendingCreditSummary.fullPrice}</span>
                             </div>
                             <div className="flex items-center justify-between px-4 py-3">
                                 <span className="text-xs font-bold text-emerald-400">
                                     Unused trial credit ({pendingCreditSummary.percent}%)
                                 </span>
-                                <span className="text-xs font-black text-emerald-400">− {pendingCreditSummary.creditAmount}</span>
+                                <span className="text-xs font-bold text-emerald-400">− {pendingCreditSummary.creditAmount}</span>
                             </div>
                             <div className="flex items-center justify-between px-4 py-3.5 bg-white/[0.02]">
-                                <span className="text-xs font-black uppercase tracking-wider text-white">Due today</span>
-                                <span className="text-lg font-black text-white">{pendingCreditSummary.dueToday}</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-white">Due today</span>
+                                <span className="text-lg font-bold text-white">{pendingCreditSummary.dueToday}</span>
                             </div>
                         </div>
 
-                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-xs leading-relaxed text-slate-300 mb-6">
+                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-xs leading-relaxed text-neutral-300 mb-6">
                             Your plan activates immediately and nothing about your access changes. Your next
-                            payment is the full <span className="text-white font-semibold">{pendingCreditSummary.fullPrice}</span> on{' '}
+                            payment is the full <span className="text-white font-semibold">{pendingCreditSummary.fullPrice}</span> on{''}
                             <span className="text-white font-semibold">{pendingCreditSummary.renewalDate}</span>, and every payment after
                             that renews normally. The credit applies once.
                         </div>
@@ -2332,7 +2332,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setPendingCheckout(null)}
-                                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-semibold text-xs transition-colors"
+                                className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white font-semibold text-xs transition-colors"
                             >
                                 Not yet
                             </button>
@@ -2342,7 +2342,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     pendingCheckout.cycle,
                                     pendingCheckout.currency
                                 )}
-                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-black font-black text-xs uppercase tracking-wider transition-all hover:shadow-lg"
+                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-interactive-hover text-black font-bold text-xs uppercase tracking-wider transition-all hover:shadow-lg"
                             >
                                 Pay {pendingCreditSummary.dueToday} now
                             </button>
@@ -2359,14 +2359,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 and prevents the support ticket asking for a refund of time
                 they never actually lost. */}
             <Modal show={cancelOpen} onClose={() => setCancelOpen(false)} maxWidth="md">
-                <div className="p-8 bg-slate-950 text-white">
+                <div className="p-8 bg-neutral-950 text-white">
                     <div className="flex items-center gap-3 mb-5">
                         <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                             <AlertTriangle size={20} className="text-red-400" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-black">Cancel your subscription?</h3>
-                            <p className="text-1xs font-bold text-slate-500 uppercase tracking-wider">
+                            <h3 className="text-lg font-bold">Cancel your subscription?</h3>
+                            <p className="text-1xs font-bold text-ink-muted uppercase tracking-wider">
                                 {currentMeta.label}
                             </p>
                         </div>
@@ -2377,24 +2377,24 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
                             <span>
                                 You keep full access
-                                {paidUntilLabel ? <> until <span className="font-black">{paidUntilLabel}</span></> : ' until the end of your current paid period'}.
+                                {paidUntilLabel ? <> until <span className="font-bold">{paidUntilLabel}</span></> : ' until the end of your current paid period'}.
                                 Nothing is lost today and no refund is needed — you already paid for this time.
                             </span>
                         </p>
                     </div>
 
-                    <ul className="space-y-2 mb-6 text-xs font-bold text-slate-400">
+                    <ul className="space-y-2 mb-6 text-xs font-bold text-ink-muted">
                         <li className="flex items-start gap-2">
-                            <XCircle size={13} className="shrink-0 mt-0.5 text-slate-600" />
+                            <XCircle size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
                             No further payments will be taken.
                         </li>
                         <li className="flex items-start gap-2">
-                            <XCircle size={13} className="shrink-0 mt-0.5 text-slate-600" />
+                            <XCircle size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
                             After that date your store moves to View-Only — your data stays intact,
                             but sales and edits are locked until you subscribe again.
                         </li>
                         <li className="flex items-start gap-2">
-                            <RefreshCw size={13} className="shrink-0 mt-0.5 text-slate-600" />
+                            <RefreshCw size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
                             You can resume any time before that date, with no new card details.
                         </li>
                     </ul>
@@ -2403,14 +2403,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         <button
                             onClick={() => setCancelOpen(false)}
                             disabled={cancelBusy}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 text-slate-300 font-black text-xs uppercase tracking-wider transition-all"
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 text-ink-faint font-bold text-xs uppercase tracking-wider transition-all"
                         >
                             Keep my subscription
                         </button>
                         <button
                             onClick={submitCancelSubscription}
                             disabled={cancelBusy}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait text-white font-black text-xs uppercase tracking-wider transition-all"
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider transition-all"
                         >
                             {cancelBusy ? 'Cancelling…' : 'Yes, cancel it'}
                         </button>
@@ -2420,10 +2420,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
             {/* CONGRATULATIONS / SUCCESS MODAL */}
             <Modal show={congratsModalOpen} onClose={() => setCongratsModalOpen(false)} maxWidth="md">
-                <div className="relative overflow-hidden bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-8 text-white animate-fadeIn">
+                <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-8 text-white animate-fadeIn">
                     {/* Ambient Glow Orbs */}
                     <div className="absolute top-0 right-0 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-600/25 rounded-full blur-3xl pointer-events-none" />
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50" />
 
@@ -2433,10 +2433,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mb-4 animate-bounce">
                                 <Crown className="text-purple-400" size={32} />
                             </div>
-                            <h3 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-300 to-indigo-200">
+                            <h3 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-300 to-brand-200">
                                 Congratulations!
                             </h3>
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-xs text-ink-muted mt-1">
                                 Your store is successfully upgraded and active
                             </p>
                         </div>
@@ -2451,11 +2451,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <>
                                     <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] mb-5">
                                         <div className="flex items-center justify-between mb-3 border-b border-white/[0.05] pb-3">
-                                            <span className="text-xs text-slate-400 font-bold">ACTIVE PLAN</span>
-                                            <span className="text-xs font-black text-purple-400 uppercase tracking-widest">{congratsPlan.name || congratsPlanSlug}</span>
+                                            <span className="text-xs text-ink-muted font-bold">ACTIVE PLAN</span>
+                                            <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">{congratsPlan.name || congratsPlanSlug}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs text-slate-400 font-bold">RENEWAL DATE</span>
+                                            <span className="text-xs text-ink-muted font-bold">RENEWAL DATE</span>
                                             <span className="text-xs font-bold text-emerald-400">
                                                 {tenant.subscription_ends_at ? fmtDay(tenant.subscription_ends_at) : '—'}
                                             </span>
@@ -2464,46 +2464,46 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                                     {/* Limits Grid */}
                                     <div className="mb-6">
-                                        <div className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-3">
+                                        <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-3">
                                             What's Included in Your Plan:
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Staff Limit</span>
-                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.staff_limit)}</span>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Staff Limit</span>
+                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.staff_limit)}</span>
                                             </div>
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Product (SKU) Limit</span>
-                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.sku_limit)}</span>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Product (SKU) Limit</span>
+                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.sku_limit)}</span>
                                             </div>
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Locations Limit</span>
-                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.locations)}</span>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Locations Limit</span>
+                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.locations)}</span>
                                             </div>
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Transactions/mo</span>
-                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.transactions_per_month)}</span>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Transactions/mo</span>
+                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.transactions_per_month)}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Gated features unlocked list */}
                                     <div className="mb-6">
-                                        <div className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-2">
+                                        <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-2">
                                             Premium Upgrades Activated:
                                         </div>
                                         <div className="space-y-2">
                                             {congratsPlanSlug === 'business' && (
                                                 <>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>Unlimited Branches / Warehouses</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>Full Public REST API Access</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>Bill of Materials & Manufacturing</span>
                                                     </div>
@@ -2511,15 +2511,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             )}
                                             {congratsPlanSlug === 'growth' && (
                                                 <>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>Multi-Branch Support (up to 3)</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>AI Growth Engine Access</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>Recurring Invoicing Gating Lifted</span>
                                                     </div>
@@ -2527,17 +2527,17 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             )}
                                             {congratsPlanSlug === 'starter' && (
                                                 <>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>Access to Core POS & Retail Features</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                         <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                         <span>Sales History Tracking</span>
                                                     </div>
                                                 </>
                                             )}
-                                            <div className="flex items-center gap-2 text-xs text-slate-300">
+                                            <div className="flex items-center gap-2 text-xs text-neutral-300">
                                                 <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
                                                 <span>Instant Real-Time Webhook Synchronization</span>
                                             </div>
@@ -2550,7 +2550,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         <div className="flex justify-center mt-6">
                             <button
                                 onClick={() => setCongratsModalOpen(false)}
-                                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-widest transition-all hover:shadow-lg hover:shadow-purple-500/20 active:scale-95"
+                                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-widest transition-all hover:shadow-lg hover: active:scale-95"
                             >
                                 Let's Go!
                             </button>
@@ -2601,7 +2601,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                 <div className="flex gap-3 items-start">
                     <CheckCircle2 className="shrink-0 mt-0.5 animate-pulse" size={18} />
                     <div>
-                        <h4 className="font-black text-sm uppercase tracking-wide">Regional Pricing Unlocked</h4>
+                        <h4 className="font-bold text-sm uppercase tracking-wide">Regional Pricing Unlocked</h4>
                         <p className="text-xs text-emerald-300/80 mt-1">
                             Your CNIC verification has been approved. Regional Pakistani Rupees (PKR) pricing is fully unlocked for checkout.
                         </p>
@@ -2617,7 +2617,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                 <div className="flex gap-3 items-start">
                     <ScanFace className="shrink-0 mt-0.5 animate-pulse" size={18} />
                     <div>
-                        <h4 className="font-black text-sm uppercase tracking-wide">Verification Request Pending</h4>
+                        <h4 className="font-bold text-sm uppercase tracking-wide">Verification Request Pending</h4>
                         <p className="text-xs text-amber-300/80 mt-1">
                             Your CNIC front/back documents are currently being reviewed by our compliance team. Regional PKR pricing checkouts will unlock as soon as your identity is verified.
                         </p>
@@ -2628,12 +2628,12 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
     }
 
     return (
-        <div className="p-6 rounded-3xl bg-slate-900 border border-white/[0.04] mb-8">
+        <div className="p-6 rounded-2xl bg-neutral-900 border border-white/[0.04] mb-8">
             <div className="flex gap-3 items-start mb-4">
                 <BadgeCheck className="text-purple-400 shrink-0 mt-0.5" size={20} />
                 <div>
-                    <h4 className="font-black text-sm text-white uppercase tracking-wide">Verify Identity for Regional Pricing</h4>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <h4 className="font-bold text-sm text-white uppercase tracking-wide">Verify Identity for Regional Pricing</h4>
+                    <p className="text-xs text-ink-muted mt-1">
                         Pakistani stores qualify for special regional pricing (in PKR). Submit your CNIC and contact details below to unlock PKR checkouts. Limit of 1 store per CNIC.
                     </p>
                 </div>
@@ -2653,7 +2653,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
+                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
                     <input
                         type="text"
                         pattern="^[0-9]{5}-?[0-9]{7}-?[0-9]{1}$"
@@ -2661,45 +2661,45 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                         onChange={e => setCnic(e.target.value)}
                         placeholder="e.g. 42101-1234567-1"
                         required
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
                     />
                 </div>
                 <div>
-                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
+                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">Phone Number</label>
                     <input
                         type="text"
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
                         placeholder="e.g. +92 300 1234567"
                         required
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
                     />
                 </div>
                 <div>
-                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Front Side Image</label>
+                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Front Side Image</label>
                     <input
                         type="file"
                         accept="image/*"
                         onChange={e => setImageFront(e.target.files[0])}
                         required
-                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
                     />
                 </div>
                 <div>
-                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Back Side Image</label>
+                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Back Side Image</label>
                     <input
                         type="file"
                         accept="image/*"
                         onChange={e => setImageBack(e.target.files[0])}
                         required
-                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
                     />
                 </div>
                 <div className="md:col-span-2 mt-2">
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
                     >
                         {loading ? 'Submitting...' : 'Submit Documents'}
                     </button>

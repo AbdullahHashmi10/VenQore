@@ -100,7 +100,7 @@ export default function BreakdownChart({ data, definition, chartType = 'ring', s
 
                 {isRing && total > 0 && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-                        <span className="text-[10px] font-semibold text-ink-secondary">
+                        <span className="text-2xs font-semibold text-ink-secondary">
                             {formatValue(total, definition?.unit, 0, settings)}
                         </span>
                         <span className="text-[7px] text-ink-muted font-bold uppercase tracking-wider mt-0.5">
@@ -113,7 +113,7 @@ export default function BreakdownChart({ data, definition, chartType = 'ring', s
             {/* Slices legend */}
             <div className="grow flex flex-col gap-1 overflow-y-auto max-h-[96px] custom-scrollbar pr-1">
                 {paths.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between gap-2 text-[9px] font-bold">
+                    <div key={i} className="flex items-center justify-between gap-2 text-3xs font-bold">
                         <div className="flex items-center gap-1.5 min-w-0">
                             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
                             <span className="text-ink-secondary truncate max-w-[70px]">{p.name}</span>

@@ -23,8 +23,8 @@ export default function RefundPolicy() {
                         <Shield size={26} className="text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Refund Policy</h1>
-                        <p className="text-slate-500 text-sm mt-1">Last updated: April 2025</p>
+                        <h1 className="text-4xl font-bold tracking-tight text-ink">Refund Policy</h1>
+                        <p className="text-ink-muted text-sm mt-1">Last updated: April 2025</p>
                     </div>
                 </div>
 
@@ -34,7 +34,7 @@ export default function RefundPolicy() {
                         <Clock size={22} className="text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
                         <div>
                             <p className="font-bold text-orange-700 dark:text-orange-300 mb-1">AppSumo Lifetime Deal — 60-Day Guarantee</p>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            <p className="text-ink-secondary text-sm leading-relaxed">
                                 All AppSumo purchases of VenQore are covered by AppSumo's standard 60-day money-back
                                 guarantee. You may request a full refund within 60 days of your purchase through
                                 AppSumo's platform — no questions asked.
@@ -44,15 +44,15 @@ export default function RefundPolicy() {
                 </div>
 
                 {/* Policy sections */}
-                <div className="space-y-10 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <div className="space-y-10 text-ink-secondary leading-relaxed">
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">1. AppSumo Purchases</h2>
+                        <h2 className="text-xl font-bold text-ink mb-3">1. AppSumo Purchases</h2>
                         <p>
                             VenQore participates in AppSumo's standard refund policy. For any AppSumo Lifetime Deal
-                            (LTD) purchase, you are entitled to a full refund within <strong className="text-slate-900 dark:text-white">60 calendar days</strong> of
+                            (LTD) purchase, you are entitled to a full refund within <strong className="text-ink">60 calendar days</strong> of
                             your original purchase date. To request a refund for an AppSumo purchase, visit your
-                            AppSumo dashboard or contact AppSumo support directly at{' '}
-                            <a href="mailto:hello@appsumo.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">hello@appsumo.com</a>.
+                            AppSumo dashboard or contact AppSumo support directly at{''}
+                            <a href="mailto:hello@appsumo.com" className="text-brand-600 dark:text-brand-400 hover:underline">hello@appsumo.com</a>.
                         </p>
                         <p className="mt-3">
                             If you have stacked multiple codes and request a refund, the refund applies per code.
@@ -62,7 +62,7 @@ export default function RefundPolicy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">2. Monthly / Annual Subscriptions</h2>
+                        <h2 className="text-xl font-bold text-ink mb-3">2. Monthly / Annual Subscriptions</h2>
                         <p>
                             For paid monthly or annual subscriptions (Starter $36/mo, Growth $63/mo, Business $129/mo),
                             you may cancel at any time. Cancellation takes effect at the end of the current billing
@@ -76,14 +76,14 @@ export default function RefundPolicy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">3. Hosting After LTD Period</h2>
+                        <h2 className="text-xl font-bold text-ink mb-3">3. Hosting After LTD Period</h2>
                         <p>
-                            AppSumo LTD codes include <strong className="text-slate-900 dark:text-white">2 years of hosting</strong> on venqore.com.
+                            AppSumo LTD codes include <strong className="text-ink">2 years of hosting</strong> on venqore.com.
                             After this period, you have two options:
                         </p>
-                        <ul className="list-disc list-inside mt-3 space-y-2 text-slate-500 dark:text-slate-400">
-                            <li><strong className="text-slate-900 dark:text-white">Continue hosted:</strong> $9/month to $30/month depending on plan tier (no feature limitations based on LTD tier)</li>
-                            <li><strong className="text-slate-900 dark:text-white">Self-host:</strong> Export your data and run VenQore on your own server at no cost</li>
+                        <ul className="list-disc list-inside mt-3 space-y-2 text-ink-muted">
+                            <li><strong className="text-ink">Continue hosted:</strong> $9/month to $30/month depending on plan tier (no feature limitations based on LTD tier)</li>
+                            <li><strong className="text-ink">Self-host:</strong> Export your data and run VenQore on your own server at no cost</li>
                         </ul>
                         <p className="mt-3">
                             The 2-year hosting clock starts at the time of code redemption, not purchase.
@@ -92,42 +92,42 @@ export default function RefundPolicy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">4. Data Retention After Cancellation</h2>
+                        <h2 className="text-xl font-bold text-ink mb-3">4. Data Retention After Cancellation</h2>
                         <p>
-                            After account cancellation or expiry, your data is retained for <strong className="text-slate-900 dark:text-white">30 days</strong> to
+                            After account cancellation or expiry, your data is retained for <strong className="text-ink">30 days</strong> to
                             allow for data export. After 30 days, all data is permanently deleted. You may request
-                            immediate deletion by emailing{' '}
-                            <a href="mailto:privacy@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">privacy@venqore.com</a>.
+                            immediate deletion by emailing{''}
+                            <a href="mailto:privacy@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">privacy@venqore.com</a>.
                         </p>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">5. Contact</h2>
+                        <h2 className="text-xl font-bold text-ink mb-3">5. Contact</h2>
                         <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                            <a href="mailto:support@venqore.com" className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10 hover:border-indigo-500/30 transition-colors">
-                                <Mail size={18} className="text-indigo-600 dark:text-indigo-400" />
+                            <a href="mailto:support@venqore.com" className="flex items-center gap-3 p-4 rounded-xl bg-sunken dark:bg-white/5 border border-line dark:border-white/10 hover:border-brand-500/30 transition-colors">
+                                <Mail size={18} className="text-brand-600 dark:text-brand-400" />
                                 <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-widest">Email</p>
-                                    <p className="text-slate-900 dark:text-white text-sm font-medium">support@venqore.com</p>
+                                    <p className="text-xs text-ink-muted uppercase tracking-widest">Email</p>
+                                    <p className="text-ink text-sm font-medium">support@venqore.com</p>
                                 </div>
                             </a>
-                            <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10">
+                            <div className="flex items-center gap-3 p-4 rounded-xl bg-sunken dark:bg-white/5 border border-line dark:border-white/10">
                                 <Clock size={18} className="text-emerald-600 dark:text-emerald-400" />
                                 <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-widest">Response Time</p>
-                                    <p className="text-slate-900 dark:text-white text-sm font-medium">Within 12 hours</p>
+                                    <p className="text-xs text-ink-muted uppercase tracking-widest">Response Time</p>
+                                    <p className="text-ink text-sm font-medium">Within 12 hours</p>
                                 </div>
                             </div>
                         </div>
                     </section>
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-slate-900/[0.06] dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-slate-500">
-                    <p>Related: read our{' '}
-                        <Link href="/terms" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Terms of Service</Link>{' '}and{' '}
-                        <Link href="/privacy" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Privacy Policy</Link>.
+                <div className="mt-12 pt-8 border-t border-line dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-ink-muted">
+                    <p>Related: read our{''}
+                        <Link href="/terms" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Terms of Service</Link>{''}and{''}
+                        <Link href="/privacy" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Privacy Policy</Link>.
                     </p>
-                    <Link href="/pricing" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">See plans &amp; pricing →</Link>
+                    <Link href="/pricing" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">See plans &amp; pricing →</Link>
                 </div>
             </div>
         </MarketingLayout>

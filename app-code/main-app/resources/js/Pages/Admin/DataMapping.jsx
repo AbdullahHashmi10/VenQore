@@ -163,16 +163,16 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
         <div className={`flex-1 space-y-4 p-4 rounded-xl ${disabled ? 'bg-white/5 opacity-50' : 'bg-white/5 border border-white/5'}`}>
             <div>
                 <h4 className="text-white font-medium text-sm leading-none">{title}</h4>
-                <p className="text-2xs text-gray-400 mt-1 uppercase tracking-wider">{subtitle}</p>
+                <p className="text-2xs text-ink-muted mt-1 uppercase tracking-wider">{subtitle}</p>
             </div>
             <div className="grid grid-cols-1 gap-3">
                 {currentFields.map(f => (
                     <div key={f.key}>
-                        <label className="text-2xs text-gray-500 block mb-1">{f.label}</label>
+                        <label className="text-2xs text-ink-muted block mb-1">{f.label}</label>
                         <input 
                             type="text" 
                             disabled={disabled}
-                            className="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-indigo-500 transition-all font-mono"
+                            className="w-full bg-sunken border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-brand-500 transition-all font-mono"
                             value={data[f.key] || ''}
                             onChange={e => onChange({ ...data, [f.key]: e.target.value })}
                             placeholder={f.placeholder || ''}
@@ -189,14 +189,14 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
 
             {/* Side-by-Side Editing Modal */}
             {editingContext && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-                    <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-sticky flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+                    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-8 w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-normal">
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h3 className="text-2xl font-bold text-white">Resolve Data Conflict</h3>
-                                <p className="text-sm text-gray-400 mt-1">Compare and edit rows to ensure they are unique.</p>
+                                <p className="text-sm text-ink-muted mt-1">Compare and edit rows to ensure they are unique.</p>
                             </div>
-                            <button onClick={() => setEditingContext(null)} className="text-gray-500 hover:text-white transition-colors">
+                            <button onClick={() => setEditingContext(null)} className="text-ink-muted hover:text-white transition-colors">
                                 <XCircle className="w-8 h-8" />
                             </button>
                         </div>
@@ -235,7 +235,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                         <div className="flex gap-4">
                             <button 
                                 onClick={() => setEditingContext(null)} 
-                                className="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold transition-all border border-white/5"
+                                className="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-neutral-300 font-semibold transition-all border border-white/5"
                             >
                                 Cancel
                             </button>
@@ -244,7 +244,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     { index: editingContext.row, data: editingContext.data },
                                     { index: editingContext.first_row_index, data: editingContext.first_row_data }
                                 ])} 
-                                className="flex-[2] py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold transition-all shadow-xl shadow-indigo-500/30"
+                                className="flex-[2] py-3 rounded-2xl bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white font-bold transition-all shadow-xl "
                             >
                                 Apply Changes & Fix Conflict
                             </button>
@@ -256,7 +256,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
             <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
                 <div className="flex items-center justify-between shrink-0">
                     <div className="flex items-center space-x-4">
-                        <Link href={route('store.admin.data', { store_slug: store.slug })} className="text-gray-400 hover:text-white transition-colors">
+                        <Link href={route('store.admin.data', { store_slug: store.slug })} className="text-ink-muted hover:text-white transition-colors">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
                         <h1 className="text-2xl font-semibold text-white">Map Your Columns for {type.charAt(0).toUpperCase() + type.slice(1)}</h1>
@@ -265,7 +265,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                          <div className="flex items-center gap-4 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-lg">
                             <span className="text-emerald-400 text-sm font-medium">
                                 {validationData.new_count} New • {validationData.update_count} Updates 
-                                {ignoredRows.length > 0 && <span className="text-gray-400 ml-2">• {ignoredRows.length} Skipped</span>}
+                                {ignoredRows.length > 0 && <span className="text-ink-muted ml-2">• {ignoredRows.length} Skipped</span>}
                             </span>
                          </div>
                     )}
@@ -274,26 +274,26 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                 <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
 
                     {/* Mapping Controls */}
-                    <div id="tour-mapping-container" className="lg:col-span-1 border border-white/10 rounded-xl bg-slate-900 p-6 shadow-2xl flex flex-col min-h-0">
+                    <div id="tour-mapping-container" className="lg:col-span-1 border border-white/10 rounded-xl bg-neutral-900 p-6 shadow-2xl flex flex-col min-h-0">
                         <div className="mb-4 shrink-0">
                             <h2 className="text-lg font-medium text-white flex items-center">
                                 <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-2" />
                                 Match Columns
                             </h2>
-                            <p className="text-sm text-gray-400 mt-1">Select columns to map to fields.</p>
+                            <p className="text-sm text-ink-muted mt-1">Select columns to map to fields.</p>
                         </div>
 
                         <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar min-h-0">
                             {expected_fields.map((field) => (
                                 <div key={field.key} className="flex flex-col space-y-1 bg-white/5 p-3 rounded-lg shrink-0">
-                                    <label className="text-sm font-medium text-gray-200 flex justify-between">
+                                    <label className="text-sm font-medium text-neutral-200 flex justify-between">
                                         <span>{field.label} {field.required && <span className="text-red-400">*</span>}</span>
                                     </label>
                                     <select
                                         value={mapping[field.key] !== null ? mapping[field.key] : ""}
                                         onChange={(e) => handleMappingChange(field.key, e.target.value)}
-                                        className={`w-full bg-slate-800 border rounded-md text-sm p-2 text-white
-                                        ${field.required && mapping[field.key] == null ? 'border-amber-400/50 focus:border-amber-400' : 'border-white/10 focus:border-indigo-500'}`}
+                                        className={`w-full bg-neutral-800 border rounded-md text-sm p-2 text-white
+                                        ${field.required && mapping[field.key] == null ? 'border-amber-400/50 focus:border-amber-400' : 'border-white/10 focus:border-brand-500'}`}
                                     >
                                         <option value="">-- Ignore --</option>
                                         {file_headers.map((header) => (
@@ -314,11 +314,11 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                             onChange={(e) => setAllowNegativeStock(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                        <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Allow Negative Stock</span>
-                                        <p className="text-2xs text-gray-400">If unchecked, negative opening quantities will be set to 0</p>
+                                        <p className="text-2xs text-ink-muted">If unchecked, negative opening quantities will be set to 0</p>
                                     </div>
                                 </label>
                             </div>
@@ -330,7 +330,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                     <div>
                                         <h4 className="text-amber-400 font-bold text-sm">Resource Limit Exceeded</h4>
-                                        <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+                                        <p className="text-xs text-neutral-300 mt-1 leading-relaxed">
                                             Importing these items will push your total catalog to <strong>{validationData.post_import_count}</strong> products, which exceeds your plan's limit of <strong>{validationData.limit}</strong>.
                                         </p>
                                     </div>
@@ -342,14 +342,14 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                         onClick={() => setImportAction('truncate')}
                                         className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
                                             ${importAction === 'truncate'
-                                                ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                                                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'}`}
+                                                ? 'border-brand-500 bg-brand-500/10 text-white'
+                                                : 'border-white/10 bg-white/5 text-ink-muted hover:border-white/20'}`}
                                     >
                                         <div className="pr-4">
                                             <div>Option A: Truncate Import</div>
                                             <div className="text-2xs opacity-80 mt-0.5">Only import the first {validationData.allowed_to_import} new products to stay within limits.</div>
                                         </div>
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'truncate' ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-gray-500'}`}>
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'truncate' ? 'border-brand-500 bg-brand-500 text-white' : 'border-line-strong'}`}>
                                             {importAction === 'truncate' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                                         </div>
                                     </button>
@@ -360,13 +360,13 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                         className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
                                             ${importAction === 'import_all'
                                                 ? 'border-amber-500 bg-amber-500/10 text-white'
-                                                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'}`}
+                                                : 'border-white/10 bg-white/5 text-ink-muted hover:border-white/20'}`}
                                     >
                                         <div className="pr-4">
                                             <div>Option B: Import Everything</div>
                                             <div className="text-2xs opacity-80 mt-0.5">Import all {validationData.new_count} products. Starts a 3-day grace period to upgrade your plan.</div>
                                         </div>
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'import_all' ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-500'}`}>
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'import_all' ? 'border-amber-500 bg-amber-500 text-white' : 'border-line-strong'}`}>
                                             {importAction === 'import_all' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                                         </div>
                                     </button>
@@ -380,8 +380,8 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                 onClick={() => runValidation()}
                                 disabled={isValidating || isProcessing}
                                 className={`w-full flex justify-center items-center py-2 px-4 rounded-xl text-white text-sm font-medium transition-all
-                                ${isValidating ? 'bg-indigo-600/50 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'}
-                                `}
+                                ${isValidating ? 'bg-brand-600/50 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-500'}
+`}
                             >
                                 {isValidating ? 'Checking for duplicates...' : 'Run Pre-Import Validation'}
                             </button>
@@ -390,15 +390,15 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                 id="tour-mapping-submit"
                                 onClick={submitImport}
                                 disabled={isProcessing || !validationData}
-                                className={`w-full flex justify-center items-center py-3 px-4 rounded-xl text-white font-medium transition-all duration-300
+                                className={`w-full flex justify-center items-center py-3 px-4 rounded-xl text-white font-medium transition-all duration-slow
                                 ${isProcessing || !validationData 
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-                                    : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-lg shadow-emerald-500/20'}
-                            `}
+                                    ? 'bg-sunken cursor-not-allowed opacity-50' 
+                                    : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-lg '}
+`}
                             >
                                 {isProcessing ? 'Importing...' : 'Confirm & Process Import'}
                             </button>
-                            {!validationData && <p className="text-2xs text-gray-500 text-center">Run validation before importing</p>}
+                            {!validationData && <p className="text-2xs text-ink-muted text-center">Run validation before importing</p>}
                         </div>
                     </div>
 
@@ -418,7 +418,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-bold text-amber-400">Row {warn.row}:</span>
                                                     <span className="text-white font-medium">{warn.name}</span>
-                                                    <span className="text-gray-400">({warn.phone || 'No phone'})</span>
+                                                    <span className="text-ink-muted">({warn.phone || 'No phone'})</span>
                                                 </div>
                                                 <p className="mt-1 text-2xs text-amber-400/80 italic">{warn.reason}</p>
                                             </div>
@@ -432,7 +432,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                                         is_db: warn.is_db,
                                                         db_data: warn.db_data
                                                     })}
-                                                    className="p-1.5 rounded-md bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all"
+                                                    className="p-1.5 rounded-md bg-brand-500/20 text-brand-400 hover:bg-brand-500 hover:text-white transition-all"
                                                     title="Resolve this conflict"
                                                 >
                                                     <Play className="w-3 h-3 rotate-[-90deg]" /> 
@@ -451,33 +451,33 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                             </div>
                         )}
 
-                        <div className="flex-1 border border-white/10 rounded-xl bg-slate-900 p-6 shadow-2xl flex flex-col min-h-0">
+                        <div className="flex-1 border border-white/10 rounded-xl bg-neutral-900 p-6 shadow-2xl flex flex-col min-h-0">
                              <div className="mb-4 shrink-0">
                                 <h2 className="text-lg font-medium text-white">Data Preview</h2>
-                                <p className="text-sm text-gray-400 mt-1">Found {preview_data.length} records</p>
+                                <p className="text-sm text-ink-muted mt-1">Found {preview_data.length} records</p>
                             </div>
 
                             <div className="flex-1 overflow-auto rounded-lg border border-white/10 custom-scrollbar min-h-0">
                                 <table className="w-full text-left text-sm whitespace-nowrap">
-                                    <thead className="bg-slate-800 sticky top-0 z-10">
+                                    <thead className="bg-sunken sticky top-0 z-10">
                                         <tr>
-                                            <th className="px-4 py-3 text-gray-300 border-b border-white/10 font-medium">#</th>
+                                            <th className="px-4 py-3 text-neutral-300 border-b border-white/10 font-medium">#</th>
                                             {expected_fields.map(field => (
-                                                <th key={field.key} className={`px-4 py-3 border-b border-white/10 font-medium ${mapping[field.key] != null ? 'text-indigo-300' : 'text-gray-500'}`}>
+                                                <th key={field.key} className={`px-4 py-3 border-b border-white/10 font-medium ${mapping[field.key] != null ? 'text-brand-300' : 'text-ink-muted'}`}>
                                                     {field.label}
                                                 </th>
                                             ))}
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-white/5 bg-slate-900">
+                                    <tbody className="divide-y divide-white/5 bg-neutral-900">
                                         {preview_data.map((row, index) => (
                                             <tr key={index} className="hover:bg-white/5 transition-colors">
-                                                <td className="px-4 py-2 text-gray-500">{index + 1}</td>
+                                                <td className="px-4 py-2 text-ink-muted">{index + 1}</td>
                                                 {expected_fields.map(field => {
                                                     const fileColIndex = mapping[field.key];
                                                     const value = fileColIndex != null ? row[fileColIndex] : null;
                                                     return (
-                                                        <td key={field.key} className={`px-4 py-2 ${value ? 'text-gray-200' : 'text-gray-600 italic text-xs'}`}>
+                                                        <td key={field.key} className={`px-4 py-2 ${value ? 'text-neutral-200' : 'text-ink-secondary italic text-xs'}`}>
                                                             {value || '-'}
                                                         </td>
                                                     );

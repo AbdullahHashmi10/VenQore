@@ -82,7 +82,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
 
     const getStatusBadge = (status) => {
         const styles = {
-            draft: { bg: 'bg-slate-100 dark:bg-slate-900/30', text: 'text-slate-700 dark:text-slate-400' },
+            draft: { bg: 'bg-sunken', text: 'text-ink-secondary' },
             in_progress: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400' },
             completed: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400' },
             cancelled: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400' },
@@ -108,49 +108,49 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
         <OneGlanceLayout title="Stock Take / Audit" activeMenu="Stock">
             <Head title="Stock Take" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <StockModuleTabs activeTab="audit" />
 
                 {/* Stats Row - Compact Single Line */}
-                <div className="flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex items-center justify-between bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-3 px-3 py-1">
-                            <div className="p-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg">
+                            <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
                                 <ClipboardCheck size={16} />
                             </div>
                             <div>
-                                <p className="text-2xs font-bold text-slate-400 uppercase">Total Audits</p>
-                                <p className="text-sm font-black text-slate-900 dark:text-white">{stats.total}</p>
+                                <p className="text-2xs font-bold text-ink-muted uppercase">Total Audits</p>
+                                <p className="text-sm font-bold text-ink">{stats.total}</p>
                             </div>
                         </div>
-                        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                        <div className="w-px h-8 bg-sunken"></div>
                         <div className="flex items-center gap-3 px-3 py-1">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <ArrowUpDown size={16} />
                             </div>
                             <div>
-                                <p className="text-2xs font-bold text-slate-400 uppercase">In Progress</p>
-                                <p className="text-sm font-black text-blue-600">{stats.inProgress}</p>
+                                <p className="text-2xs font-bold text-ink-muted uppercase">In Progress</p>
+                                <p className="text-sm font-bold text-blue-600">{stats.inProgress}</p>
                             </div>
                         </div>
-                        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                        <div className="w-px h-8 bg-sunken"></div>
                         <div className="flex items-center gap-3 px-3 py-1">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle size={16} />
                             </div>
                             <div>
-                                <p className="text-2xs font-bold text-slate-400 uppercase">Completed</p>
-                                <p className="text-sm font-black text-emerald-600">{stats.completed}</p>
+                                <p className="text-2xs font-bold text-ink-muted uppercase">Completed</p>
+                                <p className="text-sm font-bold text-emerald-600">{stats.completed}</p>
                             </div>
                         </div>
-                        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                        <div className="w-px h-8 bg-sunken"></div>
                         <div className="flex items-center gap-3 px-3 py-1">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <AlertTriangle size={16} />
                             </div>
                             <div>
-                                <p className="text-2xs font-bold text-slate-400 uppercase">With Variance</p>
-                                <p className="text-sm font-black text-amber-600">{stats.withVariance}</p>
+                                <p className="text-2xs font-bold text-ink-muted uppercase">With Variance</p>
+                                <p className="text-sm font-bold text-amber-600">{stats.withVariance}</p>
                             </div>
                         </div>
                     </div>
@@ -158,7 +158,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                     {/* New Audit Button */}
                     <Link
                         href={route('store.stock-takes.create', { store_slug: store.slug })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all font-bold text-xs shadow-lg shadow-emerald-500/20"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all font-bold text-xs shadow-lg "
                     >
                         <Plus size={14} />
                         New Stock Take
@@ -166,57 +166,57 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                 </div>
 
                 {/* Header Bar - Title + Filter Pills + Search */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
                             Stock <span className="text-emerald-600">Audit</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
                         <button
                             onClick={() => setStatusFilter('all')}
                             className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
                                     ? 'bg-emerald-600 text-white'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
                                 }`}
                         >All</button>
                         <button
                             onClick={() => setStatusFilter('draft')}
                             className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'draft'
-                                    ? 'bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow-lg shadow-slate-500/30'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    ? 'bg-gradient-to-r from-neutral-500 to-neutral-600 text-white shadow-lg shadow-neutral-500/30'
+                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
                                 }`}
                         >Draft</button>
                         <button
                             onClick={() => setStatusFilter('in_progress')}
                             className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'in_progress'
-                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg '
+                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
                                 }`}
                         >In Progress</button>
                         <button
                             onClick={() => setStatusFilter('completed')}
                             className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'completed'
-                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg '
+                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
                                 }`}
                         >Completed</button>
                         <button
                             onClick={() => setStatusFilter('cancelled')}
                             className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'cancelled'
-                                    ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg '
+                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
                                 }`}
                         >Cancelled</button>
 
                         {/* Warehouse Filter */}
                         {warehouses.length > 0 && (
                             <>
-                                <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                                <div className="h-4 w-px bg-sunken mx-1"></div>
                                 <select
                                     value={warehouseFilter}
                                     onChange={(e) => setWarehouseFilter(e.target.value)}
-                                    className="px-2 py-1 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none"
+                                    className="px-2 py-1 text-xs font-semibold bg-app border border-line rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none"
                                 >
                                     <option value="all">All Warehouses</option>
                                     {warehouses.map(wh => (
@@ -230,20 +230,20 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                     {/* Right: Search + Export */}
                     <div className="flex items-center gap-2">
                         <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search..."
-                                className="pl-9 pr-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 ring-emerald-500/20 focus:border-emerald-500 outline-none w-44"
+                                className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-emerald-500/20 focus:border-emerald-500 outline-none w-44"
                             />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <Download size={16} />
                             </button>
-                            <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print">
+                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
                                 <Printer size={16} />
                             </button>
                         </div>
@@ -251,24 +251,24 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                 </div>
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
                                 <th
                                     onClick={() => handleSort('reference')}
-                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
                                 >
                                     <div className="flex items-center gap-1">
                                         Reference # <SortIcon columnKey="reference" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Warehouse
                                 </th>
                                 <th
                                     onClick={() => handleSort('date')}
-                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
                                 >
                                     <div className="flex items-center gap-1">
                                         Date <SortIcon columnKey="date" />
@@ -276,36 +276,36 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                 </th>
                                 <th
                                     onClick={() => handleSort('items')}
-                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
                                 >
                                     <div className="flex items-center justify-center gap-1">
                                         Items <SortIcon columnKey="items" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Variance
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Counted By
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Status
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Actions
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {filteredStockTakes.length === 0 ? (
                                 <tr>
                                     <td colSpan={8} className="p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
-                                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                                                <ClipboardCheck size={28} className="text-slate-400" />
+                                            <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
+                                                <ClipboardCheck size={28} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-1">No stock takes found</p>
-                                            <p className="text-sm text-slate-500 mb-3">Start a new stock take to audit your inventory</p>
+                                            <p className="text-base font-bold text-ink-secondary mb-1">No stock takes found</p>
+                                            <p className="text-sm text-ink-muted mb-3">Start a new stock take to audit your inventory</p>
                                             <Link
                                                 href={route('store.stock-takes.create', { store_slug: store.slug })}
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-bold text-sm"
@@ -331,7 +331,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                                         stockTake.status === 'cancelled' ? 'border-l-4 border-red-500' :
                                                             hasVariance ? 'border-l-4 border-amber-500' :
                                                                 'border-l-4 border-transparent'}
-                                            `}
+`}
                                             onClick={() => router.visit(route('store.stock-takes.show', stockTake.id))}
                                         >
                                             <td className="p-3">
@@ -341,13 +341,13 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                             </td>
                                             <td className="p-3">
                                                 <div className="flex items-center gap-1.5">
-                                                    <Warehouse size={14} className="text-slate-400" />
-                                                    <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
+                                                    <Warehouse size={14} className="text-ink-muted" />
+                                                    <span className="font-medium text-sm text-ink-secondary">
                                                         {stockTake.warehouse?.name || 'All Warehouses'}
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="p-3 text-sm text-slate-600 dark:text-slate-400">
+                                            <td className="p-3 text-sm text-ink-secondary">
                                                 {new Date(stockTake.created_at).toLocaleDateString('en-PK', {
                                                     day: '2-digit',
                                                     month: 'short',
@@ -355,7 +355,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                                 })}
                                             </td>
                                             <td className="p-3 text-center">
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs font-bold">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-sunken rounded text-xs font-bold">
                                                     <Package size={12} />
                                                     {stockTake.items_counted || 0}
                                                 </span>
@@ -373,7 +373,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="p-3 text-sm text-slate-600 dark:text-slate-400">
+                                            <td className="p-3 text-sm text-ink-secondary">
                                                 {stockTake.user?.name || 'Unknown'}
                                             </td>
                                             <td className="p-3 text-center">
@@ -385,14 +385,14 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                                 <div className="flex items-center justify-center gap-1">
                                                     <Link
                                                         href={route('store.stock-takes.show', stockTake.id)}
-                                                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+                                                        className="p-1.5 text-ink-muted hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
                                                     >
                                                         <Eye size={16} />
                                                     </Link>
                                                     {stockTake.status === 'in_progress' && (
                                                         <Link
                                                             href={route('store.stock-takes.show', stockTake.id)}
-                                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                                                            className="p-1.5 text-ink-muted hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                                                         >
                                                             <Save size={16} />
                                                         </Link>

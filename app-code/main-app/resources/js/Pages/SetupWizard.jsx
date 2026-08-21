@@ -102,12 +102,12 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
         : Store;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden nebula-scrollbar">
+        <div className="min-h-screen bg-neutral-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden nebula-scrollbar">
             <Head title="Welcome Setup" />
 
             {/* Background Decoration (Midnight Nebula) */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-indigo-600/20 rounded-full blur-[100px]"></div>
+                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-brand-600/20 rounded-full blur-[100px]"></div>
                 <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[100px]"></div>
                 <div className="absolute bottom-0 left-[20%] w-[30%] h-[30%] bg-cyan-600/10 rounded-full blur-[80px]"></div>
             </div>
@@ -119,36 +119,36 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                     <div className="flex justify-center mb-6">
                         <img src={store_logo || "/images/logo.png"} alt="VenQore" className="w-20 h-20 object-contain drop-shadow-2xl" />
                     </div>
-                    <h1 className="text-4xl font-black mb-2 tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Welcome to VENQORE</h1>
-                    <p className="text-slate-400 text-lg">Let's tailor the experience for your business.</p>
+                    <h1 className="text-4xl font-bold mb-2 tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">Welcome to VENQORE</h1>
+                    <p className="text-ink-muted text-lg">Let's tailor the experience for your business.</p>
                 </div>
 
                 {/* Progress Indicators */}
                 <div className="flex justify-center gap-4 mb-10">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${step >= i ? 'w-12 bg-indigo-500 shadow-glow' : 'w-4 bg-slate-800'}`}></div>
+                        <div key={i} className={`h-1.5 rounded-full transition-all duration-slower ${step >= i ? 'w-12 bg-brand-500 shadow-glow' : 'w-4 bg-neutral-800'}`}></div>
                     ))}
                 </div>
 
-                <form onSubmit={handleSubmit} className="bg-slate-900/50 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 overflow-hidden relative min-h-[600px] flex flex-col">
+                <form onSubmit={handleSubmit} className="bg-neutral-900/50 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden relative min-h-[600px] flex flex-col">
 
                     {/* STEP 1: BUSINESS PROFILE */}
                     {step === 1 && (
-                        <div className="flex-1 p-8 md:p-12 animate-in fade-in slide-in-from-right-8 duration-500">
+                        <div className="flex-1 p-8 md:p-12 animate-in fade-in slide-in-from-right-8 duration-slower">
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 text-sm font-bold border border-indigo-500/30">1</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 text-sm font-bold border border-brand-500/30">1</span>
                                 Business Profile
                             </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Business Name <span className="text-red-400">*</span></label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-2 uppercase tracking-wide">Business Name <span className="text-red-400">*</span></label>
                                         <input
                                             type="text"
                                             value={data.business_name}
                                             onChange={e => setData('business_name', e.target.value)}
-                                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-600 text-white transition-all hover:bg-slate-800"
+                                            className="w-full bg-neutral-800/50 border border-neutral-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none placeholder:text-ink-secondary text-white transition-all hover:bg-interactive-hover"
                                             placeholder="e.g. My Super Store"
                                             autoFocus
                                         />
@@ -156,14 +156,14 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Official Email <span className="text-red-400">*</span></label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-2 uppercase tracking-wide">Official Email <span className="text-red-400">*</span></label>
                                         <div className="relative">
-                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" size={18} />
                                             <input
                                                 type="email"
                                                 value={data.email}
                                                 onChange={e => setData('email', e.target.value)}
-                                                className="w-full pl-11 bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-600 text-white transition-all hover:bg-slate-800"
+                                                className="w-full pl-11 bg-neutral-800/50 border border-neutral-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none placeholder:text-ink-secondary text-white transition-all hover:bg-interactive-hover"
                                                 placeholder="contact@business.com"
                                             />
                                         </div>
@@ -171,7 +171,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Phone Number <span className="text-red-400">*</span></label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-2 uppercase tracking-wide">Phone Number <span className="text-red-400">*</span></label>
                                         <div className="flex gap-2">
                                             {/* Country Code Selector */}
                                             <div className="relative w-1/3 min-w-[120px]">
@@ -190,7 +190,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                                             }));
                                                         }
                                                     }}
-                                                    className="w-full h-full bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-3 pr-8 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-white transition-all hover:bg-slate-800 appearance-none cursor-pointer"
+                                                    className="w-full h-full bg-neutral-800/50 border border-neutral-700 rounded-xl px-3 py-3 pr-8 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-white transition-all hover:bg-interactive-hover appearance-none cursor-pointer"
                                                 >
                                                     {countries.map(country => (
                                                         <option key={country.code} value={country.code}>
@@ -198,17 +198,17 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                                         </option>
                                                     ))}
                                                 </select>
-                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500" size={16} />
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted" size={16} />
                                             </div>
 
                                             {/* Phone Input */}
                                             <div className="relative flex-1">
-                                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" size={18} />
                                                 <input
                                                     type="tel"
                                                     value={data.phone}
                                                     onChange={e => setData('phone', e.target.value)}
-                                                    className="w-full pl-11 bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-600 text-white transition-all hover:bg-slate-800"
+                                                    className="w-full pl-11 bg-neutral-800/50 border border-neutral-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none placeholder:text-ink-secondary text-white transition-all hover:bg-interactive-hover"
                                                     placeholder="300 1234567"
                                                 />
                                             </div>
@@ -219,14 +219,14 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Address <span className="text-red-400">*</span></label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-2 uppercase tracking-wide">Address <span className="text-red-400">*</span></label>
                                         <div className="relative">
-                                            <MapPin className="absolute left-4 top-4 text-slate-500" size={18} />
+                                            <MapPin className="absolute left-4 top-4 text-ink-muted" size={18} />
                                             <textarea
                                                 value={data.address}
                                                 onChange={e => setData('address', e.target.value)}
                                                 rows={3}
-                                                className="w-full pl-11 bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-600 text-white transition-all hover:bg-slate-800 resize-none"
+                                                className="w-full pl-11 bg-neutral-800/50 border border-neutral-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none placeholder:text-ink-secondary text-white transition-all hover:bg-interactive-hover resize-none"
                                                 placeholder="Shop #1, Main Market..."
                                             />
                                         </div>
@@ -234,14 +234,14 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-400 mb-4 uppercase tracking-wide">Trading Currency</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-4 uppercase tracking-wide">Trading Currency</label>
                                         <div className="flex flex-wrap gap-3">
                                             {currencies.map(curr => (
                                                 <button
                                                     key={curr.code}
                                                     type="button"
                                                     onClick={() => handleCurrencySelect(curr)}
-                                                    className={`px-4 py-2 rounded-lg border text-sm font-bold transition-all ${data.currency_code === curr.code ? 'border-indigo-500 bg-indigo-500/20 text-white ring-1 ring-indigo-500' : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:border-slate-600'}`}
+                                                    className={`px-4 py-2 rounded-lg border text-sm font-bold transition-all ${data.currency_code === curr.code ? 'border-brand-500 bg-brand-500/20 text-white ring-1 ring-brand-500' : 'border-neutral-700 bg-neutral-800/50 text-ink-muted hover:bg-interactive-hover hover:border-line-strong'}`}
                                                 >
                                                     <span className="mr-1 opacity-50">{curr.symbol}</span>
                                                     {curr.code}
@@ -266,7 +266,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                         }
                                     }}
                                     disabled={!data.business_name || !data.email || !data.phone || !data.address}
-                                    className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10"
+                                    className="px-8 py-4 bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10"
                                 >
                                     Choose Industry <ArrowRight size={20} />
                                 </button>
@@ -276,12 +276,12 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
                     {/* STEP 2: INDUSTRY SELECTION */}
                     {step === 2 && (
-                        <div className="flex-1 p-8 md:p-12 animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col">
+                        <div className="flex-1 p-8 md:p-12 animate-in fade-in slide-in-from-right-8 duration-slower flex flex-col">
                             <h2 className="text-2xl font-bold mb-2 flex items-center gap-3 text-white">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 text-sm font-bold border border-indigo-500/30">2</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 text-sm font-bold border border-brand-500/30">2</span>
                                 Select Industry
                             </h2>
-                            <p className="text-slate-400 mb-8 pl-11">We'll optimize the system for your specific business type.</p>
+                            <p className="text-ink-muted mb-8 pl-11">We'll optimize the system for your specific business type.</p>
 
                             <div className="flex-1 overflow-y-auto pr-2 nebula-scrollbar max-h-[400px]">
                                 <div className="space-y-8">
@@ -289,7 +289,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                         const GroupIcon = getIcon(group.icon);
                                         return (
                                             <div key={groupKey}>
-                                                <h3 className="text-xs font-black text-indigo-300 uppercase tracking-widest mb-4 flex items-center gap-2 opacity-80 pl-1">
+                                                <h3 className="text-xs font-bold text-brand-300 uppercase tracking-widest mb-4 flex items-center gap-2 opacity-80 pl-1">
                                                     <GroupIcon size={14} /> {group.name}
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -298,7 +298,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                                             key={typeKey}
                                                             type="button"
                                                             onClick={() => handleIndustrySelect(groupKey, typeKey)}
-                                                            className={`text-left p-4 rounded-2xl border transition-all relative overflow-hidden group hover:scale-[1.02] ${data.industry_key === typeKey ? 'border-emerald-500 bg-emerald-500/10 shadow-lg ring-1 ring-emerald-500/50' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                                            className={`text-left p-4 rounded-2xl border transition-all relative overflow-hidden group ${data.industry_key === typeKey ? 'border-emerald-500 bg-emerald-500/10 shadow-lg ring-1 ring-emerald-500/50' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                                         >
                                                             <div className="font-bold text-white mb-1 relative z-10">{typeData.type}</div>
 
@@ -321,7 +321,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                 <button
                                     type="button"
                                     onClick={() => setStep(1)}
-                                    className="px-6 py-3 text-slate-400 font-bold hover:text-white rounded-xl transition-colors"
+                                    className="px-6 py-3 text-ink-muted font-bold hover:text-white rounded-xl transition-colors"
                                 >
                                     Back
                                 </button>
@@ -332,37 +332,37 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
                     {/* STEP 3: BRANDING */}
                     {step === 3 && (
-                        <div className="flex-1 p-8 md:p-12 animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col">
+                        <div className="flex-1 p-8 md:p-12 animate-in fade-in slide-in-from-right-8 duration-slower flex flex-col">
                             <h2 className="text-2xl font-bold mb-2 flex items-center gap-3 text-white">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 text-sm font-bold border border-indigo-500/30">3</span>
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 text-sm font-bold border border-brand-500/30">3</span>
                                 Brand Identity
                             </h2>
-                            <p className="text-slate-400 mb-8 pl-11">Choose a visual style or upload your own logo.</p>
+                            <p className="text-ink-muted mb-8 pl-11">Choose a visual style or upload your own logo.</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
                                 {/* Preview Card */}
-                                <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/5 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                                <div className="bg-neutral-800/50 rounded-2xl p-6 border border-white/5 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl"></div>
 
                                     <div className="flex items-center gap-4 mb-6 border-b border-white/5 pb-6">
                                         {/* Dynamic Logo Preview */}
-                                        <div className="transition-all duration-300">
+                                        <div className="transition-all duration-slow">
                                             {data.logo_type === 'upload' && data.logo_preview ? (
                                                 <img src={data.logo_preview} alt="Logo" className="w-16 h-16 object-contain" />
                                             ) : (
                                                 <>
                                                     {(data.logo_style === 'minimal' || data.logo_type === 'upload') && !data.logo_preview && (
-                                                        <div className="w-16 h-16 flex items-center justify-center text-indigo-400">
+                                                        <div className="w-16 h-16 flex items-center justify-center text-brand-400">
                                                             <SelectedIndustryIcon size={48} strokeWidth={1.5} />
                                                         </div>
                                                     )}
                                                     {data.logo_style === 'framed' && data.logo_type !== 'upload' && (
-                                                        <div className="w-16 h-16 rounded-full border-2 border-indigo-500 flex items-center justify-center text-indigo-400 bg-indigo-500/10">
+                                                        <div className="w-16 h-16 rounded-full border-2 border-brand-500 flex items-center justify-center text-brand-400 bg-brand-500/10">
                                                             <SelectedIndustryIcon size={32} />
                                                         </div>
                                                     )}
                                                     {data.logo_style === 'modern' && data.logo_type !== 'upload' && (
-                                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white shadow-lg ">
                                                             <SelectedIndustryIcon size={32} />
                                                         </div>
                                                     )}
@@ -371,15 +371,15 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-xl text-white">{data.business_name || 'Business Name'}</h3>
-                                            <p className="text-xs text-slate-500">{data.address || '123 Main St, City'}</p>
-                                            <p className="text-xs text-slate-500">{data.phone || '+123 456 7890'}</p>
+                                            <p className="text-xs text-ink-muted">{data.address || '123 Main St, City'}</p>
+                                            <p className="text-xs text-ink-muted">{data.phone || '+123 456 7890'}</p>
                                         </div>
                                     </div>
 
                                     <div className="space-y-3 opacity-50 pointer-events-none select-none">
-                                        <div className="h-4 w-1/3 bg-slate-700/50 rounded"></div>
-                                        <div className="h-20 w-full bg-slate-700/30 rounded-lg border border-white/5"></div>
-                                        <div className="h-20 w-full bg-slate-700/30 rounded-lg border border-white/5"></div>
+                                        <div className="h-4 w-1/3 bg-neutral-700/50 rounded"></div>
+                                        <div className="h-20 w-full bg-neutral-700/30 rounded-lg border border-white/5"></div>
+                                        <div className="h-20 w-full bg-neutral-700/30 rounded-lg border border-white/5"></div>
                                     </div>
                                 </div>
 
@@ -388,14 +388,14 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
                                     {/* Upload Option */}
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-400 mb-4 uppercase tracking-wide">Custom Logo</label>
+                                        <label className="block text-sm font-bold text-ink-muted mb-4 uppercase tracking-wide">Custom Logo</label>
                                         <div
                                             onClick={() => document.getElementById('logo-upload').click()}
-                                            className={`w-full border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${data.logo_type === 'upload' ? 'border-indigo-500 bg-indigo-500/10' : 'border-slate-700 hover:border-slate-500 hover:bg-slate-800/50'}`}
+                                            className={`w-full border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${data.logo_type === 'upload' ? 'border-brand-500 bg-brand-500/10' : 'border-neutral-700 hover:border-line-strong hover:bg-interactive-hover'}`}
                                         >
-                                            <Upload className="mb-2 text-slate-400" size={24} />
+                                            <Upload className="mb-2 text-ink-muted" size={24} />
                                             <span className="text-sm font-bold text-white">Upload Photo</span>
-                                            <span className="text-xs text-slate-500 mt-1">Max 1100x1100px. Will be resized for display.</span>
+                                            <span className="text-xs text-ink-muted mt-1">Max 1100x1100px. Will be resized for display.</span>
                                             <input
                                                 id="logo-upload"
                                                 type="file"
@@ -427,24 +427,24 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
                                     {/* Divider */}
                                     <div className="relative">
-                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-700"></div></div>
-                                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-900 px-2 text-slate-500">Or Choose Style</span></div>
+                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-neutral-700"></div></div>
+                                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-neutral-900 px-2 text-ink-muted">Or Choose Style</span></div>
                                     </div>
 
                                     {/* Presets */}
                                     <div className="space-y-3">
-                                        <button onClick={() => setData(d => ({ ...d, logo_type: 'preset', logo_style: 'minimal' }))} className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all ${data.logo_type === 'preset' && data.logo_style === 'minimal' ? 'bg-indigo-500/20 border-indigo-500' : 'bg-slate-800/30 border-white/5 hover:bg-slate-800'}`}>
-                                            <div className="w-8 h-8 flex items-center justify-center text-indigo-400"><SelectedIndustryIcon size={20} /></div>
+                                        <button onClick={() => setData(d => ({ ...d, logo_type: 'preset', logo_style: 'minimal' }))} className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all ${data.logo_type === 'preset' && data.logo_style === 'minimal' ? 'bg-brand-500/20 border-brand-500' : 'bg-neutral-800/30 border-white/5 hover:bg-interactive-hover'}`}>
+                                            <div className="w-8 h-8 flex items-center justify-center text-brand-400"><SelectedIndustryIcon size={20} /></div>
                                             <div className="text-left"><div className="font-bold text-white text-sm">Minimalist</div></div>
                                         </button>
 
-                                        <button onClick={() => setData(d => ({ ...d, logo_type: 'preset', logo_style: 'framed' }))} className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all ${data.logo_type === 'preset' && data.logo_style === 'framed' ? 'bg-indigo-500/20 border-indigo-500' : 'bg-slate-800/30 border-white/5 hover:bg-slate-800'}`}>
-                                            <div className="w-8 h-8 rounded-full border border-indigo-500 flex items-center justify-center text-indigo-400 bg-indigo-500/10"><SelectedIndustryIcon size={16} /></div>
+                                        <button onClick={() => setData(d => ({ ...d, logo_type: 'preset', logo_style: 'framed' }))} className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all ${data.logo_type === 'preset' && data.logo_style === 'framed' ? 'bg-brand-500/20 border-brand-500' : 'bg-neutral-800/30 border-white/5 hover:bg-interactive-hover'}`}>
+                                            <div className="w-8 h-8 rounded-full border border-brand-500 flex items-center justify-center text-brand-400 bg-brand-500/10"><SelectedIndustryIcon size={16} /></div>
                                             <div className="text-left"><div className="font-bold text-white text-sm">Framed</div></div>
                                         </button>
 
-                                        <button onClick={() => setData(d => ({ ...d, logo_type: 'preset', logo_style: 'modern' }))} className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all ${data.logo_type === 'preset' && data.logo_style === 'modern' ? 'bg-indigo-500/20 border-indigo-500' : 'bg-slate-800/30 border-white/5 hover:bg-slate-800'}`}>
-                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white"><SelectedIndustryIcon size={16} /></div>
+                                        <button onClick={() => setData(d => ({ ...d, logo_type: 'preset', logo_style: 'modern' }))} className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all ${data.logo_type === 'preset' && data.logo_style === 'modern' ? 'bg-brand-500/20 border-brand-500' : 'bg-neutral-800/30 border-white/5 hover:bg-interactive-hover'}`}>
+                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white"><SelectedIndustryIcon size={16} /></div>
                                             <div className="text-left"><div className="font-bold text-white text-sm">Modern Gradient</div></div>
                                         </button>
                                     </div>
@@ -455,7 +455,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                 <button
                                     type="button"
                                     onClick={() => setStep(2)}
-                                    className="px-6 py-3 text-slate-400 font-bold hover:text-white rounded-xl transition-colors"
+                                    className="px-6 py-3 text-ink-muted font-bold hover:text-white rounded-xl transition-colors"
                                 >
                                     Back
                                 </button>
@@ -469,7 +469,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                         type="button"
                                         onClick={() => handleSubmit({ preventDefault: () => { } })}
                                         disabled={processing}
-                                        className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     >
                                         {processing ? <Loader2 className="animate-spin" /> : <><RocketIcon size={20} /> Launch System</>}
                                     </button>
@@ -480,18 +480,18 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
                     {/* PROCESSING STATE OVERLAY */}
                     {processing && (
-                        <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-300">
+                        <div className="absolute inset-0 bg-neutral-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-slow">
                             <div className="relative mb-6">
-                                <div className="w-20 h-20 border-4 border-slate-700 rounded-full"></div>
-                                <div className="w-20 h-20 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                                <div className="w-20 h-20 border-4 border-neutral-700 rounded-full"></div>
+                                <div className="w-20 h-20 border-4 border-brand-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                    <Zap className="text-indigo-500 fill-current" size={24} />
+                                    <Zap className="text-brand-500 fill-current" size={24} />
                                 </div>
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-2">Setting up your {data.business_name}...</h3>
-                            <p className="text-slate-400">Applying industry configurations for <strong>{industries[data.industry_group]?.types[data.industry_key]?.type}</strong>...</p>
+                            <h3 className="text-2xl font-bold text-white mb-2">Setting up your {data.business_name}...</h3>
+                            <p className="text-ink-muted">Applying industry configurations for <strong>{industries[data.industry_group]?.types[data.industry_key]?.type}</strong>...</p>
 
-                            <div className="mt-8 space-y-2 text-sm text-slate-500">
+                            <div className="mt-8 space-y-2 text-sm text-ink-muted">
                                 <div className="flex items-center gap-2 animate-pulse delay-75"><CheckCircle size={14} className="text-emerald-500" /> Creating Categories...</div>
                                 <div className="flex items-center gap-2 animate-pulse delay-150"><CheckCircle size={14} className="text-emerald-500" /> Configuring Units...</div>
                                 <div className="flex items-center gap-2 animate-pulse delay-300"><CheckCircle size={14} className="text-emerald-500" /> Saving Brand Identity...</div>
@@ -501,7 +501,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
                 </form>
                 {/* Footer / Copyright */}
-                <div className="text-center mt-8 text-slate-600 text-sm">
+                <div className="text-center mt-8 text-ink-secondary text-sm">
                     &copy; 2026 VENQORE System. All rights reserved.
                 </div>
             </div>
@@ -510,7 +510,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                 .clip-hexagon {
                     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
                 }
-            `}</style>
+`}</style>
         </div>
     );
 }

@@ -144,8 +144,8 @@ export default function UpgradeModal() {
     const featureMeta = getFeatureMeta(feature);
 
     const planColors = {
-        starter: 'text-slate-400',
-        growth: 'text-indigo-400',
+        starter: 'text-ink-muted',
+        growth: 'text-brand-400',
         business: 'text-amber-400',
     };
 
@@ -159,16 +159,16 @@ export default function UpgradeModal() {
 
     return (
         <Modal show={isOpen} onClose={() => setIsOpen(false)} maxWidth="lg">
-            <div className="relative overflow-hidden bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl">
+            <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl">
                 {/* ── Ambient Background Effects ── */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/15 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 pointer-events-none" />
                 <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-5 pointer-events-none" />
 
                 {/* ── Close Button ── */}
                 <button
                     onClick={() => setIsOpen(false)}
-                    className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all"
+                    className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white transition-all"
                 >
                     <X size={14} />
                 </button>
@@ -191,7 +191,7 @@ export default function UpgradeModal() {
                                         {displayCount.toLocaleString()} / {displayLimit.toLocaleString()} {stuffName}
                                     </span>
                                 )}
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-800 border border-slate-700 ${planColors[currentPlan]}`}>
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-neutral-800 border border-neutral-700 ${planColors[currentPlan]}`}>
                                     {currentPlan} plan
                                 </span>
                             </div>
@@ -200,14 +200,14 @@ export default function UpgradeModal() {
                                     <span>Plan Limit Reached</span>
                                 ) : (
                                     <>
-                                        Unlock More with{' '}
-                                        <span className={upgradeTo === 'business' ? 'text-amber-400' : 'text-indigo-400'}>
+                                        Unlock More with{''}
+                                        <span className={upgradeTo === 'business' ? 'text-amber-400' : 'text-brand-400'}>
                                             {upgradeLabel}
                                         </span>
                                     </>
                                 )}
                             </h2>
-                            <p className="text-slate-400 text-sm mt-1 leading-relaxed">
+                            <p className="text-ink-muted text-sm mt-1 leading-relaxed">
                                 {message}
                             </p>
                             {displayCount !== null && displayLimit !== null && (
@@ -219,18 +219,18 @@ export default function UpgradeModal() {
                     </div>
 
                     {/* ── Perks Grid ── */}
-                    <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 mb-6">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <Crown size={12} className={upgradeTo === 'business' ? 'text-amber-400' : 'text-indigo-400'} />
+                    <div className="bg-neutral-800/60 backdrop-blur-sm border border-neutral-700/50 rounded-xl p-5 mb-6">
+                        <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <Crown size={12} className={upgradeTo === 'business' ? 'text-amber-400' : 'text-brand-400'} />
                             What you unlock with {upgradeLabel}
                         </p>
                         <div className="grid grid-cols-1 gap-2.5">
                             {upgradePerks.map((perk, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${upgradeTo === 'business' ? 'bg-amber-500/15 text-amber-400' : 'bg-indigo-500/15 text-indigo-400'}`}>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${upgradeTo === 'business' ? 'bg-amber-500/15 text-amber-400' : 'bg-brand-500/15 text-brand-400'}`}>
                                         <Check size={11} strokeWidth={3} />
                                     </div>
-                                    <span className="text-sm text-slate-300">{perk}</span>
+                                    <span className="text-sm text-neutral-300">{perk}</span>
                                 </div>
                             ))}
                         </div>
@@ -241,7 +241,7 @@ export default function UpgradeModal() {
                         {feature === 'woocommerce' ? (
                             <a
                                 href={billingUrl && billingUrl !== '#' ? `${billingUrl}?tab=addons` : '/billing?tab=addons'}
-                                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 transition-all shadow-lg"
+                                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-purple-500 to-brand-600 hover:from-purple-400 hover:to-brand-500 transition-all shadow-lg"
                             >
                                 <Sparkles size={16} />
                                 Purchase WooCommerce Add-on
@@ -254,7 +254,7 @@ export default function UpgradeModal() {
                                     href="https://appsumo.com/products/venqore"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg shadow-amber-900/20 hover:shadow-amber-900/40"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg hover:"
                                 >
                                     <Sparkles size={16} />
                                     Stack Another AppSumo Code
@@ -264,7 +264,7 @@ export default function UpgradeModal() {
                                 // LTD user at max tier (ltd_3) — must move to subscription
                                 <a
                                     href={upgradeUrl}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 transition-all shadow-lg shadow-indigo-900/30"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 transition-all shadow-lg "
                                 >
                                     <Sparkles size={16} />
                                     Upgrade to Subscription
@@ -278,9 +278,9 @@ export default function UpgradeModal() {
                                 className={`
                                     flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all shadow-lg
                                     ${upgradeTo === 'business'
-                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-amber-900/20 hover:shadow-amber-900/40'
-                                        : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-indigo-900/30 hover:shadow-indigo-900/50'}
-                                `}
+                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400  hover:'
+                                        : 'bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500  hover:'}
+`}
                             >
                                 <Sparkles size={16} />
                                 Upgrade to {upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1)}
@@ -291,7 +291,7 @@ export default function UpgradeModal() {
                         {/* Secondary: View Billing */}
                         <a
                             href={billingUrl}
-                            className="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl font-medium text-sm text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 transition-all"
+                            className="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl font-medium text-sm text-neutral-300 bg-neutral-800 hover:bg-interactive-hover border border-neutral-700 hover:border-line-strong transition-all"
                         >
                             View Plans
                         </a>
@@ -299,24 +299,24 @@ export default function UpgradeModal() {
                         {/* Dismiss */}
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-medium text-sm text-slate-500 hover:text-slate-300 transition-colors"
+                            className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-medium text-sm text-ink-muted hover:text-neutral-300 transition-colors"
                         >
                             Dismiss
                         </button>
                     </div>
 
                     {portalUrl && portalUrl !== '#' ? (
-                        <p className="text-center text-slate-600 text-xs mt-5">
-                            Upgrade takes effect instantly. No downtime. Manage subscription at{' '}
-                            <a href={portalUrl} className="text-slate-500 hover:text-slate-300 underline transition-colors">
+                        <p className="text-center text-ink-secondary text-xs mt-5">
+                            Upgrade takes effect instantly. No downtime. Manage subscription at{''}
+                            <a href={portalUrl} className="text-ink-muted hover:text-neutral-300 underline transition-colors">
                                 billing portal
                             </a>
                             .
                         </p>
                     ) : (
-                        <p className="text-center text-slate-600 text-xs mt-5">
-                            Upgrade takes effect instantly. No downtime. You can manage these features inside your{' '}
-                            <a href={billingUrl} className="text-slate-500 hover:text-slate-300 underline transition-colors">
+                        <p className="text-center text-ink-secondary text-xs mt-5">
+                            Upgrade takes effect instantly. No downtime. You can manage these features inside your{''}
+                            <a href={billingUrl} className="text-ink-muted hover:text-neutral-300 underline transition-colors">
                                 billing page
                             </a>
                             .

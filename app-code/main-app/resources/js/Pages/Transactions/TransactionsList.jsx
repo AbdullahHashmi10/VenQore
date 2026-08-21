@@ -149,8 +149,8 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
     const SortIcon = ({ columnKey }) => {
         if (sortConfig.key !== columnKey) return null;
         return sortConfig.direction === 'asc'
-            ? <ChevronUp size={14} className="text-indigo-500" />
-            : <ChevronDown size={14} className="text-indigo-500" />;
+            ? <ChevronUp size={14} className="text-brand-500" />
+            : <ChevronDown size={14} className="text-brand-500" />;
     };
 
     const getTypeConfig = (type) => {
@@ -162,7 +162,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
             payment_out: { label: 'Paid', color: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400', icon: ArrowUpCircle },
             return: { label: 'Return', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', icon: CornerUpRight }
         };
-        return configs[type] || { label: type, color: 'bg-slate-100 text-slate-700', icon: FileText };
+        return configs[type] || { label: type, color: 'bg-neutral-100 text-ink-secondary', icon: FileText };
     };
 
 
@@ -170,20 +170,20 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
         <OneGlanceLayout title="Transactions" activeMenu="Money">
             <Head title="Transactions" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <MoneyModuleTabs activeTab="all" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="sm:hidden flex items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-2xs font-bold text-slate-500 uppercase shrink-0 mr-2"
+                        className="flex items-center gap-1 text-2xs font-bold text-ink-muted uppercase shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
-                        <ChevronDown size={14} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={14} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     {!isStatsExpanded && (
-                        <div className="text-2xs font-bold text-slate-500 truncate">
+                        <div className="text-2xs font-bold text-ink-muted truncate">
                             <span className="text-emerald-600">Sales: {formatCurrency(stats.total_debit || 0, store)}</span>
                             <span className="mx-1">|</span>
                             <span className="text-red-600 dark:text-red-400">Due: {formatCurrency(stats.total_balance_due || 0, store)}</span>
@@ -193,70 +193,70 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
 
                 {/* Stats Cards - Responsive Grid */}
                 <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
+                            <div className="p-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
                                 <FileText size={14} />
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Count</p>
+                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Count</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white leading-none mt-1 sm:mt-0">{stats.count || 0}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-bold text-ink leading-none mt-1 sm:mt-0">{stats.count || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-1.5 shrink-0">
                             <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
                                 <TrendingUp size={14} />
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Sales</p>
+                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Total Sales</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_debit || 0, store)}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-bold text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_debit || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-1.5 shrink-0">
                             <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
                                 <ArrowDownCircle size={14} />
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Received</p>
+                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Received</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-blue-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_credit || 0, store)}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-bold text-blue-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_credit || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-1.5 shrink-0">
                             <div className="p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg shrink-0">
                                 <ArrowUpCircle size={14} />
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Unpaid / Due</p>
+                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Unpaid / Due</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-red-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_balance_due || 0, store)}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-bold text-red-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_balance_due || 0, store)}</p>
                     </div>
                 </div>
 
                 {/* Mobile Toolbar (sm:hidden) */}
-                <div className="sm:hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center justify-between px-3 py-2">
-                        <h1 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-tight">
-                            Transactions <span className="text-indigo-600">History</span>
+                        <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
+                            Transactions <span className="text-brand-600">History</span>
                         </h1>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-1.5 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-1.5 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Search"
                             >
                                 <Search size={14} />
                             </button>
                             <button
                                 onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-1.5 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-1.5 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Filter Type"
                             >
                                 <Filter size={14} />
                             </button>
-                            <div className="flex items-center border-l border-slate-200 dark:border-slate-800 pl-1.5 ml-0.5 gap-0.5">
+                            <div className="flex items-center border-l border-line pl-1.5 ml-0.5 gap-0.5">
                                 <button className="p-1 text-emerald-600" title="Export">
                                     <Download size={14} />
                                 </button>
-                                <button className="p-1 text-slate-500" title="Print">
+                                <button className="p-1 text-ink-muted" title="Print">
                                     <Printer size={14} />
                                 </button>
                             </div>
@@ -265,7 +265,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
 
                     {/* Expandable Mobile Search */}
                     {showMobileSearch && (
-                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200">
+                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
                             <div className="relative w-full">
                                 <input
                                     autoFocus
@@ -273,30 +273,30 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     placeholder="Search ref or party..."
-                                    className="w-full pl-8 pr-4 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    className="w-full pl-8 pr-4 py-1.5 text-xs bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
                                 />
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={12} />
                             </div>
                         </div>
                     )}
 
                     {/* Expandable Mobile Filters panel */}
                     {showMobileFilters && (
-                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200">
+                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
-                                <div className="flex bg-slate-100 dark:bg-slate-850 rounded-lg p-1 gap-1 flex-1">
+                                <span className="text-3xs font-bold text-ink-muted uppercase tracking-wider shrink-0">Type:</span>
+                                <div className="flex bg-sunken rounded-lg p-1 gap-1 flex-1">
                                     <button
                                         onClick={() => { setTypeFilter('all'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}
                                     >All</button>
                                     <button
                                         onClick={() => { setTypeFilter('sale'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'sale' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'sale' ? 'bg-sunken text-emerald-600 shadow-sm' : 'text-ink-muted'}`}
                                     >Sales</button>
                                     <button
                                         onClick={() => { setTypeFilter('purchase'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'purchase' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'purchase' ? 'bg-sunken text-blue-600 shadow-sm' : 'text-ink-muted'}`}
                                     >Purchases</button>
                                 </div>
                             </div>
@@ -305,44 +305,44 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                 </div>
 
                 {/* Desktop Header Bar (sm:flex, hidden on mobile) */}
-                <div className="hidden sm:flex flex-row items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="hidden sm:flex flex-row items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Type Filter */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-sm sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
-                            Transaction <span className="text-indigo-600">History</span>
+                        <h1 className="text-sm sm:text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            Transaction <span className="text-brand-600">History</span>
                         </h1>
-                        <div className="hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="hidden sm:block h-4 w-px bg-sunken mx-1"></div>
                         <button
                             onClick={() => setTypeFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >All</button>
                         <button
                             onClick={() => setTypeFilter('sale')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'sale' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'sale' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Sales</button>
                         <button
                             onClick={() => setTypeFilter('purchase')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'purchase' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'purchase' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Purchases</button>
                     </div>
 
                     {/* Right: Search + Export */}
                     <div className="flex items-center gap-2">
                         <div className="relative">
-                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted" />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search ref or party..."
-                                className="pl-8 pr-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 outline-none w-44"
+                                className="pl-8 pr-2 py-1.5 text-xs bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
                             />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-1.5">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-1.5">
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <Download size={14} />
                             </button>
-                            <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print">
+                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
                                 <Printer size={14} />
                             </button>
                         </div>
@@ -350,18 +350,18 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     
                     {/* Desktop Table View */}
                     <div className="hidden sm:block">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                                <tr className="bg-app border-b border-line sticky top-0 z-10">
                                     {tableColumns.map((col) => (
                                         <th
                                             key={col.key}
                                             onClick={() => handleSort(col.key)}
-                                            className={`p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 ${col.align === 'right' ? 'text-right' : ''}`}
+                                            className={`p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover ${col.align === 'right' ? 'text-right' : ''}`}
                                             style={{ width: col.width }}
                                         >
                                             <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : ''}`}>
@@ -369,35 +369,35 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                             </div>
                                         </th>
                                     ))}
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right w-[10%]">
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right w-[10%]">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-line">
                                 {processData.length > 0 ? (
                                     processData.map((row) => {
                                         const typeConfig = getTypeConfig(row.type);
                                         const Icon = typeConfig.icon;
 
                                         return (
-                                            <tr key={row.id + '-' + row.type} className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group">
+                                            <tr key={row.id + '-' + row.type} className="hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all group">
                                                 <td className="p-3">
-                                                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                                                    <span className="text-xs font-medium text-ink-secondary whitespace-nowrap">
                                                         {formatDate(row.date)}
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
-                                                    <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                                                    <span className="font-mono text-xs font-bold text-brand-600 dark:text-brand-400">
                                                         {row.reference}
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
                                                     <div>
-                                                        <p className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[180px]">
+                                                        <p className="text-xs font-bold text-ink truncate max-w-[180px]">
                                                             {row.party?.name || 'Walk-in Customer'}
                                                         </p>
-                                                        {row.party?.phone && <p className="text-2xs text-slate-400">{row.party.phone}</p>}
+                                                        {row.party?.phone && <p className="text-2xs text-ink-muted">{row.party.phone}</p>}
                                                     </div>
                                                 </td>
                                                 <td className="p-3">
@@ -407,7 +407,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                     </span>
                                                 </td>
                                                 <td className="p-3 text-right">
-                                                    <span className="text-xs font-mono font-bold text-slate-800 dark:text-white">
+                                                    <span className="text-xs font-mono font-bold text-ink">
                                                         {formatCurrency(row.amount, store)}
                                                     </span>
                                                 </td>
@@ -425,32 +425,32 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                 <td className="p-3">
                                                     <span className={`text-2xs font-bold uppercase ${row.payment_status === 'paid' ? 'text-emerald-600' :
                                                         row.payment_status === 'partial' ? 'text-amber-600' :
-                                                            row.payment_status === 'unpaid' ? 'text-red-600' : 'text-slate-500'
+                                                            row.payment_status === 'unpaid' ? 'text-red-600' : 'text-ink-muted'
                                                         }`}>
                                                         {row.payment_status || '-'}
                                                     </span>
                                                 </td>
-                                                <td className="p-3 text-right text-slate-500">
+                                                <td className="p-3 text-right text-ink-muted">
                                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                                                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-indigo-600" title="Print">
+                                                        <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600" title="Print">
                                                             <Printer size={14} />
                                                         </button>
                                                         <div className="relative">
                                                             <button
                                                                 onClick={() => setActiveActionMenu(activeActionMenu === row.id ? null : row.id)}
-                                                                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700"
+                                                                className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink-secondary"
                                                             >
                                                                 <MoreVertical size={14} />
                                                             </button>
                                                             {activeActionMenu === row.id && (
-                                                                <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-950 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 p-1 z-50 animate-in zoom-in-95">
-                                                                    <button className="w-full text-left px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-xs font-medium flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                                                                <div className="absolute right-0 top-full mt-1 w-40 bg-surface rounded-lg shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+                                                                    <button className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-xs font-medium flex items-center gap-2 text-ink-secondary">
                                                                         <Eye size={12} /> View Details
                                                                     </button>
-                                                                    <button className="w-full text-left px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-xs font-medium flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                                                                    <button className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-xs font-medium flex items-center gap-2 text-ink-secondary">
                                                                         <FileText size={12} /> PDF Invoice
                                                                     </button>
-                                                                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
+                                                                    <div className="h-px bg-sunken my-1"></div>
                                                                     <button className="w-full text-left px-2 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-xs font-medium flex items-center gap-2 text-red-600">
                                                                         <Trash2 size={12} /> Delete
                                                                     </button>
@@ -464,7 +464,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={tableColumns.length + 1} className="p-12 text-center text-slate-400">
+                                        <td colSpan={tableColumns.length + 1} className="p-12 text-center text-ink-muted">
                                             <div className="flex flex-col items-center gap-2">
                                                 <FileText size={24} className="opacity-50" />
                                                 <p className="text-sm font-medium">No transactions found</p>
@@ -477,16 +477,16 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                     </div>
 
                     {/* Mobile Stacked Cards List View */}
-                    <div className="block sm:hidden divide-y divide-slate-100 dark:divide-slate-800 animate-in fade-in duration-200">
+                    <div className="block sm:hidden divide-y divide-line animate-in fade-in duration-normal">
                         {processData.length > 0 ? (
                             processData.map((row) => {
                                 const typeConfig = getTypeConfig(row.type);
                                 const Icon = typeConfig.icon;
 
                                 return (
-                                    <div key={row.id + '-' + row.type} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/10 flex flex-col gap-1.5">
+                                    <div key={row.id + '-' + row.type} className="p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover flex flex-col gap-1.5">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-2xs text-slate-500 font-medium font-mono">
+                                            <span className="text-2xs text-ink-muted font-medium font-mono">
                                                 {formatDate(row.date)}
                                             </span>
                                             <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-3xs font-bold uppercase ${typeConfig.color}`}>
@@ -495,16 +495,16 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                             </span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <p className="text-xs font-bold text-slate-850 dark:text-white break-all">
-                                                Ref: <span className="text-indigo-600 dark:text-indigo-400 font-mono font-black">{row.reference}</span>
+                                            <p className="text-xs font-bold text-ink break-all">
+                                                Ref: <span className="text-brand-600 dark:text-brand-400 font-mono font-bold">{row.reference}</span>
                                             </p>
-                                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
+                                            <p className="text-xs font-semibold text-ink-secondary mt-0.5">
                                                 {row.party?.name || 'Walk-in Customer'}
                                             </p>
                                         </div>
-                                        <div className="flex items-center justify-between text-1xs pt-1.5 border-t border-dashed border-slate-150 dark:border-slate-800 mt-1">
+                                        <div className="flex items-center justify-between text-1xs pt-1.5 border-t border-dashed border-line mt-1">
                                             <div className="flex gap-2">
-                                                <span className="text-slate-800 dark:text-white font-mono font-bold">Amt: {formatCurrency(row.amount, store)}</span>
+                                                <span className="text-ink font-mono font-bold">Amt: {formatCurrency(row.amount, store)}</span>
                                                 {row.balance_due > 0 && (
                                                     <span className="text-red-600 dark:text-red-400 font-mono font-bold">Due: {formatCurrency(row.balance_due, store)}</span>
                                                 )}
@@ -517,18 +517,18 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                 </span>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }}
-                                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 relative"
+                                                    className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-ink-muted relative"
                                                 >
                                                     <MoreVertical size={12} />
                                                     {activeActionMenu === row.id && (
-                                                        <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-950 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 p-1 z-50 animate-in zoom-in-95">
-                                                            <button className="w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-2xs font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                                        <div className="absolute right-0 top-full mt-1 w-36 bg-surface rounded-lg shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+                                                            <button className="w-full text-left px-2 py-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-2xs font-medium flex items-center gap-1.5 text-ink-secondary">
                                                                 <Eye size={10} /> View Details
                                                             </button>
-                                                            <button className="w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-2xs font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                                            <button className="w-full text-left px-2 py-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-2xs font-medium flex items-center gap-1.5 text-ink-secondary">
                                                                 <FileText size={10} /> PDF Invoice
                                                             </button>
-                                                            <div className="h-px bg-slate-100 dark:bg-slate-800 my-0.5"></div>
+                                                            <div className="h-px bg-sunken my-0.5"></div>
                                                             <button className="w-full text-left px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-2xs font-medium flex items-center gap-1.5 text-red-600">
                                                                     <Trash2 size={10} /> Delete
                                                             </button>
@@ -541,7 +541,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                 );
                             })
                         ) : (
-                            <div className="p-12 text-center text-slate-400 text-xs">
+                            <div className="p-12 text-center text-ink-muted text-xs">
                                 <FileText size={20} className="mx-auto mb-1.5 opacity-50" />
                                 No transactions found
                             </div>
@@ -549,13 +549,13 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                     </div>
 
                     {/* Infinite Scroll Sentinel */}
-                    <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800 opacity-0">
+                    <div ref={observerTarget} className="p-4 text-center text-ink-muted text-sm border-t border-line opacity-0">
                         {nextPageUrl ? 'Loading...' : (allTransactions.length > 0 ? 'End of list' : '')}
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between px-2 bg-white dark:bg-slate-900 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
-                    <div className="text-xs text-slate-400 font-medium">
+                <div className="flex items-center justify-between px-2 bg-surface py-2 rounded-xl border border-line shrink-0">
+                    <div className="text-xs text-ink-muted font-medium">
                         Showing {allTransactions.length} of {transactions.total} records (Filtered: {processData.length})
                     </div>
                 </div>

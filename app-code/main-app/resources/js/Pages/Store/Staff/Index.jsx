@@ -104,14 +104,14 @@ function InviteModal({ storeId, onClose }) {
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-main,#0f172a)' }}>
+                        <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>
                             Invite a Team Member
                         </div>
                         <div style={{ fontSize: 13, color: vq.slate[500], marginTop: 4 }}>
                             They'll receive an email with a 7-day invite link.
                         </div>
                     </div>
-                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: vq.slate[500] }}>
+                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid rgb(var(--vq-slate-200))', background: 'transparent', cursor: 'pointer', color: vq.slate[500] }}>
                         <X size={16} />
                     </button>
                 </div>
@@ -127,7 +127,7 @@ function InviteModal({ storeId, onClose }) {
                             value={data.email}
                             onChange={e => setData('email', e.target.value)}
                             placeholder="colleague@example.com"
-                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${errors.email ? vq.red[500] : vq.slate[200]}`, background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', color: 'var(--text-main,#0f172a)', boxSizing: 'border-box' }}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${errors.email ? vq.red[500] : vq.slate[200]}`, background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', color: 'var(--text-main,rgb(var(--vq-slate-900)))', boxSizing: 'border-box' }}
                         />
                         {errors.email && <div style={{ fontSize: 11, color: vq.red[500], marginTop: 4 }}>{errors.email}</div>}
                     </div>
@@ -141,7 +141,7 @@ function InviteModal({ storeId, onClose }) {
                             <select
                                 value={data.role}
                                 onChange={e => setData('role', e.target.value)}
-                                style={{ width: '100%', padding: '10px 36px 10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', color: 'var(--text-main,#0f172a)', appearance: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '10px 36px 10px 14px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', color: 'var(--text-main,rgb(var(--vq-slate-900)))', appearance: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
                             >
                                 {INVITABLE_ROLES.map(r => (
                                     <option key={r} value={r}>{ROLES[r]?.label ?? r}</option>
@@ -172,17 +172,17 @@ function InviteModal({ storeId, onClose }) {
                             onChange={e => setData('display_name', e.target.value)}
                             placeholder="How they appear in POS (e.g. Ali)"
                             maxLength={50}
-                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', color: 'var(--text-main,#0f172a)', boxSizing: 'border-box' }}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', color: 'var(--text-main,rgb(var(--vq-slate-900)))', boxSizing: 'border-box' }}
                         />
                     </div>
 
                     <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                         <button type="button" onClick={onClose}
-                            style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid #e2e8f0', background: 'transparent', fontSize: 13, fontWeight: 600, color: vq.slate[500], cursor: 'pointer' }}>
+                            style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid rgb(var(--vq-slate-200))', background: 'transparent', fontSize: 13, fontWeight: 600, color: vq.slate[500], cursor: 'pointer' }}>
                             Cancel
                         </button>
                         <button type="submit" disabled={processing}
-                            style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: processing ? 0.7 : 1 }}>
+                            style={{ flex: 2, padding: '11px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: processing ? 0.7 : 1 }}>
                             <Send size={14} /> {processing ? 'Sending…' : 'Send Invite'}
                         </button>
                     </div>
@@ -209,17 +209,17 @@ function EditMemberModal({ member, storeId, onClose }) {
 
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid #e2e8f0', borderRadius: 24, padding: 30, width: '100%', maxWidth: 400, boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid rgb(var(--vq-slate-200))', borderRadius: 24, padding: 30, width: '100%', maxWidth: 400, boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-main,#0f172a)' }}>Edit {member.name}</div>
-                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: vq.slate[500] }}><X size={14} /></button>
+                    <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>Edit {member.name}</div>
+                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid rgb(var(--vq-slate-200))', background: 'transparent', cursor: 'pointer', color: vq.slate[500] }}><X size={14} /></button>
                 </div>
                 <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Role</label>
                         <select value={data.role} onChange={e => setData('role', e.target.value)}
                             disabled={member.role === 'owner'}
-                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
                             {INVITABLE_ROLES.map(r => <option key={r} value={r}>{ROLES[r]?.label ?? r}</option>)}
                         </select>
                         {member.role === 'owner' && <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 4 }}>Owner role cannot be changed.</div>}
@@ -228,20 +228,20 @@ function EditMemberModal({ member, storeId, onClose }) {
                         <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Display Name</label>
                         <input value={data.display_name} onChange={e => setData('display_name', e.target.value)}
                             placeholder="POS display name"
-                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Status</label>
                         <select value={data.status} onChange={e => setData('status', e.target.value)}
                             disabled={member.role === 'owner'}
-                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
                             <option value="active">Active</option>
                             <option value="suspended">Suspended</option>
                         </select>
                     </div>
                     <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                         <button type="button" onClick={onClose}
-                            style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'transparent', fontSize: 13, fontWeight: 600, color: vq.slate[500], cursor: 'pointer' }}>
+                            style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'transparent', fontSize: 13, fontWeight: 600, color: vq.slate[500], cursor: 'pointer' }}>
                             Cancel
                         </button>
                         <button type="submit" disabled={processing}
@@ -272,7 +272,7 @@ function MemberRow({ member, storeId, canManage, myRole }) {
         <>
             {editing && <EditMemberModal member={member} storeId={storeId} onClose={() => setEditing(false)} />}
             <tr
-                style={{ borderBottom: '1px solid var(--card-border,#f1f5f9)', transition: 'background 0.12s' }}
+                style={{ borderBottom: '1px solid var(--card-border,rgb(var(--vq-slate-100)))', transition: 'background 0.12s' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.02)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
@@ -281,7 +281,7 @@ function MemberRow({ member, storeId, canManage, myRole }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Avatar name={member.name} role={member.role} />
                         <div>
-                            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main,#0f172a)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main,rgb(var(--vq-slate-900)))', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 {member.display_name || member.name}
                                 {isMe && <span style={{ fontSize: 10, fontWeight: 700, background: vq.violet[100], color: vq.indigo[500], padding: '1px 6px', borderRadius: 5, letterSpacing: '0.04em' }}>YOU</span>}
                             </div>
@@ -321,14 +321,14 @@ function MemberRow({ member, storeId, canManage, myRole }) {
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                             <button
                                 onClick={() => setMenuOpen(v => !v)}
-                                style={{ padding: '5px 8px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: vq.slate[500], display: 'flex', alignItems: 'center' }}
+                                style={{ padding: '5px 8px', borderRadius: 8, border: '1px solid rgb(var(--vq-slate-200))', background: 'transparent', cursor: 'pointer', color: vq.slate[500], display: 'flex', alignItems: 'center' }}
                             >
                                 <MoreVertical size={15} />
                             </button>
                             {menuOpen && (
                                 <>
                                     <div style={{ position: 'fixed', inset: 0, zIndex: 30 }} onClick={() => setMenuOpen(false)} />
-                                    <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 40, background: 'var(--card-bg,#fff)', border: '1px solid #e2e8f0', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
+                                    <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 40, background: 'var(--card-bg,#fff)', border: '1px solid rgb(var(--vq-slate-200))', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
                                         <button onClick={() => { setEditing(true); setMenuOpen(false); }}
                                             style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 13, color: vq.slate[600], cursor: 'pointer', textAlign: 'left' }}
                                             onMouseEnter={e => e.currentTarget.style.background = vq.slate[50]}
@@ -395,7 +395,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
                     <div>
-                        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,#0f172a)', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,rgb(var(--vq-slate-900)))', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                             <Users size={20} color={vq.indigo[500]} /> Team Management
                         </h1>
                         <p style={{ fontSize: 13, color: vq.slate[500], margin: '4px 0 0' }}>
@@ -405,7 +405,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                     {canManage && (
                         <button
                             onClick={() => setShowInvite(true)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)', transition: 'transform 0.12s, box-shadow 0.12s' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)', transition: 'transform 0.12s, box-shadow 0.12s' }}
                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(99,102,241,0.4)'; }}
                             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(99,102,241,0.3)'; }}
                         >
@@ -417,24 +417,24 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 {/* Join Code + Search Row */}
                 <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
                     {/* Search */}
-                    <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#e2e8f0)', borderRadius: 12, padding: '0 14px' }}>
+                    <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 12, padding: '0 14px' }}>
                         <Users size={14} color={vq.slate[400]} />
                         <input
                             value={search} onChange={e => setSearch(e.target.value)}
                             placeholder="Search by name, email, or role…"
-                            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, padding: '10px 0', color: 'var(--text-main,#0f172a)' }}
+                            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, padding: '10px 0', color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}
                         />
                     </div>
 
                     {/* Join Code Card */}
                     {canManage && join_code && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid #e2e8f0', borderRadius: 12, padding: '8px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid rgb(var(--vq-slate-200))', borderRadius: 12, padding: '8px 16px' }}>
                             <div>
                                 <div style={{ fontSize: 10, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>Join Code</div>
                                 <div style={{ fontSize: 16, fontWeight: 800, color: vq.indigo[500], letterSpacing: '0.12em', fontFamily: 'monospace' }}>{join_code}</div>
                             </div>
                             <button onClick={copyCode}
-                                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', background: codeCopied ? vq.green[50] : 'transparent', color: codeCopied ? vq.emerald[500] : vq.slate[500], cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid rgb(var(--vq-slate-200))', background: codeCopied ? vq.green[50] : 'transparent', color: codeCopied ? vq.emerald[500] : vq.slate[500], cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
                                 {codeCopied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
                                 {codeCopied ? 'Copied!' : 'Copy'}
                             </button>
@@ -444,10 +444,10 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 </div>
 
                 {/* Staff Table */}
-                <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#e2e8f0)', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr style={{ borderBottom: '1px solid var(--card-border,#f1f5f9)' }}>
+                            <tr style={{ borderBottom: '1px solid var(--card-border,rgb(var(--vq-slate-100)))' }}>
                                 {['Member', 'Role', 'Status', 'POS PIN', 'Joined', 'Actions'].map(h => (
                                     <th key={h} style={{ padding: '12px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                         {h === 'Actions' && !canManage ? '' : h}
@@ -480,7 +480,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 </div>
 
                 {/* Role Legend */}
-                <div style={{ marginTop: 24, padding: '16px 20px', background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#e2e8f0)', borderRadius: 16 }}>
+                <div style={{ marginTop: 24, padding: '16px 20px', background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 16 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 12 }}>Role Permissions</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                         {Object.entries(ROLES).filter(([r]) => r !== 'owner').map(([role, cfg]) => (
@@ -500,7 +500,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                     from { opacity: 0; transform: translateY(16px); }
                     to   { opacity: 1; transform: translateY(0); }
                 }
-            `}</style>
+`}</style>
         </OneGlanceLayout>
     );
 }

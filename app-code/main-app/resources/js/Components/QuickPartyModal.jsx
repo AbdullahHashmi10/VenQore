@@ -190,7 +190,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                     />
                 </FormField>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                <div className="flex justify-end gap-3 pt-4 border-t border-line">
                     <SecondaryButton onClick={onClose} disabled={submitting}>
                         Cancel
                     </SecondaryButton>

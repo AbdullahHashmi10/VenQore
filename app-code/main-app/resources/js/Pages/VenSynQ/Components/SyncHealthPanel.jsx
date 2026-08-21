@@ -178,7 +178,7 @@ function ErrorInspector({ channels, storeSlug, onRetry, retrying }) {
                                     text to support is far more useful than "Sync failed". */}
                                 <pre style={{
                                     margin: 0, padding: '9px 11px', borderRadius: 7,
-                                    background: vq.void[950] ?? '#05080f',
+                                    background: vq.void[950] ?? vq.void[950],
                                     border: `1px solid ${vq.slate[800]}`,
                                     color: role.danger[300], fontSize: 11, lineHeight: 1.5,
                                     whiteSpace: 'pre-wrap', wordBreak: 'break-word',
@@ -323,7 +323,7 @@ export default function SyncHealthPanel({ health, storeSlug, syncing, onSyncNow 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: vq.slate[400], fontSize: 12 }}>
                         <Clock size={13} />
                         <span>
-                            Last synced{' '}
+                            Last synced{''}
                             <strong style={{ color: vq.slate[200], fontWeight: 600 }}>
                                 {relativeTime(lastSynced, now)}
                             </strong>
@@ -337,7 +337,7 @@ export default function SyncHealthPanel({ health, storeSlug, syncing, onSyncNow 
                     style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '11px 22px', borderRadius: 10, border: 'none',
-                        background: syncing ? vq.slate[800] : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        background: syncing ? vq.slate[800] : 'linear-gradient(135deg, rgb(var(--vq-blue-500)), #1d4ed8)',
                         color: syncing ? vq.slate[500] : '#fff',
                         fontSize: 14, fontWeight: 700,
                         cursor: syncing ? 'wait' : 'pointer',
@@ -359,7 +359,7 @@ export default function SyncHealthPanel({ health, storeSlug, syncing, onSyncNow 
                 >
                     <div style={{
                         height: '100%', width: '35%', borderRadius: 2,
-                        background: 'linear-gradient(90deg, #3b82f6, #a78bfa)',
+                        background: 'linear-gradient(90deg, rgb(var(--vq-blue-500)), rgb(var(--vq-violet-400)))',
                         animation: 'vensynq-indeterminate 1.1s ease-in-out infinite',
                     }} />
                 </div>
@@ -443,7 +443,7 @@ export default function SyncHealthPanel({ health, storeSlug, syncing, onSyncNow 
                 @media (max-width: 640px) {
                     .vensynq-root table { font-size: 11px; }
                 }
-            `}</style>
+`}</style>
         </section>
     );
 }

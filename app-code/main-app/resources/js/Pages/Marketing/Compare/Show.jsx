@@ -42,10 +42,10 @@ export default function CompareShow({ slug }) {
             <section className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={Scale} text={`VENQORE VS ${data.name.toUpperCase()}`} />
-                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6 mt-4 max-w-4xl mx-auto leading-tight">
+                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-ink tracking-tight mb-6 mt-4 max-w-4xl mx-auto leading-tight">
                         {data.headline}
                     </h1>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
                         {data.subtitle}
                     </p>
                 </RevealOnScroll>
@@ -55,13 +55,13 @@ export default function CompareShow({ slug }) {
             <section className="pb-16 px-6 max-w-5xl mx-auto">
                 <div className="grid md:grid-cols-2 gap-6">
                     {/* VenQore Card */}
-                    <div className="bg-emerald-500/10 border-2 border-emerald-500/40 rounded-3xl p-8 relative overflow-hidden">
-                        <div className="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                    <div className="bg-emerald-500/10 border-2 border-emerald-500/40 rounded-2xl p-8 relative overflow-hidden">
+                        <div className="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
                             RECOMMENDED
                         </div>
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">VenQore</h3>
+                        <h3 className="text-2xl font-bold text-ink mb-2">VenQore</h3>
                         <p className="text-emerald-600 dark:text-emerald-400 font-semibold mb-6">The All-in-One Operating System</p>
-                        <ul className="space-y-3 text-sm text-slate-700 dark:text-slate-200">
+                        <ul className="space-y-3 text-sm text-ink-secondary dark:text-ink">
                             <li className="flex items-center gap-2">
                                 <Check className="w-5 h-5 text-emerald-500 shrink-0" />
                                 <span><strong>Price:</strong> {data.venqorePrice}</span>
@@ -82,10 +82,10 @@ export default function CompareShow({ slug }) {
                     </div>
 
                     {/* Competitor Card */}
-                    <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{data.name}</h3>
-                        <p className="text-slate-500 font-semibold mb-6">Legacy System</p>
-                        <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                    <div className="bg-app border border-line rounded-2xl p-8">
+                        <h3 className="text-2xl font-bold text-ink mb-2">{data.name}</h3>
+                        <p className="text-ink-muted font-semibold mb-6">Legacy System</p>
+                        <ul className="space-y-3 text-sm text-ink-secondary">
                             <li className="flex items-center gap-2">
                                 <X className="w-5 h-5 text-rose-500 shrink-0" />
                                 <span><strong>Price:</strong> {data.competitorPrice}</span>
@@ -108,7 +108,7 @@ export default function CompareShow({ slug }) {
             </section>
 
             {/* Pricing Math Breakdown */}
-            <section className="py-16 bg-slate-900 text-white px-6">
+            <section className="py-16 bg-neutral-900 text-white px-6">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6">
                         <Calculator className="w-4 h-4" /> Real Margin Math
@@ -117,22 +117,22 @@ export default function CompareShow({ slug }) {
                         The True Cost Comparison at {data.pricingMath.monthlySales} / Month
                     </h2>
                     <div className="grid md:grid-cols-2 gap-8 my-8 text-left">
-                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700">
-                            <h4 className="text-lg font-bold text-slate-300 mb-2">{data.name} Total Cost</h4>
-                            <p className="text-2xl font-black text-rose-400 mb-2">{data.pricingMath.squareFee || data.pricingMath.vyaparFee}</p>
-                            <p className="text-xs text-slate-400 leading-relaxed">
+                        <div className="bg-neutral-800/80 p-6 rounded-2xl border border-neutral-700">
+                            <h4 className="text-lg font-bold text-neutral-300 mb-2">{data.name} Total Cost</h4>
+                            <p className="text-2xl font-bold text-rose-400 mb-2">{data.pricingMath.squareFee || data.pricingMath.vyaparFee}</p>
+                            <p className="text-xs text-ink-muted leading-relaxed">
                                 Accumulates every month as processing fees scale with your revenue.
                             </p>
                         </div>
-                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-emerald-500/50">
+                        <div className="bg-neutral-800/80 p-6 rounded-2xl border border-emerald-500/50">
                             <h4 className="text-lg font-bold text-emerald-400 mb-2">VenQore Total Cost</h4>
-                            <p className="text-2xl font-black text-emerald-300 mb-2">{data.pricingMath.venqoreFee}</p>
-                            <p className="text-xs text-slate-300 leading-relaxed">
+                            <p className="text-2xl font-bold text-emerald-300 mb-2">{data.pricingMath.venqoreFee}</p>
+                            <p className="text-xs text-neutral-300 leading-relaxed">
                                 Fixed monthly subscription with no transaction markups. Keep 100% of your earnings.
                             </p>
                         </div>
                     </div>
-                    <div className="inline-block bg-emerald-500 text-slate-950 font-black text-lg px-6 py-3 rounded-xl">
+                    <div className="inline-block bg-emerald-500 text-ink font-bold text-lg px-6 py-3 rounded-xl">
                         {data.pricingMath.annualSavings}
                     </div>
                 </div>
@@ -141,34 +141,34 @@ export default function CompareShow({ slug }) {
             {/* 15-Row Comparison Table */}
             <section className="py-20 px-6 max-w-6xl mx-auto">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                         Detailed Feature-by-Feature Matrix
                     </h2>
-                    <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                    <p className="text-ink-secondary max-w-2xl mx-auto">
                         Compare VenQore side-by-side with {data.name} across core business operations.
                     </p>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="overflow-x-auto rounded-2xl border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse min-w-[640px]">
                         <thead>
-                            <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-                                <th className="p-4 text-sm font-bold text-slate-900 dark:text-white w-2/5">Feature / Capability</th>
+                            <tr className="border-b border-line bg-app">
+                                <th className="p-4 text-sm font-bold text-ink w-2/5">Feature / Capability</th>
                                 <th className="p-4 text-sm font-bold text-emerald-600 dark:text-emerald-400 w-3/10 bg-emerald-500/5">VenQore</th>
-                                <th className="p-4 text-sm font-bold text-slate-500 w-3/10">{data.name}</th>
+                                <th className="p-4 text-sm font-bold text-ink-muted w-3/10">{data.name}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                        <tbody className="divide-y divide-line text-sm">
                             {data.table.map((row, idx) => (
-                                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                    <td className="p-4 font-semibold text-slate-900 dark:text-slate-100">{row.feature}</td>
+                                <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                    <td className="p-4 font-semibold text-ink">{row.feature}</td>
                                     <td className="p-4 font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-500/5">
                                         <div className="flex items-center gap-2">
                                             <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                                             <span>{row.venqore}</span>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-slate-600 dark:text-slate-400">
+                                    <td className="p-4 text-ink-secondary">
                                         <span>{row.competitor}</span>
                                     </td>
                                 </tr>
@@ -179,27 +179,27 @@ export default function CompareShow({ slug }) {
             </section>
 
             {/* Honest Verdict Section */}
-            <section className="py-16 bg-slate-50 dark:bg-slate-900/50 border-y border-slate-200 dark:border-slate-800 px-6">
+            <section className="py-16 bg-app border-y border-line px-6">
                 <div className="max-w-4xl mx-auto">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-10">
+                    <h2 className="text-3xl font-bold text-ink text-center mb-10">
                         Honest Recommendation: Which Should You Choose?
                     </h2>
 
                     <div className="grid md:grid-cols-2 gap-8">
-                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                        <div className="bg-surface p-6 rounded-2xl border border-line">
+                            <h3 className="text-xl font-bold text-ink mb-3">
                                 When to Choose {data.name}
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <p className="text-sm text-ink-secondary leading-relaxed">
                                 {data.honestVerdict.chooseCompetitor}
                             </p>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border-2 border-emerald-500/40">
+                        <div className="bg-surface p-6 rounded-2xl border-2 border-emerald-500/40">
                             <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-3">
                                 When to Choose VenQore
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <p className="text-sm text-ink-secondary leading-relaxed">
                                 {data.honestVerdict.chooseVenQore}
                             </p>
                         </div>
@@ -211,7 +211,7 @@ export default function CompareShow({ slug }) {
             <section className="py-20 px-6 max-w-4xl mx-auto">
                 <div className="text-center mb-12">
                     <SectionLabel icon={HelpCircle} text="FREQUENTLY ASKED QUESTIONS" />
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mt-2">
+                    <h2 className="text-3xl font-bold text-ink mt-2">
                         Questions About Switching from {data.name} to VenQore
                     </h2>
                 </div>
@@ -220,17 +220,17 @@ export default function CompareShow({ slug }) {
                     {data.faqs.map((faq, idx) => (
                         <div
                             key={idx}
-                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-colors"
+                            className="bg-surface border border-line rounded-2xl overflow-hidden transition-colors"
                         >
                             <button
                                 onClick={() => toggleFaq(idx)}
-                                className="w-full p-6 text-left font-bold text-slate-900 dark:text-white flex items-center justify-between gap-4"
+                                className="w-full p-6 text-left font-bold text-ink flex items-center justify-between gap-4"
                             >
                                 <span>{faq.q}</span>
-                                <ChevronDown className={`w-5 h-5 transition-transform duration-200 text-slate-500 dark:text-slate-400 ${openFaq === idx ? 'rotate-180 text-emerald-500' : ''}`} />
+                                <ChevronDown className={`w-5 h-5 transition-transform duration-normal text-ink-muted ${openFaq === idx ? 'rotate-180 text-emerald-500' : ''}`} />
                             </button>
                             {openFaq === idx && (
-                                <div className="px-6 pb-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60 pt-4">
+                                <div className="px-6 pb-6 text-sm text-ink-secondary leading-relaxed border-t border-line pt-4">
                                     {faq.a}
                                 </div>
                             )}
@@ -241,10 +241,10 @@ export default function CompareShow({ slug }) {
 
             {/* Footer CTA */}
             <section className="py-24 px-6 text-center max-w-4xl mx-auto">
-                <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6">
+                <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6">
                     Switch to VenQore Today
                 </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+                <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
                     Start a 14-day free trial. Our team assists with zero-downtime data migration from {data.name}.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">

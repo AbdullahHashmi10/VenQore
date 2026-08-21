@@ -38,19 +38,19 @@ export default function VenSynQ() {
             <div className="max-w-5xl mx-auto px-6 pt-32 md:pt-36 pb-20">
                 {/* Hero */}
                 <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/[0.04] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-2xs font-black tracking-[0.3em] uppercase mb-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-2xs font-bold tracking-[0.3em] uppercase mb-8">
                         <RefreshCw size={12} className="text-emerald-500 dark:text-emerald-400" />
-                        <span className="text-slate-600 dark:text-slate-300">Multi-Channel Sync Engine</span>
+                        <span className="text-ink-secondary">Multi-Channel Sync Engine</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-slate-900 dark:text-white">
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6 text-ink">
                         One Inventory. One Ledger.<br />
                         <span className="vq-headline-grad">Every Channel.</span>
                     </h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                        VenSynQ connects your physical store's <InlineLink href="/features/point-of-sale">POS inventory</InlineLink> and{' '}
+                    <p className="text-lg text-ink-secondary max-w-2xl mx-auto leading-relaxed">
+                        VenSynQ connects your physical store's <InlineLink href="/features/point-of-sale">POS inventory</InlineLink> and{''}
                         <InlineLink href="/features/accounting">accounting</InlineLink> to your online channels — so a sale anywhere
-                        updates stock and books everywhere.{' '}
-                        <span className="text-slate-900 dark:text-white font-semibold">WooCommerce is live today.</span>{' '}
+                        updates stock and books everywhere.{''}
+                        <span className="text-ink font-semibold">WooCommerce is live today.</span>{''}
                         Amazon, eBay and TikTok Shop are on the way.
                     </p>
                 </div>
@@ -58,21 +58,21 @@ export default function VenSynQ() {
                 {/* Channels */}
                 <div className="grid md:grid-cols-2 gap-4 mb-16">
                     {channels.map((c) => (
-                        <div key={c.name} className="p-6 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.07] dark:border-white/10">
+                        <div key={c.name} className="p-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
                             <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-lg font-black text-slate-900 dark:text-white">{c.name}</h2>
-                                <span className={`text-3xs font-black tracking-widest px-2.5 py-1 rounded-full ${c.status === 'LIVE' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300'}`}>
+                                <h2 className="text-lg font-bold text-ink">{c.name}</h2>
+                                <span className={`text-3xs font-bold tracking-widest px-2.5 py-1 rounded-full ${c.status === 'LIVE' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-brand-500/15 text-brand-600 dark:text-brand-300'}`}>
                                     {c.status}
                                 </span>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{c.desc}</p>
+                            <p className="text-sm text-ink-secondary leading-relaxed">{c.desc}</p>
                         </div>
                     ))}
                 </div>
 
                 {/* Why it's different */}
-                <div className="mb-16 p-8 rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.02] border border-slate-900/[0.07] dark:border-white/10">
-                    <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-slate-900 dark:text-white">
+                <div className="mb-16 p-8 rounded-2xl bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/10">
+                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-ink">
                         <Zap size={20} className="text-amber-500 dark:text-amber-400" /> Why VenSynQ is different
                     </h2>
                     <ul className="space-y-3">
@@ -82,7 +82,7 @@ export default function VenSynQ() {
                             <>Webhook signature verification on every inbound order — security first.</>,
                             <>One dashboard: physical tills and online channels reconciled in the same verified ledger. Ideal for <InlineLink href="/solutions/multi-store">multi-store operators</InlineLink>.</>,
                         ].map((t, i) => (
-                            <li key={i} className="flex items-start gap-3 text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            <li key={i} className="flex items-start gap-3 text-ink-secondary text-sm leading-relaxed">
                                 <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" /> <span>{t}</span>
                             </li>
                         ))}
@@ -90,10 +90,10 @@ export default function VenSynQ() {
                 </div>
 
                 {/* Waitlist */}
-                <div className="p-8 md:p-10 rounded-3xl bg-gradient-to-br from-indigo-500/10 to-emerald-500/10 border border-indigo-500/20 text-center">
-                    <Mail size={28} className="mx-auto text-indigo-500 dark:text-indigo-300 mb-4" />
-                    <h2 className="text-2xl md:text-3xl font-black mb-3 text-slate-900 dark:text-white">Be first in when each channel opens.</h2>
-                    <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-xl mx-auto text-sm leading-relaxed">
+                <div className="p-8 md:p-10 rounded-2xl bg-gradient-to-br from-brand-500/10 to-emerald-500/10 border border-brand-500/20 text-center">
+                    <Mail size={28} className="mx-auto text-brand-500 dark:text-brand-300 mb-4" />
+                    <h2 className="text-2xl md:text-3xl font-bold mb-3 text-ink">Be first in when each channel opens.</h2>
+                    <p className="text-ink-secondary mb-8 max-w-xl mx-auto text-sm leading-relaxed">
                         Join the VenSynQ waitlist — one email the moment Amazon, eBay or TikTok Shop sync goes
                         live. No spam, ever.
                     </p>
@@ -108,12 +108,12 @@ export default function VenSynQ() {
                                 value={data.email}
                                 onChange={(e) => setData('email', e.target.value)}
                                 placeholder="you@yourstore.com"
-                                className="flex-1 px-5 py-3.5 rounded-xl bg-white dark:bg-white/[0.06] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
+                                className="flex-1 px-5 py-3.5 rounded-xl bg-white dark:bg-white/[0.06] border border-line dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-sm"
                             />
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm tracking-wide transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                                className="px-6 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm tracking-wide transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
                             >
                                 Join Waitlist <ArrowRight size={15} />
                             </button>

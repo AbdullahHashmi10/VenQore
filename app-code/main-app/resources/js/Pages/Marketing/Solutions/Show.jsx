@@ -77,10 +77,10 @@ export default function Show({ slug }) {
             <section className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={ShieldCheck} text={data.heroBadge} />
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6 mt-4 max-w-4xl mx-auto">
+                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4 max-w-4xl mx-auto">
                         {data.headline}
                     </h1>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
                         {data.subhead}
                     </p>
 
@@ -94,13 +94,13 @@ export default function Show({ slug }) {
                     </div>
 
                     {/* Stats Strip */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-6 rounded-2xl bg-app border border-line">
                         {data.stats.map((stat, i) => (
                             <div key={i} className="text-center p-3">
-                                <div className="text-2xl md:text-3xl font-black text-indigo-600 dark:text-indigo-400">
+                                <div className="text-2xl md:text-3xl font-bold text-brand-600 dark:text-brand-400">
                                     {stat.value}
                                 </div>
-                                <div className="text-2xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">
+                                <div className="text-2xs font-bold uppercase tracking-wider text-ink-muted mt-1">
                                     {stat.label}
                                 </div>
                             </div>
@@ -113,29 +113,29 @@ export default function Show({ slug }) {
             <section className="py-20 px-6 max-w-7xl mx-auto">
                 <RevealOnScroll direction="up">
                     <div className="text-center mb-16 max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                             The Silent Profit Leaks in {data.name} Operations
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400 text-base">
+                        <p className="text-ink-secondary text-base">
                             Generic POS systems hide operational losses behind manual spreadsheets. VenQore fixes the root cause directly at the till.
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
                         {data.painPoints.map((item, i) => (
-                            <GlassCard key={i} className="p-8 rounded-3xl border border-slate-200 dark:border-slate-800">
+                            <GlassCard key={i} className="p-8 rounded-2xl border border-line">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
                                         <AlertTriangle className="w-5 h-5" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold text-ink">
                                         {item.title}
                                     </h3>
                                 </div>
-                                <div className="mb-6 p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 text-sm text-slate-700 dark:text-slate-300">
+                                <div className="mb-6 p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 text-sm text-ink-secondary">
                                     <strong className="text-rose-600 dark:text-rose-400">The Problem:</strong> {item.problem}
                                 </div>
-                                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 text-sm text-slate-700 dark:text-slate-300">
+                                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 text-sm text-ink-secondary">
                                     <strong className="text-emerald-600 dark:text-emerald-400">VenQore Solution:</strong> {item.solution}
                                 </div>
                             </GlassCard>
@@ -145,14 +145,14 @@ export default function Show({ slug }) {
             </section>
 
             {/* Feature Deep-Dive Section */}
-            <section className="py-20 px-6 bg-slate-50 dark:bg-slate-950 border-y border-slate-200 dark:border-slate-800">
+            <section className="py-20 px-6 bg-app border-y border-line">
                 <div className="max-w-7xl mx-auto">
                     <RevealOnScroll direction="up">
                         <div className="text-center mb-16 max-w-3xl mx-auto">
-                            <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                            <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                                 Purpose-Built Capabilities for {data.name} Retailers
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-400 text-base">
+                            <p className="text-ink-secondary text-base">
                                 Every feature is engineered to protect stock accuracy, eliminate repeated typing, and maintain auditor-grade books.
                             </p>
                         </div>
@@ -161,14 +161,14 @@ export default function Show({ slug }) {
                             {data.features.map((feat, i) => {
                                 const Icon = iconMap[feat.icon] || ShieldCheck;
                                 return (
-                                    <div key={i} className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center mb-6">
+                                    <div key={i} className="p-8 rounded-2xl bg-surface border border-line shadow-sm">
+                                        <div className="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-brand-500 flex items-center justify-center mb-6">
                                             <Icon className="w-6 h-6" />
                                         </div>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
+                                        <h3 className="text-lg font-bold text-ink mb-3">
                                             {feat.title}
                                         </h3>
-                                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                        <p className="text-ink-secondary text-sm leading-relaxed">
                                             {feat.desc}
                                         </p>
                                     </div>
@@ -184,34 +184,34 @@ export default function Show({ slug }) {
                 <RevealOnScroll direction="up">
                     <div className="max-w-4xl mx-auto">
                         <div className="text-center mb-12">
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-black uppercase tracking-wider mb-4 border border-emerald-500/20">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider mb-4 border border-emerald-500/20">
                                 <Scale className="w-4 h-4" /> LEDGER TRUTH ENGINE
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                            <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                                 {data.accountingImpact.title}
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-400 text-base leading-relaxed">
+                            <p className="text-ink-secondary text-base leading-relaxed">
                                 {data.accountingImpact.description}
                             </p>
                         </div>
 
-                        <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 md:p-8 text-white shadow-2xl overflow-x-auto">
+                        <div className="bg-neutral-900 rounded-2xl border border-neutral-800 p-6 md:p-8 text-white shadow-2xl overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead>
-                                    <tr className="border-b border-slate-800 text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                                    <tr className="border-b border-neutral-800 text-xs font-bold uppercase tracking-widest text-ink-muted">
                                         <th className="pb-4">Account Name &amp; Code</th>
                                         <th className="pb-4 text-emerald-600 dark:text-emerald-400">Debit ($)</th>
-                                        <th className="pb-4 text-indigo-600 dark:text-indigo-400">Credit ($)</th>
+                                        <th className="pb-4 text-brand-600 dark:text-brand-400">Credit ($)</th>
                                         <th className="pb-4">Automated Impact Note</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-800/60 font-mono text-xs md:text-sm">
+                                <tbody className="divide-y divide-neutral-800/60 font-mono text-xs md:text-sm">
                                     {data.accountingImpact.entries.map((entry, i) => (
-                                        <tr key={i} className="hover:bg-slate-800/30">
-                                            <td className="py-3.5 font-sans font-semibold text-slate-200">{entry.account}</td>
+                                        <tr key={i} className="hover:bg-interactive-hover">
+                                            <td className="py-3.5 font-sans font-semibold text-neutral-200">{entry.account}</td>
                                             <td className="py-3.5 text-emerald-600 dark:text-emerald-400 font-bold">{entry.debit}</td>
-                                            <td className="py-3.5 text-indigo-600 dark:text-indigo-400 font-bold">{entry.credit}</td>
-                                            <td className="py-3.5 font-sans text-slate-500 dark:text-slate-400 text-xs">{entry.note}</td>
+                                            <td className="py-3.5 text-brand-600 dark:text-brand-400 font-bold">{entry.credit}</td>
+                                            <td className="py-3.5 font-sans text-ink-muted text-xs">{entry.note}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -222,23 +222,23 @@ export default function Show({ slug }) {
             </section>
 
             {/* Cross-Linking Navigation */}
-            <section className="py-16 px-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800">
+            <section className="py-16 px-6 bg-app border-t border-line">
                 <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8">
                     <div>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Compare Competitors</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-4">Compare Competitors</h4>
                         <div className="flex flex-wrap gap-3">
                             {data.compareCrossLinks.map((link, i) => (
-                                <Link key={i} href={link.href} className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-800 dark:text-slate-200 hover:border-indigo-500 transition-colors">
+                                <Link key={i} href={link.href} className="px-4 py-2 rounded-xl bg-surface border border-line text-sm font-semibold text-ink hover:border-brand-500 transition-colors">
                                     {link.name} →
                                 </Link>
                             ))}
                         </div>
                     </div>
                     <div>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Platform Capabilities</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-4">Platform Capabilities</h4>
                         <div className="flex flex-wrap gap-3">
                             {data.featureCrossLinks.map((link, i) => (
-                                <Link key={i} href={link.href} className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-800 dark:text-slate-200 hover:border-indigo-500 transition-colors">
+                                <Link key={i} href={link.href} className="px-4 py-2 rounded-xl bg-surface border border-line text-sm font-semibold text-ink hover:border-brand-500 transition-colors">
                                     {link.name} →
                                 </Link>
                             ))}
@@ -251,26 +251,26 @@ export default function Show({ slug }) {
             <section className="py-24 px-6 max-w-4xl mx-auto">
                 <RevealOnScroll direction="up">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                             Frequently Asked Questions — {data.name} POS
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400 text-base">
+                        <p className="text-ink-secondary text-base">
                             Everything you need to know about setting up VenQore for your {data.name.toLowerCase()} business.
                         </p>
                     </div>
 
                     <div className="space-y-4">
                         {data.faqs.map((faq, i) => (
-                            <div key={i} className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900">
+                            <div key={i} className="border border-line rounded-2xl overflow-hidden bg-surface">
                                 <button
                                     onClick={() => toggleFaq(i)}
-                                    className="w-full text-left p-6 font-bold text-slate-900 dark:text-white flex items-center justify-between gap-4"
+                                    className="w-full text-left p-6 font-bold text-ink flex items-center justify-between gap-4"
                                 >
                                     <span>{faq.q}</span>
-                                    {openFaq === i ? <ChevronUp className="w-5 h-5 text-indigo-500 shrink-0" /> : <ChevronDown className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" />}
+                                    {openFaq === i ? <ChevronUp className="w-5 h-5 text-brand-500 shrink-0" /> : <ChevronDown className="w-5 h-5 text-ink-muted shrink-0" />}
                                 </button>
                                 {openFaq === i && (
-                                    <div className="px-6 pb-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60 pt-4">
+                                    <div className="px-6 pb-6 text-sm text-ink-secondary leading-relaxed border-t border-line pt-4">
                                         {faq.a}
                                     </div>
                                 )}
@@ -281,11 +281,11 @@ export default function Show({ slug }) {
             </section>
 
             {/* Final CTA */}
-            <section className="py-24 px-6 text-center max-w-4xl mx-auto border-t border-slate-200 dark:border-slate-800">
-                <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6">
+            <section className="py-24 px-6 text-center max-w-4xl mx-auto border-t border-line">
+                <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6">
                     Ready to Upgrade Your {data.name} Operations?
                 </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+                <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
                     Start your 14-day free trial today or test drive our interactive live demo with zero signup required.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">

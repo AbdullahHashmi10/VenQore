@@ -105,23 +105,23 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
             <div className="flex flex-col h-full gap-4 w-full relative">
 
                 {/* 1. Header & Controls */}
-                <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-surface p-3 rounded-2xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-3 pl-2">
                         <Link href={route("store.reports.index", {
                             store_slug: store.slug
-                        })} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 transition-colors">
+                        })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
                             <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-                                Profit & Loss <span className="text-slate-400 font-medium text-sm hidden sm:inline">Statement</span>
+                            <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
+                                Profit & Loss <span className="text-ink-muted font-medium text-sm hidden sm:inline">Statement</span>
                             </h1>
-                            <p className="text-xs text-slate-500 font-medium">Financial performance for the selected period</p>
+                            <p className="text-xs text-ink-muted font-medium">Financial performance for the selected period</p>
                         </div>
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto max-w-full shrink-0">
+                        <div className="flex bg-sunken p-1 rounded-xl overflow-x-auto max-w-full shrink-0">
                             {[
                                 { id: 'this_month', label: 'This Month' },
                                 { id: 'last_month', label: 'Last Month' },
@@ -132,8 +132,8 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${range === opt.id
-                                        ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400'
-                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                                         }`}
                                 >
                                     {opt.label}
@@ -142,23 +142,23 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                         </div>
 
                         {range === 'custom' && (
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1.5 rounded-xl w-full sm:w-auto">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-slow bg-surface border border-line p-1.5 rounded-xl w-full sm:w-auto">
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 w-full sm:w-auto"
+                                    className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary w-full sm:w-auto"
                                 />
-                                <span className="text-slate-400 text-xs font-bold text-center shrink-0">TO</span>
+                                <span className="text-ink-muted text-xs font-bold text-center shrink-0">TO</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 w-full sm:w-auto"
+                                    className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary w-full sm:w-auto"
                                 />
                                 <button
                                     onClick={applyCustomRange}
-                                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm w-full sm:w-auto text-center"
+                                    className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm w-full sm:w-auto text-center"
                                 >
                                     Apply
                                 </button>
@@ -203,24 +203,24 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
 
                     {/* LEFT COL: Detailed P&L Statement (Spans 2 cols) */}
-                    <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
-                            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Income Statement</h2>
-                            <button className="text-2xs sm:text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg transition-colors">
+                    <div className="xl:col-span-2 bg-surface rounded-2xl border border-line shadow-sm flex flex-col overflow-hidden">
+                        <div className="p-4 sm:p-5 border-b border-line flex justify-between items-center bg-sunken/50 dark:bg-surface">
+                            <h2 className="text-base sm:text-lg font-bold text-ink">Income Statement</h2>
+                            <button className="text-2xs sm:text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 px-2.5 py-1.5 rounded-lg transition-colors">
                                 Download PDF
                             </button>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-1 sm:p-2">
                             <table className="w-full text-xs sm:text-sm text-left">
-                                <thead className="text-2xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50">
+                                <thead className="text-2xs text-ink-muted uppercase bg-app">
                                     <tr>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 rounded-l-lg">Description</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-right">Amount</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-right rounded-r-lg">% Sales</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-line">
                                     <StatementRow
                                         label="Sales Revenue"
                                         amount={revenue}
@@ -272,8 +272,8 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 
                     {/* MIDDLE COL: Visuals (1 col) */}
                     <div className="xl:col-span-1 flex flex-col gap-4">
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 min-h-[300px] flex flex-col">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                        <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm flex-1 min-h-[300px] flex flex-col">
+                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-4 flex items-center gap-2">
                                 <PieIcon size={14} /> Revenue Distribution
                             </h3>
                             <div className="flex-1 relative">
@@ -302,8 +302,8 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                 </ResponsiveContainer>
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
                                     <div className="text-center">
-                                        <p className="text-2xs text-slate-400 font-bold uppercase">Net Margin</p>
-                                        <p className={`text-xl font-black ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                        <p className="text-2xs text-ink-muted font-bold uppercase">Net Margin</p>
+                                        <p className={`text-xl font-bold ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                             {netMargin}%
                                         </p>
                                     </div>
@@ -311,7 +311,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                             </div>
                         </div>
 
-                        <div className="bg-indigo-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
+                        <div className="bg-brand-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-500/20 rounded-full blur-xl translate-y-1/3 -translate-x-1/3" />
 
@@ -343,10 +343,10 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 
                     {/* RIGHT COL: Growth Engine (New Section using Side Space) */}
                     <div className="xl:col-span-1 flex flex-col gap-4 h-full">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg text-white h-full relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg text-white h-full relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                            <h3 className="text-base font-black uppercase tracking-tight mb-4 flex items-center gap-2 text-emerald-400">
+                            <h3 className="text-base font-bold uppercase tracking-tight mb-4 flex items-center gap-2 text-emerald-400">
                                 <Zap size={18} fill="currentColor" /> Growth Engine
                             </h3>
 
@@ -355,7 +355,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2">
                                         <Target size={12} /> Profit Optimization
                                     </h4>
-                                    <p className="text-1xs text-slate-300 leading-relaxed">
+                                    <p className="text-1xs text-neutral-300 leading-relaxed">
                                         {netMargin < 10
                                             ? "Your margin is tight. Focus on high-margin items and reduce 'Loss Leaders' this week."
                                             : "Strong margins! Reinvest surplus into marketing best-sellers to scale volume."}
@@ -366,23 +366,23 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2">
                                         <Lightbulb size={12} /> Smart Insight
                                     </h4>
-                                    <p className="text-1xs text-slate-300 leading-relaxed">
+                                    <p className="text-1xs text-neutral-300 leading-relaxed">
                                         Increasing your average ticket size by just <strong>10%</strong> would add
                                         <strong className="text-white ml-1">{formatCurrency(revenue * 0.1, store)}</strong> to your revenue without new customers.
                                     </p>
                                 </div>
 
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10 group cursor-pointer hover:bg-white/10 transition-colors">
-                                    <h4 className="text-xs font-bold text-indigo-300 mb-1 flex items-center gap-2">
+                                    <h4 className="text-xs font-bold text-brand-300 mb-1 flex items-center gap-2">
                                         <ArrowUpRight size={12} /> Action Plan
                                     </h4>
-                                    <ul className="text-2xs text-slate-300 space-y-1.5 mt-2">
+                                    <ul className="text-2xs text-neutral-300 space-y-1.5 mt-2">
                                         <li className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                                             Review Supplier Costs
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
                                             Audit Utility Expenses
                                         </li>
                                         <li className="flex items-center gap-2">
@@ -396,7 +396,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                             <button
                                 onClick={runAnalysis}
                                 disabled={isAnalyzing}
-                                className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
+                                className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
                             >
                                 {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} fill="currentColor" />}
                                 {isAnalyzing ? 'Scanning Data...' : 'Run Full Analysis'}
@@ -407,10 +407,10 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 
                 {/* 4. Analysis Report Modal (Overlay) */}
                 {analysisResult && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-normal">
+                        <div className="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-line overflow-hidden animate-in zoom-in-95 duration-normal">
                             {/* Modal Header */}
-                            <div className="bg-indigo-600 p-6 text-white relative overflow-hidden">
+                            <div className="bg-brand-600 p-6 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-start mb-2">
@@ -421,8 +421,8 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                             <X size={20} />
                                         </button>
                                     </div>
-                                    <h2 className="text-2xl font-black tracking-tight">Analysis Report</h2>
-                                    <p className="text-indigo-200 text-sm font-medium">Business Health Score: <span className="text-white font-bold">{analysisResult.score.toFixed(0)}/100</span></p>
+                                    <h2 className="text-2xl font-bold tracking-tight">Analysis Report</h2>
+                                    <p className="text-brand-200 text-sm font-medium">Business Health Score: <span className="text-white font-bold">{analysisResult.score.toFixed(0)}/100</span></p>
                                 </div>
                             </div>
 
@@ -432,16 +432,16 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     <div key={idx} className={`p-4 rounded-xl border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10' :
                                             insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10' :
                                                 insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10' :
-                                                    'bg-slate-50 border-indigo-500 dark:bg-slate-800'
+                                                    'bg-sunken border-brand-500 dark:bg-surface'
                                         }`}>
                                         <h4 className={`text-sm font-bold mb-1 ${insight.type === 'danger' ? 'text-rose-700 dark:text-rose-400' :
                                                 insight.type === 'warning' ? 'text-amber-700 dark:text-amber-400' :
                                                     insight.type === 'success' ? 'text-emerald-700 dark:text-emerald-400' :
-                                                        'text-slate-800 dark:text-white'
+                                                        'text-ink'
                                             }`}>
                                             {insight.title}
                                         </h4>
-                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                        <p className="text-xs text-ink-secondary leading-relaxed">
                                             {insight.text}
                                         </p>
                                     </div>
@@ -449,10 +449,10 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+                            <div className="p-4 border-t border-line bg-app flex justify-end">
                                 <button
                                     onClick={() => setAnalysisResult(null)}
-                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors"
+                                    className="px-4 py-2 bg-neutral-800 hover:bg-interactive-hover text-white text-xs font-bold rounded-lg transition-colors"
                                 >
                                     Dismiss Report
                                 </button>
@@ -469,7 +469,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 // ... Sub-components remain unchanged ...
 function RatioCard({ title, value, subtitle, color, icon }) {
     const colors = {
-        indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400',
+        indigo: 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400',
         emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
         rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400',
         blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
@@ -477,16 +477,16 @@ function RatioCard({ title, value, subtitle, color, icon }) {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+        <div className="bg-surface p-3 sm:p-4 rounded-2xl border border-line shadow-sm relative overflow-hidden group">
             <div className="flex justify-between items-start mb-2">
                 <div className={`p-1.5 sm:p-2 rounded-lg ${colors[color]} shrink-0`}>
                     {React.cloneElement(icon, { size: 16 })}
                 </div>
             </div>
             <div>
-                <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase">{title}</p>
-                <h3 className="text-lg sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight my-0.5 sm:my-1">{value}</h3>
-                <p className={`text-2xs sm:text-xs font-medium ${color === 'rose' ? 'text-rose-500' : 'text-slate-400'}`}>{subtitle}</p>
+                <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase">{title}</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-ink tracking-tight my-0.5 sm:my-1">{value}</h3>
+                <p className={`text-2xs sm:text-xs font-medium ${color === 'rose' ? 'text-rose-500' : 'text-ink-muted'}`}>{subtitle}</p>
             </div>
         </div>
     );
@@ -495,30 +495,30 @@ function RatioCard({ title, value, subtitle, color, icon }) {
 function StatementRow({ label, amount, percent, info, isHeader, isNegative, action, store }) {
 
     return (
-        <tr className={`group transition-colors ${action ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer' : ''}`} onClick={action}>
+        <tr className={`group transition-colors ${action ? 'hover:bg-interactive-hover dark:hover:bg-interactive-hover cursor-pointer' : ''}`} onClick={action}>
             <td className="px-3 sm:px-6 py-2.5 sm:py-4">
                 <div className="flex items-center gap-2">
-                    <span className={`font-medium text-xs sm:text-sm ${isHeader ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
+                    <span className={`font-medium text-xs sm:text-sm ${isHeader ? 'text-ink font-bold' : 'text-ink-secondary'}`}>
                         {label}
                     </span>
                     <div className="group/tooltip relative">
-                        <Info size={13} className="text-slate-300 hover:text-indigo-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
+                        <Info size={13} className="text-neutral-300 hover:text-brand-500 transition-colors cursor-help" />
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-neutral-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
                             {info}
                             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
                         </div>
                     </div>
                 </div>
-                {action && <p className="text-3xs sm:text-2xs text-indigo-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
+                {action && <p className="text-3xs sm:text-2xs text-brand-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
             </td>
-            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right font-bold text-xs sm:text-sm ${isNegative ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}`}>
+            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right font-bold text-xs sm:text-sm ${isNegative ? 'text-rose-500' : 'text-ink-secondary dark:text-ink'}`}>
                 {formatCurrency(amount, store)}
             </td>
             <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right">
                 <div className="flex items-center justify-end gap-1.5 sm:gap-2">
-                    <span className="text-2xs sm:text-xs text-slate-400 font-medium">{percent}%</span>
-                    <div className="w-12 sm:w-16 h-1 sm:h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
-                        <div className="h-full bg-slate-300 dark:bg-slate-600 rounded-full" style={{ width: `${Math.min(percent, 100)}%` }}></div>
+                    <span className="text-2xs sm:text-xs text-ink-muted font-medium">{percent}%</span>
+                    <div className="w-12 sm:w-16 h-1 sm:h-1.5 bg-sunken rounded-full overflow-hidden shrink-0">
+                        <div className="h-full bg-sunken rounded-full" style={{ width: `${Math.min(percent, 100)}%` }}></div>
                     </div>
                 </div>
             </td>
@@ -531,22 +531,22 @@ function SummaryRow({ label, amount, type, info, store }) {
     const isLoss = amount < 0;
 
     return (
-        <tr className={`bg-slate-50/80 dark:bg-slate-800/30 ${isTotal ? 'border-t-2 border-slate-200 dark:border-slate-700' : ''}`}>
+        <tr className={`bg-sunken/80 dark:bg-surface ${isTotal ? 'border-t-2 border-line' : ''}`}>
             <td className="px-3 sm:px-6 py-2.5 sm:py-4">
                 <div className="flex items-center gap-2">
-                    <span className={`uppercase tracking-wider ${isTotal ? 'text-sm sm:text-base font-black text-slate-900 dark:text-white' : 'text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200'}`}>
+                    <span className={`uppercase tracking-wider ${isTotal ? 'text-sm sm:text-base font-bold text-ink' : 'text-xs sm:text-sm font-bold text-ink-secondary dark:text-ink'}`}>
                         {label}
                     </span>
                     <div className="group/tooltip relative">
-                        <Info size={13} className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
+                        <Info size={13} className="text-ink-muted hover:text-brand-500 transition-colors cursor-help" />
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-neutral-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
                             {info}
                             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
                         </div>
                     </div>
                 </div>
             </td>
-            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right ${isTotal ? 'text-base sm:text-xl font-black' : 'text-sm sm:text-lg font-bold'} ${isLoss ? 'text-rose-600' : 'text-emerald-600'}`}>
+            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right ${isTotal ? 'text-base sm:text-xl font-bold' : 'text-sm sm:text-lg font-bold'} ${isLoss ? 'text-rose-600' : 'text-emerald-600'}`}>
                 {formatCurrency(amount, store)}
             </td>
             <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right"></td>

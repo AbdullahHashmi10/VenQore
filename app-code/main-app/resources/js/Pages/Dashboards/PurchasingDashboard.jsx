@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
+import { vq } from '@/theme/runtime';
 import {
     ShoppingBag, Truck, AlertTriangle, DollarSign,
     CheckCircle2, Clock, Package, ArrowRight, RefreshCw, Plus
@@ -9,15 +10,15 @@ import {
 
 // ── Status pill ─────────────────────────────────────────────────────────────
 const STATUS = {
-    ordered:            { color: '#6366f1', bg: '#eef2ff', label: 'Ordered' },
-    partial:            { color: '#f59e0b', bg: '#fffbeb', label: 'Partial' },
-    partially_received: { color: '#f59e0b', bg: '#fffbeb', label: 'Partial' },
-    received:           { color: '#10b981', bg: '#f0fdf4', label: 'Received' },
-    cancelled:          { color: '#ef4444', bg: '#fef2f2', label: 'Cancelled' },
+    ordered:            { color: 'rgb(var(--vq-indigo-500))', bg: 'rgb(var(--vq-indigo-50))', label: 'Ordered' },
+    partial:            { color: 'rgb(var(--vq-amber-500))', bg: 'rgb(var(--vq-amber-50))', label: 'Partial' },
+    partially_received: { color: 'rgb(var(--vq-amber-500))', bg: 'rgb(var(--vq-amber-50))', label: 'Partial' },
+    received:           { color: 'rgb(var(--vq-emerald-500))', bg: vq.emerald[50], label: 'Received' },
+    cancelled:          { color: 'rgb(var(--vq-red-500))', bg: vq.orange[50], label: 'Cancelled' },
 };
 
 function StatusPill({ status }) {
-    const cfg = STATUS[status] ?? { color: '#64748b', bg: '#f1f5f9', label: status };
+    const cfg = STATUS[status] ?? { color: 'rgb(var(--vq-slate-500))', bg: vq.blue[50], label: status };
     return (
         <span style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: cfg.bg, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             {cfg.label}
@@ -28,13 +29,13 @@ function StatusPill({ status }) {
 // ── Metric card ─────────────────────────────────────────────────────────────
 function KpiCard({ icon: Icon, label, value, sub, color = '#6366f1' }) {
     return (
-        <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#f1f5f9)', borderRadius: 20, padding: '20px 22px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+        <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-100)))', borderRadius: 20, padding: '20px 22px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
                 <Icon size={18} color={color} />
             </div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,#0f172a)', lineHeight: 1 }}>{value}</div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 5, fontWeight: 600 }}>{label}</div>
-            {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{sub}</div>}
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,rgb(var(--vq-slate-900)))', lineHeight: 1 }}>{value}</div>
+            <div style={{ fontSize: 12, color: 'rgb(var(--vq-slate-500))', marginTop: 5, fontWeight: 600 }}>{label}</div>
+            {sub && <div style={{ fontSize: 11, color: 'rgb(var(--vq-slate-400))', marginTop: 2 }}>{sub}</div>}
         </div>
     );
 }
@@ -70,10 +71,10 @@ export default function PurchasingDashboard({
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
                     <div>
-                        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,#0f172a)', margin: 0 }}>
+                        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,rgb(var(--vq-slate-900)))', margin: 0 }}>
                             📦 Purchasing &amp; Procurement
                         </h1>
-                        <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+                        <p style={{ fontSize: 13, color: 'rgb(var(--vq-slate-500))', margin: '4px 0 0' }}>
                             {store?.name} · {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                         </p>
                     </div>
@@ -81,7 +82,7 @@ export default function PurchasingDashboard({
                         onClick={() => router.visit(route("store.purchases.create", {
                             store_slug: store.slug
                         }))}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}
                     >
                         <Plus size={15} /> New Purchase Order
                     </button>
@@ -117,37 +118,37 @@ export default function PurchasingDashboard({
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20 }}>
                     {/* Recent Purchase Orders Table */}
-                    <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#f1f5f9)', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-                        <div style={{ padding: '18px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,#0f172a)' }}>Purchase Orders</div>
+                    <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-100)))', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                        <div style={{ padding: '18px 24px', borderBottom: '1px solid rgb(var(--vq-slate-100))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>Purchase Orders</div>
                             <button onClick={() => router.visit(route("store.purchases.index", {
                                 store_slug: store.slug
                             }))}
-                                style={{ fontSize: 12, color: '#6366f1', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                style={{ fontSize: 12, color: 'rgb(var(--vq-indigo-500))', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                                 View All <ArrowRight size={12} />
                             </button>
                         </div>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
-                                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <tr style={{ borderBottom: '1px solid rgb(var(--vq-slate-100))' }}>
                                     {['Order #', 'Supplier', 'Amount', 'Status', 'Expected'].map(h => (
-                                        <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                                        <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'rgb(var(--vq-slate-400))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {orders.length === 0 && (
-                                    <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No purchase orders yet.</td></tr>
+                                    <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'rgb(var(--vq-slate-400))', fontSize: 13 }}>No purchase orders yet.</td></tr>
                                 )}
                                 {orders.map((po, i) => (
-                                    <tr key={i} style={{ borderBottom: '1px solid #f8fafc', transition: 'background 0.12s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
+                                    <tr key={i} style={{ borderBottom: '1px solid rgb(var(--vq-slate-50))', transition: 'background 0.12s' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = vq.violet[50]}
                                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                        <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 700, color: 'var(--text-main,#0f172a)' }}>#{po.id}</td>
-                                        <td style={{ padding: '12px 16px', fontSize: 13, color: '#475569' }}>{po.supplier_name ?? '—'}</td>
-                                        <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{fmt(po.total_amount ?? 0)}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 700, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>#{po.id}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: 13, color: 'rgb(var(--vq-slate-600))' }}>{po.supplier_name ?? '—'}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 700, color: 'rgb(var(--vq-slate-900))' }}>{fmt(po.total_amount ?? 0)}</td>
                                         <td style={{ padding: '12px 16px' }}><StatusPill status={po.status} /></td>
-                                        <td style={{ padding: '12px 16px', fontSize: 12, color: '#94a3b8' }}>{po.expected_date ?? '—'}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: 12, color: 'rgb(var(--vq-slate-400))' }}>{po.expected_date ?? '—'}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -156,25 +157,25 @@ export default function PurchasingDashboard({
 
                     {/* Reorder Alerts */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#f1f5f9)', borderRadius: 20, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                        <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-100)))', borderRadius: 20, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                                <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,#0f172a)' }}>⚠️ Reorder Alerts</div>
+                                <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>⚠️ Reorder Alerts</div>
                                 <button onClick={() => router.visit(route("store.inventory.index", {
                                     store_slug: store.slug
                                 }))}
-                                    style={{ fontSize: 12, color: '#6366f1', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
+                                    style={{ fontSize: 12, color: 'rgb(var(--vq-indigo-500))', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
                                     View All
                                 </button>
                             </div>
                             {alerts.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                                    <CheckCircle2 size={28} color="#10b981" style={{ margin: '0 auto 8px' }} />
-                                    <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>All stock levels are healthy.</p>
+                                    <CheckCircle2 size={28} color="rgb(var(--vq-emerald-500))" style={{ margin: '0 auto 8px' }} />
+                                    <p style={{ fontSize: 13, color: 'rgb(var(--vq-slate-500))', margin: 0 }}>All stock levels are healthy.</p>
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                     {alerts.slice(0, 8).map((item, i) => (
-                                        <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 12, background: '#fef9f0', border: '1px solid #fed7aa' }}>
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 12, background: vq.amber[50], border: '1px solid #fed7aa' }}>
                                             <div style={{ minWidth: 0 }}>
                                                 <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>{item.name}</div>
                                                 <div style={{ fontSize: 11, color: '#b45309', marginTop: 2 }}>Stock: {item.stock} / Min: {item.min_stock}</div>
@@ -184,7 +185,7 @@ export default function PurchasingDashboard({
                                                     store_slug: store.slug,
                                                     product_id: item.id
                                                 }))}
-                                                style={{ padding: '5px 10px', borderRadius: 8, background: '#fff', border: '1px solid #e2e8f0', fontSize: 11, fontWeight: 700, color: '#6366f1', cursor: 'pointer', flexShrink: 0 }}>
+                                                style={{ padding: '5px 10px', borderRadius: 8, background: '#fff', border: '1px solid rgb(var(--vq-slate-200))', fontSize: 11, fontWeight: 700, color: 'rgb(var(--vq-indigo-500))', cursor: 'pointer', flexShrink: 0 }}>
                                                 Order
                                             </button>
                                         </div>
@@ -194,16 +195,16 @@ export default function PurchasingDashboard({
                         </div>
 
                         {/* Budget Tracker */}
-                        <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#f1f5f9)', borderRadius: 20, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-                            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main,#0f172a)', marginBottom: 12 }}>Monthly Procurement Spend</div>
-                            <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a' }}>{fmt(spend)}</div>
-                            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4, marginBottom: 14 }}>Total purchases this month</div>
+                        <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-100)))', borderRadius: 20, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main,rgb(var(--vq-slate-900)))', marginBottom: 12 }}>Monthly Procurement Spend</div>
+                            <div style={{ fontSize: 24, fontWeight: 800, color: 'rgb(var(--vq-slate-900))' }}>{fmt(spend)}</div>
+                            <div style={{ fontSize: 11, color: 'rgb(var(--vq-slate-500))', marginTop: 4, marginBottom: 14 }}>Total purchases this month</div>
                             {budget > 0 && (
                                 <>
-                                    <div style={{ height: 6, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
-                                        <div style={{ width: `${Math.min(100, (spend / budget) * 100)}%`, height: '100%', background: spend > budget ? '#ef4444' : '#6366f1', borderRadius: 4, transition: 'width 0.6s' }} />
+                                    <div style={{ height: 6, background: vq.blue[50], borderRadius: 4, overflow: 'hidden' }}>
+                                        <div style={{ width: `${Math.min(100, (spend / budget) * 100)}%`, height: '100%', background: spend > budget ? 'rgb(var(--vq-red-500))' : 'rgb(var(--vq-indigo-500))', borderRadius: 4, transition: 'width 0.6s' }} />
                                     </div>
-                                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{Math.round((spend / budget) * 100)}% of {fmt(budget)} budget used</div>
+                                    <div style={{ fontSize: 11, color: 'rgb(var(--vq-slate-400))', marginTop: 6 }}>{Math.round((spend / budget) * 100)}% of {fmt(budget)} budget used</div>
                                 </>
                             )}
                         </div>

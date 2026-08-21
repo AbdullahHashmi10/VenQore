@@ -75,24 +75,24 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
     const ActiveIcon = activeItemObj?.icon || currentGroup?.icon;
 
     return (
-        <div className={`flex flex-col lg:flex-row items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm shrink-0 ${className}`}>
+        <div className={`flex flex-col lg:flex-row items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0 ${className}`}>
 
             {/* Mobile Header (Only visible below lg) */}
             <div className="flex lg:hidden items-center justify-between w-full">
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+                    className="flex items-center gap-2 px-3 py-2 bg-sunken rounded-xl text-sm font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all duration-normal"
                 >
-                    {ActiveIcon && <ActiveIcon size={16} className="text-indigo-600 dark:text-indigo-400" />}
+                    {ActiveIcon && <ActiveIcon size={16} className="text-brand-600 dark:text-brand-400" />}
                     <span>{currentGroup?.label}: {activeItemObj?.label || activeTab}</span>
-                    <ChevronDown size={16} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={16} className={`transition-transform duration-normal ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
             </div>
 
             {/* Collapsible content area */}
-            <div className={`w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800' : 'hidden'}`}>
+            <div className={`w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-line' : 'hidden'}`}>
                 {/* Level 1: Category Selector */}
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
+                <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
                     {groups.map((group) => {
                         const Icon = group.icon;
                         const isActive = activeGroup === group.id;
@@ -102,12 +102,12 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
                                 key={group.id}
                                 onClick={() => setActiveGroup(group.id)}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-normal whitespace-nowrap
                                     ${isActive
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                        ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }
-                                `}
+`}
                             >
                                 <Icon size={14} className={isActive ? 'opacity-100' : 'opacity-70'} />
                                 {group.label}
@@ -117,7 +117,7 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
                 </div>
 
                 {/* Separator / Arrow */}
-                <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
+                <div className="hidden lg:flex items-center text-neutral-300 dark:text-ink-secondary">
                     <ChevronRight size={16} />
                 </div>
 
@@ -132,12 +132,12 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
                                 key={tab.id}
                                 href={tab.href}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap
                                     ${isActive
-                                        ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-semibold'
-                                        : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
+                                        ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/20 dark:text-brand-400 font-semibold'
+                                        : 'bg-transparent border-transparent text-ink-secondary hover:bg-interactive-hover hover:border-line dark:text-ink-muted dark:hover:bg-interactive-hover dark:hover:border-line-strong'
                                     }
-                                `}
+`}
                             >
                                 <Icon size={14} />
                                 {tab.label}

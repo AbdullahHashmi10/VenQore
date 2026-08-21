@@ -52,7 +52,7 @@ const PLATFORMS = {
     amazon:      { label: 'Amazon',      color: '#FF9900', bg: '#1a1200', border: '#4a2d00' },
     // T16 — WooCommerce promoted to a first-class VenSynQ channel.
     woocommerce: { label: 'WooCommerce', color: '#9B6FD4', bg: '#150d20', border: '#3d2a5c' },
-    tiktok:      { label: 'TikTok Shop', color: '#69C9D0', bg: '#001a1c', border: '#004a50' },
+    tiktok:      { label: 'TikTok Shop', color: '#69C9D0', bg: vq.indigo[950], border: '#004a50' },
     ebay:        { label: 'eBay',        color: '#86B817', bg: '#0d1a00', border: '#2a4d00' },
 };
 
@@ -128,11 +128,11 @@ export default function VenSynQDashboard({
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div style={{ background: 'linear-gradient(90deg, #0a0f1a, #111827)', borderBottom: '1px solid #1e3a5f', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, rgb(var(--vq-blue-500)), rgb(var(--vq-violet-500)))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Zap size={22} color="#fff" />
                         </div>
                         <div>
-                            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, background: 'linear-gradient(90deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, background: 'linear-gradient(90deg, rgb(var(--vq-blue-400)), rgb(var(--vq-violet-400)))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 VenSynQ Dashboard
                             </h1>
                             <p style={{ margin: 0, fontSize: 12, color: vq.slate[500] }}>Multi-Channel Fulfillment Command Center</p>
@@ -149,7 +149,7 @@ export default function VenSynQDashboard({
                                     gap: 6,
                                     padding: '8px 18px',
                                     borderRadius: 8,
-                                    background: fetching ? vq.slate[800] : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                                    background: fetching ? vq.slate[800] : 'linear-gradient(135deg, rgb(var(--vq-blue-500)), #1d4ed8)',
                                     border: 'none',
                                     color: fetching ? vq.slate[600] : '#fff',
                                     fontSize: 13,
@@ -168,7 +168,7 @@ export default function VenSynQDashboard({
                                     {jitDraftsCount} JIT Draft{jitDraftsCount !== 1 ? 's' : ''} Need Approval
                                 </a>
                             )}
-                            <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #1e3a5f', color: vq.blue[400], fontSize: 13, textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}>
+                            <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'linear-gradient(135deg, rgb(var(--vq-slate-800)), rgb(var(--vq-slate-900)))', border: '1px solid #1e3a5f', color: vq.blue[400], fontSize: 13, textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}>
                                 <Settings size={15} /> VenSynQ Settings
                             </a>
                         </div>
@@ -197,30 +197,30 @@ export default function VenSynQDashboard({
                     minHeight: channels.length === 0 ? '60vh' : 'auto'
                 }}>
                     {channels.length === 0 ? (
-                        <div className="relative overflow-hidden bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.25)] p-8 max-w-2xl text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <div className="relative overflow-hidden bg-neutral-900/90 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.25)] p-8 max-w-2xl text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-slow">
                             {/* Background glows */}
-                            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-550/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
 
                             <div className="flex flex-col items-center gap-4 relative z-10">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-2xs font-bold uppercase tracking-wider">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 text-brand-400 text-2xs font-bold uppercase tracking-wider">
                                     <RefreshCw size={12} className="animate-spin" style={{ animationDuration: '6s' }} />
                                     Multi-Channel Sync
                                 </div>
-                                <h3 className="text-2xl md:text-3xl font-black text-white leading-tight">
+                                <h3 className="text-2xl md:text-3xl font-bold text-white leading-tight">
                                     Unified Inventory & Order Control
                                 </h3>
-                                <p className="text-sm text-slate-350 leading-relaxed font-medium">
+                                <p className="text-sm text-neutral-300 leading-relaxed font-medium">
                                     VenSynQ acts as your multi-channel command center. It automatically syncs products, real-time stock levels, and customer orders across WooCommerce, Amazon, eBay, and more. Once connected, your marketplace sales post directly into your main dashboard for unified dispatching, shipping tracking updates, and automated JIT purchase orders.
                                 </p>
-                                <p className="text-xs text-slate-500 leading-relaxed">
+                                <p className="text-xs text-ink-muted leading-relaxed">
                                     Connect your first integration channel in settings to start importing and tracking your sales in one glance.
                                 </p>
 
                                 <div className="pt-4">
                                     <a
                                         href={route('store.vensynq.settings', { store_slug: store?.slug })}
-                                        className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl border border-indigo-500/30 bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all duration-300 shadow-lg shadow-indigo-900/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-sm"
+                                        className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl border border-brand-500/30 bg-brand-600 hover:bg-brand-500 text-white font-bold transition-all duration-slow shadow-lg active:scale-[0.98] cursor-pointer text-sm"
                                     >
                                         <Link2 size={18} />
                                         <span>Connect Your First Channel</span>
@@ -318,7 +318,7 @@ export default function VenSynQDashboard({
                                             style={{
                                                 display: 'flex', alignItems: 'center', gap: 6,
                                                 padding: '8px 18px', borderRadius: 8,
-                                                background: dirtyCount ? 'linear-gradient(135deg, #059669, #047857)' : vq.slate[800],
+                                                background: dirtyCount ? 'linear-gradient(135deg, rgb(var(--vq-emerald-600)), rgb(var(--vq-emerald-700)))' : vq.slate[800],
                                                 border: 'none', color: dirtyCount ? '#fff' : vq.slate[600],
                                                 fontSize: 13, fontWeight: 600, cursor: dirtyCount ? 'pointer' : 'not-allowed',
                                                 transition: 'all 0.2s',
@@ -436,7 +436,7 @@ export default function VenSynQDashboard({
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
                 .spin { animation: spin 1s linear infinite; }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-            `}</style>
+`}</style>
         </OneGlanceLayout>
     );
 }

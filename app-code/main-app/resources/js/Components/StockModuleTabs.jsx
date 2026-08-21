@@ -80,26 +80,26 @@ export default function StockModuleTabs({ activeTab }) {
     }, [activeTab]);
 
     return (
-        <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm shrink-0">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
             {/* Mobile Header Toggle */}
             <div className="flex lg:hidden items-center justify-between w-full px-1.5 py-1">
                 <div className="flex items-center gap-2">
-                    <Layers size={14} className="text-slate-400" />
-                    <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Stock Navigation Menu</span>
+                    <Layers size={14} className="text-ink-muted" />
+                    <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Stock Navigation Menu</span>
                 </div>
                 <button
                     type="button"
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                    className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
                 >
-                    <ChevronRight size={16} className={`transition-transform duration-200 ${isCollapsed ? 'rotate-90' : '-rotate-90'}`} />
+                    <ChevronRight size={16} className={`transition-transform duration-normal ${isCollapsed ? 'rotate-90' : '-rotate-90'}`} />
                 </button>
             </div>
 
             {/* Collapsible Area */}
             <div className={`flex-col lg:flex-row items-center gap-3 lg:gap-4 w-full lg:w-auto lg:flex-1 ${isCollapsed ? 'hidden lg:flex' : 'flex'}`}>
                 {/* Level 1: Category Selector (Left Side) */}
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full w-full lg:w-auto">
+                <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full w-full lg:w-auto">
                     {groups.map((group) => {
                         const Icon = group.icon;
                         const isActive = activeGroup === group.id;
@@ -109,12 +109,12 @@ export default function StockModuleTabs({ activeTab }) {
                                 key={group.id}
                                 onClick={() => setActiveGroup(group.id)}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-normal whitespace-nowrap
                                     ${isActive
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                        ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }
-                                `}
+`}
                             >
                                 <Icon size={14} className={isActive ? 'opacity-100' : 'opacity-70'} />
                                 {group.label}
@@ -124,7 +124,7 @@ export default function StockModuleTabs({ activeTab }) {
                 </div>
 
                 {/* Separator / Arrow */}
-                <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
+                <div className="hidden lg:flex items-center text-neutral-300 dark:text-ink-secondary">
                     <ChevronRight size={16} />
                 </div>
 
@@ -139,24 +139,24 @@ export default function StockModuleTabs({ activeTab }) {
                                 {tab.locked ? (
                                     <div
                                         className={`
-                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap cursor-not-allowed
-                                            text-slate-400 dark:text-slate-600 border-transparent
-                                        `}
+                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap cursor-not-allowed
+                                            text-ink-muted border-transparent
+`}
                                     >
                                         <Icon size={14} />
                                         {tab.label}
-                                        <span className="text-3xs px-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 ml-1">LOCK</span>
+                                        <span className="text-3xs px-1 rounded bg-sunken dark:bg-surface text-ink-muted ml-1">LOCK</span>
                                     </div>
                                 ) : (
                                     <Link
                                         href={tab.href}
                                         className={`
-                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap
+                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap
                                             ${isActive
-                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-semibold'
-                                                : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
+                                                ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/20 dark:text-brand-400 font-semibold'
+                                                : 'bg-transparent border-transparent text-ink-secondary hover:bg-interactive-hover hover:border-line dark:text-ink-muted dark:hover:bg-interactive-hover dark:hover:border-line-strong'
                                             }
-                                        `}
+`}
                                     >
                                         <Icon size={14} />
                                         {tab.label}

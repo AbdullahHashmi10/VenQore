@@ -11,10 +11,10 @@ export default function ConfirmModal({ show, onClose, title, message, onConfirm,
                         <AlertTriangle size={24} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white">
+                        <h2 className="text-lg font-bold text-ink">
                             {title}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-ink-muted mt-1">
                             {message}
                         </p>
                     </div>
@@ -23,15 +23,15 @@ export default function ConfirmModal({ show, onClose, title, message, onConfirm,
                 <div className="flex gap-3 mt-6">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        className="flex-1 py-2.5 rounded-xl font-bold text-ink-secondary bg-sunken hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                     >
                         {cancelLabel}
                     </button>
                     <button
                         onClick={() => { onConfirm(); onClose(); }}
                         className={`flex-1 py-2.5 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all ${isDangerous
-                                ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
-                                : 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/30'
+                                ? 'bg-red-500 hover:bg-red-600 '
+                                : 'bg-brand-500 hover:bg-brand-600 '
                             }`}
                     >
                         {confirmLabel}

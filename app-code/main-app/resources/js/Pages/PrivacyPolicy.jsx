@@ -14,8 +14,8 @@ export default function PrivacyPolicy() {
 
     const Section = ({ title, children }) => (
         <section className="mb-10">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-900/[0.08] dark:border-white/10">{title}</h2>
-            <div className="space-y-3 text-slate-600 dark:text-slate-300 leading-relaxed">{children}</div>
+            <h2 className="text-xl font-bold text-ink mb-3 pb-2 border-b border-line dark:border-white/10">{title}</h2>
+            <div className="space-y-3 text-ink-secondary leading-relaxed">{children}</div>
         </section>
     );
 
@@ -31,25 +31,25 @@ export default function PrivacyPolicy() {
                         <Eye size={26} className="text-purple-600 dark:text-purple-400" />
                     </div>
                     <div className="min-w-0">
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">Privacy Policy</h1>
-                        <p className="text-slate-500 text-sm mt-1">Last updated: {lastUpdated}</p>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Privacy Policy</h1>
+                        <p className="text-ink-muted text-sm mt-1">Last updated: {lastUpdated}</p>
                     </div>
                 </div>
 
-                <p className="text-slate-600 dark:text-slate-300 mb-10 p-4 rounded-xl bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10 text-sm leading-relaxed">
+                <p className="text-ink-secondary mb-10 p-4 rounded-xl bg-sunken dark:bg-white/5 border border-line dark:border-white/10 text-sm leading-relaxed">
                     Your privacy matters to us. This policy explains exactly what data we collect, why we collect it, and how you can control it. We do not sell your data.
                 </p>
 
                 <Section title="1. What Data We Collect">
-                    <p><strong className="text-slate-900 dark:text-white">Account Data:</strong> Name, email address, business name, and password (hashed — we never store plain-text passwords).</p>
-                    <p><strong className="text-slate-900 dark:text-white">Business Data:</strong> Products, customers, sales records, invoices, accounting entries, and other data you create within the Service. This data belongs to you.</p>
-                    <p><strong className="text-slate-900 dark:text-white">Usage Data:</strong> IP address, browser type, pages visited, and timestamps. Used for security monitoring and improving the Service.</p>
-                    <p><strong className="text-slate-900 dark:text-white">Payment Data:</strong> Payment processing is handled entirely by Lemon Squeezy{/* or AppSumo*/}. We never see or store your full card number. We receive only a customer ID and subscription status.</p>
-                    <p><strong className="text-slate-900 dark:text-white">Communication Data:</strong> Email addresses and your support ticket history if you contact us.</p>
+                    <p><strong className="text-ink">Account Data:</strong> Name, email address, business name, and password (hashed — we never store plain-text passwords).</p>
+                    <p><strong className="text-ink">Business Data:</strong> Products, customers, sales records, invoices, accounting entries, and other data you create within the Service. This data belongs to you.</p>
+                    <p><strong className="text-ink">Usage Data:</strong> IP address, browser type, pages visited, and timestamps. Used for security monitoring and improving the Service.</p>
+                    <p><strong className="text-ink">Payment Data:</strong> Payment processing is handled entirely by Lemon Squeezy{/* or AppSumo*/}. We never see or store your full card number. We receive only a customer ID and subscription status.</p>
+                    <p><strong className="text-ink">Communication Data:</strong> Email addresses and your support ticket history if you contact us.</p>
                 </Section>
 
                 <Section title="2. How We Use Your Data">
-                    <ul className="list-disc list-inside space-y-2 text-slate-500 dark:text-slate-400">
+                    <ul className="list-disc list-inside space-y-2 text-ink-muted">
                         <li>To provide, maintain, and improve the Service</li>
                         <li>To send transactional emails (welcome, invoices, trial reminders)</li>
                         <li>To respond to support requests</li>
@@ -57,7 +57,7 @@ export default function PrivacyPolicy() {
                         <li>To comply with legal obligations</li>
                         <li>To send product updates (you can unsubscribe at any time)</li>
                     </ul>
-                    <p>We do <strong className="text-slate-900 dark:text-white">not</strong> use your business data (products, customers, sales) for any purpose other than providing the Service to you.</p>
+                    <p>We do <strong className="text-ink">not</strong> use your business data (products, customers, sales) for any purpose other than providing the Service to you.</p>
                 </Section>
 
                 <Section title="3. Data Sharing">
@@ -65,13 +65,13 @@ export default function PrivacyPolicy() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm mt-3">
                             <thead>
-                                <tr className="text-slate-500 text-left border-b border-slate-900/[0.08] dark:border-white/10">
+                                <tr className="text-ink-muted text-left border-b border-line dark:border-white/10">
                                     <th className="pb-2 pr-4">Provider</th>
                                     <th className="pb-2 pr-4">Purpose</th>
                                     <th className="pb-2">Data Shared</th>
                                 </tr>
                             </thead>
-                            <tbody className="text-slate-500 dark:text-slate-400">
+                            <tbody className="text-ink-muted">
                                 {[
                                     ['Cloudflare', 'CDN, DDoS protection', 'IP address, request data'],
                                     ['DigitalOcean', 'Server hosting', 'All data (encrypted at rest)'],
@@ -80,8 +80,8 @@ export default function PrivacyPolicy() {
                                     ['Lemon Squeezy', 'Payment processing', 'Email, subscription status'],
                                     // ['AppSumo', 'LTD distribution', 'Email, license redemption'],
                                 ].map(([provider, purpose, data], i) => (
-                                    <tr key={i} className="border-b border-slate-900/[0.06] dark:border-white/5">
-                                        <td className="py-2.5 pr-4 text-slate-900 dark:text-white font-medium">{provider}</td>
+                                    <tr key={i} className="border-b border-line dark:border-white/5">
+                                        <td className="py-2.5 pr-4 text-ink font-medium">{provider}</td>
                                         <td className="py-2.5 pr-4">{purpose}</td>
                                         <td className="py-2.5">{data}</td>
                                     </tr>
@@ -93,29 +93,29 @@ export default function PrivacyPolicy() {
                 </Section>
  
                 <Section title="4. Data Retention">
-                    <p><strong className="text-slate-900 dark:text-white">Active accounts:</strong> Data retained for the duration of your subscription.</p>
-                    <p><strong className="text-slate-900 dark:text-white">Cancelled/expired accounts:</strong> Data retained for 30 days after cancellation to allow data export, then permanently deleted.</p>
-                    <p><strong className="text-slate-900 dark:text-white">Trial accounts (not converted):</strong> Data retained for 30 days after trial expiry, then permanently deleted.</p>
-                    {/* <p><strong className="text-slate-900 dark:text-white">AppSumo LTD accounts:</strong> Data retained for the duration of your license. If you choose to stop using the Service, data is deleted upon request.</p> */}
-                    <p><strong className="text-slate-900 dark:text-white">Backups:</strong> Backup snapshots may persist for up to 7 days after deletion for disaster recovery purposes.</p>
+                    <p><strong className="text-ink">Active accounts:</strong> Data retained for the duration of your subscription.</p>
+                    <p><strong className="text-ink">Cancelled/expired accounts:</strong> Data retained for 30 days after cancellation to allow data export, then permanently deleted.</p>
+                    <p><strong className="text-ink">Trial accounts (not converted):</strong> Data retained for 30 days after trial expiry, then permanently deleted.</p>
+                    {/* <p><strong className="text-ink">AppSumo LTD accounts:</strong> Data retained for the duration of your license. If you choose to stop using the Service, data is deleted upon request.</p> */}
+                    <p><strong className="text-ink">Backups:</strong> Backup snapshots may persist for up to 7 days after deletion for disaster recovery purposes.</p>
                 </Section>
 
                 <Section title="5. Your Rights (GDPR)">
                     <p>If you are in the European Economic Area (EEA), you have the following rights:</p>
-                    <ul className="list-disc list-inside space-y-2 text-slate-500 dark:text-slate-400">
-                        <li><strong className="text-slate-900 dark:text-white">Right to Access:</strong> Request a copy of all data we hold about you</li>
-                        <li><strong className="text-slate-900 dark:text-white">Right to Rectification:</strong> Correct inaccurate data</li>
-                        <li><strong className="text-slate-900 dark:text-white">Right to Erasure:</strong> Request deletion of your data ("right to be forgotten")</li>
-                        <li><strong className="text-slate-900 dark:text-white">Right to Portability:</strong> Export your data in a machine-readable format</li>
-                        <li><strong className="text-slate-900 dark:text-white">Right to Object:</strong> Object to data processing for direct marketing</li>
-                        <li><strong className="text-slate-900 dark:text-white">Right to Restrict Processing:</strong> Request that we limit how we use your data</li>
+                    <ul className="list-disc list-inside space-y-2 text-ink-muted">
+                        <li><strong className="text-ink">Right to Access:</strong> Request a copy of all data we hold about you</li>
+                        <li><strong className="text-ink">Right to Rectification:</strong> Correct inaccurate data</li>
+                        <li><strong className="text-ink">Right to Erasure:</strong> Request deletion of your data ("right to be forgotten")</li>
+                        <li><strong className="text-ink">Right to Portability:</strong> Export your data in a machine-readable format</li>
+                        <li><strong className="text-ink">Right to Object:</strong> Object to data processing for direct marketing</li>
+                        <li><strong className="text-ink">Right to Restrict Processing:</strong> Request that we limit how we use your data</li>
                     </ul>
-                    <p>To exercise any of these rights, email <a href="mailto:privacy@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">privacy@venqore.com</a>. We will respond within 30 days.</p>
+                    <p>To exercise any of these rights, email <a href="mailto:privacy@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">privacy@venqore.com</a>. We will respond within 30 days.</p>
                 </Section>
 
                 <Section title="6. Security">
                     <p>We implement industry-standard security measures including:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
+                    <ul className="list-disc list-inside space-y-1 text-ink-muted">
                         <li>All data transmitted over HTTPS (TLS 1.2+)</li>
                         <li>Passwords hashed with bcrypt (cost factor 12)</li>
                         <li>Data encrypted at rest on DigitalOcean servers</li>
@@ -123,16 +123,16 @@ export default function PrivacyPolicy() {
                         <li>Regular security patching of server infrastructure</li>
                         <li>Access to production systems limited to authorized personnel</li>
                     </ul>
-                    <p>Despite these measures, no system is 100% secure. If you discover a security vulnerability, please disclose it responsibly to <a href="mailto:security@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">security@venqore.com</a>.</p>
+                    <p>Despite these measures, no system is 100% secure. If you discover a security vulnerability, please disclose it responsibly to <a href="mailto:security@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">security@venqore.com</a>.</p>
                 </Section>
 
                 <Section title="7. Cookies">
                     <p>We use only essential cookies:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
-                        <li><strong className="text-slate-900 dark:text-white">Session cookie:</strong> Keeps you logged in. Required for the Service to function.</li>
-                        <li><strong className="text-slate-900 dark:text-white">CSRF token:</strong> Protects against cross-site request forgery attacks.</li>
+                    <ul className="list-disc list-inside space-y-1 text-ink-muted">
+                        <li><strong className="text-ink">Session cookie:</strong> Keeps you logged in. Required for the Service to function.</li>
+                        <li><strong className="text-ink">CSRF token:</strong> Protects against cross-site request forgery attacks.</li>
                     </ul>
-                    <p>We do not use tracking cookies, advertising cookies, or third-party analytics cookies. Cloudflare may set cookies for security purposes — see <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline">Cloudflare's Privacy Policy</a>.</p>
+                    <p>We do not use tracking cookies, advertising cookies, or third-party analytics cookies. Cloudflare may set cookies for security purposes — see <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" className="text-brand-600 dark:text-brand-400 hover:underline">Cloudflare's Privacy Policy</a>.</p>
                 </Section>
 
                 <Section title="8. Children's Privacy">
@@ -145,15 +145,15 @@ export default function PrivacyPolicy() {
 
                 <Section title="10. Contact">
                     <p>For privacy-related inquiries:</p>
-                    <p><a href="mailto:privacy@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">privacy@venqore.com</a></p>
+                    <p><a href="mailto:privacy@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">privacy@venqore.com</a></p>
                 </Section>
 
-                <div className="mt-12 pt-8 border-t border-slate-900/[0.06] dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-slate-500">
-                    <p>Related: read our{' '}
-                        <Link href="/terms" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Terms of Service</Link>{' '}and{' '}
-                        <Link href="/refund-policy" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Refund Policy</Link>.
+                <div className="mt-12 pt-8 border-t border-line dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-ink-muted">
+                    <p>Related: read our{''}
+                        <Link href="/terms" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Terms of Service</Link>{''}and{''}
+                        <Link href="/refund-policy" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Refund Policy</Link>.
                     </p>
-                    <Link href="/contact" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Questions? Contact us →</Link>
+                    <Link href="/contact" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Questions? Contact us →</Link>
                 </div>
             </div>
         </MarketingLayout>

@@ -10,12 +10,12 @@ export default function Index({ articles, query: initialQuery }) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 font-sans">
+        <div className="min-h-screen bg-neutral-950 text-neutral-100 p-6 md:p-12 font-sans">
             <Head title="Help Centre — VenQore POS" />
             <div className="max-w-5xl mx-auto space-y-8">
                 <header className="text-center space-y-4">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-white">VenQore Help Centre</h1>
-                    <p className="text-slate-400 max-w-xl mx-auto">
+                    <h1 className="text-4xl font-bold tracking-tight text-white">VenQore Help Centre</h1>
+                    <p className="text-ink-muted max-w-xl mx-auto">
                         Search knowledge base articles for setup, POS hardware, inventory limits, and AppSumo LTD features.
                     </p>
                     <form onSubmit={handleSearch} className="max-w-md mx-auto flex gap-2">
@@ -24,7 +24,7 @@ export default function Index({ articles, query: initialQuery }) {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search articles (e.g. BYOK, hardware, LTD limits)..."
-                            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-purple-500"
+                            className="flex-1 bg-neutral-900 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-purple-500"
                         />
                         <button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded-lg font-semibold transition">
                             Search
@@ -34,7 +34,7 @@ export default function Index({ articles, query: initialQuery }) {
 
                 <div className="grid md:grid-cols-2 gap-6">
                     {articles.map((article) => (
-                        <div key={article.slug} className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-purple-500/50 transition">
+                        <div key={article.slug} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 hover:border-purple-500/50 transition">
                             <span className="text-xs font-semibold px-2.5 py-1 rounded bg-purple-950/80 text-purple-400 border border-purple-800/40">
                                 {article.category}
                             </span>
@@ -43,7 +43,7 @@ export default function Index({ articles, query: initialQuery }) {
                                     {article.title}
                                 </Link>
                             </h2>
-                            <p className="text-slate-400 text-sm mt-2 leading-relaxed">{article.summary}</p>
+                            <p className="text-ink-muted text-sm mt-2 leading-relaxed">{article.summary}</p>
                             <div className="mt-4">
                                 <Link href={`/help/articles/${article.slug}`} className="text-sm font-semibold text-purple-400 hover:underline">
                                     Read Article &rarr;

@@ -842,49 +842,240 @@ the enterprise feel.
 
 ---
 
-## 16. Grep checks for CI
+## 16. Enforcement
 
-Each should return zero. Run against `resources/js --include=*.jsx`.
+### The three sweeps
+
+Mechanical conformance is a script's job, not a reviewer's. All three are dry-run
+by default and idempotent — run them after any large merge.
+
+| Script | What it rewrites |
+|---|---|
+| `scripts/v6-codemod.py` | weights above 700, illegal durations, illegal radii, arbitrary z-index, `hover:scale` |
+| `scripts/v6-palette.py` | light/dark **pairs** onto the mode-aware semantic tokens |
+| `scripts/v6-vocabulary.py` | pigment names to role names, coloured shadows, text and border singletons |
+| `npm run theme:codemod` | hex and arbitrary font sizes that match a live theme token |
+| `scripts/v6-legacy-hex.py` | stock Tailwind hexes frozen into style objects and gradient strings |
+| `scripts/v6-marketing-gradient.py` | public-page gradients that built a second brand out of plum |
+
+Each declines to guess where the answer is genuinely ambiguous, and prints what
+it left behind. A bare `bg-slate-100` could be a well, a hover state, a disabled
+control or a chart gridline; those are four different tokens and no script can
+tell them apart.
+
+### The greps
+
+Run against `resources/js --include=*.jsx`.
 
 ```bash
-# no raw hex in components
-grep -rnE '#[0-9a-fA-F]{3,8}\b' resources/js --include=*.jsx
+# ✅ at zero — make these BLOCKING
+grep -rnE 'z-\[[0-9]+\]' resources/js --include=*.jsx                       # arbitrary z-index
+grep -rnE 'rounded-(3xl|\[[0-9.]+(rem|px)\])' resources/js --include=*.jsx   # radius above the ceiling
+grep -rnE 'font-(extrabold|black)' resources/js --include=*.jsx              # weight above 700
+grep -rnE 'duration-(75|100|150|300|500|700|1000)\b|duration-\[[0-9]+ms\]' resources/js --include=*.jsx
+grep -rnE 'shadow-(indigo|violet|purple|teal|emerald|blue|sky|rose|red|amber)-[0-9]' resources/js --include=*.jsx
+grep -rnE '\b(bg|text|border|ring|divide|from|to|via)-indigo-[0-9]{2,3}' resources/js --include=*.jsx
+grep -rn  'yAxisId' resources/js --include=*.jsx                             # dual-axis charts
 
-# no arbitrary z-index
-grep -rnE 'z-\[[0-9]+\]' resources/js --include=*.jsx
+# ⚠️ still above zero — these are the worklist, not yet blocking
+grep -rnE '#[0-9a-fA-F]{3,8}\b' resources/js --include=*.jsx                             # 684
+grep -rnE '\b(bg|text|border|ring|divide|from|to|via)-(slate|zinc|gray|neutral|stone)-[0-9]{2,3}' resources/js --include=*.jsx   # 4,082
+grep -rnE 'dark:(bg|text|border|divide)-slate-' resources/js --include=*.jsx              # 548
+grep -rnE '(group-)?hover:scale-' resources/js --include=*.jsx                            # 3 — all legal, see below
 
-# no radius above the ceiling
-grep -rnE 'rounded-(3xl|\[[0-9.]+(rem|px)\])' resources/js --include=*.jsx
-
-# no hover scale
-grep -rnE '(group-)?hover:scale-' resources/js --include=*.jsx
-
-# no weight above 700
-grep -rnE 'font-(extrabold|black)' resources/js --include=*.jsx
-
-# no off-system palettes  (V6 has no slate/zinc/gray/neutral/stone/indigo/violet/purple)
-grep -rnE '\b(bg|text|border|ring|shadow|from|to|via|divide)-(indigo|violet|purple|slate|zinc|gray|neutral|stone)-[0-9]{2,3}' resources/js --include=*.jsx
-
-# no arbitrary durations — only dur-1..4 are legal
-grep -rnE 'duration-\[[0-9]+ms\]|duration-(75|100|150|300|500|700|1000)\b' resources/js --include=*.jsx
-
-# no dual-axis charts
-grep -rn 'yAxisId' resources/js --include=*.jsx
-
-# no inline style objects carrying design values
-grep -rnE 'style=\{\{[^}]*(color|background|border-radius|borderRadius|boxShadow|fontFamily)' resources/js --include=*.jsx
+# ✅ also at zero — a class on a stop Tailwind does not have compiles to
+#    NOTHING, so the element silently inherits. 73 of these had been shipping.
+grep -rnE '\-(slate|gray|indigo|brand)-(150|250|350|450|550|650|750|850)\b' resources/js --include=*.jsx
 ```
 
-Wire them into `.github/` as a **non-blocking report first**, then make them
-blocking once each reaches zero. A check that has always failed is a check nobody
-reads.
+Wire the first group as **blocking** now. Wire the second as a **non-blocking
+report** with the counts above as a ratchet: a PR may not raise them. A check
+that has always failed is a check nobody reads, which is why the two groups are
+separate.
 
-`extras/Design System/VenQore Design System/_adherence.oxlintrc.json` already
-encodes the raw-hex, raw-px and font-family rules plus per-component prop
-whitelists for all 28 DS components. It is **not wired into the app** — no
-`.oxlintrc.json`, no `oxlint` script, no dependency. Wiring it is cheap and it
-catches things grep cannot. Note every rule is currently severity `warn`; raise
-to `error` when the count reaches zero.
+### Three notes on reading the results
+
+**`hover:scale` at 3 is correct, not a residue.** All three are an image scaling
+inside a fixed-ratio `overflow-hidden` frame, which §9 names as the one
+legitimate scale-plus-clip in the system. The check should assert *3*, not *0* —
+or exclude lines matching `object-(cover|contain)`.
+
+**`violet` / `purple` / `pink` / `fuchsia` are not off-system.** They are bound
+to V6's **plum** playmate, which is a real colour in the system. They read as
+pigment names, which is a vocabulary wart, but renaming them without exposing
+`plum` as its own Tailwind family would break them. `indigo` was different — it
+was bound to the brand, so it had a role name to move to.
+
+**Raw hex is not automatically a violation.** Genuine third-party brand colours
+— Amazon's `#ff9900`, TikTok's `#69c9d0`, a payment provider's logo fill — are
+supposed to be literal. The V6 system does not own them. `theme:codemod` reports
+these separately for exactly this reason.
+
+### Offline — the font rule
+
+Every face the app can render is vendored under `resources/fonts/` and declared
+in `resources/css`. Nothing fetches a typeface at paint time, and design-check
+blocks the string `fonts.googleapis.com` reappearing anywhere in
+`resources/css` or `resources/views`.
+
+This is a correctness rule, not a performance one. A `<link>` to a font CDN
+fails **silently** on a till with no uplink — CSS has no error for a stylesheet
+that did not arrive — so the screen paints in `system-ui` and looks merely
+*slightly wrong*. The expensive part is not the display voice: `system-ui` has
+**proportional** figures, so every currency column on the terminal stops
+aligning, which is the one thing `--vq-font-numeric` exists to guarantee.
+
+```bash
+npm run fonts:vendor    # copy the .woff2 files and regenerate the @font-face sheets
+npm run fonts:check     # fail if what is on disk is not what the generator produces
+```
+
+`scripts/fonts-vendor.mjs` is the only thing that may write those three sheets.
+The `unicode-range` declarations are copied verbatim out of the fontsource
+package that ships each binary, so a declaration and the file it names cannot
+disagree. Six families, latin + latin-ext, one variable file per subset.
+`latin-ext` is not optional: ₹ (U+20B9) and ₨ (U+20A8) live in U+20A0–20C0.
+
+### The lint config
+
+`extras/Design System/VenQore Design System/_adherence.oxlintrc.json` — the
+file this section used to point at — **cannot be wired in.** It expresses all 26
+component whitelists through `no-restricted-syntax`, and oxlint does not
+implement that rule; the config fails to *parse*, so it was never one severity
+bump away from working. Two further problems would have survived fixing that:
+
+- Its selectors key on the bare JSX name (`JSXOpeningElement[name.name='StatCard']`).
+  `StatCard`, `SidebarItem` and `DataTable` each exist **twice** in this
+  codebase with different props — see the note in `ds/index.js` — so it would
+  have flagged every use of the app's own three.
+- It whitelists `className` on every component. Not one DS component declares
+  `className`; they style themselves entirely through `var(--vq-*)`. So
+  `<Badge className="mt-2">` — a class that silently does nothing — passes.
+
+What replaces it:
+
+| File | Role |
+|---|---|
+| `resources/js/Components/ds/*.d.ts` | source of truth — already states every prop and every union |
+| `scripts/ds-adherence.mjs` | derives the contract from those files; `--check` fails on drift |
+| `resources/js/Components/ds/_adherence.json` | the contract. GENERATED, committed, do not hand-edit |
+| `scripts/ds-adherence-plugin.mjs` | the oxlint JS plugin holding the three rules |
+| `resources/js/Components/ds/_adherence.oxlintrc.json` | wiring |
+
+```bash
+npm run ds:contract   # regenerate _adherence.json from the .d.ts files
+npm run ds:check      # contract freshness + the three rules, all at error
+```
+
+| Rule | Catches |
+|---|---|
+| `ds/no-unknown-prop` | `<Badge className="mt-2">` — React drops it without a word |
+| `ds/enum` | `<Alert tone="urgent">` — falls through the component's own switch to its default |
+| `ds/required-prop` | `<IconButton />` — `label` is required; the glyph is not a name |
+
+All three depend on **which** component an attribute sits on, which is precisely
+what the greps above cannot see. All three are silent failures today: the screen
+renders, looks nearly right, and is wrong — worse than a crash, because nothing
+draws your attention to it.
+
+**The harness self-tests before it reports.** oxlint exits 1 for "found
+problems" *and* for "your config is broken", and a missing native binding —
+npm's optional-dependency bug, which bites whenever a lockfile crosses
+platforms — crashes node before a file is read. All three produce an empty
+diagnostic list, which a naive check greps, finds nothing in, and prints as a
+green zero. So `design-check.sh` runs both oxlint passes against
+`scripts/ds-adherence.fixture.jsx` first — a file kept deliberately wrong — and
+refuses to report a count until it has watched each rule catch a planted
+violation. The fixture also uses the app's own `SidebarItem`; if that shows up
+in the output, the rule is matching bare JSX names instead of resolving imports,
+and the check says so rather than reporting the noise. Do not "fix" that file.
+
+The contract is derived rather than typed. The `.d.ts` files already state every
+union and are what the editor reads for autocomplete; copying those unions into a
+lint config by hand creates a second source of truth for the same fact, and the
+copy starts rotting the first time somebody adds a variant. `ds:check` refuses a
+build where the two have drifted — the same shape as `theme:check`.
+
+Where it deliberately says nothing: `{...spread}` suppresses the required-prop
+check, a non-literal value (`tone={t}`) is not policed, and a union that is not
+purely string literals (`"sm" | number`) gets no whitelist at all. Each is a
+place where a stricter rule would reject legal code, and a rule that cries wolf
+is a rule somebody switches off.
+
+Two rules from the old file are **not** carried over. Raw hex is already covered
+twice — by `no-restricted-syntax` in `.eslintrc.json`, which has the carve-out
+for genuine third-party brand colours, and by the ratchet above. And its
+font-family rule allowed only the three V6 faces, which is wrong for this
+codebase: Appearance offers six typeface choices and all six are legitimate.
+
+### oxlint
+
+`.oxlintrc.json` at the root runs oxlint's `correctness` category over
+`resources/js` — the tier for code that is outright wrong, not style. It is a
+**ratchet**, and its ceiling is not a design decision, so it is recorded rather
+than typed:
+
+```bash
+npm run design:baseline   # write today's count to scripts/.oxlint-ceiling
+npm run lint              # the raw report
+npm run lint:fix          # the subset oxlint can fix safely
+```
+
+From then on the number may fall and may not rise. ESLint stays for
+`no-restricted-syntax`, which oxlint has no equivalent for.
+
+### What blocks a build
+
+`npm run build` runs `fonts:check` and `ds:check` first. Both are at zero
+today, so neither can fail on anything that was already here — only on something
+newly introduced. The **ratchets** are deliberately not in `build`: a hotfix
+should not be blocked by raw-hex drift somebody else added. `npm run verify`
+is where those live, along with `theme:check`.
+
+---
+
+## 16a. The class vocabulary — what actually compiles
+
+Two of these are easy to get wrong, and a class that does not exist fails
+silently: Tailwind emits nothing and the element renders unstyled.
+
+| Want | Class | Not |
+|---|---|---|
+| default hairline | `border-line` | ~~`border-border`~~ |
+| emphasised divider | `border-line-strong` | |
+| page | `bg-app` | |
+| card | `bg-surface` | |
+| well, table header | `bg-sunken` | |
+| on top of a card | `bg-raised` | |
+| dropdown, popover | `bg-overlay` | |
+| headings, values | `text-ink` | |
+| body copy | `text-ink-secondary` | |
+| labels, captions | `text-ink-muted` | |
+| placeholder, disabled | `text-ink-faint` | |
+| hover / active / selected | `bg-interactive-hover` · `-active` · `-selected` | |
+| focus ring | `ring-focus` | |
+
+The line tokens are named `line` rather than `border` on purpose, so the class
+reads `border-line-strong` instead of `border-border-strong`.
+
+**The accent has both forms.** A ramp stop is one pigment; the identity colour is
+a *different stop* in dark mode, and only the semantic form knows that.
+
+| | |
+|---|---|
+| `bg-accent-500` | a fixed pigment, the same in both modes |
+| `bg-accent` | the identity colour — teal-500 light, teal-400 dark |
+| `bg-accent-quiet` | the tint wash; takes ink text on top |
+| `text-accent-text` | links and inline accent, contrast-safe in both modes |
+| `bg-accent-fill` / `bg-accent-fill-hover` | solid buttons; white on top |
+| `text-accent-on` | the text colour that goes on an accent fill |
+
+The six semantic forms hold resolved colours rather than channel triplets, so
+`/50` opacity modifiers do not apply to them. That is correct — they are
+already-composed values, and an alpha on top of a tint is how you get mud.
+
+**Geometry is reachable too:** `gap-gutter` (24px), `h-topbar-h` (64px),
+`w-rail-w` (264px), `w-rail-min` (72px), `h-row-unit` (64px).
 
 ---
 
@@ -914,4 +1105,5 @@ If you find a fifth token file, it is also superseded. There is one source.
 
 ---
 
-**v3.0 · 21 Aug 2026 · aligned to V6 tokens + Layout Law v2.0**
+**v3.1 · 21 Aug 2026 · aligned to V6 tokens + Layout Law v2.0**
+**v3.1 records the class vocabulary (§16a) and the five sweeps, after the first rollout pass.**

@@ -1,30 +1,26 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useEffect, useRef } from 'react';
+import { Input } from '@/Components/ds';
 
+/**
+ * Breeze's text input, backed by the V6 `Input`.
+ *
+ * Keeps the `isFocused` prop the Breeze auth pages pass, and the ref forward,
+ * because those are the only two things that ever used it.
+ *
+ * The V6 input is 48px tall with a 16px font — that floor is not cosmetic.
+ * Anything smaller makes iOS Safari zoom the viewport on focus, which reads as
+ * the page breaking.
+ */
 export default forwardRef(function TextInput(
     { type = 'text', className = '', isFocused = false, ...props },
     ref,
 ) {
-    const localRef = useRef(null);
-
-    useImperativeHandle(ref, () => ({
-        focus: () => localRef.current?.focus(),
-    }));
+    const local = useRef(null);
+    const el = ref || local;
 
     useEffect(() => {
-        if (isFocused) {
-            localRef.current?.focus();
-        }
-    }, [isFocused]);
+        if (isFocused) el.current?.focus();
+    }, [isFocused, el]);
 
-    return (
-        <input
-            {...props}
-            type={type}
-            className={
-                'rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ' +
-                className
-            }
-            ref={localRef}
-        />
-    );
+    return <Input ref={el} type={type} className={className} {...props} />;
 });

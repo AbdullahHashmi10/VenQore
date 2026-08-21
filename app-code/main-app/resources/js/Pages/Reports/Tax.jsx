@@ -51,7 +51,7 @@ export default function TaxReport({ tax_records = [], stats = {}, filters = {} }
         {
             key: 'invoice_number',
             label: 'Invoice #',
-            render: (row) => <span className="font-mono text-xs text-slate-500">{row.invoice_number}</span>
+            render: (row) => <span className="font-mono text-xs text-ink-muted">{row.invoice_number}</span>
         },
         {
             key: 'type',

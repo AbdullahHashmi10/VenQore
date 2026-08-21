@@ -64,7 +64,7 @@ const PLATFORM_THEMES = {
         label: 'TikTok Shop Partner', 
         logoText: 'TikTok Shop',
         color: '#69C9D0', 
-        bg: '#001a1c', 
+        bg: vq.indigo[950], 
         border: '#004a50',
         gradient: 'linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)'
     },
@@ -204,11 +204,11 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div style={{ background: 'linear-gradient(90deg, #0a0f1a, #111827)', borderBottom: '1px solid #1e3a5f', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <Link href={route('store.vensynq.index', { store_slug: store?.slug })} style={{ width: 36, height: 36, borderRadius: 10, background: vq.slate[800], border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: vq.slate[400], transition: 'color 0.2s' }} className="hover:text-white">
+                        <Link href={route('store.vensynq.index', { store_slug: store?.slug })} style={{ width: 36, height: 36, borderRadius: 10, background: vq.slate[800], border: '1px solid rgb(var(--vq-slate-700))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: vq.slate[400], transition: 'color 0.2s' }} className="hover:text-white">
                             <ChevronLeft size={20} />
                         </Link>
                         <div>
-                            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, background: 'linear-gradient(90deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, background: 'linear-gradient(90deg, rgb(var(--vq-blue-400)), rgb(var(--vq-violet-400)))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 VenSynQ Integrations
                             </h1>
                             <p style={{ margin: 0, fontSize: 12, color: vq.slate[500] }}>OAuth Connection Center & Fulfillment Defaults</p>
@@ -299,7 +299,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                                 <div style={{ display: 'flex', gap: 8 }}>
                                                                     <button 
                                                                         onClick={() => startEdit(connected)}
-                                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, background: vq.slate[800], border: '1px solid #334155', color: vq.blue[400], fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, background: vq.slate[800], border: '1px solid rgb(var(--vq-slate-700))', color: vq.blue[400], fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
                                                                     >
                                                                         <Edit2 size={11} /> Tune
                                                                     </button>
@@ -475,7 +475,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
 
                             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
                                 <button type="button" onClick={() => setEditingChannel(null)} style={{ ...btnBase, background: vq.slate[800], color: vq.slate[400] }}>Cancel</button>
-                                <button type="submit" disabled={editForm.processing} style={{ ...btnBase, background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff' }}>
+                                <button type="submit" disabled={editForm.processing} style={{ ...btnBase, background: 'linear-gradient(135deg, rgb(var(--vq-blue-500)), rgb(var(--vq-blue-600)))', color: '#fff' }}>
                                     {editForm.processing ? 'Saving Defaults…' : 'Save Defaults'}
                                 </button>
                             </div>
@@ -502,7 +502,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                 background: 'transparent',
                                                 border: 'none',
                                                 borderBottom: isActive ? '2px solid #FF9900' : '2px solid transparent',
-                                                color: isActive ? '#fff' : '#64748b',
+                                                color: isActive ? '#fff' : 'rgb(var(--vq-slate-500))',
                                                 fontWeight: isActive ? 700 : 500,
                                                 padding: '4px 2px 8px 2px',
                                                 fontSize: 12,
@@ -541,7 +541,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                             <div style={{ fontSize: 12, fontWeight: 700, color: isSelected ? '#FF9900' : vq.slate[100], marginBottom: 2 }}>
                                                 {reg.label}
                                             </div>
-                                            <div style={{ fontSize: 9, color: isSelected ? vq.slate[300] : '#64748b' }}>
+                                            <div style={{ fontSize: 9, color: isSelected ? vq.slate[300] : 'rgb(var(--vq-slate-500))' }}>
                                                 {reg.desc}
                                             </div>
                                         </button>
@@ -584,7 +584,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
 
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-            `}</style>
+`}</style>
         </OneGlanceLayout>
     );
 }

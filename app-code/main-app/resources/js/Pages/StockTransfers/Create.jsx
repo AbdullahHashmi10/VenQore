@@ -75,30 +75,30 @@ export default function Create({ warehouses, products }) {
                     <div className="flex items-center gap-4">
                         <Link
                             href={route('store.stock-transfers.index', { store_slug: store.slug })}
-                            className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 transition-colors"
+                            className="p-2 rounded-xl bg-surface border border-line hover:bg-interactive-hover transition-colors"
                         >
-                            <ArrowLeft size={20} className="text-slate-500" />
+                            <ArrowLeft size={20} className="text-ink-muted" />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">New Stock Transfer</h1>
-                            <p className="text-sm text-slate-500">Move inventory between warehouses</p>
+                            <h1 className="text-2xl font-bold text-ink">New Stock Transfer</h1>
+                            <p className="text-sm text-ink-muted">Move inventory between warehouses</p>
                         </div>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* General Info Card */}
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <Truck size={20} className="text-indigo-500" /> Transfer Details
+                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
+                        <h2 className="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+                            <Truck size={20} className="text-brand-500" /> Transfer Details
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Source Warehouse */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">From Warehouse</label>
+                                <label className="text-sm font-semibold text-ink-secondary">From Warehouse</label>
                                 <select
-                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500"
+                                    className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500"
                                     value={data.from_warehouse_id}
                                     onChange={e => setData('from_warehouse_id', e.target.value)}
                                 >
@@ -112,9 +112,9 @@ export default function Create({ warehouses, products }) {
 
                             {/* Destination Warehouse */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">To Warehouse</label>
+                                <label className="text-sm font-semibold text-ink-secondary">To Warehouse</label>
                                 <select
-                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500"
+                                    className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500"
                                     value={data.to_warehouse_id}
                                     onChange={e => setData('to_warehouse_id', e.target.value)}
                                 >
@@ -128,12 +128,12 @@ export default function Create({ warehouses, products }) {
 
                             {/* Date */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Transfer Date</label>
+                                <label className="text-sm font-semibold text-ink-secondary">Transfer Date</label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
                                     <input
                                         type="date"
-                                        className="w-full pl-10 text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500"
+                                        className="w-full pl-10 text-sm rounded-xl border-line bg-app focus:ring-brand-500"
                                         value={data.transfer_date}
                                         onChange={e => setData('transfer_date', e.target.value)}
                                     />
@@ -143,9 +143,9 @@ export default function Create({ warehouses, products }) {
 
                             {/* Status */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Status</label>
+                                <label className="text-sm font-semibold text-ink-secondary">Status</label>
                                 <select
-                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500"
+                                    className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500"
                                     value={data.status}
                                     onChange={e => setData('status', e.target.value)}
                                 >
@@ -159,9 +159,9 @@ export default function Create({ warehouses, products }) {
 
                         {/* Notes */}
                         <div className="mt-6 space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Notes / Remarks</label>
+                            <label className="text-sm font-semibold text-ink-secondary">Notes / Remarks</label>
                             <textarea
-                                className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500 min-h-[80px]"
+                                className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500 min-h-[80px]"
                                 placeholder="Any additional details..."
                                 value={data.notes}
                                 onChange={e => setData('notes', e.target.value)}
@@ -170,15 +170,15 @@ export default function Create({ warehouses, products }) {
                     </div>
 
                     {/* Items Card */}
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <Box size={20} className="text-indigo-500" /> Items to Transfer
+                            <h2 className="text-lg font-bold text-ink flex items-center gap-2">
+                                <Box size={20} className="text-brand-500" /> Items to Transfer
                             </h2>
                             <button
                                 type="button"
                                 onClick={addItem}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-sm font-bold hover:bg-brand-100 transition-colors"
                             >
                                 <Plus size={16} /> Add Item
                             </button>
@@ -186,9 +186,9 @@ export default function Create({ warehouses, products }) {
 
                         <div className="space-y-3">
                             {data.items.map((item, index) => (
-                                <div key={index} className="flex gap-4 items-start p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 group">
+                                <div key={index} className="flex gap-4 items-start p-3 bg-app rounded-xl border border-line group">
                                     <div className="flex-1 space-y-1">
-                                        <label className="text-xs font-bold text-slate-500 ml-1">Product</label>
+                                        <label className="text-xs font-bold text-ink-muted ml-1">Product</label>
                                         <AsyncProductCombobox
                                             value={item.product_id}
                                             onSelect={(p) => updateItem(index, 'product_id', p ? p.id : '')}
@@ -198,11 +198,11 @@ export default function Create({ warehouses, products }) {
                                     </div>
 
                                     <div className="w-32 space-y-1">
-                                        <label className="text-xs font-bold text-slate-500 ml-1">Quantity</label>
+                                        <label className="text-xs font-bold text-ink-muted ml-1">Quantity</label>
                                         <input
                                             type="number"
                                             min="1"
-                                            className="w-full text-sm rounded-lg border-slate-200 dark:border-slate-700 focus:ring-indigo-500"
+                                            className="w-full text-sm rounded-lg border-line focus:ring-brand-500"
                                             value={item.quantity}
                                             onChange={e => updateItem(index, 'quantity', e.target.value)}
                                         />
@@ -212,7 +212,7 @@ export default function Create({ warehouses, products }) {
                                         <button
                                             type="button"
                                             onClick={() => removeItem(index)}
-                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            className="p-2 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                             disabled={data.items.length === 1}
                                         >
                                             <Trash2 size={18} />
@@ -228,14 +228,14 @@ export default function Create({ warehouses, products }) {
                     <div className="flex items-center justify-end gap-4 pt-4">
                         <Link
                             href={route('store.stock-transfers.index', { store_slug: store.slug })}
-                            className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-ink-muted hover:text-ink transition-colors"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/30 disabled:opacity-70 disabled:hover:scale-100"
+                            className="flex items-center gap-2 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-lg disabled:opacity-70 disabled:"
                         >
                             <Save size={18} />
                             {processing ? 'Processing...' : 'Create Transfer'}

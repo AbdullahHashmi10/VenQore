@@ -94,7 +94,7 @@ export default function AttributesIndex({ attributes }) {
                         actions={
                             <button
                                 onClick={() => openModal()}
-                                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg active:scale-95"
+                                className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg active:scale-95"
                             >
                                 <Plus size={20} /> Add Attribute
                             </button>
@@ -103,27 +103,27 @@ export default function AttributesIndex({ attributes }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {attributes.map((attr) => (
-                            <div key={attr.id} className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow">
+                            <div key={attr.id} className="bg-surface rounded-2xl p-6 shadow-sm border border-line hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                        <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-brand-600 dark:text-brand-400">
                                             <Tag size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-800 dark:text-white">{attr.name}</h3>
-                                            <p className="text-xs text-slate-500 uppercase tracking-wider">{attr.type}</p>
+                                            <h3 className="font-bold text-ink">{attr.name}</h3>
+                                            <p className="text-xs text-ink-muted uppercase tracking-wider">{attr.type}</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => openModal(attr)}
-                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                            className="p-2 text-ink-muted hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                                         >
                                             <Edit size={16} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(attr.id)}
-                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            className="p-2 text-ink-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -133,7 +133,7 @@ export default function AttributesIndex({ attributes }) {
                                 {attr.type === 'select' && attr.options && (
                                     <div className="flex flex-wrap gap-2 mt-4">
                                         {attr.options.map((opt, idx) => (
-                                            <span key={idx} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-xs font-medium">
+                                            <span key={idx} className="px-2 py-1 bg-sunken text-ink-secondary rounded text-xs font-medium">
                                                 {opt}
                                             </span>
                                         ))}
@@ -145,25 +145,25 @@ export default function AttributesIndex({ attributes }) {
 
                     {/* Modal */}
                     {isModalOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-                                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">
+                            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-normal">
+                                <div className="p-6 border-b border-line flex justify-between items-center">
+                                    <h3 className="text-lg font-bold text-ink">
                                         {editingAttribute ? 'Edit Attribute' : 'Add Attribute'}
                                     </h3>
-                                    <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                    <button onClick={closeModal} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200">
                                         <X size={20} />
                                     </button>
                                 </div>
 
                                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
+                                        <label className="block text-sm font-medium text-ink-secondary mb-1">Name</label>
                                         <input
                                             type="text"
                                             value={data.name}
                                             onChange={(e) => setData('name', e.target.value)}
-                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                            className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                             placeholder="e.g. Size, Color"
                                             required
                                         />
@@ -171,11 +171,11 @@ export default function AttributesIndex({ attributes }) {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
+                                        <label className="block text-sm font-medium text-ink-secondary mb-1">Type</label>
                                         <select
                                             value={data.type}
                                             onChange={(e) => setData('type', e.target.value)}
-                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                            className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                         >
                                             <option value="select">Select (Dropdown)</option>
                                             <option value="text">Text</option>
@@ -185,27 +185,27 @@ export default function AttributesIndex({ attributes }) {
 
                                     {data.type === 'select' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Options</label>
+                                            <label className="block text-sm font-medium text-ink-secondary mb-1">Options</label>
                                             <div className="flex gap-2 mb-2">
                                                 <input
                                                     type="text"
                                                     value={optionInput}
                                                     onChange={(e) => setOptionInput(e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOption())}
-                                                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                                    className="flex-1 px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                                     placeholder="Type option and press Enter"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={addOption}
-                                                    className="px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                                                    className="px-3 py-2 bg-sunken text-ink-secondary rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                                 >
                                                     <Plus size={16} />
                                                 </button>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
                                                 {data.options.map((opt, idx) => (
-                                                    <span key={idx} className="flex items-center gap-1 px-2 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded text-xs font-medium border border-indigo-100 dark:border-indigo-800">
+                                                    <span key={idx} className="flex items-center gap-1 px-2 py-1 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded text-xs font-medium border border-brand-100 dark:border-brand-800">
                                                         {opt}
                                                         <button
                                                             type="button"
@@ -224,14 +224,14 @@ export default function AttributesIndex({ attributes }) {
                                         <button
                                             type="button"
                                             onClick={closeModal}
-                                            className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors text-sm font-medium"
+                                            className="px-4 py-2 text-ink-secondary hover:bg-interactive-hover rounded-xl transition-colors text-sm font-medium"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={processing}
-                                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg shadow-indigo-500/30"
+                                            className="px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg "
                                         >
                                             <Save size={16} />
                                             {processing ? 'Saving...' : 'Save Attribute'}

@@ -30,8 +30,8 @@ export default function Redeem({ app_name = 'VenQore' }) {
     };
 
     const planTiers = [
-        { codes: 1, plan: 'Starter',  color: 'text-slate-300',  bg: 'bg-slate-800/60', features: ['1,000 products', '3 staff', '1 warehouse', 'Full POS & Invoicing'] },
-        { codes: 2, plan: 'Growth',   color: 'text-indigo-300', bg: 'bg-indigo-900/20', features: ['Unlimited products', '10 staff', '3 warehouses', 'WooCommerce + AI Engine'] },
+        { codes: 1, plan: 'Starter',  color: 'text-neutral-300',  bg: 'bg-neutral-800/60', features: ['1,000 products', '3 staff', '1 warehouse', 'Full POS & Invoicing'] },
+        { codes: 2, plan: 'Growth',   color: 'text-brand-300', bg: 'bg-brand-900/20', features: ['Unlimited products', '10 staff', '3 warehouses', 'WooCommerce + AI Engine'] },
         { codes: 3, plan: 'Business', color: 'text-amber-300',  bg: 'bg-amber-900/20',  features: ['Everything unlimited', 'Unlimited staff', 'API access', 'White-label ready'] },
     ];
 
@@ -47,7 +47,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
 
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-900/20 rounded-full blur-[100px]" />
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-900/20 rounded-full blur-[100px]" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-900/15 rounded-full blur-[100px]" />
                 <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 mix-blend-overlay" />
             </div>
@@ -58,7 +58,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
                     {/* Logo */}
                     <div className="flex items-center gap-3 mb-12">
                         <img src="/images/logo.png" alt="VenQore" className="h-10 object-contain" />
-                        <span className="font-black text-xl text-white">VenQore<span className="text-indigo-400">.</span></span>
+                        <span className="font-bold text-xl text-white">VenQore<span className="text-brand-400">.</span></span>
                     </div>
 
                     {/* AppSumo badge */}
@@ -67,13 +67,13 @@ export default function Redeem({ app_name = 'VenQore' }) {
                         AppSumo Lifetime Deal
                     </div>
 
-                    <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-4 leading-tight">
+                    <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight">
                         Activate Your
-                        <span className="block bg-gradient-to-r from-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                        <span className="block bg-gradient-to-r from-brand-300 to-purple-400 bg-clip-text text-transparent">
                             Lifetime License
                         </span>
                     </h1>
-                    <p className="text-slate-400 leading-relaxed mb-10">
+                    <p className="text-ink-muted leading-relaxed mb-10">
                         Stack up to 3 codes to unlock higher tiers. One code is all you need to get started — add more later from your account.
                     </p>
 
@@ -82,7 +82,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
                         {planTiers.map((tier) => (
                             <div key={tier.codes} className={`rounded-2xl p-5 border border-white/10 ${tier.bg}`}>
                                 <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs font-black text-white">
+                                    <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs font-bold text-white">
                                         {tier.codes}
                                     </div>
                                     <span className={`font-bold text-sm ${tier.color}`}>
@@ -91,7 +91,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
                                 </div>
                                 <div className="grid grid-cols-2 gap-1.5">
                                     {tier.features.map((f, i) => (
-                                        <div key={i} className="flex items-center gap-1.5 text-xs text-slate-400">
+                                        <div key={i} className="flex items-center gap-1.5 text-xs text-ink-muted">
                                             <Check size={10} className="text-emerald-400 shrink-0" /> {f}
                                         </div>
                                     ))}
@@ -100,7 +100,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
                         ))}
                     </div>
 
-                    <p className="text-slate-600 text-xs mt-6 flex items-center gap-2">
+                    <p className="text-ink-secondary text-xs mt-6 flex items-center gap-2">
                         <Shield size={12} className="text-emerald-500" />
                         60-day money-back guarantee per AppSumo policy.
                     </p>
@@ -109,9 +109,9 @@ export default function Redeem({ app_name = 'VenQore' }) {
                 {/* ── Right: Redemption Form ── */}
                 <div className="lg:w-[55%] p-10 lg:p-16 flex flex-col justify-center">
                     <h2 className="text-2xl font-bold text-white mb-2">Enter Your Code</h2>
-                    <p className="text-slate-400 text-sm mb-8">
-                        Already have an account?{' '}
-                        <Link href={route('login')} className="text-indigo-400 hover:text-indigo-300 underline">
+                    <p className="text-ink-muted text-sm mb-8">
+                        Already have an account?{''}
+                        <Link href={route('login')} className="text-brand-400 hover:text-brand-300 underline">
                             Sign in to stack codes
                         </Link>
                     </p>
@@ -119,8 +119,8 @@ export default function Redeem({ app_name = 'VenQore' }) {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* AppSumo Code field — most prominent */}
                         <div>
-                            <label className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
-                                <Zap size={14} className="text-indigo-400" />
+                            <label className="text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2">
+                                <Zap size={14} className="text-brand-400" />
                                 AppSumo Code
                             </label>
                             <input
@@ -129,7 +129,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
                                 value={data.code}
                                 onChange={e => setData('code', e.target.value.toUpperCase())}
                                 placeholder="e.g. VENQ-AB1C-D2EF"
-                                className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-white placeholder-slate-600 font-mono text-lg tracking-widest focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors ${errors.code ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}`}
+                                className={`w-full px-4 py-3.5 rounded-xl bg-white/5 border text-white placeholder-slate-600 font-mono text-lg tracking-widest focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors ${errors.code ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}`}
                                 autoFocus
                             />
                             {errors.code && (
@@ -144,28 +144,28 @@ export default function Redeem({ app_name = 'VenQore' }) {
 
                         {/* Name */}
                         <div>
-                            <label className="text-sm font-semibold text-slate-400 mb-2 block">Full Name</label>
+                            <label className="text-sm font-semibold text-ink-muted mb-2 block">Full Name</label>
                             <input
                                 id="redeem-name"
                                 type="text"
                                 value={data.name}
                                 onChange={e => setData('name', e.target.value)}
                                 placeholder="Your name"
-                                className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors ${errors.name ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
+                                className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors ${errors.name ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
                             />
                             {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
                         </div>
 
                         {/* Email */}
                         <div>
-                            <label className="text-sm font-semibold text-slate-400 mb-2 block">Email Address</label>
+                            <label className="text-sm font-semibold text-ink-muted mb-2 block">Email Address</label>
                             <input
                                 id="redeem-email"
                                 type="email"
                                 value={data.email}
                                 onChange={e => setData('email', e.target.value)}
                                 placeholder="your@email.com"
-                                className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors ${errors.email ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
+                                className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors ${errors.email ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
                             />
                             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                         </div>
@@ -173,7 +173,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
                         {/* Password */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="text-sm font-semibold text-slate-400 mb-2 block">Password</label>
+                                <label className="text-sm font-semibold text-ink-muted mb-2 block">Password</label>
                                 <div className="relative">
                                     <input
                                         id="redeem-password"
@@ -181,16 +181,16 @@ export default function Redeem({ app_name = 'VenQore' }) {
                                         value={data.password}
                                         onChange={e => setData('password', e.target.value)}
                                         placeholder="Min 8 characters"
-                                        className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors pr-10 ${errors.password ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
+                                        className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors pr-10 ${errors.password ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
                                     />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-neutral-300">
                                         {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                                     </button>
                                 </div>
                                 {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
                             </div>
                             <div>
-                                <label className="text-sm font-semibold text-slate-400 mb-2 block">Confirm</label>
+                                <label className="text-sm font-semibold text-ink-muted mb-2 block">Confirm</label>
                                 <div className="relative">
                                     <input
                                         id="redeem-password-confirm"
@@ -198,9 +198,9 @@ export default function Redeem({ app_name = 'VenQore' }) {
                                         value={data.password_confirmation}
                                         onChange={e => setData('password_confirmation', e.target.value)}
                                         placeholder="Repeat password"
-                                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors pr-10"
+                                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors pr-10"
                                     />
-                                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-neutral-300">
                                         {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                                     </button>
                                 </div>
@@ -212,7 +212,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
                             id="redeem-submit"
                             type="submit"
                             disabled={processing}
-                            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/25 disabled:opacity-50 disabled:scale-100 mt-2"
+                            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:shadow-lg hover: disabled:opacity-50 disabled:scale-100 mt-2"
                         >
                             {processing ? (
                                 <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -229,9 +229,9 @@ export default function Redeem({ app_name = 'VenQore' }) {
                         </button>
                     </form>
 
-                    <p className="text-slate-600 text-xs mt-6 text-center leading-relaxed">
-                        By activating, you agree to VenQore's{' '}
-                        <Link href="/refund-policy" className="text-slate-500 hover:text-slate-300 underline">Refund Policy</Link>.
+                    <p className="text-ink-secondary text-xs mt-6 text-center leading-relaxed">
+                        By activating, you agree to VenQore's{''}
+                        <Link href="/refund-policy" className="text-ink-muted hover:text-neutral-300 underline">Refund Policy</Link>.
                         AppSumo's 60-day guarantee applies.
                     </p>
                 </div>

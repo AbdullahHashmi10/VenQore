@@ -10,12 +10,12 @@ import { Lock as LockIcon, Unlock } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 
 const StatCard = ({ title, value, icon }) => (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between">
+    <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex items-center justify-between">
         <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{title}</p>
-            <p className="text-xl font-bold text-slate-800 dark:text-white">{value}</p>
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{title}</p>
+            <p className="text-xl font-bold text-ink">{value}</p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center border border-slate-100 dark:border-slate-600">
+        <div className="w-10 h-10 rounded-full bg-sunken flex items-center justify-center border border-line dark:border-line">
             {icon}
         </div>
     </div>
@@ -410,19 +410,19 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <Box size={16} className="text-amber-500" />
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Inventory</h3>
+                    <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Inventory</h3>
                 </div>
                 {mode === 'edit' && !isStockUnlocked && (
                     <button 
                         type="button"
                         onClick={() => setShowPasscodeModal(true)}
-                        className="text-2xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all uppercase tracking-tight"
+                        className="text-2xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-all uppercase tracking-tight"
                     >
                         <LockIcon size={12} /> Unlock Stock
                     </button>
                 )}
                 {mode === 'edit' && isStockUnlocked && (
-                    <div className="text-2xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 uppercase tracking-tight animate-pulse">
+                    <div className="text-2xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 uppercase tracking-tight animate-pulse">
                         <Unlock size={12} /> Stock Editable
                     </div>
                 )}
@@ -431,7 +431,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Warehouse</label>
+                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Warehouse</label>
                         {isEditable ? (
                             <PremiumSelect
                                 value={data.warehouse_id}
@@ -440,7 +440,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                 placeholder="Select Warehouse"
                             />
                         ) : (
-                            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300">
+                            <div className="px-4 py-3 bg-app rounded-xl border border-line text-sm font-medium text-ink-secondary">
                                 {warehouses.find(w => w.id === data.warehouse_id)?.name || 'Main Store'}
                             </div>
                         )}
@@ -448,27 +448,27 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                     {/* Improved Stock Breakdown */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Stock Status</label>
+                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Stock Status</label>
                         {mode === 'create' || isStockUnlocked ? (
                             <div className="relative group">
                                 <input
                                     type="number"
                                     value={data.stock}
                                     onChange={(e) => setData('stock', e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all ${isStockUnlocked ? 'border-indigo-500 dark:border-indigo-400 ring-2 ring-indigo-500/10' : 'border-slate-200 dark:border-slate-700'}`}
+                                    className={`w-full px-4 py-3 rounded-xl bg-surface border text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all ${isStockUnlocked ? 'border-brand-500 dark:border-brand-400 ring-2 ring-brand-500/10' : 'border-line'}`}
                                     placeholder={isStockUnlocked ? "Enter New Stock Count" : "Initial Stock"}
                                     autoFocus={isStockUnlocked}
                                 />
                             </div>
                         ) : (
                             <div className="grid grid-cols-3 gap-2">
-                                <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-center relative group">
-                                    <span className="block text-2xs text-slate-400 uppercase">Total</span>
-                                    <span className="block text-sm font-bold text-slate-700 dark:text-white">
+                                <div className="p-2 bg-app rounded-lg border border-line text-center relative group">
+                                    <span className="block text-2xs text-ink-muted uppercase">Total</span>
+                                    <span className="block text-sm font-bold text-ink-secondary dark:text-white">
                                         {product?.stock ?? product?.stock_quantity ?? 0}
                                     </span>
                                     {isEditable && (
-                                        <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-slate-400 border border-white dark:border-slate-900" title="Read Only"></div>
+                                        <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-neutral-400 border border-white dark:border-line" title="Read Only"></div>
                                     )}
                                 </div>
                                 <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 text-center">
@@ -490,37 +490,37 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Low Stock Alert</label>
+                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Low Stock Alert</label>
                         <input
                             type="number"
                             value={data.min_stock_alert}
                             onChange={(e) => setData('min_stock_alert', e.target.value)}
                             disabled={!isEditable}
-                            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                            className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                         />
                     </div>
                 </div>
                 {(settings?.batch_tracking_enabled === '1' || settings?.batch_tracking_enabled === true) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-line">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Batch Number</label>
+                            <label className="block text-xs font-bold text-ink-muted mb-1.5">Batch Number</label>
                             <input
                                 type="text"
                                 value={data.batch_number}
                                 onChange={e => setData('batch_number', e.target.value)}
                                 disabled={!isEditable}
-                                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                                className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                                 placeholder="Optional"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Expiry Date</label>
+                            <label className="block text-xs font-bold text-ink-muted mb-1.5">Expiry Date</label>
                             <input
                                 type="date"
                                 value={data.expiry_date ? String(data.expiry_date).substring(0, 10) : ''}
                                 onChange={e => setData('expiry_date', e.target.value)}
                                 disabled={!isEditable}
-                                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                                className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                             />
                         </div>
                     </div>
@@ -533,20 +533,20 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
         <div className="p-4 sm:p-8 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">Active Reservations</h3>
-                    <p className="text-xs text-slate-500">Stock held in active Pre-Sales</p>
+                    <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-1">Active Reservations</h3>
+                    <p className="text-xs text-ink-muted">Stock held in active Pre-Sales</p>
                 </div>
             </div>
 
             {loadingReservations ? (
                 <div className="p-12 text-center">
-                    <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
-                    <p className="text-sm text-slate-500">Loading reservation details...</p>
+                    <RefreshCw className="w-8 h-8 text-brand-500 animate-spin mx-auto mb-4" />
+                    <p className="text-sm text-ink-muted">Loading reservation details...</p>
                 </div>
             ) : reservations.length > 0 ? (
-                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                <div className="border border-line rounded-xl overflow-hidden">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase font-bold text-slate-500">
+                        <thead className="bg-app text-xs uppercase font-bold text-ink-muted">
                             <tr>
                                 <th className="p-4 pl-6">Date</th>
                                 <th className="p-4">Order #</th>
@@ -554,12 +554,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                 <th className="p-4 text-right pr-6">Qty Held</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-900">
+                        <tbody className="divide-y divide-line bg-surface">
                             {reservations.map((res) => (
-                                <tr key={res.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td className="p-4 pl-6 text-slate-600 dark:text-slate-400">{res.date}</td>
-                                    <td className="p-4 font-medium text-indigo-600 dark:text-indigo-400">{res.order_number}</td>
-                                    <td className="p-4 font-medium text-slate-800 dark:text-white">{res.customer}</td>
+                                <tr key={res.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                    <td className="p-4 pl-6 text-ink-secondary">{res.date}</td>
+                                    <td className="p-4 font-medium text-brand-600 dark:text-brand-400">{res.order_number}</td>
+                                    <td className="p-4 font-medium text-ink">{res.customer}</td>
                                     <td className="p-4 text-right pr-6 font-bold text-amber-600 dark:text-amber-400">{res.quantity_reserved}</td>
                                 </tr>
                             ))}
@@ -567,10 +567,10 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                     </table>
                 </div>
             ) : (
-                <div className="p-12 text-center bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-                    <Box className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500 font-medium">No active reservations.</p>
-                    <p className="text-xs text-slate-400 mt-1">This product is not currently held in any pre-sales.</p>
+                <div className="p-12 text-center bg-app rounded-xl border border-dashed border-line">
+                    <Box className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+                    <p className="text-ink-muted font-medium">No active reservations.</p>
+                    <p className="text-xs text-ink-muted mt-1">This product is not currently held in any pre-sales.</p>
                 </div>
             )}
         </div>
@@ -623,46 +623,46 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 font-sans">
+        <div className="fixed inset-0 z-drawer flex items-end sm:items-center justify-center p-0 sm:p-6 font-sans">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+                className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-normal"
             ></div>
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-5xl h-full sm:h-[85vh] bg-white dark:bg-slate-900 rounded-none sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 dark:border-slate-800">
+            <div className="relative w-full max-w-5xl h-full sm:h-[85vh] bg-surface rounded-none sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-slow border border-line">
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-line bg-surface z-10">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div className="w-12 h-12 rounded-xl bg-sunken flex items-center justify-center text-2xl border border-line shadow-sm overflow-hidden">
                             {data.main_image_preview ? (
                                 <img src={data.main_image_preview} alt={data.name} className="w-full h-full object-cover" />
                             ) : (
-                                <Box size={24} className="text-slate-400" />
+                                <Box size={24} className="text-ink-muted" />
                             )}
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">{mode === 'create' ? 'Add New Product' : data.name}</h2>
-                            <p className="text-sm text-slate-500 font-medium">{mode === 'create' ? 'Enter product details' : `SKU: ${data.sku}`}</p>
+                            <h2 className="text-xl font-bold text-ink">{mode === 'create' ? 'Add New Product' : data.name}</h2>
+                            <p className="text-sm text-ink-muted font-medium">{mode === 'create' ? 'Enter product details' : `SKU: ${data.sku}`}</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        className="p-2 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors"
                     >
                         <X size={24} />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex items-center gap-1 px-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 overflow-x-auto">
+                <div className="flex items-center gap-1 px-6 border-b border-line bg-sunken/50 dark:bg-app overflow-x-auto">
                     {['details', 'reservations', 'extra', 'variants', ...(mode !== 'create' ? ['history', 'purchase_stats'] : [])].map(tab => (
                         <button
                             key={tab}
                             id={`tour-tab-${tab}`}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap capitalize ${activeTab === tab ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap capitalize ${activeTab === tab ? 'border-brand-600 text-brand-600' : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
                         >
                             {tab.replace('_', ' ')}
                         </button>
@@ -670,12 +670,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/30 dark:bg-slate-900/30">
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-sunken/30 dark:bg-app">
                     {errors && Object.keys(errors).length > 0 && (
-                        <div className="mx-8 mt-8 p-6 rounded-[2rem] bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-300">
+                        <div className="mx-8 mt-8 p-6 rounded-xl bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-slow">
                             <div className="flex items-center gap-3 mb-3">
                                 <AlertTriangle size={24} className="shrink-0 text-rose-500" />
-                                <h4 className="text-base font-black uppercase tracking-wider">Please correct the following:</h4>
+                                <h4 className="text-base font-bold uppercase tracking-wider">Please correct the following:</h4>
                             </div>
                             <ul className="list-disc pl-5 space-y-1 text-sm font-bold">
                                 {Object.entries(errors).map(([field, messages]) => {
@@ -697,36 +697,36 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                             {/* Basic Info */}
                             <section>
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    <FileText size={16} className="text-indigo-500" /> Basic Info
+                                <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <FileText size={16} className="text-brand-500" /> Basic Info
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Product Name</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Product Name</label>
                                         <input
                                             id="tour-product-name"
                                             type="text"
                                             value={data.name}
                                             onChange={e => setData('name', e.target.value)}
                                             disabled={!isEditable}
-                                            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                                            className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                                         />
                                         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">SKU</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">SKU</label>
                                         <div className="flex gap-2" id="tour-product-sku-gen">
                                             <input
                                                 type="text"
                                                 value={data.sku}
                                                 onChange={e => setData('sku', e.target.value)}
                                                 disabled={!isEditable}
-                                                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                                                className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                                             />
                                             {isEditable && (
                                                 <button
                                                     onClick={generateSKU}
-                                                    className="px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                                                    className="px-4 py-3 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl font-bold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
                                                     title="Generate SKU"
                                                 >
                                                     <RefreshCw size={18} />
@@ -737,7 +737,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                                     {/* Category Selection */}
                                     <div id="tour-product-category">
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Category</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Category</label>
                                         <PremiumSelect
                                             options={categories}
                                             value={isNewCategory ? 'new' : data.category_id}
@@ -757,20 +757,20 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                                     {/* New Category Fields */}
                                     {isNewCategory && (
-                                        <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-2">
+                                        <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-app rounded-xl border border-line animate-in fade-in slide-in-from-top-2">
                                             <div className="col-span-2">
-                                                <label className="block text-xs font-bold text-indigo-500 mb-1.5">New Category Name</label>
+                                                <label className="block text-xs font-bold text-brand-500 mb-1.5">New Category Name</label>
                                                 <input
                                                     id="tour-new-category-name"
                                                     type="text"
                                                     value={data.new_category_name}
                                                     onChange={e => setData('new_category_name', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900 text-slate-800 dark:text-white font-bold focus:ring-2 ring-indigo-500/20 outline-none"
+                                                    className="w-full px-4 py-3 rounded-xl bg-surface border border-brand-200 dark:border-brand-900 text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none"
                                                     placeholder="e.g. Beverages"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Base Unit</label>
+                                                <label className="block text-xs font-bold text-ink-muted mb-1.5">Base Unit</label>
                                                 <PremiumSelect
                                                     options={PREMADE_BASE_UNITS.map(u => ({ id: u, name: u }))}
                                                     value={data.base_unit}
@@ -779,7 +779,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Secondary Unit (Scale)</label>
+                                                <label className="block text-xs font-bold text-ink-muted mb-1.5">Secondary Unit (Scale)</label>
                                                 <div className="flex gap-2">
                                                     <div className="flex-1">
                                                         <PremiumSelect
@@ -790,17 +790,17 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                         />
                                                     </div>
                                                     <div className="relative w-32">
-                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">=</span>
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted font-bold">=</span>
                                                         <input
                                                             type="number"
                                                             value={data.conversion_rate}
                                                             onChange={e => setData('conversion_rate', e.target.value)}
-                                                            className="w-full pl-6 pr-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none"
+                                                            className="w-full pl-6 pr-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none"
                                                             placeholder="12"
                                                         />
                                                     </div>
                                                 </div>
-                                                <p className="text-2xs text-slate-400 mt-1 ml-1">
+                                                <p className="text-2xs text-ink-muted mt-1 ml-1">
                                                     1 {data.secondary_unit || 'Box'} = {data.conversion_rate || 12} {data.base_unit || 'Pcs'}
                                                 </p>
                                             </div>
@@ -808,7 +808,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     )}
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Unit</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Unit</label>
                                         <PremiumSelect
                                             options={PREMADE_BASE_UNITS.map(u => ({ id: u, name: u }))}
                                             value={data.unit}
@@ -822,52 +822,52 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                             {/* Pricing */}
                             <section>
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <DollarSign size={16} className="text-emerald-500" /> Pricing
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Cost Price</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Cost Price</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
                                                 id="tour-product-cost"
                                                 type="number"
                                                 value={data.cost_price}
                                                 onChange={e => setData('cost_price', e.target.value)}
                                                 disabled={!isEditable}
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Selling Price</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Selling Price</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
                                                 id="tour-product-price"
                                                 type="number"
                                                 value={data.price}
                                                 onChange={e => setData('price', e.target.value)}
                                                 disabled={!isEditable}
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-line text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Profit Card */}
-                                <div className="mt-6 bg-gradient-to-br from-slate-900 to-slate-800 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-6 text-white relative overflow-hidden">
+                                <div className="mt-6 bg-gradient-to-br from-neutral-900 to-neutral-800 dark:from-brand-900/20 dark:to-purple-900/20 rounded-2xl p-6 text-white relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                                     <div className="flex items-center justify-between relative z-10">
                                         <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Profit Margin</p>
+                                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Profit Margin</p>
                                             <p className="text-3xl font-bold text-white">
                                                 {data.price > 0 ? Math.round(((data.price - data.cost_price) / data.price) * 100) : 0}%
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Profit / Unit</p>
+                                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Profit / Unit</p>
                                             <p className="text-2xl font-bold text-emerald-400">{formatCurrency(data.price - data.cost_price, store || settings)}</p>
                                         </div>
                                     </div>
@@ -880,13 +880,13 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             {/* Barcodes Section */}
                             <section id="tour-product-barcode">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                        <Box size={16} className="text-indigo-500" /> Barcodes
+                                    <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                                        <Box size={16} className="text-brand-500" /> Barcodes
                                     </h3>
                                     {isEditable && (
                                         <button
                                             onClick={handleAddBarcode}
-                                            className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1"
+                                            className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 flex items-center gap-1"
                                         >
                                             <Plus size={14} />
                                             Add Barcode
@@ -897,12 +897,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                 {data.barcodes && data.barcodes.length > 0 ? (
                                     <div className="grid gap-2">
                                         {data.barcodes.map((barcode) => (
-                                            <div key={barcode.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                                            <div key={barcode.id} className="flex items-center justify-between p-3 bg-app rounded-lg border border-line">
                                                 <div className="flex items-center gap-3 flex-1">
-                                                    <code className="text-sm font-mono font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-700 px-2 py-1 rounded">
+                                                    <code className="text-sm font-mono font-bold text-ink bg-sunken px-2 py-1 rounded">
                                                         {barcode.barcode}
                                                     </code>
-                                                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                    <span className="text-xs font-medium text-ink-muted">
                                                         {barcode.type}
                                                     </span>
                                                     {barcode.is_primary && (
@@ -911,14 +911,14 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                         </span>
                                                     )}
                                                     {barcode.description && (
-                                                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                                                        <span className="text-xs text-ink-muted">
                                                             Â· {barcode.description}
                                                         </span>
                                                     )}
                                                 </div>
                                                 {isEditable && (
                                                     <div className="flex gap-1">
-                                                        <button onClick={() => handleEditBarcode(barcode)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors">
+                                                        <button onClick={() => handleEditBarcode(barcode)} className="p-1.5 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded transition-colors">
                                                             <Edit size={14} />
                                                         </button>
                                                         <button onClick={() => handleDeleteBarcode(barcode.id)} className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
@@ -930,10 +930,10 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-6 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">No barcodes added yet</p>
+                                    <div className="text-center py-6 bg-app rounded-lg border border-dashed border-line">
+                                        <p className="text-sm text-ink-muted">No barcodes added yet</p>
                                         {isEditable && (
-                                            <button onClick={handleAddBarcode} className="mt-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
+                                            <button onClick={handleAddBarcode} className="mt-2 text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300">
                                                 + Add your first barcode
                                             </button>
                                         )}
@@ -947,47 +947,47 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                     {activeTab === 'extra' && (
                         <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
                             <div className="space-y-4">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                    <FileText size={16} className="text-indigo-500" /> Additional Info
+                                <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                                    <FileText size={16} className="text-brand-500" /> Additional Info
                                 </h3>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Short Description</label>
+                                    <label className="block text-xs font-bold text-ink-muted mb-1.5">Short Description</label>
                                     <input
                                         type="text"
                                         placeholder="Brief summary (e.g. 100% Cotton T-Shirt)"
                                         value={data.short_description}
                                         onChange={e => setData('short_description', e.target.value)}
                                         disabled={!isEditable}
-                                        className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
+                                        className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-sm font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Full Description</label>
+                                    <label className="block text-xs font-bold text-ink-muted mb-1.5">Full Description</label>
                                     <textarea
                                         rows="4"
                                         placeholder="Detailed product description..."
                                         value={data.description}
                                         onChange={e => setData('description', e.target.value)}
                                         disabled={!isEditable}
-                                        className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all resize-none disabled:opacity-60"
+                                        className="w-full px-4 py-2.5 rounded-xl bg-surface border border-line text-sm font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all resize-none disabled:opacity-60"
                                     ></textarea>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                    <Image size={16} className="text-indigo-500" /> Media Gallery
+                                <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                                    <Image size={16} className="text-brand-500" /> Media Gallery
                                 </h3>
 
                                 {/* Main Image Section */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-                                        Main Image <span className="text-indigo-500">(Required, Image Only)</span>
+                                    <label className="block text-xs font-bold text-ink-muted mb-2">
+                                        Main Image <span className="text-brand-500">(Required, Image Only)</span>
                                     </label>
                                     <div className="flex gap-4 items-start">
-                                        <div className="relative w-40 h-40 rounded-2xl overflow-hidden border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors group bg-slate-50 dark:bg-slate-800/50">
+                                        <div className="relative w-40 h-40 rounded-2xl overflow-hidden border-2 border-dashed border-line hover:border-brand-500 dark:hover:border-brand-500 transition-colors group bg-app">
                                             {data.main_image_preview ? (
                                                 <>
                                                     <img src={data.main_image_preview} alt="Main" className="w-full h-full object-cover" />
@@ -1009,16 +1009,16 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                             onChange={handleMainImageUpload}
                                                             className="hidden"
                                                         />
-                                                        <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                                        <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-500 flex items-center justify-center mb-2 transition-transform">
                                                             <Upload size={18} />
                                                         </div>
-                                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Upload Main</span>
+                                                        <span className="text-xs font-bold text-ink-muted">Upload Main</span>
                                                     </label>
                                                 )
                                             )}
                                         </div>
-                                        <div className="flex-1 text-xs text-slate-500 leading-relaxed pt-2">
-                                            <p className="font-bold text-slate-700 dark:text-slate-300 mb-1">Primary Thumbnail</p>
+                                        <div className="flex-1 text-xs text-ink-muted leading-relaxed pt-2">
+                                            <p className="font-bold text-ink-secondary mb-1">Primary Thumbnail</p>
                                             <p>This image will be displayed on the product list and will be optimized for fast loading.</p>
                                             <p className="mt-1 text-amber-500">Supported: JPG, PNG, WEBP</p>
                                             {errors.main_image && <p className="text-red-500 text-xs mt-2 font-bold animate-pulse">{errors.main_image}</p>}
@@ -1028,12 +1028,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                                 {/* Gallery Section */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-                                        Gallery <span className="text-slate-400">(Max 9 additional items, Images or Videos)</span>
+                                    <label className="block text-xs font-bold text-ink-muted mb-2">
+                                        Gallery <span className="text-ink-muted">(Max 9 additional items, Images or Videos)</span>
                                     </label>
 
                                     {isEditable && (
-                                        <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group relative mb-4">
+                                        <div className="border-2 border-dashed border-line rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors cursor-pointer group relative mb-4">
                                             <input
                                                 type="file"
                                                 multiple
@@ -1041,10 +1041,10 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                 onChange={handleGalleryUpload}
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             />
-                                            <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                            <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-500 flex items-center justify-center mb-2 transition-transform">
                                                 <Upload size={18} />
                                             </div>
-                                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                            <p className="text-sm font-bold text-ink-secondary dark:text-ink">
                                                 Add Gallery Media
                                             </p>
                                         </div>
@@ -1053,7 +1053,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
                                         {/* Existing Gallery Images */}
                                         {data.existing_images.map((img) => (
-                                            <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group">
+                                            <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border border-line group">
                                                 {img.type === 'video' ? (
                                                     <video src={img.url} className="w-full h-full object-cover" controls />
                                                 ) : (
@@ -1072,7 +1072,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                                         {/* New Gallery Images */}
                                         {data.gallery_images.map((file, index) => (
-                                            <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group">
+                                            <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-line group">
                                                 {file.type.startsWith('video') ? (
                                                     <video src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
                                                 ) : (
@@ -1100,8 +1100,8 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                         <div className="p-4 sm:p-8 space-y-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Product Variants</h3>
-                                    <p className="text-sm text-slate-500 mt-1">Manage different variations of this product (e.g., Size, Color)</p>
+                                    <h3 className="text-lg font-bold text-ink">Product Variants</h3>
+                                    <p className="text-sm text-ink-muted mt-1">Manage different variations of this product (e.g., Size, Color)</p>
                                 </div>
                                 {isEditable && (
                                     <PremiumButton onClick={handleAddVariant} className="px-4 py-2">
@@ -1112,13 +1112,13 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             </div>
 
                             {/* Available Attributes */}
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Available Attributes</h4>
+                            <div className="bg-app rounded-xl p-6 border border-line">
+                                <h4 className="text-sm font-bold text-ink-secondary mb-4">Available Attributes</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                     {attributes.map(attr => (
-                                        <div key={attr.id} className="px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                        <div key={attr.id} className="px-3 py-2 bg-surface rounded-lg border border-line text-xs font-medium text-ink-secondary">
                                             {attr.name}
-                                            <span className="ml-2 text-2xs text-slate-400">
+                                            <span className="ml-2 text-2xs text-ink-muted">
                                                 ({attr.options?.length || 0} options)
                                             </span>
                                         </div>
@@ -1129,47 +1129,47 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             {/* Existing Variants */}
                             {data.variants && data.variants.length > 0 ? (
                                 <div className="space-y-3">
-                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Existing Variants ({data.variants.length})</h4>
+                                    <h4 className="text-sm font-bold text-ink-secondary">Existing Variants ({data.variants.length})</h4>
                                     <div className="grid gap-4">
                                         {data.variants.map((variant) => (
-                                            <div key={variant.id} className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors">
+                                            <div key={variant.id} className="bg-surface rounded-xl p-4 border border-line hover:border-brand-500 dark:hover:border-brand-500 transition-colors">
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-3 mb-2">
-                                                            <h5 className="font-bold text-slate-800 dark:text-white">{variant.name}</h5>
+                                                            <h5 className="font-bold text-ink">{variant.name}</h5>
                                                             <span className={`px-2 py-0.5 rounded text-xs font-bold ${variant.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}>
                                                                 {variant.is_active ? 'Active' : 'Inactive'}
                                                             </span>
                                                         </div>
                                                         <div className="flex flex-wrap gap-2 mb-3">
                                                             {variant.attributes?.map((attr, idx) => (
-                                                                <span key={idx} className="px-2 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded text-xs font-medium">
+                                                                <span key={idx} className="px-2 py-1 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded text-xs font-medium">
                                                                     {attr.attribute_name}: {attr.value}
                                                                 </span>
                                                             ))}
                                                         </div>
                                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                                                             <div>
-                                                                <span className="text-slate-500 dark:text-slate-400">SKU:</span>
-                                                                <span className="ml-1 font-medium text-slate-700 dark:text-slate-300">{variant.sku || 'N/A'}</span>
+                                                                <span className="text-ink-muted">SKU:</span>
+                                                                <span className="ml-1 font-medium text-ink-secondary">{variant.sku || 'N/A'}</span>
                                                             </div>
                                                             <div>
-                                                                <span className="text-slate-500 dark:text-slate-400">Price:</span>
+                                                                <span className="text-ink-muted">Price:</span>
                                                                 <span className="ml-1 font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(variant.selling_price || variant.price || 0, store || settings)}</span>
                                                             </div>
                                                             <div className="flex items-center gap-1">
-                                                                <span className="text-2xs text-slate-400 uppercase font-medium">Cost:</span>
-                                                                <span className="ml-1 font-medium text-slate-700 dark:text-slate-300">{formatCurrency(variant.cost_price || variant.cost || 0, store || settings)}</span>
+                                                                <span className="text-2xs text-ink-muted uppercase font-medium">Cost:</span>
+                                                                <span className="ml-1 font-medium text-ink-secondary">{formatCurrency(variant.cost_price || variant.cost || 0, store || settings)}</span>
                                                             </div>
                                                             <div>
-                                                                <span className="text-slate-500 dark:text-slate-400">Stock:</span>
-                                                                <span className="ml-1 font-bold text-slate-800 dark:text-white">{variant.stock || 0}</span>
+                                                                <span className="text-ink-muted">Stock:</span>
+                                                                <span className="ml-1 font-bold text-ink">{variant.stock || 0}</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     {isEditable && (
                                                         <div className="flex gap-2">
-                                                            <button onClick={() => handleEditVariant(variant)} className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                                                            <button onClick={() => handleEditVariant(variant)} className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors">
                                                                 <Edit size={16} />
                                                             </button>
                                                             <button onClick={() => handleDeleteVariant(variant.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
@@ -1183,10 +1183,10 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700">
-                                    <Box size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-                                    <p className="text-slate-500 dark:text-slate-400 font-medium">No variants yet</p>
-                                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Click "Add Variant" to create product variations</p>
+                                <div className="text-center py-12 bg-app rounded-xl border-2 border-dashed border-line">
+                                    <Box size={48} className="mx-auto text-neutral-300 dark:text-ink-secondary mb-3" />
+                                    <p className="text-ink-muted font-medium">No variants yet</p>
+                                    <p className="text-sm text-ink-muted mt-1">Click "Add Variant" to create product variations</p>
                                 </div>
                             )}
                         </div>
@@ -1198,14 +1198,14 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                         <div className="p-0 relative">
                             {loadingHistory ? (
                                 <div className="p-16 text-center">
-                                    <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
-                                    <p className="text-sm text-slate-500">Loading transaction history...</p>
+                                    <RefreshCw className="w-8 h-8 text-brand-500 animate-spin mx-auto mb-4" />
+                                    <p className="text-sm text-ink-muted">Loading transaction history...</p>
                                 </div>
                             ) : history.length === 0 ? (
-                                <div className="p-16 text-center bg-slate-50 dark:bg-slate-800/50">
-                                    <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                                    <p className="text-slate-500 dark:text-slate-400 font-medium">No transaction history found</p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Sales and purchases will appear here once recorded.</p>
+                                <div className="p-16 text-center bg-app">
+                                    <Clock className="w-12 h-12 text-neutral-300 dark:text-ink-secondary mx-auto mb-3" />
+                                    <p className="text-ink-muted font-medium">No transaction history found</p>
+                                    <p className="text-xs text-ink-muted mt-1">Sales and purchases will appear here once recorded.</p>
                                 </div>
                             ) : (
                                 <>
@@ -1215,8 +1215,8 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         </p>
                                     </div>
                                     <table className="w-full text-left border-collapse">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10">
-                                            <tr className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                        <thead className="bg-app sticky top-0 z-10">
+                                            <tr className="text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
                                                 <th className="p-4 pl-8">Type</th>
                                                 <th className="p-4">Ref #</th>
                                                 <th className="p-4">Party / Customer</th>
@@ -1226,12 +1226,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                 <th className="p-4 text-right pr-8">Total</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <tbody className="divide-y divide-line">
                                             {history.map((item) => (
                                                 <tr
                                                     key={item.id}
-                                                    className={`hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors cursor-pointer group ${quickViewHistory?.invoice_number === item.invoice_number
-                                                            ? 'ring-2 ring-inset ring-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
+                                                    className={`hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-colors cursor-pointer group ${quickViewHistory?.invoice_number === item.invoice_number
+                                                            ? 'ring-2 ring-inset ring-brand-400 bg-brand-50 dark:bg-brand-900/20'
                                                             : ''
                                                         }`}
                                                     onClick={() => handleHistoryClick(item)}
@@ -1243,7 +1243,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                 ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
                                                                 : item.type === 'Return'
                                                                     ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-900/20 dark:border-rose-800'
-                                                                    : 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800'
+                                                                    : 'bg-brand-50 text-brand-600 border-brand-200 dark:bg-brand-900/20 dark:border-brand-800'
                                                             }`}>
                                                             {item.type === 'Sale'
                                                                 ? <ArrowUpRight size={10} className="inline mr-1" />
@@ -1254,26 +1254,26 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                             {item.type}
                                                         </span>
                                                     </td>
-                                                    <td className="p-4 text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold">
+                                                    <td className="p-4 text-xs font-mono text-brand-600 dark:text-brand-400 font-bold">
                                                         {item.invoice_number}
                                                     </td>
-                                                    <td className="p-4 text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                    <td className="p-4 text-sm font-bold text-ink-secondary dark:text-ink">
                                                         {item.party}
                                                     </td>
-                                                    <td className="p-4 text-sm text-slate-500 font-medium">
+                                                    <td className="p-4 text-sm text-ink-muted font-medium">
                                                         <div className="flex items-center gap-2">
                                                             <Clock size={14} /> {item.date}
                                                         </div>
                                                     </td>
-                                                    <td className="p-4 text-center font-bold text-slate-800 dark:text-white">
+                                                    <td className="p-4 text-center font-bold text-ink">
                                                         {item.qty}
                                                     </td>
-                                                    <td className="p-4 text-right text-sm text-slate-500">
+                                                    <td className="p-4 text-right text-sm text-ink-muted">
                                                         {settings?.currency_symbol || 'Rs'} {Number(item.price).toLocaleString()}
                                                     </td>
-                                                    <td className="p-4 pr-6 text-right font-bold text-slate-800 dark:text-white">
+                                                    <td className="p-4 pr-6 text-right font-bold text-ink">
                                                         <span>{settings?.currency_symbol || 'Rs'} {Number(item.total).toLocaleString()}</span>
-                                                        <ExternalLink size={12} className="inline ml-2 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                                                        <ExternalLink size={12} className="inline ml-2 text-neutral-300 group-hover:text-brand-400 transition-colors" />
                                                     </td>
                                                 </tr>
                                             ))}
@@ -1283,28 +1283,28 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     {/* â”€â”€ QUICK VIEW POPUP â”€â”€ */}
                                     {quickViewHistory && (
                                         <div
-                                            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+                                            className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal"
                                             onClick={() => setQuickViewHistory(null)}
                                         >
                                             <div
-                                                className="w-full max-w-2xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                                                className="w-full max-w-2xl max-h-[85vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 {/* Popup Header */}
-                                                <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
+                                                <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
                                                     <div className="flex items-center gap-3">
                                                         <div>
-                                                            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">
+                                                            <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                                                 {quickViewHistory.type === 'Sale' ? 'Sale Preview' : 'Purchase Preview'}
                                                             </p>
-                                                            <h3 className={`text-xl font-black ${quickViewHistory.type === 'Sale' ? 'text-emerald-600' : 'text-indigo-600'
+                                                            <h3 className={`text-xl font-bold ${quickViewHistory.type === 'Sale' ? 'text-emerald-600' : 'text-brand-600'
                                                                 }`}>
                                                                 {quickViewHistory.invoice_number || quickViewHistory.reference_number || '...'}
                                                             </h3>
                                                         </div>
                                                         <span className={`px-2 py-1 rounded-full text-2xs font-bold border ${quickViewHistory.type === 'Sale'
                                                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                                : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                                                : 'bg-brand-50 text-brand-700 border-brand-200'
                                                             }`}>
                                                             {quickViewHistory.type === 'Sale'
                                                                 ? <ArrowUpRight size={10} className="inline mr-1" />
@@ -1328,7 +1328,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                 if (quickViewHistory.type === 'Sale') router.visit(route('store.sales.show', { store_slug: store?.slug, sale: id }));
                                                                 else router.visit(route('store.purchases.show', { store_slug: store?.slug, purchase: id }));
                                                             }}
-                                                            className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
+                                                            className="px-3 py-1.5 bg-sunken text-ink-secondary text-xs font-bold rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-1"
                                                         >
                                                             <ExternalLink size={13} /> Open Full
                                                         </button>
@@ -1339,14 +1339,14 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                     setQuickViewHistory(null);
                                                                     router.visit(route('store.sales.edit', { store_slug: store?.slug, sale: quickViewHistory.id || quickViewHistory.transaction_id }));
                                                                 }}
-                                                                className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                                                                className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition-colors flex items-center gap-1"
                                                             >
                                                                 <ExternalLink size={13} /> Edit
                                                             </button>
                                                         )}
                                                         <button
                                                             onClick={() => setQuickViewHistory(null)}
-                                                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                                                            className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
                                                         >
                                                             <X size={18} />
                                                         </button>
@@ -1357,30 +1357,30 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                 <div className="flex-1 overflow-auto p-4">
                                                     {loadingQuickView ? (
                                                         <div className="py-16 text-center">
-                                                            <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-3" />
-                                                            <p className="text-sm text-slate-500">Fetching details...</p>
+                                                            <RefreshCw className="w-8 h-8 text-brand-500 animate-spin mx-auto mb-3" />
+                                                            <p className="text-sm text-ink-muted">Fetching details...</p>
                                                         </div>
                                                     ) : (
                                                         <>
                                                             {/* Info Cards */}
                                                             <div className="grid grid-cols-3 gap-3 mb-4">
-                                                                <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">
+                                                                <div className="bg-app p-3 rounded-xl">
+                                                                    <p className="text-2xs font-bold text-ink-muted uppercase mb-1">
                                                                         {quickViewHistory.type === 'Sale' ? 'Customer' : 'Supplier'}
                                                                     </p>
-                                                                    <p className="font-bold text-slate-800 dark:text-white text-sm">
+                                                                    <p className="font-bold text-ink text-sm">
                                                                         {quickViewHistory.party?.name || quickViewHistory.customer?.name || quickViewHistory.party || 'N/A'}
                                                                     </p>
                                                                 </div>
-                                                                <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date</p>
-                                                                    <p className="font-bold text-slate-800 dark:text-white text-sm">
+                                                                <div className="bg-app p-3 rounded-xl">
+                                                                    <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Date</p>
+                                                                    <p className="font-bold text-ink text-sm">
                                                                         {quickViewHistory.date || (quickViewHistory.created_at ? new Date(quickViewHistory.created_at).toLocaleDateString() : 'N/A')}
                                                                     </p>
                                                                 </div>
-                                                                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-100 dark:border-indigo-800">
-                                                                    <p className="text-2xs font-bold text-indigo-500 uppercase mb-1">Total</p>
-                                                                    <p className="font-black text-indigo-600 text-lg">
+                                                                <div className="bg-gradient-to-br from-brand-50 to-purple-50 dark:from-brand-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-brand-100 dark:border-brand-800">
+                                                                    <p className="text-2xs font-bold text-brand-500 uppercase mb-1">Total</p>
+                                                                    <p className="font-bold text-brand-600 text-lg">
                                                                         {settings?.currency_symbol || 'Rs'} {Number(quickViewHistory.total || 0).toLocaleString()}
                                                                     </p>
                                                                 </div>
@@ -1388,32 +1388,32 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                                                             {/* Items Table */}
                                                             {(quickViewHistory.items || quickViewHistory.invoice_items) && (
-                                                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                                                                    <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                                                        <p className="text-xs font-bold text-slate-500 uppercase">
+                                                                <div className="border border-line rounded-xl overflow-hidden">
+                                                                    <div className="bg-app px-4 py-2 border-b border-line">
+                                                                        <p className="text-xs font-bold text-ink-muted uppercase">
                                                                             Items ({(quickViewHistory.items || quickViewHistory.invoice_items)?.length || 0})
                                                                         </p>
                                                                     </div>
                                                                     <div className="max-h-64 overflow-auto">
                                                                         <table className="w-full text-sm">
-                                                                            <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                                                                            <thead className="sticky top-0 bg-surface border-b border-line">
                                                                                 <tr>
-                                                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item</th>
-                                                                                    <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
-                                                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
-                                                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
+                                                                                    <th className="text-left p-3 text-2xs font-bold text-ink-muted uppercase">Item</th>
+                                                                                    <th className="text-center p-3 text-2xs font-bold text-ink-muted uppercase">Qty</th>
+                                                                                    <th className="text-right p-3 text-2xs font-bold text-ink-muted uppercase">Rate</th>
+                                                                                    <th className="text-right p-3 text-2xs font-bold text-ink-muted uppercase">Total</th>
                                                                                 </tr>
                                                                             </thead>
-                                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                                            <tbody className="divide-y divide-line">
                                                                                 {(quickViewHistory.items || quickViewHistory.invoice_items || []).map((itm, idx) => (
-                                                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                                                                    <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover">
                                                                                         <td className="p-3">
-                                                                                            <p className="font-semibold text-slate-800 dark:text-white">{itm.product?.name || itm.name || 'Unknown'}</p>
-                                                                                            {itm.product?.sku && <p className="text-2xs text-slate-400 font-mono">{itm.product.sku}</p>}
+                                                                                            <p className="font-semibold text-ink">{itm.product?.name || itm.name || 'Unknown'}</p>
+                                                                                            {itm.product?.sku && <p className="text-2xs text-ink-muted font-mono">{itm.product.sku}</p>}
                                                                                         </td>
-                                                                                        <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{itm.quantity}</td>
-                                                                                        <td className="p-3 text-right text-slate-500">{settings?.currency_symbol || 'Rs'} {Number(itm.unit_price || itm.price || 0).toLocaleString()}</td>
-                                                                                        <td className="p-3 text-right font-bold text-slate-800 dark:text-white">{settings?.currency_symbol || 'Rs'} {Number(itm.line_total || itm.subtotal || (itm.quantity * (itm.unit_price || itm.price || 0))).toLocaleString()}</td>
+                                                                                        <td className="p-3 text-center font-bold text-ink-secondary">{itm.quantity}</td>
+                                                                                        <td className="p-3 text-right text-ink-muted">{settings?.currency_symbol || 'Rs'} {Number(itm.unit_price || itm.price || 0).toLocaleString()}</td>
+                                                                                        <td className="p-3 text-right font-bold text-ink">{settings?.currency_symbol || 'Rs'} {Number(itm.line_total || itm.subtotal || (itm.quantity * (itm.unit_price || itm.price || 0))).toLocaleString()}</td>
                                                                                     </tr>
                                                                                 ))}
                                                                             </tbody>
@@ -1424,7 +1424,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                                                             {/* Fallback for when items not available */}
                                                             {!quickViewHistory.items && !quickViewHistory.invoice_items && (
-                                                                <div className="text-center py-8 text-slate-400">
+                                                                <div className="text-center py-8 text-ink-muted">
                                                                     <p className="text-sm">Line item details not available in preview.</p>
                                                                     <button
                                                                         onClick={() => {
@@ -1433,7 +1433,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                             if (quickViewHistory.type === 'Sale') router.visit(route('store.sales.show', { store_slug: store?.slug, sale: id }));
                                                                             else router.visit(route('store.purchases.show', { store_slug: store?.slug, purchase: id }));
                                                                         }}
-                                                                        className="mt-2 text-indigo-600 text-xs font-bold underline"
+                                                                        className="mt-2 text-brand-600 text-xs font-bold underline"
                                                                     >Open full page instead</button>
                                                                 </div>
                                                             )}
@@ -1452,41 +1452,41 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                     {activeTab === 'purchase_stats' && mode !== 'create' && (
                         <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <StatCard title="Purchased Today" value={product.purchased_day || 0} icon={<Box size={20} className="text-indigo-500" />} />
-                                <StatCard title="Purchased This Month" value={product.purchased_month || 0} icon={<Box size={20} className="text-indigo-500" />} />
-                                <StatCard title="Purchased This Year" value={product.purchased_year || 0} icon={<Box size={20} className="text-indigo-500" />} />
-                                <StatCard title="Last Purchased Qty" value={product.last_purchased_qty || 0} icon={<Box size={20} className="text-indigo-500" />} />
+                                <StatCard title="Purchased Today" value={product.purchased_day || 0} icon={<Box size={20} className="text-brand-500" />} />
+                                <StatCard title="Purchased This Month" value={product.purchased_month || 0} icon={<Box size={20} className="text-brand-500" />} />
+                                <StatCard title="Purchased This Year" value={product.purchased_year || 0} icon={<Box size={20} className="text-brand-500" />} />
+                                <StatCard title="Last Purchased Qty" value={product.last_purchased_qty || 0} icon={<Box size={20} className="text-brand-500" />} />
                                 <StatCard title="Opening Stock" value={product.opening_stock || 0} icon={<Box size={20} className="text-emerald-500" />} />
                                 <StatCard title="Current Stock" value={product.stock || 0} icon={<Box size={20} className="text-amber-500" />} />
                             </div>
 
                             {/* Custom Range Stats */}
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    <Clock size={16} className="text-indigo-500" /> Custom Date Range
+                            <div className="bg-app rounded-2xl p-6 border border-line">
+                                <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <Clock size={16} className="text-brand-500" /> Custom Date Range
                                 </h3>
                                 <div className="flex flex-wrap items-end gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Start Date</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">Start Date</label>
                                         <input
                                             type="date"
                                             value={dateRange.start ? String(dateRange.start).substring(0, 10) : ''}
                                             onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
-                                            className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:ring-2 ring-indigo-500/20 outline-none"
+                                            className="px-4 py-2.5 rounded-xl bg-surface border border-line text-sm font-medium focus:ring-2 ring-brand-500/20 outline-none"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">End Date</label>
+                                        <label className="block text-xs font-bold text-ink-muted mb-1.5">End Date</label>
                                         <input
                                             type="date"
                                             value={dateRange.end ? String(dateRange.end).substring(0, 10) : ''}
                                             onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
-                                            className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:ring-2 ring-indigo-500/20 outline-none"
+                                            className="px-4 py-2.5 rounded-xl bg-surface border border-line text-sm font-medium focus:ring-2 ring-brand-500/20 outline-none"
                                         />
                                     </div>
                                     <button
                                         onClick={fetchCustomStats}
-                                        className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
+                                        className="px-6 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-lg "
                                     >
                                         Calculate
                                     </button>
@@ -1494,7 +1494,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                                 {customStats && (
                                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
-                                        <StatCard title="Purchased Qty" value={customStats.purchased_qty} icon={<Box size={20} className="text-indigo-500" />} />
+                                        <StatCard title="Purchased Qty" value={customStats.purchased_qty} icon={<Box size={20} className="text-brand-500" />} />
                                         <StatCard title="Total Cost" value={`Rs ${customStats.total_cost.toLocaleString()}`} icon={<DollarSign size={20} className="text-emerald-500" />} />
                                     </div>
                                 )}
@@ -1505,10 +1505,10 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                 {/* Footer */}
                 {isEditable && (
-                    <div className="p-4 sm:p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end gap-3 z-10">
+                    <div className="p-4 sm:p-6 border-t border-line bg-surface flex justify-end gap-3 z-10">
                         <button
                             onClick={onClose}
-                            className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                            className="px-6 py-3 rounded-xl font-bold text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                         >
                             Cancel
                         </button>
@@ -1516,7 +1516,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             id="tour-product-save"
                             onClick={handleSubmit}
                             disabled={processing}
-                            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 active:scale-95 transition-all"
+                            className="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 active:scale-95 transition-all"
                         >
                             <Save size={18} />
                             {processing ? 'Saving...' : 'Save Changes'}
@@ -1540,14 +1540,14 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
             {/* Variant Modal */}
             {isVariantModalOpen && createPortal(
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsVariantModalOpen(false)}></div>
-                    <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-drawer flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={() => setIsVariantModalOpen(false)}></div>
+                    <div className="relative w-full max-w-2xl bg-surface rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-normal">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                            <h3 className="text-xl font-bold text-ink">
                                 {editingVariant ? 'Edit Variant' : 'Add New Variant'}
                             </h3>
-                            <button onClick={() => setIsVariantModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                            <button onClick={() => setIsVariantModalOpen(false)} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors">
                                 <X size={20} />
                             </button>
                         </div>
@@ -1555,11 +1555,11 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                         <div className="space-y-4">
                             {/* Attributes Selection */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Select Attributes</label>
+                                <label className="block text-sm font-bold text-ink-secondary mb-3">Select Attributes</label>
                                 <div className="grid grid-cols-2 gap-3">
                                     {attributes.map(attr => (
                                         <div key={attr.id}>
-                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{attr.name}</label>
+                                            <label className="block text-xs font-medium text-ink-muted mb-1">{attr.name}</label>
                                             {attr.type === 'select' ? (
                                                 <PremiumSelect
                                                     options={attr.options?.map(opt => ({ id: opt, name: opt })) || []}
@@ -1572,7 +1572,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                     type="text"
                                                     value={variantForm.attributes[attr.id] || ''}
                                                     onChange={(e) => setVariantForm({ ...variantForm, attributes: { ...variantForm.attributes, [attr.id]: e.target.value } })}
-                                                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                                    className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                                     placeholder={`Enter ${attr.name}`}
                                                 />
                                             )}
@@ -1583,36 +1583,36 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                             {/* Variant Name */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Variant Name (Optional)</label>
+                                <label className="block text-sm font-bold text-ink-secondary mb-2">Variant Name (Optional)</label>
                                 <input
                                     type="text"
                                     value={variantForm.variant_name}
                                     onChange={(e) => setVariantForm({ ...variantForm, variant_name: e.target.value })}
                                     placeholder="Auto-generated from attributes"
-                                    className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                    className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
                                 />
                             </div>
 
                             {/* SKU & Barcode */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">SKU</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">SKU</label>
                                     <input
                                         type="text"
                                         value={variantForm.sku}
                                         onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })}
                                         placeholder="e.g., PRD-001-RED-L"
-                                        className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Barcode</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">Barcode</label>
                                     <input
                                         type="text"
                                         value={variantForm.barcode}
                                         onChange={(e) => setVariantForm({ ...variantForm, barcode: e.target.value })}
                                         placeholder="Optional"
-                                        className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                             </div>
@@ -1620,44 +1620,44 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             {/* Price & Cost */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Selling Price</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">Selling Price</label>
                                     <input
                                         type="number"
                                         value={variantForm.price}
                                         onChange={(e) => setVariantForm({ ...variantForm, price: e.target.value })}
                                         placeholder="0"
-                                        className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Cost Price</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">Cost Price</label>
                                     <input
                                         type="number"
                                         value={variantForm.cost_price}
                                         onChange={(e) => setVariantForm({ ...variantForm, cost_price: e.target.value })}
                                         placeholder="0"
-                                        className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                             </div>
 
                             {/* Stock */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Stock Quantity</label>
+                                <label className="block text-sm font-bold text-ink-secondary mb-2">Stock Quantity</label>
                                 <input
                                     type="number"
                                     value={variantForm.stock}
                                     onChange={(e) => setVariantForm({ ...variantForm, stock: e.target.value })}
                                     placeholder="0"
-                                    className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                    className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
                                 />
                             </div>
 
                             {/* Actions */}
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-line">
                                 <button
                                     onClick={() => setIsVariantModalOpen(false)}
-                                    className="px-6 py-2.5 rounded-lg font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                    className="px-6 py-2.5 rounded-lg font-semibold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -1674,14 +1674,14 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
             {/* Barcode Modal */}
             {isBarcodeModalOpen && createPortal(
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsBarcodeModalOpen(false)}></div>
-                    <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-drawer flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={() => setIsBarcodeModalOpen(false)}></div>
+                    <div className="relative w-full max-w-lg bg-surface rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-normal">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                            <h3 className="text-xl font-bold text-ink">
                                 {editingBarcode ? 'Edit Barcode' : 'Add New Barcode'}
                             </h3>
-                            <button onClick={() => setIsBarcodeModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                            <button onClick={() => setIsBarcodeModalOpen(false)} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors">
                                 <X size={20} />
                             </button>
                         </div>
@@ -1689,19 +1689,19 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                         <div className="space-y-4">
                             {/* Barcode Input */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Barcode Number</label>
+                                <label className="block text-sm font-bold text-ink-secondary mb-2">Barcode Number</label>
                                 <input
                                     type="text"
                                     value={barcodeForm.barcode}
                                     onChange={(e) => setBarcodeForm({ ...barcodeForm, barcode: e.target.value })}
                                     placeholder="e.g., 1234567890123"
-                                    className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-lg focus:ring-2 ring-indigo-500/20 outline-none"
+                                    className="w-full px-4 py-3 rounded-lg bg-surface border border-line font-mono text-lg focus:ring-2 ring-brand-500/20 outline-none"
                                 />
                             </div>
 
                             {/* Barcode Type */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Barcode Type</label>
+                                <label className="block text-sm font-bold text-ink-secondary mb-2">Barcode Type</label>
                                 <PremiumSelect
                                     options={[
                                         { id: 'EAN13', name: 'EAN-13 (13 digits)' },
@@ -1718,36 +1718,36 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             </div>
 
                             {/* Primary Checkbox */}
-                            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-app rounded-lg">
                                 <input
                                     type="checkbox"
                                     id="is_primary"
                                     checked={barcodeForm.is_primary}
                                     onChange={(e) => setBarcodeForm({ ...barcodeForm, is_primary: e.target.checked })}
-                                    className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+                                    className="w-5 h-5 rounded border-line dark:border-line text-brand-600 focus:ring-2 focus:ring-brand-500/20"
                                 />
-                                <label htmlFor="is_primary" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                <label htmlFor="is_primary" className="text-sm font-semibold text-ink-secondary cursor-pointer">
                                     Set as Primary Barcode â­
                                 </label>
                             </div>
 
                             {/* Description */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Description (Optional)</label>
+                                <label className="block text-sm font-bold text-ink-secondary mb-2">Description (Optional)</label>
                                 <input
                                     type="text"
                                     value={barcodeForm.description}
                                     onChange={(e) => setBarcodeForm({ ...barcodeForm, description: e.target.value })}
                                     placeholder="e.g., Flavor: Chocolate, Size: Large"
-                                    className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                 />
                             </div>
 
                             {/* Actions */}
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-line">
                                 <button
                                     onClick={() => setIsBarcodeModalOpen(false)}
-                                    className="px-6 py-2.5 rounded-lg font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                    className="px-6 py-2.5 rounded-lg font-semibold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                 >
                                     Cancel
                                 </button>

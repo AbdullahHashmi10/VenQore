@@ -317,7 +317,7 @@ export default function DashboardCardEditor({
                 @media (prefers-reduced-motion: reduce) {
                     @keyframes vqSlideIn { from { opacity: 0 } to { opacity: 1 } }
                 }
-            `}</style>
+`}</style>
         </>
     );
 }

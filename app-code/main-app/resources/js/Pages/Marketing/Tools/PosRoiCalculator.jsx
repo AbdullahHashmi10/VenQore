@@ -171,23 +171,23 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
         >
             <div className="space-y-8">
                 {/* Header Controls */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
+                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
                             <Calculator className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">POS ROI & Payback Calculator</h2>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Interactive financial modeling for retail & food businesses</p>
+                            <h2 className="text-xl font-bold text-ink">POS ROI & Payback Calculator</h2>
+                            <p className="text-sm text-ink-muted">Interactive financial modeling for retail & food businesses</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Currency</label>
+                        <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Currency</label>
                         <Select
                             value={currency}
                             onChange={(e) => setCurrency(e.target.value)}
                             options={Object.keys(CURRENCIES).map((c) => ({ value: c, label: `${c} (${CURRENCIES[c]})` }))}
-                            className="w-36 bg-slate-800 border-slate-700 text-white rounded-lg text-sm"
+                            className="w-36 bg-neutral-800 border-neutral-700 text-white rounded-lg text-sm"
                         />
                     </div>
                 </div>
@@ -195,99 +195,99 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                 {/* Main Content Grid: Inputs vs Outputs */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Input Controls Panel (5 cols) */}
-                    <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                    <div className="lg:col-span-5 bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-xl space-y-6">
+                        <h3 className="text-lg font-semibold text-ink border-b border-neutral-800 pb-3 flex items-center gap-2">
                             <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Business Inputs
                         </h3>
 
                         {/* Monthly Revenue */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-ink-secondary mb-1">
                                 Average Monthly Revenue ({sym})
                             </label>
                             <input
                                 type="number"
                                 value={monthlyRevenue}
                                 onChange={(e) => setMonthlyRevenue(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
+                                className="w-full bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
                                 placeholder="45000"
                             />
                         </div>
 
                         {/* Hours spent on checkout */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-ink-secondary mb-1">
                                 Manual Checkout & Register Hours / Week
                             </label>
                             <input
                                 type="number"
                                 value={checkoutHoursPerWeek}
                                 onChange={(e) => setCheckoutHoursPerWeek(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
+                                className="w-full bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
                                 placeholder="25"
                             />
                         </div>
 
                         {/* Hours spent on stock counting & admin */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-ink-secondary mb-1">
                                 Stock Count & Admin Hours / Month
                             </label>
                             <input
                                 type="number"
                                 value={stockCountHoursPerMonth}
                                 onChange={(e) => setStockCountHoursPerMonth(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
+                                className="w-full bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
                                 placeholder="16"
                             />
                         </div>
 
                         {/* Hourly Staff / Owner Rate */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-ink-secondary mb-1">
                                 Hourly Labor Cost / Owner Rate ({sym})
                             </label>
                             <input
                                 type="number"
                                 value={hourlyStaffRate}
                                 onChange={(e) => setHourlyStaffRate(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
+                                className="w-full bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
                                 placeholder="18"
                             />
                         </div>
 
                         {/* Hardware & Setup Cost */}
-                        <div className="pt-2 border-t border-slate-800">
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+                        <div className="pt-2 border-t border-neutral-800">
+                            <label className="block text-sm font-medium text-ink-secondary mb-1">
                                 One-Time Hardware & Setup Cost ({sym})
                             </label>
                             <input
                                 type="number"
                                 value={hardwareCost}
                                 onChange={(e) => setHardwareCost(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
+                                className="w-full bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
                                 placeholder="1200"
                             />
                         </div>
 
                         {/* Software Sub Fee */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-ink-secondary mb-1">
                                 Monthly POS Software Subscription ({sym})
                             </label>
                             <input
                                 type="number"
                                 value={softwareSubMonthly}
                                 onChange={(e) => setSoftwareSubMonthly(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
+                                className="w-full bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
                                 placeholder="79"
                             />
                         </div>
 
                         {/* Stock Shrinkage % */}
-                        <div className="pt-2 border-t border-slate-800">
+                        <div className="pt-2 border-t border-neutral-800">
                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                                <label className="text-sm font-medium text-ink-secondary">
                                     Current Estimated Shrinkage / Loss %
                                 </label>
                                 <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{numShrinkPct}%</span>
@@ -299,15 +299,15 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                                 step="0.1"
                                 value={shrinkageRatePercent}
                                 onChange={(e) => setShrinkageRatePercent(e.target.value)}
-                                className="w-full accent-emerald-500 bg-slate-800 rounded-lg h-2 cursor-pointer"
+                                className="w-full accent-emerald-500 bg-neutral-800 rounded-lg h-2 cursor-pointer"
                             />
-                            <p className="text-xs text-slate-500 mt-1">Retail average: 1.5% - 3.5% of gross revenue</p>
+                            <p className="text-xs text-ink-muted mt-1">Retail average: 1.5% - 3.5% of gross revenue</p>
                         </div>
 
                         {/* Shrinkage Reduction % */}
                         <div>
                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                                <label className="text-sm font-medium text-ink-secondary">
                                     Expected Shrinkage Reduction %
                                 </label>
                                 <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{numShrinkRedPct}%</span>
@@ -319,14 +319,14 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                                 step="5"
                                 value={shrinkageReductionPercent}
                                 onChange={(e) => setShrinkageReductionPercent(e.target.value)}
-                                className="w-full accent-emerald-500 bg-slate-800 rounded-lg h-2 cursor-pointer"
+                                className="w-full accent-emerald-500 bg-neutral-800 rounded-lg h-2 cursor-pointer"
                             />
                         </div>
 
                         {/* Time Savings % */}
                         <div>
                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                                <label className="text-sm font-medium text-ink-secondary">
                                     Expected Staff Time Saved %
                                 </label>
                                 <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{numTimeSavePct}%</span>
@@ -338,7 +338,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                                 step="5"
                                 value={timeSavingsPercent}
                                 onChange={(e) => setTimeSavingsPercent(e.target.value)}
-                                className="w-full accent-emerald-500 bg-slate-800 rounded-lg h-2 cursor-pointer"
+                                className="w-full accent-emerald-500 bg-neutral-800 rounded-lg h-2 cursor-pointer"
                             />
                         </div>
                     </div>
@@ -348,19 +348,19 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                         {/* Summary KPI Cards Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Payback Period Card */}
-                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Hardware Payback</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Hardware Payback</span>
                                     <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 </div>
-                                <div className="text-3xl font-extrabold text-slate-900 dark:text-white">
+                                <div className="text-3xl font-bold text-ink">
                                     {metrics.paybackMonths === null ? (
                                         <span className="text-rose-600 dark:text-rose-400">No Breakeven</span>
                                     ) : (
-                                        <span>{metrics.paybackMonths.toFixed(1)} <span className="text-lg font-normal text-slate-500 dark:text-slate-400">Months</span></span>
+                                        <span>{metrics.paybackMonths.toFixed(1)} <span className="text-lg font-normal text-ink-muted">Months</span></span>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                                <p className="text-xs text-ink-muted mt-2">
                                     {metrics.paybackMonths !== null && metrics.paybackMonths <= 6 ? (
                                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">★ Exceptional payback period</span>
                                     ) : (
@@ -370,13 +370,13 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                             </div>
 
                             {/* Monthly Time Saved Card */}
-                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Monthly Time Saved</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Monthly Time Saved</span>
                                     <ShieldCheck className="w-5 h-5 text-sky-400" />
                                 </div>
-                                <div className="text-3xl font-extrabold text-slate-900 dark:text-white">
-                                    {metrics.monthlyHrsSaved.toFixed(1)} <span className="text-lg font-normal text-slate-500 dark:text-slate-400">hrs/mo</span>
+                                <div className="text-3xl font-bold text-ink">
+                                    {metrics.monthlyHrsSaved.toFixed(1)} <span className="text-lg font-normal text-ink-muted">hrs/mo</span>
                                 </div>
                                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-2">
                                     Valued at {fmtMoney(metrics.monthlyLaborSavings, sym)} / month
@@ -384,61 +384,61 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                             </div>
 
                             {/* 1-Year Net ROI */}
-                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">1-Year Net ROI</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">1-Year Net ROI</span>
                                     <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 </div>
-                                <div className={`text-3xl font-extrabold ${metrics.netSavingsY1 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                <div className={`text-3xl font-bold ${metrics.netSavingsY1 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                     {fmtMoney(metrics.netSavingsY1, sym)}
                                 </div>
-                                <div className="text-xs font-semibold mt-2 text-slate-600 dark:text-slate-300">
+                                <div className="text-xs font-semibold mt-2 text-ink-secondary">
                                     {metrics.roiPercentY1 >= 0 ? '+' : ''}{metrics.roiPercentY1.toFixed(1)}% return on investment
                                 </div>
                             </div>
 
                             {/* 3-Year Total Savings */}
-                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">3-Year Net Profit</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">3-Year Net Profit</span>
                                     <DollarSign className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                                 </div>
-                                <div className={`text-3xl font-extrabold ${metrics.netSavingsY3 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                <div className={`text-3xl font-bold ${metrics.netSavingsY3 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                     {fmtMoney(metrics.netSavingsY3, sym)}
                                 </div>
-                                <div className="text-xs font-semibold mt-2 text-slate-600 dark:text-slate-300">
+                                <div className="text-xs font-semibold mt-2 text-ink-secondary">
                                     {metrics.roiPercentY3 >= 0 ? '+' : ''}{metrics.roiPercentY3.toFixed(1)}% total 36-month return
                                 </div>
                             </div>
                         </div>
 
                         {/* Detailed Financial Breakdown Card */}
-                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-800 pb-3 flex items-center justify-between">
+                        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-xl space-y-4">
+                            <h3 className="text-lg font-semibold text-ink border-b border-neutral-800 pb-3 flex items-center justify-between">
                                 <span>Monthly Savings Breakdown</span>
-                                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">Calculated per month</span>
+                                <span className="text-xs font-normal text-ink-muted">Calculated per month</span>
                             </h3>
 
                             <div className="space-y-3 text-sm">
-                                <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
-                                    <span className="text-slate-600 dark:text-slate-300">Labor Time Savings ({metrics.monthlyHrsSaved.toFixed(1)} hrs @ {sym}{numHourlyRate}/hr)</span>
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-800/60">
+                                    <span className="text-ink-secondary">Labor Time Savings ({metrics.monthlyHrsSaved.toFixed(1)} hrs @ {sym}{numHourlyRate}/hr)</span>
                                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{fmtMoney(metrics.monthlyLaborSavings, sym)}</span>
                                 </div>
-                                <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
-                                    <span className="text-slate-600 dark:text-slate-300">Stock Shrinkage Reduction ({numShrinkRedPct}% of {fmtMoney(metrics.currentMonthlyShrinkage, sym)})</span>
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-800/60">
+                                    <span className="text-ink-secondary">Stock Shrinkage Reduction ({numShrinkRedPct}% of {fmtMoney(metrics.currentMonthlyShrinkage, sym)})</span>
                                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{fmtMoney(metrics.monthlyShrinkageSavings, sym)}</span>
                                 </div>
-                                <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
-                                    <span className="text-slate-200 font-medium">Gross Monthly Financial Gain</span>
-                                    <span className="font-bold text-slate-900 dark:text-white">{fmtMoney(metrics.grossMonthlySavings, sym)}</span>
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-800/60">
+                                    <span className="text-neutral-200 font-medium">Gross Monthly Financial Gain</span>
+                                    <span className="font-bold text-ink">{fmtMoney(metrics.grossMonthlySavings, sym)}</span>
                                 </div>
-                                <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
-                                    <span className="text-slate-600 dark:text-slate-300">Less POS Software Monthly Subscription</span>
+                                <div className="flex justify-between items-center py-2 border-b border-neutral-800/60">
+                                    <span className="text-ink-secondary">Less POS Software Monthly Subscription</span>
                                     <span className="font-semibold text-rose-600 dark:text-rose-400">-{fmtMoney(numSwSub, sym)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-2 text-base">
-                                    <span className="font-bold text-slate-900 dark:text-white">Net Monthly Benefit</span>
-                                    <span className={`font-extrabold ${metrics.netMonthlySavings >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    <span className="font-bold text-ink">Net Monthly Benefit</span>
+                                    <span className={`font-bold ${metrics.netMonthlySavings >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                         {fmtMoney(metrics.netMonthlySavings, sym)} / mo
                                     </span>
                                 </div>
@@ -449,13 +449,13 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                         <div className="flex flex-wrap items-center gap-4 pt-2">
                             <button
                                 onClick={handleDownloadCsv}
-                                className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-3 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-sm"
+                                className="flex-1 bg-neutral-800 hover:bg-interactive-hover text-white font-medium px-4 py-3 rounded-xl border border-neutral-700 transition flex items-center justify-center gap-2 text-sm"
                             >
                                 <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Export CSV Summary
                             </button>
                             <button
                                 onClick={handleDownloadPdf}
-                                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-900/30"
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-lg "
                             >
                                 <FileText className="w-4 h-4" /> Print / Save PDF
                             </button>
@@ -464,37 +464,37 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                 </div>
 
                 {/* Educational ROI Deep Dive Section */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl space-y-6">
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Understanding Your POS Return on Investment</h3>
-                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-xl space-y-6">
+                    <h3 className="text-2xl font-bold text-ink">Understanding Your POS Return on Investment</h3>
+                    <p className="text-ink-secondary leading-relaxed">
                         A modern Point-of-Sale system is not just an expense — it is an automated operational asset. 
                         While traditional legacy cash registers only record financial totals, an integrated POS like <strong>VenQore</strong> eliminates repetitive labor and protects inventory margins.
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 space-y-2">
+                        <div className="bg-neutral-800/60 border border-neutral-700/50 rounded-xl p-5 space-y-2">
                             <div className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5" /> 1. Stock Leakage Prevention
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <p className="text-xs text-ink-secondary leading-relaxed">
                                 Real-time FIFO batch tracking and barcode verification prevent theft, unrecorded cashier discounts, and undetected supplier shortages.
                             </p>
                         </div>
 
-                        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 space-y-2">
+                        <div className="bg-neutral-800/60 border border-neutral-700/50 rounded-xl p-5 space-y-2">
                             <div className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5" /> 2. Automated Double-Entry
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <p className="text-xs text-ink-secondary leading-relaxed">
                                 Every checkout auto-posts balanced journal entries and inventory updates. No more late nights re-keying end-of-day register tallies.
                             </p>
                         </div>
 
-                        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 space-y-2">
+                        <div className="bg-neutral-800/60 border border-neutral-700/50 rounded-xl p-5 space-y-2">
                             <div className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5" /> 3. Offline Resilience
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <p className="text-xs text-ink-secondary leading-relaxed">
                                 Offline-first architecture ensures internet outages never stop checkouts or lost sales during peak business hours.
                             </p>
                         </div>

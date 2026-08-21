@@ -224,7 +224,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
         <OneGlanceLayout title="Categories" activeMenu="Stock">
             <Head title="Categories" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden relative">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden relative">
 
 
 
@@ -232,60 +232,60 @@ export default function Categories({ categories: serverCategories = [], stats, f
 
                 {/* Compact Stats Cards (Matches SalesHistory) */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Layers size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Categories</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Categories</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{stats?.total_categories || 0}</p>
+                        <p className="text-base font-bold text-ink">{stats?.total_categories || 0}</p>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <FolderTree size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Main Categories</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Main Categories</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{stats?.parent_categories || 0}</p>
+                        <p className="text-base font-bold text-ink">{stats?.parent_categories || 0}</p>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <Box size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Products Linked</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Products Linked</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{stats?.total_products || 0}</p>
+                        <p className="text-base font-bold text-emerald-600">{stats?.total_products || 0}</p>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">
                             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg shrink-0">
                                 <BarChart3 size={16} />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-bold text-slate-500 uppercase truncate">Top Category</p>
+                                <p className="text-xs font-bold text-ink-muted uppercase truncate">Top Category</p>
                             </div>
                         </div>
-                        <p className="text-sm font-black text-purple-600 truncate max-w-[50%]" title={stats?.most_populated?.name}>
+                        <p className="text-sm font-bold text-purple-600 truncate max-w-[50%]" title={stats?.most_populated?.name}>
                             {stats?.most_populated?.name || '-'}
                         </p>
                     </div>
                 </div>
 
                 {/* Header Actions (Matches SalesHistory Header) */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
-                            Product <span className="text-indigo-600">Categories (Updated)</span>
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            Product <span className="text-brand-600">Categories (Updated)</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                        <span className="text-2xs font-bold uppercase rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 px-2.5 py-1">
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
+                        <span className="text-2xs font-bold uppercase rounded-full bg-sunken text-ink-muted px-2.5 py-1">
                             List View
                         </span>
                     </div>
@@ -299,14 +299,14 @@ export default function Categories({ categories: serverCategories = [], stats, f
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={handleServerSearch}
                                 placeholder="Search categories..."
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                             />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
                             <button
                                 onClick={handleCreate}
-                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20"
+                                className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm "
                             >
                                 <Plus size={14} /> Add New
                             </button>
@@ -316,18 +316,18 @@ export default function Categories({ categories: serverCategories = [], stats, f
 
                 {/* Bulk Actions Bar */}
                 {selectedCategories.length > 0 && (
-                    <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg animate-in slide-in-from-top-2">
+                    <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg animate-in slide-in-from-top-2">
                         <span className="font-bold text-sm">{selectedCategories.length} Selected</span>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleBulkDelete}
-                                className="px-3 py-1 bg-white text-indigo-600 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors flex items-center gap-1"
+                                className="px-3 py-1 bg-white text-brand-600 rounded-lg text-xs font-bold hover:bg-interactive-hover transition-colors flex items-center gap-1"
                             >
                                 <Trash2 size={14} /> Delete Selected
                             </button>
                             <button
                                 onClick={() => setSelectedCategories([])}
-                                className="p-1 hover:bg-indigo-700 rounded transition-colors"
+                                className="p-1 hover:bg-brand-700 rounded transition-colors"
                             >
                                 <X size={16} />
                             </button>
@@ -336,14 +336,14 @@ export default function Categories({ categories: serverCategories = [], stats, f
                 )}
 
                 {/* Custom Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
                                 <th className="p-4 w-10">
                                     <input
                                         type="checkbox"
-                                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+                                        className="rounded border-line text-brand-600 focus:ring-brand-600"
                                         checked={selectedCategories.length === sortedCategories.length && sortedCategories.length > 0}
                                         onChange={handleSelectAll}
                                     />
@@ -357,31 +357,31 @@ export default function Categories({ categories: serverCategories = [], stats, f
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                                            cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
-                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
-                                        `}
+                                            p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
+                                            cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
+                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
+`}
                                         style={{ width: col.width }}
                                     >
                                         <div className="flex items-center gap-2">
                                             {col.label}
                                             {col.key !== 'actions' && sortConfig.key === col.key && (
-                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-indigo-500" /> : <ChevronDown size={14} className="text-indigo-500" />
+                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-brand-500" /> : <ChevronDown size={14} className="text-brand-500" />
                                             )}
                                         </div>
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {sortedCategories.length === 0 ? (
                                 <tr>
-                                    <td colSpan={tableColumns.length + 1} className="p-12 text-center text-slate-500">
+                                    <td colSpan={tableColumns.length + 1} className="p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center justify-center">
-                                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                                <Tag size={32} className="text-slate-400" />
+                                            <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-4">
+                                                <Tag size={32} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No categories found</p>
+                                            <p className="text-lg font-bold text-ink-secondary">No categories found</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -390,32 +390,32 @@ export default function Categories({ categories: serverCategories = [], stats, f
                                     <tr
                                         key={row.id}
                                         className={`
-                                            hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group cursor-pointer
-                                            ${selectedCategories.includes(row.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}
-                                        `}
+                                            hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all group cursor-pointer
+                                            ${selectedCategories.includes(row.id) ? 'bg-brand-50 dark:bg-brand-900/20' : ''}
+`}
                                     >
                                         <td className="p-4 w-10" onClick={(e) => e.stopPropagation()}>
                                             <input
                                                 type="checkbox"
-                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+                                                className="rounded border-line text-brand-600 focus:ring-brand-600"
                                                 checked={selectedCategories.includes(row.id)}
                                                 onChange={() => handleSelectRow(row.id)}
                                             />
                                         </td>
                                         {tableColumns.map((col) => (
-                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
+                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
                                                 {(() => {
                                                     switch (col.key) {
                                                         case 'name':
                                                             return (
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
-                                                                        <Tag size={14} className="text-indigo-600 dark:text-indigo-400" />
+                                                                    <div className="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center">
+                                                                        <Tag size={14} className="text-brand-600 dark:text-brand-400" />
                                                                     </div>
                                                                     <div>
-                                                                        <p className="font-semibold text-slate-800 dark:text-white">{row.name}</p>
+                                                                        <p className="font-semibold text-ink">{row.name}</p>
                                                                         {row.parent && (
-                                                                            <p className="text-2xs text-slate-400 flex items-center gap-1">
+                                                                            <p className="text-2xs text-ink-muted flex items-center gap-1">
                                                                                 <FolderTree size={10} /> {row.parent.name}
                                                                             </p>
                                                                         )}
@@ -423,15 +423,15 @@ export default function Categories({ categories: serverCategories = [], stats, f
                                                                 </div>
                                                             );
                                                         case 'description':
-                                                            return <span className="text-slate-500 truncate max-w-xs block">{row.description || '-'}</span>;
+                                                            return <span className="text-ink-muted truncate max-w-xs block">{row.description || '-'}</span>;
                                                         case 'products_count':
                                                             return (
-                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300">
+                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sunken text-ink dark:text-ink-secondary">
                                                                     {row.products_count || 0}
                                                                 </span>
                                                             );
                                                         case 'created_at':
-                                                            return <span className="text-slate-500 text-xs">{new Date(row.created_at).toLocaleDateString()}</span>;
+                                                            return <span className="text-ink-muted text-xs">{new Date(row.created_at).toLocaleDateString()}</span>;
                                                         case 'actions':
                                                             return (
                                                                 <div className="relative action-menu-container">
@@ -440,20 +440,20 @@ export default function Categories({ categories: serverCategories = [], stats, f
                                                                             e.stopPropagation();
                                                                             setActiveActionMenu(activeActionMenu === row.id ? null : row.id);
                                                                         }}
-                                                                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                                        className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                                                                     >
                                                                         <MoreVertical size={16} />
                                                                     </button>
 
                                                                     {activeActionMenu === row.id && (
-                                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 animate-in zoom-in-95 p-1">
+                                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line z-50 animate-in zoom-in-95 p-1">
                                                                             <button
                                                                                 onClick={() => handleEdit(row)}
-                                                                                className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
+                                                                                className="w-full text-left px-3 py-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg flex items-center gap-2 text-sm text-ink-secondary"
                                                                             >
                                                                                 <Edit size={14} /> Edit Category
                                                                             </button>
-                                                                            <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                                                            <div className="h-px bg-sunken my-1"></div>
                                                                             <button
                                                                                 onClick={() => {
                                                                                     setActiveActionMenu(null);
@@ -480,7 +480,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                     </table>
 
                     {/* Infinite Scroll Sentinel */}
-                    <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800 opacity-0">
+                    <div ref={observerTarget} className="p-4 text-center text-ink-muted text-sm border-t border-line opacity-0">
                         {nextPageUrl ? 'Loading...' : (sortedCategories.length > 0 ? 'End of list' : '')}
                     </div>
                 </div>
@@ -518,7 +518,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                         <select
                             value={formData.parent_id}
                             onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
-                            className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white outline-none focus:ring-2 ring-indigo-500/20"
+                            className="w-full px-4 py-2.5 rounded-xl bg-surface border border-line text-ink outline-none focus:ring-2 ring-brand-500/20"
                         >
                             <option value="">None (Top Level)</option>
                             {parentOptions.map(cat => (

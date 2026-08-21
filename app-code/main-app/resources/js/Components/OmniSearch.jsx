@@ -228,8 +228,8 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
     return (
         <div ref={containerRef} className="relative z-50">
             {/* Inline Input Bar */}
-            <div className={`relative flex items-center bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border transition-all rounded-2xl w-full sm:w-80 lg:w-96 ${isOpen ? 'border-slate-300 dark:border-slate-600 shadow-md' : 'border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600'}`}>
-                <div className="pl-4 text-slate-500 dark:text-slate-400">
+            <div className={`relative flex items-center bg-white/80 dark:bg-app backdrop-blur-xl border transition-all rounded-2xl w-full sm:w-80 lg:w-96 ${isOpen ? 'border-line dark:border-line shadow-md' : 'border-line hover:border-line dark:hover:border-line-strong'}`}>
+                <div className="pl-4 text-ink-muted">
                     <Search size={16} />
                 </div>
                 <input
@@ -243,7 +243,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder="Search anything..."
-                    className="flex-1 bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-sm text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-medium h-10 px-3"
+                    className="flex-1 bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-sm text-ink placeholder-slate-500 dark:placeholder-slate-400 font-medium h-10 px-3"
                     autoComplete="off"
                 />
 
@@ -252,7 +252,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                         <button
                             type="button"
                             onClick={() => { setSmartCaptureTab('image'); setIsSmartCaptureOpen(true); }}
-                            className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors"
+                            className="p-1.5 text-ink-muted hover:text-brand-500 dark:text-ink-muted dark:hover:text-brand-400 transition-colors"
                             title="Snap Invoice"
                         >
                             <Camera size={15} />
@@ -260,7 +260,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                         <button
                             type="button"
                             onClick={() => { setSmartCaptureTab('audio'); setIsSmartCaptureOpen(true); }}
-                            className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors mr-1"
+                            className="p-1.5 text-ink-muted hover:text-brand-500 dark:text-ink-muted dark:hover:text-brand-400 transition-colors mr-1"
                             title="Record Voice Memo"
                         >
                             <Mic size={15} />
@@ -271,14 +271,14 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                 {query && (
                     <button
                         onClick={() => { setQuery(''); inputRef.current?.focus(); }}
-                        className="p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
+                        className="p-2 text-ink-muted hover:text-ink-secondary dark:text-ink-muted dark:hover:text-neutral-300 transition-colors"
                     >
                         <X size={14} />
                     </button>
                 )}
 
                 <div className="pr-3 hidden sm:flex pointer-events-none">
-                    <kbd className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-2xs font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                    <kbd className="flex items-center gap-1 px-2 py-1 bg-sunken rounded-lg text-2xs font-bold text-ink-muted border border-line">
                         <span className="text-xs">⌘</span>
                         <span className="opacity-40">/</span>
                         <span className="text-3xs">Ctrl</span>
@@ -289,34 +289,34 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
             {/* Dropdown Results */}
             {isOpen && (
-                <div className="fixed top-16 left-4 right-4 sm:absolute sm:top-full sm:left-0 sm:right-auto sm:w-[500px] mt-3 max-h-[50vh] sm:max-h-[75vh] overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 animate-in fade-in zoom-in-95 duration-150 flex flex-col">
+                <div className="fixed top-16 left-4 right-4 sm:absolute sm:top-full sm:left-0 sm:right-auto sm:w-[500px] mt-3 max-h-[50vh] sm:max-h-[75vh] overflow-hidden bg-white/95 dark:bg-app backdrop-blur-2xl rounded-2xl border border-line shadow-2xl shadow-black/20 dark:shadow-black/50 animate-in fade-in zoom-in-95 duration-fast flex flex-col">
                     {/* Header/Gradient Line */}
-                    <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-50" />
+                    <div className="h-1 bg-gradient-to-r from-brand-500 via-purple-500 to-brand-500 opacity-50" />
 
                     {/* Results Container */}
                     <div className="overflow-y-auto custom-scrollbar">
                         {/* AI Button - Always at top when query > 2 and AI enabled */}
                         {AI_FEATURES_ENABLED && query.length > 2 && (
-                            <div className="p-2 border-b border-slate-100 dark:border-slate-800/50">
+                            <div className="p-2 border-b border-line">
                                 <button
                                     onClick={handleAskAi}
                                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group ${selectedIndex === 0
-                                        ? 'bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 shadow-lg shadow-black/20'
-                                        : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/30 dark:hover:bg-slate-800'
+                                        ? 'bg-gradient-to-r from-neutral-900 via-brand-950 to-neutral-900 border border-brand-500/30 shadow-lg shadow-black/20'
+                                        : 'bg-sunken hover:bg-sunken dark:hover:bg-interactive-hover'
                                         }`}
                                 >
-                                    <div className={`p-2 rounded-lg ${selectedIndex === 0 ? 'bg-white/20' : 'bg-white dark:bg-slate-700 text-indigo-500 dark:text-indigo-400'}`}>
+                                    <div className={`p-2 rounded-lg ${selectedIndex === 0 ? 'bg-white/20' : 'bg-sunken text-brand-500 dark:text-brand-400'}`}>
                                         <Sparkles size={16} className={selectedIndex === 0 ? 'text-white' : ''} />
                                     </div>
                                     <div className="flex-1 text-left">
-                                        <div className={`text-sm font-bold ${selectedIndex === 0 ? 'text-white' : 'text-slate-800 dark:text-indigo-300'}`}>
+                                        <div className={`text-sm font-bold ${selectedIndex === 0 ? 'text-white' : 'text-ink dark:text-brand-300'}`}>
                                             Ask AI Assistant
                                         </div>
-                                        <div className={`text-1xs ${selectedIndex === 0 ? 'text-indigo-100' : 'text-slate-500'}`}>
+                                        <div className={`text-1xs ${selectedIndex === 0 ? 'text-brand-100' : 'text-ink-muted'}`}>
                                             Analyze "{query}"...
                                         </div>
                                     </div>
-                                    <div className={`text-2xs font-medium px-2 py-0.5 rounded ${selectedIndex === 0 ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-indigo-900/50 text-slate-600 dark:text-indigo-400'}`}>
+                                    <div className={`text-2xs font-medium px-2 py-0.5 rounded ${selectedIndex === 0 ? 'bg-white/20 text-white' : 'bg-sunken dark:bg-brand-900/50 text-ink-secondary dark:text-brand-400'}`}>
                                         ENTER
                                     </div>
                                 </button>
@@ -326,7 +326,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                         {/* App Registry Results */}
                         {results.length > 0 && (
                             <div className="p-2">
-                                <div className="px-3 py-1.5 text-2xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                                <div className="px-3 py-1.5 text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                     Navigation
                                 </div>
                                 {results.map((item, idx) => {
@@ -336,8 +336,8 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                             key={item.id}
                                             onClick={() => handleSelect(actualIndex)}
                                             className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all group mb-0.5 ${selectedIndex === actualIndex
-                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
+                                                ? 'bg-brand-600 text-white shadow-md '
+                                                : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover hover:text-ink dark:hover:text-neutral-200'
                                                 }`}
                                         >
                                             <div className="flex-shrink-0">
@@ -346,7 +346,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                             <div className="flex-1 text-left">
                                                 <div className="text-sm font-medium">{item.title}</div>
                                                 {item.description && (
-                                                    <div className={`text-2xs truncate ${selectedIndex === actualIndex ? 'text-indigo-200' : 'text-slate-500'}`}>
+                                                    <div className={`text-2xs truncate ${selectedIndex === actualIndex ? 'text-brand-200' : 'text-ink-muted'}`}>
                                                         {item.description}
                                                     </div>
                                                 )}
@@ -362,8 +362,8 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
                         {/* Database Results */}
                         {dbResults.length > 0 && (
-                            <div className="p-2 border-t border-slate-100 dark:border-slate-800/30">
-                                <div className="px-3 py-1.5 text-2xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <div className="p-2 border-t border-line">
+                                <div className="px-3 py-1.5 text-2xs font-bold text-ink-muted uppercase tracking-widest flex items-center gap-2">
                                     Data
                                     {isSearchingDb && <Loader2 size={10} className="animate-spin" />}
                                 </div>
@@ -375,13 +375,13 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                             href={item.url}
                                             onClick={() => setIsOpen(false)}
                                             className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all group mb-0.5 ${selectedIndex === actualIndex
-                                                ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
-                                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
+                                                ? 'bg-purple-600 text-white shadow-md '
+                                                : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover hover:text-ink dark:hover:text-neutral-200'
                                                 }`}
                                         >
                                             <div className={`p-1.5 rounded-md ${item.type === 'Answer'
-                                                ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white'
-                                                : 'bg-indigo-50 dark:bg-purple-500/10 text-indigo-600 dark:text-purple-400'
+                                                ? 'bg-gradient-to-br from-brand-500 to-purple-600 text-white'
+                                                : 'bg-brand-50 dark:bg-purple-500/10 text-brand-600 dark:text-purple-400'
                                                 }`}>
                                                 {item.type === 'Product' && <Box size={14} />}
                                                 {item.type === 'Party' && <User size={14} />}
@@ -390,11 +390,11 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                             </div>
                                             <div className="flex-1 text-left">
                                                 <div className="text-sm font-medium">{item.title}</div>
-                                                <div className={`text-2xs ${selectedIndex === actualIndex ? 'text-purple-200' : 'text-slate-500'}`}>
+                                                <div className={`text-2xs ${selectedIndex === actualIndex ? 'text-purple-200' : 'text-ink-muted'}`}>
                                                     {item.subtitle}
                                                 </div>
                                             </div>
-                                            <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-purple-900/30 text-indigo-600 dark:text-purple-400">
+                                            <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-100 dark:bg-purple-900/30 text-brand-600 dark:text-purple-400">
                                                 {item.type}
                                             </span>
                                         </Link>
@@ -406,7 +406,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                         {/* Empty State */}
                         {query.length > 2 && results.length === 0 && dbResults.length === 0 && !isSearchingDb && (
                             <div className="p-8 text-center">
-                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">No results found</p>
+                                <p className="text-sm text-ink-muted font-medium">No results found</p>
                             </div>
                         )}
 
@@ -423,12 +423,12 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                         <button
                                             key={idx}
                                             onClick={() => { shortcut.action(); setIsOpen(false); }}
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50:50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-700/30 transition-all group"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-surface:50 dark:bg-surface hover:bg-interactive-hover dark:hover:bg-interactive-hover border border-line transition-all group"
                                         >
-                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{shortcut.label}</span>
+                                            <span className="text-xs font-medium text-ink-secondary">{shortcut.label}</span>
                                             <div className="flex gap-1">
                                                 {shortcut.keys.map((key, i) => (
-                                                    <kbd key={i} className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-3xs font-bold text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-600">
+                                                    <kbd key={i} className="px-1.5 py-0.5 bg-sunken rounded text-3xs font-bold text-ink-muted border border-line dark:border-line">
                                                         {key}
                                                     </kbd>
                                                 ))}
@@ -437,10 +437,10 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                     ))}
                                 </div>
                                 {AI_FEATURES_ENABLED && (
-                                    <div className="mt-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-500/10">
+                                    <div className="mt-3 p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl border border-brand-100 dark:border-brand-500/10">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Sparkles size={12} className="text-indigo-500 dark:text-indigo-400" />
-                                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-300">Quick AI Prompts</span>
+                                            <Sparkles size={12} className="text-brand-500 dark:text-brand-400" />
+                                            <span className="text-xs font-bold text-brand-600 dark:text-brand-300">Quick AI Prompts</span>
                                         </div>
                                         <div className="space-y-1">
                                             {[
@@ -450,7 +450,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                                 <button
                                                     key={idx}
                                                     onClick={() => { setQuery(suggestion); inputRef.current?.focus(); }}
-                                                    className="block w-full text-left text-xs text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-300 transition-colors py-1 truncate"
+                                                    className="block w-full text-left text-xs text-ink-muted hover:text-brand-600 dark:text-ink-muted dark:hover:text-brand-300 transition-colors py-1 truncate"
                                                 >
                                                     "{suggestion}"
                                                 </button>
@@ -463,12 +463,12 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between px-4 py-2 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800/50">
-                        <div className="flex items-center gap-3 text-2xs text-slate-500">
+                    <div className="flex items-center justify-between px-4 py-2 bg-sunken/80 dark:bg-app border-t border-line">
+                        <div className="flex items-center gap-3 text-2xs text-ink-muted">
                             <span><kbd className="font-sans">↑↓</kbd> navigate</span>
                             <span><kbd className="font-sans">↵</kbd> select</span>
                         </div>
-                        <div className="text-3xs text-slate-500 dark:text-slate-600 font-medium">
+                        <div className="text-3xs text-ink-muted font-medium">
                             VenQore Intelligence
                         </div>
                     </div>

@@ -21,32 +21,32 @@ export default function ProductIndex({ products }) {
                 </Link>
             </div>
 
-            <table className="w-full border-collapse border border-gray-200">
-                <thead className="bg-gray-50">
+            <table className="w-full border-collapse border border-line">
+                <thead className="bg-sunken">
                     <tr>
-                        <th className="border border-gray-200 px-4 py-2 text-left">SKU</th>
-                        <th className="border border-gray-200 px-4 py-2 text-left">Name</th>
-                        <th className="border border-gray-200 px-4 py-2 text-left">Unit</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Sale Price</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Tax %</th>
-                        <th className="border border-gray-200 px-4 py-2 text-center">Actions</th>
+                        <th className="border border-line px-4 py-2 text-left">SKU</th>
+                        <th className="border border-line px-4 py-2 text-left">Name</th>
+                        <th className="border border-line px-4 py-2 text-left">Unit</th>
+                        <th className="border border-line px-4 py-2 text-right">Sale Price</th>
+                        <th className="border border-line px-4 py-2 text-right">Tax %</th>
+                        <th className="border border-line px-4 py-2 text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {products.map(product => (
-                        <tr key={product.id} className="hover:bg-gray-50">
-                            <td className="border border-gray-200 px-4 py-2 font-mono text-sm">
+                        <tr key={product.id} className="hover:bg-interactive-hover">
+                            <td className="border border-line px-4 py-2 font-mono text-sm">
                                 {product.sku}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2">{product.name}</td>
-                            <td className="border border-gray-200 px-4 py-2">{product.base_unit}</td>
-                            <td className="border border-gray-200 px-4 py-2 text-right">
+                            <td className="border border-line px-4 py-2">{product.name}</td>
+                            <td className="border border-line px-4 py-2">{product.base_unit}</td>
+                            <td className="border border-line px-4 py-2 text-right">
                                 {formatCurrency(product.sale_price, store)}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-right">
+                            <td className="border border-line px-4 py-2 text-right">
                                 {product.tax_rate}%
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-center space-x-2">
+                            <td className="border border-line px-4 py-2 text-center space-x-2">
                                 <Link
                                     href={route('store.v3.products.edit', { store_slug: store?.slug, product: product.id })}
                                     className="text-blue-600 hover:underline"
@@ -66,7 +66,7 @@ export default function ProductIndex({ products }) {
             </table>
 
             {products.length === 0 && (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-ink-muted py-8">
                     No products yet. Create your first product.
                 </p>
             )}

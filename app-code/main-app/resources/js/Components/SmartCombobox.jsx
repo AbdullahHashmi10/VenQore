@@ -167,7 +167,7 @@ const SmartCombobox = ({
         const parts = String(text).split(regex);
         return parts.map((part, i) =>
             regex.test(part) ? (
-                <mark key={i} className="bg-yellow-200 dark:bg-yellow-500/30 text-inherit px-0.5 rounded font-black">
+                <mark key={i} className="bg-yellow-200 dark:bg-yellow-500/30 text-inherit px-0.5 rounded font-bold">
                     {part}
                 </mark>
             ) : part
@@ -178,7 +178,7 @@ const SmartCombobox = ({
     const getTypeBadge = (item) => {
         if (item.type === 'customer') {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-black uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                     <ShoppingBag size={10} />
                     Customer
                 </span>
@@ -186,7 +186,7 @@ const SmartCombobox = ({
         }
         if (item.type === 'supplier') {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-black uppercase bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
                     <Truck size={10} />
                     Supplier
                 </span>
@@ -221,7 +221,7 @@ const SmartCombobox = ({
                 icon = <Wallet size={12} />;
             } else {
                 label = 'Settled';
-                colorClass = 'text-slate-500 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600';
+                colorClass = 'text-ink-muted bg-sunken border-line dark:border-line';
                 icon = <Check size={12} />;
             }
         } else if (isSupplier) {
@@ -237,7 +237,7 @@ const SmartCombobox = ({
                 icon = <Wallet size={12} />;
             } else {
                 label = 'Settled';
-                colorClass = 'text-slate-500 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600';
+                colorClass = 'text-ink-muted bg-sunken border-line dark:border-line';
                 icon = <Check size={12} />;
             }
         } else {
@@ -297,7 +297,7 @@ const SmartCombobox = ({
         return (
             <span className="inline-flex items-center gap-1.5 flex-wrap">
                 {available <= 0 ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-black bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
                         <AlertTriangle size={10} /> OUT OF STOCK
                     </span>
                 ) : available <= lowStockThreshold ? (
@@ -334,9 +334,9 @@ const SmartCombobox = ({
         }
 
         return (
-            <span className="text-2xs text-slate-400">
+            <span className="text-2xs text-ink-muted">
                 Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
-                <span className="text-slate-300 ml-1">({marginPercent}%)</span>
+                <span className="text-neutral-300 ml-1">({marginPercent}%)</span>
             </span>
         );
     };
@@ -358,7 +358,7 @@ const SmartCombobox = ({
         else timeText = `${Math.floor(diffDays / 365)}y ago`;
 
         return (
-            <span className="inline-flex items-center gap-1 text-2xs text-slate-400">
+            <span className="inline-flex items-center gap-1 text-2xs text-ink-muted">
                 <Clock size={10} /> {timeText}
             </span>
         );
@@ -373,9 +373,9 @@ const SmartCombobox = ({
             return <Truck size={18} className="text-purple-500" />;
         }
         if (item.stock_quantity !== undefined || item.sku) {
-            return <Package size={18} className="text-indigo-500" />;
+            return <Package size={18} className="text-brand-500" />;
         }
-        return <Package size={18} className="text-slate-400" />;
+        return <Package size={18} className="text-ink-muted" />;
     };
 
     // Check if item is a party (customer/supplier)
@@ -386,10 +386,10 @@ const SmartCombobox = ({
 
     return (
         <div id={id} className={`relative ${className}`} ref={wrapperRef}>
-            {label && <label className="text-xs text-slate-500 font-bold uppercase block mb-1">{label}</label>}
+            {label && <label className="text-xs text-ink-muted font-bold uppercase block mb-1">{label}</label>}
 
             <div className={`relative flex items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                {!hideSearchIcon && <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />}
+                {!hideSearchIcon && <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10" />}
                 <input
                     ref={inputRef}
                     type="text"
@@ -408,26 +408,26 @@ const SmartCombobox = ({
                     readOnly={readOnly}
                     className={`
                         w-full ${hideSearchIcon ? 'pl-4' : 'pl-11'} pr-4 py-3 
-                        bg-white dark:bg-slate-800 
-                        border border-slate-200 dark:border-slate-700 
+                        bg-surface 
+                        border border-line 
                         rounded-xl 
-                        focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 
-                        text-sm font-bold text-slate-800 dark:text-white 
+                        focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 
+                        text-sm font-bold text-ink 
                         placeholder-slate-400 
                         transition-all shadow-sm
                         ${inputClassName}
-                    `}
+`}
                 />
                 {loading && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <Loader2 size={18} className="animate-spin text-indigo-500" />
+                        <Loader2 size={18} className="animate-spin text-brand-500" />
                     </div>
                 )}
             </div>
 
             {/* Keyboard Hint */}
             {isOpen && filteredItems.length > 0 && (
-                <div className={`absolute right-0 text-3xs text-slate-400 flex items-center gap-2 ${openUpwards ? '-top-5' : '-bottom-5'}`}>
+                <div className={`absolute right-0 text-3xs text-ink-muted flex items-center gap-2 ${openUpwards ? '-top-5' : '-bottom-5'}`}>
                     <span className="flex items-center gap-0.5"><ArrowUp size={10} /><ArrowDown size={10} /></span>
                     <span>↵ Select</span>
                     <span>Esc Close</span>
@@ -436,17 +436,17 @@ const SmartCombobox = ({
 
             {/* Dropdown */}
             {isOpen && (
-                <div className={`absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl z-[120] animate-in fade-in zoom-in-95 duration-100`}>
+                <div className={`absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-surface border border-line rounded-2xl shadow-2xl z-drawer animate-in fade-in zoom-in-95 duration-fast`}>
 
                     {/* Results Count Header */}
                     {filteredItems.length > 0 && (
-                        <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="px-4 py-2 bg-app border-b border-line flex items-center justify-between">
+                            <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                 {filteredItems.length} Result{filteredItems.length !== 1 ? 's' : ''}
                             </span>
                             {query && (
-                                <span className="text-2xs text-slate-400">
-                                    Searching: "<span className="text-indigo-500 font-bold">{query}</span>"
+                                <span className="text-2xs text-ink-muted">
+                                    Searching: "<span className="text-brand-500 font-bold">{query}</span>"
                                 </span>
                             )}
                         </div>
@@ -457,30 +457,30 @@ const SmartCombobox = ({
                         {/* Loading State */}
                         {loading && filteredItems.length === 0 && (
                             <div className="px-4 py-8 text-center">
-                                <Loader2 size={32} className="mx-auto animate-spin text-indigo-500 mb-2" />
-                                <p className="text-sm text-slate-500 font-medium">Searching...</p>
+                                <Loader2 size={32} className="mx-auto animate-spin text-brand-500 mb-2" />
+                                <p className="text-sm text-ink-muted font-medium">Searching...</p>
                             </div>
                         )}
 
                         {/* Empty State */}
                         {!loading && filteredItems.length === 0 && query && (
                             <div className="px-4 py-6 text-center">
-                                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
-                                    <Search size={28} className="text-slate-300 dark:text-slate-600" />
+                                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center">
+                                    <Search size={28} className="text-neutral-300 dark:text-ink-secondary" />
                                 </div>
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No results for "{query}"</p>
-                                <p className="text-xs text-slate-400 mt-1">Try a different search term</p>
+                                <p className="text-sm font-bold text-ink-secondary">No results for "{query}"</p>
+                                <p className="text-xs text-ink-muted mt-1">Try a different search term</p>
                             </div>
                         )}
 
                         {/* Initial Empty State */}
                         {!loading && filteredItems.length === 0 && !query && (
                             <div className="px-4 py-6 text-center">
-                                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                                    <Package size={28} className="text-indigo-400" />
+                                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-brand-100 to-purple-100 dark:from-brand-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                                    <Package size={28} className="text-brand-400" />
                                 </div>
-                                <p className="text-sm font-medium text-slate-500">Start typing to search</p>
-                                <p className="text-xs text-slate-400 mt-1">Search by name, phone, SKU, or email</p>
+                                <p className="text-sm font-medium text-ink-muted">Start typing to search</p>
+                                <p className="text-xs text-ink-muted mt-1">Search by name, phone, SKU, or email</p>
                             </div>
                         )}
 
@@ -489,15 +489,15 @@ const SmartCombobox = ({
                                 key={item.id || idx}
                                 className={`
                                     px-4 py-3 flex items-start justify-between gap-3 
-                                    border-b border-slate-100 dark:border-slate-800 last:border-0
-                                    cursor-pointer transition-all duration-150
+                                    border-b border-line last:border-0
+                                    cursor-pointer transition-all duration-fast
                                     ${highlightedIndex === idx
-                                        ? 'bg-indigo-50 dark:bg-indigo-600/20 scale-[1.01]'
+                                        ? 'bg-brand-50 dark:bg-brand-600/20 scale-[1.01]'
                                         : selectedItem?.id === item.id
                                             ? 'bg-emerald-50 dark:bg-emerald-600/10'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                            : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }
-                                `}
+`}
                                 onMouseEnter={() => setHighlightedIndex(idx)}
                             >
                                 {/* Left: Icon + Main Info */}
@@ -513,7 +513,7 @@ const SmartCombobox = ({
                                     {showTypeIcon && (
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'customer' ? 'bg-blue-100 dark:bg-blue-500/20' :
                                             item.type === 'supplier' ? 'bg-purple-100 dark:bg-purple-500/20' :
-                                                'bg-slate-100 dark:bg-slate-800'
+                                                'bg-sunken'
                                             }`}>
                                             {getItemIcon(item)}
                                         </div>
@@ -522,7 +522,7 @@ const SmartCombobox = ({
                                     <div className="flex-1 min-w-0">
                                         {/* Row 1: Name + Type Badge + Price */}
                                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                            <span className={`font-black text-base truncate ${highlightedIndex === idx || selectedItem?.id === item.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-900 dark:text-white'}`}>
+                                            <span className={`font-bold text-base truncate ${highlightedIndex === idx || selectedItem?.id === item.id ? 'text-brand-600 dark:text-brand-400' : 'text-ink'}`}>
                                                 {highlightMatch(item[displayKey], query)}
                                             </span>
                                             {getTypeBadge(item)}
@@ -530,7 +530,7 @@ const SmartCombobox = ({
                                                 <Star size={14} className="text-amber-500 fill-amber-500" />
                                             )}
                                             {item.price !== undefined && (
-                                                <span className="font-black text-lg text-emerald-600 dark:text-emerald-400 ml-auto shrink-0">
+                                                <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400 ml-auto shrink-0">
                                                     {formatCurrency(item.price, store || settings)}
                                                 </span>
                                             )}
@@ -538,7 +538,7 @@ const SmartCombobox = ({
 
                                         {/* Row 2: Contact Info */}
                                         {isParty(item) && (
-                                            <div className="flex items-center gap-3 text-xs text-slate-500 mb-1.5">
+                                            <div className="flex items-center gap-3 text-xs text-ink-muted mb-1.5">
                                                 {item.phone && (
                                                     <span className="flex items-center gap-1">
                                                         <Phone size={11} /> {item.phone}
@@ -570,12 +570,12 @@ const SmartCombobox = ({
                                         {isProduct(item) && (
                                             <div className="flex items-center gap-2 flex-wrap mb-1">
                                                 {item.sku && (
-                                                    <span className="font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-2xs">
+                                                    <span className="font-mono text-ink-muted bg-sunken px-1.5 py-0.5 rounded text-2xs">
                                                         SKU: {item.sku}
                                                     </span>
                                                 )}
                                                 {item.category?.name && (
-                                                    <span className="text-2xs px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold">
+                                                    <span className="text-2xs px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold">
                                                         {item.category.name}
                                                     </span>
                                                 )}
@@ -587,8 +587,8 @@ const SmartCombobox = ({
                                         {isProduct(item) && !hideCostAndMargin && (
                                             <div className="flex items-center gap-3">
                                                 {item.cost !== undefined && (
-                                                    <span className="text-1xs text-slate-400">
-                                                        Cost: <span className="text-slate-600 dark:text-slate-300 font-semibold">{formatCurrency(item.cost, store || settings)}</span>
+                                                    <span className="text-1xs text-ink-muted">
+                                                        Cost: <span className="text-ink-secondary font-semibold">{formatCurrency(item.cost, store || settings)}</span>
                                                     </span>
                                                 )}
                                                 {getProfitMargin(item)}
@@ -607,7 +607,7 @@ const SmartCombobox = ({
                                                 onEdit(item);
                                                 setIsOpen(false);
                                             }}
-                                            className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-500 transition-colors"
+                                            className="p-2 rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted hover:text-brand-500 transition-colors"
                                             title="Edit"
                                         >
                                             <Edit2 size={14} />
@@ -627,24 +627,24 @@ const SmartCombobox = ({
 
                     {/* Sticky Footer: Add New Button */}
                     {onAddNew && (
-                        <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-800/80 dark:to-indigo-900/20">
+                        <div className="border-t-2 border-line bg-gradient-to-r from-neutral-50 to-brand-50 dark:from-neutral-800/80 dark:to-brand-900/20">
                             <button
                                 id="tour-add-new-party-btn"
                                 onClick={() => {
                                     onAddNew(query);
                                     setIsOpen(false);
                                 }}
-                                className="w-full px-4 py-3.5 flex items-center gap-3 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100/50 dark:hover:bg-indigo-500/10 transition-colors group"
+                                className="w-full px-4 py-3.5 flex items-center gap-3 text-brand-600 dark:text-brand-400 hover:bg-brand-100/50 dark:hover:bg-brand-500/10 transition-colors group"
                             >
-                                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center group-hover:bg-indigo-200 dark:group-hover:bg-indigo-500/30 transition-colors group-hover:scale-110">
-                                    <Plus size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center group-hover:bg-brand-200 dark:group-hover:bg-brand-500/30 transition-colors">
+                                    <Plus size={20} className="text-brand-600 dark:text-brand-400" />
                                 </div>
                                 <div className="text-left">
                                     <span className="font-bold text-sm block">
                                         {addNewLabel}
-                                        {query && <span className="text-slate-500 dark:text-slate-400 font-normal ml-1">"{query}"</span>}
+                                        {query && <span className="text-ink-muted font-normal ml-1">"{query}"</span>}
                                     </span>
-                                    <span className="text-2xs text-slate-400">Create a new entry</span>
+                                    <span className="text-2xs text-ink-muted">Create a new entry</span>
                                 </div>
                             </button>
                         </div>

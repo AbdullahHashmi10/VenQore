@@ -141,75 +141,75 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
         <OneGlanceLayout title="Bank Accounts" activeMenu="Money">
             <Head title="Bank Accounts" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <MoneyModuleTabs activeTab="accounts" className="!mb-0" />
 
                 {/* Stats Cards Section - Compact Single Line */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Landmark size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Balance</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Balance</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats.total_balance)}</p>
+                        <p className="text-base font-bold text-ink">{formatCurrency(stats.total_balance)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <Wallet size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Cash on Hand</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Cash on Hand</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats.cash_balance)}</p>
+                        <p className="text-base font-bold text-emerald-600">{formatCurrency(stats.cash_balance)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <TrendingUp size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Money In (Today)</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Money In (Today)</p>
                         </div>
-                        <p className="text-base font-black text-blue-600">{formatCurrency(stats.today_in)}</p>
+                        <p className="text-base font-bold text-blue-600">{formatCurrency(stats.today_in)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <TrendingDown size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Money Out (Today)</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Money Out (Today)</p>
                         </div>
-                        <p className="text-base font-black text-rose-600">{formatCurrency(stats.today_out)}</p>
+                        <p className="text-base font-bold text-rose-600">{formatCurrency(stats.today_out)}</p>
                     </div>
                 </div>
 
                 {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title */}
                     <div className="flex items-center gap-2">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
-                            Bank <span className="text-indigo-600">Accounts</span>
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            Bank <span className="text-brand-600">Accounts</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                        <span className="text-xs font-bold text-slate-500">{filteredAccounts.length} Accounts</span>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
+                        <span className="text-xs font-bold text-ink-muted">{filteredAccounts.length} Accounts</span>
                     </div>
 
                     {/* Right: Search + Actions */}
                     <div className="flex items-center gap-2">
                         <div className="relative w-52 hidden md:block">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                             <input
                                 type="text"
                                 placeholder="Search accounts..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-1 focus:ring-indigo-500 text-slate-700 dark:text-slate-200"
+                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
                             />
                         </div>
                         <button
                             onClick={handleCreate}
-                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
+                            className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
                         >
                             <Plus size={14} /> Add Account
                         </button>
@@ -217,21 +217,21 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                 </div>
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[35%]">Account Details</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[20%]">Number</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[15%]">Type</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[20%] text-right">Balance</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[10%] text-right">Actions</th>
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[35%]">Account Details</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[20%]">Number</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[15%]">Type</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[20%] text-right">Balance</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[10%] text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {filteredAccounts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="p-12 text-center text-slate-400">
+                                    <td colSpan={5} className="p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center justify-center">
                                             <Landmark size={32} className="mb-2 opacity-50" />
                                             <p className="text-sm">No accounts found</p>
@@ -242,26 +242,26 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                 filteredAccounts.map((account) => (
                                     <tr
                                         key={account.id}
-                                        className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-indigo-400"
+                                        className="hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-brand-400"
                                         onClick={() => account?.id && router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
                                     >
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm ${account.account_type === 'cash' ? 'bg-emerald-500' : 'bg-indigo-500'
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm ${account.account_type === 'cash' ? 'bg-emerald-500' : 'bg-brand-500'
                                                     }`}>
                                                     {account.account_type === 'cash' ? <Wallet size={18} /> : <Landmark size={18} />}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-slate-800 dark:text-white text-sm">{account.name}</p>
-                                                    <p className="text-xs text-slate-400">{account.bank_name || 'Cash Account'}</p>
+                                                    <p className="font-bold text-ink text-sm">{account.name}</p>
+                                                    <p className="text-xs text-ink-muted">{account.bank_name || 'Cash Account'}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4 font-mono text-sm text-slate-600 dark:text-slate-400 hidden sm:table-cell">
+                                        <td className="p-4 font-mono text-sm text-ink-secondary hidden sm:table-cell">
                                             {account.account_number ? `****${account.account_number.slice(-4)}` : '-'}
                                         </td>
                                         <td className="p-4">
-                                            <span className={`px-2 py-1 rounded-md text-2xs font-black uppercase tracking-wide ${account.account_type === 'cash' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                            <span className={`px-2 py-1 rounded-md text-2xs font-bold uppercase tracking-wide ${account.account_type === 'cash' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
                                                     account.account_type === 'savings' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' :
                                                         account.account_type === 'credit' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                                                             'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
@@ -270,7 +270,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                             </span>
                                         </td>
                                         <td className="p-4 text-right">
-                                            <p className={`text-sm font-black ${parseFloat(account.current_balance) < 0 ? 'text-red-500' : 'text-slate-800 dark:text-white'
+                                            <p className={`text-sm font-bold ${parseFloat(account.current_balance) < 0 ? 'text-red-500' : 'text-ink'
                                                 }`}>
                                                 {formatCurrency(account.current_balance)}
                                             </p>
@@ -279,25 +279,25 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                             <div className="relative">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === account.id ? null : account.id); }}
-                                                    className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === account.id ? 'text-indigo-600 bg-slate-100 dark:bg-slate-800' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600'}`}
+                                                    className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === account.id ? 'text-brand-600 bg-sunken' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover hover:text-brand-600'}`}
                                                 >
                                                     <MoreVertical size={16} />
                                                 </button>
                                                 {activeActionMenu === account.id && (
-                                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+                                                    <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
                                                         <button
                                                             onClick={() => { handleEdit(account); setActiveActionMenu(null); }}
-                                                            className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
+                                                            className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"
                                                         >
                                                             <Edit size={14} /> Edit Details
                                                         </button>
                                                         <button
                                                             onClick={() => account?.id && router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
-                                                            className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
+                                                            className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"
                                                         >
                                                             <ArrowRightLeft size={14} /> Transactions
                                                         </button>
-                                                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                                        <div className="h-px bg-sunken my-1"></div>
                                                         <button
                                                             onClick={() => { handleDelete(account); setActiveActionMenu(null); }}
                                                             className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"
@@ -395,7 +395,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                     type="number"
                                     value={formData.current_balance}
                                     disabled
-                                    className="bg-slate-50 dark:bg-slate-800/50"
+                                    className="bg-app"
                                 />
                             </FormField>
                         )}

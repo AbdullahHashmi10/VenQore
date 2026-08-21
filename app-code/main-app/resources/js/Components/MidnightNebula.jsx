@@ -26,7 +26,7 @@ const MidnightNebula = ({
     return (
         <div className={`relative overflow-hidden ${className}`}>
             {/* LAYER 1: Base Background */}
-            <div className="absolute inset-0 bg-slate-900 z-0"></div>
+            <div className="absolute inset-0 bg-neutral-900 z-0"></div>
 
             {/* LAYER 2: Ambient Orbs (The Glow) */}
             {/* Top-Right Orb */}

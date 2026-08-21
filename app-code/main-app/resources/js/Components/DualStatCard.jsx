@@ -29,10 +29,10 @@ const DualStatCard = ({
     if (compact || isSingle) {
         return (
             <div
-                className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-slate-100 dark:border-slate-800 relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300"
+                className="bg-surface rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-line relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-slow"
                 style={{ animationDelay: `${delay}ms` }}
             >
-                <div className={`absolute -right-6 -top-6 w-20 h-20 ${bgClass} opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 ease-in-out`}></div>
+                <div className={`absolute -right-6 -top-6 w-20 h-20 ${bgClass} opacity-10 rounded-full blur-2xl transition-transform duration-slower ease-in-out`}></div>
 
                 <div className="flex items-center justify-between relative z-10 w-full">
                     <div className="flex items-center gap-3">
@@ -40,8 +40,8 @@ const DualStatCard = ({
                             <Icon size={18} className="text-current" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">{title}</h3>
-                            {subValue && <p className="text-2xs font-medium text-slate-400">{subValue}</p>}
+                            <h3 className="font-bold text-ink-secondary text-xs uppercase tracking-wide">{title}</h3>
+                            {subValue && <p className="text-2xs font-medium text-ink-muted">{subValue}</p>}
                         </div>
                     </div>
 
@@ -58,7 +58,7 @@ const DualStatCard = ({
                                 ]}
                             />
                         )}
-                        <p className={`text-2xl font-bold text-slate-800 dark:text-white tracking-tight`}>{value}</p>
+                        <p className={`text-2xl font-bold text-ink tracking-tight`}>{value}</p>
                     </div>
                 </div>
             </div>
@@ -68,16 +68,16 @@ const DualStatCard = ({
     // Original dual layout (for dual value cards)
     return (
         <div
-            className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-slate-100 dark:border-slate-800 relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300 h-full flex flex-col justify-center gap-2"
+            className="bg-surface rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-line relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-slow h-full flex flex-col justify-center gap-2"
             style={{ animationDelay: `${delay}ms` }}
         >
-            <div className={`absolute -right-4 -top-4 w-20 h-20 ${bgClass} opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 ease-in-out`}></div>
+            <div className={`absolute -right-4 -top-4 w-20 h-20 ${bgClass} opacity-10 rounded-full blur-2xl transition-transform duration-slower ease-in-out`}></div>
 
             <div className="flex items-center gap-3 relative z-10 shrink-0">
                 <div className={`p-2 rounded-xl ${bgOpacityClass} dark:bg-opacity-10 ${textClass}`}>
                     <Icon size={18} className="text-current" />
                 </div>
-                <h3 className="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">{title}</h3>
+                <h3 className="font-bold text-ink-secondary text-xs uppercase tracking-wide">{title}</h3>
 
                 {onPeriodChange && (
                     <div className="ml-auto">
@@ -97,15 +97,15 @@ const DualStatCard = ({
 
             <div className="grid grid-cols-2 gap-3 relative z-10 grow items-center">
                 {/* Vertical Divider */}
-                <div className="absolute left-1/2 top-1 bottom-1 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+                <div className="absolute left-1/2 top-1 bottom-1 w-px bg-sunken -translate-x-1/2"></div>
 
-                <div className={`text-center ${onLeftClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`} onClick={onLeftClick}>
-                    <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider">{leftLabel}</p>
-                    <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{leftValue}</p>
+                <div className={`text-center ${onLeftClick ? 'cursor-pointer transition-transform' : ''}`} onClick={onLeftClick}>
+                    <p className="text-2xs uppercase font-bold text-ink-muted mb-1 tracking-wider">{leftLabel}</p>
+                    <p className="text-lg font-bold text-ink tracking-tight leading-none">{leftValue}</p>
                 </div>
-                <div className={`text-center ${onRightClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`} onClick={onRightClick}>
-                    <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider">{rightLabel}</p>
-                    <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{rightValue}</p>
+                <div className={`text-center ${onRightClick ? 'cursor-pointer transition-transform' : ''}`} onClick={onRightClick}>
+                    <p className="text-2xs uppercase font-bold text-ink-muted mb-1 tracking-wider">{rightLabel}</p>
+                    <p className="text-lg font-bold text-ink tracking-tight leading-none">{rightValue}</p>
                 </div>
             </div>
         </div>

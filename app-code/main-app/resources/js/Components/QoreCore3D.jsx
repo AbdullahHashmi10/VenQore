@@ -511,14 +511,14 @@ export default function QoreCore3D() {
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
 
             {/* Core wordmark — real text, so it stays crisp and selectable */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[2000] text-center pointer-events-none">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-toast text-center pointer-events-none">
                 <div
-                    className="font-black tracking-tight text-lg sm:text-2xl text-white drop-shadow-[0_2px_12px_rgba(76,29,149,0.9)]"
+                    className="font-bold tracking-tight text-lg sm:text-2xl text-white drop-shadow-[0_2px_12px_rgba(76,29,149,0.9)]"
                     style={{ fontFamily: "'Space Grotesk',sans-serif" }}
                 >
                     QORE
                 </div>
-                <div className="text-[7px] sm:text-4xs font-black uppercase tracking-[0.3em] text-violet-100/90 drop-shadow-[0_1px_6px_rgba(76,29,149,0.9)]">
+                <div className="text-[7px] sm:text-4xs font-bold uppercase tracking-[0.3em] text-violet-100/90 drop-shadow-[0_1px_6px_rgba(76,29,149,0.9)]">
                     Intelligence Core
                 </div>
             </div>
@@ -531,9 +531,9 @@ export default function QoreCore3D() {
                     className="absolute left-0 top-0 will-change-transform pointer-events-none"
                     style={{ opacity: 0 }}
                 >
-                    <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-950/85 border border-slate-900/10 dark:border-white/10 backdrop-blur-md shadow-lg">
-                        <m.ic size={13} className="text-indigo-600 dark:text-indigo-300 shrink-0" />
-                        <span className="hidden sm:inline text-2xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-app border border-line dark:border-white/10 backdrop-blur-md shadow-lg">
+                        <m.ic size={13} className="text-brand-600 dark:text-brand-300 shrink-0" />
+                        <span className="hidden sm:inline text-2xs font-bold text-ink-secondary dark:text-ink whitespace-nowrap">
                             {m.n}
                         </span>
                     </div>

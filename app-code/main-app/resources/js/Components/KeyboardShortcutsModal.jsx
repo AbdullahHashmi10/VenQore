@@ -81,13 +81,13 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, mode = 'global
 
     return (
         <Modal show={isOpen} onClose={onClose} maxWidth="2xl">
-            <div className="p-6 text-gray-900 dark:text-gray-100">
-                <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <div className="p-6 text-ink dark:text-ink">
+                <div className="flex justify-between items-center mb-6 border-b border-line dark:border-line pb-2">
                     <h2 className="text-xl font-bold flex items-center gap-2">
-                        <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm">⌨</kbd>
+                        <kbd className="px-2 py-1 bg-overlay dark:bg-raised rounded text-sm">⌨</kbd>
                         <span>{title}</span>
                     </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <button onClick={onClose} className="text-ink-muted hover:text-ink dark:hover:text-neutral-300">
                         ✕
                     </button>
                 </div>
@@ -102,11 +102,11 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, mode = 'global
                                 take the page down. */}
                             <ul className="space-y-2">
                                 {(Array.isArray(items) ? items : []).map((item, idx) => (
-                                    <li key={idx} className="flex justify-between items-center text-sm group hover:bg-gray-50 dark:hover:bg-gray-800 rounded px-1 transition-colors">
-                                        <span className="text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                                    <li key={idx} className="flex justify-between items-center text-sm group hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded px-1 transition-colors">
+                                        <span className="text-ink-secondary dark:text-ink-secondary group-hover:text-ink dark:group-hover:text-neutral-100">
                                             {item.desc}
                                         </span>
-                                        <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono font-bold text-gray-500 dark:text-gray-400">
+                                        <kbd className="px-2 py-0.5 bg-overlay dark:bg-surface border border-line dark:border-line rounded text-xs font-mono font-bold text-ink-muted dark:text-ink-secondary">
                                             {item.key}
                                         </kbd>
                                     </li>
@@ -116,7 +116,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, mode = 'global
                     ))}
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-800 text-center text-xs text-gray-400">
+                <div className="mt-8 pt-4 border-t border-line dark:border-line text-center text-xs text-ink-muted">
                     Press <kbd className="font-bold">Esc</kbd> to close this reference.
                 </div>
             </div>

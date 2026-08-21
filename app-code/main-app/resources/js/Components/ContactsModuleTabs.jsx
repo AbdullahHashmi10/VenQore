@@ -71,32 +71,32 @@ export default function ContactsModuleTabs({ activeTab }) {
     return (
         <div className="flex flex-col gap-1 shrink-0">
             {/* Mobile Header Toggle Bar - Visible on mobile/tablet, hidden on lg */}
-            <div className="lg:hidden flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl shadow-sm">
+            <div className="lg:hidden flex items-center justify-between bg-surface border border-line p-2.5 rounded-xl shadow-sm">
                 <div className="flex items-center gap-2">
-                    <Handshake size={16} className="text-indigo-500" />
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
-                        Directory: <span className="text-slate-800 dark:text-white font-black">
+                    <Handshake size={16} className="text-brand-500" />
+                    <span className="text-xs font-bold text-ink-muted uppercase tracking-tight">
+                        Directory: <span className="text-ink font-bold">
                             {activeGroupObj?.label || 'Partners'}
-                            {activeItemObj ? ` > ${activeItemObj.label}` : ''}
+                            {activeItemObj ?` > ${activeItemObj.label}` : ''}
                         </span>
                     </span>
                 </div>
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700"
+                    className="px-2 py-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-all flex items-center gap-1 border border-line"
                 >
                     <span className="text-3xs font-bold uppercase tracking-wider">{isExpanded ? 'Collapse' : 'Expand'}</span>
-                    <ChevronRight size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                    <ChevronRight size={14} className={`transition-transform duration-normal ${isExpanded ? 'rotate-90' : ''}`} />
                 </button>
             </div>
 
             {/* Main Navigation Tabs */}
             <div className={`
-                flex flex-col lg:flex-row lg:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm
+                flex flex-col lg:flex-row lg:items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm
                 ${isExpanded ? 'flex' : 'hidden lg:flex'}
-            `}>
+`}>
                 {/* Level 1: Category Selector */}
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
+                <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
                     {groups.map((group) => {
                         const Icon = group.icon;
                         const isActive = activeGroup === group.id;
@@ -106,12 +106,12 @@ export default function ContactsModuleTabs({ activeTab }) {
                                 key={group.id}
                                 onClick={() => setActiveGroup(group.id)}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-normal whitespace-nowrap
                                     ${isActive
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                        ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }
-                                `}
+`}
                             >
                                 <Icon size={14} className={isActive ? 'opacity-100' : 'opacity-70'} />
                                 {group.label}
@@ -121,7 +121,7 @@ export default function ContactsModuleTabs({ activeTab }) {
                 </div>
 
                 {/* Separator / Arrow */}
-                <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
+                <div className="hidden lg:flex items-center text-neutral-300 dark:text-ink-secondary">
                     <ChevronRight size={16} />
                 </div>
 
@@ -136,12 +136,12 @@ export default function ContactsModuleTabs({ activeTab }) {
                                 key={tab.id}
                                 href={tab.href}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap
                                     ${isActive
-                                        ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-semibold'
-                                        : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
+                                        ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/20 dark:text-brand-400 font-semibold'
+                                        : 'bg-transparent border-transparent text-ink-secondary hover:bg-interactive-hover hover:border-line dark:text-ink-muted dark:hover:bg-interactive-hover dark:hover:border-line-strong'
                                     }
-                                `}
+`}
                             >
                                 <Icon size={14} />
                                 {tab.label}

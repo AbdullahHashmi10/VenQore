@@ -49,15 +49,15 @@ const STATUS_CONFIG = {
     },
     closed: {
         label: 'Closed',
-        color: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700',
-        dot: 'bg-slate-400',
+        color: 'bg-sunken text-ink-muted border-line',
+        dot: 'bg-neutral-400',
     },
 };
 
 function StatusBadge({ status }) {
     const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.open;
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wider border ${cfg.color}`}>
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-bold uppercase tracking-wider border ${cfg.color}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
             {cfg.label}
         </span>
@@ -69,7 +69,7 @@ function EscalationBadge({ type }) {
     if (!cfg) return null;
     const Icon = cfg.icon;
     return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-black uppercase tracking-wider border ${cfg.color}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider border ${cfg.color}`}>
             <Icon size={9} />
             {cfg.label}
         </span>
@@ -164,14 +164,14 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                 {/* Header */}
                 <div className="shrink-0 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-indigo-600/10 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center">
-                            <Sparkles size={18} className="text-indigo-600 dark:text-indigo-400" />
+                        <div className="w-10 h-10 rounded-2xl bg-brand-600/10 dark:bg-brand-500/20 border border-brand-200 dark:border-brand-800 flex items-center justify-center">
+                            <Sparkles size={18} className="text-brand-600 dark:text-brand-400" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                            <h1 className="text-lg font-bold text-ink tracking-tight">
                                 Vena Chat Tickets
                             </h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                            <p className="text-xs text-ink-muted">
                                 {isPlatform
                                     ? 'Auto-generated tickets from Vena chat escalations across all stores'
                                     : 'Customer support tickets raised through your store\'s Vena chat widget'}
@@ -184,7 +184,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                         {open_count > 0 && (
                             <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl">
                                 <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                                <span className="text-xs font-black text-rose-700 dark:text-rose-300">
+                                <span className="text-xs font-bold text-rose-700 dark:text-rose-300">
                                     {open_count} open {open_count === 1 ? 'ticket' : 'tickets'}
                                 </span>
                             </div>
@@ -193,7 +193,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                         {!isPlatform && (
                             <button
                                 onClick={() => setOpenModal(true)}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-150 shadow-sm shadow-indigo-500/10"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-fast shadow-sm "
                             >
                                 <Plus size={12} />
                                 Log Ticket
@@ -204,13 +204,13 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                 {/* Filters */}
                 <div className="shrink-0 flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
-                        <Filter size={12} className="text-slate-400" />
-                        <span className="text-2xs font-black uppercase tracking-wider text-slate-500">Status:</span>
+                    <div className="flex items-center gap-1.5 px-3 py-2 bg-surface border border-line rounded-xl shadow-sm">
+                        <Filter size={12} className="text-ink-muted" />
+                        <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Status:</span>
                         <select
                             value={statusFilter}
                             onChange={(e) => handleStatusChange(e.target.value)}
-                            className="text-xs font-bold text-slate-700 dark:text-slate-200 bg-transparent outline-none cursor-pointer"
+                            className="text-xs font-bold text-ink-secondary dark:text-ink bg-transparent outline-none cursor-pointer"
                         >
                             <option value="all">All</option>
                             <option value="open">Open</option>
@@ -221,13 +221,13 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                     </div>
 
                     {isPlatform && (
-                        <div className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
-                            <Filter size={12} className="text-slate-400" />
-                            <span className="text-2xs font-black uppercase tracking-wider text-slate-500">Reason:</span>
+                        <div className="flex items-center gap-1.5 px-3 py-2 bg-surface border border-line rounded-xl shadow-sm">
+                            <Filter size={12} className="text-ink-muted" />
+                            <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Reason:</span>
                             <select
                                 value={escalationFilter}
                                 onChange={(e) => handleEscalationChange(e.target.value)}
-                                className="text-xs font-bold text-slate-700 dark:text-slate-200 bg-transparent outline-none cursor-pointer"
+                                className="text-xs font-bold text-ink-secondary dark:text-ink bg-transparent outline-none cursor-pointer"
                             >
                                 <option value="all">All</option>
                                 <option value="ai_failure">AI Failure</option>
@@ -243,11 +243,11 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                     {tickets.data.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full py-24 text-center">
-                            <div className="w-16 h-16 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center mb-4">
-                                <Inbox size={28} className="text-indigo-400" />
+                            <div className="w-16 h-16 rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 flex items-center justify-center mb-4">
+                                <Inbox size={28} className="text-brand-400" />
                             </div>
-                            <h3 className="text-base font-black text-slate-700 dark:text-slate-200">No tickets found</h3>
-                            <p className="text-xs text-slate-400 mt-1">
+                            <h3 className="text-base font-bold text-ink-secondary dark:text-ink">No tickets found</h3>
+                            <p className="text-xs text-ink-muted mt-1">
                                 Vena tickets appear here when chat escalations occur and agents are offline.
                             </p>
                         </div>
@@ -261,7 +261,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                 return (
                                     <div
                                         key={ticket.id}
-                                        className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 rounded-2xl p-5 flex items-start gap-4 transition-all duration-200 hover:shadow-md hover:shadow-indigo-500/5 relative overflow-hidden"
+                                        className="group bg-surface border border-line hover:border-brand-200 dark:hover:border-brand-800 rounded-2xl p-5 flex items-start gap-4 transition-all duration-normal hover:shadow-md hover: relative overflow-hidden"
                                     >
                                         {/* Left accent stripe for open tickets */}
                                         {ticket.status === 'open' && (
@@ -269,8 +269,8 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                         )}
 
                                         {/* Icon */}
-                                        <div className="shrink-0 w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center">
-                                            <MessageSquare size={16} className="text-indigo-500 dark:text-indigo-400" />
+                                        <div className="shrink-0 w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 flex items-center justify-center">
+                                            <MessageSquare size={16} className="text-brand-500 dark:text-brand-400" />
                                         </div>
 
                                         {/* Content */}
@@ -281,16 +281,16 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                         <StatusBadge status={ticket.status} />
                                                         <EscalationBadge type={ticket.escalation_type} />
                                                     </div>
-                                                    <h3 className="text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                    <h3 className="text-sm font-bold text-ink truncate group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                                                         {ticket.subject}
                                                     </h3>
                                                     <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                                        <span className="text-1xs text-slate-500 dark:text-slate-400">
+                                                        <span className="text-1xs text-ink-muted">
                                                             <span className="font-bold">{ticket.requester_name}</span>
                                                             {ticket.requester_email && ` · ${ticket.requester_email}`}
                                                         </span>
                                                         {isPlatform && ticket.tenant && (
-                                                            <span className="text-2xs font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-700">
+                                                            <span className="text-2xs font-bold px-2 py-0.5 bg-sunken text-ink-muted rounded-full border border-line">
                                                                 {ticket.tenant.name}
                                                             </span>
                                                         )}
@@ -299,7 +299,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                                                 {/* Time + actions */}
                                                 <div className="shrink-0 flex flex-col items-end gap-2">
-                                                    <div className="flex items-center gap-1 text-2xs text-slate-400">
+                                                    <div className="flex items-center gap-1 text-2xs text-ink-muted">
                                                         <Clock size={10} />
                                                         {formatTime(ticket.created_at)}
                                                     </div>
@@ -309,7 +309,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                         {ticket.status === 'open' && (
                                                             <button
                                                                 onClick={(e) => { e.preventDefault(); handleStatusUpdate(ticket, 'in_progress'); }}
-                                                                className="px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg text-3xs font-black uppercase tracking-wider hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                                                                className="px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg text-3xs font-bold uppercase tracking-wider hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
                                                             >
                                                                 Pick Up
                                                             </button>
@@ -317,7 +317,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                         {ticket.status === 'in_progress' && (
                                                             <button
                                                                 onClick={(e) => { e.preventDefault(); handleStatusUpdate(ticket, 'resolved'); }}
-                                                                className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-3xs font-black uppercase tracking-wider hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+                                                                className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-3xs font-bold uppercase tracking-wider hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                                                             >
                                                                 Resolve
                                                             </button>
@@ -326,7 +326,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                         {/* View detail */}
                                                         <Link
                                                             href={showRoute}
-                                                            className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all"
+                                                            className="w-7 h-7 rounded-lg bg-sunken border border-line flex items-center justify-center text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 hover:border-brand-200 dark:hover:border-brand-700 transition-all"
                                                         >
                                                             <ChevronRight size={14} />
                                                         </Link>
@@ -343,8 +343,8 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                 {/* Pagination */}
                 {tickets.last_page > 1 && (
-                    <div className="shrink-0 flex items-center justify-between py-3 border-t border-slate-100 dark:border-slate-800">
-                        <span className="text-xs text-slate-400">
+                    <div className="shrink-0 flex items-center justify-between py-3 border-t border-line">
+                        <span className="text-xs text-ink-muted">
                             Showing {tickets.from}–{tickets.to} of {tickets.total} tickets
                         </span>
                         <div className="flex gap-1.5">
@@ -354,10 +354,10 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                     href={link.url || '#'}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                                         link.active
-                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                            ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
                                             : link.url
-                                                ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-200'
-                                                : 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-600 border-slate-100 dark:border-slate-800 cursor-not-allowed'
+                                                ? 'bg-surface text-ink-secondary border-line hover:border-brand-200'
+                                                : 'bg-app text-neutral-300 dark:text-ink-secondary border-line cursor-not-allowed'
                                     }`}
                                     preserveState
                                 >{(link.label || '').replace(/<[^>]*>/g, '').replace(/&laquo;/g, '\u00ab').replace(/&raquo;/g, '\u00bb').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')}</Link>
@@ -370,56 +370,56 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
-            `}</style>
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--vq-slate-300)); border-radius: 10px; }
+                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--vq-slate-700)); }
+`}</style>
 
             {/* Modal Form Dialog */}
             {openModal && (
-                <div className="fixed inset-0 z-[1500] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in" style={{ animation: 'fadeIn 0.2s ease-out' }}>
-                    <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl animate-scale-up" style={{ animation: 'scaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-                        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+                <div className="fixed inset-0 z-toast flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm animate-fade-in" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+                    <div className="w-full max-w-lg bg-surface border border-line rounded-2xl overflow-hidden shadow-2xl animate-scale-up" style={{ animation: 'scaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+                        <div className="px-6 py-5 border-b border-line flex items-center justify-between bg-sunken/50 dark:bg-surface">
                             <div>
-                                <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">Log New Customer Ticket</h3>
-                                <p className="text-xs text-slate-400 mt-0.5">Record customer issues manually while on the call or in-store</p>
+                                <h3 className="text-base font-bold text-ink tracking-tight">Log New Customer Ticket</h3>
+                                <p className="text-xs text-ink-muted mt-0.5">Record customer issues manually while on the call or in-store</p>
                             </div>
-                            <button onClick={() => setOpenModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors text-lg p-1">✕</button>
+                            <button onClick={() => setOpenModal(false)} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors text-lg p-1">✕</button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Customer Name</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Customer Name</label>
                                     <input 
                                         type="text" required placeholder="e.g. John Doe"
                                         value={formName} onChange={e => setFormName(e.target.value)}
-                                        className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-slate-900 dark:text-white transition-all font-semibold"
+                                        className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Customer Email</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Customer Email</label>
                                     <input 
                                         type="email" required placeholder="e.g. john@example.com"
                                         value={formEmail} onChange={e => setFormEmail(e.target.value)}
-                                        className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-slate-900 dark:text-white transition-all font-semibold"
+                                        className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Subject / Summary</label>
+                                <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Subject / Summary</label>
                                 <input 
                                     type="text" required placeholder="Brief description of the issue"
                                     value={formSubject} onChange={e => setFormSubject(e.target.value)}
-                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-slate-900 dark:text-white transition-all font-semibold"
+                                    className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Priority</label>
+                                <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Priority</label>
                                 <select 
                                     value={formPriority} onChange={e => setFormPriority(e.target.value)}
-                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-slate-900 dark:text-white transition-all font-bold"
+                                    className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-bold"
                                 >
                                     <option value="low">Low</option>
                                     <option value="normal">Normal</option>
@@ -429,19 +429,19 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                             </div>
 
                             <div>
-                                <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Issue details / notes</label>
+                                <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Issue details / notes</label>
                                 <textarea 
                                     required rows={4} placeholder="Describe the customer inquiry or ticket details..."
                                     value={formMessage} onChange={e => setFormMessage(e.target.value)}
-                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-slate-900 dark:text-white transition-all font-semibold resize-none"
+                                    className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold resize-none"
                                 />
                             </div>
 
                             <div className="pt-2 flex justify-end gap-3">
-                                <button type="button" onClick={() => setOpenModal(false)} className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                <button type="button" onClick={() => setOpenModal(false)} className="px-4 py-2 border border-line rounded-xl text-xs font-bold uppercase tracking-wider text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                     Cancel
                                 </button>
-                                <button type="submit" disabled={isSubmitting} className="flex items-center gap-1.5 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-150 shadow-sm shadow-indigo-500/10">
+                                <button type="submit" disabled={isSubmitting} className="flex items-center gap-1.5 px-5 py-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-fast shadow-sm ">
                                     {isSubmitting ? 'Logging...' : 'Log Ticket'}
                                 </button>
                             </div>

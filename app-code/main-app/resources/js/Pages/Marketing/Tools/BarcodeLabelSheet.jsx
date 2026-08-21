@@ -52,7 +52,7 @@ function BarcodePlaceholder({ seed = '' }) {
     return (
         <div className="flex items-end justify-center gap-[1.5px] h-8 px-2">
             {bars.map((w, i) => (
-                <div key={i} style={{ width: `${w}px` }} className="bg-slate-800 dark:bg-slate-300 h-full" />
+                <div key={i} style={{ width: `${w}px` }} className="bg-neutral-800 dark:bg-raised h-full" />
             ))}
         </div>
     );
@@ -160,8 +160,8 @@ export default function BarcodeLabelSheetTool({
     const formatOptions = barcodeFormats.map((f) => ({ value: f.slug, label: f.name }));
     const formatLabel = (slug) => barcodeFormats.find((f) => f.slug === slug)?.name || slug || 'Code128';
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
+    const labelCls = 'block text-xs font-bold text-ink-muted mb-1.5';
 
     return (
         <ToolShell
@@ -185,31 +185,31 @@ export default function BarcodeLabelSheetTool({
             )}
 
             {/* Slim control bar — everything that ISN'T part of the label grid itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
                 <div className="flex gap-2">
-                    <button type="button" onClick={() => setMode('manual')} className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-colors ${mode === 'manual' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-white dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 border border-slate-900/10 dark:border-white/10'}`}>Label grid</button>
-                    <button type="button" onClick={() => setMode('bulk')} className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-colors ${mode === 'bulk' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-white dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 border border-slate-900/10 dark:border-white/10'}`}>Bulk paste</button>
+                    <button type="button" onClick={() => setMode('manual')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${mode === 'manual' ? 'bg-neutral-900 dark:bg-white text-white dark:text-ink' : 'bg-white dark:bg-white/[0.04] text-ink-muted border border-line dark:border-white/10'}`}>Label grid</button>
+                    <button type="button" onClick={() => setMode('bulk')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${mode === 'bulk' ? 'bg-neutral-900 dark:bg-white text-white dark:text-ink' : 'bg-white dark:bg-white/[0.04] text-ink-muted border border-line dark:border-white/10'}`}>Bulk paste</button>
                 </div>
 
                 <div className="w-44">
                     <Select value={preset} onChange={setPreset} options={presetOptions} />
-                    <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
+                    <p className="text-2xs text-ink-muted mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
                 </div>
                 <div className="w-40">
                     <Select value={currency} onChange={setCurrency} options={currencyOptions} />
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Copies</label>
+                    <label className="text-xs font-bold text-ink-muted">Copies</label>
                     <input type="number" min="1" max={maxCopies} className={`${inputCls} w-16 py-2`} value={copies} onChange={(e) => setCopies(Math.max(1, Math.min(maxCopies, parseInt(e.target.value) || 1)))} />
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-500 dark:text-slate-600 hidden lg:inline">{rows.length} label{rows.length === 1 ? '' : 's'} · real barcodes generated in your PDF</span>
+                    <span className="text-1xs text-ink-muted hidden lg:inline">{rows.length} label{rows.length === 1 ? '' : 's'} · real barcodes generated in your PDF</span>
                     <button
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -221,7 +221,7 @@ export default function BarcodeLabelSheetTool({
                 <div className="mb-8">
                     <label className={labelCls}>Paste one product per line: name,value,format,price</label>
                     <textarea className={`${inputCls} font-mono text-xs`} rows={8} value={bulkText} onChange={(e) => setBulkText(e.target.value)} />
-                    <button type="button" onClick={parseBulk} disabled={parsing} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black uppercase tracking-wide disabled:opacity-50">
+                    <button type="button" onClick={parseBulk} disabled={parsing} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sunken dark:bg-white text-white dark:text-ink text-xs font-bold uppercase tracking-wide disabled:opacity-50">
                         {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Parse into label grid
                     </button>
                 </div>
@@ -230,12 +230,12 @@ export default function BarcodeLabelSheetTool({
                     {/* THE LABEL GRID — this is the editor */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-2">
                         {rows.map((row) => (
-                            <div key={row.id} className="group relative rounded-2xl overflow-hidden shadow-lg shadow-slate-900/5 dark:shadow-black/30 border border-slate-900/10 dark:border-white/10 bg-white p-3.5 text-center">
+                            <div key={row.id} className="group relative rounded-2xl overflow-hidden shadow-lg shadow-neutral-900/5 dark:shadow-black/30 border border-line dark:border-white/10 bg-white p-3.5 text-center">
                                 <button
                                     type="button"
                                     onClick={() => removeRow(row.id)}
                                     disabled={rows.length === 1}
-                                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg flex items-center justify-center bg-white/90 text-slate-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity z-10"
+                                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg flex items-center justify-center bg-white/90 text-ink-secondary hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity z-10"
                                 >
                                     <Trash2 size={13} />
                                 </button>
@@ -250,7 +250,7 @@ export default function BarcodeLabelSheetTool({
                                         value={row.name}
                                         onChange={(v) => updateRow(row.id, 'name', v)}
                                         placeholder="Product name"
-                                        className="block text-[13px] font-bold text-slate-900 leading-tight mb-0.5"
+                                        className="block text-[13px] font-bold text-ink leading-tight mb-0.5"
                                     />
 
                                     <div className="mt-2 mb-1.5">
@@ -260,11 +260,11 @@ export default function BarcodeLabelSheetTool({
                                             value={row.value}
                                             onChange={(v) => updateRow(row.id, 'value', v)}
                                             placeholder="Barcode value / SKU"
-                                            className="block text-[10px] font-mono text-slate-500 mt-1"
+                                            className="block text-2xs font-mono text-ink-muted mt-1"
                                         />
                                     </div>
 
-                                    <div className="mt-2 text-sm font-black text-slate-900">
+                                    <div className="mt-2 text-sm font-bold text-ink">
                                         {symbol}
                                         <EditableText
                                             as="number"
@@ -274,7 +274,7 @@ export default function BarcodeLabelSheetTool({
                                             placeholder="Price"
                                             emptyLabel="no price"
                                             formatDisplay={(v) => parseFloat(v).toFixed(2)}
-                                            className="inline-block text-sm font-black"
+                                            className="inline-block text-sm font-bold"
                                         />
                                     </div>
                                 </div>
@@ -285,14 +285,14 @@ export default function BarcodeLabelSheetTool({
                             type="button"
                             onClick={addRow}
                             disabled={rows.length >= maxRows}
-                            className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-slate-900/15 dark:border-white/15 text-slate-500 dark:text-slate-500 hover:border-indigo-400/50 hover:text-indigo-500 disabled:opacity-40 transition-colors min-h-[150px]"
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-line dark:border-white/15 text-ink-muted hover:border-brand-400/50 hover:text-brand-500 disabled:opacity-40 transition-colors min-h-[150px]"
                         >
                             <Plus size={20} />
                             <span className="text-xs font-bold">Add label</span>
                         </button>
                     </div>
 
-                    <p className="text-center text-[11px] text-slate-500 dark:text-slate-600 mt-2 mb-8">
+                    <p className="text-center text-1xs text-ink-muted mt-2 mb-8">
                         The striped bars are a visual placeholder for where each barcode sits — the real, scannable barcode is generated in your downloaded PDF.
                     </p>
                 </>
@@ -315,7 +315,7 @@ function FormatPill({ value, options, onChange, label }) {
         <button
             type="button"
             onClick={() => setOpen(true)}
-            className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-900/[0.06] text-slate-500 hover:bg-indigo-500/10 hover:text-indigo-600 transition-colors"
+            className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-sunken text-ink-muted hover:bg-brand-500/10 hover:text-brand-600 transition-colors"
         >
             {label}
         </button>

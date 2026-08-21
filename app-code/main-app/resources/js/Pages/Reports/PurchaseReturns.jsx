@@ -76,27 +76,27 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                     <div className="flex items-center gap-3">
                         <Link
                             href={route('store.reports.index', { store_slug: store?.slug })}
-                            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-2 text-ink-muted hover:text-ink-secondary rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                         >
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                            <h1 className="text-xl md:text-2xl font-bold text-ink uppercase tracking-wider flex items-center gap-2">
                                 <PackageMinus className="text-red-500 w-6 h-6" />
                                 Purchase Returns
                             </h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Track and analyze stock returns and debit notes sent to suppliers.</p>
+                            <p className="text-xs text-ink-muted">Track and analyze stock returns and debit notes sent to suppliers.</p>
                         </div>
                     </div>
 
                     {/* Filter controls */}
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <Calendar size={16} className="text-slate-400" />
+                        <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-xl border border-line">
+                            <Calendar size={16} className="text-ink-muted" />
                             <select
                                 value={dateRange}
                                 onChange={(e) => handleFilterChange(e.target.value, supplierId)}
-                                className="border-0 bg-transparent text-xs font-bold text-slate-700 dark:text-slate-300 p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                                className="border-0 bg-transparent text-xs font-bold text-ink-secondary p-0 focus:ring-0 focus:outline-none cursor-pointer"
                             >
                                 <option value="today">Today</option>
                                 <option value="yesterday">Yesterday</option>
@@ -108,11 +108,11 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                             </select>
                         </div>
 
-                        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-xl border border-line">
                             <select
                                 value={supplierId}
                                 onChange={(e) => handleFilterChange(dateRange, e.target.value)}
-                                className="border-0 bg-transparent text-xs font-bold text-slate-700 dark:text-slate-300 p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                                className="border-0 bg-transparent text-xs font-bold text-ink-secondary p-0 focus:ring-0 focus:outline-none cursor-pointer"
                             >
                                 <option value="">All Suppliers</option>
                                 {suppliers.map(s => (
@@ -124,10 +124,10 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                 </div>
 
                 {/* Total Stats Card */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Returned Amount</span>
-                        <div className="text-3xl font-black text-red-600 dark:text-red-400 mt-1">
+                        <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Total Returned Amount</span>
+                        <div className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">
                             {formatCurrency(totalReturnAmount, store)}
                         </div>
                     </div>
@@ -137,8 +137,8 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                 </div>
 
                 {chartData.length > 0 && (
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Returns Trend</h3>
+                    <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm">
+                        <h3 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-4">Returns Trend</h3>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={chartData}>
@@ -147,7 +147,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                                     <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} />
                                     <Tooltip 
                                         formatter={(value) => [formatCurrency(value, store), 'Returned']}
-                                        contentStyle={{ backgroundColor: '#1E293B', borderRadius: '12px', border: 'none', color: '#fff' }}
+                                        contentStyle={{ backgroundColor: 'rgb(var(--vq-slate-800))', borderRadius: '12px', border: 'none', color: '#fff' }}
                                     />
                                     <Bar dataKey="amount" fill="#F43F5E" radius={[8, 8, 0, 0]} />
                                 </BarChart>
@@ -157,23 +157,23 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                 )}
 
                 {/* Table search & list */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
+                    <div className="p-4 md:p-6 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4" />
                             <input
                                 type="text"
                                 placeholder="Search by Supplier name or ID..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-xs md:text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full pl-9 pr-4 py-2 text-xs md:text-sm bg-app border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:text-white"
                             />
                         </div>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs md:text-sm">
-                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider text-2xs">
+                            <thead className="bg-app text-ink-muted uppercase font-bold tracking-wider text-2xs">
                                 <tr>
                                     <th className="px-6 py-4">Ref Number</th>
                                     <th className="px-6 py-4">Date</th>
@@ -184,27 +184,27 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                                     <th className="px-6 py-4 text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700 font-medium">
+                            <tbody className="divide-y divide-line font-medium">
                                 {processedData.length > 0 ? (
                                     processedData.map((item) => (
-                                        <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">
+                                        <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                            <td className="px-6 py-4 font-bold text-ink">
                                                 {item.reference_number || `#${item.id}`}
                                             </td>
-                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-350">
+                                            <td className="px-6 py-4 text-ink-secondary">
                                                 {new Date(item.date).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-4 font-bold text-slate-850 dark:text-slate-200">
+                                            <td className="px-6 py-4 font-bold text-ink">
                                                 {item.supplier?.name || 'Walk-in'}
                                             </td>
-                                            <td className="px-6 py-4 text-slate-500 dark:text-slate-400 italic">
+                                            <td className="px-6 py-4 text-ink-muted italic">
                                                 {item.reason || '—'}
                                             </td>
-                                            <td className="px-6 py-4 text-right font-black text-red-650 dark:text-red-400">
+                                            <td className="px-6 py-4 text-right font-bold text-red-600 dark:text-red-400">
                                                 {formatCurrency(item.amount, store)}
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-2xs font-extrabold uppercase ${
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-2xs font-bold uppercase ${
                                                     item.status === 'refunded' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
                                                     item.status === 'approved' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' :
                                                     'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
@@ -215,7 +215,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                                             <td className="px-6 py-4 text-center">
                                                 <Link
                                                     href={route('store.debit-notes.show', { store_slug: store?.slug, id: item.id })}
-                                                    className="inline-flex items-center gap-1 text-2xs font-bold text-indigo-650 dark:text-indigo-400 hover:underline uppercase"
+                                                    className="inline-flex items-center gap-1 text-2xs font-bold text-brand-600 dark:text-brand-400 hover:underline uppercase"
                                                 >
                                                     View Details <ArrowUpRight size={12} />
                                                 </Link>
@@ -224,7 +224,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="7" className="px-6 py-8 text-center text-slate-400 font-semibold">
+                                        <td colSpan="7" className="px-6 py-8 text-center text-ink-muted font-semibold">
                                             No purchase returns found for the selected criteria.
                                         </td>
                                     </tr>

@@ -49,14 +49,14 @@ export default function ReportPage({
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleExport}
-                                    className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                                    className="px-3 py-2 bg-surface border border-line rounded-lg text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-2 text-sm font-medium"
                                 >
                                     <Download size={16} />
                                     Export
                                 </button>
                                 <button
                                     onClick={handlePrint}
-                                    className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm font-medium shadow-lg shadow-indigo-500/20"
+                                    className="px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm font-medium shadow-lg "
                                 >
                                     <Printer size={16} />
                                     Print
@@ -71,9 +71,9 @@ export default function ReportPage({
 
                 {/* Print Header */}
                 <div className="hidden print:block mb-8 text-center">
-                    <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-                    <p className="text-slate-500">{subtitle}</p>
-                    <p className="text-sm text-slate-400 mt-2">Generated on {new Date().toLocaleString()}</p>
+                    <h1 className="text-2xl font-bold text-ink">{title}</h1>
+                    <p className="text-ink-muted">{subtitle}</p>
+                    <p className="text-sm text-ink-muted mt-2">Generated on {new Date().toLocaleString()}</p>
                 </div>
 
                 {/* Content Container with overflow auto */}
@@ -100,7 +100,7 @@ export default function ReportPage({
                     )}
 
                     {/* Report Content */}
-                    <div className="flex-1 min-h-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden print:shadow-none print:border-none">
+                    <div className="flex-1 min-h-0 bg-surface rounded-2xl border border-line shadow-sm overflow-hidden print:shadow-none print:border-none">
                         {children}
                     </div>
                 </div>

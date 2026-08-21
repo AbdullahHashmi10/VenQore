@@ -51,7 +51,7 @@ export default function PurchaseReturn({ purchase, items }) {
     return (
         <div className="p-6 max-w-5xl">
             <div className="flex items-center gap-4 mb-6">
-                <Link href={route('store.v3.purchases.show', purchase.id)} className="text-gray-500 hover:text-gray-700">
+                <Link href={route('store.v3.purchases.show', purchase.id)} className="text-ink-muted hover:text-ink">
                     ← Purchase {purchase.invoice_number}
                 </Link>
                 <h1 className="text-2xl font-bold">New Purchase Return (B18)</h1>
@@ -93,15 +93,15 @@ export default function PurchaseReturn({ purchase, items }) {
 
                 <div>
                     <h3 className="font-bold mb-2">Items Available for Return</h3>
-                    <table className="w-full border-collapse border border-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="w-full border-collapse border border-line">
+                        <thead className="bg-sunken">
                             <tr>
-                                <th className="border border-gray-200 px-3 py-2 text-left text-sm">Product</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm">Remaining Qty</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm">Batch Unit Cost</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm w-32">Return Qty</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm">Return Value</th>
-                                <th className="border border-gray-200 px-3 py-2 w-10"></th>
+                                <th className="border border-line px-3 py-2 text-left text-sm">Product</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm">Remaining Qty</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm">Batch Unit Cost</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm w-32">Return Qty</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm">Return Value</th>
+                                <th className="border border-line px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -111,16 +111,16 @@ export default function PurchaseReturn({ purchase, items }) {
 
                                 return (
                                     <tr key={item.purchase_item_id}>
-                                        <td className="border border-gray-200 px-3 py-2 text-sm">
-                                            {item.product_name} <span className="text-gray-400 text-xs">({item.sku})</span>
+                                        <td className="border border-line px-3 py-2 text-sm">
+                                            {item.product_name} <span className="text-ink-muted text-xs">({item.sku})</span>
                                         </td>
-                                        <td className="border border-gray-200 px-3 py-2 text-sm text-right">
+                                        <td className="border border-line px-3 py-2 text-sm text-right">
                                             {item.remaining_qty} {item.base_unit}
                                         </td>
-                                        <td className="border border-gray-200 px-3 py-2 text-sm text-right">
+                                        <td className="border border-line px-3 py-2 text-sm text-right">
                                             {getCurrencySymbol(store)} {item.unit_cost.toFixed(4)}
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1">
+                                        <td className="border border-line px-2 py-1">
                                             <input
                                                 type="number"
                                                 step="0.0001"
@@ -128,17 +128,17 @@ export default function PurchaseReturn({ purchase, items }) {
                                                 max={item.remaining_qty}
                                                 value={item.return_qty}
                                                 onChange={e => updateLine(index, 'return_qty', e.target.value)}
-                                                className={`w-full text-right border outline-none py-1 px-2 ${errors[`items.${index}.return_qty`] ? 'border-red-500' : 'border-gray-200'}`}
+                                                className={`w-full text-right border outline-none py-1 px-2 ${errors[`items.${index}.return_qty`] ? 'border-red-500' : 'border-line'}`}
                                                 placeholder="0"
                                             />
                                             {errors[`items.${index}.return_qty`] &&
                                                 <p className="text-red-600 text-xs mt-1 text-right">{errors[`items.${index}.return_qty`]}</p>
                                             }
                                         </td>
-                                        <td className="border border-gray-200 px-3 py-2 text-sm text-right font-medium">
+                                        <td className="border border-line px-3 py-2 text-sm text-right font-medium">
                                             {getCurrencySymbol(store)} {returnValue.toFixed(2)}
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1 text-center">
+                                        <td className="border border-line px-2 py-1 text-center">
                                             <button
                                                 type="button"
                                                 onClick={() => removeLine(index)}
@@ -156,7 +156,7 @@ export default function PurchaseReturn({ purchase, items }) {
                                 <td colSpan={4} className="px-3 py-2 text-right font-medium">
                                     Total Return Value:
                                 </td>
-                                <td className="border border-gray-200 px-3 py-2 text-right font-bold text-lg">
+                                <td className="border border-line px-3 py-2 text-right font-bold text-lg">
                                     {formatCurrency(grandTotal, store)}
                                 </td>
                                 <td></td>
@@ -182,7 +182,7 @@ export default function PurchaseReturn({ purchase, items }) {
                     </button>
                     <Link
                         href={route('store.v3.purchases.show', purchase.id)}
-                        className="border px-6 py-2 rounded hover:bg-gray-50"
+                        className="border px-6 py-2 rounded hover:bg-interactive-hover"
                     >
                         Cancel
                     </Link>

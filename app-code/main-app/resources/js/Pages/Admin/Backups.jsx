@@ -84,18 +84,18 @@ export default function Backups({ backups: initialBackups = [] }) {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                            <Database className="text-indigo-500" size={36} />
+                        <h2 className="text-4xl font-bold text-ink tracking-tight flex items-center gap-3">
+                            <Database className="text-brand-500" size={36} />
                             Database Safety
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage your system snapshots and disaster recovery.</p>
+                        <p className="text-ink-muted mt-2 font-medium">Manage your system snapshots and disaster recovery.</p>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <label className="cursor-pointer group relative px-6 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all shadow-sm">
+                        <label className="cursor-pointer group relative px-6 py-3 rounded-2xl bg-surface border border-line hover:border-brand-500 dark:hover:border-brand-500 transition-all shadow-sm">
                             <input type="file" className="hidden" accept=".sql" onChange={handleRestore} disabled={restoring} />
-                            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-bold text-sm">
-                                {restoring ? <RefreshCw size={18} className="animate-spin text-indigo-500" /> : <ArrowUpCircle size={18} className="text-indigo-500" />}
+                            <div className="flex items-center gap-2 text-ink-secondary dark:text-ink font-bold text-sm">
+                                {restoring ? <RefreshCw size={18} className="animate-spin text-brand-500" /> : <ArrowUpCircle size={18} className="text-brand-500" />}
                                 Restore Backup
                             </div>
                         </label>
@@ -103,9 +103,9 @@ export default function Backups({ backups: initialBackups = [] }) {
                         <button 
                             onClick={createBackup}
                             disabled={creating}
-                            className="relative group px-8 py-3 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden active:scale-95 transition-all"
+                            className="relative group px-8 py-3 rounded-2xl bg-sunken border border-neutral-800 shadow-xl overflow-hidden active:scale-95 transition-all"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-violet-700 opacity-90 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-brand-600 to-violet-700 opacity-90 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative z-10 flex items-center gap-2 text-white font-bold text-sm">
                                 {creating ? <RefreshCw size={18} className="animate-spin" /> : <Plus size={18} />}
                                 Create Snapshot
@@ -116,7 +116,7 @@ export default function Backups({ backups: initialBackups = [] }) {
 
                 {/* Warnings / Info Card */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-6 rounded-[2rem] bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+                    <div className="p-6 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
                         <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400 mb-3">
                             <AlertTriangle size={20} />
                             <h4 className="font-bold uppercase tracking-wider text-xs">Security Note</h4>
@@ -126,17 +126,17 @@ export default function Backups({ backups: initialBackups = [] }) {
                         </p>
                     </div>
 
-                    <div className="p-6 rounded-[2rem] bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
-                        <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400 mb-3">
+                    <div className="p-6 rounded-xl bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/20">
+                        <div className="flex items-center gap-3 text-brand-600 dark:text-brand-400 mb-3">
                             <ShieldCheck size={20} />
                             <h4 className="font-bold uppercase tracking-wider text-xs">Point-in-time Recovery</h4>
                         </div>
-                        <p className="text-sm text-indigo-800/80 dark:text-indigo-400/80 leading-relaxed font-medium">
+                        <p className="text-sm text-brand-800/80 dark:text-brand-400/80 leading-relaxed font-medium">
                             Snapshot frequency is recommended daily. Use the create button before major updates.
                         </p>
                     </div>
 
-                    <div className="p-6 rounded-[2rem] bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20">
+                    <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20">
                         <div className="flex items-center gap-3 text-emerald-600 dark:text-emerald-400 mb-3">
                             <CheckCircle2 size={20} />
                             <h4 className="font-bold uppercase tracking-wider text-xs">System Health</h4>
@@ -148,14 +148,14 @@ export default function Backups({ backups: initialBackups = [] }) {
                 </div>
 
                 {/* Backup Table */}
-                <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+                <div className="bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
                     
-                    <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
-                        <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                           <Clock className="text-slate-400" size={20} /> Snapshot History
+                    <div className="px-8 py-6 border-b border-line bg-sunken/50 dark:bg-surface flex items-center justify-between">
+                        <h3 className="text-xl font-bold text-ink flex items-center gap-2">
+                           <Clock className="text-ink-muted" size={20} /> Snapshot History
                         </h3>
-                        <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full text-2xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                        <span className="px-3 py-1 bg-sunken rounded-full text-2xs font-bold uppercase tracking-widest text-ink-muted">
                             {backups.length} Files Found
                         </span>
                     </div>
@@ -163,43 +163,43 @@ export default function Backups({ backups: initialBackups = [] }) {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="text-left border-b border-slate-100 dark:border-slate-800">
-                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400">Snapshot Name</th>
-                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400">Created Date</th>
-                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400">File Size</th>
-                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                                <tr className="text-left border-b border-line">
+                                    <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Snapshot Name</th>
+                                    <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Created Date</th>
+                                    <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">File Size</th>
+                                    <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                            <tbody className="divide-y divide-line">
                                 {backups.length === 0 ? (
                                     <tr>
                                         <td colSpan="4" className="px-8 py-20 text-center">
-                                            <div className="flex flex-col items-center justify-center text-slate-400">
+                                            <div className="flex flex-col items-center justify-center text-ink-muted">
                                                 <HardDrive size={48} className="mb-4 opacity-20" />
-                                                <p className="font-bold text-lg text-slate-600 dark:text-slate-400">No snapshots yet</p>
+                                                <p className="font-bold text-lg text-ink-secondary">No snapshots yet</p>
                                                 <p className="text-sm">Create your first database backup to protect your data.</p>
                                             </div>
                                         </td>
                                     </tr>
                                 ) : (
                                     backups.map((backup) => (
-                                        <tr key={backup.name} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                                        <tr key={backup.name} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                    <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center text-brand-600 dark:text-brand-400">
                                                         <FileText size={20} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-xs">{backup.name}</p>
-                                                        <p className="text-2xs font-black uppercase tracking-tighter text-slate-400 mt-0.5">SQL Database Dump</p>
+                                                        <p className="text-sm font-bold text-ink-secondary dark:text-ink truncate max-w-xs">{backup.name}</p>
+                                                        <p className="text-2xs font-bold uppercase tracking-tighter text-ink-muted mt-0.5">SQL Database Dump</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{backup.date}</p>
+                                                <p className="text-sm font-medium text-ink-secondary">{backup.date}</p>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                <span className="px-2 py-1 bg-sunken rounded-lg text-xs font-bold text-ink-secondary">
                                                     {backup.size}
                                                 </span>
                                             </td>
@@ -207,7 +207,7 @@ export default function Backups({ backups: initialBackups = [] }) {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <a 
                                                         href={route('store.backups.download', { store_slug: props.store.slug, filename: backup.name })}
-                                                        className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-indigo-500 hover:border-indigo-500 dark:hover:text-indigo-400 dark:hover:border-indigo-500 transition-all"
+                                                        className="p-2.5 rounded-xl bg-surface border border-line text-ink-muted hover:text-brand-500 hover:border-brand-500 dark:hover:text-brand-400 dark:hover:border-brand-500 transition-all"
                                                         title="Download SQL"
                                                     >
                                                         <Download size={18} />
@@ -215,7 +215,7 @@ export default function Backups({ backups: initialBackups = [] }) {
                                                     <button 
                                                         onClick={() => emailBackup(backup.name)}
                                                         disabled={mailing === backup.name}
-                                                        className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-emerald-500 hover:border-emerald-500 dark:hover:text-emerald-400 dark:hover:border-emerald-500 transition-all disabled:opacity-50"
+                                                        className="p-2.5 rounded-xl bg-surface border border-line text-ink-muted hover:text-emerald-500 hover:border-emerald-500 dark:hover:text-emerald-400 dark:hover:border-emerald-500 transition-all disabled:opacity-50"
                                                         title="Email Backup"
                                                     >
                                                         {mailing === backup.name ? <RefreshCw size={18} className="animate-spin" /> : <Mail size={18} />}
@@ -223,7 +223,7 @@ export default function Backups({ backups: initialBackups = [] }) {
                                                     <button 
                                                         onClick={() => deleteBackup(backup.name)}
                                                         disabled={deleting === backup.name}
-                                                        className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-500 dark:hover:text-red-400 dark:hover:border-red-500 transition-all disabled:opacity-50"
+                                                        className="p-2.5 rounded-xl bg-surface border border-line text-ink-muted hover:text-red-500 hover:border-red-500 dark:hover:text-red-400 dark:hover:border-red-500 transition-all disabled:opacity-50"
                                                         title="Delete permanently"
                                                     >
                                                         {deleting === backup.name ? <RefreshCw size={18} className="animate-spin" /> : <Trash2 size={18} />}

@@ -45,22 +45,22 @@ const FeatureCard = ({ icon: Icon, title, description, colorClass, glowColor, ro
             onMouseLeave={handleMouseLeave}
         >
             {/* Background Blob */}
-            <div className={`absolute inset-0 ${colorClass} rounded-3xl blur-[60px] opacity-10 group-hover:opacity-30 transition-opacity duration-500`} />
+            <div className={`absolute inset-0 ${colorClass} rounded-2xl blur-[60px] opacity-10 group-hover:opacity-30 transition-opacity duration-slower`} />
 
             {/* Card Content */}
             <div
                 ref={cardRef}
-                className="relative h-full w-full bg-white dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-white/10 p-6 flex flex-col items-center text-center transition-transform duration-100 ease-out will-change-transform shadow-sm group-hover:shadow-xl dark:shadow-none"
+                className="relative h-full w-full bg-surface backdrop-blur-xl rounded-2xl border border-line dark:border-white/10 p-6 flex flex-col items-center text-center transition-transform duration-fast ease-out will-change-transform shadow-sm group-hover:shadow-xl dark:shadow-none"
                 style={{ transformStyle: 'preserve-3d' }}
             >
-                <div ref={glowRef} className="absolute inset-0 transition-opacity duration-300 pointer-events-none opacity-0 mix-blend-soft-light z-20 rounded-3xl" />
+                <div ref={glowRef} className="absolute inset-0 transition-opacity duration-slow pointer-events-none opacity-0 mix-blend-soft-light z-20 rounded-2xl" />
 
                 <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
-                    <div className={`mb-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 ${glowColor} shadow-inner group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={`mb-4 p-4 rounded-2xl bg-surface dark:bg-white/5 border border-line dark:border-white/10 ${glowColor} shadow-inner transition-transform duration-slow`}>
                         <Icon size={32} />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-white group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors">{title}</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm font-light">{description}</p>
+                    <h3 className="text-xl font-bold mb-2 text-ink group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{title}</h3>
+                    <p className="text-ink-muted text-sm font-light">{description}</p>
                 </div>
             </div>
         </Link>
@@ -75,7 +75,7 @@ export default function AdminHome({ stats, auth }) {
 
             <div className="h-full flex flex-col relative overflow-y-auto custom-scrollbar p-6 md:p-8">
                 {/* Mesh Gradient Background (Dark Mode Only) */}
-                <div className="hidden dark:block fixed top-0 right-0 w-[800px] h-[800px] bg-indigo-600/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                <div className="hidden dark:block fixed top-0 right-0 w-[800px] h-[800px] bg-brand-600/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                 <div className="hidden dark:block fixed bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
                 <div className="hidden dark:block fixed inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
 
@@ -85,8 +85,8 @@ export default function AdminHome({ stats, auth }) {
                         title="Admin Dashboard"
                         description="View detailed system statistics, active sessions, and performance metrics."
                         icon={LayoutDashboard}
-                        colorClass="bg-indigo-600"
-                        glowColor="text-indigo-500 dark:text-indigo-400"
+                        colorClass="bg-brand-600"
+                        glowColor="text-brand-500 dark:text-brand-400"
                         routeName="admin.dashboard"
                     />
                     <FeatureCard
@@ -101,8 +101,8 @@ export default function AdminHome({ stats, auth }) {
                         title="System Settings"
                         description="Configure global application settings, preferences, and system defaults."
                         icon={Settings}
-                        colorClass="bg-slate-600"
-                        glowColor="text-slate-500 dark:text-slate-400"
+                        colorClass="bg-neutral-600"
+                        glowColor="text-ink-muted"
                         routeName="admin.settings"
                     />
                     <FeatureCard
@@ -132,17 +132,17 @@ export default function AdminHome({ stats, auth }) {
                 </div>
 
                 {/* Recent Activity Box - Styled to match Home Page */}
-                <div className="mt-8 bg-white dark:bg-black/20 rounded-3xl p-8 border border-slate-200 dark:border-white/5 backdrop-blur-sm relative z-10 flex flex-col shadow-sm">
+                <div className="mt-8 bg-white dark:bg-black/20 rounded-2xl p-8 border border-line dark:border-white/5 backdrop-blur-sm relative z-10 flex flex-col shadow-sm">
                     <div className="p-0 flex justify-between items-center mb-6 border-b-0">
-                        <h3 className="font-bold text-xl text-slate-800 dark:text-white flex items-center gap-3">
-                            <Activity className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
+                        <h3 className="font-bold text-xl text-ink flex items-center gap-3">
+                            <Activity className="w-6 h-6 text-brand-500 dark:text-brand-400" />
                             Recent System Activity
                         </h3>
-                        <button className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold transition-colors">
+                        <button className="text-sm text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 font-bold transition-colors">
                             View All Logs
                         </button>
                     </div>
-                    <div className="text-center text-slate-400 py-8">
+                    <div className="text-center text-ink-muted py-8">
                         <p>No recent system activity to display.</p>
                     </div>
                 </div>

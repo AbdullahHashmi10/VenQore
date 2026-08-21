@@ -70,23 +70,23 @@ const PremiumSelect = ({
             <div
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 className={`
-                    w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 
-                    text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all 
+                    w-full px-4 py-3 rounded-xl bg-surface border border-line 
+                    text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all 
                     cursor-pointer flex items-center justify-between shadow-sm
-                    ${isOpen ? 'ring-2 ring-indigo-500/20 border-indigo-500' : ''} 
-                    ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-slate-300 dark:hover:border-slate-600'}
-                `}
+                    ${isOpen ? 'ring-2 ring-brand-500/20 border-brand-500' : ''} 
+                    ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-line dark:hover:border-line-strong'}
+`}
             >
-                <span className={`truncate ${!selectedOption ? 'text-slate-400' : ''}`}>
+                <span className={`truncate ${!selectedOption ? 'text-ink-muted' : ''}`}>
                     {selectedOption ? selectedOption.name : placeholder}
                 </span>
-                <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={18} className={`text-ink-muted transition-transform duration-slow ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
             {isOpen && createPortal(
                 <div
                     ref={portalRef}
-                    className="fixed mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                    className="fixed mt-2 bg-surface rounded-2xl shadow-2xl border border-line z-command overflow-hidden animate-in fade-in zoom-in-95 duration-normal"
                     style={{
                         top: coords.top,
                         left: coords.left,
@@ -95,16 +95,16 @@ const PremiumSelect = ({
                 >
                     {/* Search Input */}
                     {searchable && (
-                        <div className="p-2 border-b border-slate-100 dark:border-slate-700">
+                        <div className="p-2 border-b border-line">
                             <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                 <input
                                     ref={searchInputRef}
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search..."
-                                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg outline-none focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-800 dark:text-white placeholder-slate-400"
+                                    className="w-full pl-9 pr-3 py-2 text-sm bg-app border border-line dark:border-line rounded-lg outline-none focus:ring-2 ring-brand-500/20 focus:border-brand-500 transition-all text-ink placeholder-slate-400"
                                     onClick={(e) => e.stopPropagation()}
                                 />
                             </div>
@@ -113,7 +113,7 @@ const PremiumSelect = ({
 
                     <div className="max-h-64 overflow-y-auto custom-scrollbar p-1.5">
                         {filteredOptions.length === 0 && !onAddNew && (
-                            <div className="px-4 py-3 text-sm text-slate-400 text-center">
+                            <div className="px-4 py-3 text-sm text-ink-muted text-center">
                                 {searchQuery ? 'No matching options' : 'No options available'}
                             </div>
                         )}
@@ -127,9 +127,9 @@ const PremiumSelect = ({
                                 className={`
                                     px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all flex items-center justify-between mb-0.5
                                     ${String(value) === String(option.id)
-                                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'}
-                                `}
+                                        ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
+                                        : 'text-ink-secondary dark:text-ink hover:bg-interactive-hover dark:hover:bg-interactive-hover'}
+`}
                             >
                                 <span className="truncate">{option.name}</span>
                                 {String(value) === String(option.id) && <Check size={16} className="shrink-0" />}
@@ -142,7 +142,7 @@ const PremiumSelect = ({
                                     onAddNew();
                                     setIsOpen(false);
                                 }}
-                                className="px-4 py-2.5 rounded-xl text-sm font-bold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors border-t border-slate-100 dark:border-slate-700 mt-1.5 pt-3"
+                                className="px-4 py-2.5 rounded-xl text-sm font-bold text-brand-600 dark:text-brand-400 cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors border-t border-line mt-1.5 pt-3"
                             >
                                 <span className="flex items-center gap-2">
                                     <span className="text-lg">+</span> {addNewLabel}

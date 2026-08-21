@@ -22,11 +22,11 @@ export default function StoreSuspended({ store_name, plan, billing_url }) {
                     <PauseCircle size={28} className="text-red-400" />
                 </div>
 
-                <h1 className="text-2xl font-black text-white mb-2">Store Suspended</h1>
-                <p className="text-slate-400 text-sm mb-2">
+                <h1 className="text-2xl font-bold text-white mb-2">Store Suspended</h1>
+                <p className="text-ink-muted text-sm mb-2">
                     <strong className="text-white">{store_name}</strong> has been suspended.
                 </p>
-                <p className="text-slate-500 text-xs mb-8">
+                <p className="text-ink-muted text-xs mb-8">
                     This usually happens when a trial expires or a payment fails.
                     Please update your billing to restore access.
                 </p>
@@ -35,7 +35,7 @@ export default function StoreSuspended({ store_name, plan, billing_url }) {
                     {billing_url && (
                         <a
                             href={billing_url}
-                            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold transition-all hover:scale-[1.02]"
+                            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 text-white font-bold transition-all"
                         >
                             <CreditCard size={16} />
                             Update Billing
@@ -45,7 +45,7 @@ export default function StoreSuspended({ store_name, plan, billing_url }) {
 
                     <Link
                         href={route('hub')}
-                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 font-medium text-sm transition-all"
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-white/10 text-ink-muted hover:text-white hover:bg-white/5 font-medium text-sm transition-all"
                     >
                         <ArrowRight size={15} />
                         Go to My Stores
@@ -55,7 +55,7 @@ export default function StoreSuspended({ store_name, plan, billing_url }) {
                         href={route('logout')}
                         method="delete"
                         as="button"
-                        className="flex items-center justify-center gap-2 w-full py-3 text-slate-600 hover:text-slate-400 text-sm transition-colors"
+                        className="flex items-center justify-center gap-2 w-full py-3 text-ink-secondary hover:text-ink-muted text-sm transition-colors"
                     >
                         <LogOut size={14} />
                         Sign out

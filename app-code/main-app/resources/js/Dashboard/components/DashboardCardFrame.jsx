@@ -26,6 +26,22 @@ export default function DashboardCardFrame({
     const description = definition?.description || '';
     const help = definition?.help || '';
 
+    /*
+     * Mechanism M1 — exactly one accent-filled card per board, and it must be
+     * the headline metric.
+     *
+     * `card.style.accent` has been persisted, sanitised, budget-enforced and
+     * validated since the editor landed, and NOTHING rendered it. The board had
+     * the data and drew every card identically, which is the one thing M1 says
+     * a board must not do: with no accent card it has not said which number
+     * matters.
+     *
+     * The fill is the mint gradient with inverted text, and in dark mode it also
+     * BLOOMS — it gains `--vq-glow-accent`, which the plain cards do not have.
+     * That bloom is M6: dark mode is a re-render, not an inversion.
+     */
+    const accent = Boolean(card?.style?.accent);
+
     // Handle gated / plan downgrade state: hide card entirely from layout view
     if (isGated) {
         return null; 
@@ -35,14 +51,27 @@ export default function DashboardCardFrame({
         <div
             style={{
                 position: 'relative',
-                background: 'var(--vq-surface)',
-                border: '1px solid var(--vq-line)',
+                background: accent ? 'var(--vq-grad-mint)' : 'var(--vq-surface)',
+                border: `1px solid ${accent ? 'transparent' : 'var(--vq-line)'}`,
                 borderRadius: 'var(--vq-r-lg)',
                 padding: '16px',
-                boxShadow: 'var(--vq-elev-1)',
+                boxShadow: accent ? 'var(--vq-glow-accent)' : 'var(--vq-elev-1)',
+                color: accent ? 'var(--vq-on-accent)' : 'var(--vq-text)',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between',
+                /*
+                 * Top-aligned, NOT space-between.
+                 *
+                 * `space-between` on a column pushes the header up and the body
+                 * down, so a card holding one number stretched that number
+                 * across whatever height the grid gave it — which is why a
+                 * three-element metric block was floating in the middle of a
+                 * 400px box with nothing above or below it.
+                 *
+                 * The fit decides the box; the content sits at the top of it.
+                 */
+                justifyContent: 'flex-start',
+                gap: '10px',
                 height: '100%',
                 userSelect: 'none',
                 transition: `border-color var(--vq-dur-fast) var(--vq-ease), box-shadow var(--vq-dur-fast) var(--vq-ease)`,
@@ -50,10 +79,18 @@ export default function DashboardCardFrame({
             className="vq-card-frame"
             id={`card-${card.id}`}
             onMouseEnter={e => {
+                if (accent) {
+                    e.currentTarget.style.boxShadow = 'var(--vq-glow-accent-strong)';
+                    return;
+                }
                 e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
                 e.currentTarget.style.boxShadow = 'var(--vq-elev-2)';
             }}
             onMouseLeave={e => {
+                if (accent) {
+                    e.currentTarget.style.boxShadow = 'var(--vq-glow-accent)';
+                    return;
+                }
                 e.currentTarget.style.borderColor = 'var(--vq-line)';
                 e.currentTarget.style.boxShadow = 'var(--vq-elev-1)';
             }}
@@ -80,7 +117,9 @@ export default function DashboardCardFrame({
                             letterSpacing: 'var(--vq-ls-eyebrow)',
                             textTransform: 'uppercase',
                             fontWeight: 'var(--vq-fw-medium)',
-                            color: 'var(--vq-text-3)',
+                            // On the accent fill the eyebrow inverts with everything
+                            // else. --vq-text-3 on mint is roughly 1.6:1.
+                            color: accent ? 'rgb(255 255 255 / .72)' : 'var(--vq-text-3)',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
@@ -255,7 +294,10 @@ export default function DashboardCardFrame({
                 flexGrow: 1,
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center',
+                // Was `center`, which floated the number block in the middle of
+                // the card. M2's ladder reads top-down — eyebrow, value, delta —
+                // so it starts at the top and a chart fills what is left.
+                justifyContent: 'flex-start',
                 width: '100%',
                 minHeight: 0,
                 position: 'relative',
@@ -283,7 +325,7 @@ export default function DashboardCardFrame({
                                 0%, 100% { opacity: 0.45; }
                                 50%       { opacity: 0.9; }
                             }
-                        `}</style>
+`}</style>
                     </div>
                 ) : error ? (
                     /* Error state */

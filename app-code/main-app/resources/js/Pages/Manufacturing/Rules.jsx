@@ -165,11 +165,11 @@ const ManufacturingRules = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-ink flex items-center gap-3">
                             <Beaker className="text-purple-500" size={32} />
                             Auto-Manufacturing Rules
                         </h1>
-                        <p className="text-sm text-slate-500 mt-1">Define composite products & ingredient auto-deduction</p>
+                        <p className="text-sm text-ink-muted mt-1">Define composite products & ingredient auto-deduction</p>
                     </div>
                     <button
                         onClick={() => setShowCreateModal(true)}
@@ -182,10 +182,10 @@ const ManufacturingRules = () => {
                 {/* Rules List */}
                 <div className="grid gap-4">
                     {rules.length === 0 ? (
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-700">
-                            <Beaker size={64} className="mx-auto text-slate-300 mb-4" />
-                            <h3 className="text-xl font-bold text-slate-600 dark:text-slate-300 mb-2">No Manufacturing Rules Yet</h3>
-                            <p className="text-slate-500 mb-4">Create your first rule to enable auto-deduction of ingredients</p>
+                        <div className="bg-surface rounded-2xl p-12 text-center border border-line">
+                            <Beaker size={64} className="mx-auto text-neutral-300 mb-4" />
+                            <h3 className="text-xl font-bold text-ink-secondary mb-2">No Manufacturing Rules Yet</h3>
+                            <p className="text-ink-muted mb-4">Create your first rule to enable auto-deduction of ingredients</p>
                             <button
                                 onClick={() => setShowCreateModal(true)}
                                 className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-bold"
@@ -195,19 +195,19 @@ const ManufacturingRules = () => {
                         </div>
                     ) : (
                         rules.map(rule => (
-                            <div key={rule.id} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                            <div key={rule.id} className="bg-surface rounded-2xl p-6 border border-line">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Package className="text-indigo-500" size={24} />
-                                            <h3 className="text-xl font-bold text-slate-800 dark:text-white">{rule.name}</h3>
+                                            <Package className="text-brand-500" size={24} />
+                                            <h3 className="text-xl font-bold text-ink">{rule.name}</h3>
                                             {rule.is_active ? (
                                                 <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded">ACTIVE</span>
                                             ) : (
-                                                <span className="px-2 py-1 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs font-bold rounded">INACTIVE</span>
+                                                <span className="px-2 py-1 bg-sunken text-ink-secondary text-xs font-bold rounded">INACTIVE</span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-slate-500 ml-9">{rule.description || 'No description'}</p>
+                                        <p className="text-sm text-ink-muted ml-9">{rule.description || 'No description'}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -217,13 +217,13 @@ const ManufacturingRules = () => {
                                                 setSimulationResult(null);
                                                 setShowSimulateModal(true);
                                             }}
-                                            className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/40 text-xs font-bold rounded-lg text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5 transition-colors border border-indigo-150/50 dark:border-indigo-900/50"
+                                            className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold rounded-lg text-brand-700 dark:text-brand-400 flex items-center gap-1.5 transition-colors border border-brand-100/50 dark:border-brand-900/50"
                                         >
-                                            <Beaker size={14} className="animate-pulse text-indigo-550" /> Simulate Feasibility
+                                            <Beaker size={14} className="animate-pulse text-brand-500" /> Simulate Feasibility
                                         </button>
                                         <button
                                             onClick={() => toggleRule(rule.id, rule.is_active)}
-                                            className={`p-2 rounded-lg ${rule.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-400 hover:bg-slate-100'}`}
+                                            className={`p-2 rounded-lg ${rule.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-ink-muted hover:bg-interactive-hover'}`}
                                         >
                                             {rule.is_active ? <CheckCircle size={20} /> : <XCircle size={20} />}
                                         </button>
@@ -238,12 +238,12 @@ const ManufacturingRules = () => {
 
                                 {/* Ingredients List */}
                                 <div className="ml-9 mt-4 space-y-2">
-                                    <p className="text-xs font-bold text-slate-500 uppercase mb-2">Ingredients:</p>
+                                    <p className="text-xs font-bold text-ink-muted uppercase mb-2">Ingredients:</p>
                                     {rule.ingredients && rule.ingredients.map((ing, i) => (
                                         <div key={i} className="flex items-center gap-2 text-sm">
                                             <span className="w-16 text-right font-bold text-purple-600">{ing.quantity_per_unit}{ing.unit}</span>
-                                            <ArrowRight size={14} className="text-slate-400" />
-                                            <span className="text-slate-700 dark:text-slate-300">{ing.ingredient_name || `Product #${ing.ingredient_product_id}`}</span>
+                                            <ArrowRight size={14} className="text-ink-muted" />
+                                            <span className="text-ink-secondary">{ing.ingredient_name || `Product #${ing.ingredient_product_id}`}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -255,20 +255,20 @@ const ManufacturingRules = () => {
                 {/* Create Rule Modal */}
                 {showCreateModal && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Create Manufacturing Rule</h2>
-                                <p className="text-sm text-slate-500 mt-1">Define a composite product and its ingredients</p>
+                        <div className="bg-surface rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-line">
+                                <h2 className="text-2xl font-bold text-ink">Create Manufacturing Rule</h2>
+                                <p className="text-sm text-ink-muted mt-1">Define a composite product and its ingredients</p>
                             </div>
 
                             <div className="p-6 space-y-6">
                                 {/* Product Selection */}
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Finished Product *</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">Finished Product *</label>
                                     <select
                                         value={newRule.product_id}
                                         onChange={(e) => setNewRule({ ...newRule, product_id: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 outline-none focus:ring-2 ring-purple-500"
+                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-purple-500"
                                     >
                                         <option value="">Select product...</option>
                                         {products.map(p => (
@@ -279,32 +279,32 @@ const ManufacturingRules = () => {
 
                                 {/* Rule Name */}
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Rule Name *</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">Rule Name *</label>
                                     <input
                                         type="text"
                                         value={newRule.name}
                                         onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
                                         placeholder="e.g., Garam Masala Production"
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 outline-none focus:ring-2 ring-purple-500"
+                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-purple-500"
                                     />
                                 </div>
 
                                 {/* Description */}
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Description</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">Description</label>
                                     <textarea
                                         value={newRule.description}
                                         onChange={(e) => setNewRule({ ...newRule, description: e.target.value })}
                                         placeholder="Optional description..."
                                         rows="2"
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 outline-none focus:ring-2 ring-purple-500"
+                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-purple-500"
                                     />
                                 </div>
 
                                 {/* Ingredients */}
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
-                                        <label className="block text-sm font-bold text-slate-600 dark:text-slate-300">Ingredients *</label>
+                                        <label className="block text-sm font-bold text-ink-secondary">Ingredients *</label>
                                         <button
                                             onClick={addIngredient}
                                             className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-sm font-bold flex items-center gap-1"
@@ -315,12 +315,12 @@ const ManufacturingRules = () => {
 
                                     <div className="space-y-3">
                                         {newRule.ingredients.map((ing, i) => (
-                                            <div key={i} className="grid grid-cols-12 gap-2 items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                                            <div key={i} className="grid grid-cols-12 gap-2 items-center p-3 bg-app rounded-lg">
                                                 <div className="col-span-6">
                                                     <select
                                                         value={ing.ingredient_product_id}
                                                         onChange={(e) => updateIngredient(i, 'ingredient_product_id', e.target.value)}
-                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-line dark:border-line bg-surface"
                                                     >
                                                         <option value="">Select ingredient...</option>
                                                         {products.map(p => (
@@ -336,14 +336,14 @@ const ManufacturingRules = () => {
                                                         value={ing.quantity_per_unit}
                                                         onChange={(e) => updateIngredient(i, 'quantity_per_unit', parseFloat(e.target.value) || 0)}
                                                         placeholder="Qty"
-                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-line dark:border-line bg-surface"
                                                     />
                                                 </div>
                                                 <div className="col-span-2">
                                                     <select
                                                         value={ing.unit}
                                                         onChange={(e) => updateIngredient(i, 'unit', e.target.value)}
-                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-line dark:border-line bg-surface"
                                                     >
                                                         <option value="g">g</option>
                                                         <option value="kg">kg</option>
@@ -366,20 +366,20 @@ const ManufacturingRules = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
+                            <div className="p-6 border-t border-line flex justify-end gap-2">
                                 <button
                                     onClick={() => {
                                         setShowCreateModal(false);
                                         setNewRule({ product_id: '', name: '', description: '', ingredients: [] });
                                     }}
-                                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold"
+                                    className="px-4 py-2 bg-sunken hover:bg-sunken dark:hover:bg-interactive-hover text-ink rounded-lg font-bold"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={saveRule}
                                     disabled={!newRule.product_id || !newRule.name || newRule.ingredients.length === 0}
-                                    className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center gap-2"
+                                    className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-sunken disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center gap-2"
                                 >
                                     <Save size={18} /> Save Rule
                                 </button>
@@ -390,35 +390,35 @@ const ManufacturingRules = () => {
 
                 {/* Simulate Feasibility Modal */}
                 {showSimulateModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-                            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-drawer p-4 animate-in fade-in duration-normal">
+                        <div className="bg-surface rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-line flex justify-between items-center">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Production Feasibility Simulator</h2>
-                                    <p className="text-sm text-slate-500 mt-1">Simulate manufacturing of <strong>{simulatingRule?.name}</strong></p>
+                                    <h2 className="text-2xl font-bold text-ink">Production Feasibility Simulator</h2>
+                                    <p className="text-sm text-ink-muted mt-1">Simulate manufacturing of <strong>{simulatingRule?.name}</strong></p>
                                 </div>
-                                <button onClick={() => setShowSimulateModal(false)} className="text-slate-400 hover:text-slate-650 text-xl font-bold">×</button>
+                                <button onClick={() => setShowSimulateModal(false)} className="text-ink-muted hover:text-ink text-xl font-bold">×</button>
                             </div>
 
                             <div className="p-6 space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Simulated Production Qty</label>
+                                        <label className="block text-sm font-bold text-ink-secondary mb-2">Simulated Production Qty</label>
                                         <input
                                             type="number"
                                             min="0.0001"
                                             step="any"
                                             value={simulationParams.planned_qty}
                                             onChange={(e) => setSimulationParams({ ...simulationParams, planned_qty: parseFloat(e.target.value) || 1 })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 outline-none focus:ring-2 ring-indigo-550 text-slate-800 dark:text-white"
+                                            className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-brand-500 text-ink"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Target Warehouse</label>
+                                        <label className="block text-sm font-bold text-ink-secondary mb-2">Target Warehouse</label>
                                         <select
                                             value={simulationParams.warehouse_id}
                                             onChange={(e) => setSimulationParams({ ...simulationParams, warehouse_id: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 outline-none focus:ring-2 ring-indigo-550 text-slate-850 dark:text-white"
+                                            className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-brand-500 text-ink"
                                         >
                                             <option value="">Select target warehouse...</option>
                                             {warehouses.map(w => (
@@ -431,29 +431,29 @@ const ManufacturingRules = () => {
                                 <button
                                     onClick={runSimulation}
                                     disabled={loadingSimulation || !simulationParams.warehouse_id}
-                                    className="w-full py-3 bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg font-bold transition-all disabled:opacity-50 text-sm"
+                                    className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold transition-all disabled:opacity-50 text-sm"
                                 >
                                     {loadingSimulation ? 'Running Simulation...' : 'Simulate Run'}
                                 </button>
 
                                 {simulationResult && (
-                                    <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                        <div className="flex items-center justify-between p-4 rounded-xl border font-bold text-sm bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700">
-                                            <div className="text-slate-800 dark:text-slate-200">
+                                    <div className="space-y-4 pt-4 border-t border-line">
+                                        <div className="flex items-center justify-between p-4 rounded-xl border font-bold text-sm bg-app border-line">
+                                            <div className="text-ink">
                                                 Status: {simulationResult.feasible ? (
-                                                    <span className="text-emerald-600 dark:text-emerald-400 font-extrabold ml-1">✅ FEASIBLE — Enough stock available</span>
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold ml-1">✅ FEASIBLE — Enough stock available</span>
                                                 ) : (
-                                                    <span className="text-rose-650 dark:text-rose-400 font-extrabold ml-1">❌ INFEASIBLE — Insufficient ingredient stock</span>
+                                                    <span className="text-rose-600 dark:text-rose-400 font-bold ml-1">❌ INFEASIBLE — Insufficient ingredient stock</span>
                                                 )}
                                             </div>
-                                            <div className="text-right text-slate-850 dark:text-slate-250">
-                                                Est. Cost: <span className="text-indigo-650 dark:text-indigo-400 font-black">{formatCurrency(simulationResult.total_estimated_cost, store)}</span>
+                                            <div className="text-right text-ink dark:text-ink">
+                                                Est. Cost: <span className="text-brand-600 dark:text-brand-400 font-bold">{formatCurrency(simulationResult.total_estimated_cost, store)}</span>
                                             </div>
                                         </div>
 
-                                        <div className="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-xl">
+                                        <div className="overflow-hidden border border-line rounded-xl">
                                             <table className="w-full text-left text-xs">
-                                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 uppercase tracking-wider font-bold">
+                                                <thead className="bg-app text-ink-muted uppercase tracking-wider font-bold">
                                                     <tr>
                                                         <th className="p-3">Ingredient</th>
                                                         <th className="p-3 text-right">Required</th>
@@ -463,22 +463,22 @@ const ManufacturingRules = () => {
                                                         <th className="p-3 text-center">Status</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700 font-medium">
+                                                <tbody className="divide-y divide-line font-medium">
                                                     {simulationResult.items.map((item, idx) => (
-                                                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-350">
-                                                            <td className="p-3 font-bold text-slate-800 dark:text-white">
+                                                        <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary">
+                                                            <td className="p-3 font-bold text-ink">
                                                                 {item.ingredient_name}
-                                                                <div className="text-slate-400 text-2xs font-semibold">SKU: {item.sku}</div>
+                                                                <div className="text-ink-muted text-2xs font-semibold">SKU: {item.sku}</div>
                                                             </td>
                                                             <td className="p-3 text-right font-bold">{item.required_qty} {item.unit}</td>
                                                             <td className="p-3 text-right">{item.available_qty} {item.unit}</td>
-                                                            <td className={`p-3 text-right font-bold ${item.missing_qty > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                            <td className={`p-3 text-right font-bold ${item.missing_qty > 0 ? 'text-rose-600' : 'text-ink-muted'}`}>
                                                                 {item.missing_qty > 0 ? `${item.missing_qty} ${item.unit}` : '0'}
                                                             </td>
-                                                            <td className="p-3 text-right text-slate-800 dark:text-white font-bold">{formatCurrency(item.estimated_cost, store)}</td>
+                                                            <td className="p-3 text-right text-ink font-bold">{formatCurrency(item.estimated_cost, store)}</td>
                                                             <td className="p-3 text-center font-bold">
                                                                 {item.missing_qty > 0 ? (
-                                                                    <span className="text-rose-650 dark:text-rose-400 text-2xs uppercase bg-rose-50 dark:bg-rose-950/20 px-1.5 py-0.5 rounded">Short</span>
+                                                                    <span className="text-rose-600 dark:text-rose-400 text-2xs uppercase bg-rose-50 dark:bg-rose-950/20 px-1.5 py-0.5 rounded">Short</span>
                                                                 ) : (
                                                                     <span className="text-emerald-600 dark:text-emerald-400 text-2xs uppercase bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded">OK</span>
                                                                 )}
@@ -492,10 +492,10 @@ const ManufacturingRules = () => {
                                 )}
                             </div>
 
-                            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                            <div className="p-6 border-t border-line flex justify-end">
                                 <button
                                     onClick={() => setShowSimulateModal(false)}
-                                    className="px-6 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-650 text-slate-750 dark:text-white rounded-lg font-bold"
+                                    className="px-6 py-2 bg-sunken hover:bg-sunken dark:hover:bg-interactive-hover text-ink-secondary dark:text-white rounded-lg font-bold"
                                 >
                                     Close
                                 </button>

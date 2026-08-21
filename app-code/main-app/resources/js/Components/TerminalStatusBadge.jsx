@@ -16,7 +16,7 @@ export default function TerminalStatusBadge() {
     if (!terminals || terminals.length === 0) {
         // Optional: Show "Setup Needed" if no terminals found
         return (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 text-2xs font-bold tracking-wider">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sunken text-ink-muted text-2xs font-bold tracking-wider">
                 <WifiOff size={14} />
                 <span>NO STATION</span>
             </div>
@@ -50,7 +50,7 @@ export default function TerminalStatusBadge() {
 
     if (isLive && !isClosedSignal && !isStrikeSignal) {
         statusConfig = {
-            color: 'bg-emerald-500 shadow-emerald-500/30',
+            color: 'bg-emerald-500 ',
             textColor: 'text-white',
             icon: <Wifi size={13} />,
             label: 'LIVE',
@@ -58,7 +58,7 @@ export default function TerminalStatusBadge() {
         };
     } else if (isClosedSignal) {
         statusConfig = {
-            color: 'bg-slate-500 dark:bg-slate-700 border border-slate-400/20',
+            color: 'bg-neutral-500 dark:bg-raised border border-line-strong',
             textColor: 'text-white',
             icon: <Lock size={13} />,
             label: 'CLOSED',
@@ -86,35 +86,35 @@ export default function TerminalStatusBadge() {
     return (
         <Popover className="relative">
             <Popover.Button className="outline-none">
-                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${statusConfig.textColor} text-2xs font-black tracking-widest shadow-lg ${statusConfig.color} transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95`}>
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${statusConfig.textColor} text-2xs font-bold tracking-widest shadow-lg ${statusConfig.color} transition-all duration-slow cursor-pointer active:scale-95`}>
                     {statusConfig.icon}
                     <span>{statusConfig.label}</span>
                 </div>
             </Popover.Button>
 
             <Transition
-                enter="transition duration-100 ease-out"
+                enter="transition duration-fast ease-out"
                 enterFrom="transform scale-95 opacity-0"
                 enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
+                leave="transition duration-fast ease-out"
                 leaveFrom="transform scale-100 opacity-100"
                 leaveTo="transform scale-95 opacity-0"
             >
-                <Popover.Panel className="absolute z-50 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-3 w-48 right-0">
+                <Popover.Panel className="absolute z-50 mt-2 bg-surface rounded-xl shadow-xl border border-line p-3 w-48 right-0">
                     <div className="space-y-2">
-                        <div className="text-xs font-bold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-1">
+                        <div className="text-xs font-bold text-ink-secondary dark:text-ink border-b border-line pb-1">
                             {terminal.name}
                         </div>
-                        <div className="text-2xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <div className="text-2xs text-ink-muted leading-relaxed">
                             {statusConfig.description}
                         </div>
                         {lastHeartbeat && (
-                            <div className="flex items-center gap-1 text-3xs text-slate-400 font-mono pt-1">
+                            <div className="flex items-center gap-1 text-3xs text-ink-muted font-mono pt-1">
                                 <Clock size={10} />
                                 <span>{lastHeartbeat.toLocaleTimeString()}</span>
                             </div>
                         )}
-                        <div className="text-3xs text-slate-300 dark:text-slate-600 font-mono pt-1">
+                        <div className="text-3xs text-neutral-300 dark:text-ink-secondary font-mono pt-1">
                             ID: {terminal.id} • IP: {terminal.ip_address || 'N/A'}
                         </div>
                     </div>

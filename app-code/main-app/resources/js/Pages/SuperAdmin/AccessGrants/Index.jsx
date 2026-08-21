@@ -14,7 +14,7 @@ function grantStatus(grant) {
         return { label: 'Expired (unused)', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', icon: Clock };
     }
     if (grant.redemption_count >= grant.max_redemptions) {
-        return { label: 'Fully Redeemed', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', icon: CheckCircle };
+        return { label: 'Fully Redeemed', color: 'text-brand-400 bg-brand-500/10 border-brand-500/20', icon: CheckCircle };
     }
     return { label: 'Active', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', icon: CheckCircle };
 }
@@ -49,8 +49,8 @@ function CopyLinkButton({ url, primary = false }) {
         <button
             onClick={copy}
             className={primary
-                ? "flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all"
-                : "flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-xs font-bold transition-all border border-white/10"}
+                ? "flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-bold transition-all"
+                : "flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-neutral-300 rounded-lg text-xs font-bold transition-all border border-white/10"}
         >
             {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
             {copied ? 'Copied!' : 'Copy Link'}
@@ -85,21 +85,21 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
     return (
         <div className="fixed inset-0 z-50 flex">
             <div className="flex-1 bg-black/50" onClick={onClose} />
-            <div className="w-[480px] bg-slate-900 border-l border-white/10 overflow-y-auto shadow-2xl">
+            <div className="w-[480px] bg-neutral-900 border-l border-white/10 overflow-y-auto shadow-2xl">
                 <div className="flex items-center justify-between px-7 py-5 border-b border-white/10">
-                    <h2 className="text-lg font-black text-white flex items-center gap-2">
-                        <Gift size={18} className="text-indigo-400" /> New Gift Link
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Gift size={18} className="text-brand-400" /> New Gift Link
                     </h2>
-                    <button onClick={onClose} className="text-slate-500 hover:text-white text-xl">✕</button>
+                    <button onClick={onClose} className="text-ink-muted hover:text-white text-xl">✕</button>
                 </div>
 
                 <form onSubmit={submit} className="px-7 py-6 space-y-5">
                     <div>
-                        <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Plan to Grant</label>
+                        <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Plan to Grant</label>
                         <select
                             value={data.plan_id}
                             onChange={e => setData('plan_id', e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
                         >
                             {plans.map(p => (
                                 <option key={p.id} value={p.id}>{p.display_name || p.name}</option>
@@ -109,7 +109,7 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
                     </div>
 
                     <div>
-                        <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">
+                        <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">
                             Duration — type any amount you want
                         </label>
                         <div className="flex gap-2">
@@ -118,26 +118,26 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
                                 min="1"
                                 value={data.duration_value}
                                 onChange={e => setData('duration_value', e.target.value)}
-                                className="w-24 bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                className="w-24 bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
                             />
                             <select
                                 value={data.duration_unit}
                                 onChange={e => setData('duration_unit', e.target.value)}
-                                className="flex-1 bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
                             >
                                 <option value="day">Days</option>
                                 <option value="month">Months</option>
                                 <option value="year">Years</option>
                             </select>
                         </div>
-                        <p className="text-xs text-slate-500 mt-1.5">e.g. 1 Month, 18 Months, 5 Years — anything you want.</p>
+                        <p className="text-xs text-ink-muted mt-1.5">e.g. 1 Month, 18 Months, 5 Years — anything you want.</p>
                         {(errors.duration_value || errors.duration_unit) && (
                             <p className="text-xs text-red-400 mt-1">{errors.duration_value || errors.duration_unit}</p>
                         )}
                     </div>
 
                     <div>
-                        <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">
+                        <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">
                             Your Note (private — never shown to the customer)
                         </label>
                         <input
@@ -145,39 +145,39 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
                             value={data.label}
                             onChange={e => setData('label', e.target.value)}
                             placeholder="e.g. Ahmed — referral gift"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-600"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none placeholder:text-ink-secondary"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Max Uses</label>
+                            <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Max Uses</label>
                             <input
                                 type="number"
                                 min="1"
                                 value={data.max_redemptions}
                                 onChange={e => setData('max_redemptions', e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
                             />
-                            <p className="text-1xs text-slate-500 mt-1">1 = single customer only</p>
+                            <p className="text-1xs text-ink-muted mt-1">1 = single customer only</p>
                         </div>
                         <div>
-                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Link Expires</label>
+                            <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Link Expires</label>
                             <input
                                 type="date"
                                 value={data.expires_at}
                                 onChange={e => setData('expires_at', e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
                             />
-                            <p className="text-1xs text-slate-500 mt-1">Blank = never</p>
+                            <p className="text-1xs text-ink-muted mt-1">Blank = never</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-                        <button type="button" onClick={onClose} className="flex-1 bg-white/5 text-slate-400 px-6 py-3 rounded-xl font-bold text-sm hover:bg-white/10 transition-all">
+                        <button type="button" onClick={onClose} className="flex-1 bg-white/5 text-ink-muted px-6 py-3 rounded-xl font-bold text-sm hover:bg-white/10 transition-all">
                             Cancel
                         </button>
-                        <button type="submit" disabled={processing} className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-indigo-500 transition-all disabled:opacity-50">
+                        <button type="submit" disabled={processing} className="flex-1 bg-brand-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-brand-500 transition-all disabled:opacity-50">
                             {processing ? 'Creating…' : 'Create Gift Link'}
                         </button>
                     </div>
@@ -196,12 +196,12 @@ function NewLinkBanner({ url, onDismiss }) {
                 <CheckCircle size={20} className="text-emerald-400 shrink-0" />
                 <div className="min-w-0">
                     <p className="text-sm font-bold text-emerald-400">Gift link created — send this to your customer:</p>
-                    <p className="text-xs text-slate-300 font-mono truncate mt-0.5">{url}</p>
+                    <p className="text-xs text-neutral-300 font-mono truncate mt-0.5">{url}</p>
                 </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
                 <CopyLinkButton url={url} primary />
-                <button onClick={onDismiss} className="text-slate-500 hover:text-white text-lg px-2">✕</button>
+                <button onClick={onDismiss} className="text-ink-muted hover:text-white text-lg px-2">✕</button>
             </div>
         </div>
     );
@@ -245,21 +245,21 @@ export default function AccessGrantsIndex({ grants, plans }) {
         <OneGlanceLayout title="Gift Access Links" mode="admin">
             <Head title="Gift Access Links" />
 
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-slower">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-                            <Gift className="text-indigo-400" />
+                        <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
+                            <Gift className="text-brand-400" />
                             Gift Access Links
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                        <p className="text-ink-muted text-sm mt-1">
                             Generate a link that gives a customer any plan for any duration you choose — no payment required.
                         </p>
                     </div>
                     <button
                         onClick={() => setShowDrawer(true)}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+                        className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
                     >
                         <Plus size={16} /> New Gift Link
                     </button>
@@ -269,29 +269,29 @@ export default function AccessGrantsIndex({ grants, plans }) {
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 rounded-3xl">
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Total Links</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p>
+                    <div className="bg-white dark:bg-white/5 border border-line dark:border-white/10 p-6 rounded-2xl">
+                        <p className="text-ink-muted text-xs font-bold uppercase tracking-widest mb-1">Total Links</p>
+                        <p className="text-3xl font-bold text-ink">{stats.total}</p>
                     </div>
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-6 rounded-3xl">
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-6 rounded-2xl">
                         <p className="text-emerald-500/60 text-xs font-bold uppercase tracking-widest mb-1">Active</p>
-                        <p className="text-3xl font-black text-emerald-400">{stats.active}</p>
+                        <p className="text-3xl font-bold text-emerald-400">{stats.active}</p>
                     </div>
-                    <div className="bg-indigo-500/5 border border-indigo-500/10 p-6 rounded-3xl">
-                        <p className="text-indigo-500/60 text-xs font-bold uppercase tracking-widest mb-1">Redemptions</p>
-                        <p className="text-3xl font-black text-indigo-400">{stats.redeemed}</p>
+                    <div className="bg-brand-500/5 border border-brand-500/10 p-6 rounded-2xl">
+                        <p className="text-brand-500/60 text-xs font-bold uppercase tracking-widest mb-1">Redemptions</p>
+                        <p className="text-3xl font-bold text-brand-400">{stats.redeemed}</p>
                     </div>
-                    <div className="bg-red-500/5 border border-red-500/10 p-6 rounded-3xl">
+                    <div className="bg-red-500/5 border border-red-500/10 p-6 rounded-2xl">
                         <p className="text-red-500/60 text-xs font-bold uppercase tracking-widest mb-1">Revoked</p>
-                        <p className="text-3xl font-black text-red-400">{stats.revoked}</p>
+                        <p className="text-3xl font-bold text-red-400">{stats.revoked}</p>
                     </div>
                 </div>
 
                 {/* Table */}
-                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-white/5 text-2xs font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
+                            <thead className="bg-white/5 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted border-b border-white/5">
                                 <tr>
                                     <th className="px-6 py-4">Plan &amp; Duration</th>
                                     <th className="px-6 py-4">Note</th>
@@ -305,7 +305,7 @@ export default function AccessGrantsIndex({ grants, plans }) {
                                 {grants.length === 0 ? (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-16 text-center">
-                                            <div className="flex flex-col items-center gap-3 text-slate-500">
+                                            <div className="flex flex-col items-center gap-3 text-ink-muted">
                                                 <Gift size={48} className="opacity-20" />
                                                 <p>No gift links yet. Create your first one above.</p>
                                             </div>
@@ -318,20 +318,20 @@ export default function AccessGrantsIndex({ grants, plans }) {
                                         <tr key={grant.id} className="hover:bg-white/5 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-white text-sm">{grant.plan?.display_name || grant.plan?.name}</div>
-                                                <div className="text-xs text-slate-500 mt-0.5">{durationLabel(grant)}</div>
+                                                <div className="text-xs text-ink-muted mt-0.5">{durationLabel(grant)}</div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-400 max-w-[180px] truncate">
-                                                {grant.label || <span className="text-slate-600">—</span>}
+                                            <td className="px-6 py-4 text-sm text-ink-muted max-w-[180px] truncate">
+                                                {grant.label || <span className="text-ink-secondary">—</span>}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${status.color}`}>
                                                     <StatusIcon size={11} /> {status.label}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-400">
+                                            <td className="px-6 py-4 text-sm text-ink-muted">
                                                 {grant.redemption_count} / {grant.max_redemptions}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-500">
+                                            <td className="px-6 py-4 text-sm text-ink-muted">
                                                 {new Date(grant.created_at).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">

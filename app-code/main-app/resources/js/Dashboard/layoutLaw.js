@@ -146,11 +146,20 @@ export const categoriesForChart = (chart) => LAW.chartCategories[chart] ?? ['C4'
  */
 export const minCategoryForChart = (chart) => categoriesForChart(chart)[0] ?? 'C4';
 
-/** The category a chart gets when a card is first created. */
+/**
+ * The category a chart gets when a card is first created.
+ *
+ * Stated per chart rather than derived. It used to take index 1 of the legal
+ * list, which is arithmetic rather than a decision — and it put a stat in a C2
+ * Strip: a 4x1 band 64px tall, with no room for a delta pill beneath the value.
+ * The reference board's KPI row is four C3 Metric cards at the standard 3x2
+ * fit, 152px, which is what a number with a delta actually needs.
+ */
 export function defaultCategoryForChart(chart) {
+    const stated = LAW.chartDefaultCategory?.[chart];
+    if (stated && isCategoryLegal(chart, stated)) return stated;
+
     const cats = categoriesForChart(chart);
-    // Middle of the legal range: the leanest is a floor, not a recommendation,
-    // and the widest hogs a board the user has not asked to spend.
     return cats[Math.min(1, cats.length - 1)] ?? 'C4';
 }
 

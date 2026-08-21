@@ -12,21 +12,21 @@ import { Check, X, Zap, Package, BarChart3, Users, Globe, Brain,
  */
 const Feature = ({ label, starter, growth, business }) => (
     <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-        <td className="py-3.5 pr-6 text-sm text-slate-300">{label}</td>
+        <td className="py-3.5 pr-6 text-sm text-neutral-300">{label}</td>
         <td className="py-3.5 text-center">
             {starter === true ? <Check size={15} className="mx-auto text-emerald-400" /> :
-             starter === false ? <X size={15} className="mx-auto text-slate-700" /> :
-             <span className="text-xs text-slate-400">{starter}</span>}
+             starter === false ? <X size={15} className="mx-auto text-ink-secondary" /> :
+             <span className="text-xs text-ink-muted">{starter}</span>}
         </td>
         <td className="py-3.5 text-center">
-            {growth === true ? <Check size={15} className="mx-auto text-indigo-400" /> :
-             growth === false ? <X size={15} className="mx-auto text-slate-700" /> :
-             <span className="text-xs text-slate-300">{growth}</span>}
+            {growth === true ? <Check size={15} className="mx-auto text-brand-400" /> :
+             growth === false ? <X size={15} className="mx-auto text-ink-secondary" /> :
+             <span className="text-xs text-neutral-300">{growth}</span>}
         </td>
         <td className="py-3.5 text-center">
             {business === true ? <Check size={15} className="mx-auto text-amber-400" /> :
-             business === false ? <X size={15} className="mx-auto text-slate-700" /> :
-             <span className="text-xs text-slate-300">{business}</span>}
+             business === false ? <X size={15} className="mx-auto text-ink-secondary" /> :
+             <span className="text-xs text-neutral-300">{business}</span>}
         </td>
     </tr>
 );
@@ -34,7 +34,7 @@ const Feature = ({ label, starter, growth, business }) => (
 const Section = ({ title, children }) => (
     <>
         <tr className="bg-white/[0.03]">
-            <td colSpan={4} className="py-3 px-0 text-xs font-bold text-slate-500 uppercase tracking-widest pt-6">
+            <td colSpan={4} className="py-3 px-0 text-xs font-bold text-ink-muted uppercase tracking-widest pt-6">
                 {title}
             </td>
         </tr>
@@ -52,7 +52,7 @@ export default function WhatIsIncluded() {
 
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-900/15 rounded-full blur-[120px]" />
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-900/15 rounded-full blur-[120px]" />
                 <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-15 mix-blend-overlay" />
             </div>
 
@@ -60,7 +60,7 @@ export default function WhatIsIncluded() {
             <nav className="relative z-10 flex items-center justify-between gap-3 px-4 sm:px-8 py-5 sm:py-6 border-b border-white/5">
                 <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <img src="/images/logo.png" alt="VenQore" className="h-8 sm:h-9 object-contain shrink-0" />
-                    <span className="font-black text-base sm:text-lg text-white truncate">VenQore<span className="text-indigo-400">.</span></span>
+                    <span className="font-bold text-base sm:text-lg text-white truncate">VenQore<span className="text-brand-400">.</span></span>
                 </Link>
                 <div className="flex items-center gap-4 shrink-0">
                     <Link href={route('redeem')} className="flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-xs sm:text-sm font-bold hover:bg-orange-500/20 transition-colors">
@@ -75,38 +75,38 @@ export default function WhatIsIncluded() {
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm font-bold mb-6">
                         <Tag size={13} /> AppSumo Lifetime Deal
                     </div>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white mb-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
                         What's Included
                     </h1>
-                    <p className="text-slate-400 text-base sm:text-xl max-w-2xl mx-auto">
+                    <p className="text-ink-muted text-base sm:text-xl max-w-2xl mx-auto">
                         One-time purchase. No hidden fees. Lifetime access to the software.
                         2 years of hosting on venqore.com FREE (then $9 to $30/mo after 2 years depending on plan tier).
                     </p>
                 </div>
 
                 {/* Plan comparison — scrolls horizontally on small screens so columns stay legible */}
-                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden mb-6">
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mb-6">
                   <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
                    <div className="min-w-[640px]">
                     <div className="grid grid-cols-4 border-b border-white/10">
                         <div className="p-4 sm:p-6" />
                         <div className="p-4 sm:p-6 text-center border-l border-white/10">
-                            <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">1 Code</p>
+                            <p className="text-xs text-ink-muted uppercase tracking-widest mb-1">1 Code</p>
                             <p className="font-bold text-white">Starter LTD</p>
-                            <p className="text-2xl font-black text-white mt-1">$99</p>
-                            <p className="text-xs text-slate-500 mt-1">one-time</p>
+                            <p className="text-2xl font-bold text-white mt-1">$99</p>
+                            <p className="text-xs text-ink-muted mt-1">one-time</p>
                         </div>
-                        <div className="p-4 sm:p-6 text-center border-l border-indigo-500/30 bg-indigo-500/5">
-                            <p className="text-xs text-indigo-400 uppercase tracking-widest mb-1">2 Codes Stacked</p>
-                            <p className="font-bold text-indigo-300">Growth LTD</p>
-                            <p className="text-2xl font-black text-white mt-1">$199</p>
-                            <p className="text-xs text-slate-500 mt-1">one-time</p>
+                        <div className="p-4 sm:p-6 text-center border-l border-brand-500/30 bg-brand-500/5">
+                            <p className="text-xs text-brand-400 uppercase tracking-widest mb-1">2 Codes Stacked</p>
+                            <p className="font-bold text-brand-300">Growth LTD</p>
+                            <p className="text-2xl font-bold text-white mt-1">$199</p>
+                            <p className="text-xs text-ink-muted mt-1">one-time</p>
                         </div>
                         <div className="p-4 sm:p-6 text-center border-l border-amber-500/20 bg-amber-500/5">
                             <p className="text-xs text-amber-400 uppercase tracking-widest mb-1">3 Codes Stacked</p>
                             <p className="font-bold text-amber-300">Business LTD</p>
-                            <p className="text-2xl font-black text-white mt-1">$349</p>
-                            <p className="text-xs text-slate-500 mt-1">one-time</p>
+                            <p className="text-2xl font-bold text-white mt-1">$349</p>
+                            <p className="text-xs text-ink-muted mt-1">one-time</p>
                         </div>
                     </div>
 
@@ -187,9 +187,9 @@ export default function WhatIsIncluded() {
                         { icon: Layers, title: 'Stack Up to 3', body: 'Buy a second or third code within 60 days to upgrade your plan tier instantly.' },
                     ].map((c, i) => (
                         <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10">
-                            <c.icon size={22} className="text-indigo-400 mb-3" />
+                            <c.icon size={22} className="text-brand-400 mb-3" />
                             <p className="font-bold text-white mb-1">{c.title}</p>
-                            <p className="text-slate-400 text-sm leading-relaxed">{c.body}</p>
+                            <p className="text-ink-muted text-sm leading-relaxed">{c.body}</p>
                         </div>
                     ))}
                 </div>
@@ -198,11 +198,11 @@ export default function WhatIsIncluded() {
                 <div className="text-center">
                     <Link
                         href={route('redeem')}
-                        className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/25"
+                        className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:shadow-lg hover:"
                     >
                         <Tag size={16} /> Redeem Your Code <ArrowRight size={16} />
                     </Link>
-                    <p className="text-slate-600 text-xs mt-4 px-4">
+                    <p className="text-ink-secondary text-xs mt-4 px-4">
                         Already bought on AppSumo? Click above to activate your license.
                     </p>
                 </div>

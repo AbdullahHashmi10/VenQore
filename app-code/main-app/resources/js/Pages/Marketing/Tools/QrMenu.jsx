@@ -24,8 +24,8 @@ const FAQS = [
     { q: 'How do customers view the menu?', a: 'Customers simply point their smartphone camera at the printed QR code on their table to automatically open your online menu or PDF link.' },
 ];
 
-const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-400/60 transition-colors';
-const labelBase = 'block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2';
+const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/60 transition-colors';
+const labelBase = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
 
 export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster = true, supportsLogo = true, toolGroups = [] }) {
     const [restaurantName, setRestaurantName] = useState('The Artisan Bistro');
@@ -129,10 +129,10 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
 
     // Current theme preview colors
     const activeTheme = themes[theme] || {
-        bg_color: '#1e293b',
+        bg_color: 'rgb(var(--vq-slate-800))',
         card_bg: '#0f172a',
         text_color: '#ffffff',
-        accent_color: '#f59e0b',
+        accent_color: 'rgb(var(--vq-amber-500))',
     };
 
     return (
@@ -155,13 +155,13 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                 { label: 'Price Tag Generator', href: '/tools/price-tag-generator' },
             ]}
         >
-            <div className="rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
                     {/* Controls Column */}
                     <div className="lg:col-span-7 space-y-6 min-w-0">
                         {/* Basic Info */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-ink flex items-center gap-2">
                                 <Utensils size={16} className="text-amber-500" /> Restaurant & Menu Details
                             </h3>
                             <div>
@@ -219,9 +219,9 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                         </div>
 
                         {/* Layout & Style */}
-                        <div className="space-y-4 pt-2 border-t border-slate-900/10 dark:border-white/10">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Layout size={16} className="text-indigo-500" /> Layout & Theme Presets
+                        <div className="space-y-4 pt-2 border-t border-line dark:border-white/10">
+                            <h3 className="text-sm font-bold text-ink flex items-center gap-2">
+                                <Layout size={16} className="text-brand-500" /> Layout & Theme Presets
                             </h3>
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <div>
@@ -244,7 +244,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                         className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors ${
                                             logo
                                                 ? 'bg-amber-500/15 border border-amber-400/40 text-amber-600 dark:text-amber-300'
-                                                : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-slate-400'
+                                                : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary hover:border-line-strong'
                                         }`}
                                     >
                                         <ImageIcon size={14} /> {logo ? 'Remove Logo' : 'Upload Center Logo'}
@@ -253,7 +253,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                     {logo && (
                                         <div className="flex items-center gap-2">
                                             <img src={logo} alt="" className="w-8 h-8 object-contain rounded bg-white p-0.5" />
-                                            <span className="text-xs text-slate-500">Logo attached</span>
+                                            <span className="text-xs text-ink-muted">Logo attached</span>
                                         </div>
                                     )}
                                 </div>
@@ -262,22 +262,22 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
 
                         {/* Optional Menu Items */}
                         {preset !== 'sticker_3x3' && (
-                            <div className="space-y-4 pt-2 border-t border-slate-900/10 dark:border-white/10">
+                            <div className="space-y-4 pt-2 border-t border-line dark:border-white/10">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <h3 className="text-sm font-bold text-ink flex items-center gap-2">
                                         <Utensils size={16} className="text-emerald-500" /> Featured Items / Specials (Optional)
                                     </h3>
                                     <button
                                         type="button"
                                         onClick={addMenuItem}
-                                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
                                     >
                                         <Plus size={14} /> Add Item
                                     </button>
                                 </div>
                                 <div className="space-y-3">
                                     {menuItems.map((item, idx) => (
-                                        <div key={idx} className="p-3 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-900/10 dark:border-white/10 space-y-2">
+                                        <div key={idx} className="p-3 rounded-xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-2">
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
@@ -296,7 +296,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                                 <button
                                                     type="button"
                                                     onClick={() => removeMenuItem(idx)}
-                                                    className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
+                                                    className="p-2 text-ink-muted hover:text-red-500 transition-colors"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -328,7 +328,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                         <button
                             onClick={handleDownload}
                             disabled={loading}
-                            className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-2xl text-sm font-black uppercase tracking-wider hover:scale-[1.01] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                            className="w-full py-4 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-2xl text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
                         >
                             <Download size={18} /> {loading ? 'Generating PDF...' : 'Download Printable PDF'}
                         </button>
@@ -349,21 +349,21 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                             >
                                 {tableNumber && (
                                     <span
-                                        className="text-[10px] font-black uppercase px-3 py-1 rounded-full mb-3 tracking-wider text-slate-900 dark:text-white"
+                                        className="text-2xs font-bold uppercase px-3 py-1 rounded-full mb-3 tracking-wider text-ink"
                                         style={{ backgroundColor: activeTheme.accent_color }}
                                     >
                                         Table {tableNumber}
                                     </span>
                                 )}
 
-                                <h2 className="text-xl font-black leading-snug mb-1">{restaurantName || 'Restaurant Name'}</h2>
+                                <h2 className="text-xl font-bold leading-snug mb-1">{restaurantName || 'Restaurant Name'}</h2>
                                 <p className="text-xs opacity-80 italic mb-4">{tagline || 'Scan to view menu'}</p>
 
                                 {/* QR Placeholder Mock */}
                                 <div className="p-3 bg-white rounded-xl shadow-md mb-4 relative">
-                                    <div className="w-32 h-32 bg-slate-100 flex flex-col items-center justify-center rounded border border-slate-200">
-                                        <QrIcon size={64} className="text-slate-800" />
-                                        <span className="text-[9px] font-mono text-slate-500 mt-1">QR Code</span>
+                                    <div className="w-32 h-32 bg-sunken flex flex-col items-center justify-center rounded border border-line">
+                                        <QrIcon size={64} className="text-ink" />
+                                        <span className="text-3xs font-mono text-ink-muted mt-1">QR Code</span>
                                     </div>
                                     {logo && (
                                         <div className="absolute inset-0 flex items-center justify-center">
@@ -373,16 +373,16 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                 </div>
 
                                 <p className="text-xs font-semibold mb-1">{instructionText || 'Scan with your camera'}</p>
-                                <p className="text-[10px] font-mono opacity-60 break-all max-w-[220px]">{menuUrl || 'https://example.com/menu'}</p>
+                                <p className="text-2xs font-mono opacity-60 break-all max-w-[220px]">{menuUrl || 'https://example.com/menu'}</p>
 
                                 {/* Menu Preview items */}
                                 {preset !== 'sticker_3x3' && menuItems.filter((i) => i.name).length > 0 && (
                                     <div className="w-full mt-4 pt-3 border-t border-dashed text-left space-y-1.5 text-xs opacity-90" style={{ borderColor: activeTheme.accent_color }}>
                                         {menuItems.filter((i) => i.name).slice(0, 3).map((item, i) => (
-                                            <div key={i} className="flex justify-between items-start text-[11px]">
+                                            <div key={i} className="flex justify-between items-start text-1xs">
                                                 <div>
                                                     <span className="font-bold">{item.name}</span>
-                                                    {item.description && <span className="block text-[9px] opacity-75">{item.description}</span>}
+                                                    {item.description && <span className="block text-3xs opacity-75">{item.description}</span>}
                                                 </div>
                                                 {item.price && <span className="font-bold ml-2" style={{ color: activeTheme.accent_color }}>{item.price}</span>}
                                             </div>
@@ -390,7 +390,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                     </div>
                                 )}
                             </div>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-500 text-center mt-3">
+                            <p className="text-1xs text-ink-muted text-center mt-3">
                                 PDF generates high-resolution vectors formatted to exact physical paper dimensions ({preset}).
                             </p>
                         </div>

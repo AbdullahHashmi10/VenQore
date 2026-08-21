@@ -109,30 +109,30 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
 
     return (
         <OneGlanceLayout title={title} activeMenu="Insights" noPadding>
-            <div className={`flex h-full overflow-hidden bg-slate-50 dark:bg-slate-950 ${showSidebar ? 'lg:gap-4 p-2 lg:p-4 pt-2' : ''}`}> {/* Added padding to container if sidebar is shown */}
+            <div className={`flex h-full overflow-hidden bg-app ${showSidebar ? 'lg:gap-4 p-2 lg:p-4 pt-2' : ''}`}> {/* Added padding to container if sidebar is shown */}
 
                 {/* Midnight Nebula Sidebar */}
                 {showSidebar && (
-                    <div className={`hidden lg:flex ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-slate-900 rounded-[2rem] border border-slate-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-300`}>
+                    <div className={`hidden lg:flex ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-neutral-900 rounded-xl border border-neutral-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}>
                         {/* Nebula Background Elements */}
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-brand-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/10 rounded-full blur-[40px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none" />
 
                         {/* Header with Collapse Toggle */}
-                        <div className={`${sidebarCollapsed ? 'px-2 py-4 justify-center' : 'px-4 py-5 justify-between'} flex items-center border-b border-slate-800/50 mb-3 relative z-10`}>
+                        <div className={`${sidebarCollapsed ? 'px-2 py-4 justify-center' : 'px-4 py-5 justify-between'} flex items-center border-b border-neutral-800/50 mb-3 relative z-10`}>
                             {!sidebarCollapsed && (
                                 <Link href={store?.slug ? route("store.reports.index", {
                                     store_slug: store.slug
                                 }) : "#"} className="min-w-0 group cursor-pointer block">
-                                    <h2 className="text-base font-black text-white tracking-tight group-hover:text-indigo-400 transition-colors">Reports</h2>
-                                    <p className="text-3xs font-bold uppercase tracking-[0.2em] text-indigo-400">Hub Access</p>
+                                    <h2 className="text-base font-bold text-white tracking-tight group-hover:text-brand-400 transition-colors">Reports</h2>
+                                    <p className="text-3xs font-bold uppercase tracking-[0.2em] text-brand-400">Hub Access</p>
                                 </Link>
                             )}
                             <button
                                 type="button"
                                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors shrink-0"
+                                className="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-interactive-hover flex items-center justify-center text-ink-muted hover:text-white transition-colors shrink-0"
                             >
                                 <ChevronRight size={14} className={`transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} />
                             </button>
@@ -150,13 +150,13 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
                                             <button
                                                 type="button"
                                                 onClick={() => toggleGroup(idx)}
-                                                className={`w-full flex items-center justify-between px-3 py-1.5 text-3xs font-black uppercase tracking-[0.2em] transition-colors group ${hasActiveChild ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}
+                                                className={`w-full flex items-center justify-between px-3 py-1.5 text-3xs font-bold uppercase tracking-[0.2em] transition-colors group ${hasActiveChild ? 'text-brand-400' : 'text-ink-muted hover:text-neutral-300'}`}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <GroupIcon size={10} />
                                                     {group.title}
                                                 </div>
-                                                <ChevronRight size={10} className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                                                <ChevronRight size={10} className={`transition-transform duration-normal ${isExpanded ? 'rotate-90' : ''}`} />
                                             </button>
                                         )}
 
@@ -171,22 +171,22 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
                                                             key={rIdx}
                                                             href={report.route.startsWith('platform.') ? route(report.route) : (store?.slug ? route(report.route, { store_slug: store.slug }) : '#')}
                                                             title={sidebarCollapsed ? report.title : undefined}
-                                                            className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2 px-3'} rounded-xl text-left transition-all duration-200 group relative overflow-hidden border ${isActive
-                                                                ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg shadow-indigo-500/20'
-                                                                : 'text-slate-400 hover:bg-white/5 hover:text-white border-transparent'
+                                                            className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2 px-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
+                                                                ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
+                                                                : 'text-ink-muted hover:bg-white/5 hover:text-white border-transparent'
                                                                 }`}
                                                         >
                                                             {isActive && !sidebarCollapsed && (
-                                                                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 opacity-100" />
+                                                                <div className="absolute inset-0 bg-gradient-to-r from-brand-600/20 to-purple-600/20 opacity-100" />
                                                             )}
 
-                                                            <div className={`relative z-10 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 ${isActive ? 'bg-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-slate-800/80 group-hover:bg-slate-700'}`}>
-                                                                <RIcon size={12} className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'} />
+                                                            <div className={`relative z-10 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-brand-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-neutral-800/80 group-hover:bg-interactive-hover'}`}>
+                                                                <RIcon size={12} className={isActive ? 'text-white' : 'text-ink-muted group-hover:text-brand-400'} />
                                                             </div>
 
                                                             {!sidebarCollapsed && (
                                                                 <div className="relative z-10 flex-1 min-w-0">
-                                                                    <p className={`text-1xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-slate-300'}`}>{report.title}</p>
+                                                                    <p className={`text-1xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-300'}`}>{report.title}</p>
                                                                 </div>
                                                             )}
                                                         </Link>
@@ -202,11 +202,11 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
                 )}
 
                 {/* Main Content Area - Conditionally Styled */}
-                <div className={`flex-1 overflow-hidden flex flex-col relative transition-all duration-300 ${showSidebar ? 'bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl' : ''}`}>
+                <div className={`flex-1 overflow-hidden flex flex-col relative transition-all duration-slow ${showSidebar ? 'bg-surface rounded-xl border border-line shadow-xl' : ''}`}>
                     {/* Background Elements if Sidebar is shown (mimicking settings) */}
                     {showSidebar && (
                         <>
-                            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
                             <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
                         </>
                     )}
@@ -219,9 +219,9 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
                 <style>{`
                     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-                    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-                `}</style>
+                    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--vq-slate-700)); border-radius: 10px; }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgb(var(--vq-slate-600)); }
+`}</style>
             </div>
         </OneGlanceLayout>
     );

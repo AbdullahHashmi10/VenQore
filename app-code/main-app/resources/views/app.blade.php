@@ -101,14 +101,14 @@
     @endforeach
     @endif
 
-    <!-- Fonts Preconnect & Swap -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {{-- Figtree and Source Serif 4 are here because Appearance settings offers
-         them as typeface choices. A font a user can select but the browser never
-         downloads silently falls back to the next stack entry, which reads as
-         "the setting does nothing". --}}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Figtree:wght@300;400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+    {{-- No font <link> here, and no preconnect: every face this app can render
+         is vendored under resources/fonts/ and declared in resources/css, which
+         app.jsx imports — so they arrive inside the Vite bundle, hashed and
+         offline. The four families that used to be fetched here (Inter, Space
+         Grotesk, Figtree, Source Serif 4) are all still available; Appearance
+         settings offers three of them as typeface choices and a face a user can
+         pick but the browser cannot fetch reads as "the setting does nothing".
+         See scripts/fonts-vendor.mjs. --}}
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/images/logo.png">
 

@@ -47,8 +47,8 @@ export default function ExpiryReport({ batches = [], stats = {}, filters = {} })
             sortable: true,
             render: (row) => (
                 <div>
-                    <div className="font-medium text-slate-900 dark:text-white">{row.product?.name}</div>
-                    <div className="text-xs text-slate-500">Batch: {row.batch_number}</div>
+                    <div className="font-medium text-ink">{row.product?.name}</div>
+                    <div className="text-xs text-ink-muted">Batch: {row.batch_number}</div>
                 </div>
             )
         },
@@ -62,7 +62,7 @@ export default function ExpiryReport({ batches = [], stats = {}, filters = {} })
                 const diffTime = date - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                let color = 'text-slate-600 dark:text-slate-400';
+                let color = 'text-ink-secondary';
                 if (diffDays < 0) color = 'text-red-600 dark:text-red-400 font-bold';
                 else if (diffDays <= 30) color = 'text-amber-600 dark:text-amber-400 font-bold';
                 else if (diffDays <= 90) color = 'text-blue-600 dark:text-blue-400';

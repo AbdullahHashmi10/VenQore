@@ -29,11 +29,11 @@ const FaqItem = ({ question, answer, id }) => {
                 </span>
                 <ChevronDown
                     size={16}
-                    className={`flex-shrink-0 mt-0.5 transition-all duration-400 ${open ? 'rotate-180 text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`}
+                    className={`flex-shrink-0 mt-0.5 transition-all duration-slow ${open ? 'rotate-180 text-brand-400' : 'text-ink-muted group-hover:text-neutral-300'}`}
                 />
             </button>
-            <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-80 pb-6' : 'max-h-0'}`}>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{answer}</p>
+            <div className={`overflow-hidden transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-80 pb-6' : 'max-h-0'}`}>
+                <p className="text-sm text-ink-muted leading-relaxed">{answer}</p>
             </div>
         </div>
     );
@@ -42,21 +42,21 @@ const FaqItem = ({ question, answer, id }) => {
 // ── Comparison Table Row ───────────────────────────────────────────────
 const TableRow = ({ label, starter, growth, enterprise, highlight }) => (
     <tr className={`border-b border-white/[0.04] transition-colors ${highlight ? 'bg-white/[0.015]' : 'hover:bg-white/[0.01]'}`}>
-        <td className="py-3.5 pl-6 pr-4 text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</td>
+        <td className="py-3.5 pl-6 pr-4 text-xs text-ink-muted font-medium">{label}</td>
         <td className="py-3.5 px-4 text-center text-xs">
             {typeof starter === 'boolean'
-                ? (starter ? <Check size={14} className="mx-auto text-indigo-600 dark:text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
-                : <span className="text-slate-600 dark:text-slate-300 font-semibold">{starter}</span>}
+                ? (starter ? <Check size={14} className="mx-auto text-brand-600 dark:text-brand-400" /> : <X size={14} className="mx-auto text-ink-muted" />)
+                : <span className="text-ink-secondary font-semibold">{starter}</span>}
         </td>
-        <td className="py-3.5 px-4 text-center text-xs bg-indigo-950/20">
+        <td className="py-3.5 px-4 text-center text-xs bg-brand-950/20">
             {typeof growth === 'boolean'
-                ? (growth ? <Check size={14} className="mx-auto text-indigo-600 dark:text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
-                : <span className="text-slate-600 dark:text-slate-300 font-semibold">{growth}</span>}
+                ? (growth ? <Check size={14} className="mx-auto text-brand-600 dark:text-brand-400" /> : <X size={14} className="mx-auto text-ink-muted" />)
+                : <span className="text-ink-secondary font-semibold">{growth}</span>}
         </td>
         <td className="py-3.5 pr-6 pl-4 text-center text-xs">
             {typeof enterprise === 'boolean'
-                ? (enterprise ? <Check size={14} className="mx-auto text-purple-400" /> : <X size={14} className="mx-auto text-slate-500" />)
-                : <span className="text-slate-600 dark:text-slate-300 font-semibold">{enterprise}</span>}
+                ? (enterprise ? <Check size={14} className="mx-auto text-purple-400" /> : <X size={14} className="mx-auto text-ink-muted" />)
+                : <span className="text-ink-secondary font-semibold">{enterprise}</span>}
         </td>
     </tr>
 );
@@ -74,14 +74,14 @@ const BillingToggle = ({ value, onChange }) => {
                 <button
                     key={opt.key}
                     onClick={() => onChange(opt.key)}
-                    className={`relative px-4 py-2 rounded-lg text-1xs font-bold tracking-wide transition-all duration-300
+                    className={`relative px-4 py-2 rounded-lg text-1xs font-bold tracking-wide transition-all duration-slow
                         ${value === opt.key
-                            ? 'bg-indigo-600 text-white shadow-md'
-                            : 'text-slate-400 hover:text-slate-300'}`}
+                            ? 'bg-brand-600 text-white shadow-md'
+                            : 'text-ink-muted hover:text-neutral-300'}`}
                 >
                     {opt.label}
                     {opt.badge && (
-                        <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-4xs font-black rounded-full whitespace-nowrap">
+                        <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-4xs font-bold rounded-full whitespace-nowrap">
                             {opt.badge}
                         </span>
                     )}
@@ -514,7 +514,7 @@ export default function Pricing({ plans = [] }) {
             color: 'blue',
             accentFrom: 'from-blue-500/[0.08]',
             accentBorder: 'border-blue-500/30',
-            accentGlow: 'shadow-blue-900/20',
+            accentGlow: '',
             iconBg: 'bg-blue-500/10 text-blue-400',
             badgeBg: 'bg-blue-500/10 border-blue-500/20 text-blue-300',
             inheritLabel: null,
@@ -528,11 +528,11 @@ export default function Pricing({ plans = [] }) {
             tagline: 'Expanding outlets that need multi-location stock routing.',
             icon: TrendingUp,
             color: 'indigo',
-            accentFrom: 'from-indigo-500/[0.10]',
-            accentBorder: 'border-indigo-500/40',
-            accentGlow: 'shadow-indigo-900/30',
-            iconBg: 'bg-indigo-500/10 text-indigo-400',
-            badgeBg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300',
+            accentFrom: 'from-brand-500/[0.10]',
+            accentBorder: 'border-brand-500/40',
+            accentGlow: '',
+            iconBg: 'bg-brand-500/10 text-brand-400',
+            badgeBg: 'bg-brand-500/10 border-brand-500/20 text-brand-300',
             popular: true,
             inheritLabel: 'Everything in Starter Engine, plus:',
             totalIncluded: 26,
@@ -547,7 +547,7 @@ export default function Pricing({ plans = [] }) {
             color: 'purple',
             accentFrom: 'from-purple-500/[0.08]',
             accentBorder: 'border-purple-500/30',
-            accentGlow: 'shadow-purple-900/20',
+            accentGlow: '',
             iconBg: 'bg-purple-500/10 text-purple-400',
             badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-300',
             inheritLabel: 'Everything in Growth Engine, plus:',
@@ -724,18 +724,18 @@ export default function Pricing({ plans = [] }) {
                         <SectionLabel icon={Sparkles}>14-Day Free Trial — No Card Required</SectionLabel>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.08}>
-                        <h1 className="text-[2.75rem] xs:text-5xl md:text-[68px] font-black tracking-tighter leading-[0.9] sm:leading-[0.88] mb-5 font-display">
-                            <span className="bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+                        <h1 className="text-[2.75rem] xs:text-5xl md:text-[68px] font-bold tracking-tighter leading-[0.9] sm:leading-[0.88] mb-5 font-display">
+                            <span className="bg-gradient-to-br from-white via-neutral-100 to-neutral-400 bg-clip-text text-transparent">
                                 Pick your plan.
                             </span>
                             <br />
-                            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-violet-300 bg-clip-text text-transparent vq-text-glow">
+                            <span className="bg-gradient-to-r from-brand-400 via-brand-400 to-violet-300 bg-clip-text text-transparent vq-text-glow">
                                 Power it with AI.
                             </span>
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.15}>
-                        <p className="text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
+                        <p className="text-base text-ink-muted max-w-xl mx-auto leading-relaxed">
                             Simple, transparent pricing built for modern retail. Select your base plan below and customize your AI power level in the next step.
                         </p>
                     </RevealOnScroll>
@@ -743,7 +743,7 @@ export default function Pricing({ plans = [] }) {
                     {/* Regional Gift Banner */}
                     {isPK && (
                         <RevealOnScroll delay={0.18}>
-                            <div className="max-w-3xl mx-auto mt-8 mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-slate-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
+                            <div className="max-w-3xl mx-auto mt-8 mb-8 p-6 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-neutral-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
                                 <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
                                 
                                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
@@ -753,37 +753,37 @@ export default function Pricing({ plans = [] }) {
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="px-2.5 py-0.5 rounded-full text-2xs font-black uppercase tracking-widest bg-emerald-500 text-black">
+                                                <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-widest bg-emerald-500 text-black">
                                                     SPECIAL GIFT UNLOCKED 🎁
                                                 </span>
                                                 <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Exclusive Regional Pricing</span>
                                             </div>
-                                            <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
+                                            <h3 className="text-base font-bold text-ink tracking-tight">
                                                 Special Pakistan Subsidized Rates Unlocked!
                                             </h3>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <p className="text-xs text-ink-muted mt-0.5">
                                                 As a special gift for businesses operating in Pakistan, you get access to heavily subsidized local PKR pricing.
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-slate-900/[0.08] dark:border-white/10 shrink-0">
+                                    <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-line dark:border-white/10 shrink-0">
                                         <button
                                             onClick={() => setCurrencyDisplay('PKR')}
-                                            className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
                                                 currencyDisplay === 'PKR'
-                                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
-                                                    : 'text-slate-400 hover:text-white'
+                                                    ? 'bg-emerald-500 text-black shadow-lg  scale-[1.02]'
+                                                    : 'text-ink-muted hover:text-white'
                                             }`}
                                         >
                                             🇵🇰 Subsidized PKR Rate
                                         </button>
                                         <button
                                             onClick={() => setCurrencyDisplay('USD')}
-                                            className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
                                                 currencyDisplay === 'USD'
-                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 scale-[1.02]'
-                                                    : 'text-slate-400 hover:text-white'
+                                                    ? 'bg-brand-600 text-white shadow-lg  scale-[1.02]'
+                                                    : 'text-ink-muted hover:text-white'
                                             }`}
                                         >
                                             🌐 Global USD Rate
@@ -800,19 +800,19 @@ export default function Pricing({ plans = [] }) {
             <section className="px-6 py-6 relative overflow-hidden">
                 <div className="max-w-4xl mx-auto">
                     <RevealOnScroll>
-                        <div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-b from-emerald-950/20 to-transparent p-8 md:p-12 relative shadow-[0_0_50px_rgba(16,185,129,0.05)]">
+                        <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-b from-emerald-950/20 to-transparent p-8 md:p-12 relative shadow-[0_0_50px_rgba(16,185,129,0.05)]">
                             <div className="absolute top-0 right-0 p-8 text-emerald-500/[0.02] pointer-events-none">
                                 <TrendingUp size={160} strokeWidth={0.5} />
                             </div>
                             
                             <div className="text-center mb-8">
-                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-3xs font-black tracking-widest uppercase">
+                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-3xs font-bold tracking-widest uppercase">
                                     Why Pay More?
                                 </span>
-                                <h3 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-3 font-display">
+                                <h3 className="text-2xl md:text-4xl font-bold text-ink tracking-tight mt-3 font-display">
                                     Save up to <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">$13,000/year</span>
                                 </h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 max-w-xl mx-auto">
+                                <p className="text-ink-muted text-xs mt-2 max-w-xl mx-auto">
                                     Most systems charge extra per register, plus monthly fees for accounting sync, multi-store management, and inventory tools. VenQore includes it all.
                                 </p>
                             </div>
@@ -822,43 +822,43 @@ export default function Pricing({ plans = [] }) {
                                 <table className="w-full text-left text-xs">
                                     <thead>
                                         <tr className="border-b border-white/[0.08] bg-white/[0.02]">
-                                            <th className="py-4 px-6 font-bold text-slate-600 dark:text-slate-300">System (1 Store, 3 Devices)</th>
-                                            <th className="py-4 px-4 font-bold text-slate-600 dark:text-slate-300 text-center">Software Fees</th>
-                                            <th className="py-4 px-4 font-bold text-slate-600 dark:text-slate-300 text-center">Required Apps</th>
-                                            <th className="py-4 px-6 font-bold text-slate-600 dark:text-slate-300 text-right">Total Annual Cost</th>
+                                            <th className="py-4 px-6 font-bold text-ink-secondary">System (1 Store, 3 Devices)</th>
+                                            <th className="py-4 px-4 font-bold text-ink-secondary text-center">Software Fees</th>
+                                            <th className="py-4 px-4 font-bold text-ink-secondary text-center">Required Apps</th>
+                                            <th className="py-4 px-6 font-bold text-ink-secondary text-right">Total Annual Cost</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/[0.04]">
                                         <tr>
-                                            <td className="py-4 px-6 font-medium text-slate-500 dark:text-slate-400">Shopify POS Pro + Apps</td>
-                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$3,228/yr</td>
-                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$1,800/yr <span className="text-[10px] text-slate-600 block">(accounting & stock sync)</span></td>
-                                            <td className="py-4 px-6 text-right text-slate-500 dark:text-slate-400 font-semibold">$5,028/yr</td>
+                                            <td className="py-4 px-6 font-medium text-ink-muted">Shopify POS Pro + Apps</td>
+                                            <td className="py-4 px-4 text-center text-ink-muted">$3,228/yr</td>
+                                            <td className="py-4 px-4 text-center text-ink-muted">$1,800/yr <span className="text-2xs text-ink-secondary block">(accounting & stock sync)</span></td>
+                                            <td className="py-4 px-6 text-right text-ink-muted font-semibold">$5,028/yr</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-4 px-6 font-medium text-slate-500 dark:text-slate-400">Square POS (Plus Device Add-ons)</td>
-                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$2,160/yr</td>
-                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$1,200/yr <span className="text-[10px] text-slate-600 block">(Xero/QuickBooks sync)</span></td>
-                                            <td className="py-4 px-6 text-right text-slate-500 dark:text-slate-400 font-semibold">$3,360/yr</td>
+                                            <td className="py-4 px-6 font-medium text-ink-muted">Square POS (Plus Device Add-ons)</td>
+                                            <td className="py-4 px-4 text-center text-ink-muted">$2,160/yr</td>
+                                            <td className="py-4 px-4 text-center text-ink-muted">$1,200/yr <span className="text-2xs text-ink-secondary block">(Xero/QuickBooks sync)</span></td>
+                                            <td className="py-4 px-6 text-right text-ink-muted font-semibold">$3,360/yr</td>
                                         </tr>
                                         <tr className="bg-emerald-950/20">
-                                            <td className="py-4 px-6 font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                            <td className="py-4 px-6 font-bold text-ink flex items-center gap-2">
                                                 <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
                                                 <span>VenQore Growth (Annual)</span>
                                             </td>
-                                            <td className="py-4 px-4 text-center font-extrabold text-slate-900 dark:text-white">$636/yr</td>
-                                            <td className="py-4 px-4 text-center font-extrabold text-emerald-600 dark:text-emerald-400">$0 <span className="text-[10px] text-emerald-500/80 block">(built-in)</span></td>
-                                            <td className="py-4 px-6 text-right font-black text-emerald-600 dark:text-emerald-400 text-sm">$636/yr</td>
+                                            <td className="py-4 px-4 text-center font-bold text-ink">$636/yr</td>
+                                            <td className="py-4 px-4 text-center font-bold text-emerald-600 dark:text-emerald-400">$0 <span className="text-2xs text-emerald-500/80 block">(built-in)</span></td>
+                                            <td className="py-4 px-6 text-right font-bold text-emerald-600 dark:text-emerald-400 text-sm">$636/yr</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 p-4 rounded-xl bg-emerald-500/[0.03] border border-emerald-500/10">
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                <span className="text-1xs text-ink-muted font-medium">
                                     *Based on standard pricing of Shopify POS Pro ($89/device/mo + basic Shopify plan) and average QuickBooks sync app fees.
                                 </span>
-                                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap bg-emerald-500/10 px-3 py-1 rounded-lg">
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap bg-emerald-500/10 px-3 py-1 rounded-lg">
                                     Net Savings: $2,724 – $4,392 / year
                                 </span>
                             </div>
@@ -879,11 +879,11 @@ export default function Pricing({ plans = [] }) {
                                 { icon: Lock, text: "SOC2-Compliant Security", desc: "Your data is fully encrypted" }
                             ].map((badge, i) => (
                                 <div key={i} className="flex flex-col items-center text-center p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-md">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3">
+                                    <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-3">
                                         <badge.icon size={20} />
                                     </div>
-                                    <h4 className="text-slate-900 dark:text-white text-xs font-bold tracking-tight mb-1">{badge.text}</h4>
-                                    <p className="text-slate-500 text-3xs leading-relaxed">{badge.desc}</p>
+                                    <h4 className="text-ink text-xs font-bold tracking-tight mb-1">{badge.text}</h4>
+                                    <p className="text-ink-muted text-3xs leading-relaxed">{badge.desc}</p>
                                 </div>
                             ))}
                         </div>
@@ -911,19 +911,19 @@ export default function Pricing({ plans = [] }) {
                                     <div
                                         id={`plan-${key}`}
                                         onClick={() => handlePlanSelect(key)}
-                                        className={`relative rounded-[2rem] border cursor-pointer overflow-hidden transition-all duration-500 flex flex-col
+                                        className={`relative rounded-xl border cursor-pointer overflow-hidden transition-all duration-slower flex flex-col
                                             ${isSelected
                                                 ? `bg-gradient-to-b ${plan.accentFrom} to-transparent ${plan.accentBorder} shadow-2xl ${plan.accentGlow} scale-[1.015]`
-                                                : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.035] hover:border-white/10 hover:scale-[1.005]'
+                                                : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.035] hover:border-white/10'
                                             }`}
                                     >
                                         {/* Popular badge */}
                                         {plan.popular && (
-                                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500" />
+                                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-500 to-brand-500" />
                                         )}
                                         {plan.popular && (
                                             <div className="absolute top-3 right-4">
-                                                <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-3xs font-black tracking-widest uppercase">
+                                                <span className="px-2.5 py-1 rounded-full bg-brand-500/15 border border-brand-500/25 text-brand-300 text-3xs font-bold tracking-widest uppercase">
                                                     Most Popular
                                                 </span>
                                             </div>
@@ -936,9 +936,9 @@ export default function Pricing({ plans = [] }) {
                                                     <PlanIcon size={18} />
                                                 </div>
                                                 <div>
-                                                    <div className="text-slate-900 dark:text-white font-black text-base tracking-tight">{plan.name}</div>
+                                                    <div className="text-ink font-bold text-base tracking-tight">{plan.name}</div>
                                                     {isSelected && (
-                                                        <span className={`text-3xs font-black tracking-[0.2em] uppercase px-2 py-0.5 rounded-full ${plan.badgeBg} border`}>
+                                                        <span className={`text-3xs font-bold tracking-[0.2em] uppercase px-2 py-0.5 rounded-full ${plan.badgeBg} border`}>
                                                             Selected ✓
                                                         </span>
                                                     )}
@@ -947,8 +947,8 @@ export default function Pricing({ plans = [] }) {
 
                                             {/* Price */}
                                             <div className="mb-6 flex flex-col">
-                                                <span className="text-[32px] font-black text-slate-900 dark:text-white font-display">{planPriceStr(key)}</span>
-                                                <span className="text-xs text-slate-500 font-medium mt-1">
+                                                <span className="text-[32px] font-bold text-ink font-display">{planPriceStr(key)}</span>
+                                                <span className="text-xs text-ink-muted font-medium mt-1">
                                                     {isLTD ? '2-year hosting included, one payment' : billingType === 'subscription_annual' ? 'billed annually' : 'billed monthly'}
                                                 </span>
                                                 {isPK && (
@@ -958,19 +958,19 @@ export default function Pricing({ plans = [] }) {
                                                 )}
                                             </div>
 
-                                            <p className="text-xs text-slate-500 leading-relaxed mb-5">{plan.tagline}</p>
+                                            <p className="text-xs text-ink-muted leading-relaxed mb-5">{plan.tagline}</p>
 
                                             {/* Inherit banner for Growth & Enterprise */}
                                             {plan.inheritLabel && (
                                                 <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-xl ${isSelected ? 'bg-white/[0.04]' : 'bg-white/[0.02]'} border border-white/[0.05]`}>
-                                                    <Layers size={11} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                                                    <span className="text-2xs font-black text-indigo-300 uppercase tracking-wider">{plan.inheritLabel}</span>
+                                                    <Layers size={11} className="text-brand-600 dark:text-brand-400 flex-shrink-0" />
+                                                    <span className="text-2xs font-bold text-brand-300 uppercase tracking-wider">{plan.inheritLabel}</span>
                                                 </div>
                                             )}
 
                                             {/* Feature Ratio Counter Badge */}
                                             <div className="mb-4 flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                                <span className="text-2xs font-extrabold text-slate-300 flex items-center gap-1.5">
+                                                <span className="text-2xs font-bold text-neutral-300 flex items-center gap-1.5">
                                                     <CheckCircle2 size={13} className="text-emerald-400" />
                                                     {plan.ratioLabel}
                                                 </span>
@@ -981,13 +981,13 @@ export default function Pricing({ plans = [] }) {
                                                 {plan.includes.map((f, i) => (
                                                     <div key={i} className="flex items-center gap-2.5">
                                                         <Check size={12} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                                                        <span className="text-xs text-slate-600 dark:text-slate-300">{f}</span>
+                                                        <span className="text-xs text-ink-secondary">{f}</span>
                                                     </div>
                                                 ))}
                                                 {plan.excludes.map((f, i) => (
                                                     <div key={i} className="flex items-center gap-2.5">
-                                                        <X size={12} className="text-slate-500 flex-shrink-0" />
-                                                        <span className="text-xs text-slate-500">{f}</span>
+                                                        <X size={12} className="text-ink-muted flex-shrink-0" />
+                                                        <span className="text-xs text-ink-muted">{f}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -995,15 +995,15 @@ export default function Pricing({ plans = [] }) {
                                             {/* Expanded Detailed Breakdown */}
                                             {expandedCards[key] && (
                                                 <div className="space-y-2 mt-4 pt-4 border-t border-white/[0.08] animate-fadeIn">
-                                                    <div className="text-3xs font-black text-indigo-300 uppercase tracking-widest mb-3">All {FULL_FEATURE_LIST[key].totalSuite} Platform Capabilities:</div>
+                                                    <div className="text-3xs font-bold text-brand-300 uppercase tracking-widest mb-3">All {FULL_FEATURE_LIST[key].totalSuite} Platform Capabilities:</div>
                                                     {FULL_FEATURE_LIST[key].categorizedFeatures.map((item, i) => (
                                                         <div key={i} className="flex items-center gap-2 text-2xs">
                                                             {item.included ? (
                                                                 <Check size={11} className="text-emerald-400 flex-shrink-0" />
                                                             ) : (
-                                                                <X size={11} className="text-slate-600 flex-shrink-0" />
+                                                                <X size={11} className="text-ink-secondary flex-shrink-0" />
                                                             )}
-                                                            <span className={item.included ? "text-slate-200 font-medium" : "text-slate-500 opacity-60"}>
+                                                            <span className={item.included ? "text-neutral-200 font-medium" : "text-ink-muted opacity-60"}>
                                                                 {item.name}
                                                             </span>
                                                         </div>
@@ -1018,7 +1018,7 @@ export default function Pricing({ plans = [] }) {
                                                     e.stopPropagation();
                                                     toggleCardExpand(key);
                                                 }}
-                                                className="w-full mt-4 py-2 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-indigo-500/30 text-indigo-300 hover:text-white text-2xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                                                className="w-full mt-4 py-2 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-brand-500/30 text-brand-300 hover:text-white text-2xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
                                             >
                                                 <span>{expandedCards[key] ? 'Show Less ▲' : `See All ${FULL_FEATURE_LIST[key].totalIncluded} Features ▼`}</span>
                                             </button>
@@ -1032,15 +1032,15 @@ export default function Pricing({ plans = [] }) {
                                                     handlePlanSelect(key);
                                                     setTimeout(() => handleContinue(), 50);
                                                 }}
-                                                className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 duration-200 ${
+                                                className={`w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 duration-normal ${
                                                     isSelected
-                                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-slate-900 shadow-lg shadow-indigo-500/20'
-                                                        : 'bg-white/[0.04] text-slate-600 dark:text-slate-300 hover:bg-white/[0.08] border border-white/[0.05]'
+                                                        ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-ink shadow-lg '
+                                                        : 'bg-white/[0.04] text-ink-secondary hover:bg-white/[0.08] border border-white/[0.05]'
                                                 }`}
                                             >
                                                 {isSelected ? 'Selected ✓' : 'Choose Plan'}
                                             </button>
-                                            <div className={`h-[2px] rounded-full transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500 opacity-100' : 'bg-white/[0.04] opacity-30'}`} />
+                                            <div className={`h-[2px] rounded-full transition-all duration-slower ${isSelected ? 'bg-gradient-to-r from-brand-500 to-brand-500 opacity-100' : 'bg-white/[0.04] opacity-30'}`} />
                                         </div>
                                     </div>
                                 </RevealOnScroll>
@@ -1056,7 +1056,7 @@ export default function Pricing({ plans = [] }) {
                     <RevealOnScroll>
                         <div className="text-center mb-10">
                             <SectionLabel icon={MessageSquare}>Common Questions</SectionLabel>
-                            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-display">Straight answers.</h2>
+                            <h2 className="text-3xl font-bold text-ink tracking-tight font-display">Straight answers.</h2>
                         </div>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.1}>
@@ -1075,12 +1075,12 @@ export default function Pricing({ plans = [] }) {
                     <RevealOnScroll>
                         <div className="text-center mb-6">
                             {selectedPlan ? (
-                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-ink-muted mb-4">
                                     <Check size={14} className="text-emerald-600 dark:text-emerald-400" />
                                     <span>{PLAN_DATA[selectedPlan]?.name} selected</span>
                                 </div>
                             ) : (
-                                <div className="text-slate-500 text-sm mb-4">Select a plan above to continue</div>
+                                <div className="text-ink-muted text-sm mb-4">Select a plan above to continue</div>
                             )}
                         </div>
                         <MagneticButton
@@ -1095,7 +1095,7 @@ export default function Pricing({ plans = [] }) {
                                 <>Select a plan to continue <ArrowRight size={16} /></>
                             )}
                         </MagneticButton>
-                        <p className="text-center text-1xs text-slate-500 mt-3">
+                        <p className="text-center text-1xs text-ink-muted mt-3">
                             14-day free trial. No credit card required. Cancel anytime.
                         </p>
                     </RevealOnScroll>
@@ -1110,19 +1110,19 @@ export default function Pricing({ plans = [] }) {
             <div className="max-w-4xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/15 text-purple-400 text-2xs font-black tracking-widest uppercase mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/15 text-purple-400 text-2xs font-bold tracking-widest uppercase mb-4">
                         Step 2 of 4
                     </div>
-                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
+                    <h2 className="text-4xl font-bold text-ink tracking-tight font-display mb-3">
                         Power {PLAN_DATA[selectedPlan]?.name} with AI
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                    <p className="text-ink-muted text-sm max-w-lg mx-auto leading-relaxed">
                         These two AI tiers are tailored to your selected plan. Choose the power level that fits your business volume, or bring your own API key.
                     </p>
                 </div>
 
                 {selectedPlan && (
-                    <div className="rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-slate-950 to-slate-950 overflow-hidden relative shadow-2xl">
+                    <div className="rounded-xl border border-white/[0.07] bg-void-950 overflow-hidden relative shadow-2xl">
                         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
 
                         <div className="p-8 md:p-10 space-y-6">
@@ -1138,7 +1138,7 @@ export default function Pricing({ plans = [] }) {
                                             key={opt.key}
                                             id={`ai-option-${opt.key}`}
                                             onClick={() => setSelectedAI(isChosen ? 'none' : optKey)}
-                                            className={`relative text-left p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between cursor-pointer
+                                            className={`relative text-left p-6 rounded-2xl border transition-all duration-slow flex flex-col justify-between cursor-pointer
                                                 ${isChosen
                                                     ? 'bg-purple-600/10 border-purple-500/60 shadow-[0_0_30px_rgba(168,85,247,0.12)]'
                                                     : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10 hover:bg-white/[0.04]'
@@ -1150,26 +1150,26 @@ export default function Pricing({ plans = [] }) {
                                                         <span className="text-3xl flex-shrink-0">{opt.emoji}</span>
                                                         <div className="min-w-0">
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                <span className="text-slate-900 dark:text-white font-black text-lg">{opt.name}</span>
+                                                                <span className="text-ink font-bold text-lg">{opt.name}</span>
                                                                 {opt.popular && (
-                                                                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-3xs font-black tracking-wider uppercase">
+                                                                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-3xs font-bold tracking-wider uppercase">
                                                                         RECOMMENDED
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <div className="text-slate-400 text-xs font-semibold mt-0.5">{opt.tagline}</div>
+                                                            <div className="text-ink-muted text-xs font-semibold mt-0.5">{opt.tagline}</div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right flex-shrink-0">
-                                                        <div className="text-slate-900 dark:text-white font-black text-xl">
+                                                        <div className="text-ink font-bold text-xl">
                                                             +{fmt(opt.priceUSD, opt.pricePKR)}
                                                         </div>
-                                                        <span className="text-slate-500 text-3xs">/month</span>
+                                                        <span className="text-ink-muted text-3xs">/month</span>
                                                     </div>
                                                 </div>
 
                                                 {/* Plain English Layman Description */}
-                                                <p className="text-xs text-slate-400 leading-relaxed mb-4">{opt.laymanDesc}</p>
+                                                <p className="text-xs text-ink-muted leading-relaxed mb-4">{opt.laymanDesc}</p>
 
                                                 {/* Layman Key Capabilities List */}
                                                 <div className="space-y-2.5 mb-4 p-3.5 rounded-xl bg-black/30 border border-white/[0.05]">
@@ -1181,8 +1181,8 @@ export default function Pricing({ plans = [] }) {
                                                                     <StatIcon size={11} />
                                                                 </div>
                                                                 <div>
-                                                                    <div className="text-xs font-bold text-slate-200">{stat.label}</div>
-                                                                    <div className="text-3xs text-slate-500 leading-tight">{stat.desc}</div>
+                                                                    <div className="text-xs font-bold text-neutral-200">{stat.label}</div>
+                                                                    <div className="text-3xs text-ink-muted leading-tight">{stat.desc}</div>
                                                                 </div>
                                                             </div>
                                                         );
@@ -1194,11 +1194,11 @@ export default function Pricing({ plans = [] }) {
                                                 {/* Expandable Technical Specs for Nerds */}
                                                 {isNerdExpanded && (
                                                     <div className="mt-3 pt-3 border-t border-white/[0.08] space-y-1.5 animate-fadeIn">
-                                                        <div className="text-3xs font-black text-indigo-300 uppercase tracking-widest mb-2">Technical Engine Specifications:</div>
+                                                        <div className="text-3xs font-bold text-brand-300 uppercase tracking-widest mb-2">Technical Engine Specifications:</div>
                                                         {opt.techSpecs.map((spec, i) => (
                                                             <div key={i} className="flex items-center justify-between text-3xs gap-2">
-                                                                <span className="text-slate-500 font-mono">{spec.name}</span>
-                                                                <span className="text-slate-300 font-mono font-semibold text-right">{spec.value}</span>
+                                                                <span className="text-ink-muted font-mono">{spec.name}</span>
+                                                                <span className="text-neutral-300 font-mono font-semibold text-right">{spec.value}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -1211,11 +1211,11 @@ export default function Pricing({ plans = [] }) {
                                                             e.stopPropagation();
                                                             toggleNerdSpec(optKey);
                                                         }}
-                                                        className="text-3xs font-bold text-slate-500 hover:text-indigo-300 uppercase tracking-wider transition-colors flex items-center gap-1"
+                                                        className="text-3xs font-bold text-ink-muted hover:text-brand-300 uppercase tracking-wider transition-colors flex items-center gap-1"
                                                     >
                                                         {isNerdExpanded ? 'Hide Technical Details ▲' : 'Technical Specifications ▼'}
                                                     </button>
-                                                    <span className={`text-2xs font-bold px-3 py-1 rounded-lg transition-all ${isChosen ? 'bg-purple-500 text-slate-900' : 'bg-white/5 text-slate-400'}`}>
+                                                    <span className={`text-2xs font-bold px-3 py-1 rounded-lg transition-all ${isChosen ? 'bg-purple-500 text-ink' : 'bg-white/5 text-ink-muted'}`}>
                                                         {isChosen ? 'Selected ✓' : 'Select Tier'}
                                                     </span>
                                                 </div>
@@ -1230,7 +1230,7 @@ export default function Pricing({ plans = [] }) {
                                 <button
                                     id="ai-byok"
                                     onClick={() => setSelectedAI(selectedAI === 'byok' ? 'none' : 'byok')}
-                                    className={`text-left p-4 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3
+                                    className={`text-left p-4 rounded-xl border transition-all duration-slow flex items-center justify-between gap-3
                                         ${selectedAI === 'byok'
                                             ? 'bg-amber-500/8 border-amber-500/40'
                                             : 'bg-white/[0.02] border-white/[0.05] hover:border-white/8'
@@ -1241,66 +1241,66 @@ export default function Pricing({ plans = [] }) {
                                             <Key size={14} className="text-amber-600 dark:text-amber-400" />
                                         </div>
                                         <div>
-                                            <div className="text-slate-900 dark:text-white text-xs font-bold">Bring Your Own Key (BYOK)</div>
-                                            <div className="text-slate-500 text-2xs mt-0.5">Use OpenAI/Gemini key — free forever after</div>
+                                            <div className="text-ink text-xs font-bold">Bring Your Own Key (BYOK)</div>
+                                            <div className="text-ink-muted text-2xs mt-0.5">Use OpenAI/Gemini key — free forever after</div>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                                        <span className="text-amber-300 font-black text-sm whitespace-nowrap">
+                                        <span className="text-amber-300 font-bold text-sm whitespace-nowrap">
                                             {fmt(5, 1400, ' once')}
                                         </span>
-                                        <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">one-time unlock</span>
+                                        <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">one-time unlock</span>
                                     </div>
                                 </button>
 
                                 <button
                                     id="ai-none"
                                     onClick={() => setSelectedAI('none')}
-                                    className={`text-left p-4 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3
+                                    className={`text-left p-4 rounded-xl border transition-all duration-slow flex items-center justify-between gap-3
                                         ${selectedAI === 'none'
-                                            ? 'bg-slate-800/50 border-slate-600/40'
+                                            ? 'bg-neutral-800/50 border-neutral-600/40'
                                             : 'bg-white/[0.02] border-white/[0.05] hover:border-white/8'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                                            <Ban size={14} className="text-slate-500" />
+                                        <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center">
+                                            <Ban size={14} className="text-ink-muted" />
                                         </div>
                                         <div>
-                                            <div className="text-slate-900 dark:text-white text-xs font-bold">Skip AI for now</div>
-                                            <div className="text-slate-500 text-2xs mt-0.5">Base retail system — add AI anytime later</div>
+                                            <div className="text-ink text-xs font-bold">Skip AI for now</div>
+                                            <div className="text-ink-muted text-2xs mt-0.5">Base retail system — add AI anytime later</div>
                                         </div>
                                     </div>
-                                    <span className="text-emerald-600 dark:text-emerald-400 font-black text-xs whitespace-nowrap">No card needed</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs whitespace-nowrap">No card needed</span>
                                 </button>
                             </div>
 
                             {/* BYOK clarification line */}
                             <div className="p-3.5 rounded-xl bg-amber-500/[0.04] border border-amber-500/[0.08] flex items-start gap-2.5">
                                 <Key size={12} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                                <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    <span className="text-amber-300 font-semibold">Have your own OpenAI or Gemini API key?</span>{' '}
+                                <p className="text-1xs text-ink-muted leading-relaxed">
+                                    <span className="text-amber-300 font-semibold">Have your own OpenAI or Gemini API key?</span>{''}
                                     Select BYOK and pay a one-time {isPK ? (currencyDisplay === 'PKR' ? 'Rs 1,400 (approx. $5, billed in USD)' : '$5 (approx. Rs 1,400, billed in USD)') : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever.
                                 </p>
                             </div>
 
                             {/* Card requirement notice or No-AI Warning Nudge */}
                             {selectedAI === 'none' ? (
-                                <div className="flex items-start gap-4 p-5 rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.05)]">
+                                <div className="flex items-start gap-4 p-5 rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] transition-all duration-slow shadow-[0_0_30px_rgba(168,85,247,0.05)]">
                                     <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
                                         <Sparkles size={16} className="text-purple-400 animate-pulse" />
                                     </div>
                                     <div>
-                                        <div className="text-xs font-black text-purple-300 tracking-wide uppercase flex items-center gap-1.5">
+                                        <div className="text-xs font-bold text-purple-300 tracking-wide uppercase flex items-center gap-1.5">
                                             Unlock the full experience
                                         </div>
-                                        <div className="text-1xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                            You haven't added any AI add-ons. Without an AI plan, <span className="text-slate-200 font-semibold">you won't experience AI catalog intelligence & invoice scanning</span>. We recommend adding one of the AI options above — <span className="text-purple-300 font-bold">you pay nothing today!</span>
+                                        <div className="text-1xs text-ink-muted mt-1 leading-relaxed">
+                                            You haven't added any AI add-ons. Without an AI plan, <span className="text-neutral-200 font-semibold">you won't experience AI catalog intelligence & invoice scanning</span>. We recommend adding one of the AI options above — <span className="text-purple-300 font-bold">you pay nothing today!</span>
                                         </div>
                                     </div>
                                 </div>
                             ) : (
-                                <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-300 ${isCardRequired && selectedPlan
+                                <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-slow ${isCardRequired && selectedPlan
                                     ? 'bg-amber-500/[0.05] border-amber-500/20'
                                     : 'bg-emerald-500/[0.05] border-emerald-500/15'}`}>
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isCardRequired && selectedPlan ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
@@ -1312,7 +1312,7 @@ export default function Pricing({ plans = [] }) {
                                         <div className={`text-xs font-bold ${isCardRequired && selectedPlan ? 'text-amber-300' : 'text-emerald-300'}`}>
                                             {isCardRequired && selectedPlan ? 'A credit card will be required at checkout' : 'No credit card required'}
                                         </div>
-                                        <div className="text-2xs text-slate-500 mt-0.5">
+                                        <div className="text-2xs text-ink-muted mt-0.5">
                                             {isCardRequired && selectedPlan
                                                 ? 'Your card is authorized now but charged only after your 14-day trial ends.'
                                                 : 'No AI selected. Your full 14-day trial starts immediately — no payment details needed.'}
@@ -1329,7 +1329,7 @@ export default function Pricing({ plans = [] }) {
                 <div className="flex items-center justify-between pt-6 border-t border-white/[0.05]">
                     <button
                         onClick={() => { setCurrentStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-ink-muted hover:text-neutral-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={13} /> Back to Plans
                     </button>
@@ -1337,7 +1337,7 @@ export default function Pricing({ plans = [] }) {
                         id="ai-step-continue"
                         onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         variant="indigo"
-                        className="px-8 py-3.5 text-xs font-black uppercase tracking-widest"
+                        className="px-8 py-3.5 text-xs font-bold uppercase tracking-widest"
                     >
                         Continue to Online Sync <ArrowRight size={13} />
                     </MagneticButton>
@@ -1352,13 +1352,13 @@ export default function Pricing({ plans = [] }) {
             <div className="max-w-4xl mx-auto space-y-8">
                 <RevealOnScroll>
                     <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-400 text-2xs font-black tracking-widest uppercase mb-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/15 text-brand-400 text-2xs font-bold tracking-widest uppercase mb-4">
                             Step 3 of 5
                         </div>
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
+                        <h2 className="text-4xl font-bold text-ink tracking-tight font-display mb-3">
                             Connect Your Online Sales Channels
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                        <p className="text-ink-muted text-sm max-w-lg mx-auto leading-relaxed">
                             Connect your online store or Amazon seller account. When an item sells in your physical shop, online inventory updates automatically in under 3 seconds.
                         </p>
                         <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
@@ -1381,48 +1381,48 @@ export default function Pricing({ plans = [] }) {
                                 onClick={() => !isComingSoon && setSelectedSyncs(isAdded
                                     ? selectedSyncs.filter(s => s !== ch.key)
                                     : [...selectedSyncs, ch.key])}
-                                className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 relative flex flex-col justify-between ${
+                                className={`w-full text-left p-6 rounded-2xl border transition-all duration-slow relative flex flex-col justify-between ${
                                     isComingSoon
                                         ? 'border-white/[0.04] bg-white/[0.01] opacity-60 cursor-not-allowed'
                                         : isAdded
-                                        ? 'border-indigo-400/50 bg-indigo-500/[0.08] shadow-lg shadow-indigo-500/10 cursor-pointer'
+                                        ? 'border-brand-400/50 bg-brand-500/[0.08] shadow-lg  cursor-pointer'
                                         : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 cursor-pointer'
                                 }`}
                             >
                                 <div>
                                     <div className="flex items-start justify-between gap-3 mb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className={`p-3 rounded-xl flex-shrink-0 ${isAdded ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400'}`}>
+                                            <div className={`p-3 rounded-xl flex-shrink-0 ${isAdded ? 'bg-brand-500/20 text-brand-400' : 'bg-white/5 text-ink-muted'}`}>
                                                 <Icon size={20} />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-base font-black text-white">{ch.name}</span>
+                                                    <span className="text-base font-bold text-white">{ch.name}</span>
                                                     {isComingSoon && (
                                                         <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                                             Coming Soon
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="text-2xs text-indigo-300 font-bold mt-0.5">{ch.laymanTitle}</div>
+                                                <div className="text-2xs text-brand-300 font-bold mt-0.5">{ch.laymanTitle}</div>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                                            <span className="text-sm text-white font-black whitespace-nowrap">
+                                            <span className="text-sm text-white font-bold whitespace-nowrap">
                                                 +{fmt(ch.priceUSD, ch.pricePKR)}
                                             </span>
-                                            <span className="text-3xs text-slate-500">/month</span>
+                                            <span className="text-3xs text-ink-muted">/month</span>
                                         </div>
                                     </div>
 
                                     {/* Plain English Layman Description */}
-                                    <p className="text-xs text-slate-400 leading-relaxed mb-4">{ch.laymanDesc}</p>
+                                    <p className="text-xs text-ink-muted leading-relaxed mb-4">{ch.laymanDesc}</p>
 
                                     {/* Key Highlights (Active channels only) */}
                                     {!isComingSoon && ch.laymanHighlights && (
                                         <div className="space-y-1.5 mb-4 p-3 rounded-xl bg-black/30 border border-white/[0.05]">
                                             {ch.laymanHighlights.map((hl, i) => (
-                                                <div key={i} className="text-2xs text-slate-300 font-medium leading-relaxed">
+                                                <div key={i} className="text-2xs text-neutral-300 font-medium leading-relaxed">
                                                     {hl}
                                                 </div>
                                             ))}
@@ -1434,11 +1434,11 @@ export default function Pricing({ plans = [] }) {
                                     {/* Technical Specs (Active channels only) */}
                                     {!isComingSoon && isNerdExpanded && (
                                         <div className="mt-3 pt-3 border-t border-white/[0.08] space-y-1.5 animate-fadeIn">
-                                            <div className="text-3xs font-black text-indigo-300 uppercase tracking-widest mb-2">Technical API Specifications:</div>
+                                            <div className="text-3xs font-bold text-brand-300 uppercase tracking-widest mb-2">Technical API Specifications:</div>
                                             {ch.techSpecs.map((spec, i) => (
                                                 <div key={i} className="flex items-center justify-between text-3xs gap-2">
-                                                    <span className="text-slate-500 font-mono">{spec.name}</span>
-                                                    <span className="text-slate-300 font-mono font-semibold text-right">{spec.value}</span>
+                                                    <span className="text-ink-muted font-mono">{spec.name}</span>
+                                                    <span className="text-neutral-300 font-mono font-semibold text-right">{spec.value}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -1452,14 +1452,14 @@ export default function Pricing({ plans = [] }) {
                                                     e.stopPropagation();
                                                     toggleNerdSpec(`sync_${ch.key}`);
                                                 }}
-                                                className="text-3xs font-bold text-slate-500 hover:text-indigo-300 uppercase tracking-wider transition-colors flex items-center gap-1"
+                                                className="text-3xs font-bold text-ink-muted hover:text-brand-300 uppercase tracking-wider transition-colors flex items-center gap-1"
                                             >
                                                 {isNerdExpanded ? 'Hide Technical Details ▲' : 'Technical Specifications ▼'}
                                             </button>
                                         ) : (
                                             <span className="text-3xs font-mono text-amber-400/70">In Development</span>
                                         )}
-                                        <span className={`text-2xs font-bold px-3 py-1 rounded-lg transition-all ${isAdded ? 'bg-indigo-500 text-slate-900' : 'bg-white/5 text-slate-400'}`}>
+                                        <span className={`text-2xs font-bold px-3 py-1 rounded-lg transition-all ${isAdded ? 'bg-brand-500 text-ink' : 'bg-white/5 text-ink-muted'}`}>
                                             {isAdded ? 'Connected ✓' : isComingSoon ? 'Coming Soon' : 'Connect Channel'}
                                         </span>
                                     </div>
@@ -1470,9 +1470,9 @@ export default function Pricing({ plans = [] }) {
                 </div>
 
                 {selectedSyncs.length > 0 && (
-                    <div className="p-4 rounded-xl bg-indigo-500/[0.06] border border-indigo-500/15 flex items-center gap-3">
-                        <Globe size={14} className="text-indigo-400 flex-shrink-0" />
-                        <p className="text-xs text-slate-400">
+                    <div className="p-4 rounded-xl bg-brand-500/[0.06] border border-brand-500/15 flex items-center gap-3">
+                        <Globe size={14} className="text-brand-400 flex-shrink-0" />
+                        <p className="text-xs text-ink-muted">
                             The moment a barcode transaction completes inside your POS, stock updates across all connected platforms in under 3 seconds. No overselling. Ever.
                         </p>
                     </div>
@@ -1481,7 +1481,7 @@ export default function Pricing({ plans = [] }) {
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                     <button
                         onClick={() => { setCurrentStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-ink-muted hover:text-neutral-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={13} /> Back to AI Selection
                     </button>
@@ -1489,7 +1489,7 @@ export default function Pricing({ plans = [] }) {
                         id="sync-continue"
                         onClick={() => { setCurrentStep(4); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         variant="indigo"
-                        className="px-8 py-3.5 text-xs font-black uppercase tracking-widest"
+                        className="px-8 py-3.5 text-xs font-bold uppercase tracking-widest"
                     >
                         {selectedSyncs.length > 0 ? `Continue with ${selectedSyncs.length} channel${selectedSyncs.length > 1 ? 's' : ''}` : 'Skip for now'} <ArrowRight size={13} />
                     </MagneticButton>
@@ -1522,13 +1522,13 @@ export default function Pricing({ plans = [] }) {
 
                 {/* Header */}
                 <div className="text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-2xs font-black tracking-widest uppercase mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/15 text-brand-600 dark:text-brand-400 text-2xs font-bold tracking-widest uppercase mb-4">
                         Step 4 of 4
                     </div>
-                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
+                    <h2 className="text-4xl font-bold text-ink tracking-tight font-display mb-3">
                         Want us to load your products?
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                    <p className="text-ink-muted text-sm max-w-lg mx-auto leading-relaxed">
                         We'll upload your catalog for you — fully configured and ready to sell from day one. Pay only for what you need, per product. No fixed packages.
                     </p>
                 </div>
@@ -1542,31 +1542,31 @@ export default function Pricing({ plans = [] }) {
                                 key={tier.key}
                                 id={`service-tier-${tier.key}`}
                                 onClick={() => setSelectedService(isChosen ? null : tier.key)}
-                                className={`w-full text-left p-5 rounded-2xl border transition-all duration-300
+                                className={`w-full text-left p-5 rounded-2xl border transition-all duration-slow
                                     ${isChosen
-                                        ? 'bg-indigo-600/[0.08] border-indigo-500/40'
+                                        ? 'bg-brand-600/[0.08] border-brand-500/40'
                                         : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10'
                                     }`}
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 transition-all ${isChosen ? 'border-indigo-400 bg-indigo-500' : 'border-slate-700'}`}>
-                                            {isChosen && <Check size={9} className="text-slate-900 dark:text-white" strokeWidth={3} />}
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 transition-all ${isChosen ? 'border-brand-400 bg-brand-500' : 'border-neutral-700'}`}>
+                                            {isChosen && <Check size={9} className="text-ink" strokeWidth={3} />}
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <span className="text-lg">{tier.emoji}</span>
-                                                <span className="text-slate-900 dark:text-white font-bold text-sm">{tier.name}</span>
-                                                {idx === 1 && <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-4xs font-black tracking-widest uppercase">Most Popular</span>}
+                                                <span className="text-ink font-bold text-sm">{tier.name}</span>
+                                                {idx === 1 && <span className="px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-300 text-4xs font-bold tracking-widest uppercase">Most Popular</span>}
                                             </div>
-                                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">{tier.desc}</p>
-                                            <p className="text-slate-500 text-2xs mt-1.5 font-semibold">⏱ Turnaround: {tier.sla}</p>
+                                            <p className="text-ink-muted text-xs mt-1 leading-relaxed">{tier.desc}</p>
+                                            <p className="text-ink-muted text-2xs mt-1.5 font-semibold">⏱ Turnaround: {tier.sla}</p>
                                         </div>
                                     </div>
                                     <div className="text-right flex-shrink-0">
-                                        <div className="text-slate-900 dark:text-white font-black text-lg">{fmtCost(tier.priceUSD, tier.pricePKR)}</div>
-                                        <div className="text-3xs text-slate-500 font-black uppercase tracking-widest">per product</div>
-                                        <div className="text-3xs text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">+{fmtCost(0.50, 50)} / extra 5 variants</div>
+                                        <div className="text-ink font-bold text-lg">{fmtCost(tier.priceUSD, tier.pricePKR)}</div>
+                                        <div className="text-3xs text-ink-muted font-bold uppercase tracking-widest">per product</div>
+                                        <div className="text-3xs text-brand-600 dark:text-brand-400 font-semibold mt-0.5">+{fmtCost(0.50, 50)} / extra 5 variants</div>
                                     </div>
                                 </div>
                             </button>
@@ -1576,11 +1576,11 @@ export default function Pricing({ plans = [] }) {
 
                 {/* Variant explanation */}
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Layers size={11} className="text-indigo-600 dark:text-indigo-400" />
+                    <div className="w-6 h-6 rounded-lg bg-brand-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Layers size={11} className="text-brand-600 dark:text-brand-400" />
                     </div>
-                    <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                        <span className="text-slate-900 dark:text-white font-semibold">Variant pricing:</span> The first 5 variants per product are included in the base price.
+                    <p className="text-1xs text-ink-muted leading-relaxed">
+                        <span className="text-ink font-semibold">Variant pricing:</span> The first 5 variants per product are included in the base price.
                         Every additional 5 variants cost {fmtCost(0.50, 50)} more.
                         Example: a product with 20 variants = base price + 3 extra blocks ({fmtCost(1.50, 150)} more).
                     </p>
@@ -1588,18 +1588,18 @@ export default function Pricing({ plans = [] }) {
 
                 {/* ── Interactive Calculator ── */}
                 {selectedTier && (
-                    <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-b from-indigo-950/30 to-transparent overflow-hidden">
+                    <div className="rounded-2xl border border-brand-500/20 bg-gradient-to-b from-brand-950/30 to-transparent overflow-hidden">
                         <div className="px-6 py-4 border-b border-white/[0.05] flex items-center gap-2">
-                            <BarChart3 size={14} className="text-indigo-600 dark:text-indigo-400" />
-                            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Cost Estimator</span>
-                            <span className="text-2xs text-slate-500 ml-1">— see your price before committing</span>
+                            <BarChart3 size={14} className="text-brand-600 dark:text-brand-400" />
+                            <span className="text-xs font-bold text-ink uppercase tracking-widest">Cost Estimator</span>
+                            <span className="text-2xs text-ink-muted ml-1">— see your price before committing</span>
                         </div>
 
                         <div className="p-6 space-y-5">
                             {/* Inputs */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-2">
+                                    <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-2">
                                         How many products?
                                     </label>
                                     <input
@@ -1607,11 +1607,11 @@ export default function Pricing({ plans = [] }) {
                                         type="number" min="1" placeholder="e.g. 50"
                                         value={calcProducts}
                                         onChange={e => setCalcProducts(e.target.value)}
-                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
+                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-2">
+                                    <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-2">
                                         Average variants per product?
                                     </label>
                                     <input
@@ -1619,9 +1619,9 @@ export default function Pricing({ plans = [] }) {
                                         type="number" min="1" placeholder="e.g. 3 (default: 1)"
                                         value={calcVariants}
                                         onChange={e => setCalcVariants(e.target.value)}
-                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
+                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
                                     />
-                                    <p className="text-2xs text-slate-500 mt-1.5">Leave blank if products have no variants or ≤5</p>
+                                    <p className="text-2xs text-ink-muted mt-1.5">Leave blank if products have no variants or ≤5</p>
                                 </div>
                             </div>
 
@@ -1629,34 +1629,34 @@ export default function Pricing({ plans = [] }) {
                             {hasEstimate && (
                                 <div className="space-y-2 pt-4 border-t border-white/[0.05]">
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="text-slate-500 dark:text-slate-400">{calcProductsNum} products × {fmtCost(selectedTier.priceUSD, selectedTier.pricePKR)} base</span>
-                                        <span className="text-slate-600 dark:text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * selectedTier.priceUSD, calcProductsNum * selectedTier.pricePKR)}</span>
+                                        <span className="text-ink-muted">{calcProductsNum} products × {fmtCost(selectedTier.priceUSD, selectedTier.pricePKR)} base</span>
+                                        <span className="text-ink-secondary font-semibold font-mono">{fmtCost(calcProductsNum * selectedTier.priceUSD, calcProductsNum * selectedTier.pricePKR)}</span>
                                     </div>
                                     {extraBlocks > 0 && (
                                         <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-500 dark:text-slate-400">
+                                            <span className="text-ink-muted">
                                                 {calcProductsNum} products × {extraBlocks} extra variant block{extraBlocks > 1 ? 's' : ''} × {fmtCost(0.50, 50)}
                                             </span>
-                                            <span className="text-slate-600 dark:text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * extraBlocks * 0.50, calcProductsNum * extraBlocks * 50)}</span>
+                                            <span className="text-ink-secondary font-semibold font-mono">{fmtCost(calcProductsNum * extraBlocks * 0.50, calcProductsNum * extraBlocks * 50)}</span>
                                         </div>
                                     )}
                                     {calcVariantsNum > 1 && (
-                                        <div className="flex items-center justify-between text-2xs text-slate-500">
+                                        <div className="flex items-center justify-between text-2xs text-ink-muted">
                                             <span>Per product: {fmtCost(usdPricePerProduct, pkrPricePerProduct)} ({calcVariantsNum} variants — first 5 free{extraBlocks > 0 ? `, +${extraBlocks} block${extraBlocks > 1 ? 's' : ''}` : ''})</span>
                                         </div>
                                     )}
                                     <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] mt-1">
-                                        <span className="text-slate-900 dark:text-white font-black text-sm">Your estimated total</span>
-                                        <span className="text-2xl font-black text-indigo-300 font-display">{fmtCost(usdServiceCostNum, pkrServiceCostNum)}</span>
+                                        <span className="text-ink font-bold text-sm">Your estimated total</span>
+                                        <span className="text-2xl font-bold text-brand-300 font-display">{fmtCost(usdServiceCostNum, pkrServiceCostNum)}</span>
                                     </div>
-                                    <p className="text-2xs text-slate-500 leading-relaxed">
+                                    <p className="text-2xs text-ink-muted leading-relaxed">
                                         This is an estimate. Final invoice is generated when you initiate the service from your admin panel — after reviewing and confirming.
                                     </p>
                                 </div>
                             )}
 
                             {!hasEstimate && (
-                                <div className="text-center py-4 text-slate-500 text-xs">
+                                <div className="text-center py-4 text-ink-muted text-xs">
                                     Enter your product count above to see your estimated cost →
                                 </div>
                             )}
@@ -1672,19 +1672,19 @@ export default function Pricing({ plans = [] }) {
                         </div>
                         <div>
                             <div className="text-emerald-300 text-xs font-bold mb-1">Not charged at checkout</div>
-                            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
-                                Adding your card now just unlocks the service. You trigger it yourself from the admin panel — <strong className="text-slate-600 dark:text-slate-300">that's when the charge happens</strong>, after you've reviewed the final product count.
+                            <p className="text-ink-muted text-xs leading-relaxed">
+                                Adding your card now just unlocks the service. You trigger it yourself from the admin panel — <strong className="text-ink-secondary">that's when the charge happens</strong>, after you've reviewed the final product count.
                             </p>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Rocket size={12} className="text-indigo-600 dark:text-indigo-400" />
+                        <div className="w-6 h-6 rounded-lg bg-brand-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Rocket size={12} className="text-brand-600 dark:text-brand-400" />
                         </div>
                         <div>
-                            <div className="text-indigo-300 text-xs font-bold mb-1">Trial paused while we work</div>
-                            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
-                                Your 14-day trial is <strong className="text-slate-600 dark:text-slate-300">held while we load your catalog</strong>. Every one of your trial days starts on a store that's already live and stocked.
+                            <div className="text-brand-300 text-xs font-bold mb-1">Trial paused while we work</div>
+                            <p className="text-ink-muted text-xs leading-relaxed">
+                                Your 14-day trial is <strong className="text-ink-secondary">held while we load your catalog</strong>. Every one of your trial days starts on a store that's already live and stocked.
                             </p>
                         </div>
                     </div>
@@ -1693,7 +1693,7 @@ export default function Pricing({ plans = [] }) {
                 {/* Trial mode */}
                 {selectedService && (
                     <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-4">
-                        <h4 className="text-slate-900 dark:text-white text-sm font-bold">When should we start your trial?</h4>
+                        <h4 className="text-ink text-sm font-bold">When should we start your trial?</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {[
                                 { key: 'instant', emoji: '⚡', label: 'Start immediately', desc: 'Trial runs now. Request catalog loading whenever you\'re ready from your dashboard.' },
@@ -1703,15 +1703,15 @@ export default function Pricing({ plans = [] }) {
                                     key={opt.key}
                                     id={`trial-mode-${opt.key}`}
                                     onClick={() => setTrialMode(opt.key)}
-                                    className={`text-left p-4 rounded-xl border transition-all duration-300
+                                    className={`text-left p-4 rounded-xl border transition-all duration-slow
                                         ${trialMode === opt.key
-                                            ? 'bg-indigo-600/8 border-indigo-500/40'
+                                            ? 'bg-brand-600/8 border-brand-500/40'
                                             : 'bg-white/[0.02] border-white/[0.06] hover:border-white/8'
                                         }`}
                                 >
                                     <div className="text-base mb-1">{opt.emoji}</div>
-                                    <div className="text-slate-900 dark:text-white text-xs font-bold mb-1">{opt.label}</div>
-                                    <div className="text-slate-500 text-2xs leading-relaxed">{opt.desc}</div>
+                                    <div className="text-ink text-xs font-bold mb-1">{opt.label}</div>
+                                    <div className="text-ink-muted text-2xs leading-relaxed">{opt.desc}</div>
                                 </button>
                             ))}
                         </div>
@@ -1722,7 +1722,7 @@ export default function Pricing({ plans = [] }) {
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                     <button
                         onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 dark:text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-ink-muted hover:text-neutral-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={13} /> Back
                     </button>
@@ -1730,7 +1730,7 @@ export default function Pricing({ plans = [] }) {
                         id="onboarding-continue"
                         onClick={() => { setCurrentStep(5); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         variant="indigo"
-                        className="px-8 py-3.5 text-xs font-black uppercase tracking-widest"
+                        className="px-8 py-3.5 text-xs font-bold uppercase tracking-widest"
                     >
                         {selectedService
                             ? hasEstimate
@@ -1754,8 +1754,8 @@ export default function Pricing({ plans = [] }) {
             <section className="min-h-screen px-6 py-24">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-10">
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-2">Review & Confirm</h2>
-                        <p className="text-slate-500 text-sm">Everything you've selected. Clear. In one place.</p>
+                        <h2 className="text-4xl font-bold text-ink tracking-tight font-display mb-2">Review & Confirm</h2>
+                        <p className="text-ink-muted text-sm">Everything you've selected. Clear. In one place.</p>
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -1765,25 +1765,25 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Plan */}
                             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                <div className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">Your Subscription</div>
+                                <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-4">Your Subscription</div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-slate-900 dark:text-white font-bold">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</div>
-                                        <div className="text-slate-500 text-xs mt-0.5">14-day free trial → then auto-renews</div>
+                                        <div className="text-ink font-bold">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</div>
+                                        <div className="text-ink-muted text-xs mt-0.5">14-day free trial → then auto-renews</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-slate-600 dark:text-slate-300 font-black text-lg">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</div>
+                                        <div className="text-ink-secondary font-bold text-lg">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</div>
                                         <div className="text-emerald-600 dark:text-emerald-400 text-2xs font-bold">$0.00 today</div>
                                     </div>
                                 </div>
                                 {selectedAIData && (
                                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.05]">
                                         <div>
-                                            <div className="text-slate-900 dark:text-white font-bold text-sm">{selectedAIData.emoji} {selectedAIData.name}</div>
-                                            <div className="text-slate-500 text-xs mt-0.5">Managed AI — included in trial</div>
+                                            <div className="text-ink font-bold text-sm">{selectedAIData.emoji} {selectedAIData.name}</div>
+                                            <div className="text-ink-muted text-xs mt-0.5">Managed AI — included in trial</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-slate-600 dark:text-slate-300 font-bold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</div>
+                                            <div className="text-ink-secondary font-bold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</div>
                                             <div className="text-emerald-600 dark:text-emerald-400 text-2xs font-bold">$0.00 today</div>
                                         </div>
                                     </div>
@@ -1791,11 +1791,11 @@ export default function Pricing({ plans = [] }) {
                                 {selectedAI === 'byok' && (
                                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.05]">
                                         <div>
-                                            <div className="text-slate-900 dark:text-white font-bold text-sm">🔑 BYOK AI Activation</div>
-                                            <div className="text-slate-500 text-xs mt-0.5">One-time unlock — free AI forever after</div>
+                                            <div className="text-ink font-bold text-sm">🔑 BYOK AI Activation</div>
+                                            <div className="text-ink-muted text-xs mt-0.5">One-time unlock — free AI forever after</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-amber-600 dark:text-amber-400 font-black">{fmt(5, 1400)}</div>
+                                            <div className="text-amber-600 dark:text-amber-400 font-bold">{fmt(5, 1400)}</div>
                                             <div className="text-amber-600 dark:text-amber-400 text-2xs font-bold">charged today</div>
                                         </div>
                                     </div>
@@ -1803,11 +1803,11 @@ export default function Pricing({ plans = [] }) {
                                 {selectedSyncs.length > 0 && (
                                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.05]">
                                         <div>
-                                            <div className="text-slate-900 dark:text-white font-bold text-sm">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</div>
-                                            <div className="text-slate-500 text-xs mt-0.5">{selectedSyncs.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}</div>
+                                            <div className="text-ink font-bold text-sm">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</div>
+                                            <div className="text-ink-muted text-xs mt-0.5">{selectedSyncs.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-slate-600 dark:text-slate-300 font-bold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</div>
+                                            <div className="text-ink-secondary font-bold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</div>
                                             <div className="text-emerald-600 dark:text-emerald-400 text-2xs font-bold">$0.00 today</div>
                                         </div>
                                     </div>
@@ -1817,14 +1817,14 @@ export default function Pricing({ plans = [] }) {
                             {/* Services */}
                             {selectedServiceData && (
                                 <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                    <div className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">Optional Service</div>
+                                    <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-4">Optional Service</div>
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className="text-slate-900 dark:text-white font-bold">{selectedTier?.emoji} Catalog Loading — {selectedTier?.name}</div>
-                                            <div className="text-slate-500 text-xs mt-0.5">{calcProductsNum} products · charged when initiated from dashboard</div>
+                                            <div className="text-ink font-bold">{selectedTier?.emoji} Catalog Loading — {selectedTier?.name}</div>
+                                            <div className="text-ink-muted text-xs mt-0.5">{calcProductsNum} products · charged when initiated from dashboard</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-amber-600 dark:text-amber-400 font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</div>
+                                            <div className="text-amber-600 dark:text-amber-400 font-bold">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</div>
                                             <div className="text-amber-600 dark:text-amber-400 text-2xs font-bold">deferred — from dashboard</div>
                                         </div>
                                     </div>
@@ -1833,27 +1833,27 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Billing Timeline */}
                             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                <div className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-5">Your Billing Timeline</div>
+                                <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-5">Your Billing Timeline</div>
                                 <div className="space-y-5 relative pl-5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-px before:bg-white/[0.05]">
                                     <div className="relative">
                                         <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-emerald-400" />
                                         <div className="flex items-center justify-between mb-0.5">
-                                            <span className="text-slate-900 dark:text-white text-xs font-bold">Today</span>
-                                            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-black">{fmt(totalDueToday, pkrTotalDueToday)}</span>
+                                            <span className="text-ink text-xs font-bold">Today</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-bold">{fmt(totalDueToday, pkrTotalDueToday)}</span>
                                         </div>
-                                        <p className="text-slate-500 text-2xs">
+                                        <p className="text-ink-muted text-2xs">
                                             {totalDueToday > 0
                                                 ? 'BYOK activation fee charged. Trial begins.'
                                                 : 'No charge. Trial begins immediately.'}
                                         </p>
                                     </div>
                                     <div className="relative">
-                                        <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-indigo-500" />
+                                        <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-brand-500" />
                                         <div className="flex items-center justify-between mb-0.5">
-                                            <span className="text-slate-900 dark:text-white text-xs font-bold">{trialEndStr}</span>
-                                            <span className="text-indigo-600 dark:text-indigo-400 text-xs font-black">{fmt(totalMonthlyCost, pkrTotalMonthlyCost, '/mo')}</span>
+                                            <span className="text-ink text-xs font-bold">{trialEndStr}</span>
+                                            <span className="text-brand-600 dark:text-brand-400 text-xs font-bold">{fmt(totalMonthlyCost, pkrTotalMonthlyCost, '/mo')}</span>
                                         </div>
-                                        <p className="text-slate-500 text-2xs">
+                                        <p className="text-ink-muted text-2xs">
                                             First subscription charge — only if you choose to continue. Cancel anytime before this date.
                                         </p>
                                     </div>
@@ -1861,10 +1861,10 @@ export default function Pricing({ plans = [] }) {
                                         <div className="relative">
                                             <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-amber-400" />
                                             <div className="flex items-center justify-between mb-0.5">
-                                                <span className="text-slate-900 dark:text-white text-xs font-bold">When you initiate catalog loading</span>
-                                                <span className="text-amber-600 dark:text-amber-400 text-xs font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
+                                                <span className="text-ink text-xs font-bold">When you initiate catalog loading</span>
+                                                <span className="text-amber-600 dark:text-amber-400 text-xs font-bold">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
                                             </div>
-                                            <p className="text-slate-500 text-2xs">
+                                            <p className="text-ink-muted text-2xs">
                                                 Charged per product from your admin panel. Turnaround: {selectedTier?.sla}.
                                             </p>
                                         </div>
@@ -1873,89 +1873,89 @@ export default function Pricing({ plans = [] }) {
                             </div>
 
                             {/* Totals */}
-                            <div className="p-5 rounded-2xl bg-indigo-600/8 border border-indigo-500/20 flex items-center justify-between">
+                            <div className="p-5 rounded-2xl bg-brand-600/8 border border-brand-500/20 flex items-center justify-between">
                                 <div>
-                                    <div className="text-slate-900 dark:text-white font-bold text-sm">Due today</div>
-                                    <div className="text-slate-500 dark:text-slate-400 text-2xs">{totalDueToday > 0 ? 'BYOK activation' : 'Nothing. Trial is free.'}</div>
+                                    <div className="text-ink font-bold text-sm">Due today</div>
+                                    <div className="text-ink-muted text-2xs">{totalDueToday > 0 ? 'BYOK activation' : 'Nothing. Trial is free.'}</div>
                                 </div>
-                                <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                                     {fmt(totalDueToday, pkrTotalDueToday)}
                                 </div>
                             </div>
                         </div>
 
                         {/* Right: Form */}
-                        <div className="w-full lg:w-[380px] bg-white/[0.01] border border-white/[0.06] rounded-[1.75rem] p-7">
+                        <div className="w-full lg:w-[380px] bg-white/[0.01] border border-white/[0.06] rounded-xl p-7">
                             <form onSubmit={handleFormSubmit} className="space-y-5">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Lock size={13} className="text-indigo-600 dark:text-indigo-400" />
-                                    <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Secure Activation</span>
+                                    <Lock size={13} className="text-brand-600 dark:text-brand-400" />
+                                    <span className="text-xs font-bold text-ink uppercase tracking-widest">Secure Activation</span>
                                 </div>
 
                                 <div>
-                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Business Email</label>
+                                    <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">Business Email</label>
                                     <input
                                         type="email" required placeholder="name@business.com"
                                         value={checkoutDetails.email}
                                         onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })}
-                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Phone Number</label>
+                                    <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">Phone Number</label>
                                     <input
                                         type="tel" required placeholder="+1 (555) 000-0000"
                                         value={checkoutDetails.phone}
                                         onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })}
-                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                     />
                                 </div>
 
                                 {isCardRequired ? (
                                     <div className="space-y-3 pt-4 border-t border-white/[0.05]">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-2xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">Card Details</span>
-                                            <span className="text-2xs text-slate-500 flex items-center gap-1"><Lock size={9} /> Secured</span>
+                                            <span className="text-2xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Card Details</span>
+                                            <span className="text-2xs text-ink-muted flex items-center gap-1"><Lock size={9} /> Secured</span>
                                         </div>
                                         <div>
-                                            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Cardholder Name</label>
+                                            <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">Cardholder Name</label>
                                             <input
                                                 type="text" required placeholder="Jane Doe"
                                                 value={checkoutDetails.cardholder}
                                                 onChange={e => setCheckoutDetails({ ...checkoutDetails, cardholder: e.target.value })}
-                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Card Number</label>
+                                            <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">Card Number</label>
                                             <input
                                                 type="text" required placeholder="•••• •••• •••• ••••" maxLength="19"
                                                 value={checkoutDetails.cardNumber}
                                                 onChange={e => setCheckoutDetails({ ...checkoutDetails, cardNumber: e.target.value })}
-                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono outline-none transition-all"
+                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono outline-none transition-all"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Expiry</label>
+                                                <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">Expiry</label>
                                                 <input
                                                     type="text" required placeholder="MM/YY" maxLength="5"
                                                     value={checkoutDetails.expiry}
                                                     onChange={e => setCheckoutDetails({ ...checkoutDetails, expiry: e.target.value })}
-                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
+                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">CVC</label>
+                                                <label className="text-2xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">CVC</label>
                                                 <input
                                                     type="password" required placeholder="•••" maxLength="4"
                                                     value={checkoutDetails.cvc}
                                                     onChange={e => setCheckoutDetails({ ...checkoutDetails, cvc: e.target.value })}
-                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
+                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
                                                 />
                                             </div>
                                         </div>
-                                        <p className="text-2xs text-slate-500 leading-relaxed">
+                                        <p className="text-2xs text-ink-muted leading-relaxed">
                                             Encrypted connection. Your card is authorized today. Subscription is charged only after your 14-day trial ends — and only if you choose to continue.
                                         </p>
                                     </div>
@@ -1963,7 +1963,7 @@ export default function Pricing({ plans = [] }) {
                                     <div className="pt-4 border-t border-white/[0.05]">
                                         <div className="p-3.5 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/10 flex items-start gap-2.5">
                                             <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
-                                            <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                            <p className="text-1xs text-ink-muted leading-relaxed">
                                                 No credit card required. Your trial starts immediately with full dashboard access.
                                             </p>
                                         </div>
@@ -1974,9 +1974,9 @@ export default function Pricing({ plans = [] }) {
                                     id="checkout-submit"
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className={`w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2
+                                    className={`w-full py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-slow flex items-center justify-center gap-2
                                         ${isSubmitting
-                                            ? 'bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                                            ? 'bg-sunken text-ink-muted cursor-not-allowed'
                                             : 'bg-white text-void-950 hover:shadow-[0_0_60px_-5px_rgba(255,255,255,0.3)] shadow-lg'
                                         }`}
                                 >
@@ -1990,7 +1990,7 @@ export default function Pricing({ plans = [] }) {
                                 <button
                                     type="button"
                                     onClick={() => { setCurrentStep(4); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                    className="w-full text-center text-slate-500 hover:text-slate-400 text-1xs font-bold uppercase tracking-widest transition-colors"
+                                    className="w-full text-center text-ink-muted hover:text-ink-muted text-1xs font-bold uppercase tracking-widest transition-colors"
                                 >
                                     ← Back
                                 </button>
@@ -2010,9 +2010,9 @@ export default function Pricing({ plans = [] }) {
         return (
             <section className="min-h-screen px-6 py-24 flex items-center justify-center">
                 <div className="max-w-2xl w-full">
-                    <div className="rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-b from-[#0a1a14] to-void-950 p-10 md:p-12 text-center relative overflow-hidden">
+                    <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-neutral-900 to-void-950 p-10 md:p-12 text-center relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
 
                         <div className="relative z-10">
                             {/* Success mark */}
@@ -2020,31 +2020,31 @@ export default function Pricing({ plans = [] }) {
                                 <CheckCircle2 size={28} className="text-emerald-600 dark:text-emerald-400" />
                             </div>
 
-                            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-2">You're in.</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Your account has been activated. Here's exactly what happens next.</p>
+                            <h2 className="text-4xl font-bold text-ink tracking-tight font-display mb-2">You're in.</h2>
+                            <p className="text-ink-muted text-sm mb-8">Your account has been activated. Here's exactly what happens next.</p>
 
                             {/* What's included */}
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 text-left space-y-3 mb-6">
-                                <div className="text-2xs font-black text-slate-500 uppercase tracking-widest mb-3">What you purchased</div>
+                                <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-3">What you purchased</div>
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-slate-600 dark:text-slate-300">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</span>
-                                    <span className="text-slate-500 dark:text-slate-400 font-semibold">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</span>
+                                    <span className="text-ink-secondary">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</span>
+                                    <span className="text-ink-muted font-semibold">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</span>
                                 </div>
                                 {selectedAIData && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-600 dark:text-slate-300">{selectedAIData.emoji} {selectedAIData.name}</span>
-                                        <span className="text-slate-500 dark:text-slate-400 font-semibold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</span>
+                                        <span className="text-ink-secondary">{selectedAIData.emoji} {selectedAIData.name}</span>
+                                        <span className="text-ink-muted font-semibold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</span>
                                     </div>
                                 )}
                                 {selectedSyncs.length > 0 && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-600 dark:text-slate-300">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</span>
-                                        <span className="text-slate-500 dark:text-slate-400 font-semibold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</span>
+                                        <span className="text-ink-secondary">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</span>
+                                        <span className="text-ink-muted font-semibold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</span>
                                     </div>
                                 )}
                                 {selectedServiceData && (
                                     <div className="flex items-center justify-between text-sm pt-2 border-t border-white/[0.05]">
-                                        <span className="text-slate-600 dark:text-slate-300">Catalog Loading — {selectedTier?.name}</span>
+                                        <span className="text-ink-secondary">Catalog Loading — {selectedTier?.name}</span>
                                         <span className="text-amber-600 dark:text-amber-400 font-semibold">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
                                     </div>
                                 )}
@@ -2052,11 +2052,11 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Timeline */}
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 text-left space-y-4 mb-6">
-                                <div className="text-2xs font-black text-slate-500 uppercase tracking-widest">What happens next</div>
+                                <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest">What happens next</div>
 
                                 {[
                                     { dot: 'bg-emerald-400', title: 'Right now', desc: `Your 14-day trial has started. Log in and explore everything.${totalDueToday > 0 ? ` BYOK activation fee of ${fmt(totalDueToday, pkrTotalDueToday)} has been processed.` : ' No charge today.'}` },
-                                    ...(selectedServiceData ? [{ dot: 'bg-indigo-400', title: 'Within 2 business hours', desc: `Our team will contact you on ${checkoutDetails.phone || 'the number you provided'} to confirm your catalog details and begin loading ${calcProductsNum} products. Turnaround: ${selectedTier?.sla}.` }] : []),
+                                    ...(selectedServiceData ? [{ dot: 'bg-brand-400', title: 'Within 2 business hours', desc: `Our team will contact you on ${checkoutDetails.phone || 'the number you provided'} to confirm your catalog details and begin loading ${calcProductsNum} products. Turnaround: ${selectedTier?.sla}.` }] : []),
                                     { dot: 'bg-purple-400', title: trialEndStr, desc: `Trial ends. Subscription begins at ${fmt(totalMonthlyCost, pkrTotalMonthlyCost, '/mo')} — only if you choose to stay. Cancel from your dashboard anytime before this date.` },
                                 ].map((step, i) => (
                                     <div key={i} className="flex gap-3">
@@ -2065,24 +2065,24 @@ export default function Pricing({ plans = [] }) {
                                             {i < 2 && <div className="w-px flex-1 bg-white/[0.05] my-1" />}
                                         </div>
                                         <div className="pb-3">
-                                            <div className="text-slate-900 dark:text-white text-xs font-bold mb-0.5">{step.title}</div>
-                                            <div className="text-slate-500 text-1xs leading-relaxed">{step.desc}</div>
+                                            <div className="text-ink text-xs font-bold mb-0.5">{step.title}</div>
+                                            <div className="text-ink-muted text-1xs leading-relaxed">{step.desc}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Human contact */}
-                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center gap-3 mb-6 text-sm text-slate-500 dark:text-slate-400">
-                                <MessageSquare size={14} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                                <span>Questions? WhatsApp us at <a href="https://wa.me/923091999489" className="text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">+92 309 1999489</a> — we reply within a few hours.</span>
+                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center gap-3 mb-6 text-sm text-ink-muted">
+                                <MessageSquare size={14} className="text-brand-600 dark:text-brand-400 flex-shrink-0" />
+                                <span>Questions? WhatsApp us at <a href="https://wa.me/923091999489" className="text-brand-600 dark:text-brand-400 font-semibold hover:text-brand-300 transition-colors">+92 309 1999489</a> — we reply within a few hours.</span>
                             </div>
 
                             <MagneticButton
                                 id="goto-dashboard"
                                 href="/login"
                                 variant="primary"
-                                className="px-10 py-4 text-sm font-black uppercase tracking-widest"
+                                className="px-10 py-4 text-sm font-bold uppercase tracking-widest"
                             >
                                 Go to Dashboard <ArrowRight size={15} />
                             </MagneticButton>
@@ -2110,8 +2110,8 @@ export default function Pricing({ plans = [] }) {
                         const done = currentStep > s.n;
                         const active = currentStep === s.n;
                         return (
-                            <div key={s.n} className={`flex items-center gap-1.5 text-2xs font-black uppercase tracking-wider transition-colors ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs transition-all ${active ? 'bg-indigo-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-slate-500'}`}>
+                            <div key={s.n} className={`flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider transition-colors ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-ink-muted'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs transition-all ${active ? 'bg-brand-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-ink-muted'}`}>
                                     {done ? '✓' : s.n}
                                 </div>
                                 <span className="hidden sm:block">{s.label}</span>

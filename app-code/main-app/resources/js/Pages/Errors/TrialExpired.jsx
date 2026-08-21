@@ -25,8 +25,8 @@ export default function TrialExpired() {
                     <Clock size={28} className="text-amber-400" />
                 </div>
 
-                <h1 className="text-2xl font-black text-white mb-2">Your Trial Has Ended</h1>
-                <p className="text-slate-400 text-sm mb-8">
+                <h1 className="text-2xl font-bold text-white mb-2">Your Trial Has Ended</h1>
+                <p className="text-ink-muted text-sm mb-8">
                     Your 14-day free trial has expired. Upgrade to a plan to continue using VenQore.
                 </p>
 
@@ -41,9 +41,9 @@ export default function TrialExpired() {
                         <Link
                             href={route('store.billing', { store_slug: store.slug })}
                             className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl
-                                bg-gradient-to-r from-indigo-500 to-purple-600
-                                hover:from-indigo-400 hover:to-purple-500
-                                text-white font-bold transition-all hover:scale-[1.02]"
+ bg-gradient-to-r from-brand-500 to-purple-600
+ hover:from-brand-400 hover:to-purple-500
+ text-white font-bold transition-all"
                         >
                             <CreditCard size={16} /> Upgrade Now <ArrowRight size={14} />
                         </Link>
@@ -51,8 +51,8 @@ export default function TrialExpired() {
                 </div>
 
                 {false && (
-                    <p className="text-slate-500 text-sm">
-                        Have an AppSumo code?{' '}
+                    <p className="text-ink-muted text-sm">
+                        Have an AppSumo code?{''}
                         <Link href={route('redeem')} className="text-orange-400 hover:text-orange-300 inline-flex items-center gap-1">
                             <Tag size={13} /> Redeem lifetime access
                         </Link>
@@ -60,10 +60,10 @@ export default function TrialExpired() {
                 )}
 
                 <div className="flex items-center justify-center gap-4 mt-6">
-                    <Link href={route('hub')} className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+                    <Link href={route('hub')} className="text-sm text-ink-muted hover:text-neutral-300 transition-colors">
                         Switch store
                     </Link>
-                    <Link href={route('logout')} method="post" as="button" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+                    <Link href={route('logout')} method="post" as="button" className="text-sm text-ink-muted hover:text-neutral-300 transition-colors">
                         Sign out
                     </Link>
                 </div>
@@ -74,22 +74,22 @@ export default function TrialExpired() {
 
 function PlanCard({ plan, price, color, features, badge }) {
     const colors = {
-        slate:  { header: 'bg-slate-500/10 border-slate-500/20 text-slate-300', dot: 'bg-slate-400' },
-        indigo: { header: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300', dot: 'bg-indigo-400' },
+        slate:  { header: 'bg-neutral-500/10 border-line-strong text-neutral-300', dot: 'bg-neutral-400' },
+        indigo: { header: 'bg-brand-500/10 border-brand-500/20 text-brand-300', dot: 'bg-brand-400' },
         purple: { header: 'bg-purple-500/10 border-purple-500/20 text-purple-300', dot: 'bg-purple-400' },
     };
     const cfg = colors[color];
     return (
         <div className={`rounded-xl border p-3 relative ${cfg.header}`}>
             {badge && (
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-indigo-500 text-2xs font-bold text-white whitespace-nowrap">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-brand-500 text-2xs font-bold text-white whitespace-nowrap">
                     {badge}
                 </div>
             )}
             <p className="text-xs font-bold mb-0.5">{plan}</p>
-            <p className="text-lg font-black mb-2">{price}<span className="text-xs font-normal opacity-60">/mo</span></p>
+            <p className="text-lg font-bold mb-2">{price}<span className="text-xs font-normal opacity-60">/mo</span></p>
             {features.map(f => (
-                <div key={f} className="flex items-center gap-1.5 text-2xs text-slate-400 mb-1">
+                <div key={f} className="flex items-center gap-1.5 text-2xs text-ink-muted mb-1">
                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
                     {f}
                 </div>

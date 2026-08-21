@@ -63,7 +63,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
         scope_of_work: '',
         exclusions: '',
         template: 'clean',
-        accent_color: '#4f46e5',
+        accent_color: 'rgb(var(--vq-indigo-600))',
     });
     const [validUntilTouched, setValidUntilTouched] = useState(false);
     const [headers, setHeaders] = useState({
@@ -226,19 +226,19 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
             )}
 
             {/* Slim control bar — everything that ISN'T part of the document itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                <div className="flex items-center rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 p-0.5 text-xs font-bold">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                <div className="flex items-center rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 p-0.5 text-xs font-bold">
                     <button
                         type="button"
                         onClick={() => setMeta((m) => ({ ...m, document_label: 'QUOTATION' }))}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${!isEstimate ? 'bg-slate-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${!isEstimate ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
                     >
                         Quotation
                     </button>
                     <button
                         type="button"
                         onClick={() => setMeta((m) => ({ ...m, document_label: 'ESTIMATE' }))}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${isEstimate ? 'bg-slate-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${isEstimate ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
                     >
                         Estimate
                     </button>
@@ -250,60 +250,60 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                     <Select value={meta.currency} onChange={(v) => setMeta((m) => ({ ...m, currency: v }))} options={currencyOptions} />
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Valid for</label>
+                    <label className="text-xs font-bold text-ink-muted">Valid for</label>
                     <input
                         type="number"
                         min="1"
                         max="3650"
                         value={meta.validity_days}
                         onChange={(e) => { setValidUntilTouched(false); setMeta((m) => ({ ...m, validity_days: e.target.value })); }}
-                        className="w-16 px-2 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-indigo-400/60 transition-colors"
+                        className="w-16 px-2 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-xs focus:outline-none focus:border-brand-400/60 transition-colors"
                     />
-                    <span className="text-xs text-slate-500 dark:text-slate-600">days</span>
+                    <span className="text-xs text-ink-muted">days</span>
                 </div>
                 {isModern && (
                     <div className="flex items-center gap-1.5">
                         {ACCENT_PRESETS.map((c) => (
                             <button key={c} type="button" onClick={() => setMeta((m) => ({ ...m, accent_color: c }))}
-                                className={`w-6 h-6 rounded-full border-2 transition-transform ${meta.accent_color === c ? 'scale-110 border-slate-900 dark:border-white' : 'border-transparent'}`}
+                                className={`w-6 h-6 rounded-full border-2 transition-transform ${meta.accent_color === c ? 'scale-110 border-neutral-900 dark:border-white' : 'border-transparent'}`}
                                 style={{ background: c }} aria-label={c} />
                         ))}
                     </div>
                 )}
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-300 hover:border-indigo-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {company.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {company.logo_base64 && (
-                    <button type="button" onClick={() => setCompany((c) => ({ ...c, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setCompany((c) => ({ ...c, logo_base64: null }))} className="text-xs font-bold text-ink-muted hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={onLogoChange} />
 
-                <div className="flex items-center rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 p-0.5 text-xs font-bold">
+                <div className="flex items-center rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 p-0.5 text-xs font-bold">
                     <button
                         type="button"
                         onClick={() => setOrientation('portrait')}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'portrait' ? 'bg-slate-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'portrait' ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
                     >
                         Portrait
                     </button>
                     <button
                         type="button"
                         onClick={() => setOrientation('landscape')}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'landscape' ? 'bg-slate-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'landscape' ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
                     >
                         Landscape
                     </button>
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-1xs text-ink-muted hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : `Download PDF`}
@@ -317,11 +317,11 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                     Landscape printing is not yet supported for downloads — this previews the layout only.
                 </p>
             )}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 dark:shadow-black/40 border border-slate-900/10 dark:border-white/10 bg-white transition-all ${orientation === 'landscape' ? 'max-w-none' : ''}`}>
+            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white transition-all ${orientation === 'landscape' ? 'max-w-none' : ''}`}>
                 {isModern && <div className="h-3 w-full" style={{ background: accent }} />}
-                <div className={`p-6 sm:p-10 text-slate-900 ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                <div className={`p-6 sm:p-10 text-ink ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                     {/* Header */}
-                    <div className={`flex flex-col sm:flex-row justify-between gap-6 mb-8 ${isClassic ? 'border-b-2 border-slate-900 pb-4' : ''}`}>
+                    <div className={`flex flex-col sm:flex-row justify-between gap-6 mb-8 ${isClassic ? 'border-b-2 border-neutral-900 pb-4' : ''}`}>
                         <div>
                             {company.logo_base64 && <img src={company.logo_base64} alt="Logo" className="h-12 max-w-[160px] object-contain mb-2" />}
                             <EditableText
@@ -336,24 +336,24 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                                 onChange={(v) => setCompany((c) => ({ ...c, address: v }))}
                                 placeholder="Business address"
                                 as="textarea" rows={2}
-                                className="block text-slate-500 text-xs mt-1 max-w-xs"
+                                className="block text-ink-muted text-xs mt-1 max-w-xs"
                                 inline={false}
                             />
-                            <div className="flex flex-col gap-y-0.5 text-xs text-slate-500 mt-1">
+                            <div className="flex flex-col gap-y-0.5 text-xs text-ink-muted mt-1">
                                 <EditableText value={company.email} onChange={(v) => setCompany((c) => ({ ...c, email: v }))} placeholder="email@business.com" inline={false} />
                                 <EditableText value={company.phone} onChange={(v) => setCompany((c) => ({ ...c, phone: v }))} placeholder="Phone number" inline={false} />
                             </div>
-                            <div className="text-xs text-slate-500 mt-0.5">
+                            <div className="text-xs text-ink-muted mt-0.5">
                                 Tax ID: <EditableText value={company.tax_id} onChange={(v) => setCompany((c) => ({ ...c, tax_id: v }))} placeholder="optional" />
                             </div>
                         </div>
                         <div className="text-left sm:text-right">
-                            <div className="text-2xl font-black tracking-tight" style={{ color: isModern ? accent : '#0f172a' }}>{meta.document_label}</div>
+                            <div className="text-2xl font-bold tracking-tight" style={{ color: isModern ? accent : 'rgb(var(--vq-slate-900))' }}>{meta.document_label}</div>
                             <div className="mt-2 text-xs space-y-0.5">
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">{docWord} #</span><EditableText value={meta.quote_number} onChange={(v) => setMeta((m) => ({ ...m, quote_number: v }))} className="font-bold" /></div>
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Issue date</span><EditableText as="date" value={meta.issue_date} onChange={(v) => setMeta((m) => ({ ...m, issue_date: v }))} /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-ink-muted">{docWord} #</span><EditableText value={meta.quote_number} onChange={(v) => setMeta((m) => ({ ...m, quote_number: v }))} className="font-bold" /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-ink-muted">Issue date</span><EditableText as="date" value={meta.issue_date} onChange={(v) => setMeta((m) => ({ ...m, issue_date: v }))} /></div>
                                 <div className="flex sm:justify-end gap-2">
-                                    <span className="text-slate-500 dark:text-slate-400">Valid until</span>
+                                    <span className="text-ink-muted">Valid until</span>
                                     <EditableText
                                         as="date"
                                         value={meta.valid_until}
@@ -368,28 +368,28 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
 
                     {/* Prepared for */}
                     <div className="mb-6">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Prepared For</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Prepared For</p>
                         <EditableText value={client.name} onChange={(v) => setClient((c) => ({ ...c, name: v }))} placeholder="Client name" className="block font-bold" inline={false} />
-                        <EditableText value={client.address} onChange={(v) => setClient((c) => ({ ...c, address: v }))} placeholder="Client address" as="textarea" rows={2} className="block text-slate-500 text-xs mt-0.5" inline={false} />
-                        <EditableText value={client.email} onChange={(v) => setClient((c) => ({ ...c, email: v }))} placeholder="Client email (optional)" className="block text-slate-500 text-xs mt-0.5" inline={false} />
+                        <EditableText value={client.address} onChange={(v) => setClient((c) => ({ ...c, address: v }))} placeholder="Client address" as="textarea" rows={2} className="block text-ink-muted text-xs mt-0.5" inline={false} />
+                        <EditableText value={client.email} onChange={(v) => setClient((c) => ({ ...c, email: v }))} placeholder="Client email (optional)" className="block text-ink-muted text-xs mt-0.5" inline={false} />
                     </div>
 
                     {/* Line items */}
                     <table className="w-full mb-2">
                         <thead>
-                            <tr className={`text-left text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 ${isClassic ? 'border-b-2 border-slate-900' : 'border-b border-slate-900'}`}>
-                                <th className="pb-2 pr-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.qty} onChange={(v) => setHeaders((h) => ({ ...h, qty: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-24"><EditableText value={headers.unit_price} onChange={(v) => setHeaders((h) => ({ ...h, unit_price: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount} onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.tax} onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount} onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
+                            <tr className={`text-left text-2xs font-bold uppercase tracking-wide text-ink-muted ${isClassic ? 'border-b-2 border-neutral-900' : 'border-b border-neutral-900'}`}>
+                                <th className="pb-2 pr-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} className="text-2xs font-bold uppercase tracking-wide text-ink-muted" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.qty} onChange={(v) => setHeaders((h) => ({ ...h, qty: v }))} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-24"><EditableText value={headers.unit_price} onChange={(v) => setHeaders((h) => ({ ...h, unit_price: v }))} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount} onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.tax} onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" pulse={false} /></th>
+                                <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount} onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" pulse={false} /></th>
                                 <th className="w-8"></th>
                             </tr>
                         </thead>
                         <tbody>
                             {items.map((item, idx) => (
-                                <tr key={idx} className="border-b border-slate-100 group">
+                                <tr key={idx} className="border-b border-line group">
                                     <td className="py-2 pr-2">
                                         <EditableText value={item.description} onChange={(v) => updateItem(idx, 'description', v)} placeholder="Item description" className="block" />
                                     </td>
@@ -407,7 +407,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                                     </td>
                                     <td className="py-2 pl-2 text-right font-bold">{fmtMoney(lineTotals[idx]?.lineTotal)}</td>
                                     <td className="py-2 pl-1 text-right">
-                                        <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-600 dark:text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
+                                        <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-ink-secondary hover:text-red-500 disabled:opacity-0 transition-opacity">
                                             <Trash2 size={13} />
                                         </button>
                                     </td>
@@ -415,56 +415,56 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                             ))}
                         </tbody>
                     </table>
-                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-6">
+                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-ink-muted hover:text-brand-500 disabled:opacity-40 transition-colors mb-6">
                         <Plus size={12} /> Add line item
                     </button>
 
                     {/* Totals */}
                     <div className="flex justify-end mb-8">
                         <div className="w-56 space-y-1 text-sm">
-                            <div className="flex justify-between text-slate-500"><span>Subtotal</span><span>{fmtMoney(totals.subtotal)}</span></div>
-                            {totals.discount > 0 && <div className="flex justify-between text-slate-500"><span>Discount</span><span>-{fmtMoney(totals.discount)}</span></div>}
-                            {totals.tax > 0 && <div className="flex justify-between text-slate-500"><span>Tax</span><span>{fmtMoney(totals.tax)}</span></div>}
-                            <div className="flex justify-between font-black text-base pt-1.5 border-t-2 border-slate-900" style={{ color: isModern ? accent : '#0f172a' }}>
+                            <div className="flex justify-between text-ink-muted"><span>Subtotal</span><span>{fmtMoney(totals.subtotal)}</span></div>
+                            {totals.discount > 0 && <div className="flex justify-between text-ink-muted"><span>Discount</span><span>-{fmtMoney(totals.discount)}</span></div>}
+                            {totals.tax > 0 && <div className="flex justify-between text-ink-muted"><span>Tax</span><span>{fmtMoney(totals.tax)}</span></div>}
+                            <div className="flex justify-between font-bold text-base pt-1.5 border-t-2 border-neutral-900" style={{ color: isModern ? accent : 'rgb(var(--vq-slate-900))' }}>
                                 <span>Total</span><span>{fmtMoney(grandTotal)}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Scope of work / Exclusions */}
-                    <div className="grid sm:grid-cols-2 gap-6 text-xs text-slate-500 mb-6">
+                    <div className="grid sm:grid-cols-2 gap-6 text-xs text-ink-muted mb-6">
                         <div>
-                            <p className="font-bold text-slate-700 mb-1">Scope of Work / Inclusions</p>
+                            <p className="font-bold text-ink-secondary mb-1">Scope of Work / Inclusions</p>
                             <EditableText value={meta.scope_of_work} onChange={(v) => setMeta((m) => ({ ...m, scope_of_work: v }))} placeholder="Add scope of work (optional)" as="textarea" rows={3} className="block" />
                         </div>
                         <div>
-                            <p className="font-bold text-slate-700 mb-1">Exclusions</p>
+                            <p className="font-bold text-ink-secondary mb-1">Exclusions</p>
                             <EditableText value={meta.exclusions} onChange={(v) => setMeta((m) => ({ ...m, exclusions: v }))} placeholder="Add exclusions (optional)" as="textarea" rows={3} className="block" />
                         </div>
                     </div>
 
                     {/* Notes */}
-                    <div className="text-xs text-slate-500 mb-6">
-                        <p className="font-bold text-slate-700 mb-1">Notes</p>
+                    <div className="text-xs text-ink-muted mb-6">
+                        <p className="font-bold text-ink-secondary mb-1">Notes</p>
                         <EditableText value={meta.notes} onChange={(v) => setMeta((m) => ({ ...m, notes: v }))} placeholder="Add a note (optional)" as="textarea" rows={2} className="block" />
                     </div>
 
                     {/* Acceptance — static print-signature styling, matches PDF, not editable */}
-                    <div className="mt-10 pt-5 border-t border-slate-200">
-                        <p className="text-[11px] text-slate-500 mb-8">
-                            To accept this {isEstimate ? 'estimate' : 'quotation'}, please sign below or reply confirming acceptance. This {isEstimate ? 'estimate' : 'quotation'} is valid until <span className="font-bold text-slate-700">{meta.valid_until || '—'}</span>.
+                    <div className="mt-10 pt-5 border-t border-line">
+                        <p className="text-1xs text-ink-muted mb-8">
+                            To accept this {isEstimate ? 'estimate' : 'quotation'}, please sign below or reply confirming acceptance. This {isEstimate ? 'estimate' : 'quotation'} is valid until <span className="font-bold text-ink-secondary">{meta.valid_until || '—'}</span>.
                         </p>
                         <div className="grid grid-cols-2 gap-8">
-                            <div className="pt-10 border-t border-slate-900 text-[11px] text-slate-500">Signature</div>
-                            <div className="pt-10 border-t border-slate-900 text-[11px] text-slate-500">Date</div>
+                            <div className="pt-10 border-t border-neutral-900 text-1xs text-ink-muted">Signature</div>
+                            <div className="pt-10 border-t border-neutral-900 text-1xs text-ink-muted">Date</div>
                         </div>
                     </div>
 
-                    <p className="text-center text-[10px] text-slate-600 dark:text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
+                    <p className="text-center text-2xs text-ink-secondary mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
                 </div>
             </div>
 
-            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-ink-muted mt-4">
                 This preview matches your downloaded PDF exactly — click anything above to edit it.
             </p>
         </ToolShell>

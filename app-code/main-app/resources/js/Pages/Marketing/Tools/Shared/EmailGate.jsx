@@ -50,22 +50,22 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={handleClose}>
+        <div className="fixed inset-0 z-drawer flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={handleClose}>
             <div
-                className="w-full max-w-md rounded-3xl bg-gray-950 border border-slate-900/[0.08] dark:border-white/10 p-8 relative"
+                className="w-full max-w-md rounded-2xl bg-neutral-950 border border-line dark:border-white/10 p-8 relative"
                 onClick={(e) => e.stopPropagation()}
             >
-                <button onClick={handleClose} className="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors" aria-label="Close">
+                <button onClick={handleClose} className="absolute top-5 right-5 text-ink-muted hover:text-white transition-colors" aria-label="Close">
                     <X size={20} />
                 </button>
 
                 {!submitted ? (
                     <>
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/15 border border-indigo-400/20 flex items-center justify-center mb-5">
-                            <Mail size={20} className="text-indigo-300" />
+                        <div className="w-12 h-12 rounded-2xl bg-brand-500/15 border border-brand-400/20 flex items-center justify-center mb-5">
+                            <Mail size={20} className="text-brand-300" />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">{title || 'Where should we send it?'}</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                        <h3 className="text-xl font-bold text-ink mb-2">{title || 'Where should we send it?'}</h3>
+                        <p className="text-sm text-ink-muted mb-6">
                             {subtitle || "Your PDF downloads straight away — we'll email you a copy so you can find it later."}
                         </p>
 
@@ -77,7 +77,7 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
                                     placeholder="you@company.com"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-400/50"
+                                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/50"
                                 />
                                 {errors.email && <p className="text-xs text-red-400 mt-1.5">{errors.email}</p>}
                             </div>
@@ -88,7 +88,7 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
                                     placeholder="Name (optional)"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-400/50"
+                                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/50"
                                 />
                             </div>
 
@@ -98,9 +98,9 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
                                     type="checkbox"
                                     checked={data.marketing_consent}
                                     onChange={(e) => setData('marketing_consent', e.target.checked)}
-                                    className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/[0.04] accent-indigo-500"
+                                    className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/[0.04] accent-brand-500"
                                 />
-                                <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                <span className="text-xs text-ink-muted leading-relaxed">
                                     Also send me occasional retail and POS tips from VenQore. No spam, unsubscribe anytime.
                                 </span>
                             </label>
@@ -108,14 +108,14 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full py-3.5 bg-white text-void-900 rounded-xl text-sm font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                                className="w-full py-3.5 bg-white text-void-900 rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
                             >
                                 {processing ? 'Sending…' : 'Download my PDF'}
                             </button>
 
-                            <p className="text-1xs text-slate-600 text-center leading-relaxed">
-                                We'll email your file right away. We never sell your data.{' '}
-                                <a href="/privacy" className="underline hover:text-slate-400">Privacy Policy</a>
+                            <p className="text-1xs text-ink-secondary text-center leading-relaxed">
+                                We'll email your file right away. We never sell your data.{''}
+                                <a href="/privacy" className="underline hover:text-ink-muted">Privacy Policy</a>
                             </p>
                         </form>
                     </>
@@ -124,13 +124,13 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
                         <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center mx-auto mb-5">
                             <Mail size={22} className="text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Check your email</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                        <h3 className="text-xl font-bold text-ink mb-2">Check your email</h3>
+                        <p className="text-sm text-ink-muted mb-6">
                             We've sent your file to {data.email}.
                         </p>
                         <button
                             onClick={handleClose}
-                            className="px-6 py-2.5 bg-white/[0.06] border border-white/15 text-slate-900 dark:text-white rounded-full text-sm font-bold hover:bg-white/[0.1] transition-colors"
+                            className="px-6 py-2.5 bg-white/[0.06] border border-white/15 text-ink rounded-full text-sm font-bold hover:bg-white/[0.1] transition-colors"
                         >
                             Close
                         </button>

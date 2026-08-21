@@ -451,8 +451,8 @@ export default function ChatWidget() {
             if (textBefore) result.push(<span key={lastIndex} className="whitespace-pre-wrap">{textBefore}</span>);
             result.push(
                 <button key={match.index} onClick={() => executeAction(match[2])}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 my-1 mx-0.5 bg-slate-50 text-indigo-600 dark:bg-slate-800 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold shadow-sm transition-all duration-200">
-                    <Play size={10} className="fill-indigo-600 dark:fill-indigo-400 stroke-none" />
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 my-1 mx-0.5 bg-surface text-brand-600 dark:bg-surface dark:text-brand-400 border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-xs font-bold shadow-sm transition-all duration-normal">
+                    <Play size={10} className="fill-brand-600 dark:fill-brand-400 stroke-none" />
                     {match[1]}
                 </button>
             );
@@ -474,8 +474,8 @@ export default function ChatWidget() {
         <>
             {!started ? (
                 <div className="flex-1 p-8 flex flex-col items-center justify-center relative z-10 text-center space-y-4">
-                    <Loader2 className="animate-spin text-indigo-500" size={32} />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Connecting to support...</p>
+                    <Loader2 className="animate-spin text-brand-500" size={32} />
+                    <p className="text-xs text-ink-muted font-medium">Connecting to support...</p>
                 </div>
             ) : (
                 /* Message stream */
@@ -483,9 +483,9 @@ export default function ChatWidget() {
                     <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
                         {messages.length === 0 && (
                             <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-2 opacity-60">
-                                <Sparkles size={24} className="text-indigo-500 animate-pulse" />
-                                <h5 className="text-xs font-black text-slate-700 dark:text-slate-200">Start a Conversation</h5>
-                                <p className="text-2xs text-slate-400 max-w-[200px]">Send a message and our support team will reply instantly.</p>
+                                <Sparkles size={24} className="text-brand-500 animate-pulse" />
+                                <h5 className="text-xs font-bold text-ink-secondary dark:text-ink">Start a Conversation</h5>
+                                <p className="text-2xs text-ink-muted max-w-[200px]">Send a message and our support team will reply instantly.</p>
                             </div>
                         )}
                         {messages.map((m, i) => {
@@ -496,15 +496,15 @@ export default function ChatWidget() {
                             if (isSystem) return null;
 
                             return (
-                                <div key={i} className={`flex ${isVisitor ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-1 duration-150`}>
+                                <div key={i} className={`flex ${isVisitor ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-1 duration-fast`}>
                                     <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-xs shadow-sm ${
                                         isVisitor
-                                            ? 'bg-indigo-600 text-white rounded-tr-none font-medium'
+                                            ? 'bg-brand-600 text-white rounded-tr-none font-medium'
                                             : isBot
-                                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none leading-relaxed'
-                                                : 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-950 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900 rounded-tl-none leading-relaxed'
+                                                ? 'bg-sunken text-ink rounded-tl-none leading-relaxed'
+                                                : 'bg-brand-50 dark:bg-brand-950/20 text-brand-950 dark:text-brand-300 border border-brand-100 dark:border-brand-900 rounded-tl-none leading-relaxed'
                                     }`}>
-                                        <div className="text-3xs font-black uppercase tracking-wider mb-1 opacity-70">
+                                        <div className="text-3xs font-bold uppercase tracking-wider mb-1 opacity-70">
                                             {isVisitor ? 'You' : 'Support'}
                                         </div>
                                         <p className="whitespace-pre-line leading-relaxed">{renderMessageBody(m.body)}</p>
@@ -514,8 +514,8 @@ export default function ChatWidget() {
                         })}
 
                         {typing && (
-                            <div className="flex items-center gap-1.5 text-2xs text-slate-400 font-medium py-1.5 animate-pulse">
-                                <Loader2 size={10} className="animate-spin text-slate-300" />
+                            <div className="flex items-center gap-1.5 text-2xs text-ink-muted font-medium py-1.5 animate-pulse">
+                                <Loader2 size={10} className="animate-spin text-neutral-300" />
                                 <span>Support is typing...</span>
                             </div>
                         )}
@@ -524,11 +524,11 @@ export default function ChatWidget() {
 
                     {/* Quick actions — shown until visitor sends their first message */}
                     {!messages.some(m => m.sender_type === 'visitor') && (
-                        <div className="px-6 py-3 bg-slate-50/50 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                        <div className="px-6 py-3 bg-sunken/50 dark:bg-surface border-t border-line shrink-0">
                             <div className="grid grid-cols-3 gap-2">
                                 {[['🛒 POS','pos'],['📄 Invoice','create_invoice'],['💸 Expenses','expenses']].map(([label, action]) => (
                                     <button key={action} onClick={() => executeAction(action)}
-                                        className="p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xs font-bold text-slate-800 dark:text-slate-100 flex items-center justify-center gap-1 shadow-sm transition-all duration-200 active:scale-95 rounded-xl">
+                                        className="p-2.5 bg-app border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover text-2xs font-bold text-ink flex items-center justify-center gap-1 shadow-sm transition-all duration-normal active:scale-95 rounded-xl">
                                         {label}
                                     </button>
                                 ))}
@@ -537,18 +537,18 @@ export default function ChatWidget() {
                     )}
 
                     {/* Message input */}
-                    <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur shrink-0">
+                    <div className="p-4 border-t border-line bg-white/95 dark:bg-app backdrop-blur shrink-0">
                         <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2 relative items-center">
                             <input
                                 type="text"
                                 value={messageText}
                                 onChange={(e) => { setMessageText(e.target.value); handleVisitorTyping(e.target.value.length > 0); }}
-                                className="flex-1 pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-white transition-all font-sans placeholder-slate-400"
+                                className="flex-1 pl-4 pr-12 py-3 bg-app border border-line rounded-2xl text-xs outline-none focus:ring-2 focus:ring-brand-500 text-ink transition-all font-sans placeholder-slate-400"
                                 placeholder="Type your message here..."
                                 disabled={sending}
                             />
                             <button type="submit" disabled={!messageText.trim() || sending}
-                                className="absolute right-1.5 p-2 bg-indigo-600 hover:bg-indigo-700 active:scale-90 text-white rounded-xl transition-all shadow-md shadow-indigo-600/10 disabled:opacity-30 disabled:hover:bg-indigo-600 disabled:active:scale-100 flex items-center justify-center">
+                                className="absolute right-1.5 p-2 bg-brand-600 hover:bg-brand-700 active:scale-90 text-white rounded-xl transition-all shadow-md disabled:opacity-30 disabled:hover:bg-brand-600 disabled:active:scale-100 flex items-center justify-center">
                                 <Send size={14} />
                             </button>
                         </form>
@@ -560,20 +560,20 @@ export default function ChatWidget() {
 
     // ── Shared header ────────────────────────────────────────────────────────
     const renderHeader = (closeFn) => (
-        <div className="px-5 py-4 bg-slate-900 text-white shrink-0 relative flex items-center justify-between border-b border-slate-800/80">
+        <div className="px-5 py-4 bg-neutral-900 text-white shrink-0 relative flex items-center justify-between border-b border-neutral-800/80">
             <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-15 pointer-events-none" />
 
             {/* Left: branding */}
             <div className="flex items-center gap-3 relative z-10">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-brand-600/30 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-inner shrink-0">
                     <Sparkles size={18} className="animate-pulse" />
                 </div>
                 <div>
-                    <h4 className="text-sm font-black tracking-tight flex items-center gap-1.5">
+                    <h4 className="text-sm font-bold tracking-tight flex items-center gap-1.5">
                         Support
                         {sessionStatus === 'agent_active' && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping ml-1" />}
                     </h4>
-                    <p className="text-2xs text-indigo-300 font-bold uppercase tracking-wider mt-0.5">Online</p>
+                    <p className="text-2xs text-brand-300 font-bold uppercase tracking-wider mt-0.5">Online</p>
                 </div>
             </div>
 
@@ -583,13 +583,13 @@ export default function ChatWidget() {
                 {started && (
                     confirmNewChat ? (
                         <div className="flex items-center gap-1.5">
-                            <span className="text-2xs text-slate-400 font-medium mr-1">Start over?</span>
+                            <span className="text-2xs text-ink-muted font-medium mr-1">Start over?</span>
                             <button onClick={handleNewChat}
-                                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-2xs font-black transition-all active:scale-90">
+                                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-2xs font-bold transition-all active:scale-90">
                                 Yes
                             </button>
                             <button onClick={() => setConfirmNewChat(false)}
-                                className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-2xs font-black transition-all active:scale-90">
+                                className="px-2.5 py-1 bg-neutral-700 hover:bg-interactive-hover text-neutral-300 rounded-lg text-2xs font-bold transition-all active:scale-90">
                                 No
                             </button>
                         </div>
@@ -597,7 +597,7 @@ export default function ChatWidget() {
                         <button
                             onClick={() => setConfirmNewChat(true)}
                             title="Start a new chat"
-                            className="w-8 h-8 rounded-xl bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200 active:scale-90">
+                            className="w-8 h-8 rounded-xl bg-neutral-800/60 hover:bg-interactive-hover border border-neutral-700/50 flex items-center justify-center text-ink-muted hover:text-white transition-all duration-normal active:scale-90">
                             <RotateCcw size={13} />
                         </button>
                     )
@@ -607,13 +607,13 @@ export default function ChatWidget() {
                 <button
                     onClick={() => setIsExpanded(v => !v)}
                     title={isExpanded ? 'Collapse chat' : 'Expand to sidebar'}
-                    className="w-8 h-8 rounded-xl bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200 active:scale-90">
+                    className="w-8 h-8 rounded-xl bg-neutral-800/60 hover:bg-interactive-hover border border-neutral-700/50 flex items-center justify-center text-ink-muted hover:text-white transition-all duration-normal active:scale-90">
                     {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
                 </button>
 
                 {/* Close */}
                 <button onClick={closeFn}
-                    className="w-8 h-8 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200 active:scale-90">
+                    className="w-8 h-8 rounded-xl bg-neutral-800/60 hover:bg-interactive-hover border border-neutral-700/50 flex items-center justify-center text-ink-muted hover:text-white transition-all duration-normal active:scale-90">
                     <X size={14} />
                 </button>
             </div>
@@ -628,20 +628,20 @@ export default function ChatWidget() {
             {/* Backdrop */}
             {isExpanded && (
                 <div
-                    className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[9998] transition-opacity duration-300"
+                    className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-command transition-opacity duration-slow"
                     onClick={() => setIsExpanded(false)}
                 />
             )}
 
             {/* Sidebar panel — slides in from right edge */}
             <div
-                className={`fixed top-0 right-0 h-full z-[9999] flex flex-col bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl transition-all duration-300 ease-out font-sans ${
+                className={`fixed top-0 right-0 h-full z-command flex flex-col bg-surface border-l border-line shadow-2xl transition-all duration-slow ease-out font-sans ${
                     isExpanded ? 'translate-x-0 w-[420px]' : 'translate-x-full w-[420px]'
                 }`}
                 style={{ isolation: 'isolate' }}
             >
                 {/* Glow blobs */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-[80px] pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none" />
 
                 {renderHeader(() => { setIsExpanded(false); setIsOpen(false); })}
@@ -649,13 +649,13 @@ export default function ChatWidget() {
             </div>
 
             {/* ── FLOATING BUBBLE MODE ──────────────────────────────────────── */}
-            <div className={`fixed right-6 z-[55] font-sans transition-all duration-300 ${showMobileNavBar ? 'bottom-[100px] lg:bottom-6' : 'bottom-6'}`} style={{ isolation: 'isolate' }}>
+            <div className={`fixed right-6 z-sticky font-sans transition-all duration-slow ${showMobileNavBar ? 'bottom-[100px] lg:bottom-6' : 'bottom-6'}`} style={{ isolation: 'isolate' }}>
 
                 {/* Compact popup panel — hidden when sidebar is open */}
                 {isOpen && !isExpanded && (
-                    <div className="mb-4 w-96 h-[520px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300 relative">
+                    <div className="mb-4 w-96 h-[520px] bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-slow relative">
                         {/* Glow blobs */}
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/5 rounded-full blur-[50px] pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/5 rounded-full blur-[50px] pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-[50px] pointer-events-none" />
 
                         {renderHeader(() => setIsOpen(false))}
@@ -668,13 +668,13 @@ export default function ChatWidget() {
                     <button
                         id="tour-chat-widget-btn"
                         onClick={() => setIsOpen(v => !v)}
-                        className="w-14 h-14 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-800 hover:text-white shadow-2xl flex items-center justify-center transform hover:scale-110 active:scale-95 transition-all duration-300 group relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        className="w-14 h-14 rounded-full bg-surface text-ink-secondary dark:text-white border border-line hover:text-white shadow-2xl flex items-center justify-center transform active:scale-95 transition-all duration-slow group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-slow" />
                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-15 pointer-events-none" />
                         <div className="relative z-10 flex items-center justify-center">
                             {isOpen
-                                ? <X size={22} className="animate-in spin-in-90 duration-300" />
-                                : <MessageSquare size={22} className="animate-in zoom-in duration-300" />
+                                ? <X size={22} className="animate-in spin-in-90 duration-slow" />
+                                : <MessageSquare size={22} className="animate-in zoom-in duration-slow" />
                             }
                         </div>
                     </button>
@@ -687,11 +687,11 @@ export default function ChatWidget() {
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-            `}</style>
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--vq-slate-300)); border-radius: 10px; }
+                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--vq-slate-700)); }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgb(var(--vq-slate-400)); }
+                .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgb(var(--vq-slate-600)); }
+`}</style>
         </>
     );
 }

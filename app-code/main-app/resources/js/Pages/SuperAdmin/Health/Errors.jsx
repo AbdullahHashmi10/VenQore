@@ -69,23 +69,23 @@ export default function Errors({ errors, filters }) {
                     marginBottom: 8
                 }} className="flex items-center justify-between">
                     <div className="flex items-center gap-6">
-                        <Link href={route('platform.dashboard')} className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 transition-all border border-white/5">
+                        <Link href={route('platform.dashboard')} className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-ink-muted transition-all border border-white/5">
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
                             <div className="flex items-center gap-3">
                                 <ShieldAlert className="text-red-500" size={24} />
-                                <h1 className="text-3xl font-extrabold text-white tracking-tight">System Health</h1>
+                                <h1 className="text-3xl font-bold text-white tracking-tight">System Health</h1>
                             </div>
-                            <p className="text-slate-400 font-medium mt-1">Platform-wide frontend and backend logs.</p>
+                            <p className="text-ink-muted font-medium mt-1">Platform-wide frontend and backend logs.</p>
                         </div>
                     </div>
                     
                     <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 backdrop-blur-sm">
-                        <button onClick={() => setFilter(0)} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${statusFilter === 'open' ? 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg shadow-red-500/5' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}>
+                        <button onClick={() => setFilter(0)} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${statusFilter === 'open' ? 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg ' : 'text-ink-muted hover:text-white hover:bg-white/5'}`}>
                             Open Errors
                         </button>
-                        <button onClick={() => setFilter(1)} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${statusFilter === 'resolved' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-lg shadow-emerald-500/5' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}>
+                        <button onClick={() => setFilter(1)} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${statusFilter === 'resolved' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-lg ' : 'text-ink-muted hover:text-white hover:bg-white/5'}`}>
                             Resolved
                         </button>
                     </div>
@@ -100,7 +100,7 @@ export default function Errors({ errors, filters }) {
                                                 if (!confirm('⚠️ HEURISTIC SCAN\n\nThis uses file modification times to guess which errors may be fixed. It does NOT confirm errors are actually resolved.\n\nAuto-resolved items will be labelled "[HEURISTIC]" — please verify each one manually.\n\nProceed?')) return;
                                                 detectFixes();
                                             }}
-                                            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-amber-500/25 flex items-center gap-2"
+                                            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover: flex items-center gap-2"
                                             title="Heuristic only — estimates fixes by file modification times. Verify manually."
                                         >
                                             <Sparkles size={16} />
@@ -112,7 +112,7 @@ export default function Errors({ errors, filters }) {
                                     </div>
                                     <button 
                                         onClick={resolveAll}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2"
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover: flex items-center gap-2"
                                     >
                                         <CheckCircle size={16} />
                                         Resolve All
@@ -121,7 +121,7 @@ export default function Errors({ errors, filters }) {
                             )}
                             <button 
                                 onClick={copyAllErrors}
-                                className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-slate-500/25 flex items-center gap-2"
+                                className="bg-neutral-600 hover:bg-interactive-hover text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-neutral-500/25 flex items-center gap-2"
                                 title="Copy all currently listed errors to clipboard"
                             >
                                 <Copy size={16} />
@@ -137,28 +137,28 @@ export default function Errors({ errors, filters }) {
                     {/* List */}
                     <div className="flex-1 max-w-4xl flex flex-col gap-4">
                         <div className="flex items-center gap-4 mb-2">
-                            <button onClick={() => setFilter(filters.resolved, null)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${!filters.type ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-500/30 dark:text-indigo-300' : 'bg-white border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'}`}>All Types</button>
-                            <button onClick={() => setFilter(filters.resolved, 'backend')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${filters.type === 'backend' ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-500/30 dark:text-indigo-300' : 'bg-white border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'}`}><Terminal size={12}/> Backend</button>
-                            <button onClick={() => setFilter(filters.resolved, 'frontend')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${filters.type === 'frontend' ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-500/30 dark:text-indigo-300' : 'bg-white border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'}`}><MonitorSmartphone size={12}/> Frontend</button>
+                            <button onClick={() => setFilter(filters.resolved, null)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${!filters.type ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/30 dark:border-brand-500/30 dark:text-brand-300' : 'bg-white border-line text-ink-secondary dark:bg-surface dark:border-line dark:text-ink-muted'}`}>All Types</button>
+                            <button onClick={() => setFilter(filters.resolved, 'backend')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${filters.type === 'backend' ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/30 dark:border-brand-500/30 dark:text-brand-300' : 'bg-white border-line text-ink-secondary dark:bg-surface dark:border-line dark:text-ink-muted'}`}><Terminal size={12}/> Backend</button>
+                            <button onClick={() => setFilter(filters.resolved, 'frontend')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${filters.type === 'frontend' ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/30 dark:border-brand-500/30 dark:text-brand-300' : 'bg-white border-line text-ink-secondary dark:bg-surface dark:border-line dark:text-ink-muted'}`}><MonitorSmartphone size={12}/> Frontend</button>
                         </div>
 
                         {errors.data.length === 0 ? (
-                            <div className="text-center py-20 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <div className="text-center py-20 bg-surface rounded-2xl border border-line">
                                 <CheckCircle className="mx-auto text-emerald-500 mb-4 opacity-50" size={48} />
-                                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Clean slate</h3>
-                                <p className="text-sm text-slate-500">No {statusFilter} tracking notifications found.</p>
+                                <h3 className="text-lg font-bold text-ink-secondary">Clean slate</h3>
+                                <p className="text-sm text-ink-muted">No {statusFilter} tracking notifications found.</p>
                             </div>
                         ) : (
                             errors.data.map(err => (
                                     <div 
                                         key={err.id} 
                                         onClick={() => setSelected(err)}
-                                        className={`p-5 rounded-2xl border cursor-pointer transition-all group relative ${selected?.id === err.id ? 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/50 shadow-md' : 'bg-white border-slate-200 hover:border-red-300 dark:bg-slate-800/50 dark:border-slate-700 dark:hover:border-slate-600'}`}
+                                        className={`p-5 rounded-2xl border cursor-pointer transition-all group relative ${selected?.id === err.id ? 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/50 shadow-md' : 'bg-white border-line hover:border-red-300 dark:bg-surface dark:border-line dark:hover:border-line-strong'}`}
                                     >
                                         {!err.is_resolved && (
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); resolveError(err.id); }}
-                                                className="absolute top-4 right-4 p-2 rounded-xl bg-emerald-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 z-10"
+                                                className="absolute top-4 right-4 p-2 rounded-xl bg-emerald-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg active:scale-95 z-10"
                                                 title="Quick Resolve"
                                             >
                                                 <CheckCircle size={16} />
@@ -166,7 +166,7 @@ export default function Errors({ errors, filters }) {
                                         )}
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); copyToClipboard(err); }}
-                                            className={`absolute top-4 ${!err.is_resolved ? 'right-14' : 'right-4'} p-2 rounded-xl bg-slate-500 hover:bg-slate-600 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg shadow-slate-500/20 hover:scale-105 active:scale-95 z-10`}
+                                            className={`absolute top-4 ${!err.is_resolved ? 'right-14' : 'right-4'} p-2 rounded-xl bg-neutral-500 hover:bg-interactive-hover text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg shadow-neutral-500/20 active:scale-95 z-10`}
                                             title="Copy Error Details"
                                         >
                                             <Copy size={16} />
@@ -175,16 +175,16 @@ export default function Errors({ errors, filters }) {
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center gap-3">
                                                 {err.type === 'frontend' ? <MonitorSmartphone className="text-amber-500" size={18} /> : <Terminal className="text-red-500" size={18} />}
-                                                <span className="text-xs font-bold px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-400 uppercase tracking-wider">{err.type}</span>
+                                                <span className="text-xs font-bold px-2 py-1 rounded bg-sunken text-ink-secondary dark:bg-app dark:text-ink-muted uppercase tracking-wider">{err.type}</span>
                                                 {err.status_code && <span className="text-xs font-bold px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">HTTP {err.status_code}</span>}
                                                 <span className="text-xs font-bold px-2 py-1 rounded bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">{err.occurrence_count}x Events</span>
                                             </div>
-                                            <span className={`text-xs font-mono transition-all ${selected?.id === err.id ? 'pr-8' : ''} text-slate-400`}>{new Date(err.last_seen_at).toLocaleString()}</span>
+                                            <span className={`text-xs font-mono transition-all ${selected?.id === err.id ? 'pr-8' : ''} text-ink-muted`}>{new Date(err.last_seen_at).toLocaleString()}</span>
                                         </div>
-                                        <h3 className="font-bold text-slate-800 dark:text-slate-200 truncate pr-12">{err.message}</h3>
-                                        <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+                                        <h3 className="font-bold text-ink truncate pr-12">{err.message}</h3>
+                                        <div className="mt-4 flex items-center justify-between text-xs text-ink-muted">
                                             <div className="truncate max-w-md">{err.file ? `${err.file}:${err.line}` : (err.url || 'Unknown Source')}</div>
-                                            {err.tenant && <div className="font-bold shrink-0 ml-4 py-1 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div>{err.tenant.name}</div>}
+                                            {err.tenant && <div className="font-bold shrink-0 ml-4 py-1 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-brand-500"></div>{err.tenant.name}</div>}
                                         </div>
                                     </div>
                             ))
@@ -200,15 +200,15 @@ export default function Errors({ errors, filters }) {
 
                     {/* Details Panel */}
                     {selected && (
-                        <div className="w-96 flex-shrink-0 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center justify-between">
+                        <div className="w-96 flex-shrink-0 bg-surface rounded-2xl border border-line p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
+                            <h3 className="text-lg font-bold text-ink mb-4 flex items-center justify-between">
                                 <span className="flex items-center gap-2">
                                     <Bug className="text-red-500" />
                                     Error Details
                                 </span>
                                 <button
                                     onClick={() => copyToClipboard(selected)}
-                                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-all hover:scale-105"
+                                    className="p-2 rounded-xl bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted transition-all"
                                     title="Copy Details"
                                 >
                                     <Copy size={16} />
@@ -217,29 +217,29 @@ export default function Errors({ errors, filters }) {
                             
                             <div className="flex-1 overflow-y-auto hide-scrollbar space-y-6">
                                 <div>
-                                    <div className="text-xs font-bold text-slate-400 uppercase mb-1">Message</div>
-                                    <div className="text-sm font-medium text-slate-700 dark:text-slate-300 break-words">{selected.message}</div>
+                                    <div className="text-xs font-bold text-ink-muted uppercase mb-1">Message</div>
+                                    <div className="text-sm font-medium text-ink-secondary break-words">{selected.message}</div>
                                 </div>
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-400 uppercase mb-1">Store / Tenant</div>
-                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{selected.tenant?.name || 'N/A'}</div>
+                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">Store / Tenant</div>
+                                        <div className="text-sm font-medium text-ink-secondary">{selected.tenant?.name || 'N/A'}</div>
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold text-slate-400 uppercase mb-1">User</div>
-                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{selected.user?.name || 'N/A'}</div>
+                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">User</div>
+                                        <div className="text-sm font-medium text-ink-secondary">{selected.user?.name || 'N/A'}</div>
                                     </div>
                                     <div className="col-span-2">
-                                        <div className="text-xs font-bold text-slate-400 uppercase mb-1">URL / Endpoint</div>
-                                        <div className="text-xs font-mono text-slate-600 dark:text-slate-400 break-all bg-slate-50 dark:bg-slate-900 p-2 rounded">{selected.url || 'N/A'}</div>
+                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">URL / Endpoint</div>
+                                        <div className="text-xs font-mono text-ink-secondary break-all bg-app p-2 rounded">{selected.url || 'N/A'}</div>
                                     </div>
                                 </div>
 
                                 {selected.stack_trace && (
                                     <div>
-                                        <div className="text-xs font-bold text-slate-400 uppercase mb-1">Stack Trace Snippet</div>
-                                        <pre className="text-2xs font-mono whitespace-pre-wrap bg-slate-900 text-red-300 p-3 rounded-xl overflow-x-auto border border-slate-800 max-h-48">
+                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">Stack Trace Snippet</div>
+                                        <pre className="text-2xs font-mono whitespace-pre-wrap bg-neutral-900 text-red-300 p-3 rounded-xl overflow-x-auto border border-neutral-800 max-h-48">
                                             {selected.stack_trace}
                                         </pre>
                                     </div>
@@ -254,17 +254,17 @@ export default function Errors({ errors, filters }) {
                             </div>
 
                             {!selected.is_resolved && (
-                                <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
+                                <div className="mt-6 pt-6 border-t border-line">
                                     <textarea 
                                         value={resolveNote}
                                         onChange={e => setResolveNote(e.target.value)}
                                         placeholder="Resolution note (optional)"
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 mb-4 text-slate-800 dark:text-slate-200"
+                                        className="w-full bg-app border border-line rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 mb-4 text-ink"
                                         rows="2"
                                     ></textarea>
                                     <button 
                                         onClick={resolveError}
-                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/25 flex justify-center items-center gap-2"
+                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover: flex justify-center items-center gap-2"
                                     >
                                         <CheckCircle size={18} />
                                         Mark as Resolved

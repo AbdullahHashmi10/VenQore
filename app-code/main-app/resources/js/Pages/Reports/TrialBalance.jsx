@@ -59,7 +59,7 @@ export default function TrialBalance({
             label: 'Code',
             sortable: true,
             render: (row) => (
-                <span className="font-mono text-sm text-slate-500 dark:text-slate-400">
+                <span className="font-mono text-sm text-ink-muted">
                     {row.code}
                 </span>
             ),
@@ -69,7 +69,7 @@ export default function TrialBalance({
             label: 'Account Name',
             sortable: true,
             render: (row) => (
-                <span className="font-medium text-slate-900 dark:text-white">{row.name}</span>
+                <span className="font-medium text-ink">{row.name}</span>
             ),
         },
         {
@@ -77,7 +77,7 @@ export default function TrialBalance({
             label: 'Type',
             sortable: true,
             render: (row) => (
-                <span className="capitalize text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                <span className="capitalize text-xs px-2 py-0.5 rounded-full bg-sunken text-ink-secondary">
                     {row.type}
                 </span>
             ),
@@ -88,7 +88,7 @@ export default function TrialBalance({
             align: 'right',
             sortable: true,
             render: (row) => (
-                <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">
+                <span className="font-bold tabular-nums text-ink">
                     {row.debit > 0 ? formatCurrency(row.debit) : '—'}
                 </span>
             ),
@@ -99,7 +99,7 @@ export default function TrialBalance({
             align: 'right',
             sortable: true,
             render: (row) => (
-                <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">
+                <span className="font-bold tabular-nums text-ink">
                     {row.credit > 0 ? formatCurrency(row.credit) : '—'}
                 </span>
             ),
@@ -129,7 +129,7 @@ export default function TrialBalance({
             type: 'custom',
             render: () => (
                 <div className="flex items-center gap-2">
-                    <Calendar size={15} className="text-slate-400" />
+                    <Calendar size={15} className="text-ink-muted" />
                     <input
                         type="date"
                         value={dateInput}
@@ -137,9 +137,9 @@ export default function TrialBalance({
                         onChange={(e) => setDateInput(e.target.value)}
                         onBlur={applyDate}
                         onKeyDown={(e) => e.key === 'Enter' && applyDate()}
-                        className="border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-sm
-                                   bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200
-                                   focus:ring-2 focus:ring-violet-500 outline-none"
+                        className="border border-line dark:border-line rounded-lg px-3 py-1.5 text-sm
+ bg-surface text-ink
+ focus:ring-2 focus:ring-violet-500 outline-none"
                     />
                 </div>
             ),

@@ -11,10 +11,10 @@ import { CheckCircle2, Crown, ArrowRight, Copy, ExternalLink, Zap, Sparkles } fr
  */
 export default function RedeemSuccess({ type, plan, description, codes_used, subdomain, login_url }) {
     const planColor = {
-        ltd_1: 'from-slate-400 to-slate-600',
-        ltd_2: 'from-indigo-400 to-purple-500',
+        ltd_1: 'from-neutral-400 to-neutral-600',
+        ltd_2: 'from-brand-400 to-purple-500',
         ltd_3: 'from-amber-400 to-orange-500',
-    }[plan] || 'from-indigo-400 to-purple-500';
+    }[plan] || 'from-brand-400 to-purple-500';
 
     const planEmoji = { ltd_1: '⚡', ltd_2: '🚀', ltd_3: '👑' }[plan] || '✨';
 
@@ -29,14 +29,14 @@ export default function RedeemSuccess({ type, plan, description, codes_used, sub
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
+                    <div className="w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px]" />
                 </div>
                 <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 mix-blend-overlay" />
             </div>
 
             <div className="relative z-10 max-w-xl w-full text-center">
                 {/* Success icon */}
-                <div className={`w-24 h-24 mx-auto rounded-[2rem] bg-gradient-to-br ${planColor} flex items-center justify-center text-4xl mb-8 shadow-2xl animate-bounce`}>
+                <div className={`w-24 h-24 mx-auto rounded-xl bg-gradient-to-br ${planColor} flex items-center justify-center text-4xl mb-8 shadow-2xl animate-bounce`}>
                     {planEmoji}
                 </div>
 
@@ -46,10 +46,10 @@ export default function RedeemSuccess({ type, plan, description, codes_used, sub
                         {type === 'stacked' ? 'Plan Upgraded' : 'License Activated'}
                     </span>
                 </div>
-                <h1 className="text-4xl font-black mt-4 mb-3 tracking-tight">
+                <h1 className="text-4xl font-bold mt-4 mb-3 tracking-tight">
                     {type === 'stacked' ? 'Code Stacked Successfully!' : 'Welcome to VenQore!'}
                 </h1>
-                <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+                <p className="text-ink-muted text-lg mb-8 leading-relaxed">
                     Your lifetime license is active.
                     <br />
                     <span className={`font-bold bg-gradient-to-r ${planColor} bg-clip-text text-transparent`}>
@@ -62,39 +62,39 @@ export default function RedeemSuccess({ type, plan, description, codes_used, sub
                     {[1, 2, 3].map((n) => (
                         <div
                             key={n}
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-black border-2 transition-all ${
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold border-2 transition-all ${
                                 n <= codes_used
                                     ? `bg-gradient-to-br ${planColor} border-transparent text-white shadow-lg`
-                                    : 'bg-white/5 border-white/10 text-slate-600'
+                                    : 'bg-white/5 border-white/10 text-ink-secondary'
                             }`}
                         >
                             {n}
                         </div>
                     ))}
                 </div>
-                <p className="text-slate-500 text-xs mb-10">{nextTierMessage}</p>
+                <p className="text-ink-muted text-xs mb-10">{nextTierMessage}</p>
 
                 {/* CTA */}
                 <div className="space-y-4">
                     <a
                         href={login_url}
                         id="success-goto-dashboard"
-                        className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/25"
+                        className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:shadow-lg hover:"
                     >
                         <Sparkles size={18} />
                         {type === 'new' ? 'Set Up My Store' : 'Go to Dashboard'}
                         <ArrowRight size={16} />
                     </a>
 
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-400">
-                        <ExternalLink size={13} className="shrink-0 text-slate-500" />
-                        <span className="truncate text-slate-500">{login_url}</span>
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-white/5 border border-white/10 text-sm text-ink-muted">
+                        <ExternalLink size={13} className="shrink-0 text-ink-muted" />
+                        <span className="truncate text-ink-muted">{login_url}</span>
                     </div>
                 </div>
 
-                <p className="text-slate-700 text-xs mt-8">
-                    Bookmark your store URL. Your store lives at{' '}
-                    <span className="text-slate-500">{subdomain}.venqore.com</span>
+                <p className="text-ink-secondary text-xs mt-8">
+                    Bookmark your store URL. Your store lives at{''}
+                    <span className="text-ink-muted">{subdomain}.venqore.com</span>
                 </p>
             </div>
         </div>

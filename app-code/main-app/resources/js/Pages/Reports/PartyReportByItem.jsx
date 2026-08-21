@@ -34,7 +34,7 @@ export default function PartyReportByItem({ data = [], stats = [], filters = {} 
             align: 'right',
             sortable: true,
             render: (row) => (
-                <span className="font-bold text-slate-800 dark:text-white">
+                <span className="font-bold text-ink">
                     {formatCurrency(row.total)}
                 </span>
             )

@@ -197,7 +197,7 @@ export default function SeriesChart({ data, definition, chartType = 'line', sett
             </div>
 
             {/* Tooltip detail block */}
-            <div className="h-6 shrink-0 flex items-center justify-between border-t border-border dark:border-border pt-1 text-3xs font-bold text-ink-muted dark:text-ink-muted uppercase select-none">
+            <div className="h-6 shrink-0 flex items-center justify-between border-t border-line dark:border-line pt-1 text-3xs font-bold text-ink-muted dark:text-ink-muted uppercase select-none">
                 {activePoint ? (
                     <div className="flex items-center gap-1.5 truncate max-w-full">
                         <span className="text-ink-secondary">{activePoint.x}:</span>

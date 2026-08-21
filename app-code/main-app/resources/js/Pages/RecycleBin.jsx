@@ -36,40 +36,40 @@ export default function RecycleBin({ items = [] }) {
 
                 <div className="overflow-y-auto flex-1">
 
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                    <div className="bg-surface rounded-xl border border-line overflow-hidden shadow-sm">
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="bg-app border-b border-line">
                                 <tr>
-                                    <th className="p-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
-                                    <th className="p-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Item Details</th>
-                                    <th className="p-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Deleted At</th>
-                                    <th className="p-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                                    <th className="p-4 text-left text-xs font-bold text-ink-muted uppercase tracking-wider">Type</th>
+                                    <th className="p-4 text-left text-xs font-bold text-ink-muted uppercase tracking-wider">Item Details</th>
+                                    <th className="p-4 text-left text-xs font-bold text-ink-muted uppercase tracking-wider">Deleted At</th>
+                                    <th className="p-4 text-right text-xs font-bold text-ink-muted uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-line">
                                 {items.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="p-12 text-center text-slate-400">
+                                        <td colSpan="4" className="p-12 text-center text-ink-muted">
                                             <Trash2 size={48} className="mx-auto mb-3 opacity-20" />
                                             <p>Recycle Bin is empty</p>
                                         </td>
                                     </tr>
                                 ) : (
                                     items.map((item, index) => (
-                                        <tr key={`${item.type}-${item.id}-${index}`} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                        <tr key={`${item.type}-${item.id}-${index}`} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                             <td className="p-4">
                                                 <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${item.type === 'product'
                                                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                    : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                                                    : 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
                                                     }`}>
                                                     {item.type}
                                                 </span>
                                             </td>
                                             <td className="p-4">
-                                                <div className="font-bold text-slate-900 dark:text-white">{item.title}</div>
-                                                <div className="text-sm text-slate-500 dark:text-slate-400">{item.description}</div>
+                                                <div className="font-bold text-ink">{item.title}</div>
+                                                <div className="text-sm text-ink-muted">{item.description}</div>
                                             </td>
-                                            <td className="p-4 text-sm text-slate-500 dark:text-slate-400">
+                                            <td className="p-4 text-sm text-ink-muted">
                                                 {new Date(item.deleted_at).toLocaleString()}
                                             </td>
                                             <td className="p-4 text-right">

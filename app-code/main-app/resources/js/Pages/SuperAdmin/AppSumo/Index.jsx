@@ -49,28 +49,28 @@ export default function AppSumoIndex({ codes, filters, stats }) {
         <OneGlanceLayout title="AppSumo Code Bank" mode="admin">
             <Head title="AppSumo Code Bank" />
 
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-slower">
                 {/* Header Actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-                            <Ticket className="text-indigo-400" />
+                        <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
+                            <Ticket className="text-brand-400" />
                             AppSumo Code Bank
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                        <p className="text-ink-muted text-sm mt-1">
                             Manage one-time redemption codes for the AppSumo LTD campaign.
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         <button 
                             onClick={() => setShowGenerate(true)}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+                            className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
                         >
                             <Plus size={16} /> Bulk Generate
                         </button>
                         <button 
                             onClick={() => setShowImport(true)}
-                            className="bg-slate-200 dark:bg-white/5 hover:bg-slate-300 dark:hover:bg-white/10 text-slate-800 dark:text-white px-4 py-2 rounded-xl text-sm font-bold border border-slate-300 dark:border-white/10 flex items-center gap-2 transition-all"
+                            className="bg-sunken dark:bg-white/5 hover:bg-interactive-hover dark:hover:bg-white/10 text-ink px-4 py-2 rounded-xl text-sm font-bold border border-line dark:border-white/10 flex items-center gap-2 transition-all"
                         >
                             <Upload size={16} /> Import CSV
                         </button>
@@ -91,29 +91,29 @@ export default function AppSumoIndex({ codes, filters, stats }) {
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 rounded-3xl">
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Total Codes</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total.toLocaleString()}</p>
+                    <div className="bg-white dark:bg-white/5 border border-line dark:border-white/10 p-6 rounded-2xl">
+                        <p className="text-ink-muted text-xs font-bold uppercase tracking-widest mb-1">Total Codes</p>
+                        <p className="text-3xl font-bold text-ink">{stats.total.toLocaleString()}</p>
                     </div>
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-6 rounded-3xl">
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-6 rounded-2xl">
                         <p className="text-emerald-500/60 text-xs font-bold uppercase tracking-widest mb-1">Available</p>
-                        <p className="text-3xl font-black text-emerald-400">{stats.available.toLocaleString()}</p>
+                        <p className="text-3xl font-bold text-emerald-400">{stats.available.toLocaleString()}</p>
                     </div>
-                    <div className="bg-indigo-500/5 border border-indigo-500/10 p-6 rounded-3xl">
-                        <p className="text-indigo-500/60 text-xs font-bold uppercase tracking-widest mb-1">Redeemed</p>
-                        <p className="text-3xl font-black text-indigo-400">{stats.redeemed.toLocaleString()}</p>
+                    <div className="bg-brand-500/5 border border-brand-500/10 p-6 rounded-2xl">
+                        <p className="text-brand-500/60 text-xs font-bold uppercase tracking-widest mb-1">Redeemed</p>
+                        <p className="text-3xl font-bold text-brand-400">{stats.redeemed.toLocaleString()}</p>
                     </div>
                 </div>
 
                 {/* Filters & Table */}
-                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
                     <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4">
                         <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
                             <input 
                                 type="text"
                                 placeholder="Search by code or email..."
-                                className="w-full bg-white/5 border-white/10 rounded-xl pl-10 text-sm text-white focus:ring-indigo-500"
+                                className="w-full bg-white/5 border-white/10 rounded-xl pl-10 text-sm text-white focus:ring-brand-500"
                                 onKeyUp={(e) => {
                                     if (e.key === 'Enter') {
                                         // Simple navigation for search
@@ -123,9 +123,9 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                             />
                         </div>
                         <div className="flex items-center gap-2">
-                            <Filter size={16} className="text-slate-500" />
+                            <Filter size={16} className="text-ink-muted" />
                             <select 
-                                className="bg-white/5 border-white/10 rounded-xl text-sm text-white focus:ring-indigo-500 py-1.5"
+                                className="bg-white/5 border-white/10 rounded-xl text-sm text-white focus:ring-brand-500 py-1.5"
                                 onChange={(e) => window.location.href = route('platform.appsumo.index', { status: e.target.value })}
                                 defaultValue={filters.status || ''}
                             >
@@ -138,7 +138,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-white/5 text-2xs font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
+                            <thead className="bg-white/5 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted border-b border-white/5">
                                 <tr>
                                     <th className="px-6 py-4">Redemption Code</th>
                                     <th className="px-6 py-4">Plan Tier</th>
@@ -147,16 +147,16 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                     <th className="px-6 py-4 text-right">Added</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                            <tbody className="divide-y divide-line dark:divide-white/5">
                                 {codes.data.length > 0 ? codes.data.map((item) => (
-                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                    <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-white/5 transition-colors group">
                                         <td className="px-6 py-4">
-                                            <code className="text-slate-900 dark:text-white font-mono font-bold bg-slate-200 dark:bg-white/10 px-2 py-1 rounded text-sm">
+                                            <code className="text-ink font-mono font-bold bg-sunken dark:bg-white/10 px-2 py-1 rounded text-sm">
                                                 {item.code}
                                             </code>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-slate-600 dark:text-slate-300 text-sm">{item.plan_tier}</span>
+                                            <span className="text-ink-secondary text-sm">{item.plan_tier}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             {item.is_redeemed ? (
@@ -164,10 +164,10 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                                     <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
                                                         <CheckCircle size={12} /> Redeemed
                                                     </div>
-                                                    <div className="text-2xs text-slate-500 break-all">{item.redeemed_by_email}</div>
+                                                    <div className="text-2xs text-ink-muted break-all">{item.redeemed_by_email}</div>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+                                                <div className="flex items-center gap-1.5 text-ink-muted text-xs font-bold">
                                                     <AlertCircle size={12} /> Available
                                                 </div>
                                             )}
@@ -176,21 +176,21 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                             {item.tenant ? (
                                                 <Link 
                                                     href={route('store.dashboard', { store_slug: item.tenant.slug })}
-                                                    className="text-indigo-400 hover:text-indigo-300 text-sm flex items-center gap-1"
+                                                    className="text-brand-400 hover:text-brand-300 text-sm flex items-center gap-1"
                                                 >
                                                     {item.tenant.name}
                                                     <ExternalLink size={12} />
                                                 </Link>
                                             ) : '—'}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500 text-right">
+                                        <td className="px-6 py-4 text-sm text-ink-muted text-right">
                                             {new Date(item.created_at).toLocaleDateString()}
                                         </td>
                                     </tr>
                                 )) : (
                                     <tr>
                                         <td colSpan="5" className="px-6 py-12 text-center">
-                                            <div className="flex flex-col items-center gap-3 text-slate-500">
+                                            <div className="flex flex-col items-center gap-3 text-ink-muted">
                                                 <Ticket size={48} className="opacity-20" />
                                                 <p>No codes found. Generate some above!</p>
                                             </div>
@@ -204,29 +204,29 @@ export default function AppSumoIndex({ codes, filters, stats }) {
 
                 {/* Modals */}
                 {showGenerate && (
-                    <div className="fixed inset-0 bg-slate-900/60 dark:bg-void-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-                                <Plus className="text-indigo-400" />
+                    <div className="fixed inset-0 bg-neutral-900/60 dark:bg-void-950/95 backdrop-blur-md z-drawer flex items-center justify-center p-6">
+                        <div className="bg-surface border border-line dark:border-white/10 rounded-2xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-slow">
+                            <h2 className="text-2xl font-bold text-ink mb-6 flex items-center gap-3">
+                                <Plus className="text-brand-400" />
                                 Bulk Generate Codes
                             </h2>
                             <form onSubmit={handleGenerate} className="space-y-5">
                                 <div>
-                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Count (Max 1,000)</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Count (Max 1,000)</label>
                                     <input 
                                         type="number" 
                                         value={data.count}
                                         onChange={e => setData('count', e.target.value)}
-                                        className="w-full bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white px-5 py-3 focus:ring-indigo-500"
+                                        className="w-full bg-surface dark:bg-white/5 border-line dark:border-white/10 rounded-2xl text-ink px-5 py-3 focus:ring-brand-500"
                                         autoFocus
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Plan Tier</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Plan Tier</label>
                                     <select 
                                         value={data.tier}
                                         onChange={e => setData('tier', e.target.value)}
-                                        className="w-full bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white px-5 py-3 focus:ring-indigo-500"
+                                        className="w-full bg-surface dark:bg-white/5 border-line dark:border-white/10 rounded-2xl text-ink px-5 py-3 focus:ring-brand-500"
                                     >
                                         <option value="Tier 1">Tier 1 (Single Store)</option>
                                         <option value="Tier 2">Tier 2 (3 Stores)</option>
@@ -237,14 +237,14 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                     <button 
                                         type="button"
                                         onClick={() => setShowGenerate(false)}
-                                        className="flex-1 bg-white/5 text-slate-400 px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
+                                        className="flex-1 bg-white/5 text-ink-muted px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
                                     >
                                         Cancel
                                     </button>
                                     <button 
                                         type="submit"
                                         disabled={processing}
-                                        className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-500 transition-all flex items-center justify-center gap-2"
+                                        className="flex-1 bg-brand-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-brand-500 transition-all flex items-center justify-center gap-2"
                                     >
                                         {processing ? <RefreshCcw className="animate-spin" size={16} /> : 'Generate Now'}
                                     </button>
@@ -255,30 +255,30 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                 )}
 
                 {showImport && (
-                    <div className="fixed inset-0 bg-void-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
-                        <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] max-w-xl w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
-                            <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3 text-glow">
+                    <div className="fixed inset-0 bg-void-950/95 backdrop-blur-md z-drawer flex items-center justify-center p-6">
+                        <div className="bg-neutral-900 border border-white/10 rounded-2xl max-w-xl w-full p-8 shadow-2xl animate-in zoom-in-95 duration-slow">
+                            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3 text-glow">
                                 <Upload className="text-emerald-400" />
                                 Import External Codes
                             </h2>
                             <form onSubmit={handleImport} className="space-y-5">
                                 <div>
-                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Codes (Paste comma or newline separated)</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Codes (Paste comma or newline separated)</label>
                                     <textarea 
                                         rows="8"
                                         placeholder="CODE-123, CODE-456..."
                                         value={data.codes}
                                         onChange={e => setData('codes', e.target.value)}
-                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-indigo-500 font-mono text-sm"
+                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-brand-500 font-mono text-sm"
                                         autoFocus
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Assign to Plan Tier</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Assign to Plan Tier</label>
                                     <select 
                                         value={data.tier}
                                         onChange={e => setData('tier', e.target.value)}
-                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-indigo-500"
+                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-brand-500"
                                     >
                                         <option value="Tier 1">Tier 1 (Single Store)</option>
                                         <option value="Tier 2">Tier 2 (3 Stores)</option>
@@ -289,7 +289,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                     <button 
                                         type="button"
                                         onClick={() => setShowImport(false)}
-                                        className="flex-1 bg-white/5 text-slate-400 px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
+                                        className="flex-1 bg-white/5 text-ink-muted px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
                                     >
                                         Cancel
                                     </button>

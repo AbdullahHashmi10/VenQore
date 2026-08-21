@@ -60,26 +60,26 @@ export default function PurchaseModuleTabs({ activeTab }) {
     const ActiveIcon = activeItemObj?.icon || activeGroupObj?.icon;
 
     return (
-        <div className="flex flex-col lg:flex-row items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm">
+        <div className="flex flex-col lg:flex-row items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm">
             {/* Mobile Header (Only visible below lg) */}
             <div className="flex lg:hidden items-center justify-between w-full">
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+                    className="flex items-center gap-2 px-3 py-2 bg-sunken rounded-xl text-sm font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all duration-normal"
                 >
-                    {ActiveIcon && <ActiveIcon size={16} className="text-indigo-600 dark:text-indigo-400" />}
+                    {ActiveIcon && <ActiveIcon size={16} className="text-brand-600 dark:text-brand-400" />}
                     <span>{activeGroupObj?.label}: {activeItemObj?.label || activeTab}</span>
-                    <ChevronDown size={16} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={16} className={`transition-transform duration-normal ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {!isExpanded && (
                     <div className="shrink-0 flex items-center">
                         <Link
                             href={getRoute('purchases.create')}
-                            className="relative px-4 py-2 text-white rounded-xl text-sm font-black uppercase tracking-wide transition-all duration-300 flex items-center gap-2 overflow-hidden group shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                            className="relative px-4 py-2 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl hover:"
                         >
-                            <div className="absolute inset-0 bg-slate-900 z-0">
-                                <div className="absolute top-0 right-0 w-10 h-10 bg-indigo-600/50 rounded-full blur-lg -translate-y-1/2 translate-x-1/4"></div>
+                            <div className="absolute inset-0 bg-neutral-900 z-0">
+                                <div className="absolute top-0 right-0 w-10 h-10 bg-brand-600/50 rounded-full blur-lg -translate-y-1/2 translate-x-1/4"></div>
                                 <div className="absolute bottom-0 left-0 w-8 h-8 bg-purple-600/40 rounded-full blur-lg translate-y-1/3 -translate-x-1/3"></div>
                             </div>
                             <Plus size={18} strokeWidth={3} className="relative z-10" />
@@ -89,9 +89,9 @@ export default function PurchaseModuleTabs({ activeTab }) {
             </div>
 
             {/* Collapsible content area */}
-            <div className={`w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800' : 'hidden'}`}>
+            <div className={`w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-line' : 'hidden'}`}>
                 {/* Level 1: Category Selector */}
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
+                <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
                     {groups.map((group) => {
                         const Icon = group.icon;
                         const isActive = activeGroup === group.id;
@@ -101,12 +101,12 @@ export default function PurchaseModuleTabs({ activeTab }) {
                                 key={group.id}
                                 onClick={() => setActiveGroup(group.id)}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-normal whitespace-nowrap
                                     ${isActive
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                        ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }
-                                `}
+`}
                             >
                                 <Icon size={14} className={isActive ? 'opacity-100' : 'opacity-70'} />
                                 {group.label}
@@ -116,7 +116,7 @@ export default function PurchaseModuleTabs({ activeTab }) {
                 </div>
 
                 {/* Separator / Arrow */}
-                <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
+                <div className="hidden lg:flex items-center text-neutral-300 dark:text-ink-secondary">
                     <ChevronRight size={16} />
                 </div>
 
@@ -131,12 +131,12 @@ export default function PurchaseModuleTabs({ activeTab }) {
                                 key={tab.id}
                                 href={tab.href}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap
                                     ${isActive
-                                        ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-semibold'
-                                        : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
+                                        ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/20 dark:text-brand-400 font-semibold'
+                                        : 'bg-transparent border-transparent text-ink-secondary hover:bg-interactive-hover hover:border-line dark:text-ink-muted dark:hover:bg-interactive-hover dark:hover:border-line-strong'
                                     }
-                                `}
+`}
                             >
                                 <Icon size={14} />
                                 {tab.label}
@@ -149,13 +149,13 @@ export default function PurchaseModuleTabs({ activeTab }) {
                 <div className="shrink-0 self-stretch flex items-center">
                     <Link
                         href={getRoute('purchases.create')}
-                        className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-black uppercase tracking-wide transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                        className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl hover:"
                     >
                         {/* Midnight Nebula Background */}
-                        <div className="absolute inset-0 bg-slate-900 z-0">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-indigo-500/60 transition-colors"></div>
+                        <div className="absolute inset-0 bg-neutral-900 z-0">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors"></div>
                             <div className="absolute bottom-0 left-0 w-16 h-16 bg-purple-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-purple-500/50 transition-colors"></div>
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-60"></div>
+                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
                         </div>
                         {/* Content */}
                         <Plus size={18} strokeWidth={3} className="relative z-10" />

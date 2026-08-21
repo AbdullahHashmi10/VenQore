@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "react",
+    "jsx-a11y",
+    "unicorn",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true,
+    "node": true
+  },
+  "globals": {
+    "route": "readonly",
+    "axios": "readonly"
+  },
+  "settings": {
+    "react": {
+      "version": "18.0"
+    }
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/no-unescaped-entities": "off",
+    "no-unused-vars": "off",
+    "no-useless-escape": "off",
+    "no-empty": "off"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "vendor",
+    "public",
+    "storage",
+    "builds",
+    "temp_extract",
+    "scratch",
+    "**/*.d.ts"
+  ]
+}

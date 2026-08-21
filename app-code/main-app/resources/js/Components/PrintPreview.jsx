@@ -287,10 +287,10 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
     }
 
     return (
-        <div className={`relative transition-all duration-300 ${mode === 'dark' ? 'brightness-90 contrast-125' : ''}`}>
+        <div className={`relative transition-all duration-slow ${mode === 'dark' ? 'brightness-90 contrast-125' : ''}`}>
             {/* Paper Shadow Container */}
             <div
-                className="bg-white text-slate-900 shadow-2xl mx-auto overflow-hidden flex flex-col relative transition-all duration-500"
+                className="bg-white text-ink shadow-2xl mx-auto overflow-hidden flex flex-col relative transition-all duration-slower"
                 style={{
                     width: `${width}px`,
                     minHeight: `${minHeight}px`,
@@ -308,7 +308,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             </div>
 
             {/* Dimensions Indicator (Helper) */}
-            <div className={`absolute -bottom-8 left-0 w-full text-center text-2xs font-mono opacity-50 ${mode === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+            <div className={`absolute -bottom-8 left-0 w-full text-center text-2xs font-mono opacity-50 ${mode === 'dark' ? 'text-ink-muted' : 'text-ink-muted'}`}>
                 {Math.round(width / MM_TO_PX)}mm x {Math.round(minHeight / MM_TO_PX)}mm
             </div>
         </div>
@@ -347,12 +347,12 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                             className="w-24 h-24 object-contain mr-4"
                         />
                     ) : (
-                        <div className="w-20 h-20 bg-slate-100 rounded-lg flex items-center justify-center text-xs text-slate-400 font-bold">LOGO</div>
+                        <div className="w-20 h-20 bg-sunken rounded-lg flex items-center justify-center text-xs text-ink-muted font-bold">LOGO</div>
                     )
                 )}
                 <div>
-                    <h1 className="font-extrabold text-left" style={{ color: themeColor, fontSize: `${itemsHeadingSize(data.print_company_text_size)}rem` }}>{data.business_name || 'Business Name'}</h1>
-                    <div className="text-xs text-slate-600 space-y-0.5 mt-2 text-left font-sans">
+                    <h1 className="font-bold text-left" style={{ color: themeColor, fontSize: `${itemsHeadingSize(data.print_company_text_size)}rem` }}>{data.business_name || 'Business Name'}</h1>
+                    <div className="text-xs text-ink-secondary space-y-0.5 mt-2 text-left font-sans">
                         <p>{data.business_address || '123 Business St, City, Country'}</p>
                         <p>{data.business_phone || '+1 234 567 890'}</p>
                         {data.business_email && <p>Email: {data.business_email}</p>}
@@ -361,23 +361,23 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                 </div>
             </div>
             <div className="text-right">
-                <div className="font-black text-slate-100 uppercase tracking-tighter" style={{ fontSize: '2.5rem' }}>Invoice</div>
-                <div className="text-sm font-bold text-slate-600 mt-1"># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
-                {data.print_original_copy && <div className="text-2xs font-bold uppercase tracking-widest text-slate-400 mt-1">Original Copy</div>}
-                <div className="text-xs text-slate-500 mt-1">Date: {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
+                <div className="font-bold text-neutral-100 uppercase tracking-tighter" style={{ fontSize: '2.5rem' }}>Invoice</div>
+                <div className="text-sm font-bold text-ink-secondary mt-1"># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
+                {data.print_original_copy && <div className="text-2xs font-bold uppercase tracking-widest text-ink-muted mt-1">Original Copy</div>}
+                <div className="text-xs text-ink-muted mt-1">Date: {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
             </div>
         </div>
     );
 
     const billToContent = showEntity ? (
-        <div className="flex justify-between mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100 text-left">
+        <div className="flex justify-between mb-8 bg-surface p-4 rounded-xl border border-line text-left">
             <div>
-                <div className="text-xs font-bold text-slate-400 uppercase mb-1">{entityLabel}</div>
-                <div className="font-bold text-slate-800">{entityName}</div>
-                {sale?.contact?.address && <div className="text-xs text-slate-500">{sale.contact.address}</div>}
+                <div className="text-xs font-bold text-ink-muted uppercase mb-1">{entityLabel}</div>
+                <div className="font-bold text-ink">{entityName}</div>
+                {sale?.contact?.address && <div className="text-xs text-ink-muted">{sale.contact.address}</div>}
             </div>
             <div className="text-right">
-                <div className="text-xs font-bold text-slate-400 uppercase mb-1">Payment Status</div>
+                <div className="text-xs font-bold text-ink-muted uppercase mb-1">Payment Status</div>
                 <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">PAID</div>
             </div>
         </div>
@@ -387,7 +387,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
         <>
             {/* Table */}
             <table className="w-full mb-auto text-sm">
-                <thead className="bg-slate-800 text-white rounded-t-lg">
+                <thead className="bg-sunken text-white rounded-t-lg">
                     <tr>
                         {data.print_show_sno && <th className="p-3 text-left first:rounded-tl-lg w-12">#</th>}
                         <th className="p-3 text-left">Item</th>
@@ -406,12 +406,12 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                 </thead>
                 <tbody style={{ fontSize: `${itemsBodySize(data.print_invoice_text_size)}rem` }}>
                     {items.map((item, i) => (
-                        <tr key={i} className="border-b border-slate-100 last:border-0">
-                            {data.print_show_sno && <td className="p-3 text-slate-500">{item.sno}</td>}
+                        <tr key={i} className="border-b border-line last:border-0">
+                            {data.print_show_sno && <td className="p-3 text-ink-muted">{item.sno}</td>}
                             <td className="p-3 font-medium text-left">
                                 <div>{item.name}</div>
                                 {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                    <div className="text-2xs text-slate-400 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                    <div className="text-2xs text-ink-muted font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
                                         {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
                                         {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
                                         {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
@@ -421,16 +421,16 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                                     </div>
                                 )}
                             </td>
-                            {data.print_show_hsn && <td className="p-3 text-slate-500 text-left">{item.hsn}</td>}
-                            {data.print_show_description && <td className="p-3 text-slate-500 text-xs text-left">{item.desc}</td>}
-                            {data.print_show_mrp && <td className="p-3 text-right text-slate-400 line-through">{formatAmount(item.mrp || (item.rate * 1.2))}</td>}
+                            {data.print_show_hsn && <td className="p-3 text-ink-muted text-left">{item.hsn}</td>}
+                            {data.print_show_description && <td className="p-3 text-ink-muted text-xs text-left">{item.desc}</td>}
+                            {data.print_show_mrp && <td className="p-3 text-right text-ink-muted line-through">{formatAmount(item.mrp || (item.rate * 1.2))}</td>}
 
-                            <td className="p-3 text-center text-slate-600 font-bold">
+                            <td className="p-3 text-center text-ink-secondary font-bold">
                                 {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty}
                             </td>
-                            {data.print_show_units && <td className="p-3 text-center text-slate-500">{item.unit || 'pc'}</td>}
+                            {data.print_show_units && <td className="p-3 text-center text-ink-muted">{item.unit || 'pc'}</td>}
 
-                            <td className="p-3 text-right text-slate-600">{formatAmount(item.rate)}</td>
+                            <td className="p-3 text-right text-ink-secondary">{formatAmount(item.rate)}</td>
 
                             {showDiscount && (
                                 <td className="p-3 text-right text-emerald-600 font-bold">
@@ -443,12 +443,12 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                                 </td>
                             )}
 
-                            {data.print_tax_details && <td className="p-3 text-right text-slate-600">{formatAmount(item.tax || 0)}</td>}
+                            {data.print_tax_details && <td className="p-3 text-right text-ink-secondary">{formatAmount(item.tax || 0)}</td>}
                             <td className="p-3 text-right font-bold">{formatAmount(item.amount)}</td>
                         </tr>
                     ))}
                     {Array.from({ length: Math.max(0, (parseInt(data.print_min_item_rows) || 0) - items.length) }).map((_, idx) => (
-                        <tr key={`empty-${idx}`} className="h-8 border-b border-slate-100 last:border-0 opacity-10">
+                        <tr key={`empty-${idx}`} className="h-8 border-b border-line last:border-0 opacity-10">
                             {data.print_show_sno && <td className="p-3"></td>}
                             <td className="p-3"></td>
                             {data.print_show_hsn && <td className="p-3"></td>}
@@ -468,43 +468,43 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
             {/* Totals */}
             <div className="flex justify-end mt-6 border-t pt-6">
                 <div className="w-64 space-y-2">
-                    <div className="flex justify-between text-sm text-slate-500"><span>Sub Total</span><span>{formatAmount(calculations.subtotal)}</span></div>
+                    <div className="flex justify-between text-sm text-ink-muted"><span>Sub Total</span><span>{formatAmount(calculations.subtotal)}</span></div>
 
                     {data.print_total_quantity && (
-                        <div className="flex justify-between text-sm text-slate-500"><span>Total Qty</span><span>{calculations.qty}</span></div>
+                        <div className="flex justify-between text-sm text-ink-muted"><span>Total Qty</span><span>{calculations.qty}</span></div>
                     )}
 
-                    <div className="flex justify-between text-sm text-slate-500"><span>Tax</span><span>{formatAmount(calculations.gst)}</span></div>
+                    <div className="flex justify-between text-sm text-ink-muted"><span>Tax</span><span>{formatAmount(calculations.gst)}</span></div>
 
                     {calculations.invoiceDiscount > 0 && (
                         <div className="flex justify-between text-sm text-red-500 font-bold"><span>Discount</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
                     )}
 
                     {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
-                        <div className="flex justify-between text-sm text-slate-500"><span>Delivery Charges</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
+                        <div className="flex justify-between text-sm text-ink-muted"><span>Delivery Charges</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
                     )}
 
                     {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
-                        <div key={idx} className="flex justify-between text-sm text-slate-500"><span>{item.label}</span><span>{formatAmount(item.value)}</span></div>
+                        <div key={idx} className="flex justify-between text-sm text-ink-muted"><span>{item.label}</span><span>{formatAmount(item.value)}</span></div>
                     ))}
 
                     {data.print_you_saved && calculations.discount > 0 && (
                         <div className="flex justify-between text-sm text-emerald-600 font-bold"><span>You Saved</span><span>{formatAmount(calculations.discount)}</span></div>
                     )}
 
-                    <div className="flex justify-between text-lg font-black mt-2 pt-2 border-t" style={{ color: themeColor }}>
+                    <div className="flex justify-between text-lg font-bold mt-2 pt-2 border-t" style={{ color: themeColor }}>
                         <span>Total</span><span>{formatAmount(calculations.total)}</span>
                     </div>
 
                     {data.print_received_amount && (
-                        <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Received</span><span>{formatAmount(calculations.paid)}</span></div>
+                        <div className="flex justify-between text-sm text-ink-secondary mt-2"><span>Received</span><span>{formatAmount(calculations.paid)}</span></div>
                     )}
                     {data.print_balance_amount && (
                         <div className="flex justify-between text-sm text-red-500 font-bold"><span>Balance Due</span><span>{formatAmount(calculations.balance)}</span></div>
                     )}
                     {data.print_show_previous_balance && (
                         <>
-                            <div className="flex justify-between text-sm text-slate-500"><span>Prev Balance</span><span>{formatAmount(calculations.prev_balance)}</span></div>
+                            <div className="flex justify-between text-sm text-ink-muted"><span>Prev Balance</span><span>{formatAmount(calculations.prev_balance)}</span></div>
                             <div className="flex justify-between text-sm font-bold border-t pt-1" style={{ color: themeColor }}>
                                 <span>Net Balance</span>
                                 <span>{formatAmount(calculations.net_balance)}</span>
@@ -512,7 +512,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                         </>
                     )}
                     {(data.print_party_balance && !data.print_show_previous_balance) && (
-                        <div className="flex justify-between text-sm text-slate-500">
+                        <div className="flex justify-between text-sm text-ink-muted">
                             <span>Party Balance</span>
                             <span>{formatAmount(calculations.net_balance)}</span>
                         </div>
@@ -523,13 +523,13 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
             {/* Footer */}
             <div className="mt-12 pt-6 border-t text-center space-y-2">
                 {data.print_amount_words !== '0' && (
-                    <div className="text-sm font-bold italic text-slate-600 bg-slate-50 py-1 rounded">
+                    <div className="text-sm font-bold italic text-ink-secondary bg-sunken py-1 rounded">
                         "{numberToWords(calculations.total, data.print_amount_words)}"
                     </div>
                 )}
 
                 {(data.print_description !== false && data.print_description !== '0' && data.print_description !== 0) && (
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs text-ink-muted">
                         {data.print_terms || 'Thank you for your business!'}
                     </div>
                 )}
@@ -537,17 +537,17 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                 {data.print_qr_code && (
                     <div className="flex flex-col items-center justify-center my-4">
                         <QRCodeSVG value={`https://verify.venqore.com/receipt/${data.id || 'sample'}`} size={64} />
-                        <div className="text-[9px] text-slate-400 mt-1">Scan to Verify</div>
+                        <div className="text-3xs text-ink-muted mt-1">Scan to Verify</div>
                     </div>
                 )}
 
-                <div className="text-2xs text-slate-400 font-medium pt-2">
-                    Powered by{' '}
+                <div className="text-2xs text-ink-muted font-medium pt-2">
+                    Powered by{''}
                     <a
                         href="https://venqore.com?utm_source=invoice_footer"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 font-bold hover:underline"
+                        className="text-brand-600 font-bold hover:underline"
                     >
                         VenQore
                     </a>
@@ -555,30 +555,30 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
 
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}
                 {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
-                    <div className="flex justify-between items-end text-xs mt-6 pt-4 border-t border-dashed border-slate-200">
+                    <div className="flex justify-between items-end text-xs mt-6 pt-4 border-t border-dashed border-line">
                         {data.print_payment_mode && (
                             <div className="text-left">
-                                <span className="font-bold text-slate-500">Payment Mode: </span>
-                                <span className="font-bold text-slate-800">{sale ? (sale.payment_method || 'Cash').toUpperCase() : 'CASH'}</span>
+                                <span className="font-bold text-ink-muted">Payment Mode: </span>
+                                <span className="font-bold text-ink">{sale ? (sale.payment_method || 'Cash').toUpperCase() : 'CASH'}</span>
                             </div>
                         )}
                         <div className="flex gap-6 ml-auto font-bold">
                             {data.print_received_by && (
                                 <div className="text-center">
-                                    <div className="w-28 border-b border-slate-300 h-6"></div>
-                                    <div className="text-2xs text-slate-500 mt-1">Received By</div>
+                                    <div className="w-28 border-b border-line h-6"></div>
+                                    <div className="text-2xs text-ink-muted mt-1">Received By</div>
                                 </div>
                             )}
                             {data.print_delivered_by && (
                                 <div className="text-center">
-                                    <div className="w-28 border-b border-slate-300 h-6"></div>
-                                    <div className="text-2xs text-slate-500 mt-1">Delivered By</div>
+                                    <div className="w-28 border-b border-line h-6"></div>
+                                    <div className="text-2xs text-ink-muted mt-1">Delivered By</div>
                                 </div>
                             )}
                             {data.print_acknowledgement && (
                                 <div className="text-center">
-                                    <div className="w-36 border-b border-slate-300 h-6"></div>
-                                    <div className="text-2xs text-slate-500 mt-1">Customer Acknowledgement</div>
+                                    <div className="w-36 border-b border-line h-6"></div>
+                                    <div className="text-2xs text-ink-muted mt-1">Customer Acknowledgement</div>
                                 </div>
                             )}
                         </div>
@@ -589,8 +589,8 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                     <div className="flex justify-end mt-8">
                         <div className="text-center">
                             <div className="h-10"></div>
-                            <div className="border-t border-slate-300 w-32"></div>
-                            <div className="text-2xs font-bold text-slate-500 mt-1">{data.print_signature_text}</div>
+                            <div className="border-t border-line w-32"></div>
+                            <div className="text-2xs font-bold text-ink-muted mt-1">{data.print_signature_text}</div>
                         </div>
                     </div>
                 )}
@@ -644,7 +644,7 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
     const formatAmount = (amount) => formatCurrency(amount, data);
 
     const headerContent = (
-        <div className="text-center mb-8 border-b-4 double border-slate-800 pb-4">
+        <div className="text-center mb-8 border-b-4 double border-neutral-800 pb-4">
             <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">{data.business_name}</h1>
             <p className="text-sm italic">{data.business_address}</p>
             <p className="text-xs">{data.business_phone}{data.business_email && ` | Email: ${data.business_email}`}{data.tax_number && ` | Tax/NTN: ${data.tax_number}`}</p>
@@ -667,24 +667,24 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
 
     const mainContent = (
         <>
-            <table className="w-full border-collapse border border-slate-800 mb-6">
-                <thead className="bg-slate-100">
+            <table className="w-full border-collapse border border-neutral-800 mb-6">
+                <thead className="bg-sunken">
                     <tr>
-                        <th className="border border-slate-800 p-2 text-left">DESCRIPTION</th>
-                        <th className="border border-slate-800 p-2 text-center">
+                        <th className="border border-neutral-800 p-2 text-left">DESCRIPTION</th>
+                        <th className="border border-neutral-800 p-2 text-center">
                             {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'QTY + FREE' : 'QTY'}
                         </th>
-                        <th className="border border-slate-800 p-2 text-right">UNIT PRICE</th>
-                        <th className="border border-slate-800 p-2 text-right">AMOUNT</th>
+                        <th className="border border-neutral-800 p-2 text-right">UNIT PRICE</th>
+                        <th className="border border-neutral-800 p-2 text-right">AMOUNT</th>
                     </tr>
                 </thead>
                 <tbody>
                     {items.map((item, i) => (
                         <tr key={i}>
-                            <td className="border border-slate-800 p-2 text-left">
+                            <td className="border border-neutral-800 p-2 text-left">
                                 <div>{item.name}</div>
                                 {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                    <div className="text-2xs text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                    <div className="text-2xs text-ink-muted font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
                                         {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
                                         {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
                                         {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
@@ -694,19 +694,19 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                                     </div>
                                 )}
                             </td>
-                            <td className="border border-slate-800 p-2 text-center">
+                            <td className="border border-neutral-800 p-2 text-center">
                                 {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty}
                             </td>
-                            <td className="border border-slate-800 p-2 text-right">{formatAmount(item.rate)}</td>
-                            <td className="border border-slate-800 p-2 text-right">{formatAmount(item.amount)}</td>
+                            <td className="border border-neutral-800 p-2 text-right">{formatAmount(item.rate)}</td>
+                            <td className="border border-neutral-800 p-2 text-right">{formatAmount(item.amount)}</td>
                         </tr>
                     ))}
                     {Array.from({ length: Math.max(0, (parseInt(data.print_min_item_rows) || 0) - items.length) }).map((_, idx) => (
                         <tr key={`empty-${idx}`}>
-                            <td className="border border-slate-800 p-2 h-8"></td>
-                            <td className="border border-slate-800 p-2 text-center h-8"></td>
-                            <td className="border border-slate-800 p-2 text-right h-8"></td>
-                            <td className="border border-slate-800 p-2 text-right h-8"></td>
+                            <td className="border border-neutral-800 p-2 h-8"></td>
+                            <td className="border border-neutral-800 p-2 text-center h-8"></td>
+                            <td className="border border-neutral-800 p-2 text-right h-8"></td>
+                            <td className="border border-neutral-800 p-2 text-right h-8"></td>
                         </tr>
                     ))}
                 </tbody>
@@ -726,39 +726,39 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                     )}
                 </div>
                 <div className="w-1/2 ml-auto">
-                    <div className="flex justify-between border-b border-slate-800 py-1"><span>SUBTOTAL:</span><span>{formatAmount(calculations.subtotal)}</span></div>
+                    <div className="flex justify-between border-b border-neutral-800 py-1"><span>SUBTOTAL:</span><span>{formatAmount(calculations.subtotal)}</span></div>
                     {calculations.invoiceDiscount > 0 && (
-                        <div className="flex justify-between border-b border-slate-800 py-1 text-red-600 font-bold"><span>DISCOUNT:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
+                        <div className="flex justify-between border-b border-neutral-800 py-1 text-red-600 font-bold"><span>DISCOUNT:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
                     )}
-                    <div className="flex justify-between border-b border-slate-800 py-1"><span>TAX:</span><span>{formatAmount(calculations.gst)}</span></div>
+                    <div className="flex justify-between border-b border-neutral-800 py-1"><span>TAX:</span><span>{formatAmount(calculations.gst)}</span></div>
                     {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
-                        <div className="flex justify-between border-b border-slate-800 py-1"><span>DELIVERY:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
+                        <div className="flex justify-between border-b border-neutral-800 py-1"><span>DELIVERY:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
                     )}
                     {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
-                        <div key={idx} className="flex justify-between border-b border-slate-800 py-1"><span>{String(item.label || 'EXTRA').toUpperCase()}:</span><span>{formatAmount(item.value)}</span></div>
+                        <div key={idx} className="flex justify-between border-b border-neutral-800 py-1"><span>{String(item.label || 'EXTRA').toUpperCase()}:</span><span>{formatAmount(item.value)}</span></div>
                     ))}
                     <div className="flex justify-between font-bold text-xl py-2"><span>TOTAL:</span><span>{formatAmount(calculations.total)}</span></div>
                     {data.print_received_amount && (
-                        <div className="flex justify-between border-b border-slate-800 py-1"><span>RECEIVED:</span><span>{formatAmount(calculations.paid)}</span></div>
+                        <div className="flex justify-between border-b border-neutral-800 py-1"><span>RECEIVED:</span><span>{formatAmount(calculations.paid)}</span></div>
                     )}
                     {data.print_balance_amount && (
-                        <div className="flex justify-between border-b border-slate-800 py-1 font-bold"><span>BALANCE DUE:</span><span>{formatAmount(calculations.balance)}</span></div>
+                        <div className="flex justify-between border-b border-neutral-800 py-1 font-bold"><span>BALANCE DUE:</span><span>{formatAmount(calculations.balance)}</span></div>
                     )}
                     {data.print_show_previous_balance && (
                         <>
-                            <div className="flex justify-between border-b border-slate-800 py-1"><span>PREV BALANCE:</span><span>{formatAmount(calculations.prev_balance)}</span></div>
+                            <div className="flex justify-between border-b border-neutral-800 py-1"><span>PREV BALANCE:</span><span>{formatAmount(calculations.prev_balance)}</span></div>
                             <div className="flex justify-between font-bold py-1"><span>NET BALANCE:</span><span>{formatAmount(calculations.net_balance)}</span></div>
                         </>
                     )}
                     {(data.print_party_balance && !data.print_show_previous_balance) && (
-                        <div className="flex justify-between border-b border-slate-800 py-1"><span>PARTY BALANCE:</span><span>{formatAmount(calculations.net_balance)}</span></div>
+                        <div className="flex justify-between border-b border-neutral-800 py-1"><span>PARTY BALANCE:</span><span>{formatAmount(calculations.net_balance)}</span></div>
                     )}
                 </div>
             </div>
 
             {/* Received / Delivered / Acknowledgement / Payment Mode */}
             {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
-                <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t border-dashed border-slate-800">
+                <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t border-dashed border-neutral-800">
                     {data.print_payment_mode && (
                         <div className="text-left font-bold">
                             <span>Payment Mode: </span>
@@ -768,19 +768,19 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                     <div className="flex gap-6 ml-auto font-bold">
                         {data.print_received_by && (
                             <div className="text-center">
-                                <div className="w-28 border-b border-slate-800 h-6"></div>
+                                <div className="w-28 border-b border-neutral-800 h-6"></div>
                                 <div className="text-2xs mt-1">Received By</div>
                             </div>
                         )}
                         {data.print_delivered_by && (
                             <div className="text-center">
-                                <div className="w-28 border-b border-slate-800 h-6"></div>
+                                <div className="w-28 border-b border-neutral-800 h-6"></div>
                                 <div className="text-2xs mt-1">Delivered By</div>
                             </div>
                         )}
                         {data.print_acknowledgement && (
                             <div className="text-center">
-                                <div className="w-36 border-b border-slate-800 h-6"></div>
+                                <div className="w-36 border-b border-neutral-800 h-6"></div>
                                 <div className="text-2xs mt-1">Customer Acknowledgement</div>
                             </div>
                         )}
@@ -792,7 +792,7 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                 <div className="flex justify-end mt-8">
                     <div className="text-center font-bold">
                         <div className="h-10"></div>
-                        <div className="border-t border-slate-800 w-32"></div>
+                        <div className="border-t border-neutral-800 w-32"></div>
                         <div className="text-2xs mt-1">{data.print_signature_text}</div>
                     </div>
                 </div>
@@ -823,17 +823,17 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
     }
 
     return (
-        <div className="font-serif h-full flex flex-col text-slate-900">
+        <div className="font-serif h-full flex flex-col text-ink">
             {headerContent}
             {billToContent}
             {mainContent}
-            <div className="text-2xs text-slate-400 font-medium pt-2 text-center mt-auto">
-                Powered by{' '}
+            <div className="text-2xs text-ink-muted font-medium pt-2 text-center mt-auto">
+                Powered by{''}
                 <a
                     href="https://venqore.com?utm_source=invoice_footer"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: '#4f46e5', fontWeight: 'bold' }}
+                    style={{ color: 'rgb(var(--vq-indigo-600))', fontWeight: 'bold' }}
                 >
                     VenQore
                 </a>
@@ -847,9 +847,9 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
     const formatAmount = (amount) => formatCurrency(amount, data);
 
     const headerContent = (
-        <div className="bg-slate-900 text-white p-8 -mx-8 -mt-8 mb-8 flex justify-between items-center text-left" style={{ backgroundColor: themeColor }}>
+        <div className="bg-neutral-900 text-white p-8 -mx-8 -mt-8 mb-8 flex justify-between items-center text-left" style={{ backgroundColor: themeColor }}>
             <div>
-                <h1 className="text-4xl font-black">{data.business_name}</h1>
+                <h1 className="text-4xl font-bold">{data.business_name}</h1>
                 <p className="opacity-80 mt-1">INVOICE</p>
             </div>
             <div className="text-right opacity-80 text-sm">
@@ -864,13 +864,13 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
     const billToContent = (
         <div className="grid grid-cols-2 gap-8 mb-10 text-left">
             <div>
-                <h3 className="font-bold text-slate-400 uppercase text-xs mb-2">{entityLabel}</h3>
-                <div className="text-xl font-bold text-slate-800">{entityName}</div>
+                <h3 className="font-bold text-ink-muted uppercase text-xs mb-2">{entityLabel}</h3>
+                <div className="text-xl font-bold text-ink">{entityName}</div>
             </div>
             <div className="text-right">
-                <h3 className="font-bold text-slate-400 uppercase text-xs mb-2">Invoice Info</h3>
+                <h3 className="font-bold text-ink-muted uppercase text-xs mb-2">Invoice Info</h3>
                 <p className="font-mono">{sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}-1001`}</p>
-                <p className="font-mono text-slate-500">{sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</p>
+                <p className="font-mono text-ink-muted">{sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</p>
             </div>
         </div>
     );
@@ -879,18 +879,18 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
         <>
             <table className="w-full mb-8">
                 <thead>
-                    <tr className="border-b-2 border-slate-900">
-                        <th className="text-left py-3 font-black text-slate-900 uppercase text-xs">Item Description</th>
-                        <th className="text-right py-3 font-black text-slate-900 uppercase text-xs">Total</th>
+                    <tr className="border-b-2 border-neutral-900">
+                        <th className="text-left py-3 font-bold text-ink uppercase text-xs">Item Description</th>
+                        <th className="text-right py-3 font-bold text-ink uppercase text-xs">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {items.map((item, i) => (
-                        <tr key={i} className="border-b border-slate-100">
+                        <tr key={i} className="border-b border-line">
                             <td className="py-4 text-left">
                                 <div className="font-bold">{item.name}</div>
                                 {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                    <div className="text-2xs text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                    <div className="text-2xs text-ink-muted font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
                                         {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
                                         {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
                                         {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
@@ -899,13 +899,13 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                                         {data.thermal_show_serial && item.serial && <span>S/N: {item.serial}</span>}
                                     </div>
                                 )}
-                                <div className="text-xs text-slate-500">{item.qty} x {formatAmount(item.rate)}</div>
+                                <div className="text-xs text-ink-muted">{item.qty} x {formatAmount(item.rate)}</div>
                             </td>
                             <td className="py-4 text-right font-bold">{formatAmount(item.amount)}</td>
                         </tr>
                     ))}
                     {Array.from({ length: Math.max(0, (parseInt(data.print_min_item_rows) || 0) - items.length) }).map((_, idx) => (
-                        <tr key={`empty-${idx}`} className="border-b border-slate-100 h-12">
+                        <tr key={`empty-${idx}`} className="border-b border-line h-12">
                             <td className="py-4"></td>
                             <td className="py-4 text-right"></td>
                         </tr>
@@ -921,7 +921,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                         </div>
                     )}
                     {(data.print_description !== false && data.print_description !== '0' && data.print_description !== 0) && (
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-ink-muted">
                             {data.print_terms || 'Thank you for your business!'}
                         </div>
                     )}
@@ -938,7 +938,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                     {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
                         <div key={idx} className="flex justify-between"><span>{item.label}:</span><span>{formatAmount(item.value)}</span></div>
                     ))}
-                    <div className="flex justify-between font-bold text-base border-t border-slate-900 pt-1"><span>TOTAL DUE:</span><span>{formatAmount(calculations.total)}</span></div>
+                    <div className="flex justify-between font-bold text-base border-t border-neutral-900 pt-1"><span>TOTAL DUE:</span><span>{formatAmount(calculations.total)}</span></div>
                     {data.print_received_amount && (
                         <div className="flex justify-between"><span>Received:</span><span>{formatAmount(calculations.paid)}</span></div>
                     )}
@@ -948,7 +948,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                     {data.print_show_previous_balance && (
                         <>
                             <div className="flex justify-between"><span>Prev Balance:</span><span>{formatAmount(calculations.prev_balance)}</span></div>
-                            <div className="flex justify-between font-bold border-t border-slate-900 pt-1"><span>Net Balance:</span><span>{formatAmount(calculations.net_balance)}</span></div>
+                            <div className="flex justify-between font-bold border-t border-neutral-900 pt-1"><span>Net Balance:</span><span>{formatAmount(calculations.net_balance)}</span></div>
                         </>
                     )}
                     {(data.print_party_balance && !data.print_show_previous_balance) && (
@@ -959,7 +959,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
 
             {/* Received / Delivered / Acknowledgement / Payment Mode */}
             {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
-                <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t-2 border-slate-900">
+                <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t-2 border-neutral-900">
                     {data.print_payment_mode && (
                         <div className="text-left font-bold">
                             <span>Payment Mode: </span>
@@ -969,19 +969,19 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                     <div className="flex gap-6 ml-auto font-bold">
                         {data.print_received_by && (
                             <div className="text-center">
-                                <div className="w-28 border-b-2 border-slate-900 h-6"></div>
+                                <div className="w-28 border-b-2 border-neutral-900 h-6"></div>
                                 <div className="text-2xs mt-1">Received By</div>
                             </div>
                         )}
                         {data.print_delivered_by && (
                             <div className="text-center">
-                                <div className="w-28 border-b-2 border-slate-900 h-6"></div>
+                                <div className="w-28 border-b-2 border-neutral-900 h-6"></div>
                                 <div className="text-2xs mt-1">Delivered By</div>
                             </div>
                         )}
                         {data.print_acknowledgement && (
                             <div className="text-center">
-                                <div className="w-36 border-b-2 border-slate-900 h-6"></div>
+                                <div className="w-36 border-b-2 border-neutral-900 h-6"></div>
                                 <div className="text-2xs mt-1">Customer Acknowledgement</div>
                             </div>
                         )}
@@ -993,7 +993,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                 <div className="flex justify-end mt-8">
                     <div className="text-center font-bold">
                         <div className="h-10"></div>
-                        <div className="border-t-2 border-slate-900 w-32"></div>
+                        <div className="border-t-2 border-neutral-900 w-32"></div>
                         <div className="text-2xs mt-1">{data.print_signature_text}</div>
                     </div>
                 </div>
@@ -1028,13 +1028,13 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
             {headerContent}
             {billToContent}
             {mainContent}
-            <div className="text-2xs text-slate-400 font-medium pt-2 text-center mt-auto">
-                Powered by{' '}
+            <div className="text-2xs text-ink-muted font-medium pt-2 text-center mt-auto">
+                Powered by{''}
                 <a
                     href="https://venqore.com?utm_source=invoice_footer"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: '#4f46e5', fontWeight: 'bold' }}
+                    style={{ color: 'rgb(var(--vq-indigo-600))', fontWeight: 'bold' }}
                 >
                     VenQore
                 </a>
@@ -1088,7 +1088,7 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                     />
                 )}
 
-                <div className="font-black text-lg mb-1 leading-tight">
+                <div className="font-bold text-lg mb-1 leading-tight">
                     {data.business_name}
                 </div>
                 <div className="text-[0.85em]">
@@ -1132,7 +1132,7 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
             </div>
 
             {data.thermal_show_headers && (
-                <div className="flex justify-between text-[0.8em] font-black border-b-2 border-black pb-1 mb-2 uppercase tracking-tight">
+                <div className="flex justify-between text-[0.8em] font-bold border-b-2 border-black pb-1 mb-2 uppercase tracking-tight">
                     <span className="flex-1">Item</span>
                     <span className="text-right w-20">
                         {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'Qty+Free' : 'Qty'}
@@ -1148,7 +1148,7 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                         {/* Top Line */}
                         <div className="flex justify-between items-start">
                             <div className="flex-1 pr-1">
-                                <span className={data.thermal_use_bold ? 'font-black' : 'font-bold'}>
+                                <span className={data.thermal_use_bold ? 'font-bold' : 'font-bold'}>
                                     {data.thermal_show_sno ? `${item.sno}. ` : ''}
                                     {item.name}
                                 </span>
@@ -1262,7 +1262,7 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 ))}
 
-                <div className="flex justify-between font-black mt-2 pt-2 border-t border-black">
+                <div className="flex justify-between font-bold mt-2 pt-2 border-t border-black">
                     <span>TOTAL</span>
                     <span>{formatAmount(calculations.total)}</span>
                 </div>
@@ -1280,25 +1280,25 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                 )}
                 {data.print_show_previous_balance && (
                     <>
-                        <div className="flex justify-between text-[0.8em] text-slate-500">
+                        <div className="flex justify-between text-[0.8em] text-ink-muted">
                             <span>Prev Balance</span>
                             <span>{formatAmount(calculations.prev_balance)}</span>
                         </div>
-                        <div className="flex justify-between text-[0.85em] font-black border-t border-dashed border-black pt-1">
+                        <div className="flex justify-between text-[0.85em] font-bold border-t border-dashed border-black pt-1">
                             <span>Net Balance</span>
                             <span>{formatAmount(calculations.net_balance)}</span>
                         </div>
                     </>
                 )}
                 {(data.print_party_balance && !data.print_show_previous_balance) && (
-                    <div className="flex justify-between text-[0.8em] text-slate-500">
+                    <div className="flex justify-between text-[0.8em] text-ink-muted">
                         <span>Party Balance</span>
                         <span>{formatAmount(calculations.net_balance)}</span>
                     </div>
                 )}
 
                 {data.print_you_saved && calculations.discount > 0 && (
-                    <div className="flex justify-between text-[1em] mt-2 pt-2 border-t border-dashed border-black font-black">
+                    <div className="flex justify-between text-[1em] mt-2 pt-2 border-t border-dashed border-black font-bold">
                         <span>You Saved</span>
                         <span>{formatAmount(calculations.discount)}</span>
                     </div>
@@ -1324,8 +1324,8 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                 )}
 
                 <div className="text-[0.75em] opacity-60 mt-2">
-                    Powered by{' '}
-                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', fontWeight: 'bold' }}>VenQore</a>
+                    Powered by{''}
+                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: 'rgb(var(--vq-indigo-600))', fontWeight: 'bold' }}>VenQore</a>
                 </div>
 
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}
@@ -1566,7 +1566,7 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                 )}
                 {data.print_show_previous_balance && (
                     <>
-                        <div className="flex justify-between text-slate-500">
+                        <div className="flex justify-between text-ink-muted">
                             <span>PREV BALANCE</span>
                             <span>{formatAmount(calculations.prev_balance)}</span>
                         </div>
@@ -1577,7 +1577,7 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                     </>
                 )}
                 {(data.print_party_balance && !data.print_show_previous_balance) && (
-                    <div className="flex justify-between text-slate-500">
+                    <div className="flex justify-between text-ink-muted">
                         <span>PARTY BALANCE</span>
                         <span>{formatAmount(calculations.net_balance)}</span>
                     </div>
@@ -1608,8 +1608,8 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                 )}
 
                 <div className="text-[0.75em] opacity-60 mt-1">
-                    Powered by{' '}
-                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', fontWeight: 'bold' }}>VenQore</a>
+                    Powered by{''}
+                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: 'rgb(var(--vq-indigo-600))', fontWeight: 'bold' }}>VenQore</a>
                 </div>
 
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}
@@ -1841,7 +1841,7 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                     <div className="font-bold">Party Balance: {formatAmount(calculations.net_balance)}</div>
                 )}
                 {data.print_you_saved && calculations.discount > 0 && (
-                    <div className="mt-1 font-black text-sm">
+                    <div className="mt-1 font-bold text-sm">
                         SAVINGS: {formatAmount(calculations.discount)}
                     </div>
                 )}
@@ -1864,8 +1864,8 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                 )}
 
                 <div className="text-[0.7em] opacity-60 mt-2">
-                    Powered by{' '}
-                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', fontWeight: 'bold' }}>VenQore</a>
+                    Powered by{''}
+                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: 'rgb(var(--vq-indigo-600))', fontWeight: 'bold' }}>VenQore</a>
                 </div>
 
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}

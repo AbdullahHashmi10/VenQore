@@ -53,12 +53,12 @@ export default function TransactionsReport({ transactions = {}, filters = {} }) 
             key: 'type',
             label: 'Type',
             sortable: true,
-            render: (row) => <span className="font-medium text-slate-700 dark:text-slate-300">{row.type}</span>
+            render: (row) => <span className="font-medium text-ink-secondary">{row.type}</span>
         },
         {
             key: 'ref', // Using 'ref' or 'id'
             label: 'Reference',
-            render: (row) => <span className="font-mono text-xs text-slate-500">{row.id}</span>
+            render: (row) => <span className="font-mono text-xs text-ink-muted">{row.id}</span>
         },
         {
             key: 'party',
@@ -74,7 +74,7 @@ export default function TransactionsReport({ transactions = {}, filters = {} }) 
                 const isPositive = row.type === 'Sale' || row.type === 'Payment In';
                 const isExpense = row.type === 'Expense' || row.type === 'Purchase';
                 // Logic based on type
-                const colorClass = (row.type === 'Sale' || row.type === 'Payment In') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300';
+                const colorClass = (row.type === 'Sale' || row.type === 'Payment In') ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-secondary';
 
                 return (
                     <span className={`font-bold ${colorClass}`}>
@@ -87,7 +87,7 @@ export default function TransactionsReport({ transactions = {}, filters = {} }) 
             key: 'status',
             label: 'Status',
             render: (row) => (
-                <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-sunken text-ink-secondary uppercase">
                     {row.status || '-'}
                 </span>
             )

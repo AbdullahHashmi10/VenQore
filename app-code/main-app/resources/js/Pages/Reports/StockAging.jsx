@@ -82,13 +82,13 @@ export default function StockAging({ batches = [], filters = {} }) {
             label: 'Total Inventory Value',
             value: formatCurrency(stats.totalValue),
             subValue: 'Across all batches',
-            icon: <DollarSign size={20} className="text-slate-500" />,
+            icon: <DollarSign size={20} className="text-ink-muted" />,
             type: 'neutral'
         },
         {
             label: 'Capital in Dead Stock',
             value: formatCurrency(stats.deadStockValue),
-            subValue: '> 180 Days Old',
+            subValue:'> 180 Days Old',
             icon: <Archive size={20} className="text-red-500" />,
             type: 'down'
         },
@@ -125,12 +125,12 @@ export default function StockAging({ batches = [], filters = {} }) {
             width: '300px',
             render: (row) => (
                 <div className="flex items-center gap-3 py-1">
-                    <div className="w-9 h-9 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
-                        <Package size={16} className="text-slate-400" />
+                    <div className="w-9 h-9 rounded-lg bg-app flex items-center justify-center shrink-0 border border-line overflow-hidden">
+                        <Package size={16} className="text-ink-muted" />
                     </div>
                     <div>
-                        <div className="font-bold text-sm text-slate-800 dark:text-slate-200 line-clamp-1">{row.product}</div>
-                        <div className="text-2xs font-mono text-slate-500">Batch: {row.batch || 'N/A'}</div>
+                        <div className="font-bold text-sm text-ink line-clamp-1">{row.product}</div>
+                        <div className="text-2xs font-mono text-ink-muted">Batch: {row.batch || 'N/A'}</div>
                     </div>
                 </div>
             )
@@ -148,11 +148,11 @@ export default function StockAging({ batches = [], filters = {} }) {
                 return (
                     <div className="w-full max-w-[140px]">
                         <div className="flex justify-between text-1xs mb-1 font-bold">
-                            <span className="text-slate-700 dark:text-slate-300">{days} days</span>
-                            <span className="text-slate-400">Target: 90</span>
+                            <span className="text-ink-secondary">{days} days</span>
+                            <span className="text-ink-muted">Target: 90</span>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className={`h-full ${color} transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
+                        <div className="h-1.5 w-full bg-sunken rounded-full overflow-hidden">
+                            <div className={`h-full ${color} transition-all duration-slower`} style={{ width: `${percentage}%` }}></div>
                         </div>
                     </div>
                 );
@@ -177,7 +177,7 @@ export default function StockAging({ batches = [], filters = {} }) {
             align: 'right',
             sortable: true,
             render: (row) => (
-                <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-300">
+                <span className="font-mono text-sm font-bold text-ink-secondary">
                     {formatNumber(row.quantity)}
                 </span>
             )
@@ -191,7 +191,7 @@ export default function StockAging({ batches = [], filters = {} }) {
                 // cost_value = remaining_qty * unit_cost from inventory_batches (authoritative)
                 const val = parseFloat(row.cost_value) || 0;
                 return (
-                    <div className="font-mono font-bold text-sm text-slate-800 dark:text-white">
+                    <div className="font-mono font-bold text-sm text-ink">
                         {formatCurrency(val)}
                     </div>
                 );

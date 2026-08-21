@@ -89,24 +89,24 @@ export default function PartyStatement({ party, transactions = [], openingBalanc
         {
             key: 'type',
             label: 'Type',
-            render: (row) => <span className="font-medium text-slate-700 dark:text-slate-300">{row.type}</span>
+            render: (row) => <span className="font-medium text-ink-secondary">{row.type}</span>
         },
         {
             key: 'ref',
             label: 'Reference',
-            render: (row) => <span className="font-mono text-xs text-slate-500">{row.ref}</span>
+            render: (row) => <span className="font-mono text-xs text-ink-muted">{row.ref}</span>
         },
         {
             key: 'debit',
             label: 'Debit',
             align: 'right',
-            render: (row) => row.debit > 0 ? <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(row.debit)}</span> : '-'
+            render: (row) => row.debit > 0 ? <span className="font-bold text-ink-secondary">{formatCurrency(row.debit)}</span> : '-'
         },
         {
             key: 'credit',
             label: 'Credit',
             align: 'right',
-            render: (row) => row.credit > 0 ? <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(row.credit)}</span> : '-'
+            render: (row) => row.credit > 0 ? <span className="font-bold text-ink-secondary">{formatCurrency(row.credit)}</span> : '-'
         },
         {
             key: 'balance',
@@ -155,17 +155,17 @@ export default function PartyStatement({ party, transactions = [], openingBalanc
             <Head title="Party Statement" />
 
             {!party ? (
-                <div className="flex flex-col items-center justify-center h-[60vh] bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 rounded-full flex items-center justify-center mb-4">
+                <div className="flex flex-col items-center justify-center h-[60vh] bg-surface rounded-2xl border border-dashed border-line dark:border-line">
+                    <div className="w-16 h-16 bg-brand-50 dark:bg-brand-900/30 text-brand-500 rounded-full flex items-center justify-center mb-4">
                         <Users size={32} />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Select a Party</h3>
-                    <p className="text-slate-500 mb-6 text-center max-w-md">Please select a customer or supplier from the filters above to generate their detailed ledger statement.</p>
+                    <h3 className="text-xl font-bold text-ink mb-2">Select a Party</h3>
+                    <p className="text-ink-muted mb-6 text-center max-w-md">Please select a customer or supplier from the filters above to generate their detailed ledger statement.</p>
 
                     {/* Inline Filter for Quick Access */}
                     <div className="w-64">
                         <select
-                            className="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                            className="w-full rounded-xl border-line bg-app"
                             onChange={(e) => handleFilterChange({ ...filters, party_id: e.target.value })}
                         >
                             <option value="">Select Party...</option>

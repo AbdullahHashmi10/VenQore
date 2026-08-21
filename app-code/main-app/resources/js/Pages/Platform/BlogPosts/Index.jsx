@@ -68,21 +68,21 @@ export default function BlogPostsIndex({ posts = [] }) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
+        <div className="min-h-screen bg-neutral-950 text-neutral-100 p-8">
             <Head title="SuperAdmin — Blog Engine" />
 
             <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-800">
+                <div className="flex items-center justify-between mb-8 pb-6 border-b border-neutral-800">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-3">
-                            <BookOpen className="text-indigo-500" size={32} />
+                        <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+                            <BookOpen className="text-brand-500" size={32} />
                             Blog Engine Management
                         </h1>
-                        <p className="text-slate-400 text-sm mt-1">Manage global public marketing posts, SEO metadata, and JSON-LD articles.</p>
+                        <p className="text-ink-muted text-sm mt-1">Manage global public marketing posts, SEO metadata, and JSON-LD articles.</p>
                     </div>
                     <button
                         onClick={openCreate}
-                        className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/30"
+                        className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-lg "
                     >
                         <Plus size={18} /> New Blog Post
                     </button>
@@ -90,14 +90,14 @@ export default function BlogPostsIndex({ posts = [] }) {
 
                 {/* Form Drawer / Modal */}
                 {(isCreating || editingPost) && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8 shadow-2xl">
-                        <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 mb-8 shadow-2xl">
+                        <div className="flex items-center justify-between pb-4 border-b border-neutral-800 mb-6">
                             <h2 className="text-xl font-bold text-white">
                                 {editingPost ? `Edit Post: ${editingPost.title}` : 'Create New Blog Post'}
                             </h2>
                             <button
                                 onClick={() => { setIsCreating(false); setEditingPost(null); }}
-                                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                                className="p-1 rounded-lg text-ink-muted hover:text-white hover:bg-interactive-hover"
                             >
                                 <X size={20} />
                             </button>
@@ -106,25 +106,25 @@ export default function BlogPostsIndex({ posts = [] }) {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Title</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Title</label>
                                     <input
                                         type="text"
                                         value={data.title}
                                         onChange={e => setData('title', e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none"
                                         required
                                     />
                                     {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Slug (URL Path)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Slug (URL Path)</label>
                                     <input
                                         type="text"
                                         value={data.slug}
                                         onChange={e => setData('slug', e.target.value)}
                                         placeholder="auto-generated from title"
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none"
                                     />
                                     {errors.slug && <p className="text-red-400 text-xs mt-1">{errors.slug}</p>}
                                 </div>
@@ -132,76 +132,76 @@ export default function BlogPostsIndex({ posts = [] }) {
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Category</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Category</label>
                                     <input
                                         type="text"
                                         value={data.category}
                                         onChange={e => setData('category', e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Author</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Author</label>
                                     <input
                                         type="text"
                                         value={data.author}
                                         onChange={e => setData('author', e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Hero Image URL</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Hero Image URL</label>
                                     <input
                                         type="text"
                                         value={data.image}
                                         onChange={e => setData('image', e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Excerpt</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Excerpt</label>
                                 <textarea
                                     value={data.excerpt}
                                     onChange={e => setData('excerpt', e.target.value)}
                                     rows={2}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-sm text-white focus:border-brand-500 focus:outline-none"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Full Content (Markdown Supported)</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Full Content (Markdown Supported)</label>
                                 <textarea
                                     value={data.content}
                                     onChange={e => setData('content', e.target.value)}
                                     rows={8}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-white focus:border-indigo-500 focus:outline-none font-mono"
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-sm text-white focus:border-brand-500 focus:outline-none font-mono"
                                     required
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-neutral-800">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Meta Title (SEO)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Meta Title (SEO)</label>
                                     <input
                                         type="text"
                                         value={data.meta_title}
                                         onChange={e => setData('meta_title', e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Meta Description (SEO)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Meta Description (SEO)</label>
                                     <input
                                         type="text"
                                         value={data.meta_description}
                                         onChange={e => setData('meta_description', e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -212,23 +212,23 @@ export default function BlogPostsIndex({ posts = [] }) {
                                         type="checkbox"
                                         checked={data.is_published}
                                         onChange={e => setData('is_published', e.target.checked)}
-                                        className="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                                        className="rounded bg-neutral-950 border-neutral-800 text-brand-600 focus:ring-brand-500 h-4 w-4"
                                     />
-                                    <span className="text-sm font-bold text-slate-300">Published Live</span>
+                                    <span className="text-sm font-bold text-neutral-300">Published Live</span>
                                 </label>
 
                                 <div className="flex items-center gap-3">
                                     <button
                                         type="button"
                                         onClick={() => { setIsCreating(false); setEditingPost(null); }}
-                                        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold"
+                                        className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-neutral-300 text-sm font-bold"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30"
+                                        className="px-6 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold shadow-lg "
                                     >
                                         {editingPost ? 'Save Changes' : 'Publish Post'}
                                     </button>
@@ -239,10 +239,10 @@ export default function BlogPostsIndex({ posts = [] }) {
                 )}
 
                 {/* Posts Table */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-800 bg-slate-950/50 text-2xs uppercase tracking-wider text-slate-400 font-bold">
+                            <tr className="border-b border-neutral-800 bg-neutral-950/50 text-2xs uppercase tracking-wider text-ink-muted font-bold">
                                 <th className="p-4">Post Title</th>
                                 <th className="p-4">Slug</th>
                                 <th className="p-4">Category</th>
@@ -251,36 +251,36 @@ export default function BlogPostsIndex({ posts = [] }) {
                                 <th className="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60 text-sm">
+                        <tbody className="divide-y divide-neutral-800/60 text-sm">
                             {posts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-slate-500">
+                                    <td colSpan={6} className="p-8 text-center text-ink-muted">
                                         No blog posts found. Click "New Blog Post" to publish one.
                                     </td>
                                 </tr>
                             ) : (
                                 posts.map(p => (
-                                    <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
+                                    <tr key={p.id} className="hover:bg-interactive-hover transition-colors">
                                         <td className="p-4 font-bold text-white">
                                             <div className="flex items-center gap-2">
-                                                <FileText size={16} className="text-indigo-400 shrink-0" />
+                                                <FileText size={16} className="text-brand-400 shrink-0" />
                                                 <span>{p.title}</span>
                                             </div>
                                         </td>
-                                        <td className="p-4 text-slate-400 font-mono text-xs">/blog/{p.slug}</td>
+                                        <td className="p-4 text-ink-muted font-mono text-xs">/blog/{p.slug}</td>
                                         <td className="p-4">
-                                            <span className="px-2.5 py-1 rounded-full bg-slate-800 text-indigo-300 text-xs font-bold">
+                                            <span className="px-2.5 py-1 rounded-full bg-neutral-800 text-brand-300 text-xs font-bold">
                                                 {p.category}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-slate-300">{p.author}</td>
+                                        <td className="p-4 text-neutral-300">{p.author}</td>
                                         <td className="p-4">
                                             {p.is_published ? (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
                                                     <Check size={12} /> Published
                                                 </span>
                                             ) : (
-                                                <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 text-xs font-bold">
+                                                <span className="px-2.5 py-1 rounded-full bg-neutral-800 text-ink-muted text-xs font-bold">
                                                     Draft
                                                 </span>
                                             )}
@@ -289,7 +289,7 @@ export default function BlogPostsIndex({ posts = [] }) {
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => openEdit(p)}
-                                                    className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                                                    className="p-2 rounded-lg bg-neutral-800 hover:bg-interactive-hover text-neutral-300 hover:text-white transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit size={16} />

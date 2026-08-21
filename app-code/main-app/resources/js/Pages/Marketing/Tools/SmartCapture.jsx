@@ -117,9 +117,9 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
   // ── Branding logos ─────────────────────────────────────────────────────────
   const LOGOS = [
-    { id: 'apex',    name: 'Apex Retail',     color: '#10b981', symbol: <Store  className="w-5 h-5 text-emerald-500" /> },
-    { id: 'nova',    name: 'Nova Logistics',  color: '#f59e0b', symbol: <Truck  className="w-5 h-5 text-amber-500"  /> },
-    { id: 'quantum', name: 'Quantum Tech',    color: '#8b5cf6', symbol: <Cpu    className="w-5 h-5 text-violet-500" /> },
+    { id: 'apex',    name: 'Apex Retail',     color: 'rgb(var(--vq-emerald-500))', symbol: <Store  className="w-5 h-5 text-emerald-500" /> },
+    { id: 'nova',    name: 'Nova Logistics',  color: 'rgb(var(--vq-amber-500))', symbol: <Truck  className="w-5 h-5 text-amber-500"  /> },
+    { id: 'quantum', name: 'Quantum Tech',    color: 'rgb(var(--vq-violet-500))', symbol: <Cpu    className="w-5 h-5 text-brand-500" /> },
   ];
 
   // ── Document state ─────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
     notes:          'Generated via Smart Capture AI workspace. Click any field to edit.',
     terms:          'Payment is due within 14 days of issue date.',
     template:       'clean',
-    accent_color:   '#4f46e5',
+    accent_color:   'rgb(var(--vq-indigo-600))',
     orientation:    'portrait',
   });
   const [headers, setHeaders] = useState({
@@ -364,35 +364,35 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
       <div className="space-y-10">
 
         {/* ── PREMIUM HERO BANNER ───────────────────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-950/80 to-slate-950 border border-violet-500/20 p-8 md:p-12">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-hero border border-brand-500/20 p-8 md:p-12">
           {/* glow blobs */}
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center gap-8">
             <div className="flex-1">
               {/* badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-300 text-[11px] font-black uppercase tracking-widest mb-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-1xs font-bold uppercase tracking-widest mb-5">
                 <span className="flex h-1.5 w-1.5 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-violet-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-500" />
                 </span>
                 Powered by Google Gemini AI
               </div>
 
-              <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight mb-4">
                 Turn any invoice, receipt, or handwritten bill<br className="hidden sm:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400"> into a structured document in seconds.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400"> into a structured document in seconds.</span>
               </h2>
 
-              <p className="text-slate-300 text-sm leading-relaxed max-w-lg mb-6">
+              <p className="text-neutral-300 text-sm leading-relaxed max-w-lg mb-6">
                 Upload a photo, scan, or PDF. Our AI reads it — line items, quantities, prices, taxes — and fills in a fully editable invoice workspace for you to review and download.
               </p>
 
               {/* capability pills */}
               <div className="flex flex-wrap gap-2">
                 {['Handwritten Bills','Thermal Receipts','PDF Invoices','Purchase Orders','Credit Notes','Quotations'].map((tag) => (
-                  <span key={tag} className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-slate-300 text-[11px] font-bold">
+                  <span key={tag} className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-neutral-300 text-1xs font-bold">
                     {tag}
                   </span>
                 ))}
@@ -402,15 +402,15 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
             {/* stats cluster */}
             <div className="grid grid-cols-2 gap-3 shrink-0">
               {[
-                { icon: <ScanLine className="w-4 h-4 text-violet-400" />, val: '95%+', label: 'Avg. Accuracy' },
-                { icon: <Clock    className="w-4 h-4 text-indigo-400" />, val: '<3s',  label: 'Extraction Time' },
+                { icon: <ScanLine className="w-4 h-4 text-brand-400" />, val: '95%+', label: 'Avg. Accuracy' },
+                { icon: <Clock    className="w-4 h-4 text-brand-400" />, val: '<3s',  label: 'Extraction Time' },
                 { icon: <FileText className="w-4 h-4 text-emerald-400"/>, val: '15+',  label: 'Doc Types' },
                 { icon: <Globe    className="w-4 h-4 text-amber-400"  />, val: '10+',  label: 'Languages' },
               ].map((s) => (
                 <div key={s.label} className="p-3.5 rounded-2xl bg-white/[0.07] border border-white/[0.12] text-center min-w-[100px]">
                   <div className="flex justify-center mb-1">{s.icon}</div>
-                  <div className="text-xl font-black text-white">{s.val}</div>
-                  <div className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">{s.label}</div>
+                  <div className="text-xl font-bold text-white">{s.val}</div>
+                  <div className="text-2xs text-neutral-300 font-bold uppercase tracking-wider">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -424,54 +424,54 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               { n: '03', icon: <Download className="w-5 h-5" />,   title: 'Edit & Download PDF',    desc: 'Review in the live workspace, click to fix anything, then download a clean PDF.' },
             ].map((step, i) => (
               <div key={step.n} className="flex items-start gap-4">
-                <div className="shrink-0 w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                <div className="shrink-0 w-10 h-10 rounded-xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center text-brand-300">
                   {step.icon}
                 </div>
                 <div>
-                  <div className="text-[9px] font-black text-violet-400 uppercase tracking-widest mb-0.5">Step {step.n}</div>
+                  <div className="text-3xs font-bold text-brand-400 uppercase tracking-widest mb-0.5">Step {step.n}</div>
                   <div className="text-sm font-bold text-white mb-1">{step.title}</div>
-                  <div className="text-[11px] text-slate-300 leading-relaxed">{step.desc}</div>
+                  <div className="text-1xs text-neutral-300 leading-relaxed">{step.desc}</div>
                 </div>
-                {i < 2 && <ChevronRight className="hidden sm:block shrink-0 w-4 h-4 text-slate-700 mt-3 ml-auto" />}
+                {i < 2 && <ChevronRight className="hidden sm:block shrink-0 w-4 h-4 text-ink-secondary mt-3 ml-auto" />}
               </div>
             ))}
           </div>
         </div>
 
         {/* ── MODE TOGGLE ───────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/[0.03] dark:bg-white/[0.02] border border-slate-900/10 dark:border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/10">
           <div>
-            <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <span className="flex h-2 w-2 relative">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${testMode ? 'bg-violet-400' : 'bg-emerald-400'}`} />
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${testMode ? 'bg-violet-500' : 'bg-emerald-500'}`} />
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${testMode ? 'bg-brand-400' : 'bg-emerald-400'}`} />
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${testMode ? 'bg-brand-500' : 'bg-emerald-500'}`} />
               </span>
               {testMode ? 'Demo Mode Active' : 'Live Mode Active'}
             </h4>
-            <p className="text-2xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-2xs text-ink-muted mt-0.5">
               {testMode
                 ? 'Process simulated documents free — no API credit used. Perfect for evaluating Smart Capture.'
                 : 'Live mode scans your actual uploaded files through Gemini API and uses your monthly page allowance.'}
             </p>
           </div>
-          <div className="flex bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-900/10 dark:border-white/10 shrink-0">
+          <div className="flex bg-surface p-1 rounded-xl border border-line dark:border-white/10 shrink-0">
             <button
               type="button"
               onClick={() => { setTestMode(true); handleReset(); }}
-              className={`px-4 py-2 rounded-lg text-2xs font-black uppercase tracking-wider transition-all ${
+              className={`px-4 py-2 rounded-lg text-2xs font-bold uppercase tracking-wider transition-all ${
                 testMode
-                  ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20'
-                  : 'text-violet-500 dark:text-violet-400 ring-2 ring-violet-400/60 ring-offset-1 ring-offset-white dark:ring-offset-slate-950 animate-pulse'
+                  ? 'bg-brand-600 text-white shadow-md '
+                  : 'text-brand-500 dark:text-brand-400 ring-2 ring-brand-400/60 ring-offset-1 ring-offset-white dark:ring-offset-slate-950 animate-pulse'
               }`}>
               ✦ Try Free Demo
             </button>
             <button
               type="button"
               onClick={() => { setTestMode(false); handleReset(); }}
-              className={`px-4 py-2 rounded-lg text-2xs font-black uppercase tracking-wider transition-all ${
+              className={`px-4 py-2 rounded-lg text-2xs font-bold uppercase tracking-wider transition-all ${
                 !testMode
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                  ? 'bg-emerald-600 text-white shadow-md '
+                  : 'text-ink-muted hover:text-ink-secondary'
               }`}>
               Live Mode
             </button>
@@ -480,12 +480,12 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
         {/* ── INPUT FORM ────────────────────────────────────────────────────── */}
         {!scanTriggered && (
-          <div className="bg-white dark:bg-slate-900/40 border border-slate-900/[0.06] dark:border-white/[0.04] rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-900/5">
+          <div className="bg-surface border border-line dark:border-white/[0.04] rounded-2xl p-6 md:p-8 shadow-xl shadow-neutral-900/5">
             <form onSubmit={handleInitialScan} className="space-y-7">
 
               {/* 1. Document Type */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-3">
                   1 — Select Document Type
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
@@ -499,10 +499,10 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                     { value: 'purchase_order',label: 'PO'          },
                   ].map((opt) => (
                     <button key={opt.value} type="button" onClick={() => setDocType(opt.value)}
-                      className={`p-3 rounded-xl border text-center transition-all duration-200 focus:outline-none text-2xs font-bold uppercase tracking-wider ${
+                      className={`p-3 rounded-xl border text-center transition-all duration-normal focus:outline-none text-2xs font-bold uppercase tracking-wider ${
                         docType === opt.value
-                          ? 'border-violet-500 bg-violet-500/[0.06] text-violet-600 dark:text-violet-400 shadow-sm shadow-violet-500/10'
-                          : 'border-slate-900/[0.06] dark:border-white/[0.04] text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/10'
+                          ? 'border-brand-500 bg-brand-500/[0.06] text-brand-600 dark:text-brand-400 shadow-sm '
+                          : 'border-line dark:border-white/[0.04] text-ink-secondary hover:border-line dark:hover:border-white/10'
                       }`}>
                       {opt.label}
                     </button>
@@ -514,20 +514,20 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               {!testMode && (
                 <div className="space-y-5">
                   <div>
-                    <label className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                    <label className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                       <span>2 — Upload Document (PDF or Image)</span>
-                      <span className="text-[10px] font-semibold text-slate-400 normal-case">Max 5 pages • PDF, PNG, JPG</span>
+                      <span className="text-2xs font-semibold text-ink-muted normal-case">Max 5 pages • PDF, PNG, JPG</span>
                     </label>
                     <input type="file" required accept="image/*,.pdf"
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-900/10 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-400 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-black file:uppercase file:bg-violet-500/10 file:text-violet-600 dark:file:text-violet-400 hover:file:bg-violet-500/20" />
+                      className="w-full px-4 py-3 bg-app border border-line dark:border-white/10 rounded-xl text-ink-secondary text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:uppercase file:bg-brand-500/10 file:text-brand-600 dark:file:text-brand-400 hover:file:bg-brand-500/20" />
                   </div>
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                       3 — Apply Branding Logo (Optional)
                     </label>
                     <input type="file" accept="image/*" onChange={handleLiveModeLogoChange}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-900/10 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-400 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-black file:uppercase file:bg-violet-500/10 file:text-violet-600 dark:file:text-violet-400 hover:file:bg-violet-500/20" />
+                      className="w-full px-4 py-3 bg-app border border-line dark:border-white/10 rounded-xl text-ink-secondary text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:uppercase file:bg-brand-500/10 file:text-brand-600 dark:file:text-brand-400 hover:file:bg-brand-500/20" />
                   </div>
                 </div>
               )}
@@ -536,107 +536,107 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               {testMode && (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-3">
                       2 — Select Sample Document
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Handwritten */}
                       <div onClick={() => setSelectedSample('handwritten')}
-                        className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-300 group overflow-hidden ${
+                        className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-slow group overflow-hidden ${
                           selectedSample === 'handwritten'
-                            ? 'border-violet-500 bg-violet-500/[0.03] ring-2 ring-violet-500/20 shadow-xl shadow-violet-500/5'
-                            : 'border-slate-900/[0.08] dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/20'
+                            ? 'border-brand-500 bg-brand-500/[0.03] ring-2 ring-brand-500/20 shadow-xl '
+                            : 'border-line dark:border-white/[0.06] hover:border-line dark:hover:border-white/20'
                         }`}>
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <div className={`text-xs font-black uppercase tracking-wide mb-0.5 ${selectedSample === 'handwritten' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                            <div className={`text-xs font-bold uppercase tracking-wide mb-0.5 ${selectedSample === 'handwritten' ? 'text-brand-600 dark:text-brand-400' : 'text-ink'}`}>
                               Handwritten Cash Bill
                             </div>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Scribbled paper order note with ink pen text</p>
+                            <p className="text-2xs text-ink-muted">Scribbled paper order note with ink pen text</p>
                           </div>
-                          {selectedSample === 'handwritten' && <CheckCircle2 size={15} className="text-violet-500 shrink-0 animate-bounce mt-0.5" />}
+                          {selectedSample === 'handwritten' && <CheckCircle2 size={15} className="text-brand-500 shrink-0 animate-bounce mt-0.5" />}
                         </div>
                         {/* paper preview */}
-                        <div className="relative mt-2 p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/50 shadow-md font-serif italic text-blue-900 dark:text-blue-200 text-[9px] select-none">
+                        <div className="relative mt-2 p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/50 shadow-md font-serif italic text-blue-900 dark:text-blue-200 text-3xs select-none">
                           <div className="absolute left-3 top-0 bottom-0 w-px bg-red-300/60 dark:bg-red-900/50" />
                           <div className="pl-2 space-y-1">
                             <div className="flex justify-between font-bold border-b border-amber-200 dark:border-amber-900 pb-1">
                               <span>Cash Memo #9921</span>
-                              <span className="not-italic text-[8px] font-sans text-red-600 border border-red-500 px-1 rounded uppercase">PAID</span>
+                              <span className="not-italic text-4xs font-sans text-red-600 border border-red-500 px-1 rounded uppercase">PAID</span>
                             </div>
                             <div className="space-y-0.5 pt-1">
                               <div className="flex justify-between"><span>2× Basmati Rice 5kg</span><span>$37.00</span></div>
                               <div className="flex justify-between"><span>1× Cooking Oil 3L</span><span>$22.00</span></div>
                               <div className="flex justify-between"><span>5× Brown Sugar 1kg</span><span>$16.00</span></div>
                             </div>
-                            <div className="border-t border-amber-300 dark:border-amber-800 pt-1 text-right font-bold text-[10px] text-blue-950 dark:text-blue-100">Total: $75.00</div>
+                            <div className="border-t border-amber-300 dark:border-amber-800 pt-1 text-right font-bold text-2xs text-blue-950 dark:text-blue-100">Total: $75.00</div>
                           </div>
                         </div>
                       </div>
 
                       {/* Printed POS */}
                       <div onClick={() => setSelectedSample('printed')}
-                        className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-300 group overflow-hidden ${
+                        className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-slow group overflow-hidden ${
                           selectedSample === 'printed'
-                            ? 'border-violet-500 bg-violet-500/[0.03] ring-2 ring-violet-500/20 shadow-xl shadow-violet-500/5'
-                            : 'border-slate-900/[0.08] dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/20'
+                            ? 'border-brand-500 bg-brand-500/[0.03] ring-2 ring-brand-500/20 shadow-xl '
+                            : 'border-line dark:border-white/[0.06] hover:border-line dark:hover:border-white/20'
                         }`}>
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <div className={`text-xs font-black uppercase tracking-wide mb-0.5 ${selectedSample === 'printed' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                            <div className={`text-xs font-bold uppercase tracking-wide mb-0.5 ${selectedSample === 'printed' ? 'text-brand-600 dark:text-brand-400' : 'text-ink'}`}>
                               Printed POS Receipt
                             </div>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Thermal cash register slip with barcode</p>
+                            <p className="text-2xs text-ink-muted">Thermal cash register slip with barcode</p>
                           </div>
-                          {selectedSample === 'printed' && <CheckCircle2 size={15} className="text-violet-500 shrink-0 animate-bounce mt-0.5" />}
+                          {selectedSample === 'printed' && <CheckCircle2 size={15} className="text-brand-500 shrink-0 animate-bounce mt-0.5" />}
                         </div>
-                        <div className="mt-2 p-3 bg-white dark:bg-slate-100 text-slate-900 rounded-lg border border-slate-200 shadow-md font-mono text-[8px] select-none">
-                          <div className="text-center font-bold border-b border-dashed border-slate-300 pb-1">
+                        <div className="mt-2 p-3 bg-white dark:bg-raised text-ink rounded-lg border border-line shadow-md font-mono text-4xs select-none">
+                          <div className="text-center font-bold border-b border-dashed border-line pb-1">
                             METRO HYPERMARKET
-                            <div className="text-[7px] font-normal text-slate-500">Reg #04 • {new Date().toISOString().slice(0,10)}</div>
+                            <div className="text-[7px] font-normal text-ink-muted">Reg #04 • {new Date().toISOString().slice(0,10)}</div>
                           </div>
                           <div className="space-y-0.5 py-1">
                             <div className="flex justify-between"><span>3× OPTICAL MOUSE</span><span>$45.00</span></div>
                             <div className="flex justify-between"><span>2× USBC CHARGER</span><span>$59.80</span></div>
                             <div className="flex justify-between"><span>1× BT EARBUDS</span><span>$89.00</span></div>
                           </div>
-                          <div className="border-t border-dashed border-slate-300 pt-1 flex justify-between font-bold">
+                          <div className="border-t border-dashed border-line pt-1 flex justify-between font-bold">
                             <span>SUBTOTAL:</span><span>$193.80</span>
                           </div>
-                          <div className="text-center text-[6px] text-slate-400 mt-1 tracking-widest">|||| | ||||| |||| | ||</div>
+                          <div className="text-center text-[6px] text-ink-muted mt-1 tracking-widest">|||| | ||||| |||| | ||</div>
                         </div>
                       </div>
 
                       {/* Digital PDF */}
                       <div onClick={() => setSelectedSample('digital')}
-                        className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-300 group overflow-hidden ${
+                        className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-slow group overflow-hidden ${
                           selectedSample === 'digital'
-                            ? 'border-violet-500 bg-violet-500/[0.03] ring-2 ring-violet-500/20 shadow-xl shadow-violet-500/5'
-                            : 'border-slate-900/[0.08] dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/20'
+                            ? 'border-brand-500 bg-brand-500/[0.03] ring-2 ring-brand-500/20 shadow-xl '
+                            : 'border-line dark:border-white/[0.06] hover:border-line dark:hover:border-white/20'
                         }`}>
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <div className={`text-xs font-black uppercase tracking-wide mb-0.5 ${selectedSample === 'digital' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                            <div className={`text-xs font-bold uppercase tracking-wide mb-0.5 ${selectedSample === 'digital' ? 'text-brand-600 dark:text-brand-400' : 'text-ink'}`}>
                               Digital PDF Invoice
                             </div>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Structured vector PDF supplier invoice</p>
+                            <p className="text-2xs text-ink-muted">Structured vector PDF supplier invoice</p>
                           </div>
-                          {selectedSample === 'digital' && <CheckCircle2 size={15} className="text-violet-500 shrink-0 animate-bounce mt-0.5" />}
+                          {selectedSample === 'digital' && <CheckCircle2 size={15} className="text-brand-500 shrink-0 animate-bounce mt-0.5" />}
                         </div>
-                        <div className="mt-2 p-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-slate-700 shadow-md text-[8px] select-none">
-                          <div className="flex justify-between items-start border-b border-indigo-500/30 pb-1.5 mb-1.5">
+                        <div className="mt-2 p-3 bg-surface text-ink rounded-lg border border-line shadow-md text-4xs select-none">
+                          <div className="flex justify-between items-start border-b border-brand-500/30 pb-1.5 mb-1.5">
                             <div>
-                              <div className="font-bold text-indigo-600 dark:text-indigo-400 text-[9px]">GLOBAL TECH SUPPLIES</div>
-                              <div className="text-[7px] text-slate-400">INV-88490</div>
+                              <div className="font-bold text-brand-600 dark:text-brand-400 text-3xs">GLOBAL TECH SUPPLIES</div>
+                              <div className="text-[7px] text-ink-muted">INV-88490</div>
                             </div>
-                            <span className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[6px] font-bold px-1.5 py-0.5 rounded">PDF/A</span>
+                            <span className="bg-brand-500/10 text-brand-600 dark:text-brand-300 text-[6px] font-bold px-1.5 py-0.5 rounded">PDF/A</span>
                           </div>
-                          <div className="space-y-0.5 text-slate-600 dark:text-slate-300">
+                          <div className="space-y-0.5 text-ink-secondary">
                             <div className="flex justify-between"><span>Enterprise Server Rack 12U</span><span>$499</span></div>
                             <div className="flex justify-between"><span>Cat6 Ethernet Cable (300m)</span><span>$250</span></div>
                             <div className="flex justify-between"><span>Gigabit Switch 24-Port</span><span>$180</span></div>
                           </div>
-                          <div className="border-t border-slate-200 dark:border-slate-700 mt-1.5 pt-1 flex justify-between font-bold text-indigo-600 dark:text-indigo-400">
+                          <div className="border-t border-line mt-1.5 pt-1 flex justify-between font-bold text-brand-600 dark:text-brand-400">
                             <span>GRAND TOTAL:</span><span>$929</span>
                           </div>
                         </div>
@@ -646,21 +646,21 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
                   {/* Logo selector */}
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-3">
                       3 — Select Sample Branding Logo
                     </label>
                     <div className="grid grid-cols-3 gap-3">
                       {LOGOS.map((logo) => (
                         <div key={logo.id} onClick={() => setSelectedLogo(logo.id)}
-                          className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-1.5 ${
+                          className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all duration-normal flex flex-col items-center justify-center gap-1.5 ${
                             selectedLogo === logo.id
-                              ? 'border-violet-500 bg-violet-500/[0.04] shadow-md shadow-violet-500/5 ring-1 ring-violet-500/30'
-                              : 'border-slate-900/[0.06] dark:border-white/[0.04] hover:border-slate-300 dark:hover:border-white/10'
+                              ? 'border-brand-500 bg-brand-500/[0.04] shadow-md  ring-1 ring-brand-500/30'
+                              : 'border-line dark:border-white/[0.04] hover:border-line dark:hover:border-white/10'
                           }`}>
-                          <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-900/5 dark:border-white/5">
+                          <div className="p-2 rounded-lg bg-surface dark:bg-white/5 border border-line dark:border-white/5">
                             {logo.symbol}
                           </div>
-                          <span className={`text-2xs font-bold uppercase tracking-wider ${selectedLogo === logo.id ? 'text-violet-600 dark:text-violet-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                          <span className={`text-2xs font-bold uppercase tracking-wider ${selectedLogo === logo.id ? 'text-brand-600 dark:text-brand-400' : 'text-ink-secondary'}`}>
                             {logo.name}
                           </span>
                         </div>
@@ -677,10 +677,10 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               )}
 
               <button type="submit"
-                className={`w-full py-4 font-black rounded-2xl transition text-white shadow-xl flex items-center justify-center gap-2.5 text-sm uppercase tracking-wider ${
+                className={`w-full py-4 font-bold rounded-2xl transition text-white shadow-xl flex items-center justify-center gap-2.5 text-sm uppercase tracking-wider ${
                   testMode
-                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-violet-600/20'
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-600/20'
+                    ? 'bg-gradient-to-r from-brand-600 to-brand-600 hover:from-brand-500 hover:to-brand-500 '
+                    : 'bg-gradient-brand hover:opacity-90 '
                 }`}>
                 <Sparkles size={15} />
                 <span>{testMode ? 'Run AI Demo Scan (Free)' : 'Upload & Scan with AI'}</span>
@@ -688,9 +688,9 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               </button>
 
               {testMode && (
-                <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 -mt-3">
+                <p className="text-center text-2xs text-ink-muted -mt-3">
                   Demo mode is 100% free — no account needed, no API credits consumed.
-                  {' '}<span className="text-violet-500 font-bold">5 free live scans/month</span> when you sign up.
+                  {''}<span className="text-brand-500 font-bold">5 free live scans/month</span> when you sign up.
                 </p>
               )}
             </form>
@@ -699,56 +699,56 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
         {/* ── LOADING ───────────────────────────────────────────────────────── */}
         {loading && (
-          <div className="relative rounded-3xl border border-violet-500/20 bg-gradient-to-br from-slate-950 to-violet-950/30 p-10 overflow-hidden flex flex-col items-center justify-center gap-5 min-h-[260px]">
+          <div className="relative rounded-2xl border border-brand-500/20 bg-gradient-hero p-10 overflow-hidden flex flex-col items-center justify-center gap-5 min-h-[260px]">
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-500 to-transparent animate-[shimmer_2s_linear_infinite]" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500 to-transparent animate-[shimmer_2s_linear_infinite]" />
             </div>
             <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                <ScanLine className="w-7 h-7 text-violet-400 animate-pulse" />
+              <div className="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
+                <ScanLine className="w-7 h-7 text-brand-400 animate-pulse" />
               </div>
-              <div className="absolute -inset-2 rounded-3xl border border-violet-500/20 animate-ping opacity-30" />
+              <div className="absolute -inset-2 rounded-2xl border border-brand-500/20 animate-ping opacity-30" />
             </div>
             <div className="text-center">
-              <h4 className="text-sm font-black text-white uppercase tracking-wider mb-1">AI Scanning Document…</h4>
-              <p className="text-xs text-slate-500">Extracting line items, prices, quantities and totals</p>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-1">AI Scanning Document…</h4>
+              <p className="text-xs text-ink-muted">Extracting line items, prices, quantities and totals</p>
             </div>
           </div>
         )}
 
         {/* ── EMAIL GATE (live mode) ────────────────────────────────────────── */}
         {scanTriggered && !testMode && !emailSubmitted && !resultLoaded && !loading && (
-          <div className="relative rounded-3xl overflow-hidden border border-slate-900/10 dark:border-white/10 bg-white dark:bg-slate-900/40 p-6 md:p-8">
+          <div className="relative rounded-2xl overflow-hidden border border-line dark:border-white/10 bg-surface p-6 md:p-8">
             <div className="filter blur-sm opacity-25 select-none pointer-events-none space-y-4 mb-4">
               <div className="flex justify-between">
-                <div className="w-24 h-8 bg-slate-200 dark:bg-slate-700 rounded" />
-                <div className="w-32 h-6 bg-slate-100 dark:bg-slate-800 rounded" />
+                <div className="w-24 h-8 bg-sunken rounded" />
+                <div className="w-32 h-6 bg-sunken rounded" />
               </div>
-              <div className="h-px bg-slate-200 dark:bg-slate-800" />
+              <div className="h-px bg-sunken dark:bg-surface" />
               <div className="space-y-2">
-                {[1,2,3].map(i => <div key={i} className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-full" />)}
+                {[1,2,3].map(i => <div key={i} className="h-4 bg-sunken rounded w-full" />)}
               </div>
             </div>
             <div className="absolute inset-0 flex items-center justify-center p-6">
-              <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-8 shadow-2xl text-center">
+              <div className="w-full max-w-md bg-surface border border-line dark:border-white/10 rounded-2xl p-8 shadow-2xl text-center">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
                   <Lock className="w-5 h-5 text-emerald-500" />
                 </div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Unlock Your Scan Results</h3>
-                <p className="text-xs text-slate-500 leading-relaxed mb-6">
+                <h3 className="text-lg font-bold text-ink mb-2">Unlock Your Scan Results</h3>
+                <p className="text-xs text-ink-muted leading-relaxed mb-6">
                   Your document has been prepared. Enter your work email to trigger the AI extraction and reveal the full structured data.
                 </p>
                 <form onSubmit={handleRevealResults} className="space-y-3">
                   <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition-all text-sm text-center" />
+                    className="w-full px-4 py-3 bg-app border border-line dark:border-white/10 rounded-xl text-ink focus:outline-none focus:border-emerald-500 transition-all text-sm text-center" />
                   {errors.length > 0 && (
                     <div className="p-3 bg-red-500/5 border border-red-500/20 text-red-600 dark:text-red-300 text-2xs font-bold rounded-lg">
                       {errors.map((e, i) => <p key={i}>{e}</p>)}
                     </div>
                   )}
                   <button type="submit"
-                    className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-black rounded-xl transition text-white shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
+                    className="w-full py-3.5 bg-gradient-brand hover:opacity-90 font-bold rounded-xl transition text-white shadow-lg flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
                     <Sparkles size={13} /> Trigger AI Scan & Reveal
                   </button>
                 </form>
@@ -762,55 +762,55 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
           <div className="space-y-5">
 
             {/* status bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/20">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-brand-500/10 to-brand-500/10 border border-brand-500/20">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                  <Sparkles size={13} className="text-violet-500 animate-pulse" />
+                <div className="w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
+                  <Sparkles size={13} className="text-brand-500 animate-pulse" />
                 </div>
                 <div>
-                  <div className="text-xs font-black text-slate-900 dark:text-white">
+                  <div className="text-xs font-bold text-ink">
                     {testMode ? 'Smart Capture Demo — Editable Workspace' : `AI Scan Complete · ${email}`}
                   </div>
-                  <div className="text-[10px] text-slate-500">Click any field below to edit it. What you see is exactly what downloads.</div>
+                  <div className="text-2xs text-ink-muted">Click any field below to edit it. What you see is exactly what downloads.</div>
                 </div>
               </div>
               <button type="button" onClick={handleReset}
-                className="px-3 py-1.5 rounded-lg text-2xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-white/10 border border-slate-900/10 dark:border-white/10 transition-colors">
+                className="px-3 py-1.5 rounded-lg text-2xs font-bold uppercase tracking-wider text-ink-secondary hover:bg-white/10 border border-line dark:border-white/10 transition-colors">
                 ↺ Scan Another
               </button>
             </div>
 
             {/* Slim control bar */}
-            <div className="flex flex-wrap items-center gap-3 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
               <div className="w-40"><Select value={meta.template} onChange={(v) => setMeta((m) => ({ ...m, template: v }))} options={templateOptions} /></div>
               <div className="w-36"><Select value={meta.currency} onChange={(v) => setMeta((m) => ({ ...m, currency: v }))} options={currencyOptions} /></div>
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10">
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                 <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'portrait' }))}
-                  className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-slate-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}>Portrait</button>
+                  className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>Portrait</button>
                 <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'landscape' }))}
-                  className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-slate-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}>Landscape</button>
+                  className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>Landscape</button>
               </div>
               {isModern && (
                 <div className="flex items-center gap-1.5">
                   {ACCENT_PRESETS.map((c) => (
                     <button key={c} type="button" onClick={() => setMeta((m) => ({ ...m, accent_color: c }))}
-                      className={`w-6 h-6 rounded-full border-2 transition-transform ${meta.accent_color === c ? 'scale-110 border-slate-900 dark:border-white' : 'border-transparent'}`}
+                      className={`w-6 h-6 rounded-full border-2 transition-transform ${meta.accent_color === c ? 'scale-110 border-neutral-900 dark:border-white' : 'border-transparent'}`}
                       style={{ background: c }} />
                   ))}
                 </div>
               )}
               <button type="button" onClick={() => logoInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-300 hover:border-indigo-400/40 transition-colors">
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                 <Upload size={13} /> {company.logo_base64 ? 'Change logo' : 'Add logo'}
               </button>
               {company.logo_base64 && (
                 <button type="button" onClick={() => setCompany((c) => ({ ...c, logo_base64: null }))}
-                  className="text-xs font-bold text-slate-500 hover:text-red-500 transition-colors">Remove logo</button>
+                  className="text-xs font-bold text-ink-muted hover:text-red-500 transition-colors">Remove logo</button>
               )}
               <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
               <div className="ml-auto">
                 <button type="button" onClick={generatePdf} disabled={generatingPdf}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100">
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:">
                   {generatingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   {generatingPdf ? 'Generating…' : 'Download PDF'}
                 </button>
@@ -825,58 +825,58 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
             )}
 
             {/* THE DOCUMENT — identical to Invoice.jsx */}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 dark:shadow-black/40 border border-slate-900/10 dark:border-white/10 bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? 'max-w-4xl' : 'max-w-2xl'}`}>
+            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? 'max-w-4xl' : 'max-w-2xl'}`}>
               {isModern && <div className="h-3 w-full" style={{ background: accent }} />}
-              <div className={`p-6 sm:p-10 text-slate-900 ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+              <div className={`p-6 sm:p-10 text-ink ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
 
                 {/* Header */}
-                <div className={`flex flex-col sm:flex-row justify-between gap-6 mb-8 ${isClassic ? 'border-b-2 border-slate-900 pb-4' : ''}`}>
+                <div className={`flex flex-col sm:flex-row justify-between gap-6 mb-8 ${isClassic ? 'border-b-2 border-neutral-900 pb-4' : ''}`}>
                   <div>
                     {company.logo_base64 && <img src={company.logo_base64} alt="Logo" className="h-12 max-w-[160px] object-contain mb-2" />}
                     <EditableText value={company.name} onChange={(v) => setCompany((c) => ({ ...c, name: v }))} placeholder="Your business name" inline={false} className="text-lg font-bold mb-0.5" />
-                    <EditableText value={company.address} onChange={(v) => setCompany((c) => ({ ...c, address: v }))} placeholder="Business address" as="textarea" rows={2} inline={false} className="text-slate-500 text-xs mt-1 mb-0.5 max-w-xs" />
-                    <div className="flex flex-wrap gap-x-3 text-xs text-slate-500 mt-1">
+                    <EditableText value={company.address} onChange={(v) => setCompany((c) => ({ ...c, address: v }))} placeholder="Business address" as="textarea" rows={2} inline={false} className="text-ink-muted text-xs mt-1 mb-0.5 max-w-xs" />
+                    <div className="flex flex-wrap gap-x-3 text-xs text-ink-muted mt-1">
                       <EditableText value={company.email} onChange={(v) => setCompany((c) => ({ ...c, email: v }))} placeholder="email@business.com" />
                       <EditableText value={company.phone} onChange={(v) => setCompany((c) => ({ ...c, phone: v }))} placeholder="Phone number" />
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
+                    <div className="text-xs text-ink-muted mt-0.5">
                       Tax ID: <EditableText value={company.tax_id} onChange={(v) => setCompany((c) => ({ ...c, tax_id: v }))} placeholder="optional" />
                     </div>
                   </div>
                   <div className="text-left sm:text-right">
-                    <div className="text-2xl font-black tracking-tight" style={{ color: isModern ? accent : '#0f172a' }}>INVOICE</div>
+                    <div className="text-2xl font-bold tracking-tight" style={{ color: isModern ? accent : 'rgb(var(--vq-slate-900))' }}>INVOICE</div>
                     <div className="mt-2 text-xs space-y-0.5">
-                      <div className="flex sm:justify-end gap-2"><span className="text-slate-500">Invoice #</span><EditableText value={meta.invoice_number} onChange={(v) => setMeta((m) => ({ ...m, invoice_number: v }))} className="font-bold" /></div>
-                      <div className="flex sm:justify-end gap-2"><span className="text-slate-500">Issue date</span><EditableText as="date" value={meta.issue_date} onChange={(v) => setMeta((m) => ({ ...m, issue_date: v }))} /></div>
-                      <div className="flex sm:justify-end gap-2"><span className="text-slate-500">Due date</span><EditableText as="date" value={meta.due_date} onChange={(v) => setMeta((m) => ({ ...m, due_date: v }))} emptyLabel="—" /></div>
+                      <div className="flex sm:justify-end gap-2"><span className="text-ink-muted">Invoice #</span><EditableText value={meta.invoice_number} onChange={(v) => setMeta((m) => ({ ...m, invoice_number: v }))} className="font-bold" /></div>
+                      <div className="flex sm:justify-end gap-2"><span className="text-ink-muted">Issue date</span><EditableText as="date" value={meta.issue_date} onChange={(v) => setMeta((m) => ({ ...m, issue_date: v }))} /></div>
+                      <div className="flex sm:justify-end gap-2"><span className="text-ink-muted">Due date</span><EditableText as="date" value={meta.due_date} onChange={(v) => setMeta((m) => ({ ...m, due_date: v }))} emptyLabel="—" /></div>
                     </div>
                   </div>
                 </div>
 
                 {/* Bill to */}
                 <div className="mb-6">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Bill To</p>
+                  <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Bill To</p>
                   <EditableText value={client.name} onChange={(v) => setClient((c) => ({ ...c, name: v }))} placeholder="Client name" inline={false} className="font-bold mb-0.5" />
-                  <EditableText value={client.address} onChange={(v) => setClient((c) => ({ ...c, address: v }))} placeholder="Client address" as="textarea" rows={2} inline={false} className="text-slate-500 text-xs mb-0.5" />
-                  <EditableText value={client.email} onChange={(v) => setClient((c) => ({ ...c, email: v }))} placeholder="Client email (optional)" inline={false} className="text-slate-500 text-xs" />
+                  <EditableText value={client.address} onChange={(v) => setClient((c) => ({ ...c, address: v }))} placeholder="Client address" as="textarea" rows={2} inline={false} className="text-ink-muted text-xs mb-0.5" />
+                  <EditableText value={client.email} onChange={(v) => setClient((c) => ({ ...c, email: v }))} placeholder="Client email (optional)" inline={false} className="text-ink-muted text-xs" />
                 </div>
 
                 {/* Line items */}
                 <table className="w-full mb-2">
                   <thead>
-                    <tr className={`text-left text-[10px] font-bold uppercase tracking-wide text-slate-500 ${isClassic ? 'border-b-2 border-slate-900' : 'border-b border-slate-900'}`}>
-                      <th className="pb-2 pr-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} pulse={false} className="text-[10px] font-bold uppercase tracking-wide text-slate-500" /></th>
-                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.quantity}   onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))}   pulse={false} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 text-right" /></th>
-                      <th className="pb-2 px-2 text-right w-24"><EditableText value={headers.unit_price} onChange={(v) => setHeaders((h) => ({ ...h, unit_price: v }))} pulse={false} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 text-right" /></th>
-                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount}   onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))}   pulse={false} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 text-right" /></th>
-                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.tax}        onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))}        pulse={false} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 text-right" /></th>
-                      <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount}     onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))}     pulse={false} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 text-right" /></th>
+                    <tr className={`text-left text-2xs font-bold uppercase tracking-wide text-ink-muted ${isClassic ? 'border-b-2 border-neutral-900' : 'border-b border-neutral-900'}`}>
+                      <th className="pb-2 pr-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted" /></th>
+                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.quantity}   onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))}   pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 px-2 text-right w-24"><EditableText value={headers.unit_price} onChange={(v) => setHeaders((h) => ({ ...h, unit_price: v }))} pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount}   onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))}   pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.tax}        onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))}        pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount}     onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))}     pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
                       <th className="w-8" />
                     </tr>
                   </thead>
                   <tbody>
                     {items.map((item, idx) => (
-                      <tr key={idx} className="border-b border-slate-100 group">
+                      <tr key={idx} className="border-b border-line group">
                         <td className="py-2 pr-2"><EditableText value={item.description} onChange={(v) => updateItem(idx, 'description', v)} placeholder="Item description" className="block" /></td>
                         <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.quantity}     onChange={(v) => updateItem(idx, 'quantity',     v)} className="text-right w-12" /></td>
                         <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.unit_price}   onChange={(v) => updateItem(idx, 'unit_price',   v)} formatDisplay={fmtMoney} className="text-right w-16" /></td>
@@ -885,7 +885,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                         <td className="py-2 pl-2 text-right font-bold">{fmtMoney(lineTotals[idx]?.lineTotal)}</td>
                         <td className="py-2 pl-1 text-right">
                           <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1}
-                            className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 disabled:opacity-0 transition-opacity"><Trash2 size={13} /></button>
+                            className="opacity-0 group-hover:opacity-100 text-ink-muted hover:text-red-500 disabled:opacity-0 transition-opacity"><Trash2 size={13} /></button>
                         </td>
                       </tr>
                     ))}
@@ -893,68 +893,68 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 </table>
 
                 <button type="button" onClick={addItem}
-                  className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-indigo-500 transition-colors mb-6">
+                  className="flex items-center gap-1 text-xs font-bold text-ink-muted hover:text-brand-500 transition-colors mb-6">
                   <Plus size={12} /> Add line item
                 </button>
 
                 {/* Totals */}
                 <div className="flex justify-end mb-8">
                   <div className="w-56 space-y-1 text-sm">
-                    <div className="flex justify-between text-slate-500"><span>Subtotal</span><span>{fmtMoney(totals.subtotal)}</span></div>
-                    {totals.discount > 0 && <div className="flex justify-between text-slate-500"><span>Discount</span><span>-{fmtMoney(totals.discount)}</span></div>}
-                    {totals.tax > 0 && <div className="flex justify-between text-slate-500"><span>Tax</span><span>{fmtMoney(totals.tax)}</span></div>}
-                    <div className="flex justify-between font-black text-base pt-1.5 border-t-2 border-slate-900" style={{ color: isModern ? accent : '#0f172a' }}>
+                    <div className="flex justify-between text-ink-muted"><span>Subtotal</span><span>{fmtMoney(totals.subtotal)}</span></div>
+                    {totals.discount > 0 && <div className="flex justify-between text-ink-muted"><span>Discount</span><span>-{fmtMoney(totals.discount)}</span></div>}
+                    {totals.tax > 0 && <div className="flex justify-between text-ink-muted"><span>Tax</span><span>{fmtMoney(totals.tax)}</span></div>}
+                    <div className="flex justify-between font-bold text-base pt-1.5 border-t-2 border-neutral-900" style={{ color: isModern ? accent : 'rgb(var(--vq-slate-900))' }}>
                       <span>Total Due</span><span>{fmtMoney(grandTotal)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Notes / terms */}
-                <div className="grid sm:grid-cols-2 gap-6 text-xs text-slate-500">
+                <div className="grid sm:grid-cols-2 gap-6 text-xs text-ink-muted">
                   <div>
-                    <p className="font-bold text-slate-700 mb-1">Notes</p>
+                    <p className="font-bold text-ink-secondary mb-1">Notes</p>
                     <EditableText value={meta.notes} onChange={(v) => setMeta((m) => ({ ...m, notes: v }))} placeholder="Add a note (optional)" as="textarea" rows={2} className="block" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-700 mb-1">Payment Terms</p>
+                    <p className="font-bold text-ink-secondary mb-1">Payment Terms</p>
                     <EditableText value={meta.terms} onChange={(v) => setMeta((m) => ({ ...m, terms: v }))} placeholder="e.g. Net 14" as="textarea" rows={2} className="block" />
                   </div>
                 </div>
 
-                <p className="text-center text-[10px] text-slate-400 mt-10">Generated via Smart Capture AI at venqore.com — no signup, no watermark.</p>
+                <p className="text-center text-2xs text-ink-muted mt-10">Generated via Smart Capture AI at venqore.com — no signup, no watermark.</p>
               </div>
             </div>
 
-            <p className="text-center text-xs text-slate-500 dark:text-slate-600">
+            <p className="text-center text-xs text-ink-muted">
               This preview matches your downloaded PDF — click anything above to edit it.
             </p>
           </div>
         )}
 
         {/* ── ERP COMPARISON ────────────────────────────────────────────────── */}
-        <div className="space-y-5 pt-6 border-t border-slate-900/[0.06] dark:border-white/[0.04]">
+        <div className="space-y-5 pt-6 border-t border-line dark:border-white/[0.04]">
           <div className="text-center">
-            <span className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-wider mb-3">
+            <span className="inline-block px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-wider mb-3">
               Standalone vs. ERP Integrated
             </span>
-            <h3 className="text-xl font-black text-slate-900 dark:text-white">
+            <h3 className="text-xl font-bold text-ink">
               Why use Smart Capture inside VenQore ERP?
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 max-w-xl mx-auto leading-relaxed">
+            <p className="text-xs text-ink-muted mt-2 max-w-xl mx-auto leading-relaxed">
               The standalone tool digitizes your documents. The integrated version connects every scan to your live inventory, accounts, and suppliers — automatically.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Standalone */}
-            <div className="p-6 rounded-2xl border border-slate-900/10 dark:border-white/[0.05] bg-slate-500/[0.01]">
+            <div className="p-6 rounded-2xl border border-line dark:border-white/[0.05] bg-neutral-500/[0.01]">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center">
-                  <FileSearch className="w-4 h-4 text-slate-400" />
+                <div className="w-8 h-8 rounded-xl bg-sunken dark:bg-white/5 flex items-center justify-center">
+                  <FileSearch className="w-4 h-4 text-ink-muted" />
                 </div>
-                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wide">Standalone (This Tool)</h4>
+                <h4 className="text-xs font-bold text-ink-secondary uppercase tracking-wide">Standalone (This Tool)</h4>
               </div>
-              <ul className="space-y-2.5 text-xs text-slate-500">
+              <ul className="space-y-2.5 text-xs text-ink-muted">
                 {[
                   'Extracts data into an editable PDF workspace',
                   'Download professional invoice/receipt PDF',
@@ -963,8 +963,8 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                   '5 free pages per month — no account needed',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    <span className="w-4 h-4 rounded-full bg-sunken dark:bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sunken" />
                     </span>
                     {item}
                   </li>
@@ -973,17 +973,17 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
             </div>
 
             {/* Integrated */}
-            <div className="relative p-6 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/[0.03] to-violet-500/[0.03] overflow-hidden">
-              <div className="absolute top-0 right-0 px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase tracking-widest rounded-bl-xl">
+            <div className="relative p-6 rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-500/[0.03] to-brand-500/[0.03] overflow-hidden">
+              <div className="absolute top-0 right-0 px-2.5 py-1 bg-brand-500/10 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-widest rounded-bl-xl">
                 ✦ Recommended
               </div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                  <Database className="w-4 h-4 text-indigo-500" />
+                <div className="w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
+                  <Database className="w-4 h-4 text-brand-500" />
                 </div>
-                <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">VenQore ERP Integrated</h4>
+                <h4 className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wide">VenQore ERP Integrated</h4>
               </div>
-              <ul className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+              <ul className="space-y-2.5 text-xs text-ink-secondary">
                 {[
                   ['Live SKU Autocomplete — matches items to your product catalog & barcodes', true],
                   ['Supplier Account Validation — checks credit terms, tax schemes, vendor IDs', true],
@@ -992,13 +992,13 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                   ['Unlimited scans included in your VenQore subscription', true],
                 ].map(([item, check], i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                    <Check className="w-3.5 h-3.5 text-brand-500 shrink-0 mt-0.5" />
                     <span><strong className="font-bold">{String(item).split('—')[0]}</strong>{String(item).includes('—') ? `— ${String(item).split('—')[1]}` : ''}</span>
                   </li>
                 ))}
               </ul>
               <Link href="/register"
-                className="mt-5 flex items-center justify-center gap-2 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-indigo-600/20">
+                className="mt-5 flex items-center justify-center gap-2 w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md ">
                 Get Smart Capture in your ERP <ArrowRight size={13} />
               </Link>
             </div>
@@ -1006,13 +1006,13 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
         </div>
 
         {/* ── PRICING TIERS ─────────────────────────────────────────────────── */}
-        <div className="space-y-5 pt-6 border-t border-slate-900/[0.06] dark:border-white/[0.04]">
+        <div className="space-y-5 pt-6 border-t border-line dark:border-white/[0.04]">
           <div className="text-center max-w-xl mx-auto">
-            <span className="inline-block px-3 py-1 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[10px] font-black uppercase tracking-wider mb-3">
+            <span className="inline-block px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-wider mb-3">
               Standalone Scan Credit Plans
             </span>
-            <h3 className="text-xl font-black text-slate-900 dark:text-white">Need more than 5 pages a month?</h3>
-            <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+            <h3 className="text-xl font-bold text-ink">Need more than 5 pages a month?</h3>
+            <p className="text-xs text-ink-muted mt-2 leading-relaxed">
               Buy standalone scan credits. All paid tiers use a private, non-training API endpoint with your data fully protected.
             </p>
           </div>
@@ -1027,34 +1027,34 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               <div key={plan.name}
                 className={`relative p-5 rounded-2xl border flex flex-col justify-between transition-all ${
                   plan.popular
-                    ? 'border-violet-500 bg-gradient-to-b from-violet-500/[0.04] to-transparent shadow-[0_0_40px_rgba(139,92,246,0.08)]'
-                    : 'border-slate-900/10 dark:border-white/[0.05] bg-slate-500/[0.01] hover:border-slate-200 dark:hover:border-white/10'
+                    ? 'border-brand-500 bg-gradient-to-b from-brand-500/[0.04] to-transparent shadow-[0_0_40px_rgba(139,92,246,0.08)]'
+                    : 'border-line dark:border-white/[0.05] bg-neutral-500/[0.01] hover:border-line dark:hover:border-white/10'
                 }`}>
                 {plan.popular && (
-                  <div className="absolute -top-px inset-x-4 h-px bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
+                  <div className="absolute -top-px inset-x-4 h-px bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
                 )}
                 <div>
                   {plan.popular && (
-                    <div className="inline-block mb-3 px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[9px] font-black uppercase tracking-wider">
+                    <div className="inline-block mb-3 px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-wider">
                       ★ Most Popular
                     </div>
                   )}
-                  <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">{plan.name}</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5">{plan.desc}</p>
+                  <h4 className="text-sm font-bold text-ink uppercase tracking-wide">{plan.name}</h4>
+                  <p className="text-2xs text-ink-muted mt-0.5">{plan.desc}</p>
                   <div className="my-4">
-                    <span className="text-3xl font-black text-slate-900 dark:text-white">{plan.price}</span>
-                    <span className="text-xs text-slate-500">/month</span>
+                    <span className="text-3xl font-bold text-ink">{plan.price}</span>
+                    <span className="text-xs text-ink-muted">/month</span>
                   </div>
-                  <div className="px-3 py-2 rounded-xl bg-slate-100/50 dark:bg-black/20 text-center">
-                    <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{plan.pages.toLocaleString()} pages</span>
-                    <span className="text-[10px] text-slate-500 ml-1">per month</span>
+                  <div className="px-3 py-2 rounded-xl bg-sunken/50 dark:bg-black/20 text-center">
+                    <span className="text-sm font-bold text-brand-600 dark:text-brand-400">{plan.pages.toLocaleString()} pages</span>
+                    <span className="text-2xs text-ink-muted ml-1">per month</span>
                   </div>
                 </div>
                 <Link href="/register"
-                  className={`mt-5 block w-full py-2.5 rounded-xl text-2xs font-black uppercase tracking-wider text-center transition ${
+                  className={`mt-5 block w-full py-2.5 rounded-xl text-2xs font-bold uppercase tracking-wider text-center transition ${
                     plan.popular
-                      ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-md shadow-violet-600/20'
-                      : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-700 dark:text-white'
+                      ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-md '
+                      : 'bg-sunken dark:bg-white/10 hover:bg-interactive-hover dark:hover:bg-white/20 text-ink-secondary dark:text-white'
                   }`}>
                   Get Started
                 </Link>
@@ -1063,14 +1063,14 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
           </div>
 
           {/* top-up strip */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-slate-950 border border-white/[0.06]">
-            <div className="flex items-center gap-3 text-sm text-slate-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-950 border border-white/[0.06]">
+            <div className="flex items-center gap-3 text-sm text-ink-muted">
               <Zap className="w-4 h-4 text-amber-400 shrink-0" />
               <span>
                 Ran out of pages mid-month? Get a <strong className="text-white">200-page top-up for just $2.00</strong> — no plan change needed.
               </span>
             </div>
-            <Link href="/register" className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-2xs font-black uppercase tracking-wider rounded-xl transition">
+            <Link href="/register" className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-2xs font-bold uppercase tracking-wider rounded-xl transition">
               Get Top-Up
             </Link>
           </div>

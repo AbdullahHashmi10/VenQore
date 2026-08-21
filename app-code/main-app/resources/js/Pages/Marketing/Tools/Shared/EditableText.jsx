@@ -100,7 +100,7 @@ export default function EditableText({
             onBlur: commit,
             onKeyDown,
             placeholder,
-            className: `bg-indigo-50 dark:bg-indigo-500/10 outline-none ring-2 ring-indigo-400/60 rounded px-1 -mx-1 ${className} ${editClassName}`,
+            className: `bg-brand-50 dark:bg-brand-500/10 outline-none ring-2 ring-brand-400/60 rounded px-1 -mx-1 ${className} ${editClassName}`,
         };
 
         if (as === 'textarea' || multiline) {
@@ -125,16 +125,16 @@ export default function EditableText({
             onClick={() => setEditing(true)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(true); } }}
             className={`group/edit relative ${inline ? 'inline-block' : 'block'} cursor-text rounded px-1.5 -mx-1.5 py-0.5 -my-0.5 transition-colors
-                border-b border-dashed border-slate-300 dark:border-slate-600
-                hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:border-indigo-400 dark:hover:border-indigo-400
+                border-b border-dashed border-line dark:border-line
+                hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:border-brand-400 dark:hover:border-brand-400
                 ${showPulse ? 'animate-[editablePulse_1.8s_ease-in-out_2]' : ''}
-                ${isEmpty ? 'italic text-slate-500 dark:text-slate-600' : ''} ${className}`}
+                ${isEmpty ? 'italic text-ink-muted' : ''} ${className}`}
         >
             {display}
             <Pencil
                 size={11}
                 aria-hidden="true"
-                className="hidden sm:inline-block ml-1 -mt-0.5 align-middle opacity-0 group-hover/edit:opacity-60 text-indigo-500 transition-opacity"
+                className="hidden sm:inline-block ml-1 -mt-0.5 align-middle opacity-0 group-hover/edit:opacity-60 text-brand-500 transition-opacity"
             />
         </span>
     );

@@ -50,7 +50,7 @@ export default function BankStatement({ transactions = [], stats = {}, filters =
         {
             key: 'reference',
             label: 'Reference',
-            render: (row) => <span className="font-mono text-xs text-slate-500">{row.reference}</span>
+            render: (row) => <span className="font-mono text-xs text-ink-muted">{row.reference}</span>
         },
         {
             key: 'description',
@@ -81,7 +81,7 @@ export default function BankStatement({ transactions = [], stats = {}, filters =
             key: 'balance',
             label: 'Balance',
             align: 'right',
-            render: (row) => <span className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(row.balance, store)}</span>
+            render: (row) => <span className="font-medium text-ink-secondary">{formatCurrency(row.balance, store)}</span>
         }
     ];
 

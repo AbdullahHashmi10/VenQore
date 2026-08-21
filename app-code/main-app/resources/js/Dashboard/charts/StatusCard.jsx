@@ -7,7 +7,7 @@ export default function StatusCard({ data, definition }) {
     const severity = data?.severity || 'neutral';
 
     let ColorIcon = AlertCircle;
-    let pillColor = 'text-ink-secondary bg-sunken border-border  dark:bg-sunken dark:border-border';
+    let pillColor = 'text-ink-secondary bg-sunken border-line  dark:bg-sunken dark:border-line';
 
     if (severity === 'ok') {
         ColorIcon = CheckCircle2;

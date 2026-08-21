@@ -57,19 +57,19 @@ export default function HealthWidget() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6 pb-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                    <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400">
                         <Heart className={loading ? "animate-pulse" : ""} size={20} />
                     </div>
                     <div>
                         <h3 className="text-lg font-bold tracking-tight">System Integrity Diagnostics</h3>
-                        <p className="text-xs text-slate-400 mt-0.5">Real-time proactive live environment testing.</p>
+                        <p className="text-xs text-ink-muted mt-0.5">Real-time proactive live environment testing.</p>
                     </div>
                 </div>
 
                 <button 
                     onClick={runChecks} 
                     disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/20 hover:scale-105 active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-sunken disabled:text-ink-muted text-white rounded-xl text-xs font-bold transition-all shadow-lg hover: active:scale-95"
                 >
                     <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                     {loading ? 'Diagnosing...' : 'Run Diagnostics'}
@@ -131,12 +131,12 @@ export default function HealthWidget() {
                         >
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-slate-800 text-slate-400 border border-slate-700/50">
+                                    <div className="p-2 rounded-lg bg-neutral-800 text-ink-muted border border-neutral-700/50">
                                         <Icon size={16} />
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold text-slate-200">{config.name}</div>
-                                        <div className="text-2xs text-slate-500 mt-0.5">{config.desc}</div>
+                                        <div className="text-xs font-bold text-neutral-200">{config.name}</div>
+                                        <div className="text-2xs text-ink-muted mt-0.5">{config.desc}</div>
                                     </div>
                                 </div>
 
@@ -147,7 +147,7 @@ export default function HealthWidget() {
                                         <span className="text-2xs font-bold px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md">FAIL</span>
                                     )
                                 ) : (
-                                    <span className="text-2xs text-slate-600 font-bold">...</span>
+                                    <span className="text-2xs text-ink-secondary font-bold">...</span>
                                 )}
                             </div>
 
@@ -170,7 +170,7 @@ export default function HealthWidget() {
 
             {/* Footer timestamp */}
             {checkedAt && (
-                <div className="text-right text-2xs text-slate-500 font-mono mt-4">
+                <div className="text-right text-2xs text-ink-muted font-mono mt-4">
                     Diagnostics refreshed at: {new Date(checkedAt).toLocaleString()}
                 </div>
             )}

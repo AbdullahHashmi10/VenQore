@@ -20,9 +20,9 @@ const paymentBadge = (status) => ({
 const workflowBadge = (status) => ({
     received: 'bg-blue-100 text-blue-700',
     partial: 'bg-amber-100 text-amber-700',
-    pending: 'bg-gray-100 text-gray-600',
-    cancelled: 'bg-gray-200 text-gray-500',
-}[status] ?? 'bg-gray-100 text-gray-600');
+    pending: 'bg-neutral-100 text-ink-secondary',
+    cancelled: 'bg-neutral-200 text-ink-muted',
+}[status] ?? 'bg-neutral-100 text-ink-secondary');
 
 export default function PurchaseShow({
     purchase,
@@ -59,7 +59,7 @@ export default function PurchaseShow({
                 <div className="flex items-center gap-4">
                     <Link
                         href={route('store.v3.purchases.index', { store_slug: store.slug })}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-ink-muted hover:text-ink"
                     >
                         ← Purchases
                     </Link>
@@ -78,7 +78,7 @@ export default function PurchaseShow({
                     {!isCancelled && (
                         <Link
                             href={route('store.v3.purchases.edit', { store_slug: store.slug, purchase: purchase.id })}
-                            className="border px-4 py-2 rounded hover:bg-gray-50 font-medium"
+                            className="border px-4 py-2 rounded hover:bg-interactive-hover font-medium"
                         >
                             Edit
                         </Link>
@@ -95,7 +95,7 @@ export default function PurchaseShow({
                         <button
                             type="button"
                             onClick={voidPurchase}
-                            className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-100 font-medium"
+                            className="border border-line text-ink-secondary px-4 py-2 rounded hover:bg-interactive-hover font-medium"
                         >
                             Void
                         </button>
@@ -104,47 +104,47 @@ export default function PurchaseShow({
             </div>
 
             {isCancelled && (
-                <div className="mb-6 bg-gray-100 border border-gray-300 rounded p-3 text-sm text-gray-700">
+                <div className="mb-6 bg-sunken border border-line rounded p-3 text-sm text-ink-secondary">
                     <strong>This purchase is voided.</strong> Its journal entries have been reversed and its
                     stock batches released. The record is retained for the audit trail.
                 </div>
             )}
 
             {/* Header info */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded border">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-sunken rounded border">
                 <div>
-                    <p className="text-sm text-gray-500">Supplier</p>
+                    <p className="text-sm text-ink-muted">Supplier</p>
                     <p className="font-medium">{purchase.supplier_name}</p>
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Date</p>
+                    <p className="text-sm text-ink-muted">Date</p>
                     <p className="font-medium">{purchase.purchase_date}</p>
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Due</p>
+                    <p className="text-sm text-ink-muted">Due</p>
                     <p className="font-medium">{purchase.due_date ?? '—'}</p>
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Reference</p>
+                    <p className="text-sm text-ink-muted">Reference</p>
                     <p className="font-medium">{purchase.reference ?? '—'}</p>
                 </div>
 
                 <div>
-                    <p className="text-sm text-gray-500">Total</p>
+                    <p className="text-sm text-ink-muted">Total</p>
                     <p className="font-bold text-lg">{formatCurrency(purchase.total, store)}</p>
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Paid <span className="text-xs">(from ledger)</span></p>
+                    <p className="text-sm text-ink-muted">Paid <span className="text-xs">(from ledger)</span></p>
                     <p className="font-medium">{formatCurrency(paidAmount, store)}</p>
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Outstanding</p>
+                    <p className="text-sm text-ink-muted">Outstanding</p>
                     <p className={`font-medium ${outstanding > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
                         {formatCurrency(outstanding, store)}
                     </p>
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Status</p>
+                    <p className="text-sm text-ink-muted">Status</p>
                     <div className="flex gap-1 flex-wrap">
                         <span className={`text-xs px-2 py-1 rounded ${workflowBadge(purchase.workflow_status)}`}>
                             {purchase.workflow_status}
@@ -158,68 +158,68 @@ export default function PurchaseShow({
 
             {purchase.notes && (
                 <div className="mb-6 text-sm">
-                    <p className="text-gray-500 mb-1">Notes</p>
+                    <p className="text-ink-muted mb-1">Notes</p>
                     <p className="whitespace-pre-wrap border rounded p-3 bg-white">{purchase.notes}</p>
                 </div>
             )}
 
             {/* Items */}
             <h2 className="font-semibold mb-2">Line Items</h2>
-            <table className="w-full border-collapse border border-gray-200 mb-6">
-                <thead className="bg-gray-50">
+            <table className="w-full border-collapse border border-line mb-6">
+                <thead className="bg-sunken">
                     <tr>
-                        <th className="border border-gray-200 px-4 py-2 text-left">Product</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Qty</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Received</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Unit Cost</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Tax</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Line Total</th>
+                        <th className="border border-line px-4 py-2 text-left">Product</th>
+                        <th className="border border-line px-4 py-2 text-right">Qty</th>
+                        <th className="border border-line px-4 py-2 text-right">Received</th>
+                        <th className="border border-line px-4 py-2 text-right">Unit Cost</th>
+                        <th className="border border-line px-4 py-2 text-right">Tax</th>
+                        <th className="border border-line px-4 py-2 text-right">Line Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {items.map(item => (
                         <tr key={item.id}>
-                            <td className="border border-gray-200 px-4 py-2">
+                            <td className="border border-line px-4 py-2">
                                 {item.product_name}
-                                <span className="text-gray-400 text-xs ml-2">{item.sku}</span>
+                                <span className="text-ink-muted text-xs ml-2">{item.sku}</span>
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-right">
+                            <td className="border border-line px-4 py-2 text-right">
                                 {item.qty} {item.base_unit}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-right text-sm">
+                            <td className="border border-line px-4 py-2 text-right text-sm">
                                 {item.received_qty ?? 0}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-right">
+                            <td className="border border-line px-4 py-2 text-right">
                                 {getCurrencySymbol(store)} {parseFloat(item.unit_cost).toFixed(4)}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-right text-sm">
+                            <td className="border border-line px-4 py-2 text-right text-sm">
                                 {item.tax_rate}%
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-right font-medium">
+                            <td className="border border-line px-4 py-2 text-right font-medium">
                                 {formatCurrency(item.line_total, store)}
                             </td>
                         </tr>
                     ))}
                 </tbody>
-                <tfoot className="bg-gray-50 text-sm">
+                <tfoot className="bg-sunken text-sm">
                     <tr>
-                        <td colSpan={5} className="border border-gray-200 px-4 py-1 text-right">Subtotal</td>
-                        <td className="border border-gray-200 px-4 py-1 text-right">{formatCurrency(purchase.subtotal, store)}</td>
+                        <td colSpan={5} className="border border-line px-4 py-1 text-right">Subtotal</td>
+                        <td className="border border-line px-4 py-1 text-right">{formatCurrency(purchase.subtotal, store)}</td>
                     </tr>
                     {Number(purchase.discount) > 0 && (
                         <tr>
-                            <td colSpan={5} className="border border-gray-200 px-4 py-1 text-right">Discount</td>
-                            <td className="border border-gray-200 px-4 py-1 text-right">−{formatCurrency(purchase.discount, store)}</td>
+                            <td colSpan={5} className="border border-line px-4 py-1 text-right">Discount</td>
+                            <td className="border border-line px-4 py-1 text-right">−{formatCurrency(purchase.discount, store)}</td>
                         </tr>
                     )}
                     <tr>
-                        <td colSpan={5} className="border border-gray-200 px-4 py-1 text-right">Tax</td>
-                        <td className="border border-gray-200 px-4 py-1 text-right">{formatCurrency(purchase.tax, store)}</td>
+                        <td colSpan={5} className="border border-line px-4 py-1 text-right">Tax</td>
+                        <td className="border border-line px-4 py-1 text-right">{formatCurrency(purchase.tax, store)}</td>
                     </tr>
                     {Number(purchase.round_off) !== 0 && (
                         <tr>
-                            <td colSpan={5} className="border border-gray-200 px-4 py-1 text-right">Round off</td>
-                            <td className="border border-gray-200 px-4 py-1 text-right">{formatCurrency(purchase.round_off, store)}</td>
+                            <td colSpan={5} className="border border-line px-4 py-1 text-right">Round off</td>
+                            <td className="border border-line px-4 py-1 text-right">{formatCurrency(purchase.round_off, store)}</td>
                         </tr>
                     )}
                 </tfoot>
@@ -229,25 +229,25 @@ export default function PurchaseShow({
             {landedCosts.length > 0 && (
                 <>
                     <h2 className="font-semibold mb-2">Landed Costs</h2>
-                    <p className="text-xs text-gray-500 mb-2">
+                    <p className="text-xs text-ink-muted mb-2">
                         Capitalised into the unit cost of the goods above, so they reach COGS through FIFO.
                     </p>
-                    <table className="w-full border-collapse border border-gray-200 mb-6 text-sm">
-                        <thead className="bg-gray-50">
+                    <table className="w-full border-collapse border border-line mb-6 text-sm">
+                        <thead className="bg-sunken">
                             <tr>
-                                <th className="border border-gray-200 px-4 py-2 text-left">Category</th>
-                                <th className="border border-gray-200 px-4 py-2 text-left">Description</th>
-                                <th className="border border-gray-200 px-4 py-2 text-left">Allocation</th>
-                                <th className="border border-gray-200 px-4 py-2 text-right">Amount</th>
+                                <th className="border border-line px-4 py-2 text-left">Category</th>
+                                <th className="border border-line px-4 py-2 text-left">Description</th>
+                                <th className="border border-line px-4 py-2 text-left">Allocation</th>
+                                <th className="border border-line px-4 py-2 text-right">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             {landedCosts.map(cost => (
                                 <tr key={cost.id}>
-                                    <td className="border border-gray-200 px-4 py-2">{cost.category}</td>
-                                    <td className="border border-gray-200 px-4 py-2 text-gray-500">{cost.description}</td>
-                                    <td className="border border-gray-200 px-4 py-2 capitalize">{cost.allocation_method}</td>
-                                    <td className="border border-gray-200 px-4 py-2 text-right">
+                                    <td className="border border-line px-4 py-2">{cost.category}</td>
+                                    <td className="border border-line px-4 py-2 text-ink-muted">{cost.description}</td>
+                                    <td className="border border-line px-4 py-2 capitalize">{cost.allocation_method}</td>
+                                    <td className="border border-line px-4 py-2 text-right">
                                         {formatCurrency(cost.amount, store)}
                                     </td>
                                 </tr>
@@ -261,20 +261,20 @@ export default function PurchaseShow({
             {returns.length > 0 && (
                 <>
                     <h2 className="font-semibold mb-2">Returns</h2>
-                    <table className="w-full border-collapse border border-gray-200 mb-6 text-sm">
-                        <thead className="bg-gray-50">
+                    <table className="w-full border-collapse border border-line mb-6 text-sm">
+                        <thead className="bg-sunken">
                             <tr>
-                                <th className="border border-gray-200 px-4 py-2 text-left">Date</th>
-                                <th className="border border-gray-200 px-4 py-2 text-left">Reason</th>
-                                <th className="border border-gray-200 px-4 py-2 text-right">Amount</th>
+                                <th className="border border-line px-4 py-2 text-left">Date</th>
+                                <th className="border border-line px-4 py-2 text-left">Reason</th>
+                                <th className="border border-line px-4 py-2 text-right">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             {returns.map(r => (
                                 <tr key={r.id}>
-                                    <td className="border border-gray-200 px-4 py-2">{r.return_date}</td>
-                                    <td className="border border-gray-200 px-4 py-2">{r.reason}</td>
-                                    <td className="border border-gray-200 px-4 py-2 text-right">
+                                    <td className="border border-line px-4 py-2">{r.return_date}</td>
+                                    <td className="border border-line px-4 py-2">{r.reason}</td>
+                                    <td className="border border-line px-4 py-2 text-right">
                                         {formatCurrency(r.total_amount, store)}
                                     </td>
                                 </tr>
@@ -287,7 +287,7 @@ export default function PurchaseShow({
             {/* Journal history */}
             <h2 className="font-semibold mb-2">Journal History</h2>
             {journalEntries.length === 0 && (
-                <p className="text-sm text-gray-400 border rounded p-4">
+                <p className="text-sm text-ink-muted border rounded p-4">
                     No journal entries yet. This purchase posts to the ledger when the goods are received.
                 </p>
             )}
@@ -300,14 +300,14 @@ export default function PurchaseShow({
                             Number(entry.is_reversed) === 1 ? 'opacity-60' : ''
                         }`}
                     >
-                        <div className="bg-gray-50 px-4 py-2 text-sm text-gray-600 border-b flex justify-between items-center gap-3">
+                        <div className="bg-sunken px-4 py-2 text-sm text-ink-secondary border-b flex justify-between items-center gap-3">
                             <span>{entry.description} — {entry.entry_date}</span>
                             <span className="flex gap-2 shrink-0">
                                 <span className="text-xs px-2 py-1 rounded bg-white border capitalize">
                                     {String(entry.reference_type).replace('_', ' ')}
                                 </span>
                                 {Number(entry.is_reversed) === 1 && (
-                                    <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-600">
+                                    <span className="text-xs px-2 py-1 rounded bg-sunken text-ink-secondary">
                                         reversed
                                     </span>
                                 )}
@@ -315,7 +315,7 @@ export default function PurchaseShow({
                         </div>
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-gray-50 text-sm">
+                                <tr className="bg-sunken text-sm">
                                     <th className="px-4 py-2 text-left">Account</th>
                                     <th className="px-4 py-2 text-right">Debit</th>
                                     <th className="px-4 py-2 text-right">Credit</th>
@@ -325,7 +325,7 @@ export default function PurchaseShow({
                                 {linesFor(entry.id).map((line, i) => (
                                     <tr key={i} className="border-t">
                                         <td className="px-4 py-2 text-sm">
-                                            <span className="font-mono text-gray-400 mr-2">{line.code}</span>
+                                            <span className="font-mono text-ink-muted mr-2">{line.code}</span>
                                             {line.account_name}
                                         </td>
                                         <td className="px-4 py-2 text-right text-sm">

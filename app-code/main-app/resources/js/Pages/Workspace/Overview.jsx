@@ -3,6 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 
 import AddCardSheet from '@/Components/Workspace/AddCardSheet';
 
+import { vq } from '@/theme/runtime';
 /**
  * The Overview dashboard — a direct build of mockup 1a.
  *
@@ -242,7 +243,7 @@ export default function Overview({ hero, extras, catalog, greetingName, storeNam
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f4f0' }}>
+        <div style={{ minHeight: '100vh', background: vq.slate[50] }}>
             <Head title="Overview" />
 
             {/*
@@ -268,7 +269,7 @@ export default function Overview({ hero, extras, catalog, greetingName, storeNam
                     #vq-more-grid { grid-template-columns: minmax(0,1fr) !important; }
                     #vq-canvas    { padding: 18px 16px 32px !important; }
                 }
-            `}</style>
+`}</style>
 
             {/* ── Top bar ─────────────────────────────────────────────── */}
             <div
@@ -481,7 +482,7 @@ export default function Overview({ hero, extras, catalog, greetingName, storeNam
                                                 style={{
                                                     font: "500 12.5px 'Instrument Sans',sans-serif",
                                                     color: trend.change_pct >= 0 ? '#0e6b4f' : '#a8321e',
-                                                    background: trend.change_pct >= 0 ? '#e7f2ec' : '#fbeceA',
+                                                    background: trend.change_pct >= 0 ? vq.emerald[100] : vq.red[100],
                                                     borderRadius: 99,
                                                     padding: '4px 9px',
                                                 }}
@@ -578,7 +579,7 @@ export default function Overview({ hero, extras, catalog, greetingName, storeNam
                                             style={{
                                                 font: "500 11px ui-monospace,monospace",
                                                 color: '#a8321e',
-                                                background: '#fbeceA',
+                                                background: vq.red[100],
                                                 borderRadius: 99,
                                                 padding: '3px 8px',
                                             }}

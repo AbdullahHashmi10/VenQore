@@ -166,7 +166,7 @@ export default function Users({ users, filters }) {
                                     </td>
                                     <td style={{ padding: '16px 20px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: '#fff' }}>{u.name[0]}</div>
+                                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: '#fff' }}>{u.name[0]}</div>
                                             <div>
                                                 <div style={{ fontWeight: 600, color: T.text }}>{u.name}</div>
                                                 <div style={{ fontSize: 11, color: T.textMuted }}>{u.email}</div>

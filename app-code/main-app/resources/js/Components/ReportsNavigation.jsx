@@ -55,7 +55,7 @@ export default function ReportsNavigation() {
     }, [url]);
 
     return (
-        <div className="w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30">
+        <div className="w-full border-b border-line bg-surface sticky top-0 z-30">
             <div className="w-full overflow-x-auto no-scrollbar" ref={scrollRef}>
                 <div className="flex items-center px-4 md:px-6 gap-2 py-2 min-w-max">
                     {links.map((link) => (
@@ -63,14 +63,14 @@ export default function ReportsNavigation() {
                             key={link.route}
                             href={route(link.route, { store_slug: store?.slug })}
                             className={`
-                                flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap
+                                flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-normal whitespace-nowrap
                                 ${isActive(link.route)
-                                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 active-report-link ring-1 ring-indigo-200 dark:ring-indigo-500/30'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
+                                    ? 'bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 active-report-link ring-1 ring-brand-200 dark:ring-brand-500/30'
+                                    : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover hover:text-ink dark:hover:text-neutral-200'
                                 }
-                            `}
+`}
                         >
-                            <link.icon size={16} className={isActive(link.route) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'} />
+                            <link.icon size={16} className={isActive(link.route) ? 'text-brand-600 dark:text-brand-400' : 'text-ink-muted'} />
                             {link.label}
                         </Link>
                     ))}

@@ -23,7 +23,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
     const [isModuleMenuOpen, setIsModuleMenuOpen] = useState(false);
 
     const modules = [
-        { id: 'sales', label: 'Sales', icon: TrendingUp, color: 'text-indigo-600' },
+        { id: 'sales', label: 'Sales', icon: TrendingUp, color: 'text-brand-600' },
         { id: 'purchases', label: 'Purchases', icon: ShoppingCart, color: 'text-amber-600' },
         { id: 'expenses', label: 'Expenses', icon: CreditCard, color: 'text-rose-600' },
     ];
@@ -84,11 +84,11 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
             <div className="flex flex-col h-full gap-2 overflow-hidden">
 
                 {/* 1. Header & Filters */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-2 bg-surface p-2 rounded-2xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-3 pl-2">
                         <Link href={route("store.reports.index", {
                             store_slug: store.slug
-                        })} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 transition-colors">
+                        })} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
                             <ArrowLeft size={16} />
                         </Link>
                         <div className="relative">
@@ -96,23 +96,23 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                 onClick={() => setIsModuleMenuOpen(!isModuleMenuOpen)}
                                 className="flex items-center gap-2 cursor-pointer group"
                             >
-                                <h1 className="text-base font-black text-slate-800 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                                <h1 className="text-base font-bold text-ink uppercase tracking-tight flex items-center gap-2">
                                     <currentModule.icon className={currentModule.color} size={18} /> {currentModule.label} Analytics
                                 </h1>
-                                <ChevronDown size={14} className={`text-slate-400 transition-transform ${isModuleMenuOpen ? 'rotate-180' : ''}`} />
+                                <ChevronDown size={14} className={`text-ink-muted transition-transform ${isModuleMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             {/* Module Dropdown */}
                             {isModuleMenuOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-normal">
                                     {modules.map((m) => (
                                         <button
                                             key={m.id}
                                             onClick={() => handleModuleChange(m.id)}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${module === m.id ? 'bg-slate-50 dark:bg-slate-700/50 font-bold' : ''}`}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors ${module === m.id ? 'bg-sunken font-bold' : ''}`}
                                         >
                                             <m.icon size={16} className={m.color} />
-                                            <span className="text-sm text-slate-700 dark:text-slate-200">{m.label}</span>
+                                            <span className="text-sm text-ink-secondary dark:text-ink">{m.label}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -121,7 +121,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center gap-2">
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                        <div className="flex bg-sunken p-1 rounded-xl">
                             {[
                                 { id: 'today', label: 'Today' },
                                 { id: '7_days', label: '7 Days' },
@@ -133,8 +133,8 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
                                     className={`px-3 py-1 rounded-lg text-2xs font-bold uppercase transition-all ${range === opt.id
-                                        ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400'
-                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                                         }`}
                                 >
                                     {opt.label}
@@ -143,23 +143,23 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                         </div>
 
                         {range === 'custom' && (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-xl">
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-slow bg-surface border border-line p-1 rounded-xl">
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-2xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
+                                    className="px-2 py-1 bg-app border-none rounded-lg text-2xs focus:ring-1 focus:ring-brand-500 text-ink-secondary"
                                 />
-                                <span className="text-slate-400 text-2xs font-bold">TO</span>
+                                <span className="text-ink-muted text-2xs font-bold">TO</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-2xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
+                                    className="px-2 py-1 bg-app border-none rounded-lg text-2xs focus:ring-1 focus:ring-brand-500 text-ink-secondary"
                                 />
                                 <button
                                     onClick={applyCustomRange}
-                                    className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-2xs font-bold uppercase transition-colors shadow-sm"
+                                    className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-2xs font-bold uppercase transition-colors shadow-sm"
                                 >
                                     Apply
                                 </button>
@@ -201,14 +201,14 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                 <div className="flex-1 min-h-0 flex flex-col gap-2">
 
                     {/* A. SALES TREND */}
-                    <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col relative overflow-hidden flex-[1.2]">
+                    <div className="bg-surface p-3 rounded-2xl border border-line shadow-sm flex flex-col relative overflow-hidden flex-[1.2]">
                         <div className="flex items-center justify-between mb-2 shrink-0">
                             <div>
-                                <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-tight">Sales Trend Analysis</h3>
+                                <h3 className="text-xs font-bold text-ink uppercase tracking-tight">Sales Trend Analysis</h3>
                             </div>
                             <div className={`px-2 py-0.5 rounded-full text-2xs font-bold flex items-center gap-1 ${insights.trend === 'up' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' :
                                     insights.trend === 'down' ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/30' :
-                                        'bg-slate-50 text-slate-600 dark:bg-slate-800'
+                                        'bg-sunken text-ink-secondary dark:bg-surface'
                                 }`}>
                                 {insights.trend === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                                 {Math.abs(insights.growth)}% Growth
@@ -240,7 +240,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                     />
                                     <Tooltip
                                         formatter={(val) => formatCurrency(val)}
-                                        contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid #334155', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: vq.slate[50] }}
+                                        contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid rgb(var(--vq-slate-700))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: vq.slate[50] }}
                                         itemStyle={{ color: vq.slate[50] }}
                                         labelStyle={{ color: vq.slate[400], fontSize: '10px', marginBottom: '4px' }}
                                     />
@@ -259,10 +259,10 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                     </div>
 
                     {/* B. PAYMENT STATUS & RECOVERY - Adjusted Ratio & Internal Sizing */}
-                    <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden flex-1 flex flex-col">
+                    <div className="bg-surface p-3 rounded-2xl border border-line shadow-sm relative overflow-hidden flex-1 flex flex-col">
                         <div className="flex items-center justify-between mb-2 shrink-0">
                             <div>
-                                <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-tight">Payment Recovery</h3>
+                                <h3 className="text-xs font-bold text-ink uppercase tracking-tight">Payment Recovery</h3>
                             </div>
                         </div>
 
@@ -288,7 +288,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                         </Pie>
                                         <Tooltip
                                             formatter={(val) => formatCurrency(val)}
-                                            contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid #334155', color: vq.slate[50] }}
+                                            contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid rgb(var(--vq-slate-700))', color: vq.slate[50] }}
                                             itemStyle={{ color: vq.slate[50] }}
                                         />
                                     </PieChart>
@@ -296,8 +296,8 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                 {/* Center Text */}
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-2">
                                     <div className="text-center">
-                                        <p className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Recovery</p>
-                                        <p className="text-2xl font-black text-slate-800 dark:text-white">
+                                        <p className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-0.5">Recovery</p>
+                                        <p className="text-2xl font-bold text-ink">
                                             {stats.total_revenue > 0 ? Math.round((paymentStatus[0].value / stats.total_revenue) * 100) : 0}%
                                         </p>
                                     </div>
@@ -307,22 +307,22 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                             {/* Right: Detailed Breakdown - More Spacing & Larger Text */}
                             <div className="flex flex-col justify-center gap-3 pr-6 flex-[1.2]">
                                 {paymentStatus.map((status, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-app">
                                         <div className="flex items-center gap-3">
                                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: status.fill }}></div>
                                             <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{status.name}</p>
+                                                <p className="text-sm font-bold text-ink-secondary">{status.name}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(status.value)}</p>
+                                            <p className="text-sm font-bold text-ink">{formatCurrency(status.value)}</p>
                                         </div>
                                     </div>
                                 ))}
 
-                                <div className="mt-1 p-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 flex items-start gap-2">
-                                    <AlertCircle size={14} className="text-indigo-600 mt-0.5 shrink-0" />
-                                    <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-snug">
+                                <div className="mt-1 p-2 rounded-xl bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-800/30 flex items-start gap-2">
+                                    <AlertCircle size={14} className="text-brand-600 mt-0.5 shrink-0" />
+                                    <p className="text-xs text-brand-700 dark:text-brand-300 leading-snug">
                                         <strong>Tip:</strong> Outstanding payments typically clear within 7 days.
                                     </p>
                                 </div>
@@ -338,28 +338,28 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
 
 function StatCard({ title, value, icon, color }) {
     const colors = {
-        indigo: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20',
+        indigo: 'text-brand-600 bg-brand-50 dark:bg-brand-900/20',
         emerald: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20',
         blue: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',
         amber: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20',
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+        <div className="bg-surface border border-line rounded-xl p-2.5 flex items-center justify-between shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
             {/* Decorative Background */}
-            <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-slate-50 to-transparent dark:from-slate-800/50 opacity-50 group-hover:w-24 transition-all duration-500" />
+            <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-neutral-50 to-transparent dark:from-neutral-800/50 opacity-50 group-hover:w-24 transition-all duration-slower" />
 
             {/* Left: Icon + Label */}
             <div className="flex items-center gap-3 relative z-10">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colors[color]}`}>
                     {React.cloneElement(icon, { size: 16 })}
                 </div>
-                <p className="text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{title}</p>
+                <p className="text-2xs font-bold text-ink-muted uppercase tracking-wide">{title}</p>
             </div>
 
             {/* Right: Value */}
             <div className="relative z-10 text-right">
-                <h3 className="text-base font-black text-slate-800 dark:text-white tracking-tight">{value}</h3>
+                <h3 className="text-base font-bold text-ink tracking-tight">{value}</h3>
             </div>
         </div>
     );

@@ -48,12 +48,13 @@
  *
  * ── Fonts ───────────────────────────────────────────────────────────────────
  *
- * `tokens/fonts.css` pulls Bricolage Grotesque, Plus Jakarta Sans and Space
- * Grotesk from the Google CDN, as V6 ships it. The POS is offline-capable, so
- * a terminal with no network renders in the `system-ui` fallback rather than
- * the brand faces. Self-hosting the three `.woff2` files under
- * `resources/fonts/` and replacing that one `@import` is the fix, and is the
- * one open decision left in Phase 0.
+ * `tokens/fonts.css` declares Bricolage Grotesque, Plus Jakarta Sans and
+ * Space Grotesk SELF-HOSTED under `resources/fonts/`. V6 ships that file as a
+ * single `@import` of the Google Fonts API; a terminal with no network
+ * resolves it to nothing and paints in `system-ui`, whose figures are
+ * proportional — so every currency column stops aligning, silently. The faces
+ * are vendored by `scripts/fonts-vendor.mjs` and design-check.sh blocks any
+ * reference to the font CDN reappearing in resources/css or resources/views.
  */
 
 @import './tokens/fonts.css';

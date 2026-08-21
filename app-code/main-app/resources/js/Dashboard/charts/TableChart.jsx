@@ -23,15 +23,15 @@ export default function TableChart({ data, definition, settings }) {
     return (
         <div className="w-full h-full flex flex-col justify-start overflow-hidden">
             <div className="grow overflow-y-auto max-h-[95px] custom-scrollbar">
-                <table className="w-full text-[9px] font-bold text-ink-secondary select-none">
+                <table className="w-full text-3xs font-bold text-ink-secondary select-none">
                     <thead>
-                        <tr className="border-b border-border dark:border-border text-ink-muted uppercase text-3xs">
+                        <tr className="border-b border-line dark:border-line text-ink-muted uppercase text-3xs">
                             {columns.map(c => (
                                 <th key={c.key} className="pb-1 text-left font-bold tracking-wider">{c.label}</th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-line">
                         {rawRows.slice(0, 5).map((row, i) => (
                             <tr key={i} className="hover:bg-sunken dark:hover:bg-sunken">
                                 {columns.map(c => (

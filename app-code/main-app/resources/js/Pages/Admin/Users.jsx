@@ -24,8 +24,8 @@ const ROLES = {
     inventory_staff: { name: 'Inventory Staff',  description: 'Stock management',           icon: Package,      color: 'from-orange-500 to-red-600',     badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' },
     accountant:      { name: 'Accountant',       description: 'Financial reporting',        icon: DollarSign,   color: 'from-green-500 to-emerald-600',  badge: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' },
     support:         { name: 'Support',          description: 'Troubleshooting & Help',     icon: BadgeCheck,   color: 'from-pink-500 to-rose-600',      badge: 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400' },
-    custom:          { name: 'Custom',           description: 'Specific permissions',       icon: Settings,     color: 'from-slate-500 to-slate-600',    badge: 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400' },
-    viewer:          { name: 'Viewer',           description: 'Read-only access',           icon: Eye,          color: 'from-gray-500 to-gray-600',      badge: 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400' },
+    custom:          { name: 'Custom',           description: 'Specific permissions',       icon: Settings,     color: 'from-neutral-500 to-neutral-600',    badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-muted' },
+    viewer:          { name: 'Viewer',           description: 'Read-only access',           icon: Eye,          color: 'from-neutral-500 to-neutral-600',      badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-secondary' },
 };
 
 const ROLE_PERMISSIONS = {
@@ -204,16 +204,16 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                 const CatIcon = cat.icon;
 
                 return (
-                    <div key={cat.id} className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4 transition-all hover:border-slate-600/40">
+                    <div key={cat.id} className="bg-neutral-800/30 border border-neutral-700/30 rounded-2xl p-4 transition-all hover:border-line-strong">
                         {/* Category Header */}
-                        <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-slate-800/60">
+                        <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-neutral-800/60">
                             <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-355`}>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-neutral-800 text-ink-faint`}>
                                     <CatIcon size={16} />
                                 </div>
                                 <div>
                                     <h4 className="text-xs font-bold text-white leading-tight">{cat.name}</h4>
-                                    <p className="text-3xs text-slate-500 leading-tight mt-0.5">{cat.desc}</p>
+                                    <p className="text-3xs text-ink-muted leading-tight mt-0.5">{cat.desc}</p>
                                 </div>
                             </div>
                             
@@ -221,12 +221,12 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                 type="button"
                                 disabled={disabled}
                                 onClick={() => handleToggleCategory(cat.id, catPerms)}
-                                className={`px-2 py-0.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-all border ${
+                                className={`px-2 py-0.5 rounded-lg text-3xs font-bold uppercase tracking-wider transition-all border ${
                                     isCatActive
-                                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400'
+                                        ? 'bg-brand-600/20 border-brand-500 text-brand-400'
                                         : isCatPartial
                                             ? 'bg-amber-600/15 border-amber-500/50 text-amber-400'
-                                            : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:text-white'
+                                            : 'bg-sunken/50 border-neutral-700/50 text-ink-muted hover:text-white'
                                 } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
                             >
                                 {isCatActive ? 'Full Access' : isCatPartial ? 'Partial' : 'No Access'}
@@ -243,22 +243,22 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                         type="button"
                                         disabled={disabled}
                                         onClick={() => handleToggle(perm.id)}
-                                        className={`p-2.5 rounded-xl border flex items-center gap-2.5 text-left transition-all duration-200 group/mod ${
+                                        className={`p-2.5 rounded-xl border flex items-center gap-2.5 text-left transition-all duration-normal group/mod ${
                                             isActive
-                                                ? 'bg-indigo-600/10 border-indigo-500/40 shadow-[0_0_15px_rgba(79,70,229,0.05)]'
-                                                : 'bg-slate-900/20 border-slate-900 opacity-60 hover:opacity-100 hover:border-slate-800 hover:bg-slate-900/40'
+                                                ? 'bg-brand-600/10 border-brand-500/40 shadow-[0_0_15px_rgba(79,70,229,0.05)]'
+                                                : 'bg-sunken/20 border-neutral-900 opacity-60 hover:opacity-100 hover:border-line-strong hover:bg-interactive-hover'
                                         } ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
                                     >
                                         <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
                                             isActive
-                                                ? 'bg-indigo-600 border-indigo-500 text-white'
-                                                : 'border-slate-700 bg-slate-800'
+                                                ? 'bg-brand-600 border-brand-500 text-white'
+                                                : 'border-neutral-700 bg-neutral-800'
                                         }`}>
                                             {isActive && <Check size={8} strokeWidth={3} />}
                                         </div>
                                         <div className="flex flex-col justify-center min-w-0">
-                                            <div className={`text-2xs font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-slate-400 group-hover/mod:text-slate-300'}`}>{perm.name}</div>
-                                            <div className="text-4xs text-slate-500 leading-tight mt-0.5 truncate">{perm.desc}</div>
+                                            <div className={`text-2xs font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-ink-muted group-hover/mod:text-neutral-300'}`}>{perm.name}</div>
+                                            <div className="text-4xs text-ink-muted leading-tight mt-0.5 truncate">{perm.desc}</div>
                                         </div>
                                     </button>
                                 );
@@ -274,12 +274,12 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
 // ─── Status config ─────────────────────────────────────────────────────────
 const STATUS = {
     pending:            { label: 'Pending',           color: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700',    dot: 'bg-amber-500' },
-    no_account:         { label: 'No Account',        color: 'text-slate-500 bg-slate-50 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',     dot: 'bg-slate-400' },
+    no_account:         { label: 'No Account',        color: 'text-ink-muted bg-neutral-50 border-line dark:bg-surface dark:text-ink-muted dark:border-line',     dot: 'bg-neutral-400' },
     awaiting_approval:  { label: 'Awaiting Approval', color: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-700',       dot: 'bg-blue-500 animate-pulse' },
     active:             { label: 'Active',            color: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-700', dot: 'bg-emerald-500 animate-pulse' },
     expired:            { label: 'Expired',           color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-500' },
     revoked:            { label: 'Revoked',           color: 'text-red-400 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-400' },
-    declined:           { label: 'Declined',          color: 'text-slate-400 bg-slate-50 border-slate-200 dark:bg-slate-800 dark:text-slate-500',                          dot: 'bg-slate-400' },
+    declined:           { label: 'Declined',          color: 'text-ink-muted bg-neutral-50 border-line dark:bg-surface dark:text-ink-muted',                          dot: 'bg-neutral-400' },
     suspended:          { label: 'Suspended',         color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-500' },
 };
 
@@ -479,9 +479,9 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             <div className="h-full flex flex-col gap-3 max-w-[1600px] mx-auto">
 
                 {/* ── Premium Grouped Tab Header ── */}
-                <div className="flex flex-col lg:flex-row items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm shrink-0">
+                <div className="flex flex-col lg:flex-row items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
                     {/* Level 1: Category Selector */}
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
+                    <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
                         {groups.map((group) => {
                             const Icon = group.icon;
                             const isActive = activeGroup === group.id;
@@ -494,12 +494,12 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                         setActiveTab(group.items[0].id);
                                     }}
                                     className={`
-                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap
+                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-normal whitespace-nowrap
                                         ${isActive
-                                            ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                            ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                            : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }
-                                    `}
+`}
                                 >
                                     <Icon size={13} className={isActive ? 'opacity-100' : 'opacity-70'} />
                                     {group.label}
@@ -509,7 +509,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                     </div>
 
                     {/* Separator / Arrow */}
-                    <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
+                    <div className="hidden lg:flex items-center text-neutral-300 dark:text-ink-secondary">
                         <ChevronRight size={16} />
                     </div>
 
@@ -524,12 +524,12 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`
-                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 border whitespace-nowrap
+                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-normal border whitespace-nowrap
                                         ${isActive
-                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-bold'
-                                            : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
+                                            ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/20 dark:text-brand-400 font-bold'
+                                            : 'bg-transparent border-transparent text-ink-secondary hover:bg-interactive-hover hover:border-line dark:text-ink-muted dark:hover:bg-interactive-hover dark:hover:border-line-strong'
                                         }
-                                    `}
+`}
                                 >
                                     <Icon size={13} />
                                     {tab.label}
@@ -542,13 +542,13 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                     <div className="shrink-0 self-stretch flex items-center">
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="relative h-full px-5 py-2.5 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 overflow-hidden group shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                            className="relative h-full px-5 py-2.5 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl hover:"
                         >
                             {/* Midnight Nebula Background */}
-                            <div className="absolute inset-0 bg-slate-900 z-0">
-                                <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-indigo-500/60 transition-colors animate-pulse"></div>
+                            <div className="absolute inset-0 bg-neutral-900 z-0">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors animate-pulse"></div>
                                 <div className="absolute bottom-0 left-0 w-16 h-16 bg-purple-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-purple-500/50 transition-colors"></div>
-                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-60"></div>
+                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
                             </div>
                             {/* Content */}
                             <Plus size={16} strokeWidth={3} className="relative z-10" />
@@ -560,25 +560,25 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                 {/* ── Stats ── */}
                 {['members', 'invitations'].includes(activeTab) && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-                        <StatCard title="Active Members"    value={activeMembers}    icon={<Users size={16} />}         color="bg-indigo-500" />
+                        <StatCard title="Active Members"    value={activeMembers}    icon={<Users size={16} />}         color="bg-brand-500" />
                         <StatCard title="Pending Invites"   value={pendingInvites}   icon={<Send size={16} />}           color="bg-amber-500" />
                         <StatCard title="Awaiting Approval" value={awaitingApproval} icon={<AlertCircle size={16} />}    color="bg-blue-500"  subtext={awaitingApproval > 0 ? 'Action required' : ''} />
-                        <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={16} />}     color="bg-slate-500" />
+                        <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={16} />}     color="bg-neutral-500" />
                     </div>
                 )}
 
                 {activeTab === 'attendance' && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
                         <StatCard title="On Duty Now"       value={attendanceStats.activeNow}    icon={<Clock size={16} />}         color="bg-emerald-500" />
-                        <StatCard title="Present Today"     value={attendanceStats.totalPresent} icon={<UserCheck size={16} />}     color="bg-indigo-500" />
+                        <StatCard title="Present Today"     value={attendanceStats.totalPresent} icon={<UserCheck size={16} />}     color="bg-brand-500" />
                         <StatCard title="Total Time Logged" value={attendanceStats.totalHours}   icon={<Timer size={16} />}         color="bg-blue-500" />
-                        <StatCard title="Total Staff"       value={attendanceStats.totalStaff}   icon={<Users size={16} />}         color="bg-slate-500" />
+                        <StatCard title="Total Staff"       value={attendanceStats.totalStaff}   icon={<Users size={16} />}         color="bg-neutral-500" />
                     </div>
                 )}
 
                 {activeTab === 'summaries' && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-                        <StatCard title="Active Staff"      value={stats.totalStaff}             icon={<Users size={16} />}         color="bg-indigo-500" />
+                        <StatCard title="Active Staff"      value={stats.totalStaff}             icon={<Users size={16} />}         color="bg-brand-500" />
                         <StatCard title="Total Sales"       value={formatCurrency(stats.totalSales)} icon={<DollarSign size={16} />}   color="bg-emerald-500" />
                         <StatCard title="Transactions"      value={stats.totalTransactions}      icon={<Package size={16} />}       color="bg-blue-500" />
                         <StatCard title="Top Performer"     value={stats.topPerformer.name || '-'} icon={<Award size={16} />}         color="bg-amber-500" subtext={stats.topPerformer.totalSales ? formatCurrency(stats.topPerformer.totalSales) : ''} />
@@ -586,57 +586,57 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                 )}
 
                 {/* ── Sub Header / Search & Filters Bar ── */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl shadow-sm gap-4 shrink-0">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-surface border border-line p-3 rounded-2xl shadow-sm gap-4 shrink-0">
                     <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                        <h2 className="text-sm font-bold uppercase tracking-wider text-ink">
                             {activeTab === 'members' && 'Team Members'}
                             {activeTab === 'invitations' && 'Invitations & Invites'}
                             {activeTab === 'attendance' && 'Attendance Registry'}
                             {activeTab === 'summaries' && 'Performance Summaries'}
                         </h2>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
+                        <div className="h-4 w-px bg-sunken dark:bg-surface mx-2" />
                         
                         {activeTab === 'summaries' ? (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-3xs font-black text-slate-400 uppercase tracking-widest mr-1">Sort:</span>
+                                <span className="text-3xs font-bold text-ink-muted uppercase tracking-widest mr-1">Sort:</span>
                                 <button
                                     onClick={() => setSortConfig('sales')}
                                     className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-md transition-all ${sortConfig === 'sales'
-                                        ? 'bg-emerald-600 text-white shadow-sm font-black'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                                        : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }`}
                                 >Total Sales</button>
                                 <button
                                     onClick={() => setSortConfig('transactions')}
                                     className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-md transition-all ${sortConfig === 'transactions'
-                                        ? 'bg-indigo-600 text-white shadow-sm font-black'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        ? 'bg-brand-600 text-white shadow-sm font-bold'
+                                        : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }`}
                                 >Transactions</button>
                                 <button
                                     onClick={() => setSortConfig('avg')}
                                     className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-md transition-all ${sortConfig === 'avg'
-                                        ? 'bg-purple-600 text-white shadow-sm font-black'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        ? 'bg-purple-600 text-white shadow-sm font-bold'
+                                        : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }`}
                                 >Avg. Ticket</button>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-2xs font-extrabold uppercase">
-                                <span className="px-2.5 py-1 bg-indigo-600 text-white rounded-md shadow-sm">All</span>
+                            <div className="flex items-center gap-1 bg-sunken p-0.5 rounded-lg text-2xs font-bold uppercase">
+                                <span className="px-2.5 py-1 bg-brand-600 text-white rounded-md shadow-sm">All</span>
                             </div>
                         )}
                     </div>
 
                     {/* Search Input */}
                     <div className="relative w-full md:w-72 group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-500 transition-colors" size={16} />
                         <input
                             type="text"
                             placeholder={`Search ${activeTab}...`}
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                            className="w-full pl-9 pr-4 py-1.5 text-xs border border-line rounded-xl bg-app text-ink focus:ring-2 focus:ring-brand-500 outline-none transition-all shadow-sm"
                         />
                     </div>
                 </div>
@@ -680,7 +680,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {filteredSummaries.length > 0 ? (
                                     filteredSummaries.map((staff, index) => (
-                                        <div key={staff.id || index} className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all group">
+                                        <div key={staff.id || index} className="relative bg-surface rounded-2xl border border-line shadow-sm p-4 hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800 transition-all group">
                                             {index === 0 && sortConfig === 'sales' && (
                                                 <div className="absolute top-3 right-3 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-2xs font-bold flex items-center gap-1 shadow-sm">
                                                     <Award size={10} /> Top Sales
@@ -689,65 +689,65 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
 
                                             <div className="flex items-center gap-3 mb-4">
                                                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
-                                                    index === 1 ? 'bg-gradient-to-br from-slate-400 to-slate-500' :
+                                                    index === 1 ? 'bg-gradient-to-br from-neutral-400 to-neutral-500' :
                                                         index === 2 ? 'bg-gradient-to-br from-orange-400 to-red-500' :
-                                                            'bg-gradient-to-br from-indigo-500 to-purple-600'
+                                                            'bg-gradient-to-br from-brand-500 to-purple-600'
                                                     }`}>
                                                     {staff.name.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-bold text-slate-800 dark:text-white truncate max-w-[150px]">{staff.name}</h3>
-                                                    <p className="text-xs text-slate-500">{staff.role}</p>
+                                                    <h3 className="font-bold text-ink truncate max-w-[150px]">{staff.name}</h3>
+                                                    <p className="text-xs text-ink-muted">{staff.role}</p>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                                                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                                <div className="flex items-center justify-between p-2 rounded-xl bg-app">
+                                                    <div className="flex items-center gap-2 text-ink-muted">
                                                         <DollarSign size={13} />
                                                         <span className="text-xs font-medium">Total Sales</span>
                                                     </div>
-                                                    <span className="font-bold text-sm text-slate-800 dark:text-white">
+                                                    <span className="font-bold text-sm text-ink">
                                                         {formatCurrency(staff.totalSales)}
                                                     </span>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-2">
-                                                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                                                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                                                    <div className="p-2 rounded-xl bg-app">
+                                                        <div className="flex items-center gap-1.5 text-ink-muted mb-1">
                                                             <Package size={11} />
                                                             <span className="text-3xs font-bold uppercase">Txns</span>
                                                         </div>
-                                                        <p className="font-bold text-slate-800 dark:text-white">{staff.transactionCount}</p>
+                                                        <p className="font-bold text-ink">{staff.transactionCount}</p>
                                                     </div>
-                                                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                                                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                                                    <div className="p-2 rounded-xl bg-app">
+                                                        <div className="flex items-center gap-1.5 text-ink-muted mb-1">
                                                             <TrendingUp size={11} />
                                                             <span className="text-3xs font-bold uppercase">Avg</span>
                                                         </div>
-                                                        <p className="font-bold text-slate-800 dark:text-white max-w-full truncate">
+                                                        <p className="font-bold text-ink max-w-full truncate">
                                                             {getCurrencySymbol()} {Math.round(staff.avgTransaction).toLocaleString()}
                                                         </p>
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+                                                <div className="flex items-center justify-between pt-2 border-t border-line text-xs text-ink-muted">
                                                     <div className="flex items-center gap-1">
                                                         <Clock size={11} />
                                                         Last Active:
                                                     </div>
-                                                    <span className="font-medium text-slate-700 dark:text-slate-300">{staff.lastActive}</span>
+                                                    <span className="font-medium text-ink-secondary">{staff.lastActive}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
-                                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                            <Users size={32} className="text-slate-400" />
+                                        <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-4">
+                                            <Users size={32} className="text-ink-muted" />
                                         </div>
-                                        <h3 className="text-lg font-bold text-slate-700 dark:text-white">No staff performance data</h3>
-                                        <p className="text-slate-500">Try adjusting your search criteria</p>
+                                        <h3 className="text-lg font-bold text-ink-secondary dark:text-white">No staff performance data</h3>
+                                        <p className="text-ink-muted">Try adjusting your search criteria</p>
                                     </div>
                                 )}
                             </div>
@@ -766,51 +766,51 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             )}
 
             {showAddModal && (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
-                    <div className="bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-[1200px] border border-slate-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
+                <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
+                    <div className="bg-neutral-900 rounded-xl shadow-2xl w-full max-w-[1200px] border border-neutral-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
                         
                         <button onClick={() => { setShowAddModal(false); reset(); }}
-                            className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors z-20">
+                            className="absolute top-6 right-6 p-2 rounded-full text-ink-muted hover:text-white hover:bg-interactive-hover transition-colors z-20">
                             <X size={20} />
                         </button>
 
                         {/* LEFT COLUMN: Form & Roles */}
-                        <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-slate-900 rounded-l-[2rem]">
+                        <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-neutral-700/50 flex flex-col bg-neutral-900 rounded-l-xl">
                             <div className="flex items-center gap-4 mb-10">
-                                <h3 className="font-extrabold text-2xl text-white tracking-tight">Invite Member</h3>
-                                <div className="h-4 w-px bg-slate-700"></div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">SEND INVITATION</span>
+                                <h3 className="font-bold text-2xl text-white tracking-tight">Invite Member</h3>
+                                <div className="h-4 w-px bg-neutral-700"></div>
+                                <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">SEND INVITATION</span>
                             </div>
 
                             <form id="invite-form" onSubmit={handleSubmit} className="flex flex-col gap-10 flex-1">
                                 
                                 {/* Credentials */}
                                 <div className="space-y-5">
-                                    <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
+                                    <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                         <User size={14} /> CREDENTIALS
                                     </h4>
                                     
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                        <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                             <label className="text-2xs font-bold uppercase tracking-wider ml-1">Name</label>
                                             <input type="text" value={data.invitee_name} onChange={e => setData('invitee_name', e.target.value)}
-                                                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
                                                 placeholder="Full Name" required />
                                             {errors.invitee_name && <p className="text-2xs text-red-400 ml-1">{errors.invitee_name}</p>}
                                         </div>
-                                        <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                        <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                             <label className="text-2xs font-bold uppercase tracking-wider ml-1">Email</label>
                                             <input type="email" value={data.invitee_email} onChange={e => setData('invitee_email', e.target.value)}
-                                                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
                                                 placeholder="Email Address" required />
                                             {errors.invitee_email && <p className="text-2xs text-red-400 ml-1">{errors.invitee_email}</p>}
                                         </div>
                                     </div>
                                     
-                                    <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                    <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                         <label className="text-2xs font-bold uppercase tracking-wider ml-1">Phone Number</label>
                                         <input type="text" value={data.invitee_phone} onChange={e => setData('invitee_phone', e.target.value)}
-                                            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                            className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
                                             placeholder="Optional" />
                                     </div>
                                 </div>
@@ -818,10 +818,10 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                 {/* Roles */}
                                 <div className="space-y-5">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
+                                        <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                             <Crown size={14} /> ASSIGN ROLE
                                         </h4>
-                                        <span className="text-2xs font-bold text-indigo-400 tracking-wider">
+                                        <span className="text-2xs font-bold text-brand-400 tracking-wider">
                                             {data.roles.length > 0 ? ROLES[data.roles[0]]?.name?.toUpperCase() : 'NONE'}
                                         </span>
                                     </div>
@@ -833,15 +833,15 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                                 <button key={key} type="button" onClick={() => toggleRole(key)}
                                                     className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
                                                         isSelected
-                                                            ? 'bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-600/20'
-                                                            : 'bg-slate-800 border-slate-700 hover:border-indigo-400/50 hover:bg-slate-800/80'
+                                                            ? 'bg-brand-600 border-brand-500 shadow-xl '
+                                                            : 'bg-neutral-800 border-neutral-700 hover:border-brand-400/50 hover:bg-interactive-hover'
                                                     }`}>
-                                                    <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
+                                                    <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-ink-muted'}`}>
                                                         <role.icon size={16} />
                                                     </div>
                                                     <div>
-                                                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-300'}`}>{role.name}</div>
-                                                        <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>{role.description}</div>
+                                                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{role.name}</div>
+                                                        <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{role.description}</div>
                                                     </div>
                                                 </button>
                                             );
@@ -854,20 +854,20 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                         </div>
 
                         {/* RIGHT COLUMN: Permissions Visualization */}
-                        <div className="flex-1 p-8 md:p-10 bg-slate-900 rounded-r-[2rem] flex flex-col relative overflow-hidden">
+                        <div className="flex-1 p-8 md:p-10 bg-neutral-900 rounded-r-xl flex flex-col relative overflow-hidden">
                             {/* Ambient glow in right panel */}
-                            <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+                            <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
                             
                             <div className="flex items-center justify-between mb-8 relative z-10">
                                 <div className="space-y-1">
-                                    <h4 className="flex items-center gap-2 text-2xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                                        <Shield size={14} className="text-indigo-400" /> System Visibility
+                                    <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-[0.2em]">
+                                        <Shield size={14} className="text-brand-400" /> System Visibility
                                     </h4>
-                                    <p className="text-2xs text-slate-500 font-bold uppercase tracking-widest pl-6">
+                                    <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest pl-6">
                                         Module Access Control
                                     </p>
                                 </div>
-                                <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-2xs font-black text-indigo-400 flex items-center gap-2 tracking-widest uppercase">
+                                <div className="px-4 py-2 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-2xs font-bold text-brand-400 flex items-center gap-2 tracking-widest uppercase">
                                     <Sparkles size={12} /> Live Permissions Preview
                                 </div>
                             </div>
@@ -878,24 +878,24 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                             />
                             
                             {/* Bottom Footer Actions inside Right Panel */}
-                            <div className="mt-8 pt-8 border-t border-slate-800/50 flex items-center justify-between relative z-10">
+                            <div className="mt-8 pt-8 border-t border-neutral-800/50 flex items-center justify-between relative z-10">
                                 <div className="space-y-1">
-                                    <div className="text-2xs font-black text-slate-500 uppercase tracking-widest">
+                                    <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                         Summary
                                     </div>
-                                    <div className="text-sm font-black text-white">
-                                        <span className={data.permissions.length > 0 ? 'text-indigo-400' : 'text-slate-500'}>
+                                    <div className="text-sm font-bold text-white">
+                                        <span className={data.permissions.length > 0 ? 'text-brand-400' : 'text-ink-muted'}>
                                              {data.permissions.length} Action Items Enabled
                                         </span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <button type="button" onClick={() => { setShowAddModal(false); reset(); }}
-                                        className="px-6 py-3 text-slate-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+                                        className="px-6 py-3 text-ink-muted hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
                                         Discard
                                     </button>
                                     <button type="submit" form="invite-form" disabled={processing || data.roles.length === 0}
-                                        className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
+                                        className="px-10 py-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
                                         <Send size={16} />
                                         Send Invitation
                                     </button>
@@ -914,7 +914,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
 function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy, onWhatsApp, onApprove, onDecline, onRevoke, onResend }) {
     if (invitations.length === 0) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600 gap-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex-1 flex flex-col items-center justify-center text-neutral-300 dark:text-ink-secondary gap-4 bg-surface rounded-2xl border border-line">
                 <Send size={64} className="stroke-[0.7]" />
                 <div className="text-center">
                     <h3 className="text-lg font-semibold">No invitations yet</h3>
@@ -925,11 +925,11 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
     }
 
     return (
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 bg-surface border border-line rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
             <div className="flex-1 overflow-auto">
                 <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10">
-                        <tr className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                    <thead className="bg-app sticky top-0 z-10">
+                        <tr className="text-xs font-semibold text-ink-muted uppercase tracking-wider border-b border-line">
                             <th className="px-6 py-4">Name & Email</th>
                             <th className="px-6 py-4">Phone</th>
                             <th className="px-6 py-4">Role(s)</th>
@@ -939,7 +939,7 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                             <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-line">
                         {invitations.map(inv => {
                             const roles    = inv.roles || ['cashier'];
                             const roleInfo = getRoleInfo(roles[0]);
@@ -947,7 +947,7 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                             const st       = getStatusCfg(inv.status);
 
                             return (
-                                <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                                <tr key={inv.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
                                     {/* Name & Email */}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
@@ -955,15 +955,15 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                                 {(inv.invitee_name || '?').charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{inv.invitee_name}</p>
-                                                <p className="text-xs text-slate-400 font-mono">{inv.invitee_email}</p>
+                                                <p className="font-bold text-ink-secondary dark:text-ink text-sm">{inv.invitee_name}</p>
+                                                <p className="text-xs text-ink-muted font-mono">{inv.invitee_email}</p>
                                             </div>
                                         </div>
                                     </td>
 
                                     {/* Phone */}
-                                    <td className="px-6 py-4 text-sm text-slate-500">
-                                        {inv.invitee_phone || <span className="text-slate-300">—</span>}
+                                    <td className="px-6 py-4 text-sm text-ink-muted">
+                                        {inv.invitee_phone || <span className="text-neutral-300">—</span>}
                                     </td>
 
                                     {/* Roles */}
@@ -984,17 +984,17 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                     <td className="px-6 py-4">
                                         {inv.short_code ? (
                                             <button onClick={() => onCopy(inv)}
-                                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 rounded-lg transition-colors group/code">
-                                                <code className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 group-hover/code:text-indigo-600">
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-sunken hover:bg-brand-50 dark:hover:bg-brand-900/20 border border-line hover:border-brand-300 rounded-lg transition-colors group/code">
+                                                <code className="text-xs font-mono font-bold text-ink-secondary group-hover/code:text-brand-600">
                                                     {inv.short_code}
                                                 </code>
                                                 {copiedId === inv.id
                                                     ? <Check size={12} className="text-emerald-500" />
-                                                    : <Copy size={12} className="text-slate-400 group-hover/code:text-indigo-500" />
+                                                    : <Copy size={12} className="text-ink-muted group-hover/code:text-brand-500" />
                                                 }
                                             </button>
                                         ) : (
-                                            <span className="text-slate-300 text-xs">—</span>
+                                            <span className="text-neutral-300 text-xs">—</span>
                                         )}
                                     </td>
 
@@ -1020,7 +1020,7 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                     </td>
 
                                     {/* Expires */}
-                                    <td className="px-6 py-4 text-xs text-slate-500">
+                                    <td className="px-6 py-4 text-xs text-ink-muted">
                                         {inv.expires_at ? new Date(inv.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                     </td>
 
@@ -1028,32 +1028,32 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                     <td className="px-6 py-4 text-right relative">
                                         <div className="relative inline-block">
                                             <button onClick={() => setOpenMenu(openMenu === inv.id ? null : inv.id)}
-                                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors opacity-0 group-hover:opacity-100">
+                                                className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors opacity-0 group-hover:opacity-100">
                                                 <ChevronDown size={16} />
                                             </button>
                                             {openMenu === inv.id && (
-                                                <div className="absolute right-0 top-10 z-30 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl py-2 overflow-hidden">
+                                                <div className="absolute right-0 top-10 z-30 w-48 bg-surface border border-line rounded-2xl shadow-2xl py-2 overflow-hidden">
                                                     {/* WhatsApp */}
                                                     <button onClick={() => { onWhatsApp(inv); setOpenMenu(null); }}
-                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                                         <MessageCircle size={14} className="text-emerald-500" /> Share via WhatsApp
                                                     </button>
                                                     {/* Copy Code */}
                                                     <button onClick={() => { onCopy(inv); setOpenMenu(null); }}
-                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                                        <Copy size={14} className="text-indigo-500" /> Copy Invite Code
+                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                                        <Copy size={14} className="text-brand-500" /> Copy Invite Code
                                                     </button>
                                                     {/* Resend */}
                                                     {['pending', 'no_account', 'expired'].includes(inv.status) && (
                                                         <button onClick={() => { onResend(inv); setOpenMenu(null); }}
-                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                                             <RefreshCw size={14} className="text-blue-500" /> Resend (+48h)
                                                         </button>
                                                     )}
                                                     {/* Revoke */}
                                                     {['pending', 'no_account', 'awaiting_approval'].includes(inv.status) && (
                                                         <>
-                                                            <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                                                            <div className="my-1 border-t border-line" />
                                                             <button onClick={() => { onRevoke(inv); setOpenMenu(null); }}
                                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                                                                 <Ban size={14} /> Revoke Invite
@@ -1081,11 +1081,11 @@ function AttendanceTable({ attendance, users, onDetail }) {
     const staff = users.filter(u => u.role !== 'platform_admin');
 
     return (
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 bg-surface border border-line rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
             <div className="flex-1 overflow-auto">
                 <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10">
-                        <tr className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                    <thead className="bg-app sticky top-0 z-10">
+                        <tr className="text-xs font-semibold text-ink-muted uppercase tracking-wider border-b border-line">
                             <th className="px-6 py-4">Staff Member</th>
                             <th className="px-6 py-4">Today's First In</th>
                             <th className="px-6 py-4">Current Status</th>
@@ -1093,7 +1093,7 @@ function AttendanceTable({ attendance, users, onDetail }) {
                             <th className="px-6 py-4 text-right">Activity Insight</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-line">
                         {staff.map(user => {
                             const data = todayData?.[user.id];
                             const isActive = data?.is_active;
@@ -1108,36 +1108,36 @@ function AttendanceTable({ attendance, users, onDetail }) {
 
                             return (
                                 <tr key={user.id} onClick={() => onDetail(user)}
-                                    className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group">
+                                    className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors cursor-pointer group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-sm group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
+                                            <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center text-ink-muted font-bold text-sm group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 group-hover:text-brand-600 transition-colors">
                                                 {user.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{user.name}</p>
-                                                <p className="text-2xs text-slate-400 uppercase font-bold tracking-wider">{user.role}</p>
+                                                <p className="font-bold text-ink-secondary dark:text-ink text-sm">{user.name}</p>
+                                                <p className="text-2xs text-ink-muted uppercase font-bold tracking-wider">{user.role}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500 font-mono">
-                                        {data?.first_in || <span className="text-slate-300">Not arrived</span>}
+                                    <td className="px-6 py-4 text-sm text-ink-muted font-mono">
+                                        {data?.first_in || <span className="text-neutral-300">Not arrived</span>}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-bold uppercase border ${
                                             isActive 
                                                 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200'
-                                                : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200'
+                                                : 'bg-app text-ink-muted border-line'
                                         }`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-sunken'}`}></div>
                                             {isActive ? 'Present now' : 'Logged out'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-300 font-mono">
+                                    <td className="px-6 py-4 text-sm font-bold text-ink-secondary font-mono">
                                         {totalTime}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-indigo-500 transition-all">
+                                        <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-500 transition-all">
                                             <BarChart size={18} />
                                         </button>
                                     </td>
@@ -1186,32 +1186,32 @@ function AttendanceDetailModal({ user, history, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-4xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-[650px]">
-                <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-sticky flex items-center justify-center p-4">
+            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-4xl border border-line overflow-hidden flex flex-col h-[650px]">
+                <div className="px-8 py-6 bg-sunken/50 dark:bg-app border-b border-line flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/20">
+                        <div className="w-12 h-12 rounded-2xl bg-brand-600 flex items-center justify-center text-white font-bold text-xl shadow-lg ">
                             {user.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <h3 className="font-black text-xl text-slate-800 dark:text-white leading-none">{user.name}</h3>
-                            <p className="text-sm text-slate-500 mt-1 uppercase font-bold tracking-widest">{user.role} Analytics</p>
+                            <h3 className="font-bold text-xl text-ink leading-none">{user.name}</h3>
+                            <p className="text-sm text-ink-muted mt-1 uppercase font-bold tracking-widest">{user.role} Analytics</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="flex bg-slate-200/50 dark:bg-slate-800 p-1 rounded-xl">
+                        <div className="flex bg-sunken/50 dark:bg-surface p-1 rounded-xl">
                             {['7', '14', '30'].map(range => (
                                 <button key={range} onClick={() => setDateRange(range)}
-                                    className={`px-3 py-1 text-2xs font-black uppercase rounded-lg transition-all ${
+                                    className={`px-3 py-1 text-2xs font-bold uppercase rounded-lg transition-all ${
                                         dateRange === range 
-                                            ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' 
-                                            : 'text-slate-500'
+                                            ? 'bg-sunken text-brand-600 shadow-sm' 
+                                            : 'text-ink-muted'
                                     }`}>
                                     {range} Days
                                 </button>
                             ))}
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 rounded-full transition-colors">
+                        <button onClick={onClose} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-muted hover:text-red-500 rounded-full transition-colors">
                             <X size={24} />
                         </button>
                     </div>
@@ -1220,21 +1220,21 @@ function AttendanceDetailModal({ user, history, onClose }) {
                     <div className="space-y-8 h-full flex flex-col">
                         <div className="flex justify-between items-end">
                             <div>
-                                <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">Login & Logout Consistency</h4>
-                                <p className="text-xs text-slate-500 mt-1">Timeline of first daily check-in vs last daily check-out.</p>
+                                <h4 className="text-sm font-bold text-ink-muted uppercase tracking-widest">Login & Logout Consistency</h4>
+                                <p className="text-xs text-ink-muted mt-1">Timeline of first daily check-in vs last daily check-out.</p>
                             </div>
                             <div className="flex gap-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                                    <span className="text-2xs font-black uppercase text-slate-500 tracking-wider">Arrival Time</span>
+                                    <div className="w-3 h-3 rounded-full bg-brand-500"></div>
+                                    <span className="text-2xs font-bold uppercase text-ink-muted tracking-wider">Arrival Time</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-                                    <span className="text-2xs font-black uppercase text-slate-500 tracking-wider">Departure Time</span>
+                                    <span className="text-2xs font-bold uppercase text-ink-muted tracking-wider">Departure Time</span>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex-1 min-h-[300px] w-full bg-slate-50/50 dark:bg-slate-800/20 rounded-3xl border border-slate-100 dark:border-slate-800 p-6 relative overflow-hidden">
+                        <div className="flex-1 min-h-[300px] w-full bg-surface/50 dark:bg-surface rounded-2xl border border-line p-6 relative overflow-hidden">
                             <div className="absolute inset-6">
                                 <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
                                     <AreaChart data={chartData}>
@@ -1254,15 +1254,15 @@ function AttendanceDetailModal({ user, history, onClose }) {
                                         <Tooltip content={({ active, payload }) => {
                                             if (active && payload && payload.length) {
                                                 return (
-                                                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-2xl">
-                                                        <p className="text-xs font-black text-slate-800 dark:text-white mb-2">{payload[0].payload.date}</p>
+                                                    <div className="bg-surface border border-line p-4 rounded-2xl shadow-2xl">
+                                                        <p className="text-xs font-bold text-ink mb-2">{payload[0].payload.date}</p>
                                                         <div className="space-y-1.5">
                                                             <div className="flex items-center gap-4 justify-between">
-                                                                <span className="text-2xs font-bold text-slate-500 uppercase">First In:</span>
-                                                                <span className="text-xs font-bold text-indigo-600">{payload[0].payload.inLabel || '—'}</span>
+                                                                <span className="text-2xs font-bold text-ink-muted uppercase">First In:</span>
+                                                                <span className="text-xs font-bold text-brand-600">{payload[0].payload.inLabel || '—'}</span>
                                                             </div>
                                                             <div className="flex items-center gap-4 justify-between">
-                                                                <span className="text-2xs font-bold text-slate-500 uppercase">Last Out:</span>
+                                                                <span className="text-2xs font-bold text-ink-muted uppercase">Last Out:</span>
                                                                 <span className="text-xs font-bold text-rose-500">{payload[0].payload.outLabel || '—'}</span>
                                                             </div>
                                                         </div>
@@ -1280,12 +1280,12 @@ function AttendanceDetailModal({ user, history, onClose }) {
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-6">
-                            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                            <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Zap size={14} className="text-indigo-500" />
-                                    <span className="text-2xs font-black text-indigo-600 uppercase">Average In</span>
+                                    <Zap size={14} className="text-brand-500" />
+                                    <span className="text-2xs font-bold text-brand-600 uppercase">Average In</span>
                                 </div>
-                                <p className="text-lg font-black text-indigo-700 dark:text-indigo-400">
+                                <p className="text-lg font-bold text-brand-700 dark:text-brand-400">
                                     {chartData.filter(d => d.in).length > 0 ? (() => {
                                         const avg = chartData.filter(d => d.in).reduce((s,d) => s + d.in, 0) / chartData.filter(d => d.in).length;
                                         const h = Math.floor(avg);
@@ -1297,9 +1297,9 @@ function AttendanceDetailModal({ user, history, onClose }) {
                             <div className="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-2xl border border-rose-100 dark:border-rose-800">
                                 <div className="flex items-center gap-2 mb-1">
                                     <RotateCcw size={14} className="text-rose-500" />
-                                    <span className="text-2xs font-black text-rose-600 uppercase">Average Out</span>
+                                    <span className="text-2xs font-bold text-rose-600 uppercase">Average Out</span>
                                 </div>
-                                <p className="text-lg font-black text-rose-700 dark:text-rose-400">
+                                <p className="text-lg font-bold text-rose-700 dark:text-rose-400">
                                     {chartData.filter(d => d.out).length > 0 ? (() => {
                                         const avg = chartData.filter(d => d.out).reduce((s,d) => s + d.out, 0) / chartData.filter(d => d.out).length;
                                         const h = Math.floor(avg);
@@ -1308,12 +1308,12 @@ function AttendanceDetailModal({ user, history, onClose }) {
                                     })() : '—'}
                                 </p>
                             </div>
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                                <div className="flex items-center gap-2 mb-1 text-slate-500">
+                            <div className="bg-app p-4 rounded-2xl border border-line">
+                                <div className="flex items-center gap-2 mb-1 text-ink-muted">
                                     <Activity size={14} />
-                                    <span className="text-2xs font-black uppercase">Punctuality</span>
+                                    <span className="text-2xs font-bold uppercase">Punctuality</span>
                                 </div>
-                                <p className="text-lg font-black text-slate-800 dark:text-white">Professional</p>
+                                <p className="text-lg font-bold text-ink">Professional</p>
                             </div>
                         </div>
                     </div>
@@ -1354,54 +1354,54 @@ function EditMemberModal({ member, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
-            <div className="bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-[1200px] border border-slate-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
+        <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-sm z-sticky flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
+            <div className="bg-neutral-900 rounded-xl shadow-2xl w-full max-w-[1200px] border border-neutral-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
                 
                 <button onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors z-20">
+                    className="absolute top-6 right-6 p-2 rounded-full text-ink-muted hover:text-white hover:bg-interactive-hover transition-colors z-20">
                     <X size={20} />
                 </button>
 
                 {/* LEFT COLUMN: Form & Roles */}
-                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-slate-900 rounded-l-[2rem] max-h-[85vh] overflow-y-auto">
+                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-neutral-700/50 flex flex-col bg-neutral-900 rounded-l-xl max-h-[85vh] overflow-y-auto">
                     <div className="flex items-center gap-4 mb-10">
-                        <h3 className="font-extrabold text-2xl text-white tracking-tight">Edit Member</h3>
-                        <div className="h-4 w-px bg-slate-700"></div>
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{member.name}</span>
+                        <h3 className="font-bold text-2xl text-white tracking-tight">Edit Member</h3>
+                        <div className="h-4 w-px bg-neutral-700"></div>
+                        <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">{member.name}</span>
                     </div>
 
                     <form id="edit-member-form" onSubmit={submit} className="flex flex-col gap-10 flex-1">
                         
                         {/* Member Profile */}
                         <div className="space-y-5">
-                            <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
+                            <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                 <User size={14} /> MEMBER PROFILE
                             </h4>
                             
-                            <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                            <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                 <label className="text-2xs font-bold uppercase tracking-wider ml-1">Display Name</label>
                                 <input type="text" value={data.display_name} onChange={e => setData('display_name', e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
                                     placeholder="Display Name" required />
                                 {errors.display_name && <p className="text-2xs text-red-400 ml-1">{errors.display_name}</p>}
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                     <label className="text-2xs font-bold uppercase tracking-wider ml-1">Status</label>
                                     <select value={data.status} onChange={e => setData('status', e.target.value)}
                                         disabled={member.role === 'owner'}
-                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                                        className="w-full px-4 py-3 bg-sunken border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
                                         <option value="active">Active</option>
                                         <option value="suspended">Suspended</option>
                                     </select>
                                     {errors.status && <p className="text-2xs text-red-400 ml-1">{errors.status}</p>}
                                 </div>
                                 
-                                <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                     <label className="text-2xs font-bold uppercase tracking-wider ml-1">Passcode PIN</label>
                                     <input type="password" value={data.passcode} onChange={e => setData('passcode', e.target.value)}
-                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500 font-mono"
+                                        className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted font-mono"
                                         placeholder="Keep original PIN" maxLength={6} />
                                     {errors.passcode && <p className="text-2xs text-red-400 ml-1">{errors.passcode}</p>}
                                 </div>
@@ -1411,10 +1411,10 @@ function EditMemberModal({ member, onClose }) {
                         {/* Roles */}
                         <div className="space-y-5">
                             <div className="flex items-center justify-between">
-                                <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
+                                <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                     <Crown size={14} /> ASSIGN ROLE
                                 </h4>
-                                <span className="text-2xs font-bold text-indigo-400 tracking-wider">
+                                <span className="text-2xs font-bold text-brand-400 tracking-wider">
                                     {data.role ? ROLES[data.role]?.name?.toUpperCase() : 'NONE'}
                                 </span>
                             </div>
@@ -1429,15 +1429,15 @@ function EditMemberModal({ member, onClose }) {
                                             onClick={() => toggleRole(key)}
                                             className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
                                                 isSelected
-                                                    ? 'bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-600/20'
-                                                    : 'bg-slate-800 border-slate-700 hover:border-indigo-400/50 hover:bg-slate-800/80'
+                                                    ? 'bg-brand-600 border-brand-500 shadow-xl '
+                                                    : 'bg-sunken border-neutral-700 hover:border-brand-400/50 hover:bg-interactive-hover'
                                             } ${isOwner ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                            <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
+                                            <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-ink-muted'}`}>
                                                 <role.icon size={16} />
                                             </div>
                                             <div>
-                                                <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-300'}`}>{role.name}</div>
-                                                <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>{role.description}</div>
+                                                <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{role.name}</div>
+                                                <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{role.description}</div>
                                             </div>
                                         </button>
                                     );
@@ -1445,8 +1445,8 @@ function EditMemberModal({ member, onClose }) {
                             </div>
                             {data.role === 'custom' && (
                                 <div className="mt-3">
-                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 block">
-                                        Custom Role Name <span className="text-slate-500 font-normal normal-case">(optional — shown as badge)</span>
+                                    <label className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-1 block">
+                                        Custom Role Name <span className="text-ink-muted font-normal normal-case">(optional — shown as badge)</span>
                                     </label>
                                     <input
                                         type="text"
@@ -1454,7 +1454,7 @@ function EditMemberModal({ member, onClose }) {
                                         placeholder="e.g. Senior Accountant, Floor Supervisor..."
                                         value={data.custom_role_name}
                                         onChange={e => setData('custom_role_name', e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+                                        className="w-full bg-neutral-800 border border-neutral-600 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition"
                                     />
                                 </div>
                             )}
@@ -1465,20 +1465,20 @@ function EditMemberModal({ member, onClose }) {
                 </div>
 
                 {/* RIGHT COLUMN: Permissions Visualization */}
-                <div className="flex-1 p-8 md:p-10 bg-slate-900 rounded-r-[2rem] flex flex-col relative overflow-hidden">
+                <div className="flex-1 p-8 md:p-10 bg-neutral-900 rounded-r-xl flex flex-col relative overflow-hidden">
                     {/* Ambient glow in right panel */}
-                    <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
                     
                     <div className="flex items-center justify-between mb-8 relative z-10">
                         <div className="space-y-1">
-                            <h4 className="flex items-center gap-2 text-2xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                                <Shield size={14} className="text-indigo-400" /> System Visibility
+                            <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-[0.2em]">
+                                <Shield size={14} className="text-brand-400" /> System Visibility
                             </h4>
-                            <p className="text-2xs text-slate-500 font-bold uppercase tracking-widest pl-6">
+                            <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest pl-6">
                                 Module Access Control
                             </p>
                         </div>
-                        <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-2xs font-black text-indigo-400 flex items-center gap-2 tracking-widest uppercase">
+                        <div className="px-4 py-2 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-2xs font-bold text-brand-400 flex items-center gap-2 tracking-widest uppercase">
                             <Sparkles size={12} /> Live Permissions Preview
                         </div>
                     </div>
@@ -1490,24 +1490,24 @@ function EditMemberModal({ member, onClose }) {
                     />
                     
                     {/* Bottom Footer Actions inside Right Panel */}
-                    <div className="mt-8 pt-8 border-t border-slate-800/50 flex items-center justify-between relative z-10">
+                    <div className="mt-8 pt-8 border-t border-neutral-800/50 flex items-center justify-between relative z-10">
                         <div className="space-y-1">
-                            <div className="text-2xs font-black text-slate-500 uppercase tracking-widest">
+                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                 Summary
                             </div>
-                            <div className="text-sm font-black text-white">
-                                <span className={data.permissions.length > 0 ? 'text-indigo-400' : 'text-slate-500'}>
+                            <div className="text-sm font-bold text-white">
+                                <span className={data.permissions.length > 0 ? 'text-brand-400' : 'text-ink-muted'}>
                                      {data.permissions.length} Action Items Enabled
                                 </span>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
                             <button type="button" onClick={onClose}
-                                className="px-6 py-3 text-slate-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+                                className="px-6 py-3 text-ink-muted hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
                                 Discard
                             </button>
                             <button type="submit" form="edit-member-form" disabled={processing}
-                                className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
+                                className="px-10 py-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
                                 <Check size={16} />
                                 Save Changes
                             </button>
@@ -1539,7 +1539,7 @@ function MembersTable({ users, store }) {
 
     if (filtered.length === 0) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600 gap-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex-1 flex flex-col items-center justify-center text-neutral-300 dark:text-ink-secondary gap-4 bg-surface rounded-2xl border border-line">
                 <Users size={64} className="stroke-[0.7]" />
                 <p className="text-sm">No active members yet. Invite someone to get started.</p>
             </div>
@@ -1554,11 +1554,11 @@ function MembersTable({ users, store }) {
                     onClose={() => setEditingMember(null)}
                 />
             )}
-            <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
+            <div className="flex-1 bg-surface border border-line rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
                 <div className="flex-1 overflow-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10">
-                            <tr className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                        <thead className="bg-app sticky top-0 z-10">
+                            <tr className="text-xs font-semibold text-ink-muted uppercase tracking-wider border-b border-line">
                                 <th className="px-6 py-4">Member</th>
                                 <th className="px-6 py-4">Role & Access</th>
                                 <th className="px-6 py-4">Email</th>
@@ -1567,7 +1567,7 @@ function MembersTable({ users, store }) {
                                 {canManage && <th className="px-6 py-4 text-right">Actions</th>}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {filtered.map(user => {
                                 const resolvedRole = (() => {
                                     if (user.role && user.role !== 'custom' && ROLES[user.role]) return user.role;
@@ -1592,18 +1592,18 @@ function MembersTable({ users, store }) {
                                 const isOwner = user.role === 'owner';
 
                                 return (
-                                    <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                                    <tr key={user.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center text-white font-bold shadow-md`}>
                                                     {user.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">
+                                                    <p className="font-bold text-ink-secondary dark:text-ink text-sm">
                                                         {user.display_name || user.name}
-                                                        {user.role === 'owner' && <span className="ml-2 text-2xs font-black bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">Owner</span>}
+                                                        {user.role === 'owner' && <span className="ml-2 text-2xs font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">Owner</span>}
                                                     </p>
-                                                    <p className="text-xs text-slate-400 font-mono">ID: {user.id}</p>
+                                                    <p className="text-xs text-ink-muted font-mono">ID: {user.id}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -1612,14 +1612,14 @@ function MembersTable({ users, store }) {
                                                 <RoleIcon size={10} />{badgeLabel}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500 font-mono">{user.email}</td>
+                                        <td className="px-6 py-4 text-sm text-ink-muted font-mono">{user.email}</td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
                                                 {st.label}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">
+                                        <td className="px-6 py-4 text-sm text-ink-muted">
                                             {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </td>
                                         
@@ -1629,18 +1629,18 @@ function MembersTable({ users, store }) {
                                                 {!isOwner && (
                                                     <div className="relative inline-block">
                                                         <button onClick={() => setOpenMenu(openMenu === user.id ? null : user.id)}
-                                                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors opacity-0 group-hover:opacity-100">
+                                                            className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors opacity-0 group-hover:opacity-100">
                                                             <ChevronDown size={16} />
                                                         </button>
                                                         {openMenu === user.id && (
                                                             <>
                                                                 <div className="fixed inset-0 z-20" onClick={() => setOpenMenu(null)} />
-                                                                <div className="absolute right-0 top-10 z-30 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl py-2 overflow-hidden text-left">
+                                                                <div className="absolute right-0 top-10 z-30 w-48 bg-surface border border-line rounded-2xl shadow-2xl py-2 overflow-hidden text-left">
                                                                     <button onClick={() => { setEditingMember(user); setOpenMenu(null); }}
-                                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                                                        <Edit3 size={14} className="text-indigo-500" /> Edit Role & Access
+                                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                                                        <Edit3 size={14} className="text-brand-500" /> Edit Role & Access
                                                                     </button>
-                                                                    <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                                                                    <div className="my-1 border-t border-line" />
                                                                     <button onClick={() => handleRemove(user)}
                                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                                                                         <Trash2 size={14} /> Remove Member
@@ -1666,17 +1666,17 @@ function MembersTable({ users, store }) {
 // ─── StatCard ──────────────────────────────────────────────────────────────
 function StatCard({ title, value, icon, color, subtext }) {
     return (
-        <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+        <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
             <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 ${color} rounded-lg flex items-center justify-center text-white shrink-0 shadow-md shadow-indigo-500/5`}>
+                <div className={`w-8 h-8 ${color} rounded-lg flex items-center justify-center text-white shrink-0 shadow-md `}>
                     {icon}
                 </div>
                 <div>
-                    <span className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</span>
+                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{title}</span>
                     {subtext && <p className="text-4xs text-amber-500 font-semibold">{subtext}</p>}
                 </div>
             </div>
-            <h3 className="text-base font-black text-slate-800 dark:text-white">{value || 0}</h3>
+            <h3 className="text-base font-bold text-ink">{value || 0}</h3>
         </div>
     );
 }

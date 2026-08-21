@@ -225,7 +225,7 @@ export default function DashboardBuilderSheet({
                         from { transform: translateX(100%); }
                         to   { transform: translateX(0); }
                     }
-                `}</style>
+`}</style>
 
                 {/* ── Header ── */}
                 <div style={{

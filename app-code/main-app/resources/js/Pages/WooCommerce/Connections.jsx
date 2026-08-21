@@ -13,8 +13,8 @@ function StatusBadge({ status }) {
     const cfg = {
         active:  { color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20', icon: CheckCircle, label: 'Active' },
         pending: { color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20',       icon: Clock,        label: 'Pending' },
-        paused:  { color: 'text-slate-500 bg-slate-100 dark:bg-slate-800',         icon: AlertTriangle, label: 'Paused' },
-    }[status] ?? { color: 'text-slate-400 bg-slate-100', icon: Clock, label: status };
+        paused:  { color: 'text-ink-muted bg-sunken',         icon: AlertTriangle, label: 'Paused' },
+    }[status] ?? { color: 'text-ink-muted bg-neutral-100', icon: Clock, label: status };
 
     const Icon = cfg.icon;
     return (
@@ -51,49 +51,49 @@ function AddConnectionModal({ storeSlug, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md border border-line">
+                <div className="flex items-center justify-between p-5 border-b border-line">
                     <div>
-                        <h2 className="font-bold text-slate-800 dark:text-white">Add WooCommerce Connection</h2>
-                        <p className="text-xs text-slate-400 mt-0.5">$10/month per connection, billed to your store.</p>
+                        <h2 className="font-bold text-ink">Add WooCommerce Connection</h2>
+                        <p className="text-xs text-ink-muted mt-0.5">$10/month per connection, billed to your store.</p>
                     </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl font-bold">×</button>
+                    <button onClick={onClose} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 text-xl font-bold">×</button>
                 </div>
 
                 <form onSubmit={submit} className="p-5 space-y-4">
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Connection Name</label>
+                        <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1">Connection Name</label>
                         <input
                             type="text"
                             value={data.name}
                             onChange={e => setData('name', e.target.value)}
                             placeholder="e.g. My WordPress Store"
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                            className="w-full px-3 py-2 bg-app border border-line rounded-xl text-sm text-ink-secondary focus:outline-none focus:ring-2 focus:ring-violet-500"
                             required
                         />
                         {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">WordPress Site URL (Optional)</label>
+                        <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1">WordPress Site URL (Optional)</label>
                         <input
                             type="text"
                             value={data.site_url}
                             onChange={e => setData('site_url', e.target.value)}
                             onBlur={handleUrlBlur}
                             placeholder="https://my-wordpress-store.com"
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                            className="w-full px-3 py-2 bg-app border border-line rounded-xl text-sm text-ink-secondary focus:outline-none focus:ring-2 focus:ring-violet-500"
                         />
-                        <p className="text-2xs text-slate-400 mt-0.5">Recommended. Allows triggering instant remote handshakes directly from the POS.</p>
+                        <p className="text-2xs text-ink-muted mt-0.5">Recommended. Allows triggering instant remote handshakes directly from the POS.</p>
                         {errors.site_url && <p className="text-xs text-red-500 mt-1">{errors.site_url}</p>}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Conflict Priority</label>
+                        <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1">Conflict Priority</label>
                         <select
                             value={data.priority_source}
                             onChange={e => setData('priority_source', e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                            className="w-full px-3 py-2 bg-app border border-line rounded-xl text-sm text-ink-secondary focus:outline-none focus:ring-2 focus:ring-violet-500"
                         >
                             <option value="venqore">VenQore wins (recommended)</option>
                             <option value="woocommerce">WooCommerce wins</option>
@@ -102,7 +102,7 @@ function AddConnectionModal({ storeSlug, onClose }) {
                     </div>
 
                     <div className="pt-2 flex gap-2 justify-end">
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 transition-colors">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-ink-secondary bg-sunken rounded-xl hover:bg-interactive-hover transition-colors">
                             Cancel
                         </button>
                         <button
@@ -140,22 +140,22 @@ function ConnectionCard({ connection, storeSlug }) {
     const staged     = connection.staged_count ?? 0;
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all group relative">
+        <div className="bg-surface rounded-2xl border border-line overflow-hidden hover:shadow-lg transition-all group relative">
             {/* Custom Premium Deletion Confirmation Overlay */}
             {showConfirm && (
-                <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-4 text-center animate-in fade-in duration-200">
+                <div className="absolute inset-0 bg-neutral-950/85 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-4 text-center animate-in fade-in duration-normal">
                     <div className="w-11 h-11 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mb-3 animate-bounce">
                         <AlertTriangle size={20} />
                     </div>
                     <h4 className="text-white font-bold text-sm">Delete Connection?</h4>
-                    <p className="text-1xs text-slate-400 mt-1 max-w-[210px] leading-relaxed">
+                    <p className="text-1xs text-ink-muted mt-1 max-w-[210px] leading-relaxed">
                         This permanently disconnects "{connection.name}" and purges all live sync metadata.
                     </p>
                     <div className="flex items-center gap-2 mt-4 w-full px-2">
                         <button
                             type="button"
                             onClick={() => setShowConfirm(false)}
-                            className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors border border-slate-700"
+                            className="flex-1 py-2 bg-neutral-800 hover:bg-interactive-hover text-neutral-300 rounded-xl text-xs font-semibold transition-colors border border-neutral-700"
                         >
                             Cancel
                         </button>
@@ -181,13 +181,13 @@ function ConnectionCard({ connection, storeSlug }) {
                             <ShoppingCart size={18} className={isActive ? 'text-violet-500' : 'text-amber-500'} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-800 dark:text-white text-sm">{connection.name}</h3>
+                            <h3 className="font-bold text-ink text-sm">{connection.name}</h3>
                             {connection.site_url ? (
                                 <a
                                     href={connection.site_url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="text-xs text-slate-400 hover:text-violet-500 flex items-center gap-1"
+                                    className="text-xs text-ink-muted hover:text-violet-500 flex items-center gap-1"
                                 >
                                     {connection.site_url.replace(/^https?:\/\//, '')}
                                     <ExternalLink size={10} />
@@ -209,9 +209,9 @@ function ConnectionCard({ connection, storeSlug }) {
                         { label: 'Staged',   value: staged,  color: 'text-amber-600' },
                         { label: 'Priority', value: connection.priority_source, color: 'text-violet-600' },
                     ].map(stat => (
-                        <div key={stat.label} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5 text-center">
+                        <div key={stat.label} className="bg-app rounded-xl p-2.5 text-center">
                             <div className={`font-bold text-sm ${stat.color} capitalize`}>{stat.value}</div>
-                            <div className="text-xs text-slate-400">{stat.label}</div>
+                            <div className="text-xs text-ink-muted">{stat.label}</div>
                         </div>
                     ))}
                 </div>
@@ -235,7 +235,7 @@ function ConnectionCard({ connection, storeSlug }) {
                     )}
                     <button
                         onClick={() => setShowConfirm(true)}
-                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                        className="p-2 text-ink-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                     >
                         <Trash2 size={14} />
                     </button>
@@ -258,11 +258,11 @@ export default function Connections({ connections = [], store_slug }) {
                 {/* Header */}
                 <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
-                        <h1 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <h1 className="text-xl font-bold text-ink flex items-center gap-2">
                             <ShoppingCart size={22} className="text-violet-500" />
                             WooCommerce Sync
                         </h1>
-                        <p className="text-sm text-slate-400 mt-0.5">
+                        <p className="text-sm text-ink-muted mt-0.5">
                             Bidirectional product sync between VenQore and your WooCommerce stores. $10/month per connection.
                         </p>
                     </div>
@@ -278,12 +278,12 @@ export default function Connections({ connections = [], store_slug }) {
 
                 {/* Empty State */}
                 {connections.length === 0 && (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-16 text-center">
+                    <div className="bg-surface rounded-2xl border border-line p-16 text-center">
                         <div className="w-16 h-16 rounded-2xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center mx-auto mb-4">
                             <ShoppingCart size={28} className="text-violet-400" />
                         </div>
-                        <h3 className="font-bold text-slate-800 dark:text-white mb-2">No WooCommerce connections yet</h3>
-                        <p className="text-sm text-slate-400 mb-6 max-w-sm mx-auto">
+                        <h3 className="font-bold text-ink mb-2">No WooCommerce connections yet</h3>
+                        <p className="text-sm text-ink-muted mb-6 max-w-sm mx-auto">
                             Connect your WooCommerce store to sync products, prices, and stock automatically — in both directions.
                         </p>
                         <button
@@ -306,8 +306,8 @@ export default function Connections({ connections = [], store_slug }) {
                 )}
 
                 {/* How it works */}
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/50">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-300 text-sm mb-3">How it works</h3>
+                <div className="bg-app rounded-2xl p-6 border border-line">
+                    <h3 className="font-bold text-ink-secondary text-sm mb-3">How it works</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
                             { step: '1', title: 'Add Connection', desc: 'Create a connection in VenQore and download your customized WordPress plugin.' },
@@ -319,8 +319,8 @@ export default function Connections({ connections = [], store_slug }) {
                                     {item.step}
                                 </div>
                                 <div>
-                                    <div className="font-semibold text-slate-700 dark:text-slate-300 text-sm">{item.title}</div>
-                                    <div className="text-xs text-slate-400 mt-0.5">{item.desc}</div>
+                                    <div className="font-semibold text-ink-secondary text-sm">{item.title}</div>
+                                    <div className="text-xs text-ink-muted mt-0.5">{item.desc}</div>
                                 </div>
                             </div>
                         ))}

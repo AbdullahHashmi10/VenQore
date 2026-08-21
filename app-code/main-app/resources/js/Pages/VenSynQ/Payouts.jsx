@@ -21,8 +21,8 @@ import {
  */
 
 const money = (n, currency = 'GBP') => {
-    const symbols = { GBP: '£', USD: '$', EUR: '€', PKR: '₨', AED: 'AED ' };
-    return `${symbols[currency] ?? currency + ' '}${Number(n ?? 0).toLocaleString(undefined, {
+    const symbols = { GBP: '£', USD: '$', EUR: '€', PKR: '₨', AED: 'AED' };
+    return `${symbols[currency] ?? currency + ''}${Number(n ?? 0).toLocaleString(undefined, {
         minimumFractionDigits: 2, maximumFractionDigits: 2,
     })}`;
 };
@@ -202,7 +202,7 @@ function ConfirmRow({ payout, bankAccounts, storeSlug }) {
                     padding: '11px 18px', borderRadius: 9, border: 'none',
                     background: saving || actual === ''
                         ? vq.slate[800]
-                        : 'linear-gradient(135deg, #059669, #047857)',
+                        : 'linear-gradient(135deg, rgb(var(--vq-emerald-600)), rgb(var(--vq-emerald-700)))',
                     color: saving || actual === '' ? vq.slate[600] : '#fff',
                     fontSize: 13, fontWeight: 700,
                     cursor: saving ? 'wait' : actual === '' ? 'not-allowed' : 'pointer',
@@ -252,7 +252,7 @@ export default function Payouts({
                     <div>
                         <h1 style={{
                             fontSize: 20, fontWeight: 700, margin: 0,
-                            background: 'linear-gradient(90deg, #60a5fa, #a78bfa)',
+                            background: 'linear-gradient(90deg, rgb(var(--vq-blue-400)), rgb(var(--vq-violet-400)))',
                             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                         }}>
                             Marketplace Payouts
@@ -426,7 +426,7 @@ export default function Payouts({
             <style>{`
                 .spin { animation: vensynq-spin 1s linear infinite; }
                 @keyframes vensynq-spin { to { transform: rotate(360deg); } }
-            `}</style>
+`}</style>
         </OneGlanceLayout>
     );
 }

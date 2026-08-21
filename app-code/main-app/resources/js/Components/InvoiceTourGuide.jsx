@@ -184,13 +184,13 @@ export default function InvoiceTourGuide({ store }) {
         const isPosDone = doneSteps.includes('pos');
 
         return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+            <div className="fixed inset-0 z-drawer flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
-                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-drawer animate-in zoom-in-95 duration-slow">
+                    <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
-                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
                         <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <div className="p-8 flex flex-col items-center text-center relative z-10">
@@ -198,15 +198,15 @@ export default function InvoiceTourGuide({ store }) {
                                 <Trophy className="text-white w-8 h-8" />
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
                                 Invoice Generated! 🧾🎉
                             </h2>
 
-                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                            <p className="text-ink-muted text-sm font-semibold mb-2">
                                 Your B2B sale invoice has been successfully created!
                             </p>
 
-                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-6">
+                            <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-6">
                                 Amazing! You've recorded a wholesale transaction and created a detailed invoice. 
                                 {isPosDone 
                                     ? " Both sales routes are complete. Let's record store expenses next to track your cash flow!"
@@ -217,20 +217,20 @@ export default function InvoiceTourGuide({ store }) {
                                 {!isPosDone && (
                                     <button
                                         onClick={handleStartPosTour}
-                                        className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-sm"
+                                        className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-md transition-all duration-normal active:scale-[0.99] cursor-pointer text-sm"
                                     >
                                         <span>Try POS Register</span>
                                     </button>
                                 )}
                                 <button
                                     onClick={handleStartExpenseTour}
-                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-sm"
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md transition-all duration-normal active:scale-[0.99] cursor-pointer text-sm"
                                 >
                                     <span>Record Expenses</span>
                                 </button>
                                 <button
                                     onClick={handleSkipSetup}
-                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-xs mt-1"
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-neutral-800 hover:bg-interactive-hover text-neutral-300 hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal active:scale-[0.99] cursor-pointer text-xs mt-1"
                                 >
                                     <span>Skip & Finish Setup</span>
                                 </button>
@@ -298,11 +298,11 @@ export default function InvoiceTourGuide({ store }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[105] overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-drawer overflow-hidden pointer-events-none">
             {/* Spotlight Highlighter Mask */}
             {coords && (
                 <div
-                    className="fixed pointer-events-none transition-all duration-100 ease-out"
+                    className="fixed pointer-events-none transition-all duration-fast ease-out"
                     style={{
                         top: coords.top - 6,
                         left: coords.left - 6,
@@ -316,23 +316,23 @@ export default function InvoiceTourGuide({ store }) {
             )}
 
             {!coords && (
-                <div className="fixed inset-0 bg-slate-950/75 pointer-events-none z-[90]"></div>
+                <div className="fixed inset-0 bg-neutral-950/75 pointer-events-none z-drawer"></div>
             )}
 
             {/* Floating Tooltip Box */}
             <div
                 style={getTooltipStyle()}
-                className="bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-[115] animate-in fade-in duration-300"
+                className="bg-neutral-900/95 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
             >
                 <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
+                    <div className="p-2 bg-brand-500/10 rounded-lg text-brand-400 shrink-0">
                         <Sparkles size={20} className="animate-pulse" />
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             B2B Invoice Tour
                         </h4>
-                        <span className="text-2xs font-semibold text-indigo-400">
+                        <span className="text-2xs font-semibold text-brand-400">
                             Step {currentStep + 1} of {isCustomerCreationPath ? 10 : 5}
                         </span>
                     </div>
@@ -342,52 +342,52 @@ export default function InvoiceTourGuide({ store }) {
                     {isCustomerCreationPath ? (
                         <>
                             {currentStep === 0 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     You don't have any customers yet! Click on the <span className="text-white font-bold">Search Party</span> input.
                                 </p>
                             )}
                             {currentStep === 1 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Now click <span className="text-white font-bold">+ Create New Party</span> at the bottom of the dropdown.
                                 </p>
                             )}
                             {currentStep === 2 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Put in the customer's <span className="text-white font-bold">Name</span> inside the modal.
                                 </p>
                             )}
                             {currentStep === 3 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Put in their <span className="text-white font-bold">Phone Number</span>.
                                 </p>
                             )}
                             {currentStep === 4 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Put in their <span className="text-white font-bold">Address</span>.
                                 </p>
                             )}
                             {currentStep === 5 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Click <span className="text-white font-bold">Create Customer</span> to save the customer.
                                 </p>
                             )}
                             {currentStep === 6 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Great! Now move toward the <span className="text-white font-bold">Search Product</span> option and select the previously created product.
                                 </p>
                             )}
                             {currentStep === 7 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Enter the <span className="text-white font-bold">Amount Paid</span> by the customer (leave as 0 if on credit).
                                 </p>
                             )}
                             {currentStep === 8 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Click <span className="text-white font-bold">Complete Sale</span> to generate the B2B invoice.
                                 </p>
                             )}
                             {currentStep === 9 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Click <span className="text-white font-bold">NEW TRANSACTION</span> to continue your setup.
                                 </p>
                             )}
@@ -395,27 +395,27 @@ export default function InvoiceTourGuide({ store }) {
                     ) : (
                         <>
                             {currentStep === 0 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Select a <span className="text-white font-bold">Customer</span> for the invoice.
                                 </p>
                             )}
                             {currentStep === 1 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Search and select a <span className="text-white font-bold">Product</span> to add to the invoice list.
                                 </p>
                             )}
                             {currentStep === 2 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Enter the <span className="text-white font-bold">Amount Paid</span> by the customer (leave as 0 if on credit).
                                 </p>
                             )}
                             {currentStep === 3 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Click <span className="text-white font-bold">Complete Sale</span> to generate the B2B invoice and update stock!
                                 </p>
                             )}
                             {currentStep === 4 && (
-                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                     Click <span className="text-white font-bold">NEW TRANSACTION</span> to continue your setup.
                                 </p>
                             )}
@@ -426,7 +426,7 @@ export default function InvoiceTourGuide({ store }) {
                         {currentStep > 0 ? (
                             <button
                                 onClick={() => setCurrentStep(currentStep - 1)}
-                                className="px-3 py-1.5 bg-slate-800 text-slate-400 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 bg-neutral-800 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             >
                                 <ArrowLeft size={12} />
                                 <span>Back</span>
@@ -438,7 +438,7 @@ export default function InvoiceTourGuide({ store }) {
                         {currentStep < (isCustomerCreationPath ? 9 : 4) && (
                             <button
                                 onClick={() => setCurrentStep(currentStep + 1)}
-                                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                                className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
                             >
                                 <span>Next</span>
                                 <ArrowRight size={12} />

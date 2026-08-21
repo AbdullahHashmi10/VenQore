@@ -96,13 +96,13 @@ export default function CharityButton({ showLabel = false }) {
             onClick={handleClick}
             disabled={isLoading || showEdit}
             className={`
-                flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300
+                flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-slow
                 ${showSuccess
                     ? 'bg-green-500 text-white'
                     : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border border-amber-300 dark:border-amber-700'
                 }
                 ${isLoading ? 'opacity-50 cursor-wait' : ''}
-            `}
+`}
             title="Click to donate | Hold to change amount"
         >
             {showSuccess ? (
@@ -113,7 +113,7 @@ export default function CharityButton({ showLabel = false }) {
 
             <div className="flex flex-col items-start">
                 <span className="text-2xs font-bold uppercase tracking-wide opacity-70">Charity</span>
-                <span className="text-xs font-black">
+                <span className="text-xs font-bold">
                     {showSuccess ? 'Added!' : `${store?.currency_symbol || 'Rs'} ${stats.today?.toLocaleString() || 0}`}
                 </span>
             </div>
@@ -122,13 +122,13 @@ export default function CharityButton({ showLabel = false }) {
 
     if (showLabel) {
         return (
-            <div className="p-1 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-600 dark:text-slate-350 pl-2">Charity Donations</span>
+            <div className="p-1 border-b border-line flex items-center justify-between">
+                <span className="text-xs font-semibold text-ink-secondary pl-2">Charity Donations</span>
                 <div className="relative">
                     {buttonContent}
                     {showEdit && (
-                        <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 block">
+                        <div className="absolute top-full right-0 mt-2 bg-surface rounded-xl shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
+                            <label className="text-xs font-bold text-ink-muted mb-1 block">
                                 Amount ({store?.currency_symbol || 'Rs'})
                             </label>
                             <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export default function CharityButton({ showLabel = false }) {
                                     value={customAmount}
                                     onChange={(e) => setCustomAmount(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    className="w-20 px-2 py-1.5 text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center focus:ring-2 ring-amber-500/20 outline-none"
+                                    className="w-20 px-2 py-1.5 text-sm font-bold bg-app border border-line rounded-lg text-center focus:ring-2 ring-amber-500/20 outline-none"
                                     min="1"
                                 />
                                 <button
@@ -152,12 +152,12 @@ export default function CharityButton({ showLabel = false }) {
                                         setShowEdit(false);
                                         setCustomAmount(stats.default_amount?.toString() || '10');
                                     }}
-                                    className="p-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                                    className="p-1.5 bg-sunken text-ink-secondary rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                 >
                                     <X size={14} />
                                 </button>
                             </div>
-                            <p className="text-2xs text-slate-400 mt-2">
+                            <p className="text-2xs text-ink-muted mt-2">
                                 Hold button to edit default
                             </p>
                         </div>
@@ -171,8 +171,8 @@ export default function CharityButton({ showLabel = false }) {
         <div className="relative">
             {buttonContent}
             {showEdit && (
-                <div className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 block">
+                <div className="absolute top-full left-0 mt-2 bg-surface rounded-xl shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
+                    <label className="text-xs font-bold text-ink-muted mb-1 block">
                         Amount ({store?.currency_symbol || 'Rs'})
                     </label>
                     <div className="flex items-center gap-2">
@@ -182,7 +182,7 @@ export default function CharityButton({ showLabel = false }) {
                             value={customAmount}
                             onChange={(e) => setCustomAmount(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            className="w-20 px-2 py-1.5 text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center focus:ring-2 ring-amber-500/20 outline-none"
+                            className="w-20 px-2 py-1.5 text-sm font-bold bg-app border border-line rounded-lg text-center focus:ring-2 ring-amber-500/20 outline-none"
                             min="1"
                         />
                         <button
@@ -196,12 +196,12 @@ export default function CharityButton({ showLabel = false }) {
                                 setShowEdit(false);
                                 setCustomAmount(stats.default_amount?.toString() || '10');
                             }}
-                            className="p-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            className="p-1.5 bg-sunken text-ink-secondary rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                         >
                             <X size={14} />
                         </button>
                     </div>
-                    <p className="text-2xs text-slate-400 mt-2">
+                    <p className="text-2xs text-ink-muted mt-2">
                         Hold button to edit default
                     </p>
                 </div>

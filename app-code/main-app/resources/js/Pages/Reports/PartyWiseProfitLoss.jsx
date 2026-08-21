@@ -15,18 +15,18 @@ export default function PartyWiseProfitLoss({ parties }) {
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Party Name</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Total Sales</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Estimated Profit</th>
+                        <tr className="bg-app border-b border-line">
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Party Name</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Total Sales</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Estimated Profit</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-line">
                         {parties.map((party, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{party.name}</td>
-                                <td className="px-6 py-4 text-right text-sm text-slate-600 dark:text-slate-400">{formatCurrency(party.sales)}</td>
-                                <td className="px-6 py-4 text-right text-sm font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(party.profit)}</td>
+                            <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                <td className="px-6 py-4 font-bold text-ink">{party.name}</td>
+                                <td className="px-6 py-4 text-right text-sm text-ink-secondary">{formatCurrency(party.sales)}</td>
+                                <td className="px-6 py-4 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(party.profit)}</td>
                             </tr>
                         ))}
                     </tbody>

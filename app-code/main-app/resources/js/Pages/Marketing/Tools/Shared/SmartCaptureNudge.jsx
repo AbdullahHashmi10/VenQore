@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 
 export default function SmartCaptureNudge({ documentType = 'invoice' }) {
     return (
-        <div className="mb-6 relative overflow-hidden rounded-2xl border border-violet-500/25 bg-gradient-to-r from-violet-600/[0.04] to-indigo-600/[0.02] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
+        <div className="mb-6 relative overflow-hidden rounded-2xl border border-violet-500/25 bg-gradient-to-r from-brand-600/[0.04] to-brand-600/[0.02] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
             {/* Top decorative gradient glow */}
             <div className="absolute top-0 right-1/4 w-32 h-[1px] bg-gradient-to-r from-transparent via-violet-400 to-transparent" />
             
@@ -13,13 +13,13 @@ export default function SmartCaptureNudge({ documentType = 'invoice' }) {
                     <Sparkles size={18} />
                 </div>
                 <div>
-                    <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
+                    <h4 className="text-xs font-bold text-ink uppercase tracking-wide flex items-center gap-1.5">
                         <span>Create this {documentType} with Smart Capture AI</span>
-                        <span className="px-1.5 py-0.5 rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[8px] font-black uppercase tracking-wider scale-90">
+                        <span className="px-1.5 py-0.5 rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 text-4xs font-bold uppercase tracking-wider scale-90">
                             92% Faster
                         </span>
                     </h4>
-                    <p className="text-2xs sm:text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    <p className="text-2xs sm:text-xs text-ink-muted mt-1 leading-relaxed">
                         Tired of typing line items manually? Upload any vendor bill, handwritten list, or photo, and let AI parse it in 3 seconds. You have <strong className="text-violet-600 dark:text-violet-400 font-bold">5 free pages left</strong> this month.
                     </p>
                 </div>

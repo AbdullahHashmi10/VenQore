@@ -756,8 +756,8 @@ export function SupportView({ tickets = {}, ticket_filters = {} }) {
                                 <div style={{ background: t.panel2, border: `1px solid ${t.border}`, borderRadius: 12, padding: 12, fontSize: 12, fontFamily: 'monospace', maxHeight: 250, overflowY: 'auto' }} className="vq-scroll">
                                     {transcript.lines.map((line, idx) => (
                                         <div key={idx} style={{ marginBottom: 6 }}>
-                                            <span style={{ color: t.muted }}>[{line.time}]</span>{' '}
-                                            <strong style={{ color: line.sender === 'Bot' ? BRAND.indigo2 : BRAND.emerald }}>{line.sender}:</strong>{' '}
+                                            <span style={{ color: t.muted }}>[{line.time}]</span>{''}
+                                            <strong style={{ color: line.sender === 'Bot' ? BRAND.indigo2 : BRAND.emerald }}>{line.sender}:</strong>{''}
                                             <span style={{ color: t.ink }}>{line.body}</span>
                                         </div>
                                     ))}

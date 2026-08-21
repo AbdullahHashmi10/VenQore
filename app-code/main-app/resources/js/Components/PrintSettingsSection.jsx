@@ -173,23 +173,23 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
     };
 
     const content = (
-        <div id="fullscreen-portal-root" className={`flex flex-col bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 ${isFullScreen ? 'fixed inset-0 z-[9999] rounded-none' : 'h-[calc(100vh-12rem)]'}`}>
+        <div id="fullscreen-portal-root" className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'h-[calc(100vh-12rem)]'}`}>
             {/* Header Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-line bg-surface z-10">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
-                        <Printer size={18} className="text-indigo-500" />
-                        <span className="font-extrabold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
+                    <div className="flex items-center gap-2 text-ink">
+                        <Printer size={18} className="text-brand-500" />
+                        <span className="font-bold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
                     </div>
 
                     {/* Format Tabs (Thermal vs Regular) */}
-                    <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                    <div className="flex bg-sunken rounded-lg p-1">
                         <button
                             type="button"
                             onClick={() => handleSubtabChange('regular')}
                             className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab !== 'thermal'
-                                ? 'bg-white dark:bg-slate-600 text-indigo-600 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                                ? 'bg-sunken text-brand-600 shadow-sm'
+                                : 'text-ink-muted hover:text-ink-secondary'}`}
                         >
                             Standard A4/A5
                         </button>
@@ -197,8 +197,8 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                             type="button"
                             onClick={() => handleSubtabChange('thermal')}
                             className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'thermal'
-                                ? 'bg-white dark:bg-slate-600 text-emerald-600 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                                ? 'bg-sunken text-emerald-600 shadow-sm'
+                                : 'text-ink-muted hover:text-ink-secondary'}`}
                         >
                             Thermal / POS
                         </button>
@@ -210,7 +210,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                     <button
                         type="button"
                         onClick={() => handleTestPrint(data)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all active:scale-95 mr-2"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-bold shadow-lg hover: transition-all active:scale-95 mr-2"
                         title="Send a test print with current settings (no need to save first)"
                     >
                         <Play size={14} className="fill-current" />
@@ -240,7 +240,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                                 });
                             }
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all active:scale-95 mr-2"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white rounded-xl text-xs font-bold shadow-lg hover: transition-all active:scale-95 mr-2"
                         title="Save and apply current printer settings"
                     >
                         <Save size={14} />
@@ -248,11 +248,11 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                     </button>
 
                     {/* Preview Mode Toggle */}
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1 mr-2">
+                    <div className="flex items-center gap-1 bg-sunken rounded-lg p-1 mr-2">
                         <button
                             type="button"
                             onClick={() => setPreviewMode('light')}
-                            className={`p-1.5 rounded transition-colors ${previewMode === 'light' ? 'bg-white dark:bg-slate-600 text-amber-500 shadow-sm' : 'text-slate-400'}`}
+                            className={`p-1.5 rounded transition-colors ${previewMode === 'light' ? 'bg-sunken text-amber-500 shadow-sm' : 'text-ink-muted'}`}
                             title="Light Mode Preview"
                         >
                             <Monitor size={14} />
@@ -260,7 +260,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                         <button
                             type="button"
                             onClick={() => setPreviewMode('dark')}
-                            className={`p-1.5 rounded transition-colors ${previewMode === 'dark' ? 'bg-slate-800 text-indigo-400 shadow-sm' : 'text-slate-400'}`}
+                            className={`p-1.5 rounded transition-colors ${previewMode === 'dark' ? 'bg-neutral-800 text-brand-400 shadow-sm' : 'text-ink-muted'}`}
                             title="Dark Mode Preview"
                         >
                             <Monitor size={14} className="fill-current" />
@@ -270,7 +270,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                     <button
                         type="button"
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
                         title={sidebarCollapsed ? "Show Settings" : "Hide Settings"}
                     >
                         {sidebarCollapsed ? <Settings size={18} /> : <ChevronLeft size={18} />}
@@ -279,7 +279,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                     <button
                         type="button"
                         onClick={() => setIsFullScreen(!isFullScreen)}
-                        className={`p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors ${isFullScreen ? 'text-indigo-600 bg-indigo-50 dark:bg-slate-700' : ''}`}
+                        className={`p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors ${isFullScreen ? 'text-brand-600 bg-brand-50 dark:bg-raised' : ''}`}
                         title="Full Screen Mode"
                     >
                         {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
@@ -288,9 +288,9 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex overflow-hidden bg-slate-100 dark:bg-slate-900/50">
+            <div className="flex-1 flex overflow-hidden bg-sunken">
                 {/* Scrollable Settings Sidebar */}
-                <div className={`bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
+                <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
                     <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
                         {data._print_tab !== 'thermal'
                             ? <RegularSettings data={data} setData={setData} />
@@ -300,8 +300,8 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                 </div>
 
                 {/* Preview Area */}
-                <div className={`flex-1 overflow-auto flex items-start justify-center p-8 transition-colors duration-300 ${previewMode === 'dark' ? 'bg-slate-900' : 'bg-slate-200'}`}>
-                    <div className={`transform transition-all duration-300 ${sidebarCollapsed ? 'scale-100' : 'scale-95 origin-top'}`}>
+                <div className={`flex-1 overflow-auto flex items-start justify-center p-8 transition-colors duration-slow ${previewMode === 'dark' ? 'bg-neutral-900' : 'bg-sunken'}`}>
+                    <div className={`transform transition-all duration-slow ${sidebarCollapsed ? 'scale-100' : 'scale-95 origin-top'}`}>
                         <PrintPreview
                             data={data}
                             type={data._print_tab === 'thermal' ? 'thermal' : 'regular'}
@@ -326,7 +326,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
 
 const RegularSettings = ({ data, setData }) => (
     <>
-        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-800/30 mb-6">
+        <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-800/30 mb-6">
             <Toggle
                 label="Set as Default Printer"
                 checked={data.default_print_type === 'regular' || !data.default_print_type}
@@ -391,7 +391,7 @@ const RegularSettings = ({ data, setData }) => (
                     <select
                         value={data.print_theme}
                         onChange={e => setData('print_theme', e.target.value)}
-                        className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm"
+                        className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
                     >
                         <option value="modern">Modern (Default)</option>
                         <option value="classic">Classic Formal</option>
@@ -514,9 +514,9 @@ const ThermalSettings = ({ data, setData }) => (
                     type="range" min="10" max="22" step="1"
                     value={data.thermal_font_size || 12}
                     onChange={e => setData('thermal_font_size', parseInt(e.target.value))}
-                    className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500 mt-2"
+                    className="w-full h-2 bg-sunken rounded-lg appearance-none cursor-pointer accent-emerald-500 mt-2"
                 />
-                <div className="flex justify-between text-xs text-slate-400 mt-1">
+                <div className="flex justify-between text-xs text-ink-muted mt-1">
                     <span>Compact</span>
                     <span className="font-bold text-emerald-600">{data.thermal_font_size}pt</span>
                     <span>Large</span>
@@ -529,7 +529,7 @@ const ThermalSettings = ({ data, setData }) => (
             <select
                 value={data.print_theme}
                 onChange={e => setData('print_theme', e.target.value)}
-                className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm"
+                className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
             >
                 <option value="modern">Modern Receipt</option>
                 <option value="classic">Classic Typewriter</option>
@@ -609,7 +609,7 @@ const ThermalSettings = ({ data, setData }) => (
 
 const Section = ({ title, icon: Icon, children }) => (
     <div className="space-y-3">
-        <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-2">
+        <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted border-b border-line pb-2">
             <Icon size={14} /> {title}
         </h3>
         <div className="px-1">{children}</div>
@@ -617,7 +617,7 @@ const Section = ({ title, icon: Icon, children }) => (
 );
 
 const Label = ({ children }) => (
-    <div className="text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">{children}</div>
+    <div className="text-2xs font-bold text-ink-muted uppercase tracking-wide mb-1.5">{children}</div>
 );
 
 const ButtonGroup = ({ label, value, onChange, options, color = 'indigo' }) => (
@@ -632,8 +632,8 @@ const ButtonGroup = ({ label, value, onChange, options, color = 'indigo' }) => (
                     className={`flex-1 min-w-[60px] py-2 px-1 text-xs font-bold rounded-lg border transition-all ${value === opt.value
                         ? color === 'emerald'
                             ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                            : 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'
+                            : 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                        : 'bg-sunken border-line dark:border-line text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                         }`}
                 >
                     {opt.label}
@@ -650,16 +650,16 @@ const ToggleBtn = ({ label, checked, onChange, color = 'indigo' }) => (
         className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${checked
             ? color === 'emerald'
                 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                : 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800'
-            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                : 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
+            : 'bg-surface border-line hover:border-line'
             }`}
     >
-        <span className={`text-sm font-bold ${checked ? (color === 'emerald' ? 'text-emerald-700 dark:text-emerald-400' : 'text-indigo-700 dark:text-indigo-400') : 'text-slate-600 dark:text-slate-400'}`}>
+        <span className={`text-sm font-bold ${checked ? (color === 'emerald' ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-400') : 'text-ink-secondary'}`}>
             {label}
         </span>
         <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${checked
-            ? color === 'emerald' ? 'bg-emerald-500 text-white' : 'bg-indigo-500 text-white'
-            : 'bg-slate-200 dark:bg-slate-700 text-transparent'
+            ? color === 'emerald' ? 'bg-emerald-500 text-white' : 'bg-brand-500 text-white'
+            : 'bg-sunken text-transparent'
             }`}>
             <Check size={12} strokeWidth={4} />
         </div>
@@ -668,13 +668,13 @@ const ToggleBtn = ({ label, checked, onChange, color = 'indigo' }) => (
 
 const Toggle = ({ label, checked, onChange, color = 'indigo' }) => (
     <div className="flex items-center justify-between py-1">
-        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{label}</span>
+        <span className="text-sm font-bold text-ink-secondary">{label}</span>
         <button
             type="button"
             onClick={() => onChange(!checked)}
             className={`relative w-11 h-6 rounded-full transition-colors ${checked
-                ? color === 'emerald' ? 'bg-emerald-500' : 'bg-indigo-500'
-                : 'bg-slate-300 dark:bg-slate-600'
+                ? color === 'emerald' ? 'bg-emerald-500' : 'bg-brand-500'
+                : 'bg-sunken'
                 }`}
         >
             <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${checked ? 'left-6' : 'left-1'}`} />
@@ -690,7 +690,7 @@ const TextInput = ({ label, value, onChange, placeholder }) => (
             value={value || ''}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold text-slate-700 dark:text-white"
+            className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink-secondary dark:text-white"
         />
     </div>
 );
@@ -702,7 +702,7 @@ const NumberInput = ({ label, value, onChange }) => (
             type="number"
             value={value || 0}
             onChange={e => onChange(parseFloat(e.target.value) || 0)}
-            className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-mono font-bold text-center"
+            className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-center"
         />
     </div>
 );
@@ -713,7 +713,7 @@ const SelectInput = ({ label, value, onChange, options }) => (
         <select
             value={value}
             onChange={e => onChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-bold"
+            className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold"
         >
             {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
         </select>
@@ -744,7 +744,7 @@ const ColorPicker = ({ label, value, onChange }) => {
                         key={col.c}
                         onClick={() => onChange(col.c)}
                         type="button"
-                        className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${value === col.c ? 'border-indigo-500 ring-1 ring-offset-1 ring-indigo-500' : 'border-transparent'}`}
+                        className={`w-6 h-6 rounded-full border-2 transition-transform ${value === col.c ? 'border-brand-500 ring-1 ring-offset-1 ring-brand-500' : 'border-transparent'}`}
                         style={{ backgroundColor: col.c }}
                         title={col.n}
                     />
@@ -755,7 +755,7 @@ const ColorPicker = ({ label, value, onChange }) => {
 };
 
 const LogoUploader = ({ data, setData }) => (
-    <div className="mt-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+    <div className="mt-3 p-3 bg-surface rounded-xl border border-line">
         <Label>Logo Image</Label>
 
         <div className="flex items-start gap-4 mt-2">
@@ -764,7 +764,7 @@ const LogoUploader = ({ data, setData }) => (
                     <img
                         src={data.print_logo_path}
                         alt="Logo Preview"
-                        className="w-20 h-20 object-contain bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-700"
+                        className="w-20 h-20 object-contain bg-sunken rounded-lg p-1 border border-line"
                     />
                     <button
                         type="button"
@@ -778,7 +778,7 @@ const LogoUploader = ({ data, setData }) => (
                     </button>
                 </div>
             ) : (
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 gap-1">
+                <div className="w-20 h-20 bg-sunken rounded-lg border-2 border-dashed border-line dark:border-line flex flex-col items-center justify-center text-ink-muted gap-1">
                     <ImageIcon size={20} />
                     <span className="text-3xs font-bold">No Logo</span>
                 </div>
@@ -803,12 +803,12 @@ const LogoUploader = ({ data, setData }) => (
                 />
                 <label
                     htmlFor="logo-upload"
-                    className="inline-flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-bold cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
                 >
                     <Upload size={14} />
                     {data.print_logo_path ? 'Change Logo' : 'Upload Logo'}
                 </label>
-                <p className="text-2xs text-slate-400 mt-2 leading-tight">
+                <p className="text-2xs text-ink-muted mt-2 leading-tight">
                     Recommended: PNG with transparent background. Max 2MB.
                 </p>
             </div>

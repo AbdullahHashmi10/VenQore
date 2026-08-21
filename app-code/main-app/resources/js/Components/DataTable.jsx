@@ -129,21 +129,21 @@ export default function DataTable({
             return <ChevronUp size={14} className="opacity-0 group-hover:opacity-30" />;
         }
         return sortConfig.direction === 'asc'
-            ? <ChevronUp size={14} className="text-indigo-500" />
-            : <ChevronDown size={14} className="text-indigo-500" />;
+            ? <ChevronUp size={14} className="text-brand-500" />
+            : <ChevronDown size={14} className="text-brand-500" />;
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
             {/* Header */}
             {(title || searchable || headerActions) && (
-                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="p-4 border-b border-line flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         {title && (
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{title}</h3>
+                            <h3 className="text-lg font-bold text-ink">{title}</h3>
                         )}
                         {subtitle && (
-                            <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+                            <p className="text-sm text-ink-muted">{subtitle}</p>
                         )}
                     </div>
 
@@ -173,7 +173,7 @@ export default function DataTable({
                         {onExport && (
                             <button
                                 onClick={onExport}
-                                className="p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                className="p-2 bg-app border border-line rounded-xl text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                 title="Export"
                             >
                                 <Download size={18} />
@@ -189,21 +189,21 @@ export default function DataTable({
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="bg-slate-50 dark:bg-slate-800/50">
+                        <tr className="bg-app">
                             {selectable && (
                                 <th className="w-12 px-4 py-3">
                                     <input
                                         type="checkbox"
                                         checked={selectedRows.length === paginatedData.length && paginatedData.length > 0}
                                         onChange={handleSelectAll}
-                                        className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                                        className="rounded border-line dark:border-line text-brand-600 focus:ring-brand-500"
                                     />
                                 </th>
                             )}
                             {columns.map(col => (
                                 <th
                                     key={col.key}
-                                    className={`px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ${col.sortable !== false ? 'cursor-pointer group' : ''}`}
+                                    className={`px-4 py-3 text-left text-xs font-bold text-ink-muted uppercase tracking-wider ${col.sortable !== false ? 'cursor-pointer group' : ''}`}
                                     onClick={() => col.sortable !== false && handleSort(col.key)}
                                 >
                                     <div className="flex items-center gap-1">
@@ -213,29 +213,29 @@ export default function DataTable({
                                 </th>
                             ))}
                             {(onEdit || onDelete || onView || actions.length > 0) && (
-                                <th className="w-20 px-4 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="w-20 px-4 py-3 text-right text-xs font-bold text-ink-muted uppercase tracking-wider">
                                     Actions
                                 </th>
                             )}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-line">
                         {loading ? (
                             // Loading skeleton
                             [...Array(5)].map((_, idx) => (
                                 <tr key={idx}>
                                     {selectable && (
                                         <td className="px-4 py-4">
-                                            <div className="w-4 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                                            <div className="w-4 h-4 bg-sunken rounded animate-pulse" />
                                         </td>
                                     )}
                                     {columns.map(col => (
                                         <td key={col.key} className="px-4 py-4">
-                                            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse w-3/4" />
+                                            <div className="h-4 bg-sunken rounded animate-pulse w-3/4" />
                                         </td>
                                     ))}
                                     <td className="px-4 py-4">
-                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse w-8 ml-auto" />
+                                        <div className="h-4 bg-sunken rounded animate-pulse w-8 ml-auto" />
                                     </td>
                                 </tr>
                             ))
@@ -243,7 +243,7 @@ export default function DataTable({
                             <tr>
                                 <td
                                     colSpan={columns.length + (selectable ? 1 : 0) + 1}
-                                    className="px-4 py-12 text-center text-slate-500 dark:text-slate-400"
+                                    className="px-4 py-12 text-center text-ink-muted"
                                 >
                                     {emptyState ? emptyState : (
                                         <div className="flex flex-col items-center gap-2">
@@ -257,7 +257,7 @@ export default function DataTable({
                             paginatedData.map((row, rowIdx) => (
                                 <tr
                                     key={rowIdx}
-                                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                    className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                 >
                                     {selectable && (
                                         <td className="px-4 py-4">
@@ -265,12 +265,12 @@ export default function DataTable({
                                                 type="checkbox"
                                                 checked={selectedRows.includes(rowIdx)}
                                                 onChange={() => handleRowSelect(rowIdx)}
-                                                className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                                                className="rounded border-line dark:border-line text-brand-600 focus:ring-brand-500"
                                             />
                                         </td>
                                     )}
                                     {columns.map(col => (
-                                        <td key={col.key} className="px-4 py-4 text-sm text-slate-700 dark:text-slate-300">
+                                        <td key={col.key} className="px-4 py-4 text-sm text-ink-secondary">
                                             {col.render ? col.render(row[col.key], row) : row[col.key]}
                                         </td>
                                     ))}
@@ -278,9 +278,9 @@ export default function DataTable({
                                         <td className="px-4 py-4 text-right relative">
                                             <button
                                                 onClick={() => setActiveDropdown(activeDropdown === rowIdx ? null : rowIdx)}
-                                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                                className="p-1.5 rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                             >
-                                                <MoreHorizontal size={16} className="text-slate-500" />
+                                                <MoreHorizontal size={16} className="text-ink-muted" />
                                             </button>
 
                                             {activeDropdown === rowIdx && (
@@ -289,11 +289,11 @@ export default function DataTable({
                                                         className="fixed inset-0 z-10"
                                                         onClick={() => setActiveDropdown(null)}
                                                     />
-                                                    <div className="absolute right-4 top-full mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 py-1 z-20 min-w-[140px]">
+                                                    <div className="absolute right-4 top-full mt-1 bg-surface rounded-xl shadow-xl border border-line py-1 z-20 min-w-[140px]">
                                                         {onView && (
                                                             <button
                                                                 onClick={() => { onView(row); setActiveDropdown(null); }}
-                                                                className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                                                                className="w-full px-3 py-2 text-left text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover flex items-center gap-2"
                                                             >
                                                                 <Eye size={14} /> View
                                                             </button>
@@ -301,7 +301,7 @@ export default function DataTable({
                                                         {onEdit && (
                                                             <button
                                                                 onClick={() => { onEdit(row); setActiveDropdown(null); }}
-                                                                className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                                                                className="w-full px-3 py-2 text-left text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover flex items-center gap-2"
                                                             >
                                                                 <Edit size={14} /> Edit
                                                             </button>
@@ -310,7 +310,7 @@ export default function DataTable({
                                                             <button
                                                                 key={idx}
                                                                 onClick={() => { action.onClick(row); setActiveDropdown(null); }}
-                                                                className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 ${action.color || 'text-slate-700 dark:text-slate-300'}`}
+                                                                className={`w-full px-3 py-2 text-left text-sm hover:bg-interactive-hover dark:hover:bg-interactive-hover flex items-center gap-2 ${action.color || 'text-ink-secondary'}`}
                                                             >
                                                                 {action.icon && <action.icon size={14} />}
                                                                 {action.label}
@@ -318,7 +318,7 @@ export default function DataTable({
                                                         ))}
                                                         {onDelete && (
                                                             <>
-                                                                <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
+                                                                <div className="h-px bg-sunken my-1" />
                                                                 <button
                                                                     onClick={() => { onDelete(row); setActiveDropdown(null); }}
                                                                     className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
@@ -341,8 +341,8 @@ export default function DataTable({
 
             {/* Footer - Pagination */}
             {!disablePagination && !loading && sortedData.length > 0 && (
-                <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                <div className="px-4 py-3 border-t border-line flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-ink-muted">
                         Showing <span className="font-semibold">{((currentPage - 1) * pageSize) + 1}</span> to <span className="font-semibold">{Math.min(currentPage * pageSize, sortedData.length)}</span> of <span className="font-semibold">{sortedData.length}</span> results
                     </div>
 
@@ -353,7 +353,7 @@ export default function DataTable({
                                 setPageSize(Number(e.target.value));
                                 setCurrentPage(1);
                             }}
-                            className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none"
+                            className="px-2 py-1 bg-app border border-line rounded-lg text-sm outline-none"
                         >
                             {[10, 25, 50, 100].map(size => (
                                 <option key={size} value={size}>{size} per page</option>
@@ -364,7 +364,7 @@ export default function DataTable({
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronLeft size={18} />
                             </button>
@@ -386,8 +386,8 @@ export default function DataTable({
                                         key={idx}
                                         onClick={() => setCurrentPage(pageNum)}
                                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                            ? 'bg-brand-600 text-white'
+                                            : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'
                                             }`}
                                     >
                                         {pageNum}
@@ -398,7 +398,7 @@ export default function DataTable({
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronRight size={18} />
                             </button>

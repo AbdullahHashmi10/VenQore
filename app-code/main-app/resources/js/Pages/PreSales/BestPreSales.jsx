@@ -113,51 +113,51 @@ export default function BestPreSales({ presales = [], stats = {} }) {
     return (
         <OneGlanceLayout title="Pre-Sales History" activeMenu="Sell">
             <Head title="Pre-Sales / Quotations" />
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <SellModuleTabs activeTab="presales" />
 
                 {/* Stats Cards - Compact Single Line */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <FileText size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Quotes</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Quotes</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{stats.total_count || defaultData.length}</p>
+                        <p className="text-base font-bold text-ink">{stats.total_count || defaultData.length}</p>
                     </div>
                     {/* Add more stats if available in props, otherwise placeholders or remove */}
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <Clock size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Pending</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Pending</p>
                         </div>
-                        <p className="text-base font-black text-blue-600">{defaultData.filter(i => i.status === 'pending').length}</p>
+                        <p className="text-base font-bold text-blue-600">{defaultData.filter(i => i.status === 'pending').length}</p>
                     </div>
                 </div>
 
                 {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0 flex items-center gap-2">
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0 flex items-center gap-2">
                             Pre-Sales <span className="text-amber-600">Quotations</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
                         <button
                             onClick={() => applyFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-amber-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >All</button>
                         <button
                             onClick={() => applyFilter('pending')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Pending</button>
                         <button
                             onClick={() => applyFilter('converted')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'converted' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'converted' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Converted</button>
                     </div>
 
@@ -175,7 +175,7 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                 inputClassName="py-1.5 text-xs h-9"
                             />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
                             <Link href={route("store.presales.create", {
                                 store_slug: store.slug
                             })} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
@@ -186,10 +186,10 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                 </div>
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
                                     <th
                                         key={col.key}
@@ -199,10 +199,10 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                                            cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
-                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
-                                        `}
+                                            p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
+                                            cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
+                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
+`}
                                         style={{ width: col.width }}
                                     >
                                         <div className="flex items-center gap-2">
@@ -215,16 +215,16 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {sortedData.length === 0 ? (
                                 <tr>
                                     <td colSpan={tableColumns.length} className="p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
-                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                                <FileText size={32} className="text-slate-400" />
+                                            <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
+                                                <FileText size={32} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">No pre-sales found</p>
-                                            <p className="text-sm text-slate-500 mb-4">Create your first quotation</p>
+                                            <p className="text-lg font-bold text-ink-secondary mb-1">No pre-sales found</p>
+                                            <p className="text-sm text-ink-muted mb-4">Create your first quotation</p>
                                             <Link
                                                 href={route("store.presales.create", {
                                                     store_slug: store.slug
@@ -244,7 +244,7 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                         className="hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group cursor-pointer"
                                     >
                                         {tableColumns.map((col) => (
-                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
+                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
                                                 {(() => {
                                                     switch (col.key) {
                                                         case 'date':
@@ -254,7 +254,7 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                                         case 'customer':
                                                             return (
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xs font-bold text-slate-500">
+                                                                    <div className="w-6 h-6 rounded-full bg-sunken flex items-center justify-center text-2xs font-bold text-ink-muted">
                                                                         {(row.customer?.name || 'W').charAt(0)}
                                                                     </div>
                                                                     <span>{row.customer?.name || 'Walk-in'}</span>
@@ -267,12 +267,12 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                                                 pending: 'bg-amber-100 text-amber-700',
                                                                 converted: 'bg-emerald-100 text-emerald-700'
                                                             };
-                                                            return <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${styles[row.status] || 'bg-slate-100 text-slate-700'}`}>{row.status || 'pending'}</span>;
+                                                            return <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${styles[row.status] || 'bg-sunken text-ink-secondary'}`}>{row.status || 'pending'}</span>;
                                                         case 'actions':
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2">
                                                                     {/* Add action buttons here when routes are available */}
-                                                                    <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400">
+                                                                    <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted">
                                                                         <MoreVertical size={16} />
                                                                     </button>
                                                                 </div>

@@ -27,7 +27,7 @@ export default function UomConversions({ product, conversions }) {
             <div className="flex items-center gap-4 mb-6">
                 <Link
                     href={route('store.v3.products.edit', { store_slug: store.slug, product: product.id })}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-ink-muted hover:text-ink"
                 >
                     ← {product.name}
                 </Link>
@@ -49,28 +49,28 @@ export default function UomConversions({ product, conversions }) {
 
             {/* Existing conversions */}
             {conversions.length > 0 ? (
-                <table className="w-full border-collapse border border-gray-200 mb-6">
-                    <thead className="bg-gray-50">
+                <table className="w-full border-collapse border border-line mb-6">
+                    <thead className="bg-sunken">
                         <tr>
-                            <th className="border border-gray-200 px-4 py-2 text-left">Sale UOM</th>
-                            <th className="border border-gray-200 px-4 py-2 text-left">Factor</th>
-                            <th className="border border-gray-200 px-4 py-2 text-left">Example</th>
-                            <th className="border border-gray-200 px-4 py-2"></th>
+                            <th className="border border-line px-4 py-2 text-left">Sale UOM</th>
+                            <th className="border border-line px-4 py-2 text-left">Factor</th>
+                            <th className="border border-line px-4 py-2 text-left">Example</th>
+                            <th className="border border-line px-4 py-2"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {conversions.map(c => (
-                            <tr key={c.id} className="hover:bg-gray-50">
-                                <td className="border border-gray-200 px-4 py-2 font-mono">
+                            <tr key={c.id} className="hover:bg-interactive-hover">
+                                <td className="border border-line px-4 py-2 font-mono">
                                     {c.sale_uom}
                                 </td>
-                                <td className="border border-gray-200 px-4 py-2">
+                                <td className="border border-line px-4 py-2">
                                     {c.conversion_factor}
                                 </td>
-                                <td className="border border-gray-200 px-4 py-2 text-gray-500 text-sm">
+                                <td className="border border-line px-4 py-2 text-ink-muted text-sm">
                                     1000 {c.sale_uom} = {(1000 / c.conversion_factor).toFixed(4)} {baseUnit}
                                 </td>
-                                <td className="border border-gray-200 px-4 py-2 text-center">
+                                <td className="border border-line px-4 py-2 text-center">
                                     <button
                                         onClick={() => remove(c.id)}
                                         className="text-red-600 hover:underline text-sm"
@@ -83,13 +83,13 @@ export default function UomConversions({ product, conversions }) {
                     </tbody>
                 </table>
             ) : (
-                <p className="text-gray-500 text-sm mb-6">
+                <p className="text-ink-muted text-sm mb-6">
                     No UOM conversions configured. Product sells in {baseUnit} only.
                 </p>
             )}
 
             {/* Add new */}
-            <div className="border rounded p-4 bg-gray-50">
+            <div className="border rounded p-4 bg-sunken">
                 <h2 className="font-medium mb-4">Add UOM Conversion</h2>
                 <form onSubmit={submit} className="flex gap-4 items-end">
                     <div className="flex-1">

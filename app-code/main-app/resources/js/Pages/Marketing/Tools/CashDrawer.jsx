@@ -164,8 +164,8 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
         }
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
+    const labelCls = 'block text-xs font-bold text-ink-muted mb-1.5';
 
     const currencyOptions = Object.entries(currencies).map(([code, c]) => ({
         value: code, label: c.label,
@@ -194,8 +194,8 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
             )}
 
             {/* Store & Register Metadata */}
-            <section className="mb-8 p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                <h3 className="text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-4">
+            <section className="mb-8 p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                <h3 className="text-sm font-bold uppercase tracking-wide text-ink-muted mb-4">
                     Store & Register Shift Info
                 </h3>
                 <div className="grid sm:grid-cols-3 gap-3 mb-3">
@@ -225,9 +225,9 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
             </section>
 
             {/* Reconciliation Expected Amounts */}
-            <section className="mb-8 p-5 rounded-2xl bg-indigo-500/[0.03] border border-indigo-500/10">
+            <section className="mb-8 p-5 rounded-2xl bg-brand-500/[0.03] border border-brand-500/10">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-black uppercase tracking-wide text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-brand-600 dark:text-brand-400 flex items-center gap-2">
                         <Calculator size={16} /> Reconciliation Targets
                     </h3>
                     <div className="w-40">
@@ -254,13 +254,13 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
             {/* Denomination Counter Breakdown */}
             <section className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-ink-muted flex items-center gap-2">
                         <DollarSign size={16} /> Currency Denominations Count
                     </h3>
                     <button
                         type="button"
                         onClick={resetCounts}
-                        className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors"
+                        className="text-xs font-bold text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 flex items-center gap-1 transition-colors"
                     >
                         <RefreshCw size={12} /> Reset Counts
                     </button>
@@ -270,8 +270,8 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                     {denominations.map((d, idx) => {
                         const subtotal = (parseFloat(d.value) || 0) * (parseInt(d.count) || 0);
                         return (
-                            <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${d.type === 'coin' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
+                            <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                                <span className={`text-2xs font-bold uppercase px-2 py-0.5 rounded ${d.type === 'coin' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                     {d.type}
                                 </span>
                                 <input
@@ -299,13 +299,13 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                                         onChange={(e) => updateCount(idx, e.target.value)}
                                     />
                                 </div>
-                                <div className="w-28 text-right font-bold text-sm text-slate-900 dark:text-white shrink-0">
+                                <div className="w-28 text-right font-bold text-sm text-ink shrink-0">
                                     {symbol}{subtotal.toFixed(2)}
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => removeDenomination(idx)}
-                                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                                    className="p-1.5 text-ink-muted hover:text-red-500 rounded-lg transition-colors"
                                 >
                                     <Trash2 size={14} />
                                 </button>
@@ -318,14 +318,14 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                     <button
                         type="button"
                         onClick={() => addDenomination('bill')}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-dashed border-slate-900/15 dark:border-white/15 text-xs font-bold text-slate-500 dark:text-slate-400 hover:border-indigo-400/50 hover:text-indigo-500 transition-colors"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-dashed border-line dark:border-white/15 text-xs font-bold text-ink-muted hover:border-brand-400/50 hover:text-brand-500 transition-colors"
                     >
                         <Plus size={12} /> Add Bill
                     </button>
                     <button
                         type="button"
                         onClick={() => addDenomination('coin')}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-dashed border-slate-900/15 dark:border-white/15 text-xs font-bold text-slate-500 dark:text-slate-400 hover:border-indigo-400/50 hover:text-indigo-500 transition-colors"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-dashed border-line dark:border-white/15 text-xs font-bold text-ink-muted hover:border-brand-400/50 hover:text-brand-500 transition-colors"
                     >
                         <Plus size={12} /> Add Coin
                     </button>
@@ -333,27 +333,27 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
             </section>
 
             {/* Reconciliation Live Summary Box */}
-            <section className="mb-8 p-5 rounded-2xl bg-slate-900/[0.04] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10">
-                <h3 className="text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-4">
+            <section className="mb-8 p-5 rounded-2xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10">
+                <h3 className="text-sm font-bold uppercase tracking-wide text-ink-muted mb-4">
                     Till Summary & Variance
                 </h3>
 
                 <div className="grid sm:grid-cols-4 gap-4 text-center">
-                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/5 dark:border-white/5">
-                        <span className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Bills Total</span>
-                        <span className="text-lg font-black text-slate-900 dark:text-white">{symbol}{totals.totalBills.toFixed(2)}</span>
+                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/5">
+                        <span className="block text-2xs font-bold uppercase text-ink-muted">Bills Total</span>
+                        <span className="text-lg font-bold text-ink">{symbol}{totals.totalBills.toFixed(2)}</span>
                     </div>
-                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/5 dark:border-white/5">
-                        <span className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Coins Total</span>
-                        <span className="text-lg font-black text-slate-900 dark:text-white">{symbol}{totals.totalCoins.toFixed(2)}</span>
+                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/5">
+                        <span className="block text-2xs font-bold uppercase text-ink-muted">Coins Total</span>
+                        <span className="text-lg font-bold text-ink">{symbol}{totals.totalCoins.toFixed(2)}</span>
                     </div>
-                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/5 dark:border-white/5">
-                        <span className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Total Counted Cash</span>
-                        <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">{symbol}{totals.totalCounted.toFixed(2)}</span>
+                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/5">
+                        <span className="block text-2xs font-bold uppercase text-ink-muted">Total Counted Cash</span>
+                        <span className="text-xl font-bold text-brand-600 dark:text-brand-400">{symbol}{totals.totalCounted.toFixed(2)}</span>
                     </div>
                     <div className={`p-3 rounded-xl border ${totals.status === 'exact' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : totals.status === 'over' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'}`}>
-                        <span className="block text-[10px] font-bold uppercase">Variance (Over/Short)</span>
-                        <span className="text-xl font-black">
+                        <span className="block text-2xs font-bold uppercase">Variance (Over/Short)</span>
+                        <span className="text-xl font-bold">
                             {totals.variance > 0 ? `+${symbol}${totals.variance.toFixed(2)} OVER` : totals.variance < 0 ? `-${symbol}${Math.abs(totals.variance).toFixed(2)} SHORT` : `${symbol}0.00 BALANCED`}
                         </span>
                     </div>
@@ -376,7 +376,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                 type="button"
                 onClick={generatePdf}
                 disabled={loading}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
             >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                 {loading ? 'Generating PDF…' : 'Download Printable Audit PDF'}

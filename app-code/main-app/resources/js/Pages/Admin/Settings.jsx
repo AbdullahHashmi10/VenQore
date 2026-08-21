@@ -391,15 +391,15 @@ export default function AdminSettings({ settings = {} }) {
                 // <SystemSettingsSection/> component as "Security"/"Backup"/
                 // "Integrations" — just a different activeSubSection prop.
                 return (
-                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div>
                             <GeneralSettingsSection data={data} setData={setData} />
                         </div>
-                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                        <div className="pt-6 border-t border-line">
                             <SectionHeader title="Localization & Appearance" description="Language, date format and display" />
                             <SystemSettingsSection data={data} setData={setData} activeSubSection="system" />
                         </div>
-                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                        <div className="pt-6 border-t border-line">
                             <SystemSettingsSection data={data} setData={setData} activeSubSection="notifications" />
                         </div>
                     </div>
@@ -409,7 +409,7 @@ export default function AdminSettings({ settings = {} }) {
                 // Merges the old "AI Intelligence" and "Integrations" tabs —
                 // both are just cards for connecting a 3rd-party service.
                 return (
-                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div>
                             <SectionHeader title="AI Intelligence" description="Gemini, OpenAI & Smart Search" />
                             <AiSettingsSection
@@ -420,7 +420,7 @@ export default function AdminSettings({ settings = {} }) {
                                 verificationResult={verificationResult}
                             />
                         </div>
-                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                        <div className="pt-6 border-t border-line">
                             <SectionHeader title="Integrations" description="External API connections" />
                             <SystemSettingsSection data={data} setData={setData} activeSubSection="integrations" />
                         </div>
@@ -434,19 +434,19 @@ export default function AdminSettings({ settings = {} }) {
                 // now live only in "At the register" below, and TransactionSettingsSection
                 // was trimmed down to just its two unique fields ("On the invoice").
                 return (
-                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div>
                             <SectionHeader title="At the Register" description="Customize your point of sale experience" />
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                                <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <div className="bg-surface rounded-2xl border border-line p-6">
+                                <div className="divide-y divide-line">
                                     <Toggle enabled={data.pos_auto_fill_cash} onChange={v => setData('pos_auto_fill_cash', v)} label="Auto-Fill Cash Received" description="Automatically populate the 'Cash Received' field with the total amount" />
                                     <Toggle enabled={data.senior_mode} onChange={v => setData('senior_mode', v)} label="Senior Mode (Accessibility)" description="Enable larger fonts and high-contrast UI for easier reading" />
                                     <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description="Automatically report sales to FBR and print QR codes" />
                                     <Toggle enabled={data.show_margin_percentage} onChange={v => setData('show_margin_percentage', v)} label="Show Margin Percentage" description="Display profit margin in sales overview" />
                                     <div className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800 dark:text-white">Round Off Invoice Totals</h4>
-                                            <p className="text-xs text-slate-500">Choose rounding precision for sales and purchases</p>
+                                            <h4 className="text-sm font-bold text-ink">Round Off Invoice Totals</h4>
+                                            <p className="text-xs text-ink-muted">Choose rounding precision for sales and purchases</p>
                                         </div>
                                         <div className="grid grid-cols-6 gap-1 max-w-sm w-full">
                                             {[
@@ -465,8 +465,8 @@ export default function AdminSettings({ settings = {} }) {
                                                         type="button"
                                                         onClick={() => setData('round_off_total', opt.value)}
                                                         className={`py-2 px-1 text-center font-bold text-1xs rounded-lg border transition-all ${isActive
-                                                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
-                                                            : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
+                                                            ? 'border-brand-600 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300'
+                                                            : 'border-transparent bg-sunken text-ink-muted hover:bg-interactive-hover'
                                                             }`}
                                                     >
                                                         {opt.label}
@@ -485,13 +485,13 @@ export default function AdminSettings({ settings = {} }) {
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mt-6">
+                            <div className="bg-surface rounded-2xl border border-line p-6 mt-6">
                                 <SectionHeader title="Return Mode" description="Configure return authorization requirements" />
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center py-2">
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">POS Return Mode</label>
-                                            <span className="block text-xs text-slate-500">Configure return authorization requirements</span>
+                                            <label className="block text-sm font-bold text-ink-secondary">POS Return Mode</label>
+                                            <span className="block text-xs text-ink-muted">Configure return authorization requirements</span>
                                         </div>
                                         <select
                                             value={data.pos_return_mode}
@@ -500,7 +500,7 @@ export default function AdminSettings({ settings = {} }) {
                                                 setData('pos_return_mode', val);
                                                 if (val !== 'open') setAcknowledgeOpenReturn(false);
                                             }}
-                                            className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                            className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                                         >
                                             <option value="reference">Reference Number Required</option>
                                             <option value="customer_or_reference">Customer or Reference</option>
@@ -516,40 +516,40 @@ export default function AdminSettings({ settings = {} }) {
                                                 </p>
                                             </div>
                                             <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                <input type="checkbox" checked={acknowledgeOpenReturn} onChange={(e) => setAcknowledgeOpenReturn(e.target.checked)} className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" />
-                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">I understand and acknowledge this risk</span>
+                                                <input type="checkbox" checked={acknowledgeOpenReturn} onChange={(e) => setAcknowledgeOpenReturn(e.target.checked)} className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-line" />
+                                                <span className="text-xs font-bold text-ink-secondary">I understand and acknowledge this risk</span>
                                             </label>
                                         </div>
                                     )}
                                     {data.pos_return_mode === 'open' && (
-                                        <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                        <div className="space-y-4 pt-4 border-t border-line">
                                             <div className="flex justify-between items-center py-2">
                                                 <div>
-                                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Return Window (days)</label>
-                                                    <span className="block text-xs text-slate-500">Max days since purchase for returns (leave empty to disable)</span>
+                                                    <label className="block text-sm font-bold text-ink-secondary">Return Window (days)</label>
+                                                    <span className="block text-xs text-ink-muted">Max days since purchase for returns (leave empty to disable)</span>
                                                 </div>
-                                                <input type="number" min="1" value={data.pos_return_window} onChange={(e) => setData('pos_return_window', e.target.value)} placeholder="e.g. 7, 14, 30" className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                                <input type="number" min="1" value={data.pos_return_window} onChange={(e) => setData('pos_return_window', e.target.value)} placeholder="e.g. 7, 14, 30" className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
                                             </div>
                                             {data.pos_return_window && (
                                                 <div className="flex justify-between items-center py-2">
                                                     <div>
-                                                        <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Window Behavior</span>
-                                                        <span className="block text-xs text-slate-500">Action when return window has expired</span>
+                                                        <span className="block text-sm font-bold text-ink-secondary">Window Behavior</span>
+                                                        <span className="block text-xs text-ink-muted">Action when return window has expired</span>
                                                     </div>
-                                                    <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
-                                                        <button type="button" onClick={() => setData('pos_return_window_behavior', 'warn')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Soft Warning</button>
-                                                        <button type="button" onClick={() => setData('pos_return_window_behavior', 'block')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Hard Block</button>
+                                                    <div className="flex bg-sunken p-1 rounded-xl">
+                                                        <button type="button" onClick={() => setData('pos_return_window_behavior', 'warn')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}>Soft Warning</button>
+                                                        <button type="button" onClick={() => setData('pos_return_window_behavior', 'block')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}>Hard Block</button>
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
                                     )}
-                                    <div className="flex items-center justify-between py-4 border-t border-slate-100 dark:border-slate-700">
+                                    <div className="flex items-center justify-between py-4 border-t border-line">
                                         <div>
-                                            <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Enable Charity Donations</span>
-                                            <span className="block text-xs text-slate-500">Show the Charity button on the POS for quick donation recording</span>
+                                            <span className="block text-sm font-bold text-ink-secondary">Enable Charity Donations</span>
+                                            <span className="block text-xs text-ink-muted">Show the Charity button on the POS for quick donation recording</span>
                                         </div>
-                                        <button type="button" onClick={() => setData('charity_enabled', !data.charity_enabled)} className={`relative w-12 h-6 rounded-full transition-colors ${data.charity_enabled ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                                        <button type="button" onClick={() => setData('charity_enabled', !data.charity_enabled)} className={`relative w-12 h-6 rounded-full transition-colors ${data.charity_enabled ? 'bg-rose-500' : 'bg-sunken'}`}>
                                             <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.charity_enabled ? 'right-1' : 'left-1'}`}></div>
                                         </button>
                                     </div>
@@ -557,7 +557,7 @@ export default function AdminSettings({ settings = {} }) {
                             </div>
                         </div>
 
-                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                        <div className="pt-6 border-t border-line">
                             <TransactionSettingsSection data={data} setData={setData} />
                         </div>
                     </div>
@@ -574,10 +574,10 @@ export default function AdminSettings({ settings = {} }) {
                 // added to any category's `sections` list above, so it could
                 // never actually appear in the sidebar. Now it's reachable.
                 return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-6 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg ">
                                     <MessageSquare size={28} />
                                 </div>
                                 <div>
@@ -593,57 +593,57 @@ export default function AdminSettings({ settings = {} }) {
                                 <Toggle enabled={data.sms_to_party} onChange={v => setData('sms_to_party', v)} label="Send SMS to Party" description="Notify customers on every transaction" />
                                 <Toggle enabled={data.auto_send_sales} onChange={v => setData('auto_send_sales', v)} label="Auto-send for Sales" />
                             </div>
-                            <div className="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-3xl border border-slate-100 dark:border-slate-700">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 block">Message Template</label>
-                                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
-                                    Greetings from <span className="text-indigo-500 font-bold">[Firm_Name]</span>. Your invoice for <span className="text-indigo-500 font-bold">[Invoice_Amount]</span> is ready. View here: [Link]
+                            <div className="p-6 bg-sunken rounded-2xl border border-line">
+                                <label className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4 block">Message Template</label>
+                                <div className="bg-surface rounded-xl p-4 text-sm text-ink-secondary border border-line dark:border-line">
+                                    Greetings from <span className="text-brand-500 font-bold">[Firm_Name]</span>. Your invoice for <span className="text-brand-500 font-bold">[Invoice_Amount]</span> is ready. View here: [Link]
                                 </div>
                                 <div className="mt-4 flex items-center justify-between">
-                                    <button className="text-indigo-600 text-sm font-bold flex items-center gap-2 hover:underline"><Palette size={16} /> Customize Template</button>
+                                    <button className="text-brand-600 text-sm font-bold flex items-center gap-2 hover:underline"><Palette size={16} /> Customize Template</button>
                                     <Toggle enabled={data.whatsapp_enabled} onChange={v => setData('whatsapp_enabled', v)} label="Enable WhatsApp" />
                                 </div>
                             </div>
                         </div>
 
                         {data.whatsapp_enabled && (
-                            <div className="p-8 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-xl animate-in zoom-in-95 duration-200">
+                            <div className="p-8 bg-surface rounded-xl border border-line shadow-xl animate-in zoom-in-95 duration-normal">
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg ">
                                         <MessageSquare size={24} />
                                     </div>
                                     <div>
-                                        <h4 className="text-lg font-black text-slate-900 dark:text-white">WhatsApp API Credentials</h4>
-                                        <p className="text-sm text-slate-500">Configure your Meta Business for WhatsApp</p>
+                                        <h4 className="text-lg font-bold text-ink">WhatsApp API Credentials</h4>
+                                        <p className="text-sm text-ink-muted">Configure your Meta Business for WhatsApp</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">API URL</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">API URL</label>
                                         <input
                                             type="text"
                                             value={data.whatsapp_api_url}
                                             onChange={e => setData('whatsapp_api_url', e.target.value)}
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full px-4 py-3 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
                                             placeholder="https://graph.facebook.com/v17.0"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Phone Number ID</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">Phone Number ID</label>
                                         <input
                                             type="text"
                                             value={data.whatsapp_phone_number_id}
                                             onChange={e => setData('whatsapp_phone_number_id', e.target.value)}
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full px-4 py-3 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
                                             placeholder="your_phone_number_id"
                                         />
                                     </div>
                                     <div className="md:col-span-2 space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Access Token</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">Access Token</label>
                                         <input
                                             type="password"
                                             value={data.whatsapp_access_token}
                                             onChange={e => setData('whatsapp_access_token', e.target.value)}
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                                            className="w-full px-4 py-3 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
                                             placeholder="EAAB..."
                                         />
                                     </div>
@@ -655,7 +655,7 @@ export default function AdminSettings({ settings = {} }) {
 
             case 'party':
                 return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <SectionHeader title="Customer Preferences" description="Manage how you interact with parties" />
@@ -663,13 +663,13 @@ export default function AdminSettings({ settings = {} }) {
                                 <Toggle enabled={data.loyalty_enabled} onChange={v => setData('loyalty_enabled', v)} label="Loyalty Points Program" description="Reward frequent customers with points" />
                                 <Toggle enabled={data.enable_credit_limit} onChange={v => setData('enable_credit_limit', v)} label="Enable Credit Limit" description="Set maximum credit limits for customers" />
                             </div>
-                            <div className="p-6 bg-indigo-50 dark:bg-indigo-500/10 rounded-3xl border border-indigo-100 dark:border-indigo-500/20">
-                                <h4 className="font-bold text-indigo-900 dark:text-indigo-400 flex items-center gap-2 mb-4"><Clock size={18} /> Payment Reminders</h4>
+                            <div className="p-6 bg-brand-50 dark:bg-brand-500/10 rounded-2xl border border-brand-100 dark:border-brand-500/20">
+                                <h4 className="font-bold text-brand-900 dark:text-brand-400 flex items-center gap-2 mb-4"><Clock size={18} /> Payment Reminders</h4>
                                 <div className="space-y-4">
                                     <Toggle enabled={data.payment_reminders} onChange={v => setData('payment_reminders', v)} label="Enable Payment Reminders" description="Automatically email customers with outstanding invoices" />
                                     <div className="space-y-2">
-                                        <label className="text-sm text-indigo-700 dark:text-indigo-300/80">Send reminder after (days) past invoice date</label>
-                                        <input type="number" value={data.payment_reminder_days} onChange={e => setData('payment_reminder_days', e.target.value)} className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                        <label className="text-sm text-brand-700 dark:text-brand-300/80">Send reminder after (days) past invoice date</label>
+                                        <input type="number" value={data.payment_reminder_days} onChange={e => setData('payment_reminder_days', e.target.value)} className="w-full px-4 py-3 bg-surface border border-brand-200 dark:border-brand-500/30 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" />
                                     </div>
                                 </div>
                             </div>
@@ -679,7 +679,7 @@ export default function AdminSettings({ settings = {} }) {
 
             case 'item':
                 return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <SectionHeader title="Inventory Control" description="Manage products and stock levels" />
@@ -687,23 +687,23 @@ export default function AdminSettings({ settings = {} }) {
                                 <Toggle enabled={data.barcode_scan_enabled} onChange={v => setData('barcode_scan_enabled', v)} label="Barcode Scanning" description="Use scanners for quick billing" />
                                 <Toggle enabled={data.batch_tracking_enabled} onChange={v => setData('batch_tracking_enabled', v)} label="Batch & Expiry Tracking" description="Track products by batch numbers" />
                             </div>
-                            <div className="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-3xl border border-slate-100 dark:border-slate-700 relative overflow-hidden group">
+                            <div className="p-6 bg-sunken rounded-2xl border border-line relative overflow-hidden group">
                                 <div className="absolute top-3 right-3">
-                                    <span className="px-2 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-2xs font-black uppercase tracking-widest rounded border border-amber-200 dark:border-amber-500/30 shadow-sm">Upcoming</span>
+                                    <span className="px-2 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-2xs font-bold uppercase tracking-widest rounded border border-amber-200 dark:border-amber-500/30 shadow-sm">Upcoming</span>
                                 </div>
-                                <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4 opacity-50"><Plus size={18} className="text-indigo-500" /> Custom Item Fields</h4>
-                                <p className="text-sm text-slate-500 mb-6 opacity-50">Add up to 6 custom fields like Color, Material, or Brand to your products.</p>
+                                <h4 className="font-bold text-ink flex items-center gap-2 mb-4 opacity-50"><Plus size={18} className="text-brand-500" /> Custom Item Fields</h4>
+                                <p className="text-sm text-ink-muted mb-6 opacity-50">Add up to 6 custom fields like Color, Material, or Brand to your products.</p>
                             </div>
                         </div>
-                        <div className="pt-4 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div className="pt-4 border-t border-line grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                             <Toggle enabled={data.wholesale_price_enabled} onChange={v => setData('wholesale_price_enabled', v)} label="Wholesale Pricing" description="Enable separate pricing for bulk buyers" />
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Low Stock Threshold</label>
+                                <label className="text-sm font-bold text-ink-secondary">Low Stock Threshold</label>
                                 <input
                                     type="number"
                                     value={data.low_stock_threshold}
                                     onChange={(e) => setData('low_stock_threshold', e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500"
                                 />
                             </div>
                         </div>
@@ -712,13 +712,13 @@ export default function AdminSettings({ settings = {} }) {
 
             case 'accounting':
                 return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <SectionHeader title="Financial Cycles" description="Manage your fiscal year and reporting" />
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Fiscal Year Start</label>
-                                    <input type="date" value={data.fiscal_year_start || '2025-01-01'} onChange={e => setData('fiscal_year_start', e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                                    <label className="text-sm font-bold text-ink-secondary">Fiscal Year Start</label>
+                                    <input type="date" value={data.fiscal_year_start || '2025-01-01'} onChange={e => setData('fiscal_year_start', e.target.value)} className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 shadow-sm" />
                                 </div>
                             </div>
                         </div>
@@ -733,13 +733,13 @@ export default function AdminSettings({ settings = {} }) {
                 // moved to the "Data & Backup" hub (Pages/Admin/DataManagement.jsx) —
                 // this used to duplicate that page's "Full System" tab almost exactly.
                 return (
-                    <div className="flex flex-col items-center text-center gap-4 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 p-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <div className="flex flex-col items-center text-center gap-4 bg-surface rounded-xl border border-line p-12 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+                        <div className="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg ">
                             <Database size={32} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Backups now live in Data &amp; Backup</h3>
-                            <p className="text-sm text-slate-500 max-w-md">
+                            <h3 className="text-xl font-bold text-ink mb-2">Backups now live in Data &amp; Backup</h3>
+                            <p className="text-sm text-ink-muted max-w-md">
                                 Automatic daily backups, manual snapshots, cloud sync and restore are all in one
                                 place now, instead of split between Settings and Data Management.
                             </p>
@@ -747,7 +747,7 @@ export default function AdminSettings({ settings = {} }) {
                         <button
                             type="button"
                             onClick={() => router.visit(route('store.admin.data', { store_slug: store?.slug, tab: 'backups' }))}
-                            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                            className="px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
                         >
                             Go to Data &amp; Backup <ChevronRight size={18} />
                         </button>
@@ -759,12 +759,12 @@ export default function AdminSettings({ settings = {} }) {
 
             case 'reminders':
                 return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden flex flex-col min-h-[400px]">
-                            <div className="p-4 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+                        <div className="bg-surface border border-line rounded-2xl overflow-hidden flex flex-col min-h-[400px]">
+                            <div className="p-4 bg-sunken border-b border-line flex items-center justify-between">
                                 <div className="relative flex-1 max-w-md">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                    <input type="text" placeholder="Search services for reminder..." className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-sm outline-none" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
+                                    <input type="text" placeholder="Search services for reminder..." className="w-full pl-10 pr-4 py-2 bg-surface border border-line dark:border-line rounded-xl text-sm outline-none" />
                                 </div>
                                 <button
                                     type="button"
@@ -777,16 +777,16 @@ export default function AdminSettings({ settings = {} }) {
                                         };
                                         setData('service_reminders', [...data.service_reminders, newReminder]);
                                     }}
-                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors"
+                                    className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors"
                                 >
                                     <Plus size={14} /> Add New Reminder
                                 </button>
                             </div>
-                            <div className="flex-1 divide-y divide-slate-100 dark:divide-slate-700">
+                            <div className="flex-1 divide-y divide-line">
                                 {data.service_reminders.length > 0 ? data.service_reminders.map((reminder, idx) => (
-                                    <div key={reminder.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+                                    <div key={reminder.id} className="p-4 flex items-center justify-between hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
                                         <div className="flex items-center gap-4 flex-1">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-500">
+                                            <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center text-ink-muted">
                                                 <Clock size={20} />
                                             </div>
                                             <div className="flex-1 max-w-xs">
@@ -798,12 +798,12 @@ export default function AdminSettings({ settings = {} }) {
                                                         newItems[idx].name = e.target.value;
                                                         setData('service_reminders', newItems);
                                                     }}
-                                                    className="w-full bg-transparent border-none p-0 text-sm font-bold text-slate-800 dark:text-white focus:ring-0"
+                                                    className="w-full bg-transparent border-none p-0 text-sm font-bold text-ink focus:ring-0"
                                                 />
-                                                <p className="text-2xs text-slate-500 uppercase font-black tracking-widest mt-0.5">Recurring Service</p>
+                                                <p className="text-2xs text-ink-muted uppercase font-bold tracking-widest mt-0.5">Recurring Service</p>
                                             </div>
-                                            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-xl">
-                                                <span className="text-2xs font-bold text-slate-400 uppercase tracking-tighter">Every</span>
+                                            <div className="flex items-center gap-2 bg-sunken px-3 py-1.5 rounded-xl">
+                                                <span className="text-2xs font-bold text-ink-muted uppercase tracking-tighter">Every</span>
                                                 <input
                                                     type="number"
                                                     value={reminder.interval}
@@ -812,7 +812,7 @@ export default function AdminSettings({ settings = {} }) {
                                                         newItems[idx].interval = e.target.value;
                                                         setData('service_reminders', newItems);
                                                     }}
-                                                    className="w-12 bg-transparent border-none p-0 text-sm font-black text-indigo-600 focus:ring-0 text-center"
+                                                    className="w-12 bg-transparent border-none p-0 text-sm font-bold text-brand-600 focus:ring-0 text-center"
                                                 />
                                                 <select
                                                     value={reminder.unit}
@@ -821,7 +821,7 @@ export default function AdminSettings({ settings = {} }) {
                                                         newItems[idx].unit = e.target.value;
                                                         setData('service_reminders', newItems);
                                                     }}
-                                                    className="bg-transparent border-none p-0 text-xs font-bold text-slate-500 focus:ring-0"
+                                                    className="bg-transparent border-none p-0 text-xs font-bold text-ink-muted focus:ring-0"
                                                 >
                                                     <option value="days">Days</option>
                                                     <option value="months">Months</option>
@@ -834,13 +834,13 @@ export default function AdminSettings({ settings = {} }) {
                                                 const newItems = data.service_reminders.filter(r => r.id !== reminder.id);
                                                 setData('service_reminders', newItems);
                                             }}
-                                            className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                            className="p-2 text-neutral-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                                         >
                                             <Trash2 size={16} />
                                         </button>
                                     </div>
                                 )) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12">
+                                    <div className="flex-1 flex flex-col items-center justify-center text-ink-muted py-12">
                                         <Clock size={48} className="mb-4 opacity-20" />
                                         <p className="font-bold text-sm tracking-tight mb-1">No Service Reminders Yet</p>
                                         <p className="text-xs text-center max-w-xs">Click "Add New Reminder" above to schedule automatic recurring service notifications.</p>
@@ -853,7 +853,7 @@ export default function AdminSettings({ settings = {} }) {
 
             default:
                 return (
-                    <div className="h-64 flex flex-col items-center justify-center text-slate-400 opacity-50">
+                    <div className="h-64 flex flex-col items-center justify-center text-ink-muted opacity-50">
                         <Settings size={48} className="mb-4" />
                         <p className="font-bold uppercase tracking-widest">Section Under Development</p>
                     </div>
@@ -866,22 +866,22 @@ export default function AdminSettings({ settings = {} }) {
 
             <div className="h-full flex gap-6 overflow-hidden">
                 {/* Sidebar - Midnight Nebula Styled - Collapsible */}
-                <div className={`${sidebarCollapsed ? 'w-20' : 'w-80'} bg-slate-900 rounded-[2.5rem] border border-slate-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-300`}>
+                <div className={`${sidebarCollapsed ? 'w-20' : 'w-80'} bg-neutral-900 rounded-2xl border border-neutral-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}>
                     {/* Nebula Background Elements */}
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-brand-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/10 rounded-full blur-[40px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none" />
 
                     {/* Header with Collapse Toggle - Reports Style */}
-                    <div className={`${sidebarCollapsed ? 'px-2 py-4 justify-center' : 'px-4 py-5 justify-between'} flex items-center border-b border-slate-800/50 mb-3 relative z-50`}>
+                    <div className={`${sidebarCollapsed ? 'px-2 py-4 justify-center' : 'px-4 py-5 justify-between'} flex items-center border-b border-neutral-800/50 mb-3 relative z-50`}>
                         {!sidebarCollapsed && (
                             <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 shrink-0">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-purple-600 flex items-center justify-center text-white shadow-lg shrink-0">
                                     <Settings size={18} />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-black text-white tracking-tight">System</h2>
-                                    <p className="text-3xs font-bold uppercase tracking-[0.2em] text-indigo-400">Control</p>
+                                    <h2 className="text-base font-bold text-white tracking-tight">System</h2>
+                                    <p className="text-3xs font-bold uppercase tracking-[0.2em] text-brand-400">Control</p>
                                 </div>
                             </div>
                         )}
@@ -892,9 +892,9 @@ export default function AdminSettings({ settings = {} }) {
                                 e.stopPropagation();
                                 setSidebarCollapsed(!sidebarCollapsed);
                             }}
-                            className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors shrink-0 z-50 cursor-pointer"
+                            className="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-interactive-hover flex items-center justify-center text-ink-muted hover:text-white transition-colors shrink-0 z-50 cursor-pointer"
                         >
-                            <ChevronRight size={14} className={`transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
+                            <ChevronRight size={14} className={`transition-transform duration-slow ${sidebarCollapsed ? 'rotate-180' : ''}`} />
                         </button>
                     </div>
 
@@ -915,13 +915,13 @@ export default function AdminSettings({ settings = {} }) {
                                                 e.stopPropagation();
                                                 toggleCategory(category.id);
                                             }}
-                                            className="w-full flex items-center justify-between px-3 py-2 text-2xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-colors group"
+                                            className="w-full flex items-center justify-between px-3 py-2 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-brand-400 transition-colors group"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <CatIcon size={12} />
                                                 {category.name}
                                             </div>
-                                            <ChevronRight size={12} className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                                            <ChevronRight size={12} className={`transition-transform duration-normal ${isExpanded ? 'rotate-90' : ''}`} />
                                         </button>
                                     )}
 
@@ -936,30 +936,30 @@ export default function AdminSettings({ settings = {} }) {
                                                         type="button"
                                                         onClick={() => handleSectionChange(section.id)}
                                                         title={sidebarCollapsed ? section.name : undefined}
-                                                        className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-3'} rounded-xl text-left transition-all duration-200 group relative overflow-hidden border ${isActive
-                                                            ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg shadow-indigo-500/20'
-                                                            : 'text-slate-400 hover:bg-white/5 hover:text-white border-transparent'
+                                                        className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
+                                                            ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
+                                                            : 'text-ink-muted hover:bg-white/5 hover:text-white border-transparent'
                                                             }`}
                                                     >
                                                         {isActive && (
-                                                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 opacity-100" />
+                                                            <div className="absolute inset-0 bg-gradient-to-r from-brand-600/20 to-purple-600/20 opacity-100" />
                                                         )}
 
-                                                        <div className={`relative z-10 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 ${isActive ? 'bg-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-slate-800 group-hover:bg-slate-700'}`}>
-                                                            <Icon size={16} className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'} />
+                                                        <div className={`relative z-10 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-brand-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-neutral-800 group-hover:bg-interactive-hover'}`}>
+                                                            <Icon size={16} className={isActive ? 'text-white' : 'text-ink-muted group-hover:text-brand-400'} />
                                                         </div>
 
                                                         {!sidebarCollapsed && (
                                                             <div className="relative z-10 flex-1 min-w-0">
-                                                                <p className={`text-xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-slate-200'}`}>{section.name}</p>
-                                                                <p className={`text-3xs leading-tight ${isActive ? 'text-indigo-200' : 'text-slate-500'} line-clamp-1`}>
+                                                                <p className={`text-xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-200'}`}>{section.name}</p>
+                                                                <p className={`text-3xs leading-tight ${isActive ? 'text-brand-200' : 'text-ink-muted'} line-clamp-1`}>
                                                                     {section.description}
                                                                 </p>
                                                             </div>
                                                         )}
 
                                                         {!sidebarCollapsed && (
-                                                            <ChevronRight size={14} className={`relative z-10 transition-all duration-200 shrink-0 ${isActive ? 'text-white' : 'text-slate-600 opacity-0 group-hover:opacity-100'}`} />
+                                                            <ChevronRight size={14} className={`relative z-10 transition-all duration-normal shrink-0 ${isActive ? 'text-white' : 'text-ink-secondary opacity-0 group-hover:opacity-100'}`} />
                                                         )}
                                                     </button>
                                                 );
@@ -973,22 +973,22 @@ export default function AdminSettings({ settings = {} }) {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
+                <div className="flex-1 bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
                     <form onSubmit={handleSubmit} className="flex flex-col h-full relative z-10">
                         {/* Header */}
-                        <div className="p-10 border-b border-slate-100 dark:border-slate-800 shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+                        <div className="p-10 border-b border-line shrink-0 bg-white/80 dark:bg-app backdrop-blur-xl">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-black uppercase tracking-[0.2em] rounded-full">Section</span>
-                                        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                        <span className="px-3 py-1 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-[0.2em] rounded-full">Section</span>
+                                        <h2 className="text-3xl font-bold text-ink tracking-tight">
                                             {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.name}
                                         </h2>
                                     </div>
-                                    <p className="text-base text-slate-500 font-medium">
+                                    <p className="text-base text-ink-muted font-medium">
                                         {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.description}
                                     </p>
                                 </div>
@@ -996,14 +996,14 @@ export default function AdminSettings({ settings = {} }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className={`relative group px-10 py-4 rounded-2xl font-black text-sm transition-all duration-500 transform active:scale-95 overflow-hidden shadow-2xl hover:shadow-indigo-500/40`}
+                                    className={`relative group px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl hover:`}
                                 >
                                     {/* Midnight Nebula Background for Button */}
-                                    <div className="absolute inset-0 bg-slate-900 z-0">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/60 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
-                                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/50 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 group-hover:scale-110 transition-transform duration-500"></div>
+                                    <div className="absolute inset-0 bg-neutral-900 z-0">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/60 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-transform duration-slower"></div>
+                                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/50 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 transition-transform duration-slower"></div>
                                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20"></div>
-                                        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-50"></div>
+                                        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-brand-400 to-transparent opacity-50"></div>
                                     </div>
 
                                     <div className="relative z-10 flex items-center gap-3 text-white">
@@ -1014,12 +1014,12 @@ export default function AdminSettings({ settings = {} }) {
                                             </>
                                         ) : processing ? (
                                             <>
-                                                <RefreshCw size={20} className="animate-spin text-indigo-300" />
+                                                <RefreshCw size={20} className="animate-spin text-brand-300" />
                                                 <span>Syncing...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <Save size={20} className="group-hover:scale-110 transition-transform" />
+                                                <Save size={20} className="transition-transform" />
                                                 <span>Save Changes</span>
                                             </>
                                         )}
@@ -1030,7 +1030,7 @@ export default function AdminSettings({ settings = {} }) {
 
 
                         <div className={`flex-1 custom-scrollbar ${activeSection === 'print' ? 'p-0 overflow-hidden' : 'p-10 overflow-y-auto'}`}>
-                            <div className={`mx-auto transition-all duration-300 ${activeSection === 'print' ? 'max-w-full h-full' : activeSection === 'business' ? 'max-w-full px-6 pb-40' : 'max-w-5xl pb-40'}`}>
+                            <div className={`mx-auto transition-all duration-slow ${activeSection === 'print' ? 'max-w-full h-full' : activeSection === 'business' ? 'max-w-full px-6 pb-40' : 'max-w-5xl pb-40'}`}>
                                 {renderSection()}
                             </div>
                         </div>
@@ -1046,11 +1046,11 @@ export default function AdminSettings({ settings = {} }) {
     background: transparent;
 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: rgb(var(--vq-slate-700));
     border-radius: 10px;
 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: rgb(var(--vq-slate-600));
 }
 `}</style>
             <div className="fixed bottom-0 right-0 p-6 z-50 pointer-events-none">

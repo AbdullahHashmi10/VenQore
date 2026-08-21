@@ -66,19 +66,19 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col justify-between p-4 md:p-8 relative overflow-hidden">
+        <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-brand-500 selection:text-white flex flex-col justify-between p-4 md:p-8 relative overflow-hidden">
             {/* Background Decorative Lighting */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-600/10 rounded-full blur-[140px] pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[140px] pointer-events-none" />
 
             {/* Top Navigation Bar */}
-            <header className="w-full max-w-6xl mx-auto flex items-center justify-between py-2 border-b border-slate-800/80 mb-8 relative z-20">
+            <header className="w-full max-w-6xl mx-auto flex items-center justify-between py-2 border-b border-neutral-800/80 mb-8 relative z-20">
                 <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-indigo-500/10 border border-indigo-500/30 rounded-xl">
+                    <div className="p-1.5 bg-brand-500/10 border border-brand-500/30 rounded-xl">
                         <ThinkingOrb state="breathing" size={28} theme="dark" />
                     </div>
-                    <span className="font-black text-lg tracking-tight text-white">
-                        VenQore <span className="text-indigo-400 font-mono text-xs font-normal ml-1">v2.0</span>
+                    <span className="font-bold text-lg tracking-tight text-white">
+                        VenQore <span className="text-brand-400 font-mono text-xs font-normal ml-1">v2.0</span>
                     </span>
                 </div>
 
@@ -89,15 +89,15 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
                         return (
                             <div key={st} className="flex items-center gap-2">
                                 <div
-                                    className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                                    className={`px-3 py-1 rounded-full text-1xs font-semibold transition-all ${
                                         isCurrent
-                                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
-                                            : 'bg-slate-900 border border-slate-800 text-slate-400'
+                                            ? 'bg-brand-500 text-white shadow-lg '
+                                            : 'bg-neutral-900 border border-neutral-800 text-ink-muted'
                                     }`}
                                 >
                                     Step {idx + 1}
                                 </div>
-                                {idx < 4 && <div className="w-3 h-px bg-slate-800" />}
+                                {idx < 4 && <div className="w-3 h-px bg-neutral-800" />}
                             </div>
                         );
                     })}
@@ -159,9 +159,9 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
             </main>
 
             {/* Footer */}
-            <footer className="w-full max-w-6xl mx-auto text-center py-4 border-t border-slate-900 text-slate-500 text-xs flex items-center justify-between relative z-20">
+            <footer className="w-full max-w-6xl mx-auto text-center py-4 border-t border-neutral-900 text-ink-muted text-xs flex items-center justify-between relative z-20">
                 <span>© 2026 VenQore ERP. All rights reserved.</span>
-                <div className="flex items-center gap-2 text-slate-400 font-mono">
+                <div className="flex items-center gap-2 text-ink-muted font-mono">
                     <Shield size={12} className="text-emerald-400" />
                     <span>The Qore Double-Entry Engine Verified</span>
                 </div>

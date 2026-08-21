@@ -33,7 +33,7 @@ const iconMap = {
 const statusColors = {
     shipped: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     building: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    planned: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    planned: 'bg-neutral-100 text-ink-secondary dark:bg-surface dark:text-ink-muted',
 };
 
 const statusLabel = {
@@ -96,13 +96,13 @@ const DEMO_BY_FEATURE = {
     'point-of-sale': {
         Component: PosInvoiceDemo,
         eyebrow: 'Try it now',
-        title: <>Ring up a sale <span className="text-indigo-600 dark:text-indigo-400">right here.</span></>,
+        title: <>Ring up a sale <span className="text-brand-600 dark:text-brand-400">right here.</span></>,
         lead: 'This is the real checkout. Add products, change quantities, pick a payment method and complete the sale. Nothing is saved — it is yours to play with.',
     },
     'offline-pos': {
         Component: PosInvoiceDemo,
         eyebrow: 'Try it now',
-        title: <>The same terminal, <span className="text-indigo-600 dark:text-indigo-400">with or without a line.</span></>,
+        title: <>The same terminal, <span className="text-brand-600 dark:text-brand-400">with or without a line.</span></>,
         lead: 'Offline mode is not a stripped-down fallback screen — it is this exact terminal, running from local storage and syncing the moment you are back online.',
     },
     accounting: {
@@ -146,16 +146,16 @@ export default function FeatureShow({ slug }) {
                     <SectionLabel icon={ShieldCheck} text={data.heroBadge} />
 
                     <div className="inline-flex items-center gap-2 mt-4 mb-3">
-                        <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${statusColors[data.status]}`}>
+                        <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full ${statusColors[data.status]}`}>
                             {statusLabel[data.status]}
                         </span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{data.category}</span>
+                        <span className="text-xs text-ink-muted font-medium">{data.category}</span>
                     </div>
 
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6 max-w-4xl mx-auto leading-tight">
+                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 max-w-4xl mx-auto leading-tight">
                         {data.headline}
                     </h1>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed">
+                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed">
                         {data.subhead}
                     </p>
 
@@ -169,13 +169,13 @@ export default function FeatureShow({ slug }) {
                     </div>
 
                     {/* Stats strip */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-6 rounded-2xl bg-app border border-line">
                         {data.stats.map((stat, i) => (
                             <div key={i} className="text-center p-3">
-                                <div className="text-2xl md:text-3xl font-black text-indigo-600 dark:text-indigo-400">
+                                <div className="text-2xl md:text-3xl font-bold text-brand-600 dark:text-brand-400">
                                     {stat.value}
                                 </div>
-                                <div className="text-2xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">
+                                <div className="text-2xs font-bold uppercase tracking-wider text-ink-muted mt-1">
                                     {stat.label}
                                 </div>
                             </div>
@@ -187,12 +187,12 @@ export default function FeatureShow({ slug }) {
             {/* ── ANSWER BLOCK (GEO-optimised extractable answer) ───── */}
             <section className="py-12 px-6 max-w-4xl mx-auto">
                 <RevealOnScroll direction="up">
-                    <div className="rounded-3xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 p-8 md:p-10">
-                        <p className="text-xs font-black uppercase tracking-widest text-indigo-500 mb-3">Quick Answer</p>
-                        <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-4">
+                    <div className="rounded-2xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 p-8 md:p-10">
+                        <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-3">Quick Answer</p>
+                        <h2 className="text-xl md:text-2xl font-bold text-ink mb-4">
                             {data.answerBlock.question}
                         </h2>
-                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base md:text-lg">
+                        <p className="text-ink-secondary leading-relaxed text-base md:text-lg">
                             {data.answerBlock.answer}
                         </p>
                     </div>
@@ -209,10 +209,10 @@ export default function FeatureShow({ slug }) {
                         <RevealOnScroll direction="up">
                             <div className="text-center mb-10 max-w-3xl mx-auto">
                                 <SectionLabel icon={Zap}>{demo.eyebrow}</SectionLabel>
-                                <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-4 mt-4">
+                                <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight leading-tight mb-4 mt-4">
                                     {demo.title}
                                 </h2>
-                                <p className="text-slate-600 dark:text-slate-400 text-base md:text-lg leading-relaxed">
+                                <p className="text-ink-secondary text-base md:text-lg leading-relaxed">
                                     {demo.lead}
                                 </p>
                             </div>
@@ -220,9 +220,9 @@ export default function FeatureShow({ slug }) {
                         <RevealOnScroll direction="up" delay={0.1}>
                             <demo.Component />
                         </RevealOnScroll>
-                        <p className="text-center text-xs text-slate-500 dark:text-slate-500 mt-6">
-                            Simulated with sample data — nothing you do here is saved.{' '}
-                            <Link href="/demo" className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                        <p className="text-center text-xs text-ink-muted mt-6">
+                            Simulated with sample data — nothing you do here is saved.{''}
+                            <Link href="/demo" className="font-bold text-brand-600 dark:text-brand-400 hover:underline">
                                 Want the full store? Launch the live demo →
                             </Link>
                         </p>
@@ -235,10 +235,10 @@ export default function FeatureShow({ slug }) {
             <section className="py-20 px-6 max-w-7xl mx-auto">
                 <RevealOnScroll direction="up">
                     <div className="text-center mb-16 max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                             Where Generic Software Falls Short
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400">
+                        <p className="text-ink-secondary">
                             The gaps that cost retailers money every day — and how VenQore closes them.
                         </p>
                     </div>
@@ -254,7 +254,7 @@ export default function FeatureShow({ slug }) {
                                         <p className="text-sm font-bold text-rose-600 dark:text-rose-400 mb-2">
                                             Without VenQore
                                         </p>
-                                        <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
+                                        <p className="text-ink-secondary text-sm mb-4">
                                             {item.pain}
                                         </p>
                                         <div className="flex items-start gap-3">
@@ -275,10 +275,10 @@ export default function FeatureShow({ slug }) {
             <section className="py-20 px-6 max-w-7xl mx-auto">
                 <RevealOnScroll direction="up">
                     <div className="text-center mb-16 max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                             What's Included
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400">
+                        <p className="text-ink-secondary">
                             Every capability below is shipped and live in VenQore today. No plugins, no add-ons.
                         </p>
                     </div>
@@ -289,20 +289,20 @@ export default function FeatureShow({ slug }) {
                             return (
                                 <GlassCard key={i} className="p-6 flex flex-col gap-4">
                                     <div className="flex items-start justify-between gap-3">
-                                        <div className="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
-                                            <Icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                        <div className="w-11 h-11 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0">
+                                            <Icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                                         </div>
                                         {feat.tag && (
-                                            <span className="text-2xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full whitespace-nowrap">
+                                            <span className="text-2xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full whitespace-nowrap">
                                                 {feat.tag}
                                             </span>
                                         )}
                                     </div>
                                     <div>
-                                        <h3 className="text-base font-black text-slate-900 dark:text-white mb-2">
+                                        <h3 className="text-base font-bold text-ink mb-2">
                                             {feat.title}
                                         </h3>
-                                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                        <p className="text-ink-secondary text-sm leading-relaxed">
                                             {feat.description}
                                         </p>
                                     </div>
@@ -317,30 +317,30 @@ export default function FeatureShow({ slug }) {
             <section className="py-20 px-6 max-w-5xl mx-auto">
                 <RevealOnScroll direction="up">
                     <div className="text-center mb-12 max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                             {data.comparisonTable.title}
                         </h2>
                     </div>
 
-                    <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                    <div className="rounded-2xl overflow-hidden border border-line">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                                    <th className="py-4 px-6 text-left font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider">
+                                <tr className="bg-app border-b border-line">
+                                    <th className="py-4 px-6 text-left font-bold text-ink-secondary text-xs uppercase tracking-wider">
                                         Feature
                                     </th>
-                                    <th className="py-4 px-6 text-left font-black text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">
+                                    <th className="py-4 px-6 text-left font-bold text-brand-600 dark:text-brand-400 text-xs uppercase tracking-wider">
                                         VenQore
                                     </th>
-                                    <th className="py-4 px-6 text-left font-black text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
+                                    <th className="py-4 px-6 text-left font-bold text-ink-muted text-xs uppercase tracking-wider">
                                         Typical Alternative
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-950">
+                            <tbody className="divide-y divide-line bg-surface">
                                 {data.comparisonTable.rows.map((row, i) => (
-                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
-                                        <td className="py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                                    <tr key={i} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                        <td className="py-4 px-6 font-semibold text-ink-secondary">
                                             {row.feature}
                                         </td>
                                         <td className="py-4 px-6 text-emerald-700 dark:text-emerald-400 font-medium">
@@ -349,7 +349,7 @@ export default function FeatureShow({ slug }) {
                                                 {row.venqore}
                                             </span>
                                         </td>
-                                        <td className="py-4 px-6 text-slate-500 dark:text-slate-400">
+                                        <td className="py-4 px-6 text-ink-muted">
                                             {row.competitor}
                                         </td>
                                     </tr>
@@ -364,7 +364,7 @@ export default function FeatureShow({ slug }) {
             <section className="py-20 px-6 max-w-3xl mx-auto">
                 <RevealOnScroll direction="up">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                             Frequently Asked Questions
                         </h2>
                     </div>
@@ -373,23 +373,23 @@ export default function FeatureShow({ slug }) {
                         {data.faqs.map((faq, i) => (
                             <div
                                 key={i}
-                                className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+                                className="rounded-2xl border border-line overflow-hidden"
                             >
                                 <button
                                     id={`faq-${slug}-${i}`}
                                     onClick={() => toggleFaq(i)}
-                                    className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                    className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-surface hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                     aria-expanded={openFaq === i}
                                 >
-                                    <span className="font-bold text-slate-900 dark:text-white text-sm">
+                                    <span className="font-bold text-ink text-sm">
                                         {faq.q}
                                     </span>
                                     {openFaq === i
-                                        ? <ChevronUp className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
-                                        : <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />}
+                                        ? <ChevronUp className="w-4 h-4 text-ink-muted flex-shrink-0" />
+                                        : <ChevronDown className="w-4 h-4 text-ink-muted flex-shrink-0" />}
                                 </button>
                                 {openFaq === i && (
-                                    <div className="px-6 pb-5 bg-white dark:bg-slate-900 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    <div className="px-6 pb-5 bg-surface text-sm text-ink-secondary leading-relaxed">
                                         {faq.a}
                                     </div>
                                 )}
@@ -403,7 +403,7 @@ export default function FeatureShow({ slug }) {
             <section className="py-16 px-6 max-w-5xl mx-auto">
                 <RevealOnScroll direction="up">
                     <div className="text-center mb-8">
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
+                        <h2 className="text-2xl font-bold text-ink mb-2">
                             Explore Related Pages
                         </h2>
                     </div>
@@ -412,7 +412,7 @@ export default function FeatureShow({ slug }) {
                             <Link
                                 key={i}
                                 href={link.href}
-                                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold text-sm transition-all duration-200"
+                                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sunken hover:bg-brand-50 dark:hover:bg-brand-900/30 text-ink-secondary hover:text-brand-600 dark:hover:text-brand-400 font-semibold text-sm transition-all duration-normal"
                             >
                                 {link.label}
                                 <ArrowRight className="w-3 h-3" />
@@ -420,7 +420,7 @@ export default function FeatureShow({ slug }) {
                         ))}
                         <Link
                             href="/features"
-                            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all duration-200"
+                            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition-all duration-normal"
                         >
                             All Features <ArrowRight className="w-3 h-3" />
                         </Link>
@@ -431,10 +431,10 @@ export default function FeatureShow({ slug }) {
             {/* ── FINAL CTA ──────────────────────────────────────────── */}
             <section className="py-24 px-6 max-w-4xl mx-auto text-center">
                 <RevealOnScroll direction="up">
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
+                    <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6 tracking-tight">
                         Ready to see it for yourself?
                     </h2>
-                    <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto">
+                    <p className="text-lg text-ink-secondary mb-10 max-w-2xl mx-auto">
                         Walk into a fully loaded VenQore store — ring up sales, open the P&L, check inventory.
                         No signup. Resets daily.
                     </p>
@@ -446,7 +446,7 @@ export default function FeatureShow({ slug }) {
                             Start 14-Day Free Trial
                         </MagneticButton>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-6">
+                    <p className="text-xs text-ink-muted mt-6">
                         Plans from $36/month · No credit card for trial · Cancel any time
                     </p>
                 </RevealOnScroll>

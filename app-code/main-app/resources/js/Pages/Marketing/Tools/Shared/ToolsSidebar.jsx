@@ -24,11 +24,11 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
         if (tool.status !== 'live' || !tool.href) {
             return (
                 <div
-                    className={`${base} text-slate-500 dark:text-slate-600 cursor-default select-none`}
+                    className={`${base} text-ink-muted cursor-default select-none`}
                     title="Coming soon"
                 >
                     <span className="truncate">{tool.short}</span>
-                    <span className="text-3xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-900/[0.05] dark:bg-white/[0.06] text-slate-500 dark:text-slate-500 shrink-0">
+                    <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-sunken dark:bg-white/[0.06] text-ink-muted shrink-0">
                         Soon
                     </span>
                 </div>
@@ -41,8 +41,8 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
                 onClick={() => setOpen(false)}
                 className={`${base} ${
                     isCurrent
-                        ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-500/20'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.05]'
+                        ? 'bg-brand-500/10 text-brand-600 dark:text-brand-300 font-bold border border-brand-500/20'
+                        : 'text-ink-secondary hover:text-ink dark:hover:text-white hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05]'
                 }`}
             >
                 <span className="truncate">{tool.short}</span>
@@ -67,24 +67,24 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
             <nav className="space-y-6">
                 {smartCaptureTool && (
                     <div>
-                        <p className="text-2xs font-black uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400 mb-2 px-3 flex items-center gap-1">
+                        <p className="text-2xs font-bold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400 mb-2 px-3 flex items-center gap-1">
                             <span>Premium AI Feature</span>
                         </p>
                         <div className="space-y-0.5">
                             <Link
                                 href={smartCaptureTool.href}
                                 onClick={() => setOpen(false)}
-                                className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 border ${
+                                className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-all duration-slow border ${
                                     currentSlug === 'smart-capture'
-                                        ? 'bg-gradient-to-r from-violet-600/20 to-indigo-600/10 text-violet-700 dark:text-violet-300 font-black border-violet-500/40 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
-                                        : 'bg-gradient-to-r from-violet-500/[0.04] to-indigo-500/[0.01] hover:from-violet-500/[0.08] hover:to-indigo-500/[0.05] border-violet-500/15 hover:border-violet-500/30 text-slate-800 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-400 font-bold'
+                                        ? 'bg-gradient-to-r from-brand-600/20 to-brand-600/10 text-violet-700 dark:text-violet-300 font-bold border-violet-500/40 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
+                                        : 'bg-gradient-to-r from-brand-500/[0.04] to-brand-500/[0.01] hover:from-brand-500/[0.08] hover:to-brand-500/[0.05] border-violet-500/15 hover:border-violet-500/30 text-ink dark:text-ink-secondary hover:text-violet-600 dark:hover:text-violet-400 font-bold'
                                 }`}
                             >
                                 <span className="flex items-center gap-2 truncate">
                                     <span className="animate-pulse">✨</span>
                                     <span className="truncate">{smartCaptureTool.short}</span>
                                 </span>
-                                <span className="px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400 text-[9px] font-black uppercase tracking-wider shrink-0 scale-90">
+                                <span className="px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400 text-3xs font-bold uppercase tracking-wider shrink-0 scale-90">
                                     PRO
                                 </span>
                             </Link>
@@ -94,7 +94,7 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
 
                 {filteredGroups.map((group) => (
                     <div key={group.key}>
-                        <p className="text-2xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-600 mb-2 px-3">
+                        <p className="text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted mb-2 px-3">
                             {group.label}
                         </p>
                         <div className="space-y-0.5">
@@ -114,13 +114,13 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
             <div className="lg:hidden mb-6">
                 <button
                     onClick={() => setOpen((v) => !v)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900/[0.03] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-300"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-sm font-bold text-ink-secondary"
                 >
                     {open ? <X size={16} /> : <Menu size={16} />}
                     All tools
                 </button>
                 {open && (
-                    <div className="mt-4 p-4 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
+                    <div className="mt-4 p-4 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
                         <Nav />
                     </div>
                 )}

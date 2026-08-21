@@ -235,10 +235,10 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
             return (
                 <ReportsLayout title="Secure Vault Locked" showSidebar={false}>
                     <div className="min-h-[85vh] flex items-center justify-center p-4">
-                        <div className="text-center p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl max-w-sm">
+                        <div className="text-center p-8 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl max-w-sm">
                             <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4 animate-pulse" />
                             <h2 className="text-2xl font-bold text-white mb-2">Vault Unconfigured</h2>
-                            <p className="text-slate-400 text-sm">
+                            <p className="text-ink-muted text-sm">
                                 The store owner must configure the Daily Pulse vault security before it can be accessed.
                             </p>
                         </div>
@@ -251,19 +251,19 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
             <ReportsLayout title="Configure Vault Security" showSidebar={false}>
                 <Head title="Configure Vault Security" />
                 <div className="min-h-[85vh] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-950 z-0 overflow-hidden">
+                    <div className="absolute inset-0 bg-neutral-950 z-0 overflow-hidden">
                         <div className="absolute top-1/4 left-1/4 w-[30rem] h-[30rem] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
-                        <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
+                        <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-brand-600/10 rounded-full blur-[100px] pointer-events-none" />
                     </div>
 
                     <div className={`relative z-10 w-full max-w-md ${shake ? 'animate-bounce' : ''}`} style={shake ? { animation: 'shake 0.4s ease-in-out' } : {}}>
-                        <MidnightNebula className="rounded-[2.5rem] border border-slate-800 shadow-2xl p-8 backdrop-blur-md bg-slate-900/80" primaryColor="emerald" secondaryColor="indigo">
+                        <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="emerald" secondaryColor="indigo">
                             <div className="text-center mb-8">
                                 <div className="inline-flex p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-emerald-400 mb-4 animate-bounce">
                                     <Shield size={32} />
                                 </div>
-                                <h2 className="text-2xl font-black text-white tracking-tight">Vault Security Setup</h2>
-                                <p className="text-slate-400 text-xs max-w-xs mx-auto mt-2">
+                                <h2 className="text-2xl font-bold text-white tracking-tight">Vault Security Setup</h2>
+                                <p className="text-ink-muted text-xs max-w-xs mx-auto mt-2">
                                     You are the owner. Choose how you want to secure your Daily Pulse dashboard.
                                 </p>
                             </div>
@@ -272,7 +272,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                 <div className="space-y-4">
                                     <button 
                                         onClick={() => setSetupPhase('setting')}
-                                        className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-emerald-500/20 transition-all"
+                                        className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl shadow-lg hover: transition-all"
                                     >
                                         <Lock size={18} />
                                         <span>REQUIRE PASSCODE</span>
@@ -280,7 +280,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     <button 
                                         onClick={handleSetupDisable}
                                         disabled={processing}
-                                        className="w-full flex items-center justify-center gap-2 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl transition-all"
+                                        className="w-full flex items-center justify-center gap-2 py-4 bg-sunken hover:bg-interactive-hover text-white font-bold rounded-2xl transition-all"
                                     >
                                         <Unlock size={18} />
                                         <span>LEAVE UNLOCKED</span>
@@ -290,12 +290,12 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
 
                             {setupPhase === 'setting' && (
                                 <div className="space-y-6">
-                                    <h3 className="text-center font-bold text-slate-300">Enter New Passcode</h3>
+                                    <h3 className="text-center font-bold text-neutral-300">Enter New Passcode</h3>
                                     <input 
                                         type="password"
                                         value={newPasscode}
                                         readOnly
-                                        className="w-full text-center tracking-[0.7em] text-xl font-black bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
+                                        className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
                                         placeholder="••••••••"
                                     />
                                     <div className="grid grid-cols-3 gap-3">
@@ -304,7 +304,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                                 key={key}
                                                 type="button"
                                                 onClick={() => handleKeypadPress(key, 'new')}
-                                                className={`h-14 rounded-2xl font-black text-lg ${key === 'C' || key === '⌫' ? 'bg-slate-800 text-slate-400' : 'bg-slate-700 text-white'}`}
+                                                className={`h-14 rounded-2xl font-bold text-lg ${key === 'C' || key === '⌫' ? 'bg-neutral-800 text-ink-muted' : 'bg-neutral-700 text-white'}`}
                                             >
                                                 {key}
                                             </button>
@@ -326,12 +326,12 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
 
                             {setupPhase === 'confirming' && (
                                 <div className="space-y-6">
-                                    <h3 className="text-center font-bold text-slate-300">Confirm Passcode</h3>
+                                    <h3 className="text-center font-bold text-neutral-300">Confirm Passcode</h3>
                                     <input 
                                         type="password"
                                         value={confirmPasscode}
                                         readOnly
-                                        className="w-full text-center tracking-[0.7em] text-xl font-black bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
+                                        className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
                                         placeholder="••••••••"
                                     />
                                     <div className="grid grid-cols-3 gap-3">
@@ -340,7 +340,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                                 key={key}
                                                 type="button"
                                                 onClick={() => handleKeypadPress(key, 'confirm')}
-                                                className={`h-14 rounded-2xl font-black text-lg ${key === 'C' || key === '⌫' ? 'bg-slate-800 text-slate-400' : 'bg-slate-700 text-white'}`}
+                                                className={`h-14 rounded-2xl font-bold text-lg ${key === 'C' || key === '⌫' ? 'bg-neutral-800 text-ink-muted' : 'bg-neutral-700 text-white'}`}
                                             >
                                                 {key}
                                             </button>
@@ -349,7 +349,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     <button
                                         onClick={handleSetupConfirm}
                                         disabled={processing || confirmPasscode.length < 4}
-                                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all"
+                                        className="w-full py-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all"
                                     >
                                         {processing ? 'SAVING...' : 'CONFIRM & SAVE'}
                                     </button>
@@ -366,7 +366,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         20%, 60% { transform: translateX(-6px); }
                         40%, 80% { transform: translateX(6px); }
                     }
-                `}</style>
+`}</style>
             </ReportsLayout>
         );
     }
@@ -379,23 +379,23 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                 
                 <div className="min-h-[85vh] flex items-center justify-center p-4">
                     {/* Midnight Nebula Background Overlay */}
-                    <div className="absolute inset-0 bg-slate-950 z-0 overflow-hidden">
-                        <div className="absolute top-1/4 left-1/4 w-[30rem] h-[30rem] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute inset-0 bg-neutral-950 z-0 overflow-hidden">
+                        <div className="absolute top-1/4 left-1/4 w-[30rem] h-[30rem] bg-brand-600/10 rounded-full blur-[100px] pointer-events-none" />
                         <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-[0.03] pointer-events-none" />
                     </div>
 
                     <div className={`relative z-10 w-full max-w-md ${shake ? 'animate-bounce' : ''}`} style={shake ? { animation: 'shake 0.4s ease-in-out' } : {}}>
-                        <MidnightNebula className="rounded-[2.5rem] border border-slate-800 shadow-2xl p-8 backdrop-blur-md bg-slate-900/80" primaryColor="indigo" secondaryColor="purple">
+                        <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="indigo" secondaryColor="purple">
                             
                             {/* Vault Icon Header */}
                             <div className="text-center mb-8">
-                                <div className="inline-flex p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 text-indigo-400 mb-4 animate-pulse">
+                                <div className="inline-flex p-4 bg-brand-500/10 rounded-2xl border border-brand-500/20 text-brand-400 mb-4 animate-pulse">
                                     <Lock size={32} />
                                 </div>
-                                <h2 className="text-2xl font-black text-white tracking-tight">{store_name}</h2>
-                                <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mt-1">Owner's Secure Daily Pulse</p>
-                                <p className="text-slate-400 text-xs max-w-xs mx-auto mt-2">
+                                <h2 className="text-2xl font-bold text-white tracking-tight">{store_name}</h2>
+                                <p className="text-xs font-bold text-brand-400 uppercase tracking-widest mt-1">Owner's Secure Daily Pulse</p>
+                                <p className="text-ink-muted text-xs max-w-xs mx-auto mt-2">
                                     Enter your authorization passcode to unlock the financial vault.
                                 </p>
                             </div>
@@ -408,14 +408,14 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                         value={passcode}
                                         onChange={(e) => setPasscode(e.target.value)}
                                         placeholder="••••••••"
-                                        className="w-full text-center tracking-[0.7em] text-xl font-black bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-mono placeholder-slate-700 shadow-inner"
+                                        className="w-full text-center tracking-[0.7em] text-xl font-bold bg-sunken/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all font-mono placeholder-slate-700 shadow-inner"
                                         disabled={processing}
                                         autoFocus
                                     />
                                     <button 
                                         type="button" 
                                         onClick={() => setShowPasscode(!showPasscode)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted hover:text-neutral-300 transition-colors"
                                     >
                                         {showPasscode ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
@@ -426,10 +426,10 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {[1, 2, 3, 4, 5, 6].map((idx) => (
                                         <div 
                                             key={idx}
-                                            className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                                            className={`w-3.5 h-3.5 rounded-full transition-all duration-slow ${
                                                 passcode.length >= idx 
-                                                    ? 'bg-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.8)] scale-110' 
-                                                    : 'bg-slate-800'
+                                                    ? 'bg-brand-400 shadow-[0_0_12px_rgba(129,140,248,0.8)] scale-110' 
+                                                    : 'bg-neutral-800'
                                             }`}
                                         />
                                     ))}
@@ -451,12 +451,12 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                                 key={key}
                                                 type="button"
                                                 onClick={() => handleKeypadPress(key)}
-                                                className={`h-14 rounded-2xl flex items-center justify-center font-black text-lg transition-all active:scale-95 select-none ${
+                                                className={`h-14 rounded-2xl flex items-center justify-center font-bold text-lg transition-all active:scale-95 select-none ${
                                                     key === 'C' || key === '⌫' 
-                                                        ? 'bg-slate-800/40 hover:bg-slate-800 text-slate-400' 
-                                                        : 'bg-slate-800/80 hover:bg-slate-700 text-white'
-                                                } border border-slate-800/80 hover:border-slate-700 shadow-md ${
-                                                    isFlash ? 'bg-indigo-600/80 text-white border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.6)] scale-95' : ''
+                                                        ? 'bg-neutral-800/40 hover:bg-interactive-hover text-ink-muted' 
+                                                        : 'bg-neutral-800/80 hover:bg-interactive-hover text-white'
+                                                } border border-neutral-800/80 hover:border-line-strong shadow-md ${
+                                                    isFlash ? 'bg-brand-600/80 text-white border-brand-400 shadow-[0_0_15px_rgba(99,102,241,0.6)] scale-95' : ''
                                                 }`}
                                             >
                                                 {key}
@@ -469,7 +469,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                 <button
                                     type="submit"
                                     disabled={!passcode || processing}
-                                    className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:from-slate-800 disabled:to-slate-800 disabled:opacity-40 text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-[0.99] focus:outline-none"
+                                    className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 disabled:from-neutral-800 disabled:to-neutral-800 disabled:opacity-40 text-white font-bold rounded-2xl transition-all shadow-lg hover: active:scale-[0.99] focus:outline-none"
                                 >
                                     {processing ? (
                                         <RefreshCw className="w-5 h-5 animate-spin" />
@@ -491,7 +491,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         20%, 60% { transform: translateX(-6px); }
                         40%, 80% { transform: translateX(6px); }
                     }
-                `}</style>
+`}</style>
             </ReportsLayout>
         );
     }
@@ -504,7 +504,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
             <div className="space-y-6 max-w-7xl mx-auto pb-12">
 
                 {/* Dashboard Security Top Bar */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
                     {/* Glowing Accent Layer */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
                     
@@ -513,14 +513,14 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                             <Shield size={24} className="animate-pulse" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                                 Owner's Daily Pulse 
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                                     Executive Session
                                 </span>
                             </h1>
-                            <p className="text-xs text-slate-400 mt-0.5">
+                            <p className="text-xs text-ink-muted mt-0.5">
                                 Executive financial ledger audits and auto-healing data backups.
                             </p>
                         </div>
@@ -531,12 +531,12 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="bg-slate-950/80 border border-slate-700/80 text-white rounded-xl px-4 py-2.5 text-xs focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/80 hover:border-slate-600 transition-all outline-none"
+                            className="bg-neutral-950/80 border border-neutral-700/80 text-white rounded-xl px-4 py-2.5 text-xs focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/80 hover:border-line-strong transition-all outline-none"
                             title="Select Date"
                         />
                         <button 
                             onClick={() => window.location.reload()}
-                            className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/80 transition-colors"
+                            className="p-3 bg-neutral-800 hover:bg-interactive-hover text-neutral-300 hover:text-white rounded-xl border border-neutral-700/80 transition-colors"
                             title="Force Refresh Data"
                         >
                             <RefreshCw size={16} />
@@ -556,214 +556,214 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
                         
                         {/* 1. SALES */}
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-emerald-500/30 transition-all group hover:-translate-y-0.5">
+                        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-emerald-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Today Sales</span>
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Today Sales</span>
                                     <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
                                         <TrendingUp size={14} />
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-black text-white leading-none">
+                                <h3 className="text-lg font-bold text-white leading-none">
                                     {formatCurrency(todaySnap.sales)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
-                                <span className="text-slate-500 font-bold">VS YESTERDAY</span>
+                            <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
+                                <span className="text-ink-muted font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
-                                    <span className={`font-black ${todaySnap.sales >= yesterdaySnap.sales ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-bold ${todaySnap.sales >= yesterdaySnap.sales ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatPercent(calculateChange(todaySnap.sales, yesterdaySnap.sales)) || '0.0%'}
                                     </span>
                                 ) : (
-                                    <span className="text-slate-500">N/A</span>
+                                    <span className="text-ink-muted">N/A</span>
                                 )}
                             </div>
                         </div>
 
                         {/* 2. PURCHASES */}
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-blue-500/30 transition-all group hover:-translate-y-0.5">
+                        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-blue-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1">
                                         Today Purchases
                                     </span>
                                     <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
                                         <Package size={14} />
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-black text-white leading-none">
+                                <h3 className="text-lg font-bold text-white leading-none">
                                     {formatCurrency(todaySnap.purchases)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
-                                <span className="text-slate-500 font-bold">VS YESTERDAY</span>
+                            <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
+                                <span className="text-ink-muted font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
-                                    <span className={`font-black ${todaySnap.purchases <= yesterdaySnap.purchases ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-bold ${todaySnap.purchases <= yesterdaySnap.purchases ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatPercent(calculateChange(todaySnap.purchases, yesterdaySnap.purchases)) || '0.0%'}
                                     </span>
                                 ) : (
-                                    <span className="text-slate-500">N/A</span>
+                                    <span className="text-ink-muted">N/A</span>
                                 )}
                             </div>
                         </div>
 
                         {/* 2. CASH IN HAND */}
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-violet-500/30 transition-all group hover:-translate-y-0.5">
+                        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-violet-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Cash in Hand</span>
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Cash in Hand</span>
                                     <div className="p-2 bg-violet-500/10 rounded-lg text-violet-400">
                                         <DollarSign size={14} />
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-black text-white leading-none">
+                                <h3 className="text-lg font-bold text-white leading-none">
                                     {formatCurrency(todaySnap.cash)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
-                                <span className="text-slate-500 font-bold">VS YESTERDAY</span>
+                            <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
+                                <span className="text-ink-muted font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
-                                    <span className={`font-black ${todaySnap.cash >= yesterdaySnap.cash ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-bold ${todaySnap.cash >= yesterdaySnap.cash ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatPercent(calculateChange(todaySnap.cash, yesterdaySnap.cash)) || '0.0%'}
                                     </span>
                                 ) : (
-                                    <span className="text-slate-500">N/A</span>
+                                    <span className="text-ink-muted">N/A</span>
                                 )}
                             </div>
                         </div>
 
                         {/* 3. STOCK VALUE */}
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-cyan-500/30 transition-all group hover:-translate-y-0.5">
+                        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-cyan-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Stock Asset</span>
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Stock Asset</span>
                                     <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-400">
                                         <Package size={14} />
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-black text-white leading-none">
+                                <h3 className="text-lg font-bold text-white leading-none">
                                     {formatCurrency(todaySnap.stock)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
-                                <span className="text-slate-500 font-bold">VS YESTERDAY</span>
+                            <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
+                                <span className="text-ink-muted font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
-                                    <span className={`font-black ${todaySnap.stock >= yesterdaySnap.stock ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-bold ${todaySnap.stock >= yesterdaySnap.stock ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatPercent(calculateChange(todaySnap.stock, yesterdaySnap.stock)) || '0.0%'}
                                     </span>
                                 ) : (
-                                    <span className="text-slate-500">N/A</span>
+                                    <span className="text-ink-muted">N/A</span>
                                 )}
                             </div>
                         </div>
 
                         {/* 4. TODAY EXPENSE */}
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-orange-500/30 transition-all group hover:-translate-y-0.5">
+                        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-orange-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Today Expense</span>
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Today Expense</span>
                                     <div className="p-2 bg-orange-500/10 rounded-lg text-orange-400">
                                         <CreditCard size={14} />
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-black text-white leading-none">
+                                <h3 className="text-lg font-bold text-white leading-none">
                                     {formatCurrency(todaySnap.expense)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
-                                <span className="text-slate-500 font-bold">VS YESTERDAY</span>
+                            <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
+                                <span className="text-ink-muted font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
-                                    <span className={`font-black ${todaySnap.expense <= yesterdaySnap.expense ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-bold ${todaySnap.expense <= yesterdaySnap.expense ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatPercent(calculateChange(todaySnap.expense, yesterdaySnap.expense)) || '0.0%'}
                                     </span>
                                 ) : (
-                                    <span className="text-slate-500">N/A</span>
+                                    <span className="text-ink-muted">N/A</span>
                                 )}
                             </div>
                         </div>
 
                         {/* 5. RECEIVABLES */}
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-amber-500/30 transition-all group hover:-translate-y-0.5">
+                        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-amber-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Receivables</span>
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Receivables</span>
                                     <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400">
                                         <ArrowRight size={14} />
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-black text-white leading-none">
+                                <h3 className="text-lg font-bold text-white leading-none">
                                     {formatCurrency(todaySnap.receivables)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
-                                <span className="text-slate-500 font-bold">VS YESTERDAY</span>
+                            <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
+                                <span className="text-ink-muted font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
-                                    <span className={`font-black ${todaySnap.receivables >= yesterdaySnap.receivables ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-bold ${todaySnap.receivables >= yesterdaySnap.receivables ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatPercent(calculateChange(todaySnap.receivables, yesterdaySnap.receivables)) || '0.0%'}
                                     </span>
                                 ) : (
-                                    <span className="text-slate-500">N/A</span>
+                                    <span className="text-ink-muted">N/A</span>
                                 )}
                             </div>
                         </div>
 
                         {/* 6. PAYABLES */}
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-rose-500/30 transition-all group hover:-translate-y-0.5">
+                        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-rose-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Payables</span>
+                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Payables</span>
                                     <div className="p-2 bg-rose-500/10 rounded-lg text-rose-400">
                                         <Clock size={14} />
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-black text-white leading-none">
+                                <h3 className="text-lg font-bold text-white leading-none">
                                     {formatCurrency(todaySnap.payables)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
-                                <span className="text-slate-500 font-bold">VS YESTERDAY</span>
+                            <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
+                                <span className="text-ink-muted font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
-                                    <span className={`font-black ${todaySnap.payables <= yesterdaySnap.payables ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-bold ${todaySnap.payables <= yesterdaySnap.payables ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatPercent(calculateChange(todaySnap.payables, yesterdaySnap.payables)) || '0.0%'}
                                     </span>
                                 ) : (
-                                    <span className="text-slate-500">N/A</span>
+                                    <span className="text-ink-muted">N/A</span>
                                 )}
                             </div>
                         </div>
 
                     </div>
                 ) : (
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center text-slate-400">
-                        <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center text-ink-muted">
+                        <AlertCircle className="w-12 h-12 text-ink-secondary mx-auto mb-3" />
                         <h3 className="text-white font-bold text-lg">No Financial Snapshots Yet</h3>
-                        <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                        <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
                             The self-healing data backfiller is scanning your double-entry accounts to generate your daily history.
                         </p>
                     </div>
                 )}
 
                 {/* Interactive Chart Section */}
-                <div className="bg-slate-900 border border-slate-800 rounded-[2.2rem] p-6 shadow-2xl relative overflow-hidden">
+                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
                     {/* Nebula Background Elements inside the chart area */}
-                    <div className="absolute top-1/2 left-1/2 w-[40rem] h-[40rem] -translate-x-1/2 -translate-y-1/2 bg-indigo-500/[0.02] rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute top-1/2 left-1/2 w-[40rem] h-[40rem] -translate-x-1/2 -translate-y-1/2 bg-brand-500/[0.02] rounded-full blur-[120px] pointer-events-none" />
                     
                     {/* Header & Tabs */}
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-slate-800/80 mb-6 relative z-10">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-neutral-800/80 mb-6 relative z-10">
                         <div>
-                            <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
-                                <Activity className="w-5 h-5 text-indigo-400" />
+                            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-brand-400" />
                                 30-Day Financial Trends
                             </h2>
-                            <p className="text-xs text-slate-400 mt-0.5">
+                            <p className="text-xs text-ink-muted mt-0.5">
                                 Select a tab below to filter individual metrics or view combined double-entry trends.
                             </p>
                         </div>
 
                         {/* Interactive Capsule Toggle Buttons (8 Tabs) */}
-                        <div className="flex flex-wrap gap-1.5 bg-slate-950 p-1.5 rounded-2xl border border-slate-800/50">
+                        <div className="flex flex-wrap gap-1.5 bg-neutral-950 p-1.5 rounded-2xl border border-neutral-800/50">
                             {[
-                                { id: 'overview', label: 'All Combined', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20 hover:text-white' },
+                                { id: 'overview', label: 'All Combined', color: 'text-brand-400 bg-brand-500/10 border-brand-500/20 hover:text-white' },
                                 { id: 'sales', label: 'Sales', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:text-white' },
                                 { id: 'purchases', label: 'Purchases', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20 hover:text-white' },
                                 { id: 'cash', label: 'Cash Hand', color: 'text-violet-400 bg-violet-500/10 border-violet-500/20 hover:text-white' },
@@ -777,10 +777,10 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`px-3 py-2 text-2xs font-black uppercase tracking-wider rounded-xl transition-all ${
+                                        className={`px-3 py-2 text-2xs font-bold uppercase tracking-wider rounded-xl transition-all ${
                                             isActive 
-                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
-                                                : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                                                ? 'bg-brand-600 text-white shadow-md ' 
+                                                : 'text-ink-muted hover:bg-interactive-hover hover:text-white'
                                         }`}
                                     >
                                         {tab.label}
@@ -848,19 +848,19 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                         content={({ active, payload, label }) => {
                                             if (active && payload && payload.length) {
                                                 return (
-                                                    <div className="bg-slate-950/95 border border-slate-800 p-4 rounded-xl shadow-2xl backdrop-blur-md">
-                                                        <p className="text-2xs font-extrabold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                    <div className="bg-neutral-950/95 border border-neutral-800 p-4 rounded-xl shadow-2xl backdrop-blur-md">
+                                                        <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 flex items-center gap-1.5">
                                                             <Calendar size={10} />
                                                             {label}
                                                         </p>
                                                         <div className="space-y-1.5">
                                                             {payload.map((item, i) => (
                                                                 <div key={i} className="flex items-center justify-between gap-6 text-xs">
-                                                                    <div className="flex items-center gap-1.5 text-slate-400">
+                                                                    <div className="flex items-center gap-1.5 text-ink-muted">
                                                                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                                                                         <span>{item.name}:</span>
                                                                     </div>
-                                                                    <span className="font-extrabold text-white">
+                                                                    <span className="font-bold text-white">
                                                                         {formatCurrency(item.value)}
                                                                     </span>
                                                                 </div>
@@ -914,7 +914,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                 </AreaChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="absolute inset-0 flex items-center justify-center text-slate-500 font-bold text-sm">
+                            <div className="absolute inset-0 flex items-center justify-center text-ink-muted font-bold text-sm">
                                 Loading Trend Analysis...
                             </div>
                         )}
@@ -922,26 +922,26 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                 </div>
 
                 {/* Chronological Grid Table Logs */}
-                <div className="bg-slate-900 border border-slate-800 rounded-[2.2rem] shadow-2xl overflow-hidden relative">
-                    <div className="p-6 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden relative">
+                    <div className="p-6 border-b border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
-                                <FileText className="w-5 h-5 text-indigo-400" />
+                            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-brand-400" />
                                 Historical Pulse Logs
                             </h2>
-                            <p className="text-xs text-slate-400 mt-0.5">
+                            <p className="text-xs text-ink-muted mt-0.5">
                                 Chronological ledger records for the past 30 days. Save memos in-line.
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
+                        <div className="flex items-center gap-2 text-xs text-ink-muted">
+                            <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse" />
                             <span>Autosave Enabled</span>
                         </div>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs border-collapse">
-                            <thead className="bg-slate-950/60 text-slate-400 uppercase tracking-widest font-black border-b border-slate-800">
+                            <thead className="bg-sunken/60 text-ink-muted uppercase tracking-widest font-bold border-b border-neutral-800">
                                 <tr>
                                     <th className="px-6 py-4">Date</th>
                                     <th className="px-6 py-4">Sales</th>
@@ -954,7 +954,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     <th className="px-6 py-4 min-w-[240px]">Daily Memo / Note (Autosaves Inline)</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/60">
+                            <tbody className="divide-y divide-neutral-800/60">
                                 {formattedSnapshots.length > 0 ? (
                                     formattedSnapshots.map((snap) => {
                                         const dateStr = snap.date;
@@ -962,7 +962,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                         const saveStatus = savingNotes[dateStr];
 
                                         return (
-                                            <tr key={snap.id} className="hover:bg-slate-950/20 transition-colors">
+                                            <tr key={snap.id} className="hover:bg-interactive-hover transition-colors">
                                                 
                                                 {/* Date */}
                                                 <td className="px-6 py-4 font-bold text-white whitespace-nowrap">
@@ -974,22 +974,22 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                                 </td>
 
                                                 {/* Sales */}
-                                                <td className="px-6 py-4 font-extrabold text-emerald-400">
+                                                <td className="px-6 py-4 font-bold text-emerald-400">
                                                     {formatCurrency(snap.sales)}
                                                 </td>
 
                                                 {/* Purchases */}
-                                                <td className="px-6 py-4 font-extrabold text-blue-400">
+                                                <td className="px-6 py-4 font-bold text-blue-400">
                                                     {formatCurrency(snap.purchases)}
                                                 </td>
 
                                                 {/* Cash */}
-                                                <td className="px-6 py-4 font-extrabold text-violet-300">
+                                                <td className="px-6 py-4 font-bold text-violet-300">
                                                     {formatCurrency(snap.cash)}
                                                 </td>
 
                                                 {/* Stock */}
-                                                <td className="px-6 py-4 font-bold text-slate-300">
+                                                <td className="px-6 py-4 font-bold text-neutral-300">
                                                     {formatCurrency(snap.stock)}
                                                 </td>
 
@@ -1016,12 +1016,12 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                                             onChange={(e) => handleNoteChange(dateStr, e.target.value)}
                                                             placeholder="Write daily notes, events, exceptions..."
                                                             rows={2}
-                                                            className="w-full bg-slate-950/80 border border-slate-800/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium placeholder-slate-600 resize-none hover:border-slate-700/80"
+                                                            className="w-full bg-neutral-950/80 border border-neutral-800/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-brand-500/50 focus:border-brand-500 transition-all font-medium placeholder-slate-600 resize-none hover:border-line-strong"
                                                         />
                                                         
                                                         {/* Autosave Indicator Overlay */}
                                                         {saveStatus && (
-                                                            <div className="absolute right-2 bottom-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-3xs font-black uppercase tracking-wider bg-slate-950 border border-slate-800 shadow-xl z-20">
+                                                            <div className="absolute right-2 bottom-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-3xs font-bold uppercase tracking-wider bg-neutral-950 border border-neutral-800 shadow-xl z-20">
                                                                 {saveStatus === 'saving' && (
                                                                     <>
                                                                         <RefreshCw size={10} className="text-amber-400 animate-spin" />
@@ -1049,7 +1049,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="7" className="px-6 py-8 text-center text-slate-500">
+                                        <td colSpan="7" className="px-6 py-8 text-center text-ink-muted">
                                             No daily history logs found.
                                         </td>
                                     </tr>

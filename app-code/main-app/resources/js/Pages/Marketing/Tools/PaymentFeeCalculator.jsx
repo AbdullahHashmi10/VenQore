@@ -86,8 +86,8 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
         setProcessors((list) => list.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-400/60 transition-colors';
-    const labelCls = 'block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
+    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
     const fmtMoney = (v) => (v === null || v === undefined || Number.isNaN(v) || !Number.isFinite(v)) ? '—' : `$${round2(v).toFixed(2)}`;
 
     /* ── Single transaction mode ─────────────────────────────────────── */
@@ -160,7 +160,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
             <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 sm:p-5 mb-6 flex items-start gap-3">
                 <AlertTriangle size={20} className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-                    <strong>These default rates are approximate and illustrative only — verify current rates directly with each processor before making a decision.</strong>{' '}
+                    <strong>These default rates are approximate and illustrative only — verify current rates directly with each processor before making a decision.</strong>{''}
                     Payment processor pricing changes over time and varies by plan tier, card-present vs. online transactions, business type and country.
                     Every rate field below is editable — replace these defaults with your actual rate sheet for an accurate comparison.
                 </p>
@@ -176,10 +176,10 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                         key={key}
                         type="button"
                         onClick={() => setMode(key)}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide transition-colors ${
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${
                             mode === key
-                                ? 'bg-slate-900 dark:bg-white text-white dark:text-[#05030f]'
-                                : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300'
+                                ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]'
+                                : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary'
                         }`}
                     >
                         {label}
@@ -188,48 +188,48 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
             </div>
 
             {/* ── Processor rate editor ───────────────────────────────────── */}
-            <div className="rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <CreditCard size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <CreditCard size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Processor rates</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Illustrative defaults — edit any field to match your actual rate sheet.</p>
+                        <h2 className="text-lg font-bold text-ink">Processor rates</h2>
+                        <p className="text-sm text-ink-muted">Illustrative defaults — edit any field to match your actual rate sheet.</p>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-900/10 dark:border-white/10 mb-6">
+                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10 mb-6">
                     <table className="w-full text-sm min-w-[640px]">
                         <thead>
-                            <tr className="bg-slate-900/[0.03] dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
                                 {['Processor', 'Rate %', 'Fixed fee', 'Monthly fee'].map((h) => (
-                                    <th key={h} className="px-3 py-2.5 font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wide">{h}</th>
+                                    <th key={h} className="px-3 py-2.5 font-bold text-ink-secondary text-xs uppercase tracking-wide">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {processors.map((p) => (
-                                <tr key={p.id} className="border-t border-slate-900/[0.06] dark:border-white/[0.06]">
+                                <tr key={p.id} className="border-t border-line dark:border-white/[0.06]">
                                     <td className="px-3 py-2">
-                                        <p className="font-bold text-slate-900 dark:text-white">{p.name}</p>
-                                        <p className="text-[11px] text-slate-500 dark:text-slate-500">{p.note} — illustrative, verify current rates</p>
+                                        <p className="font-bold text-ink">{p.name}</p>
+                                        <p className="text-1xs text-ink-muted">{p.note} — illustrative, verify current rates</p>
                                     </td>
                                     <td className="px-3 py-2 w-28">
                                         <div className="relative">
                                             <input type="number" step="0.01" value={p.pct} onChange={(e) => updateProcessor(p.id, 'pct', e.target.value)} className={`${inputCls} pr-7 py-1.5`} />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-xs">%</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs">%</span>
                                         </div>
                                     </td>
                                     <td className="px-3 py-2 w-28">
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-xs">$</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs">$</span>
                                             <input type="number" step="0.01" value={p.fixed} onChange={(e) => updateProcessor(p.id, 'fixed', e.target.value)} className={`${inputCls} pl-6 py-1.5`} />
                                         </div>
                                     </td>
                                     <td className="px-3 py-2 w-32">
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-xs">$</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs">$</span>
                                             <input type="number" step="0.01" value={p.monthly} onChange={(e) => updateProcessor(p.id, 'monthly', e.target.value)} className={`${inputCls} pl-6 py-1.5`} placeholder="0" />
                                         </div>
                                     </td>
@@ -244,7 +244,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                     <div className="max-w-xs mb-6">
                         <label className={labelCls}>Transaction amount</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">$</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">$</span>
                             <input type="number" step="0.01" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} className={`${inputCls} pl-8`} placeholder="0.00" />
                         </div>
                     </div>
@@ -253,7 +253,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                         <div>
                             <label className={labelCls}>Average transaction amount</label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">$</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">$</span>
                                 <input type="number" step="0.01" value={avgTicket} onChange={(e) => setAvgTicket(e.target.value)} className={`${inputCls} pl-8`} placeholder="0.00" />
                             </div>
                         </div>
@@ -265,15 +265,15 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                 )}
 
                 {/* ── Results table ─────────────────────────────────────────── */}
-                <div className="overflow-x-auto rounded-2xl border border-slate-900/10 dark:border-white/10">
+                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
                     <table className="w-full text-sm min-w-[640px]">
                         <thead>
-                            <tr className="bg-slate-900/[0.03] dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
                                 {(mode === 'single'
                                     ? ['Processor', 'Fee', 'You receive']
                                     : ['Processor', 'Effective rate', 'Total monthly fees', 'Net revenue']
                                 ).map((h) => (
-                                    <th key={h} className="px-3 py-2.5 font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wide">{h}</th>
+                                    <th key={h} className="px-3 py-2.5 font-bold text-ink-secondary text-xs uppercase tracking-wide">{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -281,25 +281,25 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                             {results.map((r) => {
                                 const isCheapest = cheapest && r.id === cheapest.id;
                                 return (
-                                    <tr key={r.id} className={`border-t border-slate-900/[0.06] dark:border-white/[0.06] ${isCheapest ? 'bg-emerald-500/[0.06]' : ''}`}>
+                                    <tr key={r.id} className={`border-t border-line dark:border-white/[0.06] ${isCheapest ? 'bg-emerald-500/[0.06]' : ''}`}>
                                         <td className="px-3 py-2.5">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-slate-900 dark:text-white">{r.name}</span>
+                                                <span className="font-bold text-ink">{r.name}</span>
                                                 {isCheapest && (
-                                                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">Cheapest</span>
+                                                    <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">Cheapest</span>
                                                 )}
                                             </div>
                                         </td>
                                         {mode === 'single' ? (
                                             <>
-                                                <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">{fmtMoney(r.fee)}</td>
-                                                <td className="px-3 py-2.5 font-bold text-slate-900 dark:text-white whitespace-nowrap">{fmtMoney(r.net)}</td>
+                                                <td className="px-3 py-2.5 text-ink-secondary whitespace-nowrap">{fmtMoney(r.fee)}</td>
+                                                <td className="px-3 py-2.5 font-bold text-ink whitespace-nowrap">{fmtMoney(r.net)}</td>
                                             </>
                                         ) : (
                                             <>
-                                                <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">{r.effectiveRate !== null ? `${round2(r.effectiveRate).toFixed(2)}%` : '—'}</td>
-                                                <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">{fmtMoney(r.totalFees)}</td>
-                                                <td className="px-3 py-2.5 font-bold text-slate-900 dark:text-white whitespace-nowrap">{fmtMoney(r.netRevenue)}</td>
+                                                <td className="px-3 py-2.5 text-ink-secondary whitespace-nowrap">{r.effectiveRate !== null ? `${round2(r.effectiveRate).toFixed(2)}%` : '—'}</td>
+                                                <td className="px-3 py-2.5 text-ink-secondary whitespace-nowrap">{fmtMoney(r.totalFees)}</td>
+                                                <td className="px-3 py-2.5 font-bold text-ink whitespace-nowrap">{fmtMoney(r.netRevenue)}</td>
                                             </>
                                         )}
                                     </tr>
@@ -310,10 +310,10 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                 </div>
 
                 {mode === 'monthly' && cheapest && (
-                    <div className="mt-4 flex items-start gap-2 p-3 rounded-xl bg-indigo-500/10 border border-indigo-400/20">
-                        <Info size={16} className="text-indigo-500 dark:text-indigo-300 mt-0.5 shrink-0" />
-                        <p className="text-sm text-indigo-700 dark:text-indigo-300">
-                            At a <strong>${avgTicket || '0'}</strong> average ticket and <strong>{txCount || '0'}</strong> transactions/month,{' '}
+                    <div className="mt-4 flex items-start gap-2 p-3 rounded-xl bg-brand-500/10 border border-brand-400/20">
+                        <Info size={16} className="text-brand-500 dark:text-brand-300 mt-0.5 shrink-0" />
+                        <p className="text-sm text-brand-700 dark:text-brand-300">
+                            At a <strong>${avgTicket || '0'}</strong> average ticket and <strong>{txCount || '0'}</strong> transactions/month,{''}
                             <strong>{cheapest.name}</strong> comes out cheapest for this specific volume and ticket-size profile. This can flip at a different
                             average ticket size — see the worked example below.
                         </p>
@@ -323,25 +323,25 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
 
             {/* ── Education section ────────────────────────────────────── */}
             <section className="mt-12">
-                <h2 className="text-2xl font-black mb-4 text-slate-900 dark:text-white">Why comparing "just the percentage" is misleading</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                    Every processor charges two components per transaction: a <strong>percentage of the sale</strong> and a small{' '}
+                <h2 className="text-2xl font-bold mb-4 text-ink">Why comparing "just the percentage" is misleading</h2>
+                <p className="text-sm text-ink-secondary leading-relaxed mb-4">
+                    Every processor charges two components per transaction: a <strong>percentage of the sale</strong> and a small{''}
                     <strong>fixed fee</strong>. The percentage scales with the sale amount, but the fixed fee doesn't — it's the same
                     $0.10–$0.30 whether you sell a $5 coffee or a $500 appliance. That means the fixed fee is a much bigger relative burden
                     on small tickets than on large ones, so the processor that looks cheapest on paper (lowest percentage) isn't always the
                     cheapest one for your actual business.
                 </p>
-                <div className="p-6 rounded-2xl bg-indigo-500/[0.06] dark:bg-indigo-500/10 border border-indigo-500/20 mb-6">
-                    <p className="font-bold text-slate-900 dark:text-white mb-2">Worked example — the "cheapest" processor flips with ticket size</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-3">
+                <div className="p-6 rounded-2xl bg-brand-500/[0.06] dark:bg-brand-500/10 border border-brand-500/20 mb-6">
+                    <p className="font-bold text-ink mb-2">Worked example — the "cheapest" processor flips with ticket size</p>
+                    <p className="text-sm text-ink-secondary leading-relaxed mb-3">
                         Compare Processor A (2.6% + $0.10) against Processor B (2.9% + $0.30), 100 transactions per month:
                     </p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-2">
+                    <p className="text-sm text-ink-secondary leading-relaxed mb-2">
                         <strong>Small average ticket — $10:</strong> A = 100 × (10 × 0.026 + 0.10) = 100 × $0.36 = <strong>$36.00</strong>.
                         B = 100 × (10 × 0.029 + 0.30) = 100 × $0.59 = <strong>$59.00</strong>. A wins by $23.00 — the fixed fee gap
                         ($0.10 vs $0.30) is proportionally huge on a $10 sale.
                     </p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <p className="text-sm text-ink-secondary leading-relaxed">
                         <strong>Large average ticket — $200:</strong> A = 100 × (200 × 0.026 + 0.10) = 100 × $5.30 = <strong>$530.00</strong>.
                         B = 100 × (200 × 0.029 + 0.30) = 100 × $6.10 = <strong>$610.00</strong>. A still wins here, but by a smaller
                         share of total volume — as ticket size grows, the percentage rate (2.6% vs 2.9%) does more of the work and the
@@ -351,16 +351,16 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                         own average ticket size rather than trusting a single "cheapest" label from a rate card.
                     </p>
                 </div>
-                <h2 className="text-2xl font-black mb-4 text-slate-900 dark:text-white">Card-present vs. card-not-present rates</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                <h2 className="text-2xl font-bold mb-4 text-ink">Card-present vs. card-not-present rates</h2>
+                <p className="text-sm text-ink-secondary leading-relaxed mb-4">
                     Tapping, dipping or swiping a physical card at a terminal ("card-present") is lower risk for the processor — the card
                     and often the cardholder are physically verified, so fraud is less likely. Online checkout, phone orders, or manually
                     keyed-in card numbers ("card-not-present") carry more fraud risk, so processors typically charge a higher percentage
                     for those. If your business takes payments both in-person and online, expect two different effective rates from the
                     same processor — model each channel separately using this calculator rather than one blended number.
                 </p>
-                <h2 className="text-2xl font-black mb-4 text-slate-900 dark:text-white">Monthly and plan fees can shift the winner too</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <h2 className="text-2xl font-bold mb-4 text-ink">Monthly and plan fees can shift the winner too</h2>
+                <p className="text-sm text-ink-secondary leading-relaxed">
                     Some processors charge a flat monthly or plan fee on top of per-transaction pricing, often in exchange for a lower
                     percentage rate. That fee is fixed regardless of volume, so it matters much less at high monthly volume than at low
                     volume — a plan with a $30/month fee and a lower percentage can be the cheapest option once you're processing enough

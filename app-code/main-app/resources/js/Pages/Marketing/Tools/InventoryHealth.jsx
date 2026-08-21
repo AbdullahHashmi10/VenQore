@@ -45,10 +45,10 @@ export default function InventoryHealth({ toolGroups = [] }) {
     const sym = CURRENCIES[currency] || currency;
     const currencyOptions = Object.entries(CURRENCIES).map(([code, symbol]) => ({ value: code, label: `${code} (${symbol})` }));
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-400/60 transition-colors';
-    const labelCls = 'block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2';
-    const cardCls = 'rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7';
-    const resultCardCls = 'p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-900/[0.06] dark:border-white/10 text-center';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
+    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
+    const cardCls = 'rounded-2xl bg-neutral-900/[0.02] dark:bg-white/[0.03] border border-neutral-900/[0.06] dark:border-white/10 p-5 sm:p-7';
+    const resultCardCls = 'p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-neutral-900/[0.06] dark:border-white/10 text-center';
 
     const fmtNum = (v, digits = 0) => (v === null || v === undefined || !Number.isFinite(v)) ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: digits });
     const fmtMoney = (v) => (v === null || v === undefined || !Number.isFinite(v)) ? '—' : `${sym}${round2(v).toFixed(2)}`;
@@ -150,12 +150,12 @@ export default function InventoryHealth({ toolGroups = [] }) {
             {/* ── 2. Safety Stock (shown first since Reorder Point can use it) ── */}
             <div className={cardCls}>
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <Shield size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <Shield size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Safety Stock</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Simple method: buffer stock = worst-case demand-during-lead-time minus average demand-during-lead-time.</p>
+                        <h2 className="text-lg font-bold text-ink">Safety Stock</h2>
+                        <p className="text-sm text-ink-muted">Simple method: buffer stock = worst-case demand-during-lead-time minus average demand-during-lead-time.</p>
                     </div>
                 </div>
 
@@ -184,15 +184,15 @@ export default function InventoryHealth({ toolGroups = [] }) {
 
                 <div className="mt-6">
                     <div className={resultCardCls}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">Safety Stock</p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">{fmtNum(safetyStockClamped)} units</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Safety Stock</p>
+                        <p className="text-2xl font-bold text-ink">{fmtNum(safetyStockClamped)} units</p>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-600 mt-3 text-center">
+                    <p className="text-xs text-ink-muted mt-3 text-center">
                         This is the buffer stock to hold on top of expected demand so a slower delivery or a sales spike doesn't cause a stockout.
                     </p>
                 </div>
 
-                <p className="text-xs text-slate-500 dark:text-slate-600 mt-5 leading-relaxed">
+                <p className="text-xs text-ink-muted mt-5 leading-relaxed">
                     Note: this simple method is easy to use with numbers most small retailers already track. A more statistically rigorous
                     approach uses the standard deviation of daily demand and lead time combined with a service-level Z-score (e.g. 1.65 for
                     95% service level) — that method exists and is worth knowing about, but it needs more historical data than most small
@@ -203,12 +203,12 @@ export default function InventoryHealth({ toolGroups = [] }) {
             {/* ── 1. Reorder Point ── */}
             <div className={`${cardCls} mt-6`}>
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <Boxes size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <Boxes size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Reorder Point</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">The stock level that should trigger a new purchase order.</p>
+                        <h2 className="text-lg font-bold text-ink">Reorder Point</h2>
+                        <p className="text-sm text-ink-muted">The stock level that should trigger a new purchase order.</p>
                     </div>
                 </div>
 
@@ -230,7 +230,7 @@ export default function InventoryHealth({ toolGroups = [] }) {
                             className={`${inputCls} ${useComputedSafetyStock ? 'opacity-50 cursor-not-allowed' : ''}`}
                             placeholder="30"
                         />
-                        <label className="mt-2 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
+                        <label className="mt-2 flex items-center gap-2 text-xs text-ink-muted cursor-pointer">
                             <input type="checkbox" checked={useComputedSafetyStock} onChange={(e) => setUseComputedSafetyStock(e.target.checked)} className="rounded" />
                             Use the safety stock computed above ({fmtNum(safetyStockClamped)} units) instead
                         </label>
@@ -239,10 +239,10 @@ export default function InventoryHealth({ toolGroups = [] }) {
 
                 <div className="mt-6">
                     <div className={resultCardCls}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">Reorder Point</p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">{fmtNum(reorderPoint.value)} units</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Reorder Point</p>
+                        <p className="text-2xl font-bold text-ink">{fmtNum(reorderPoint.value)} units</p>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-600 mt-3 text-center">
+                    <p className="text-xs text-ink-muted mt-3 text-center">
                         Reorder when stock hits this level to avoid running out before the next delivery arrives.
                     </p>
                 </div>
@@ -251,12 +251,12 @@ export default function InventoryHealth({ toolGroups = [] }) {
             {/* ── 3. EOQ ── */}
             <div className={`${cardCls} mt-6`}>
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <Package size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <Package size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Economic Order Quantity (EOQ)</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">The order size that minimizes total ordering + holding cost.</p>
+                        <h2 className="text-lg font-bold text-ink">Economic Order Quantity (EOQ)</h2>
+                        <p className="text-sm text-ink-muted">The order size that minimizes total ordering + holding cost.</p>
                     </div>
                 </div>
 
@@ -268,14 +268,14 @@ export default function InventoryHealth({ toolGroups = [] }) {
                     <div>
                         <label className={labelCls}>Cost per order</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                             <input type="number" step="0.01" value={orderCost} onChange={(e) => setOrderCost(e.target.value)} className={`${inputCls} pl-8`} placeholder="50" />
                         </div>
                     </div>
                     <div>
                         <label className={labelCls}>Annual holding cost / unit</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                             <input type="number" step="0.01" value={holdingCost} onChange={(e) => setHoldingCost(e.target.value)} className={`${inputCls} pl-8`} placeholder="2" />
                         </div>
                     </div>
@@ -285,10 +285,10 @@ export default function InventoryHealth({ toolGroups = [] }) {
 
                 <div className="mt-6">
                     <div className={resultCardCls}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">Optimal Order Quantity</p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">{fmtNum(eoq.value)} units</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Optimal Order Quantity</p>
+                        <p className="text-2xl font-bold text-ink">{fmtNum(eoq.value)} units</p>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-600 mt-3 text-center">
+                    <p className="text-xs text-ink-muted mt-3 text-center">
                         This is the order size that minimizes the combined total of ordering costs (placing more orders costs more in fixed
                         fees) and holding costs (carrying more inventory costs more in storage, capital and shrinkage risk).
                     </p>
@@ -298,18 +298,18 @@ export default function InventoryHealth({ toolGroups = [] }) {
             {/* ── 4. GMROI ── */}
             <div className={`${cardCls} mt-6`}>
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <PiggyBank size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <PiggyBank size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">GMROI</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Gross Margin Return on Inventory Investment — dollars of margin per dollar tied up in stock.</p>
+                        <h2 className="text-lg font-bold text-ink">GMROI</h2>
+                        <p className="text-sm text-ink-muted">Gross Margin Return on Inventory Investment — dollars of margin per dollar tied up in stock.</p>
                     </div>
                 </div>
 
                 <div className="mb-5 flex gap-2">
-                    <button type="button" onClick={() => setGmroiMode('direct')} className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-colors ${gmroiMode === 'direct' ? 'bg-indigo-500/15 border border-indigo-400/40 text-indigo-600 dark:text-indigo-300' : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400'}`}>Enter gross margin $</button>
-                    <button type="button" onClick={() => setGmroiMode('salesCogs')} className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-colors ${gmroiMode === 'salesCogs' ? 'bg-indigo-500/15 border border-indigo-400/40 text-indigo-600 dark:text-indigo-300' : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400'}`}>Compute from sales − COGS</button>
+                    <button type="button" onClick={() => setGmroiMode('direct')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${gmroiMode === 'direct' ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}>Enter gross margin $</button>
+                    <button type="button" onClick={() => setGmroiMode('salesCogs')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${gmroiMode === 'salesCogs' ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}>Compute from sales − COGS</button>
                 </div>
 
                 {gmroiMode === 'direct' ? (
@@ -317,14 +317,14 @@ export default function InventoryHealth({ toolGroups = [] }) {
                         <div>
                             <label className={labelCls}>Gross margin ($)</label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                                 <input type="number" step="0.01" value={grossMarginDirect} onChange={(e) => setGrossMarginDirect(e.target.value)} className={`${inputCls} pl-8`} placeholder="45000" />
                             </div>
                         </div>
                         <div>
                             <label className={labelCls}>Average inventory cost value ($)</label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                                 <input type="number" step="0.01" value={avgInventoryCostGmroi} onChange={(e) => setAvgInventoryCostGmroi(e.target.value)} className={`${inputCls} pl-8`} placeholder="18000" />
                             </div>
                         </div>
@@ -334,21 +334,21 @@ export default function InventoryHealth({ toolGroups = [] }) {
                         <div>
                             <label className={labelCls}>Net sales ($)</label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                                 <input type="number" step="0.01" value={netSales} onChange={(e) => setNetSales(e.target.value)} className={`${inputCls} pl-8`} placeholder="100000" />
                             </div>
                         </div>
                         <div>
                             <label className={labelCls}>COGS ($)</label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                                 <input type="number" step="0.01" value={cogsForGm} onChange={(e) => setCogsForGm(e.target.value)} className={`${inputCls} pl-8`} placeholder="55000" />
                             </div>
                         </div>
                         <div>
                             <label className={labelCls}>Average inventory cost value ($)</label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                                 <input type="number" step="0.01" value={avgInventoryCostGmroi} onChange={(e) => setAvgInventoryCostGmroi(e.target.value)} className={`${inputCls} pl-8`} placeholder="18000" />
                             </div>
                         </div>
@@ -359,15 +359,15 @@ export default function InventoryHealth({ toolGroups = [] }) {
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
                     <div className={resultCardCls}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">Gross Margin</p>
-                        <p className="text-xl font-black text-slate-900 dark:text-white">{fmtMoney(gmroi.grossMargin)}</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Gross Margin</p>
+                        <p className="text-xl font-bold text-ink">{fmtMoney(gmroi.grossMargin)}</p>
                     </div>
                     <div className={resultCardCls}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">GMROI</p>
-                        <p className="text-xl font-black text-slate-900 dark:text-white">{gmroi.value !== null && Number.isFinite(gmroi.value) ? round2(gmroi.value).toFixed(2) : '—'}</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">GMROI</p>
+                        <p className="text-xl font-bold text-ink">{gmroi.value !== null && Number.isFinite(gmroi.value) ? round2(gmroi.value).toFixed(2) : '—'}</p>
                     </div>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-600 mt-3 text-center">
+                <p className="text-xs text-ink-muted mt-3 text-center">
                     A GMROI above 1.0 generally means the inventory investment is being recovered with some profit on top, and higher is
                     generally better — but "good" varies a lot by industry, so track your own trend rather than chasing a universal number.
                 </p>
@@ -376,12 +376,12 @@ export default function InventoryHealth({ toolGroups = [] }) {
             {/* ── 5. Inventory Turnover ── */}
             <div className={`${cardCls} mt-6`}>
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <RefreshCw size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <RefreshCw size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Inventory Turnover</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">How many times inventory is sold and replaced over a period, and the equivalent days of stock on hand.</p>
+                        <h2 className="text-lg font-bold text-ink">Inventory Turnover</h2>
+                        <p className="text-sm text-ink-muted">How many times inventory is sold and replaced over a period, and the equivalent days of stock on hand.</p>
                     </div>
                 </div>
 
@@ -389,14 +389,14 @@ export default function InventoryHealth({ toolGroups = [] }) {
                     <div>
                         <label className={labelCls}>Cost of goods sold (period)</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                             <input type="number" step="0.01" value={cogsTurnover} onChange={(e) => setCogsTurnover(e.target.value)} className={`${inputCls} pl-8`} placeholder="120000" />
                         </div>
                     </div>
                     <div>
                         <label className={labelCls}>Average inventory value (period)</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                             <input type="number" step="0.01" value={avgInventoryValueTurnover} onChange={(e) => setAvgInventoryValueTurnover(e.target.value)} className={`${inputCls} pl-8`} placeholder="20000" />
                         </div>
                     </div>
@@ -406,15 +406,15 @@ export default function InventoryHealth({ toolGroups = [] }) {
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
                     <div className={resultCardCls}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">Turnover Ratio</p>
-                        <p className="text-xl font-black text-slate-900 dark:text-white">{turnover.turns !== null ? `${round2(turnover.turns).toFixed(2)}×` : '—'}</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Turnover Ratio</p>
+                        <p className="text-xl font-bold text-ink">{turnover.turns !== null ? `${round2(turnover.turns).toFixed(2)}×` : '—'}</p>
                     </div>
                     <div className={resultCardCls}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">Days of Inventory</p>
-                        <p className="text-xl font-black text-slate-900 dark:text-white">{turnover.days !== null ? fmtNum(round2(turnover.days), 1) : '—'} days</p>
+                        <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">Days of Inventory</p>
+                        <p className="text-xl font-bold text-ink">{turnover.days !== null ? fmtNum(round2(turnover.days), 1) : '—'} days</p>
                     </div>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-600 mt-3 text-center">
+                <p className="text-xs text-ink-muted mt-3 text-center">
                     These are two views of the same number: turnover says how many times stock cycles per year, days of inventory says how
                     many days of sales you're carrying on the shelf right now — a lower days figure means cash is tied up for less time.
                 </p>
@@ -422,14 +422,14 @@ export default function InventoryHealth({ toolGroups = [] }) {
 
             {/* ── Education section ────────────────────────────────────── */}
             <section className="mt-12">
-                <h2 className="text-2xl font-black mb-4 text-slate-900 dark:text-white">How these five numbers fit together</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                <h2 className="text-2xl font-bold mb-4 text-ink">How these five numbers fit together</h2>
+                <p className="text-sm text-ink-secondary leading-relaxed mb-4">
                     These metrics are not independent — each one feeds into or explains another. <strong>Supplier lead time</strong> is the
-                    starting point: it tells you how long you'll be waiting for a new order to arrive, and it drives both{' '}
-                    <strong>safety stock</strong> (the buffer against demand or delivery variability during that wait) and{' '}
+                    starting point: it tells you how long you'll be waiting for a new order to arrive, and it drives both{''}
+                    <strong>safety stock</strong> (the buffer against demand or delivery variability during that wait) and{''}
                     <strong>reorder point</strong> (the stock level that should trigger the next order, combining expected sales during the
-                    lead time with that safety buffer). <strong>EOQ</strong> answers a different question — not *when* to reorder, but{' '}
-                    <em>how much</em> to order each time to minimize the combined cost of placing orders and holding stock.{' '}
+                    lead time with that safety buffer). <strong>EOQ</strong> answers a different question — not *when* to reorder, but{''}
+                    <em>how much</em> to order each time to minimize the combined cost of placing orders and holding stock.{''}
                     <strong>GMROI</strong> and <strong>inventory turnover</strong> both look backward at how efficiently capital tied up in
                     inventory is being used — turnover in units of "times sold through," GMROI in dollars of margin earned per dollar
                     invested. A retailer with a healthy reorder-point and EOQ setup should, over time, see that reflected in stronger
@@ -438,32 +438,32 @@ export default function InventoryHealth({ toolGroups = [] }) {
                 </p>
 
                 <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                        <p className="font-bold text-slate-900 dark:text-white mb-1">Reorder Point</p>
-                        <p className="font-mono text-xs text-indigo-600 dark:text-indigo-300">ROP = (Avg Daily Sales × Lead Time Days) + Safety Stock</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                        <p className="font-bold text-ink mb-1">Reorder Point</p>
+                        <p className="font-mono text-xs text-brand-600 dark:text-brand-300">ROP = (Avg Daily Sales × Lead Time Days) + Safety Stock</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                        <p className="font-bold text-slate-900 dark:text-white mb-1">Safety Stock (simple method)</p>
-                        <p className="font-mono text-xs text-indigo-600 dark:text-indigo-300">SS = (Max Daily Sales × Max Lead Time) − (Avg Daily Sales × Avg Lead Time)</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                        <p className="font-bold text-ink mb-1">Safety Stock (simple method)</p>
+                        <p className="font-mono text-xs text-brand-600 dark:text-brand-300">SS = (Max Daily Sales × Max Lead Time) − (Avg Daily Sales × Avg Lead Time)</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                        <p className="font-bold text-slate-900 dark:text-white mb-1">Economic Order Quantity</p>
-                        <p className="font-mono text-xs text-indigo-600 dark:text-indigo-300">EOQ = √((2 × Annual Demand × Order Cost) ÷ Holding Cost per Unit)</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                        <p className="font-bold text-ink mb-1">Economic Order Quantity</p>
+                        <p className="font-mono text-xs text-brand-600 dark:text-brand-300">EOQ = √((2 × Annual Demand × Order Cost) ÷ Holding Cost per Unit)</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                        <p className="font-bold text-slate-900 dark:text-white mb-1">GMROI</p>
-                        <p className="font-mono text-xs text-indigo-600 dark:text-indigo-300">GMROI = Gross Margin ($) ÷ Average Inventory Cost Value ($)</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                        <p className="font-bold text-ink mb-1">GMROI</p>
+                        <p className="font-mono text-xs text-brand-600 dark:text-brand-300">GMROI = Gross Margin ($) ÷ Average Inventory Cost Value ($)</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 sm:col-span-2">
-                        <p className="font-bold text-slate-900 dark:text-white mb-1">Inventory Turnover &amp; Days of Inventory</p>
-                        <p className="font-mono text-xs text-indigo-600 dark:text-indigo-300">Turnover = COGS ÷ Average Inventory Value &nbsp;·&nbsp; Days of Inventory = 365 ÷ Turnover</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 sm:col-span-2">
+                        <p className="font-bold text-ink mb-1">Inventory Turnover &amp; Days of Inventory</p>
+                        <p className="font-mono text-xs text-brand-600 dark:text-brand-300">Turnover = COGS ÷ Average Inventory Value &nbsp;·&nbsp; Days of Inventory = 365 ÷ Turnover</p>
                     </div>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-indigo-500/[0.06] dark:bg-indigo-500/10 border border-indigo-500/20 mb-6">
-                    <p className="font-bold text-slate-900 dark:text-white mb-2">Worked example — reorder point and safety stock together</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                        Suppose a product sells an average of <strong>20 units/day</strong>, but on its busiest days sells{' '}
+                <div className="p-6 rounded-2xl bg-brand-500/[0.06] dark:bg-brand-500/10 border border-brand-500/20 mb-6">
+                    <p className="font-bold text-ink mb-2">Worked example — reorder point and safety stock together</p>
+                    <p className="text-sm text-ink-secondary leading-relaxed">
+                        Suppose a product sells an average of <strong>20 units/day</strong>, but on its busiest days sells{''}
                         <strong>35 units/day</strong>. The supplier usually takes <strong>7 days</strong> to deliver, but can occasionally
                         take up to <strong>10 days</strong>. Safety stock = (35 × 10) − (20 × 7) = 350 − 140 = <strong>210 units</strong>.
                         Reorder point = (20 × 7) + 210 = 140 + 210 = <strong>350 units</strong> — reorder when on-hand stock reaches 350 to
@@ -471,7 +471,7 @@ export default function InventoryHealth({ toolGroups = [] }) {
                     </p>
                 </div>
 
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-sm text-ink-secondary leading-relaxed">
                     Why this matters for a small retailer: without a reorder point, restocking decisions become guesswork — either too
                     reactive (stockouts, lost sales, unhappy customers) or too cautious (excess cash tied up in slow-moving stock, higher
                     shrinkage and obsolescence risk). EOQ then refines *how much* to order once you've decided *when* to order, balancing

@@ -377,7 +377,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                         fontSize:     '0.74rem',
                         lineHeight:   1.7,
                         scrollbarWidth: 'thin',
-                        scrollbarColor: '#1e293b #080d17',
+                        scrollbarColor: 'rgb(var(--vq-slate-800)) #080d17',
                     }}
                 >
                     {lines.map((line, i) => (
@@ -457,7 +457,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                     0%, 100% { opacity: 1; }
                     50%       { opacity: 0; }
                 }
-            `}</style>
+`}</style>
         </div>
     );
 }

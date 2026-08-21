@@ -181,7 +181,7 @@ export default function AmazonSetupWizard({ storeSlug, onClose }) {
                                 <span style={{
                                     width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    background: done ? role.success[600] : active ? '#3b82f6' : vq.slate[800],
+                                    background: done ? role.success[600] : active ? 'rgb(var(--vq-blue-500))' : vq.slate[800],
                                     color: '#fff', fontSize: 10, fontWeight: 700,
                                 }}>
                                     {done ? <CheckCircle2 size={12} /> : i + 1}
@@ -241,7 +241,7 @@ export default function AmazonSetupWizard({ storeSlug, onClose }) {
                             href="https://sellercentral.amazon.com/sellingpartner/developerconsole"
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#60a5fa', textDecoration: 'none' }}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'rgb(var(--vq-blue-400))', textDecoration: 'none' }}
                         >
                             Open Amazon Developer Console <ExternalLink size={11} />
                         </a>
@@ -297,7 +297,7 @@ export default function AmazonSetupWizard({ storeSlug, onClose }) {
                                                 background: 'transparent',
                                                 border: 'none',
                                                 borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent',
-                                                color: isActive ? '#fff' : '#64748b',
+                                                color: isActive ? '#fff' : 'rgb(var(--vq-slate-500))',
                                                 fontWeight: isActive ? 700 : 500,
                                                 padding: '4px 2px 6px 2px',
                                                 fontSize: 11,
@@ -333,10 +333,10 @@ export default function AmazonSetupWizard({ storeSlug, onClose }) {
                                                 boxShadow: isSelected ? '0 0 10px rgba(59, 130, 246, 0.15)' : 'none',
                                             }}
                                         >
-                                            <div style={{ fontSize: 12, fontWeight: 700, color: isSelected ? '#60a5fa' : vq.slate[100], marginBottom: 2 }}>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: isSelected ? 'rgb(var(--vq-blue-400))' : vq.slate[100], marginBottom: 2 }}>
                                                 {reg.label}
                                             </div>
-                                            <div style={{ fontSize: 9, color: isSelected ? vq.slate[300] : '#64748b' }}>
+                                            <div style={{ fontSize: 9, color: isSelected ? vq.slate[300] : 'rgb(var(--vq-slate-500))' }}>
                                                 {reg.desc}
                                             </div>
                                         </button>
@@ -426,7 +426,7 @@ export default function AmazonSetupWizard({ storeSlug, onClose }) {
                         style={{
                             display: 'flex', alignItems: 'center', gap: 5,
                             padding: '9px 20px', borderRadius: 8, border: 'none',
-                            background: canAdvance() ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : vq.slate[800],
+                            background: canAdvance() ? 'linear-gradient(135deg, rgb(var(--vq-blue-500)), #1d4ed8)' : vq.slate[800],
                             color: canAdvance() ? '#fff' : vq.slate[600],
                             fontSize: 12, fontWeight: 700,
                             cursor: canAdvance() ? 'pointer' : 'not-allowed',
@@ -443,7 +443,7 @@ export default function AmazonSetupWizard({ storeSlug, onClose }) {
                             padding: '9px 20px', borderRadius: 8, border: 'none',
                             background: saving || !canAdvance()
                                 ? vq.slate[800]
-                                : 'linear-gradient(135deg, #059669, #047857)',
+                                : 'linear-gradient(135deg, rgb(var(--vq-emerald-600)), rgb(var(--vq-emerald-700)))',
                             color: saving || !canAdvance() ? vq.slate[600] : '#fff',
                             fontSize: 12, fontWeight: 700,
                             cursor: saving ? 'wait' : canAdvance() ? 'pointer' : 'not-allowed',

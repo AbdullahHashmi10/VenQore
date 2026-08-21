@@ -411,7 +411,7 @@ export default function Dashboard() {
                     font-weight: var(--vq-fw-semi, 600);
                     box-shadow: var(--vq-elev-1, 0 1px 2px rgb(10 11 15/.05));
                 }
-            `}</style>
+`}</style>
 
             <div style={{
                 display: 'flex',

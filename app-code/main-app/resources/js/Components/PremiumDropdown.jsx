@@ -54,16 +54,16 @@ const PremiumDropdown = ({ value, options, onChange, className = "" }) => {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shadow-sm active:scale-95"
+                className="flex items-center gap-2 bg-app px-3 py-1.5 rounded-xl text-xs font-bold text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 transition-all duration-normal border border-transparent hover:border-line dark:hover:border-line-strong shadow-sm active:scale-95"
             >
                 <span>{selectedOption.label}</span>
-                <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`transition-transform duration-slow ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && createPortal(
                 <div
                     ref={portalRef}
-                    className="fixed mt-2 w-32 origin-top-right rounded-2xl bg-white dark:bg-slate-800 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                    className="fixed mt-2 w-32 origin-top-right rounded-2xl bg-surface shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-command overflow-hidden animate-in fade-in zoom-in-95 duration-normal"
                     style={{
                         top: coords.top,
                         left: coords.left + coords.width - 128, // Align right (w-32 = 128px)
@@ -80,9 +80,9 @@ const PremiumDropdown = ({ value, options, onChange, className = "" }) => {
                                 className={`
                                     flex items-center w-full px-4 py-2.5 text-xs font-bold transition-colors
                                     ${value === option.value
-                                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}
-                                `}
+                                        ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
+                                        : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'}
+`}
                             >
                                 {option.label}
                             </button>

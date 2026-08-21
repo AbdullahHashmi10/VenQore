@@ -358,7 +358,7 @@ const FEATURE_CATS = [
 ];
 const TOTAL_FEATURES = FEATURE_CATS.reduce((s, c) => s + c.items.length, 0);
 const CAT_COLOR = {
-    indigo: 'text-indigo-300 bg-indigo-500/12 border-indigo-400/20',
+    indigo: 'text-brand-300 bg-brand-500/12 border-brand-400/20',
     amber: 'text-amber-300 bg-amber-500/12 border-amber-400/20',
     emerald: 'text-emerald-300 bg-emerald-500/12 border-emerald-400/20',
     cyan: 'text-cyan-300 bg-cyan-500/12 border-cyan-400/20',
@@ -385,14 +385,14 @@ const FeatureExplorer = () => {
             {/* controls */}
             <div className="flex flex-col gap-4 mb-8">
                 <div className="relative max-w-md mx-auto w-full">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" />
                     <input value={q} onChange={e => setQ(e.target.value)} placeholder={`Search all ${TOTAL_FEATURES} features…`}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/50 text-slate-900 dark:text-white text-sm outline-none transition-colors" />
+                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 text-ink text-sm outline-none transition-colors" />
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
-                    <button onClick={() => setCat('all')} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all ${cat === 'all' ? 'bg-white text-void-900 border-white' : 'bg-white/[0.03] text-slate-500 dark:text-slate-400 border-slate-900/[0.08] dark:border-white/10 hover:text-white'}`}>All <span className="opacity-60">{TOTAL_FEATURES}</span></button>
+                    <button onClick={() => setCat('all')} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all ${cat === 'all' ? 'bg-white text-void-900 border-white' : 'bg-white/[0.03] text-ink-muted border-line dark:border-white/10 hover:text-white'}`}>All <span className="opacity-60">{TOTAL_FEATURES}</span></button>
                     {FEATURE_CATS.map(c => (
-                        <button key={c.key} onClick={() => setCat(c.key)} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all inline-flex items-center gap-1.5 ${cat === c.key ? CAT_COLOR[c.color] + ' brightness-125' : 'bg-white/[0.03] text-slate-500 dark:text-slate-400 border-slate-900/[0.08] dark:border-white/10 hover:text-white'}`}>
+                        <button key={c.key} onClick={() => setCat(c.key)} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all inline-flex items-center gap-1.5 ${cat === c.key ? CAT_COLOR[c.color] + ' brightness-125' : 'bg-white/[0.03] text-ink-muted border-line dark:border-white/10 hover:text-white'}`}>
                             <c.icon size={12} /> {c.label} <span className="opacity-60">{c.items.length}</span>
                         </button>
                     ))}
@@ -403,36 +403,36 @@ const FeatureExplorer = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {filtered.map((it, i) => (
                     <button key={it.cat + it.n} onClick={() => setSel(it)}
-                        className="group text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all hover:-translate-y-0.5">
+                        className="group text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-brand-400/25 transition-all hover:-translate-y-0.5">
                         <div className="flex items-center gap-2 mb-2">
                             <span className={`w-7 h-7 rounded-lg flex items-center justify-center border ${CAT_COLOR[it.color]}`}><it.icon size={13} /></span>
-                            <span className="text-4xs font-black uppercase tracking-widest text-slate-600">{it.cat}</span>
-                            <ChevronRight size={13} className="ml-auto text-slate-700 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+                            <span className="text-4xs font-bold uppercase tracking-widest text-ink-secondary">{it.cat}</span>
+                            <ChevronRight size={13} className="ml-auto text-ink-secondary group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all" />
                         </div>
-                        <div className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight mb-1">{it.n}</div>
-                        <div className="text-1xs text-slate-500 leading-snug line-clamp-2">{it.d}</div>
+                        <div className="text-[13px] font-bold text-ink tracking-tight mb-1">{it.n}</div>
+                        <div className="text-1xs text-ink-muted leading-snug line-clamp-2">{it.d}</div>
                     </button>
                 ))}
             </div>
-            {filtered.length === 0 && <div className="text-center py-12 text-slate-500 text-sm">No features match “{q}”.</div>}
+            {filtered.length === 0 && <div className="text-center py-12 text-ink-muted text-sm">No features match “{q}”.</div>}
 
             {/* detail modal */}
             {sel && (
-                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm vqf-in" onClick={() => setSel(null)}>
-                    <div className="relative max-w-lg w-full rounded-3xl border border-slate-900/[0.08] dark:border-white/10 bg-void-800 p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-drawer flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm vqf-in" onClick={() => setSel(null)}>
+                    <div className="relative max-w-lg w-full rounded-2xl border border-line dark:border-white/10 bg-void-800 p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
                         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-3xl" />
-                        <button onClick={() => setSel(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-900/[0.03] dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400"><X size={16} /></button>
+                        <button onClick={() => setSel(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-sunken dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-ink-muted"><X size={16} /></button>
                         <div className="flex items-center gap-3 mb-4">
                             <span className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${CAT_COLOR[sel.color]}`}><sel.icon size={22} /></span>
                             <div>
-                                <div className="text-3xs font-black uppercase tracking-widest text-slate-500">{sel.cat}</div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{sel.n}</h3>
+                                <div className="text-3xs font-bold uppercase tracking-widest text-ink-muted">{sel.cat}</div>
+                                <h3 className="text-xl font-bold text-ink tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{sel.n}</h3>
                             </div>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-[15px] mb-5">{sel.d}</p>
+                        <p className="text-ink-secondary leading-relaxed text-[15px] mb-5">{sel.d}</p>
                         <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/15">
                             <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span className="text-[12px] text-slate-500 dark:text-slate-400">Included in VenQore — verified by the same double-entry engine that powers every number.</span>
+                            <span className="text-[12px] text-ink-muted">Included in VenQore — verified by the same double-entry engine that powers every number.</span>
                         </div>
                     </div>
                 </div>
@@ -443,13 +443,13 @@ const FeatureExplorer = () => {
 
 /* ── anchor nav pill ─────────────────────────────────────────────────────── */
 const JumpPill = ({ href, icon: Ic, children }) => (
-    <a href={href} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.03] border border-slate-900/[0.08] dark:border-white/10 text-1xs font-bold text-slate-600 dark:text-slate-300 hover:text-white hover:border-indigo-400/40 hover:bg-white/[0.06] transition-all">
-        <Ic size={13} className="text-indigo-300" /> {children}
+    <a href={href} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.03] border border-line dark:border-white/10 text-1xs font-bold text-ink-secondary hover:text-white hover:border-brand-400/40 hover:bg-white/[0.06] transition-all">
+        <Ic size={13} className="text-brand-300" /> {children}
     </a>
 );
 
 const ACCENT_TEXTS = {
-    indigo: 'text-indigo-400 hover:text-indigo-300',
+    indigo: 'text-brand-400 hover:text-brand-300',
     emerald: 'text-emerald-400 hover:text-emerald-300',
     violet: 'text-violet-400 hover:text-violet-300',
     blue: 'text-blue-400 hover:text-blue-300',
@@ -463,17 +463,17 @@ const DemoSection = ({ id, eyebrow, icon: Ic, title, accent, lead, hero, soon, d
             <RevealOnScroll>
                 <div className="text-center mb-10 max-w-3xl mx-auto">
                     <SectionLabel icon={Ic}>{eyebrow}</SectionLabel>
-                    {hero && <div className="inline-block ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-2xs font-black tracking-widest uppercase align-middle">★ Hero feature</div>}
-                    {soon && <div className="inline-flex items-center gap-1.5 ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-2xs font-black tracking-widest uppercase align-middle"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 vqf-blink" /> Coming very soon</div>}
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.95] font-display">{title}</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg mt-5">{lead}</p>
+                    {hero && <div className="inline-block ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-2xs font-bold tracking-widest uppercase align-middle">★ Hero feature</div>}
+                    {soon && <div className="inline-flex items-center gap-1.5 ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-2xs font-bold tracking-widest uppercase align-middle"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 vqf-blink" /> Coming very soon</div>}
+                    <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tighter leading-[0.95] font-display">{title}</h2>
+                    <p className="text-ink-muted text-base md:text-lg mt-5">{lead}</p>
                 </div>
             </RevealOnScroll>
             <RevealOnScroll delay={0.1}>
                 {children}
                 {deepDiveLink && (
                     <div className="mt-8 text-center">
-                        <Link href={deepDiveLink} className={`inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider ${ACCENT_TEXTS[accent] || ACCENT_TEXTS.indigo} hover:underline`}>
+                        <Link href={deepDiveLink} className={`inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider ${ACCENT_TEXTS[accent] || ACCENT_TEXTS.indigo} hover:underline`}>
                             {deepDiveText || 'Read the Deep-Dive Feature Page'} <ArrowRight size={14} />
                         </Link>
                     </div>
@@ -500,22 +500,22 @@ export default function Features() {
                 <div className="max-w-5xl mx-auto text-center">
                     <RevealOnScroll><SectionLabel icon={Layers}>The whole machine</SectionLabel></RevealOnScroll>
                     <RevealOnScroll delay={0.08}>
-                        <h1 className="text-[2.5rem] xs:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] sm:leading-[0.9] mb-8 font-display">
-                            <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Don’t take our word.</span><br />
-                            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-300 bg-clip-text text-transparent vq-text-glow">See it run.</span>
+                        <h1 className="text-[2.5rem] xs:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[0.95] sm:leading-[0.9] mb-8 font-display">
+                            <span className="bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">Don’t take our word.</span><br />
+                            <span className="bg-gradient-to-r from-brand-400 via-brand-400 to-cyan-300 bg-clip-text text-transparent vq-text-glow">See it run.</span>
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.16}>
-                        <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium">
-                            Six of VenQore’s flagship tools — playable right here as guided simulations of the real product. Then browse every one of the <span className="text-slate-900 dark:text-white font-semibold">{TOTAL_FEATURES}+ features</span>, each explained in a click.
+                        <p className="text-lg md:text-2xl text-ink-muted max-w-3xl mx-auto leading-relaxed font-medium">
+                            Six of VenQore’s flagship tools — playable right here as guided simulations of the real product. Then browse every one of the <span className="text-ink font-semibold">{TOTAL_FEATURES}+ features</span>, each explained in a click.
                         </p>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.24}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-12 border-t border-white/[0.06] pt-8">
                             {heroStats.map((s, i) => (
                                 <div key={i} className="text-center">
-                                    <div className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter font-display"><Num end={s.e} />{s.s}</div>
-                                    <div className="text-2xs text-slate-600 font-black uppercase tracking-[0.22em] mt-1">{s.l}</div>
+                                    <div className="text-3xl md:text-4xl font-bold text-ink tracking-tighter font-display"><Num end={s.e} />{s.s}</div>
+                                    <div className="text-2xs text-ink-secondary font-bold uppercase tracking-[0.22em] mt-1">{s.l}</div>
                                 </div>
                             ))}
                         </div>
@@ -545,7 +545,7 @@ export default function Features() {
 
             {/* DEMO 2 · POS */}
             <DemoSection id="pos" eyebrow="Point of Sale" icon={ShoppingCart} accent="indigo" hero
-                title={<>Ring up a sale <span className="text-indigo-600 dark:text-indigo-400">right now.</span></>}
+                title={<>Ring up a sale <span className="text-brand-600 dark:text-brand-400">right now.</span></>}
                 lead="This is the real POS. Add products, change quantities, pick a payment method and complete the sale — nothing is saved, it’s yours to play with."
                 deepDiveLink="/features/point-of-sale"
                 deepDiveText="Deep Dive: Point of Sale Checkout System">
@@ -585,13 +585,13 @@ export default function Features() {
             </DemoSection>
 
             {/* ALL FEATURES */}
-            <section id="all" className="vqf-anchor py-20 md:py-28 px-6 border-t border-slate-900/[0.06] dark:border-white/5">
+            <section id="all" className="vqf-anchor py-20 md:py-28 px-6 border-t border-line dark:border-white/5">
                 <div className="max-w-7xl mx-auto">
                     <RevealOnScroll>
                         <div className="text-center mb-12 max-w-3xl mx-auto">
                             <SectionLabel icon={Layers}>The complete catalog</SectionLabel>
-                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.95] font-display">All {TOTAL_FEATURES}+ features.<br /><span className="text-indigo-600 dark:text-indigo-400">Every one explained.</span></h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg mt-5">Search, filter by area, and click any feature to read exactly what it does.</p>
+                            <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tighter leading-[0.95] font-display">All {TOTAL_FEATURES}+ features.<br /><span className="text-brand-600 dark:text-brand-400">Every one explained.</span></h2>
+                            <p className="text-ink-muted text-base md:text-lg mt-5">Search, filter by area, and click any feature to read exactly what it does.</p>
                         </div>
                     </RevealOnScroll>
                     <FeatureExplorer />
@@ -601,10 +601,10 @@ export default function Features() {
             {/* CTA */}
             <section className="py-28 md:py-36 px-6 text-center">
                 <div className="max-w-4xl mx-auto relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
-                        <h2 className="text-4xl md:text-7xl font-black text-slate-900 dark:text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-indigo-600 dark:text-indigo-400">your numbers.</span></h2>
-                        <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
+                        <h2 className="text-4xl md:text-7xl font-bold text-ink mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-brand-600 dark:text-brand-400">your numbers.</span></h2>
+                        <p className="text-lg md:text-xl text-ink-muted mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">Start Free Trial <ArrowRight size={16} /></MagneticButton>
                             <MagneticButton href="/demo" variant="ghost">Launch Live Demo</MagneticButton>
@@ -629,7 +629,7 @@ export default function Features() {
                 @keyframes vqf-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.08);opacity:.85;} }
                 .vqf-pulse { animation: vqf-pulse 1.4s ease-in-out infinite; }
                 @media (prefers-reduced-motion: reduce){ .vqf-blink,.vqf-scan,.vqf-wave,.vqf-pulse{animation:none!important;} }
-            `}</style>
+`}</style>
         </MarketingLayout>
     );
 }

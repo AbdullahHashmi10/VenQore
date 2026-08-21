@@ -64,7 +64,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
             case 'on_break':
                 return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', icon: Coffee, label: 'On Break' };
             default:
-                return { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-500 dark:text-slate-400', icon: User, label: status || 'Absent' };
+                return { bg: 'bg-sunken', text: 'text-ink-muted', icon: User, label: status || 'Absent' };
         }
     };
 
@@ -105,87 +105,87 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
         <OneGlanceLayout title="Staff Attendance" activeMenu="Staff Attendance" mode="admin">
             <Head title="Staff Attendance" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <ContactsModuleTabs activeTab="attendance" />
 
                 {/* Stats Cards - 5 Separate Cards in Row */}
                 <div className="grid grid-cols-5 gap-1 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <UserCheck size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Staff</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Staff</p>
                         </div>
-                        <p className="text-lg font-black text-slate-900 dark:text-white">{stats.totalStaff}</p>
+                        <p className="text-lg font-bold text-ink">{stats.totalStaff}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Present</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Present</p>
                         </div>
-                        <p className="text-lg font-black text-emerald-600">{stats.present}</p>
+                        <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
                                 <XCircle size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Absent</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Absent</p>
                         </div>
-                        <p className="text-lg font-black text-red-600">{stats.absent}</p>
+                        <p className="text-lg font-bold text-red-600">{stats.absent}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <AlertTriangle size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Pending Gaps</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Pending Gaps</p>
                         </div>
-                        <p className="text-lg font-black text-amber-600">{stats.pendingGaps}</p>
+                        <p className="text-lg font-bold text-amber-600">{stats.pendingGaps}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
                                 <Timer size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Hours Today</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Hours Today</p>
                         </div>
-                        <p className="text-lg font-black text-purple-600">{stats.totalHoursToday.toFixed(1)}h</p>
+                        <p className="text-lg font-bold text-purple-600">{stats.totalHoursToday.toFixed(1)}h</p>
                     </div>
                 </div>
 
                 {/* Header Bar - Title + Sub-Tabs + Date + Search */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Sub-Tabs + Date Filter */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
-                            Staff <span className="text-indigo-600">Attendance</span>
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            Staff <span className="text-brand-600">Attendance</span>
                         </h1>
                         
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
                         
-                        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-xs font-bold uppercase shrink-0">
+                        <div className="flex gap-1 bg-sunken p-0.5 rounded-lg text-xs font-bold uppercase shrink-0">
                             <button 
                                 onClick={() => setActiveSubTab('attendance')}
-                                className={`px-2.5 py-1 rounded-md transition-all ${activeSubTab === 'attendance' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                className={`px-2.5 py-1 rounded-md transition-all ${activeSubTab === 'attendance' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
                             >
                                 📋 Staff Log
                             </button>
                             <button 
                                 onClick={() => setActiveSubTab('security')}
-                                className={`px-2.5 py-1 rounded-md transition-all ${activeSubTab === 'security' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                className={`px-2.5 py-1 rounded-md transition-all ${activeSubTab === 'security' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
                             >
                                 🛡️ Terminal Security
                             </button>
                         </div>
 
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
                         
                         <div className="relative">
-                            <Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            <Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
                             <input
                                 type="date"
                                 value={dateFilter}
@@ -194,7 +194,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                     setDateFilter(newDate);
                                     router.get(route('store.staff-attendance.index', { store_slug: store.slug }), { date: newDate }, { preserveState: true, preserveScroll: true });
                                 }}
-                                className="pl-8 pr-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-0 cursor-pointer text-slate-600 dark:text-slate-300 w-36"
+                                className="pl-8 pr-2 py-1 text-sm font-medium bg-sunken border-none rounded-lg focus:ring-0 cursor-pointer text-ink-secondary w-36"
                             />
                         </div>
                     </div>
@@ -203,21 +203,21 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                     <div className="flex items-center gap-2">
                         {activeSubTab === 'attendance' && (
                             <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     placeholder="Search staff..."
-                                    className="pl-9 pr-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 outline-none w-44"
+                                    className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
                                 />
                             </div>
                         )}
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <Download size={16} />
                             </button>
-                            <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print">
+                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
                                 <Printer size={16} />
                             </button>
                         </div>
@@ -233,13 +233,13 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {gaps.filter(g => g.status === 'pending').map(gap => (
-                                <div key={gap.id} className="bg-white dark:bg-slate-900 border border-amber-100 dark:border-slate-800 rounded-lg p-2 flex items-center gap-2 shadow-sm">
+                                <div key={gap.id} className="bg-surface border border-amber-100 dark:border-line rounded-lg p-2 flex items-center gap-2 shadow-sm">
                                     <div className="w-6 h-6 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center shrink-0">
                                         <User size={12} className="text-amber-600 dark:text-amber-400" />
                                     </div>
                                     <div className="mr-2">
-                                        <p className="text-xs font-bold text-slate-800 dark:text-white">{gap.user?.name}</p>
-                                        <p className="text-2xs text-slate-500">{formatTime(gap.start_time)} - {formatTime(gap.end_time)}</p>
+                                        <p className="text-xs font-bold text-ink">{gap.user?.name}</p>
+                                        <p className="text-2xs text-ink-muted">{formatTime(gap.start_time)} - {formatTime(gap.end_time)}</p>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <button onClick={() => handleApproveGap(gap.id)} className="p-1 bg-emerald-100 text-emerald-600 rounded hover:bg-emerald-200 transition-colors" title="Approve">
@@ -256,22 +256,22 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                 )}
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     {activeSubTab === 'attendance' ? (
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Staff Member</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Status</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Check In</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Check Out</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Hours</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Breaks</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Gaps</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">History</th>
+                                <tr className="bg-app border-b border-line sticky top-0 z-10">
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Staff Member</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Status</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check In</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check Out</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Hours</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Breaks</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Gaps</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">History</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-line">
                                 {filteredStaff.length > 0 ? (
                                     filteredStaff.map((member) => {
                                         const attendanceRecord = attendance.find(a => a.user_id === member.id && a.date === dateFilter);
@@ -280,15 +280,15 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                         const StatusIcon = statusStyle.icon;
 
                                         return (
-                                            <tr key={member.id} className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all">
+                                            <tr key={member.id} className="hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all">
                                                 <td className="p-3">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                                            <User size={14} className="text-indigo-600 dark:text-indigo-400" />
+                                                        <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                                                            <User size={14} className="text-brand-600 dark:text-brand-400" />
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-sm text-slate-800 dark:text-white">{member.name}</p>
-                                                            <p className="text-2xs text-slate-500">{member.role || 'Staff'}</p>
+                                                            <p className="font-bold text-sm text-ink">{member.name}</p>
+                                                            <p className="text-2xs text-ink-muted">{member.role || 'Staff'}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -298,14 +298,14 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                         {statusStyle.label}
                                                     </span>
                                                 </td>
-                                                <td className="p-3 text-center text-sm font-mono text-slate-600 dark:text-slate-400">
+                                                <td className="p-3 text-center text-sm font-mono text-ink-secondary">
                                                     {formatTime(attendanceRecord?.check_in)}
                                                 </td>
-                                                <td className="p-3 text-center text-sm font-mono text-slate-600 dark:text-slate-400">
+                                                <td className="p-3 text-center text-sm font-mono text-ink-secondary">
                                                     {formatTime(attendanceRecord?.check_out)}
                                                 </td>
                                                 <td className="p-3 text-center">
-                                                    <span className="font-bold text-sm text-slate-800 dark:text-white">
+                                                    <span className="font-bold text-sm text-ink">
                                                         {attendanceRecord?.hours_worked?.toFixed(1) || '0'}h
                                                     </span>
                                                 </td>
@@ -322,13 +322,13 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                             {memberGaps.length}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-slate-300 dark:text-slate-600">-</span>
+                                                        <span className="text-neutral-300 dark:text-ink-secondary">-</span>
                                                     )}
                                                 </td>
                                                 <td className="p-3 text-center">
                                                     <Link
                                                         href={route('store.staff-attendance.show', { store_slug: store.slug, id: member.id })}
-                                                        className="inline-flex p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all"
+                                                        className="inline-flex p-1.5 text-ink-muted hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-all"
                                                         title="View Full History"
                                                     >
                                                         <TrendingUp size={16} />
@@ -341,11 +341,11 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                     <tr>
                                         <td colSpan={8} className="p-12">
                                             <div className="flex flex-col items-center justify-center text-center">
-                                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                                                    <UserCheck size={28} className="text-slate-400" />
+                                                <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
+                                                    <UserCheck size={28} className="text-ink-muted" />
                                                 </div>
-                                                <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-1">No staff members found</p>
-                                                <p className="text-sm text-slate-500">Add staff members to start tracking attendance</p>
+                                                <p className="text-base font-bold text-ink-secondary mb-1">No staff members found</p>
+                                                <p className="text-sm text-ink-muted">Add staff members to start tracking attendance</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -355,39 +355,39 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                     ) : (
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Terminal ID / Name</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Device Fingerprint</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Away (Focus Lost)</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Resume (Focus Back)</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Duration</th>
-                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Screen Capture</th>
+                                <tr className="bg-app border-b border-line sticky top-0 z-10">
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Terminal ID / Name</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Device Fingerprint</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Away (Focus Lost)</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Resume (Focus Back)</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Duration</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Screen Capture</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-line">
                                 {terminalActivities.length > 0 ? (
                                     terminalActivities.map((activity) => (
-                                        <tr key={activity.id} className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all">
+                                        <tr key={activity.id} className="hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all">
                                             <td className="p-3">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                                        <Monitor size={14} className="text-indigo-600 dark:text-indigo-400" />
+                                                    <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                                                        <Monitor size={14} className="text-brand-600 dark:text-brand-400" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-sm text-slate-800 dark:text-white">
+                                                        <p className="font-bold text-sm text-ink">
                                                             {activity.terminal?.name || 'Unknown Terminal'}
                                                         </p>
-                                                        <p className="text-2xs text-slate-500">POS Terminal</p>
+                                                        <p className="text-2xs text-ink-muted">POS Terminal</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-3 text-center text-xs font-mono text-slate-600 dark:text-slate-400">
+                                            <td className="p-3 text-center text-xs font-mono text-ink-secondary">
                                                 {activity.device_id ? activity.device_id.substring(0, 16) + '...' : '-'}
                                             </td>
-                                            <td className="p-3 text-center text-sm font-mono text-slate-600 dark:text-slate-400">
+                                            <td className="p-3 text-center text-sm font-mono text-ink-secondary">
                                                 {formatDateTime(activity.away_at)}
                                             </td>
-                                            <td className="p-3 text-center text-sm font-mono text-slate-600 dark:text-slate-400">
+                                            <td className="p-3 text-center text-sm font-mono text-ink-secondary">
                                                 {formatDateTime(activity.back_at)}
                                             </td>
                                             <td className="p-3 text-center">
@@ -400,13 +400,13 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                 {activity.screenshot_path ? (
                                                     <button
                                                         onClick={() => setSelectedScreenshotId(activity.id)}
-                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow transition-all"
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white rounded-lg shadow transition-all"
                                                     >
                                                         <Eye size={12} />
                                                         View Capture
                                                     </button>
                                                 ) : (
-                                                    <span className="text-xs text-slate-400 dark:text-slate-600">No Capture</span>
+                                                    <span className="text-xs text-ink-muted">No Capture</span>
                                                 )}
                                             </td>
                                         </tr>
@@ -415,11 +415,11 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                     <tr>
                                         <td colSpan={6} className="p-12">
                                             <div className="flex flex-col items-center justify-center text-center">
-                                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                                                    <Shield size={28} className="text-slate-400" />
+                                                <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
+                                                    <Shield size={28} className="text-ink-muted" />
                                                 </div>
-                                                <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-1">No security logs recorded</p>
-                                                <p className="text-sm text-slate-500">Terminal activity is clean for this date</p>
+                                                <p className="text-base font-bold text-ink-secondary mb-1">No security logs recorded</p>
+                                                <p className="text-sm text-ink-muted">Terminal activity is clean for this date</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -433,13 +433,13 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
             {/* Decrypted Screen Capture Modal */}
             {selectedScreenshotId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl p-6 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-150">
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-4xl p-6 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-fast">
+                        <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
                             <div className="flex items-center gap-2">
-                                <Shield className="text-indigo-500" size={20} />
+                                <Shield className="text-brand-500" size={20} />
                                 <div>
-                                    <h3 className="text-base font-black text-white uppercase">Decrypted Terminal Capture</h3>
-                                    <p className="text-2xs text-slate-500 font-bold">
+                                    <h3 className="text-base font-bold text-white uppercase">Decrypted Terminal Capture</h3>
+                                    <p className="text-2xs text-ink-muted font-bold">
                                         Terminal: {terminalActivities.find(a => a.id === selectedScreenshotId)?.terminal?.name || 'Unknown'} | 
                                         Duration Away: {formatDuration(terminalActivities.find(a => a.id === selectedScreenshotId)?.duration_seconds || 0)}
                                     </p>
@@ -447,13 +447,13 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                             </div>
                             <button
                                 onClick={() => setSelectedScreenshotId(null)}
-                                className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+                                className="p-1 text-ink-muted hover:text-white hover:bg-interactive-hover rounded-lg transition-all"
                             >
                                 <XCircle size={20} />
                             </button>
                         </div>
                         
-                        <div className="flex-1 min-h-[300px] max-h-[60vh] bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center border border-slate-800">
+                        <div className="flex-1 min-h-[300px] max-h-[60vh] bg-neutral-950 rounded-xl overflow-hidden flex items-center justify-center border border-neutral-800">
                             <img
                                 src={route('store.terminal-activities.screenshot', { store_slug: store.slug, id: selectedScreenshotId })}
                                 alt="Terminal screen capture"
@@ -466,7 +466,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                             />
                         </div>
                         
-                        <div className="flex justify-end gap-2 border-t border-slate-800 pt-3 text-xs text-slate-500">
+                        <div className="flex justify-end gap-2 border-t border-neutral-800 pt-3 text-xs text-ink-muted">
                             <p>🔒 This screen capture was stored with AES-256 encryption and decrypted securely on request.</p>
                         </div>
                     </div>

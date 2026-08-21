@@ -56,17 +56,17 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
 
             <div className="mb-6">
                 <div className="flex items-center gap-3 mb-1">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
+                    <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-xl text-brand-600 dark:text-brand-400">
                         <SettingsIcon size={20} />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Growth Engine Settings</h1>
+                    <h1 className="text-2xl font-bold text-ink">Growth Engine Settings</h1>
                 </div>
-                <p className="text-slate-500 text-sm">
+                <p className="text-ink-muted text-sm">
                     Most thresholds tune themselves from your own trading history. These are the few you control directly.
                 </p>
             </div>
 
-            <div className="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex gap-2 mb-6 border-b border-line">
                 {[
                     { k: 'engine',  label: 'Engine',      icon: Sliders },
                     { k: 'learned', label: 'What it learned', icon: Ruler },
@@ -76,8 +76,8 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                     <button key={k} onClick={() => setTab(k)}
                         className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors flex items-center gap-2 ${
                             tab === k
-                                ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'border-brand-600 text-brand-600 dark:text-brand-400'
+                                : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                         }`}>
                         <Icon size={15} /> {label}
                     </button>
@@ -137,7 +137,7 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                     </Card>
 
                     <button type="submit" disabled={processing}
-                        className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
+                        className="px-6 py-3 rounded-xl bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700 disabled:opacity-50 flex items-center gap-2">
                         <Save size={16} /> {processing ? 'Saving…' : 'Save settings'}
                     </button>
                 </form>
@@ -167,12 +167,12 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                             note="Averaged from the due dates on your invoices. A payment isn't chased until it is genuinely late by your own standard." />
                     </div>
 
-                    <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-4">
-                        <p className="text-[11px] uppercase tracking-wider font-bold text-slate-400 mb-1">Attention threshold</p>
-                        <p className="text-lg font-bold text-slate-800 dark:text-white">
+                    <div className="rounded-2xl border border-line bg-surface px-5 py-4">
+                        <p className="text-1xs uppercase tracking-wider font-bold text-ink-muted mb-1">Attention threshold</p>
+                        <p className="text-lg font-bold text-ink">
                             {cur} {Number(learned?.materiality_floor || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </p>
-                        <p className="text-[13px] text-slate-500 mt-1">
+                        <p className="text-[13px] text-ink-muted mt-1">
                             Amounts below this are not worth interrupting you for, so the engine stays quiet about them.
                             Derived from your typical order value.
                         </p>
@@ -190,21 +190,21 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                     </Callout>
 
                     {mutedTypes.length === 0 ? (
-                        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
-                            <Bell size={28} className="mx-auto text-slate-300 mb-3" />
-                            <h3 className="font-bold text-slate-800 dark:text-white">Nothing is muted</h3>
-                            <p className="text-slate-500 text-sm mt-1">Every insight type is currently active.</p>
+                        <div className="text-center py-16 bg-surface rounded-2xl border border-line">
+                            <Bell size={28} className="mx-auto text-neutral-300 mb-3" />
+                            <h3 className="font-bold text-ink">Nothing is muted</h3>
+                            <p className="text-ink-muted text-sm mt-1">Every insight type is currently active.</p>
                         </div>
                     ) : (
-                        <div className="rounded-2xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                        <div className="rounded-2xl border border-line divide-y divide-line bg-surface">
                             {mutedTypes.map((t) => (
                                 <div key={t.type} className="px-5 py-4 flex items-center justify-between gap-4">
                                     <div className="min-w-0">
-                                        <p className="font-semibold text-sm text-slate-800 dark:text-white">{t.label}</p>
-                                        <p className="text-[12px] text-slate-500 mt-0.5">{t.mute_reason}</p>
+                                        <p className="font-semibold text-sm text-ink">{t.label}</p>
+                                        <p className="text-[12px] text-ink-muted mt-0.5">{t.mute_reason}</p>
                                     </div>
                                     <button onClick={() => unmute(t.type)}
-                                        className="shrink-0 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                                        className="shrink-0 px-4 py-2 rounded-xl border border-line text-sm font-semibold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover">
                                         Show again
                                     </button>
                                 </div>
@@ -242,15 +242,15 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                                 className={inputCls} />
                         </Field>
 
-                        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-[13px] text-slate-600 dark:text-slate-400">
-                            A customer spending {cur} {Number(data.loyalty_points_per_amount * 10).toLocaleString()} earns{' '}
-                            <strong>{data.loyalty_points_earned_per_unit * 10} points</strong>, worth about{' '}
+                        <div className="rounded-xl bg-app px-4 py-3 text-[13px] text-ink-secondary">
+                            A customer spending {cur} {Number(data.loyalty_points_per_amount * 10).toLocaleString()} earns{''}
+                            <strong>{data.loyalty_points_earned_per_unit * 10} points</strong>, worth about{''}
                             <strong>{cur} {((data.loyalty_points_earned_per_unit * 10) / data.loyalty_redemption_rate).toFixed(2)}</strong> off a future bill.
                         </div>
                     </Card>
 
                     <button type="submit" disabled={processing}
-                        className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
+                        className="px-6 py-3 rounded-xl bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700 disabled:opacity-50 flex items-center gap-2">
                         <Save size={16} /> {processing ? 'Saving…' : 'Save settings'}
                     </button>
                 </form>
@@ -262,13 +262,13 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
 /* ─────────────── small building blocks ─────────────── */
 
 const inputCls =
-    'w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ' +
-    'text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none';
+    'w-full px-4 py-2.5 rounded-xl border border-line bg-surface ' +
+    'text-ink text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none';
 
 function Card({ title, children }) {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-6 space-y-5">
-            <h2 className="font-bold text-slate-800 dark:text-white">{title}</h2>
+        <div className="bg-surface rounded-2xl border border-line p-6 space-y-5">
+            <h2 className="font-bold text-ink">{title}</h2>
             {children}
         </div>
     );
@@ -277,9 +277,9 @@ function Card({ title, children }) {
 function Field({ label, hint, error, children }) {
     return (
         <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{label}</label>
+            <label className="block text-sm font-semibold text-ink-secondary mb-1.5">{label}</label>
             {children}
-            {hint && <p className="text-[12px] text-slate-500 mt-1.5 leading-relaxed">{hint}</p>}
+            {hint && <p className="text-[12px] text-ink-muted mt-1.5 leading-relaxed">{hint}</p>}
             {error && <p className="text-[12px] text-red-500 mt-1">{error}</p>}
         </div>
     );
@@ -287,22 +287,22 @@ function Field({ label, hint, error, children }) {
 
 function Callout({ children }) {
     return (
-        <div className="rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 px-5 py-4 flex gap-3">
-            <Info size={17} className="text-indigo-500 shrink-0 mt-0.5" />
-            <p className="text-[13px] text-indigo-900 dark:text-indigo-200 leading-relaxed">{children}</p>
+        <div className="rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 px-5 py-4 flex gap-3">
+            <Info size={17} className="text-brand-500 shrink-0 mt-0.5" />
+            <p className="text-[13px] text-brand-900 dark:text-brand-200 leading-relaxed">{children}</p>
         </div>
     );
 }
 
 function LearnedCard({ icon: Icon, label, value, note }) {
     return (
-        <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-4">
+        <div className="rounded-2xl border border-line bg-surface px-5 py-4">
             <div className="flex items-center gap-2 mb-1">
-                <Icon size={15} className="text-indigo-500" />
-                <p className="text-[11px] uppercase tracking-wider font-bold text-slate-400">{label}</p>
+                <Icon size={15} className="text-brand-500" />
+                <p className="text-1xs uppercase tracking-wider font-bold text-ink-muted">{label}</p>
             </div>
-            <p className="text-xl font-bold text-slate-800 dark:text-white">{value}</p>
-            <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">{note}</p>
+            <p className="text-xl font-bold text-ink">{value}</p>
+            <p className="text-[12px] text-ink-muted mt-1 leading-relaxed">{note}</p>
         </div>
     );
 }

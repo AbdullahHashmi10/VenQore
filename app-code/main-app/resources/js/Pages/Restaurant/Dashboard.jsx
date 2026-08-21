@@ -32,24 +32,24 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
       case 'cleaning':
         return 'bg-blue-500/15 text-blue-400 border-blue-500/30';
       default:
-        return 'bg-slate-500/15 text-slate-400 border-slate-500/30';
+        return 'bg-neutral-500/15 text-ink-muted border-line-strong';
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
       <Head title="Restaurant Floor & Tables" />
 
       {/* Header */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-3">
-            <span className="p-2 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 text-xl">
+            <span className="p-2 rounded-xl bg-brand-600/20 text-brand-400 border border-brand-500/30 text-xl">
               🍽️
             </span>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white">Restaurant Floor Management</h1>
-              <p className="text-slate-400 text-sm">Real-time table status, capacities, and active orders</p>
+              <p className="text-ink-muted text-sm">Real-time table status, capacities, and active orders</p>
             </div>
           </div>
         </div>
@@ -57,7 +57,7 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
         <div className="flex items-center gap-3">
           <Link
             href={`/${storeSlug}/restaurant/kitchen`}
-            className="relative px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2"
+            className="relative px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm transition-all shadow-lg flex items-center gap-2"
           >
             <span>🍳 Kitchen Display System</span>
             {kitchenQueueCount > 0 && (
@@ -77,8 +77,8 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
             onClick={() => setFilter(st)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize border ${
               filter === st
-                ? 'bg-slate-800 text-white border-slate-600 shadow-sm'
-                : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                ? 'bg-neutral-800 text-white border-neutral-600 shadow-sm'
+                : 'bg-neutral-900/60 text-ink-muted border-neutral-800 hover:border-line-strong hover:text-neutral-200'
             }`}
           >
             {st} {st !== 'all' && `(${tables.filter(t => t.status === st).length})`}
@@ -91,7 +91,7 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
         {filteredTables.map((table) => (
           <div
             key={table.id}
-            className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between shadow-xl"
+            className="bg-neutral-900/90 border border-neutral-800 rounded-2xl p-5 hover:border-line-strong transition-all flex flex-col justify-between shadow-xl"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -103,10 +103,10 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
                 </span>
               </div>
 
-              <div className="space-y-1.5 text-sm text-slate-400 mb-4">
+              <div className="space-y-1.5 text-sm text-ink-muted mb-4">
                 <div className="flex items-center justify-between">
                   <span>Capacity:</span>
-                  <span className="text-slate-200 font-medium">{table.capacity} Seats</span>
+                  <span className="text-neutral-200 font-medium">{table.capacity} Seats</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Current Bill:</span>
@@ -118,13 +118,13 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
             </div>
 
             {/* Quick Status Control Buttons */}
-            <div className="pt-3 border-t border-slate-800/80">
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Change Status</label>
+            <div className="pt-3 border-t border-neutral-800/80">
+              <label className="block text-xs font-medium text-ink-muted mb-1.5">Change Status</label>
               <select
                 value={table.status}
                 disabled={loadingId === table.id}
                 onChange={(e) => handleStatusChange(table.id, e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 capitalize"
+                className="w-full bg-sunken border border-neutral-800 text-ink-faint text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 capitalize"
               >
                 <option value="available">Available</option>
                 <option value="occupied">Occupied</option>

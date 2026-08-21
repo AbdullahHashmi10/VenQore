@@ -24,7 +24,7 @@ import {
  */
 
 const money = (n, currency = 'GBP') => {
-    const symbols = { GBP: '£', USD: '$', EUR: '€', PKR: '₨', AED: 'AED ' };
+    const symbols = { GBP: '£', USD: '$', EUR: '€', PKR: '₨', AED: 'AED' };
     const symbol = symbols[currency] ?? `${currency} `;
     const value = Number(n ?? 0);
 
@@ -98,7 +98,7 @@ export default function MoneyPipeline({ pipeline, clearingEnabled, storeSlug, cu
                 alignItems: 'center', justifyContent: 'space-between',
             }}>
                 <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start', flex: '1 1 340px', minWidth: 0 }}>
-                    <Info size={17} color="#60a5fa" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <Info size={17} color="rgb(var(--vq-blue-400))" style={{ flexShrink: 0, marginTop: 2 }} />
                     <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: vq.slate[100], marginBottom: 4 }}>
                             Marketplace Clearing is off
@@ -118,7 +118,7 @@ export default function MoneyPipeline({ pipeline, clearingEnabled, storeSlug, cu
                     style={{
                         display: 'flex', alignItems: 'center', gap: 6,
                         padding: '10px 18px', borderRadius: 9, border: 'none',
-                        background: toggling ? vq.slate[800] : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        background: toggling ? vq.slate[800] : 'linear-gradient(135deg, rgb(var(--vq-blue-500)), #1d4ed8)',
                         color: toggling ? vq.slate[500] : '#fff',
                         fontSize: 13, fontWeight: 700,
                         cursor: toggling ? 'wait' : 'pointer', flexShrink: 0,
@@ -152,7 +152,7 @@ export default function MoneyPipeline({ pipeline, clearingEnabled, storeSlug, cu
                         <div style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: role.warning[300] }}>
                                 {awaiting.count} payout{awaiting.count === 1 ? '' : 's'} ready to confirm
-                                {' · '}{money(awaiting.amount, currency)}
+                                {' ·'}{money(awaiting.amount, currency)}
                             </div>
                             <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 2 }}>
                                 Check your bank, then confirm the amount that actually landed.
@@ -261,7 +261,7 @@ export default function MoneyPipeline({ pipeline, clearingEnabled, storeSlug, cu
                             aria-expanded={expanded}
                             style={{
                                 marginTop: 12, padding: 0, background: 'transparent', border: 'none',
-                                color: '#60a5fa', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                                color: 'rgb(var(--vq-blue-400))', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', gap: 4,
                             }}
                         >

@@ -15,19 +15,19 @@ export default function AllParties({ parties }) {
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Phone</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Email</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Balance</th>
+                        <tr className="bg-app border-b border-line">
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Type</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Phone</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Email</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Balance</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-line">
                         {parties.map((party) => (
-                            <tr key={party.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                            <tr key={party.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                 <td className="px-6 py-4">
-                                    <div className="font-bold text-slate-800 dark:text-white">{party.name}</div>
+                                    <div className="font-bold text-ink">{party.name}</div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${party.type === 'customer'
@@ -37,9 +37,9 @@ export default function AllParties({ parties }) {
                                         {party.type}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{party.phone || 'N/A'}</td>
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{party.email || 'N/A'}</td>
-                                <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">
+                                <td className="px-6 py-4 text-sm text-ink-secondary">{party.phone || 'N/A'}</td>
+                                <td className="px-6 py-4 text-sm text-ink-secondary">{party.email || 'N/A'}</td>
+                                <td className="px-6 py-4 text-sm font-bold text-ink">
                                     {formatCurrency(party.balance || 0, store)}
                                 </td>
                             </tr>

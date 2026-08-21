@@ -209,24 +209,24 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                 )}
 
                 {/* Step 1: Input */}
-                <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 space-y-4">
+                <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-200">1. Upload or paste your CSV</h3>
-                        <span className="text-2xs text-slate-500 dark:text-zinc-500">Up to {maxRows.toLocaleString()} rows, 5MB file max</span>
+                        <h3 className="text-sm font-semibold text-ink dark:text-ink">1. Upload or paste your CSV</h3>
+                        <span className="text-2xs text-ink-muted dark:text-ink-muted">Up to {maxRows.toLocaleString()} rows, 5MB file max</span>
                     </div>
 
                     <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={() => setMode('paste')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'paste' ? 'bg-indigo-600 text-white' : 'bg-slate-900/[0.05] dark:bg-white/[0.06] text-slate-600 dark:text-zinc-300'}`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'paste' ? 'bg-brand-600 text-white' : 'bg-sunken dark:bg-white/[0.06] text-ink-secondary dark:text-ink-secondary'}`}
                         >
                             Paste CSV text
                         </button>
                         <button
                             type="button"
                             onClick={() => setMode('file')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'file' ? 'bg-indigo-600 text-white' : 'bg-slate-900/[0.05] dark:bg-white/[0.06] text-slate-600 dark:text-zinc-300'}`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'file' ? 'bg-brand-600 text-white' : 'bg-sunken dark:bg-white/[0.06] text-ink-secondary dark:text-ink-secondary'}`}
                         >
                             Upload file
                         </button>
@@ -239,9 +239,9 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                                 onChange={(e) => setCsvText(e.target.value)}
                                 placeholder={SAMPLE_CSV}
                                 rows={8}
-                                className="w-full bg-white dark:bg-zinc-950 border border-slate-900/10 dark:border-zinc-800 rounded-xl p-3 text-xs text-slate-900 dark:text-zinc-100 font-mono focus:outline-none focus:border-indigo-500 resize-none"
+                                className="w-full bg-white dark:bg-app border border-line dark:border-line rounded-xl p-3 text-xs text-ink dark:text-ink font-mono focus:outline-none focus:border-brand-500 resize-none"
                             />
-                            <button type="button" onClick={() => setCsvText(SAMPLE_CSV)} className="text-xs text-indigo-500 hover:underline">
+                            <button type="button" onClick={() => setCsvText(SAMPLE_CSV)} className="text-xs text-brand-500 hover:underline">
                                 Load a messy sample file
                             </button>
                         </div>
@@ -257,7 +257,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-full border border-dashed border-slate-900/15 dark:border-zinc-800 hover:border-indigo-400/50 bg-white/50 dark:bg-zinc-950/50 py-6 rounded-xl text-sm text-slate-500 dark:text-zinc-400 flex flex-col items-center justify-center gap-2"
+                                className="w-full border border-dashed border-line dark:border-line hover:border-brand-400/50 bg-white/50 dark:bg-app py-6 rounded-xl text-sm text-ink-muted dark:text-ink-secondary flex flex-col items-center justify-center gap-2"
                             >
                                 <Upload className="w-5 h-5" />
                                 {file ? file.name : 'Click to choose a .csv file'}
@@ -265,12 +265,12 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                         </div>
                     )}
 
-                    <label className="flex items-center gap-2.5 text-xs text-slate-600 dark:text-zinc-300 cursor-pointer">
+                    <label className="flex items-center gap-2.5 text-xs text-ink-secondary dark:text-ink-secondary cursor-pointer">
                         <input
                             type="checkbox"
                             checked={generateMissingSkus}
                             onChange={(e) => handleToggleGenerateSkus(e.target.checked)}
-                            className="rounded border-slate-300 dark:border-zinc-800 text-indigo-600 focus:ring-indigo-500"
+                            className="rounded border-line dark:border-line text-brand-600 focus:ring-brand-500"
                         />
                         Auto-generate a SKU (from product name) for rows missing one
                     </label>
@@ -279,7 +279,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                         type="button"
                         onClick={handleParse}
                         disabled={loading}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                         Analyze & Preview
@@ -288,13 +288,13 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
 
                 {/* Step 2: Column mapping */}
                 {result && (
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 space-y-4">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-200">2. Confirm column mapping</h3>
-                        <p className="text-xs text-slate-500 dark:text-zinc-500">We auto-detected which column is which. Fix any that guessed wrong.</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-4">
+                        <h3 className="text-sm font-semibold text-ink dark:text-ink">2. Confirm column mapping</h3>
+                        <p className="text-xs text-ink-muted dark:text-ink-muted">We auto-detected which column is which. Fix any that guessed wrong.</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {fields.map((field) => (
                                 <div key={field}>
-                                    <label className="block text-xs text-slate-500 dark:text-zinc-400 mb-1">{FIELD_LABELS[field] || field}</label>
+                                    <label className="block text-xs text-ink-muted dark:text-ink-secondary mb-1">{FIELD_LABELS[field] || field}</label>
                                     <Select
                                         value={columnMap?.[field] === null || columnMap?.[field] === undefined ? '' : String(columnMap[field])}
                                         onChange={(val) => handleRemap(field, val)}
@@ -311,36 +311,36 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
 
                 {/* Step 3: Report */}
                 {summary && (
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 space-y-4">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-200">3. Cleanup report</h3>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-4">
+                        <h3 className="text-sm font-semibold text-ink dark:text-ink">3. Cleanup report</h3>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <div className="p-3 rounded-xl bg-white dark:bg-zinc-950 border border-slate-900/10 dark:border-zinc-800">
-                                <p className="text-2xl font-black text-slate-900 dark:text-white">{summary.rows_processed}</p>
-                                <p className="text-2xs text-slate-500 dark:text-zinc-500 uppercase tracking-wide">Rows processed</p>
+                            <div className="p-3 rounded-xl bg-white dark:bg-app border border-line dark:border-line">
+                                <p className="text-2xl font-bold text-ink">{summary.rows_processed}</p>
+                                <p className="text-2xs text-ink-muted dark:text-ink-muted uppercase tracking-wide">Rows processed</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-white dark:bg-zinc-950 border border-slate-900/10 dark:border-zinc-800">
-                                <p className="text-2xl font-black text-amber-500">{summary.issues_found}</p>
-                                <p className="text-2xs text-slate-500 dark:text-zinc-500 uppercase tracking-wide">Issues found</p>
+                            <div className="p-3 rounded-xl bg-white dark:bg-app border border-line dark:border-line">
+                                <p className="text-2xl font-bold text-amber-500">{summary.issues_found}</p>
+                                <p className="text-2xs text-ink-muted dark:text-ink-muted uppercase tracking-wide">Issues found</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-white dark:bg-zinc-950 border border-slate-900/10 dark:border-zinc-800">
-                                <p className="text-2xl font-black text-emerald-500">{summary.rows_auto_fixed}</p>
-                                <p className="text-2xs text-slate-500 dark:text-zinc-500 uppercase tracking-wide">Rows auto-fixed</p>
+                            <div className="p-3 rounded-xl bg-white dark:bg-app border border-line dark:border-line">
+                                <p className="text-2xl font-bold text-emerald-500">{summary.rows_auto_fixed}</p>
+                                <p className="text-2xs text-ink-muted dark:text-ink-muted uppercase tracking-wide">Rows auto-fixed</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-white dark:bg-zinc-950 border border-slate-900/10 dark:border-zinc-800">
-                                <p className="text-2xl font-black text-slate-500 dark:text-slate-400">{summary.rows_skipped_empty}</p>
-                                <p className="text-2xs text-slate-500 dark:text-zinc-500 uppercase tracking-wide">Empty rows skipped</p>
+                            <div className="p-3 rounded-xl bg-white dark:bg-app border border-line dark:border-line">
+                                <p className="text-2xl font-bold text-ink-muted">{summary.rows_skipped_empty}</p>
+                                <p className="text-2xs text-ink-muted dark:text-ink-muted uppercase tracking-wide">Empty rows skipped</p>
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
                             {Object.entries(summary.issues_by_type).filter(([, count]) => count > 0).map(([type, count]) => (
-                                <div key={type} className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-white dark:bg-zinc-950 border border-slate-900/10 dark:border-zinc-800">
-                                    <span className="flex items-center gap-2 text-slate-600 dark:text-zinc-300">
+                                <div key={type} className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-white dark:bg-app border border-line dark:border-line">
+                                    <span className="flex items-center gap-2 text-ink-secondary dark:text-ink-secondary">
                                         <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                                         {ISSUE_LABELS[type] || type}
                                     </span>
-                                    <span className="font-bold text-slate-900 dark:text-white">{count}</span>
+                                    <span className="font-bold text-ink">{count}</span>
                                 </div>
                             ))}
                             {summary.issues_found === 0 && (
@@ -354,7 +354,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse min-w-[700px] text-xs">
                                 <thead>
-                                    <tr className="border-b border-slate-900/10 dark:border-zinc-800 text-2xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                                    <tr className="border-b border-line dark:border-line text-2xs font-semibold text-ink-muted dark:text-ink-secondary uppercase tracking-wider">
                                         <th className="pb-2 pr-2">#</th>
                                         <th className="pb-2 pr-2">Name</th>
                                         <th className="pb-2 pr-2">SKU</th>
@@ -363,19 +363,19 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                                         <th className="pb-2">Issues</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-900/5 dark:divide-zinc-800/60">
+                                <tbody className="divide-y divide-line dark:divide-line">
                                     {result.preview.map((row) => (
                                         <tr key={row.row_number}>
-                                            <td className="py-2 pr-2 text-slate-500 dark:text-slate-400">{row.row_number}</td>
-                                            <td className="py-2 pr-2 text-slate-800 dark:text-zinc-200">{row.name || '—'}</td>
-                                            <td className="py-2 pr-2 font-mono text-slate-800 dark:text-zinc-200">
+                                            <td className="py-2 pr-2 text-ink-muted">{row.row_number}</td>
+                                            <td className="py-2 pr-2 text-ink dark:text-ink">{row.name || '—'}</td>
+                                            <td className="py-2 pr-2 font-mono text-ink dark:text-ink">
                                                 {row.sku || '—'}
-                                                {row.sku_generated && <span className="ml-1 text-3xs text-indigo-500">(generated)</span>}
+                                                {row.sku_generated && <span className="ml-1 text-3xs text-brand-500">(generated)</span>}
                                             </td>
-                                            <td className="py-2 pr-2 text-slate-800 dark:text-zinc-200">
+                                            <td className="py-2 pr-2 text-ink dark:text-ink">
                                                 {row.price_clean !== null && row.price_clean !== undefined ? Number(row.price_clean).toFixed(2) : (row.price || '—')}
                                             </td>
-                                            <td className="py-2 pr-2 font-mono text-slate-800 dark:text-zinc-200">{row.barcode || '—'}</td>
+                                            <td className="py-2 pr-2 font-mono text-ink dark:text-ink">{row.barcode || '—'}</td>
                                             <td className="py-2">
                                                 {row.issues.length === 0 ? (
                                                     <span className="inline-flex items-center gap-1 text-emerald-500"><CheckCircle2 className="w-3.5 h-3.5" /> OK</span>
@@ -395,7 +395,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                             </table>
                         </div>
                         {summary.rows_kept > result.preview.length && (
-                            <p className="text-1xs text-slate-500 dark:text-zinc-500">
+                            <p className="text-1xs text-ink-muted dark:text-ink-muted">
                                 Showing first {result.preview.length} of {summary.rows_kept} rows. The full cleaned file will include all of them.
                             </p>
                         )}
@@ -405,7 +405,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                                 type="button"
                                 onClick={handleDownload}
                                 disabled={downloading}
-                                className="flex items-center gap-2 py-3 px-8 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20"
+                                className="flex items-center gap-2 py-3 px-8 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all shadow-lg "
                             >
                                 {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                 Download Cleaned CSV

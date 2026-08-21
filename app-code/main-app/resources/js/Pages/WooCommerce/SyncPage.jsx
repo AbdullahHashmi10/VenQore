@@ -17,7 +17,7 @@ const statusConfig = {
     conflict: { color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20',     icon: AlertTriangle,  label: 'Conflict' },
     pending:  { color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',           icon: Clock,          label: 'Pending' },
     staged:   { color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20',        icon: Clock,          label: 'Staged' },
-    ignored:  { color: 'text-slate-400 bg-slate-50 dark:bg-slate-800',           icon: EyeOff,         label: 'Ignored' },
+    ignored:  { color: 'text-ink-muted bg-app',           icon: EyeOff,         label: 'Ignored' },
 };
 
 function StatusBadge({ status }) {
@@ -39,19 +39,19 @@ function StatsBar({ stats, filter, onFilter }) {
         { key: 'synced',    label: 'Synced',    count: stats.synced,    color: 'text-emerald-600' },
         { key: 'conflict',  label: 'Conflicts', count: stats.conflicts, color: 'text-orange-600' },
         { key: 'staged',    label: 'Staged',    count: stats.staged,    color: 'text-amber-600' },
-        { key: 'ignored',   label: 'Ignored',   count: stats.ignored,   color: 'text-slate-400' },
+        { key: 'ignored',   label: 'Ignored',   count: stats.ignored,   color: 'text-ink-muted' },
     ];
 
     return (
-        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+        <div className="flex items-center gap-1 p-1 bg-sunken rounded-xl">
             {tabs.map(tab => (
                 <button
                     key={tab.key}
                     onClick={() => onFilter(tab.key)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         filter === tab.key
-                            ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
-                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                            ? 'bg-sunken text-ink shadow-sm'
+                            : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                     }`}
                 >
                     {tab.label}
@@ -89,18 +89,18 @@ function StagedQueueRow({ entry, connectionId, storeSlug }) {
     const venqoreData = !isFromWoo ? entry.payload : null;
 
     return (
-        <div className="grid grid-cols-2 gap-4 p-4 border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+        <div className="grid grid-cols-2 gap-4 p-4 border-b border-line last:border-0 hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
             {/* VenQore Side */}
             <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center flex-shrink-0">
                     <Package size={14} className="text-violet-500" />
                 </div>
                 {isFromWoo ? (
-                    <div className="text-sm text-slate-400 italic">— not in VenQore yet —</div>
+                    <div className="text-sm text-ink-muted italic">— not in VenQore yet —</div>
                 ) : (
                     <div>
-                        <div className="font-semibold text-sm text-slate-800 dark:text-white">{venqoreData?.name ?? 'Unknown'}</div>
-                        <div className="text-xs text-slate-400 font-mono">SKU: {venqoreData?.sku ?? '—'}</div>
+                        <div className="font-semibold text-sm text-ink">{venqoreData?.name ?? 'Unknown'}</div>
+                        <div className="text-xs text-ink-muted font-mono">SKU: {venqoreData?.sku ?? '—'}</div>
                     </div>
                 )}
             </div>
@@ -112,13 +112,13 @@ function StagedQueueRow({ entry, connectionId, storeSlug }) {
                         <ShoppingCart size={14} className="text-blue-500" />
                     </div>
                     {!isFromWoo ? (
-                        <div className="text-sm text-slate-400 italic">— not on WooCommerce yet —</div>
+                        <div className="text-sm text-ink-muted italic">— not on WooCommerce yet —</div>
                     ) : (
                         <div>
-                            <div className="font-semibold text-sm text-slate-800 dark:text-white">{wooProduct?.name ?? 'Unknown'}</div>
-                            <div className="text-xs text-slate-400 font-mono">SKU: {wooProduct?.sku ?? '—'}</div>
+                            <div className="font-semibold text-sm text-ink">{wooProduct?.name ?? 'Unknown'}</div>
+                            <div className="text-xs text-ink-muted font-mono">SKU: {wooProduct?.sku ?? '—'}</div>
                             {wooProduct?.regular_price && (
-                                <div className="text-xs text-slate-500">${wooProduct.regular_price}</div>
+                                <div className="text-xs text-ink-muted">${wooProduct.regular_price}</div>
                             )}
                         </div>
                     )}
@@ -136,7 +136,7 @@ function StagedQueueRow({ entry, connectionId, storeSlug }) {
                     </button>
                     <button
                         onClick={handleIgnore}
-                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="p-1.5 text-ink-muted hover:text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
                         title="Ignore"
                     >
                         <XCircle size={14} />
@@ -186,8 +186,8 @@ function LinkedProductRow({ link, connectionId, storeSlug }) {
     };
 
     return (
-        <div className={`border-b border-slate-100 dark:border-slate-800 last:border-0 ${isConflict ? 'bg-orange-50/30 dark:bg-orange-900/10' : ''}`}>
-            <div className="grid grid-cols-2 gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+        <div className={`border-b border-line last:border-0 ${isConflict ? 'bg-orange-50/30 dark:bg-orange-900/10' : ''}`}>
+            <div className="grid grid-cols-2 gap-4 p-4 hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                 {/* VenQore side */}
                 <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center flex-shrink-0">
@@ -195,12 +195,12 @@ function LinkedProductRow({ link, connectionId, storeSlug }) {
                     </div>
                     <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-sm text-slate-800 dark:text-white truncate">{product?.name ?? '—'}</span>
+                            <span className="font-semibold text-sm text-ink truncate">{product?.name ?? '—'}</span>
                             <StatusBadge status={link.sync_status} />
                         </div>
-                        <div className="text-xs text-slate-400 font-mono">SKU: {link.sku}</div>
+                        <div className="text-xs text-ink-muted font-mono">SKU: {link.sku}</div>
                         {product?.price && (
-                            <div className="text-xs text-slate-500 mt-0.5">
+                            <div className="text-xs text-ink-muted mt-0.5">
                                 Price: <span className={isConflict && conflictData?.venqore?.price !== conflictData?.woocommerce?.price ? 'text-orange-600 font-bold' : ''}>${product.price}</span>
                                 {product.stock_quantity !== undefined && ` · Stock: ${product.stock_quantity}`}
                             </div>
@@ -224,9 +224,9 @@ function LinkedProductRow({ link, connectionId, storeSlug }) {
                             <ShoppingCart size={14} className="text-blue-500" />
                         </div>
                         <div className="min-w-0">
-                            <div className="font-semibold text-sm text-slate-800 dark:text-white truncate">{product?.name ?? '—'}</div>
-                            <div className="text-xs text-slate-400">Woo ID: #{link.woo_product_id}</div>
-                            <div className="text-xs text-slate-500 mt-0.5">
+                            <div className="font-semibold text-sm text-ink truncate">{product?.name ?? '—'}</div>
+                            <div className="text-xs text-ink-muted">Woo ID: #{link.woo_product_id}</div>
+                            <div className="text-xs text-ink-muted mt-0.5">
                                 {link.last_synced_at
                                     ? `Synced: ${new Date(link.last_synced_at).toLocaleDateString()}`
                                     : 'Not yet synced'}
@@ -268,7 +268,7 @@ function LinkedProductRow({ link, connectionId, storeSlug }) {
                         <button
                             onClick={handleIgnore}
                             title="Unlink / Ignore"
-                            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            className="p-1.5 text-ink-muted hover:text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
                         >
                             <EyeOff size={14} />
                         </button>
@@ -342,14 +342,14 @@ export default function SyncPage({
                 {/* Header */}
                 <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                        <div className="flex items-center gap-2 text-sm text-ink-muted mb-1">
                             <Link href={route('store.woo.connections.index', { store_slug })} className="hover:text-violet-500">
                                 WooCommerce
                             </Link>
                             <ChevronRight size={13} />
-                            <span className="text-slate-700 dark:text-slate-300 font-medium">{connection.name}</span>
+                            <span className="text-ink-secondary font-medium">{connection.name}</span>
                         </div>
-                        <h1 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <h1 className="text-xl font-bold text-ink flex items-center gap-2">
                             Sync Page
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                                 connection.status === 'active'
@@ -360,19 +360,19 @@ export default function SyncPage({
                                 {connection.status === 'active' ? 'Connected' : 'Pending'}
                             </span>
                         </h1>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-ink-muted mt-0.5">
                             {connection.last_synced_at
                                 ? `Last sync: ${new Date(connection.last_synced_at).toLocaleString()}`
                                 : 'Never synced'
                             }
-                            {' · '}Priority: <span className="font-semibold capitalize">{connection.priority_source}</span>
-                            {' · '}
+                            {' ·'}Priority: <span className="font-semibold capitalize">{connection.priority_source}</span>
+                            {' ·'}
                             {connection.site_url ? (
                                 <a href={connection.site_url} target="_blank" rel="noreferrer" className="text-violet-500 hover:underline">
                                     {connection.site_url.replace(/^https?:\/\//, '')} ↗
                                 </a>
                             ) : (
-                                <span className="text-slate-400 italic">Site URL not configured</span>
+                                <span className="text-ink-muted italic">Site URL not configured</span>
                             )}
                         </p>
                     </div>
@@ -399,7 +399,7 @@ export default function SyncPage({
                         )}
                         <Link
                             href={route('store.woo.connections.setup', { store_slug, connection: connection.id })}
-                            className="p-2 text-slate-400 hover:text-slate-600 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors"
+                            className="p-2 text-ink-muted hover:text-ink-secondary bg-surface border border-line rounded-xl transition-colors"
                         >
                             <Settings size={16} />
                         </Link>
@@ -412,16 +412,16 @@ export default function SyncPage({
 
                     <form onSubmit={handleSearch} className="flex items-center gap-2">
                         <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Search by name or SKU…"
-                                className="pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 w-56"
+                                className="pl-9 pr-4 py-2 bg-surface border border-line rounded-xl text-sm text-ink-secondary focus:outline-none focus:ring-2 focus:ring-violet-500 w-56"
                             />
                         </div>
-                        <button type="submit" className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm hover:bg-slate-200 transition-colors">
+                        <button type="submit" className="px-3 py-2 bg-sunken text-ink-secondary rounded-xl text-sm hover:bg-interactive-hover transition-colors">
                             Go
                         </button>
                     </form>
@@ -433,7 +433,7 @@ export default function SyncPage({
                         <div className="flex items-center justify-between p-4 border-b border-amber-200 dark:border-amber-800">
                             <div className="flex items-center gap-2">
                                 <Clock size={16} className="text-amber-600" />
-                                <span className="font-bold text-slate-800 dark:text-white text-sm">
+                                <span className="font-bold text-ink text-sm">
                                     Staging Queue — {staged_queue.length} new product{staged_queue.length !== 1 ? 's' : ''} need review
                                 </span>
                             </div>
@@ -449,10 +449,10 @@ export default function SyncPage({
 
                         {/* Column Headers */}
                         <div className="grid grid-cols-2 gap-4 px-4 py-2 bg-amber-100/60 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <div className="text-xs font-bold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
                                 <Package size={11} /> VenQore
                             </div>
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <div className="text-xs font-bold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
                                 <ShoppingCart size={11} /> WooCommerce
                             </div>
                         </div>
@@ -469,19 +469,19 @@ export default function SyncPage({
                 )}
 
                 {/* Linked Products Table */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                <div className="bg-surface rounded-2xl border border-line overflow-hidden">
                     {/* Column Headers */}
-                    <div className="grid grid-cols-2 gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
-                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="grid grid-cols-2 gap-4 px-4 py-3 bg-app border-b border-line">
+                        <div className="text-xs font-bold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
                             <Package size={11} /> VenQore Product
                         </div>
-                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <div className="text-xs font-bold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
                             <ShoppingCart size={11} /> WooCommerce Product
                         </div>
                     </div>
 
                     {links.data?.length === 0 && (
-                        <div className="text-center py-16 text-slate-400">
+                        <div className="text-center py-16 text-ink-muted">
                             <Package size={28} className="mx-auto mb-3 opacity-40" />
                             <p className="text-sm">No products found{filter !== 'all' ? ` with status "${filter}"` : ''}.</p>
                             {filter !== 'all' && (
@@ -506,15 +506,15 @@ export default function SyncPage({
 
                     {/* Pagination */}
                     {links.last_page > 1 && (
-                        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-800">
-                            <span className="text-xs text-slate-400">
+                        <div className="flex items-center justify-between px-4 py-3 border-t border-line">
+                            <span className="text-xs text-ink-muted">
                                 Showing {links.from}–{links.to} of {links.total} products
                             </span>
                             <div className="flex items-center gap-2">
                                 {links.prev_page_url && (
                                     <Link
                                         href={links.prev_page_url}
-                                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-sm hover:bg-slate-200 transition-colors"
+                                        className="px-3 py-1.5 bg-sunken text-ink-secondary rounded-lg text-sm hover:bg-interactive-hover transition-colors"
                                     >
                                         ← Prev
                                     </Link>
@@ -537,10 +537,10 @@ export default function SyncPage({
                     <div className="flex items-start gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl">
                         <AlertTriangle size={16} className="text-orange-500 flex-shrink-0 mt-0.5" />
                         <div>
-                            <span className="font-bold text-slate-800 dark:text-white text-sm">
+                            <span className="font-bold text-ink text-sm">
                                 {stats.conflicts} product{stats.conflicts !== 1 ? 's' : ''} have conflicts.
                             </span>
-                            <span className="text-slate-600 dark:text-slate-400 text-sm ml-1">
+                            <span className="text-ink-secondary text-sm ml-1">
                                 Both sides changed since last sync. Choose which version to keep.
                             </span>
                             <button

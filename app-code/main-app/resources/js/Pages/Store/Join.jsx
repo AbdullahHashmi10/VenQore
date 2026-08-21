@@ -16,8 +16,8 @@ function InviteCard({ invite, onDismiss }) {
                 <p className="text-sm font-semibold text-white">
                     Invited to <span className="text-emerald-300">{invite.store_name}</span>
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                    As <span className="capitalize font-medium text-slate-300">{invite.role}</span> · {invite.plan} plan
+                <p className="text-xs text-ink-muted mt-0.5">
+                    As <span className="capitalize font-medium text-neutral-300">{invite.role}</span> · {invite.plan} plan
                 </p>
                 <div className="flex gap-2 mt-3">
                     <Link
@@ -29,7 +29,7 @@ function InviteCard({ invite, onDismiss }) {
                     </Link>
                     <button
                         onClick={onDismiss}
-                        className="px-3 py-1.5 rounded-lg text-slate-400 text-xs hover:text-slate-200 hover:bg-white/5 transition-colors"
+                        className="px-3 py-1.5 rounded-lg text-ink-muted text-xs hover:text-neutral-200 hover:bg-white/5 transition-colors"
                     >
                         Ignore
                     </button>
@@ -103,18 +103,18 @@ export default function JoinStore({ pending_invites = [] }) {
             {/* Ambient */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-1/4 right-1/3 w-[500px] h-[500px] bg-emerald-900/15 rounded-full blur-[120px]" />
-                <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-indigo-900/10 rounded-full blur-[100px]" />
+                <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-brand-900/10 rounded-full blur-[100px]" />
             </div>
 
             {/* Nav */}
             <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
                 <div className="flex items-center gap-2">
                     <img src="/images/logo.png" alt="VenQore" className="h-8 w-8 object-contain" />
-                    <span className="font-black text-lg text-white">VenQore<span className="text-indigo-400">.</span></span>
+                    <span className="font-bold text-lg text-white">VenQore<span className="text-brand-400">.</span></span>
                 </div>
                 <Link
                     href={route('store.create-or-join')}
-                    className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-white transition-colors"
                 >
                     <ArrowLeft size={14} /> Back
                 </Link>
@@ -128,10 +128,10 @@ export default function JoinStore({ pending_invites = [] }) {
                         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 mb-5">
                             <Key size={24} className="text-emerald-400" />
                         </div>
-                        <h1 className="text-3xl font-black tracking-tight text-white mb-2">
+                        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
                             Join a Store
                         </h1>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-ink-muted text-sm">
                             Ask your store owner for the 7-character join code.
                         </p>
                     </div>
@@ -143,14 +143,14 @@ export default function JoinStore({ pending_invites = [] }) {
                                 e.preventDefault();
                                 setShowCodeModal(true);
                             }}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-sm hover:bg-indigo-500/20 transition-all relative"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 font-bold text-sm hover:bg-brand-500/20 transition-all relative"
                         >
                             <Mail size={16} /> 
                             {invites.length > 0 ? `View Pending Invites (${invites.length})` : 'Check for Invites'}
                             {invites.length > 0 && (
                                 <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-500"></span>
                                 </span>
                             )}
                         </button>
@@ -159,7 +159,7 @@ export default function JoinStore({ pending_invites = [] }) {
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">
+                            <label className="block text-sm font-semibold text-neutral-300 mb-2">
                                 Store Join Code <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -183,14 +183,14 @@ export default function JoinStore({ pending_invites = [] }) {
                         </div>
 
                         {/* Info */}
-                        <div className="rounded-xl border border-white/8 bg-white/3 p-4 text-xs text-slate-400 space-y-1.5">
+                        <div className="rounded-xl border border-white/8 bg-white/3 p-4 text-xs text-ink-muted space-y-1.5">
                             <div className="flex items-start gap-2">
                                 <Store size={12} className="text-emerald-400 mt-0.5 shrink-0" />
-                                <span>You'll join as a <strong className="text-slate-200">Cashier</strong> by default. The store owner can update your role.</span>
+                                <span>You'll join as a <strong className="text-neutral-200">Cashier</strong> by default. The store owner can update your role.</span>
                             </div>
                             <div className="flex items-start gap-2">
                                 <Key size={12} className="text-emerald-400 mt-0.5 shrink-0" />
-                                <span>The code can be found in the store's <strong className="text-slate-200">Staff Settings</strong> page.</span>
+                                <span>The code can be found in the store's <strong className="text-neutral-200">Staff Settings</strong> page.</span>
                             </div>
                         </div>
 
@@ -200,11 +200,11 @@ export default function JoinStore({ pending_invites = [] }) {
                             type="submit"
                             disabled={processing || data.join_code.length < 6}
                             className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
-                                bg-gradient-to-r from-emerald-500 to-teal-600
-                                hover:from-emerald-400 hover:to-teal-500
-                                text-white font-bold text-base transition-all
-                                hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/25
-                                disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
+ bg-gradient-to-r from-emerald-500 to-teal-600
+ hover:from-emerald-400 hover:to-teal-500
+ text-white font-bold text-base transition-all
+ hover:shadow-xl hover:
+ disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
                         >
                             {processing ? (
                                 <><Loader2 size={18} className="animate-spin" /> Joining…</>
@@ -214,9 +214,9 @@ export default function JoinStore({ pending_invites = [] }) {
                         </button>
                     </form>
 
-                    <p className="text-center text-xs text-slate-500 mt-6">
-                        Want to create your own store?{' '}
-                        <Link href={route('store.create')} className="text-slate-400 hover:text-indigo-400 transition-colors underline underline-offset-2">
+                    <p className="text-center text-xs text-ink-muted mt-6">
+                        Want to create your own store?{''}
+                        <Link href={route('store.create')} className="text-ink-muted hover:text-brand-400 transition-colors underline underline-offset-2">
                             Create a store
                         </Link>
                     </p>
@@ -227,16 +227,16 @@ export default function JoinStore({ pending_invites = [] }) {
             {/* Invite Code Modal */}
             {showCodeModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col max-h-[85vh]">
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col max-h-[85vh]">
                         
                         {/* Modal Bg Decals */}
-                        <div className="absolute top-0 right-0 p-8 pt-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 p-8 pt-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
                         
                         <div className="p-5 sm:p-8 shrink-0">
-                            <h2 className="text-xl font-black text-white mb-2">
+                            <h2 className="text-xl font-bold text-white mb-2">
                                 Pending Invitations
                             </h2>
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm text-ink-muted">
                                 Manage your pending store invitations or join via short code.
                             </p>
                         </div>
@@ -251,22 +251,22 @@ export default function JoinStore({ pending_invites = [] }) {
                                     />
                                 ))
                             ) : (
-                                <div className="text-center py-6 rounded-2xl border border-slate-800 bg-slate-800/30">
-                                    <Mail size={24} className="text-slate-500 mx-auto mb-2" />
-                                    <p className="text-slate-400 text-sm">You have no pending invitations.</p>
+                                <div className="text-center py-6 rounded-2xl border border-neutral-800 bg-neutral-800/30">
+                                    <Mail size={24} className="text-ink-muted mx-auto mb-2" />
+                                    <p className="text-ink-muted text-sm">You have no pending invitations.</p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-5 sm:p-8 shrink-0 border-t border-slate-800 bg-slate-900/50">
-                            <h3 className="text-sm font-bold text-slate-300 mb-3 text-left">Have a short code?</h3>
+                        <div className="p-5 sm:p-8 shrink-0 border-t border-neutral-800 bg-neutral-900/50">
+                            <h3 className="text-sm font-bold text-neutral-300 mb-3 text-left">Have a short code?</h3>
                             <form onSubmit={handleCheckCode}>
                                 <input
                                     type="text"
                                     placeholder="e.g. VQ-A3X9"
                                     value={inviteCode}
                                     onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                                    className="w-full bg-slate-800 border items-center text-center font-mono tracking-[0.2em] border-slate-700 text-white text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors shadow-inner"
+                                    className="w-full bg-neutral-800 border items-center text-center font-mono tracking-[0.2em] border-neutral-700 text-white text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors shadow-inner"
                                 />
                                 {codeError && (
                                     <p className="text-xs font-bold text-red-400 mt-2 flex items-center gap-1 justify-center">
@@ -278,14 +278,14 @@ export default function JoinStore({ pending_invites = [] }) {
                                     <button
                                         type="button"
                                         onClick={() => setShowCodeModal(false)}
-                                        className="flex-1 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold transition-colors"
+                                        className="flex-1 py-3 rounded-xl border border-neutral-700 hover:bg-interactive-hover text-neutral-300 font-bold transition-colors"
                                     >
                                         Close
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={checkingCode || !inviteCode}
-                                        className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold transition-colors shadow-lg shadow-indigo-600/20"
+                                        className="flex-1 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white font-bold transition-colors shadow-lg "
                                     >
                                         {checkingCode ? 'Checking...' : 'Check Code'}
                                     </button>

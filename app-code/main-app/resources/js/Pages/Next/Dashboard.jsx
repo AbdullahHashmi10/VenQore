@@ -43,6 +43,7 @@ import Line from "@/Components/Charts/line";
 import ChartTooltip from "@/Components/Charts/tooltip/chart-tooltip";
 import XAxis from "@/Components/Charts/x-axis";
 
+import { vq } from '@/theme/runtime';
 function RevenueChart({ points }) {
     const defaultPoints = useMemo(() => {
         return Array.from({ length: 30 }, (_, i) => {
@@ -116,7 +117,7 @@ function StatCard({ label, value, footnote, tone = 'muted', href }) {
                 height: '100%',
                 transition: 'border-color 0.15s ease',
             }}
-            className="hover:border-slate-400"
+            className="hover:border-line-strong"
         >
             <div style={{ font: "400 12px 'Instrument Sans',sans-serif", color: '#8b877a' }}>{label}</div>
             <div
@@ -253,13 +254,13 @@ export default function FullyFunctionalNextDashboard(props) {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f4f0', fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
+        <div style={{ minHeight: '100vh', background: vq.slate[50], fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
             <Head title="Overview — VenQore OS" />
 
             {/* Render full dashboard only on the client to prevent SSR hydration mismatches
                 (inline <style> tags + visx ResizeObserver charts differ between server and browser) */}
             {!isMounted ? (
-                <div style={{ minHeight: '100vh', background: '#f5f4f0' }} aria-hidden="true" />
+                <div style={{ minHeight: '100vh', background: vq.slate[50] }} aria-hidden="true" />
             ) : (<>
 
             <style>{`
@@ -279,7 +280,7 @@ export default function FullyFunctionalNextDashboard(props) {
                     #vq-more-grid { grid-template-columns: minmax(0,1fr) !important; }
                     #vq-canvas    { padding: 18px 16px 32px !important; }
                 }
-            `}</style>
+`}</style>
 
             {/* ── Top Bar ─────────────────────────────────────────────── */}
             <div
@@ -352,7 +353,7 @@ export default function FullyFunctionalNextDashboard(props) {
                     >
                         14 days left
                     </Link>
-                    <Link href={safeRoute('store.notifications', '/notifications')} className="text-slate-600 hover:text-slate-900">
+                    <Link href={safeRoute('store.notifications', '/notifications')} className="text-ink-secondary hover:text-ink">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#5f5c52" strokeWidth="1.4">
                             <path d="M8 2.5a3.6 3.6 0 013.6 3.6c0 3 1.2 4.2 1.2 4.2H3.2s1.2-1.2 1.2-4.2A3.6 3.6 0 018 2.5z" />
                             <path d="M6.6 12.6a1.5 1.5 0 002.8 0" />
@@ -423,7 +424,7 @@ export default function FullyFunctionalNextDashboard(props) {
                         type="button"
                         onClick={() => setSheetOpen(true)}
                         title="Add Card / Customise"
-                        className="flex items-center justify-center transition-all hover:border-slate-800 hover:text-slate-900"
+                        className="flex items-center justify-center transition-all hover:border-line-strong hover:text-ink"
                         style={{
                             marginTop: 'auto',
                             width: 34,
@@ -461,7 +462,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                     letterSpacing: '-.02em',
                                 }}
                             >
-                                {clientGreeting && `${clientGreeting}, `}{displayGreetingName.split(' ')[0]}
+                                {clientGreeting && `${clientGreeting},`}{displayGreetingName.split(' ')[0]}
                             </h1>
                         </div>
 
@@ -479,7 +480,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                     display: 'flex',
                                     alignItems: 'center',
                                 }}
-                                className="no-underline hover:bg-slate-50"
+                                className="no-underline hover:bg-interactive-hover"
                             >
                                 New purchase
                             </Link>
@@ -495,7 +496,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                     display: 'flex',
                                     alignItems: 'center',
                                 }}
-                                className="no-underline hover:bg-slate-800"
+                                className="no-underline hover:bg-interactive-hover"
                             >
                                 New sale
                             </Link>
@@ -527,7 +528,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                             style={{
                                                 font: "500 12.5px 'Instrument Sans',sans-serif",
                                                 color: '#0e6b4f',
-                                                background: '#e7f2ec',
+                                                background: vq.emerald[100],
                                                 borderRadius: 99,
                                                 padding: '4px 9px',
                                             }}
@@ -640,7 +641,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                         style={{
                                             font: "500 11px ui-monospace,monospace",
                                             color: '#a8321e',
-                                            background: '#fbeceA',
+                                            background: vq.red[100],
                                             borderRadius: 99,
                                             padding: '3px 8px',
                                         }}
@@ -759,7 +760,7 @@ export default function FullyFunctionalNextDashboard(props) {
                     <button
                         type="button"
                         onClick={() => setSheetOpen(true)}
-                        className="w-full text-left transition-all hover:border-slate-900"
+                        className="w-full text-left transition-all hover:border-line-strong"
                         style={{
                             marginTop: 12,
                             height: 88,
@@ -785,8 +786,8 @@ export default function FullyFunctionalNextDashboard(props) {
             {/* ── Working Command Search Modal ──────────────────────────── */}
             {searchOpen && (
                 <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/40 backdrop-blur-sm" onClick={() => setSearchOpen(false)}>
-                    <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-stone-200" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-100">
+                    <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-line" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 px-4 py-3 border-b border-line">
                             <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="#9a9689" strokeWidth="1.5">
                                 <circle cx="6.2" cy="6.2" r="4.2" />
                                 <path d="M9.4 9.4L12.5 12.5" />
@@ -797,21 +798,21 @@ export default function FullyFunctionalNextDashboard(props) {
                                 placeholder="Search invoices, products, customers..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-transparent outline-none text-stone-900 placeholder:text-stone-400 font-sans text-sm"
+                                className="w-full bg-transparent outline-none text-ink placeholder:text-ink-faint font-sans text-sm"
                             />
-                            <button onClick={() => setSearchOpen(false)} className="text-xs text-stone-400 hover:text-stone-700">ESC</button>
+                            <button onClick={() => setSearchOpen(false)} className="text-xs text-ink-muted hover:text-ink">ESC</button>
                         </div>
                         <div className="p-3 max-h-80 overflow-y-auto flex flex-col gap-1 text-xs">
-                            <div className="text-[11px] font-mono text-stone-400 uppercase tracking-wider px-2 py-1">Quick Actions</div>
-                            <Link href={safeRoute('store.pos', '/pos')} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-100 text-stone-800 no-underline">
+                            <div className="text-1xs font-mono text-ink-muted uppercase tracking-wider px-2 py-1">Quick Actions</div>
+                            <Link href={safeRoute('store.pos', '/pos')} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-interactive-hover text-ink no-underline">
                                 <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
                                 Open POS & New Sale
                             </Link>
-                            <Link href={safeRoute('store.purchases.create', '/purchases/create')} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-100 text-stone-800 no-underline">
+                            <Link href={safeRoute('store.purchases.create', '/purchases/create')} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-interactive-hover text-ink no-underline">
                                 <span className="w-2 h-2 rounded-full bg-amber-600"></span>
                                 Record New Purchase
                             </Link>
-                            <Link href={safeRoute('store.products.index', '/products')} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-100 text-stone-800 no-underline">
+                            <Link href={safeRoute('store.products.index', '/products')} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-interactive-hover text-ink no-underline">
                                 <span className="w-2 h-2 rounded-full bg-blue-600"></span>
                                 Manage Products & Inventory
                             </Link>
@@ -823,36 +824,36 @@ export default function FullyFunctionalNextDashboard(props) {
             {/* ── Working Money In / Money Out Modal ─────────────────────── */}
             {cashModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setCashModalOpen(null)}>
-                    <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl border border-stone-200" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="font-semibold text-lg text-stone-900 mb-1">
+                    <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl border border-line" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="font-semibold text-lg text-ink mb-1">
                             Record {cashModalOpen === 'in' ? 'Money In (Receipt)' : 'Money Out (Expense)'}
                         </h3>
-                        <p className="text-xs text-stone-500 mb-4">Adjust main cash till balance directly.</p>
+                        <p className="text-xs text-ink-muted mb-4">Adjust main cash till balance directly.</p>
                         <form onSubmit={handleCashSubmit} className="flex flex-col gap-3">
                             <div>
-                                <label className="text-xs font-medium text-stone-700 block mb-1">Amount ({currencyObj.symbol || 'Rs'})</label>
+                                <label className="text-xs font-medium text-ink-secondary block mb-1">Amount ({currencyObj.symbol || 'Rs'})</label>
                                 <input
                                     type="number"
                                     required
                                     value={cashAmount}
                                     onChange={(e) => setCashAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="w-full px-3 py-2 rounded-lg border border-stone-300 text-stone-900 text-sm outline-none focus:border-stone-900"
+                                    className="w-full px-3 py-2 rounded-lg border border-line text-ink text-sm outline-none focus:border-line-strong"
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-stone-700 block mb-1">Note / Description</label>
+                                <label className="text-xs font-medium text-ink-secondary block mb-1">Note / Description</label>
                                 <input
                                     type="text"
                                     value={cashNote}
                                     onChange={(e) => setCashNote(e.target.value)}
                                     placeholder="e.g. Daily cash deposit / Petty expense"
-                                    className="w-full px-3 py-2 rounded-lg border border-stone-300 text-stone-900 text-sm outline-none focus:border-stone-900"
+                                    className="w-full px-3 py-2 rounded-lg border border-line text-ink text-sm outline-none focus:border-line-strong"
                                 />
                             </div>
                             <div className="flex gap-2 justify-end mt-2">
-                                <button type="button" onClick={() => setCashModalOpen(null)} className="px-4 py-2 text-xs font-medium text-stone-600 hover:bg-stone-100 rounded-lg">Cancel</button>
-                                <button type="submit" className="px-4 py-2 text-xs font-medium bg-stone-900 text-white rounded-lg hover:bg-stone-800">Save Transaction</button>
+                                <button type="button" onClick={() => setCashModalOpen(null)} className="px-4 py-2 text-xs font-medium text-ink-secondary hover:bg-interactive-hover rounded-lg">Cancel</button>
+                                <button type="submit" className="px-4 py-2 text-xs font-medium bg-neutral-900 text-white rounded-lg hover:bg-interactive-hover">Save Transaction</button>
                             </div>
                         </form>
                     </div>
@@ -862,20 +863,20 @@ export default function FullyFunctionalNextDashboard(props) {
             {/* ── Working Add-a-Card Drawer Sheet (Mockup 1b) ───────────── */}
             {sheetOpen && (
                 <div className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-xs" onClick={() => setSheetOpen(false)}>
-                    <div className="w-full max-w-md bg-stone-100 h-full shadow-2xl p-6 overflow-y-auto border-l border-stone-200 flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+                    <div className="w-full max-w-md bg-sunken h-full shadow-2xl p-6 overflow-y-auto border-l border-line flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between pb-4 border-b border-line">
                             <div>
-                                <h3 className="font-semibold text-stone-900 text-base">Add a card</h3>
-                                <p className="text-xs text-stone-500">Pick what matters to your business. Drag to reorder.</p>
+                                <h3 className="font-semibold text-ink text-base">Add a card</h3>
+                                <p className="text-xs text-ink-muted">Pick what matters to your business. Drag to reorder.</p>
                             </div>
-                            <button onClick={() => setSheetOpen(false)} className="w-7 h-7 rounded-lg bg-stone-200 text-stone-600 flex items-center justify-center font-bold text-sm">×</button>
+                            <button onClick={() => setSheetOpen(false)} className="w-7 h-7 rounded-lg bg-sunken text-ink-secondary flex items-center justify-center font-bold text-sm">×</button>
                         </div>
 
                         <div className="flex gap-2 my-4">
-                            <span className="px-3 py-1 rounded-full bg-stone-900 text-white text-xs font-medium">All</span>
-                            <span className="px-3 py-1 rounded-full bg-stone-200 text-stone-600 text-xs font-medium">Money</span>
-                            <span className="px-3 py-1 rounded-full bg-stone-200 text-stone-600 text-xs font-medium">Stock</span>
-                            <span className="px-3 py-1 rounded-full bg-stone-200 text-stone-600 text-xs font-medium">Operations</span>
+                            <span className="px-3 py-1 rounded-full bg-neutral-900 text-white text-xs font-medium">All</span>
+                            <span className="px-3 py-1 rounded-full bg-sunken text-ink-secondary text-xs font-medium">Money</span>
+                            <span className="px-3 py-1 rounded-full bg-sunken text-ink-secondary text-xs font-medium">Stock</span>
+                            <span className="px-3 py-1 rounded-full bg-sunken text-ink-secondary text-xs font-medium">Operations</span>
                         </div>
 
                         <div className="flex flex-col gap-3 flex-1">
@@ -885,12 +886,12 @@ export default function FullyFunctionalNextDashboard(props) {
                                 { title: 'Staff Performance', desc: 'Daily sales per cashier and shift breakdown' },
                                 { title: 'AI Opportunities', desc: 'Smart re-order points and slow-moving items' }
                             ].map((card, i) => (
-                                <div key={i} className="bg-white p-4 rounded-xl border border-stone-200 flex items-center justify-between">
+                                <div key={i} className="bg-white p-4 rounded-xl border border-line flex items-center justify-between">
                                     <div>
-                                        <div className="font-medium text-stone-900 text-sm">{card.title}</div>
-                                        <div className="text-xs text-stone-500 mt-0.5">{card.desc}</div>
+                                        <div className="font-medium text-ink text-sm">{card.title}</div>
+                                        <div className="text-xs text-ink-muted mt-0.5">{card.desc}</div>
                                     </div>
-                                    <button onClick={() => { alert(`Added ${card.title} to dashboard.`); setSheetOpen(false); }} className="px-3 py-1.5 bg-stone-900 text-white text-xs font-medium rounded-lg hover:bg-stone-800">+ Add</button>
+                                    <button onClick={() => { alert(`Added ${card.title} to dashboard.`); setSheetOpen(false); }} className="px-3 py-1.5 bg-neutral-900 text-white text-xs font-medium rounded-lg hover:bg-interactive-hover">+ Add</button>
                                 </div>
                             ))}
                         </div>

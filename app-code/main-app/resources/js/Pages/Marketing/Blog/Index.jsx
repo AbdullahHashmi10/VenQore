@@ -17,38 +17,38 @@ import {
 const FeaturedPost = ({ post }) => (
     <RevealOnScroll>
         <Link href={`/blog/${post.slug}`} className="block group">
-            <div className="relative rounded-[3rem] bg-slate-900/[0.02] dark:bg-white/[0.02] border border-slate-900/[0.08] dark:border-white/[0.06] overflow-hidden hover:border-indigo-500/20 hover:bg-white/[0.04] transition-all duration-700">
+            <div className="relative rounded-2xl bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/[0.06] overflow-hidden hover:border-brand-500/20 hover:bg-white/[0.04] transition-all duration-slower">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                     {/* Image / Visual */}
-                    <div className="relative aspect-[16/10] lg:aspect-auto bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent flex items-center justify-center overflow-hidden">
+                    <div className="relative aspect-[16/10] lg:aspect-auto bg-gradient-to-br from-brand-500/10 via-brand-500/5 to-transparent flex items-center justify-center overflow-hidden">
                         <div className="absolute inset-0 vq-grid-pattern opacity-50" />
                         <div className="relative text-center p-12">
-                            <div className="text-8xl font-black text-white/[0.04] font-display tracking-tighter leading-none group-hover:text-white/[0.06] transition-colors duration-700">01</div>
-                            <BookOpen size={48} className="text-indigo-500/20 mx-auto mt-4 group-hover:text-indigo-500/30 group-hover:scale-110 transition-all duration-700" />
+                            <div className="text-8xl font-bold text-white/[0.04] font-display tracking-tighter leading-none group-hover:text-white/[0.06] transition-colors duration-slower">01</div>
+                            <BookOpen size={48} className="text-brand-500/20 mx-auto mt-4 group-hover:text-brand-500/30 transition-all duration-slower" />
                         </div>
                     </div>
 
                     {/* Content */}
                     <div className="p-8 md:p-12 flex flex-col justify-center">
                         <div className="flex items-center gap-4 mb-6">
-                            <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-3xs font-black tracking-[0.2em] uppercase">
+                            <span className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-3xs font-bold tracking-[0.2em] uppercase">
                                 {post.category}
                             </span>
-                            <span className="text-2xs text-slate-600 font-bold uppercase tracking-widest flex items-center gap-1.5">
+                            <span className="text-2xs text-ink-secondary font-bold uppercase tracking-widest flex items-center gap-1.5">
                                 <Clock size={10} /> {post.date}
                             </span>
                         </div>
 
-                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-4 font-display group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors">
+                        <h2 className="text-2xl md:text-3xl font-bold text-ink tracking-tight leading-tight mb-4 font-display group-hover:text-brand-600 dark:group-hover:text-brand-200 transition-colors">
                             {post.title}
                         </h2>
-                        <p className="text-slate-500 leading-relaxed mb-8 line-clamp-3">
+                        <p className="text-ink-muted leading-relaxed mb-8 line-clamp-3">
                             {post.excerpt}
                         </p>
 
                         <div className="flex items-center justify-between">
-                            <span className="text-xs text-slate-600 font-bold">{post.author}</span>
-                            <span className="text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 group-hover:gap-3 transition-all">
+                            <span className="text-xs text-ink-secondary font-bold">{post.author}</span>
+                            <span className="text-brand-600 dark:text-brand-400 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 group-hover:gap-3 transition-all">
                                 Read Article <ArrowRight size={13} />
                             </span>
                         </div>
@@ -62,11 +62,11 @@ const FeaturedPost = ({ post }) => (
 const PostCard = ({ post, index }) => (
     <RevealOnScroll delay={index * 0.1}>
         <Link href={`/blog/${post.slug}`} className="block group h-full">
-            <div className="rounded-[2rem] bg-slate-900/[0.02] dark:bg-white/[0.02] border border-slate-900/[0.08] dark:border-white/[0.06] overflow-hidden hover:border-indigo-500/20 hover:bg-white/[0.04] hover:-translate-y-1 transition-all duration-500 h-full flex flex-col">
+            <div className="rounded-xl bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/[0.06] overflow-hidden hover:border-brand-500/20 hover:bg-white/[0.04] hover:-translate-y-1 transition-all duration-slower h-full flex flex-col">
                 {/* Visual Header */}
-                <div className="relative aspect-[16/9] bg-gradient-to-br from-indigo-500/5 to-purple-500/5 flex items-center justify-center overflow-hidden">
+                <div className="relative aspect-[16/9] bg-gradient-to-br from-brand-500/5 to-brand-500/5 flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0 vq-dot-pattern" />
-                    <div className="text-6xl font-black text-white/[0.03] font-display tracking-tighter group-hover:text-white/[0.05] transition-colors duration-500">
+                    <div className="text-6xl font-bold text-white/[0.03] font-display tracking-tighter group-hover:text-white/[0.05] transition-colors duration-slower">
                         {String(index + 2).padStart(2, '0')}
                     </div>
                 </div>
@@ -74,22 +74,22 @@ const PostCard = ({ post, index }) => (
                 {/* Content */}
                 <div className="p-7 flex flex-col flex-1">
                     <div className="flex items-center gap-3 mb-4">
-                        <span className="px-2.5 py-0.5 rounded-full bg-slate-900/[0.03] dark:bg-white/5 text-3xs font-black text-slate-500 uppercase tracking-widest">
+                        <span className="px-2.5 py-0.5 rounded-full bg-sunken dark:bg-white/5 text-3xs font-bold text-ink-muted uppercase tracking-widest">
                             {post.category}
                         </span>
-                        <span className="text-2xs text-slate-700 font-bold">{post.date}</span>
+                        <span className="text-2xs text-ink-secondary font-bold">{post.date}</span>
                     </div>
 
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug mb-3 font-display group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors flex-1">
+                    <h3 className="text-lg font-bold text-ink tracking-tight leading-snug mb-3 font-display group-hover:text-brand-600 dark:group-hover:text-brand-200 transition-colors flex-1">
                         {post.title}
                     </h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-5 line-clamp-2">
+                    <p className="text-ink-secondary text-sm leading-relaxed mb-5 line-clamp-2">
                         {post.excerpt}
                     </p>
 
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-900/[0.06] dark:border-white/5">
-                        <span className="text-2xs text-slate-700 font-bold">{post.author}</span>
-                        <ChevronRight size={14} className="text-slate-700 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-line dark:border-white/5">
+                        <span className="text-2xs text-ink-secondary font-bold">{post.author}</span>
+                        <ChevronRight size={14} className="text-ink-secondary group-hover:text-brand-400 group-hover:translate-x-1 transition-all" />
                     </div>
                 </div>
             </div>
@@ -113,13 +113,13 @@ export default function BlogIndex({ posts = [] }) {
                         <SectionLabel icon={Sparkles}>The Signal</SectionLabel>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.1}>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] mb-6 font-display">
-                            <span className="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 bg-clip-text text-transparent">Ideas That</span>{' '}
-                            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent vq-text-glow">Matter.</span>
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[0.9] mb-6 font-display">
+                            <span className="bg-gradient-to-r from-neutral-900 via-neutral-700 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400 bg-clip-text text-transparent">Ideas That</span>{''}
+                            <span className="bg-gradient-to-r from-brand-400 to-brand-400 bg-clip-text text-transparent vq-text-glow">Matter.</span>
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.2}>
-                        <p className="text-lg text-slate-500 max-w-xl mx-auto">
+                        <p className="text-lg text-ink-muted max-w-xl mx-auto">
                             Deep dives into financial accuracy, operational control, and the hidden mechanics that make or break a business.
                         </p>
                     </RevealOnScroll>
@@ -152,13 +152,13 @@ export default function BlogIndex({ posts = [] }) {
             <section className="py-32 px-6">
                 <div className="max-w-3xl mx-auto text-center">
                     <RevealOnScroll>
-                        <div className="bg-slate-900/[0.02] dark:bg-white/[0.02] border border-slate-900/[0.08] dark:border-white/[0.06] rounded-[3rem] p-12 md:p-16 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
+                        <div className="bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/[0.06] rounded-2xl p-12 md:p-16 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand-500/30 to-transparent" />
 
-                            <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter font-display mb-4">
-                                Stay <span className="text-indigo-600 dark:text-indigo-400">Sharp.</span>
+                            <h2 className="text-3xl md:text-4xl font-bold text-ink tracking-tighter font-display mb-4">
+                                Stay <span className="text-brand-600 dark:text-brand-400">Sharp.</span>
                             </h2>
-                            <p className="text-slate-500 mb-10 max-w-sm mx-auto">
+                            <p className="text-ink-muted mb-10 max-w-sm mx-auto">
                                 Get our best thinking on financial accuracy and operational control. No spam. No filler.
                             </p>
 
@@ -166,7 +166,7 @@ export default function BlogIndex({ posts = [] }) {
                                 <input
                                     type="email"
                                     placeholder="your@email.com"
-                                    className="flex-1 w-full px-6 py-4 bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.10] dark:border-white/[0.08] rounded-full text-slate-900 dark:text-white text-sm placeholder:text-slate-700 outline-none focus:border-indigo-500/40 transition-colors"
+                                    className="flex-1 w-full px-6 py-4 bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.08] rounded-full text-ink text-sm placeholder:text-ink-secondary outline-none focus:border-brand-500/40 transition-colors"
                                 />
                                 <MagneticButton variant="accent" className="whitespace-nowrap w-full sm:w-auto justify-center">
                                     Subscribe

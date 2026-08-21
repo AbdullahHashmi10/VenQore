@@ -55,24 +55,24 @@ export default function PwaInstallPrompt() {
     if (!showPrompt) return null;
 
     return (
-        <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom duration-500">
-            <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 max-w-sm flex flex-col gap-4 relative overflow-hidden">
+        <div className="fixed bottom-4 right-4 z-command animate-in slide-in-from-bottom duration-slower">
+            <div className="bg-neutral-900 text-white p-4 rounded-2xl shadow-2xl border border-neutral-700 max-w-sm flex flex-col gap-4 relative overflow-hidden">
                 {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
                 <div className="flex items-start justify-between relative z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center shrink-0">
                             <Download size={20} className="text-white" />
                         </div>
                         <div>
                             <h3 className="font-bold text-sm">Install App</h3>
-                            <p className="text-xs text-slate-400">Add to Home Screen for faster access</p>
+                            <p className="text-xs text-ink-muted">Add to Home Screen for faster access</p>
                         </div>
                     </div>
                     <button
                         onClick={dismissPrompt}
-                        className="text-slate-500 hover:text-white transition-colors"
+                        className="text-ink-muted hover:text-white transition-colors"
                     >
                         <X size={16} />
                     </button>
@@ -80,7 +80,7 @@ export default function PwaInstallPrompt() {
 
                 <button
                     onClick={handleInstallClick}
-                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95 relative z-10"
+                    className="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg active:scale-95 relative z-10"
                 >
                     Install Now
                 </button>

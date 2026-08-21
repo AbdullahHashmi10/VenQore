@@ -14,8 +14,8 @@ export default function TermsOfService() {
 
     const Section = ({ title, children }) => (
         <section className="mb-10">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-900/[0.08] dark:border-white/10">{title}</h2>
-            <div className="space-y-3 text-slate-600 dark:text-slate-300 leading-relaxed">{children}</div>
+            <h2 className="text-xl font-bold text-ink mb-3 pb-2 border-b border-line dark:border-white/10">{title}</h2>
+            <div className="space-y-3 text-ink-secondary leading-relaxed">{children}</div>
         </section>
     );
 
@@ -27,16 +27,16 @@ export default function TermsOfService() {
             <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-32 md:pt-36 pb-14">
                 {/* Header */}
                 <div className="flex items-center gap-3 sm:gap-4 mb-10">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                        <Scale size={26} className="text-indigo-600 dark:text-indigo-400" />
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0">
+                        <Scale size={26} className="text-brand-600 dark:text-brand-400" />
                     </div>
                     <div className="min-w-0">
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">Terms of Service</h1>
-                        <p className="text-slate-500 text-sm mt-1">Last updated: {lastUpdated}</p>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Terms of Service</h1>
+                        <p className="text-ink-muted text-sm mt-1">Last updated: {lastUpdated}</p>
                     </div>
                 </div>
 
-                <p className="text-slate-600 dark:text-slate-300 mb-10 p-4 rounded-xl bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10 text-sm leading-relaxed">
+                <p className="text-ink-secondary mb-10 p-4 rounded-xl bg-sunken dark:bg-white/5 border border-line dark:border-white/10 text-sm leading-relaxed">
                     Please read these Terms of Service carefully before using VenQore. By creating an account or using any part of the Service, you agree to be bound by these terms.
                 </p>
 
@@ -52,7 +52,7 @@ export default function TermsOfService() {
  
                 <Section title="3. Account Registration">
                     <p>You must provide accurate, complete, and current information when creating an account. You are responsible for maintaining the security of your account credentials.</p>
-                    <p>You are responsible for all activity that occurs under your account. Notify us immediately at <a href="mailto:support@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">support@venqore.com</a> if you suspect unauthorized access.</p>
+                    <p>You are responsible for all activity that occurs under your account. Notify us immediately at <a href="mailto:support@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">support@venqore.com</a> if you suspect unauthorized access.</p>
                     <p>One account per business entity. Sharing accounts between unrelated businesses is not permitted.</p>
                 </Section>
  
@@ -60,7 +60,7 @@ export default function TermsOfService() {
                     <p>Paid subscriptions are billed monthly or annually through Lemon Squeezy. By subscribing, you authorize recurring charges to your payment method.</p>
                     <p>All prices are in USD unless otherwise stated. Taxes may apply depending on your jurisdiction.</p>
                     <p>You may cancel your subscription at any time. Cancellation takes effect at the end of the current billing period. We do not provide prorated refunds for partial billing periods, except as required by applicable law.</p>
-                    {/* <p><strong className="text-slate-900 dark:text-white">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month to $30/month hosting fee (depending on plan tier), or you may self-host at no cost.</p> */}
+                    {/* <p><strong className="text-ink">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month to $30/month hosting fee (depending on plan tier), or you may self-host at no cost.</p> */}
                 </Section>
 
                 <Section title="5. Free Trial">
@@ -71,12 +71,12 @@ export default function TermsOfService() {
                 <Section title="6. Data Ownership & Privacy">
                     <p>You own your data. We do not claim any ownership over the business data you store in VenQore (products, customers, sales records, etc.).</p>
                     <p>We will not sell, rent, or share your business data with third parties except as required to operate the Service (e.g., cloud storage providers) or as required by law.</p>
-                    <p>See our <Link href="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</Link> for full details on data handling.</p>
+                    <p>See our <Link href="/privacy" className="text-brand-600 dark:text-brand-400 hover:underline">Privacy Policy</Link> for full details on data handling.</p>
                 </Section>
 
                 <Section title="7. Acceptable Use">
                     <p>You agree not to use the Service to:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
+                    <ul className="list-disc list-inside space-y-1 text-ink-muted">
                         <li>Violate any applicable law or regulation</li>
                         <li>Store or transmit illegal, harmful, or fraudulent content</li>
                         <li>Attempt to gain unauthorized access to the Service or other accounts</li>
@@ -104,7 +104,7 @@ export default function TermsOfService() {
 
                 <Section title="11. Termination">
                     <p>Either party may terminate this agreement at any time. Upon termination:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
+                    <ul className="list-disc list-inside space-y-1 text-ink-muted">
                         <li>Your access to the Service will be revoked</li>
                         <li>Your data will be retained for 30 days to allow export</li>
                         <li>After 30 days, all data will be permanently deleted</li>
@@ -122,16 +122,16 @@ export default function TermsOfService() {
 
                 <Section title="14. Contact">
                     <p>For questions about these Terms of Service:</p>
-                    <p><a href="mailto:legal@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">legal@venqore.com</a></p>
+                    <p><a href="mailto:legal@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">legal@venqore.com</a></p>
                     <p>VenQore · support@venqore.com</p>
                 </Section>
 
-                <div className="mt-12 pt-8 border-t border-slate-900/[0.06] dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-slate-500">
-                    <p>Related: read our{' '}
-                        <Link href="/privacy" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Privacy Policy</Link>{' '}and{' '}
-                        <Link href="/refund-policy" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Refund Policy</Link>.
+                <div className="mt-12 pt-8 border-t border-line dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-ink-muted">
+                    <p>Related: read our{''}
+                        <Link href="/privacy" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Privacy Policy</Link>{''}and{''}
+                        <Link href="/refund-policy" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Refund Policy</Link>.
                     </p>
-                    <Link href="/pricing" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">See plans &amp; pricing →</Link>
+                    <Link href="/pricing" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">See plans &amp; pricing →</Link>
                 </div>
             </div>
         </MarketingLayout>

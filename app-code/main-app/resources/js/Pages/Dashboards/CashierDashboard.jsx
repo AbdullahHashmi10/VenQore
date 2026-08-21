@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 // ─── Small stat tile ────────────────────────────────────────────────────────
 function StatTile({ icon: Icon, label, value, sub, color = '#6366f1' }) {
     return (
@@ -28,9 +29,9 @@ function StatTile({ icon: Icon, label, value, sub, color = '#6366f1' }) {
                 <Icon size={22} color={color} />
             </div>
             <div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main, #0f172a)', lineHeight: 1 }}>{value}</div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-sub, #64748b)', marginTop: 3 }}>{label}</div>
-                {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{sub}</div>}
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main, rgb(var(--vq-slate-900)))', lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-sub, rgb(var(--vq-slate-500)))', marginTop: 3 }}>{label}</div>
+                {sub && <div style={{ fontSize: 11, color: 'rgb(var(--vq-slate-400))', marginTop: 2 }}>{sub}</div>}
             </div>
         </div>
     );
@@ -65,10 +66,10 @@ export default function CashierDashboard({ session, attendance }) {
 
                 {/* Greeting */}
                 <div style={{ marginBottom: 32 }}>
-                    <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-main, rgb(var(--vq-slate-900)))' }}>
                         👋 Hey, {my_display_name ?? auth?.user?.name ?? 'there'}
                     </div>
-                    <div style={{ fontSize: 14, color: 'var(--text-sub, #64748b)', marginTop: 4 }}>
+                    <div style={{ fontSize: 14, color: 'var(--text-sub, rgb(var(--vq-slate-500)))', marginTop: 4 }}>
                         {store?.name} &middot; {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                     </div>
                 </div>
@@ -78,7 +79,7 @@ export default function CashierDashboard({ session, attendance }) {
                     onClick={() => router.visit(route('store.pos', { store_slug: storeSlug }))}
                     style={{
                         width: '100%', padding: '22px 28px',
-                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                        background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))',
                         border: 'none', borderRadius: 20, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         marginBottom: 24,
@@ -105,22 +106,22 @@ export default function CashierDashboard({ session, attendance }) {
                     onClick={() => router.visit(route('store.returns.create', { store_slug: storeSlug }))}
                     style={{
                         width: '100%', padding: '16px 28px',
-                        background: '#f8fafc',
+                        background: vq.blue[50],
                         border: '1.5px solid #e2e8f0', borderRadius: 20, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         marginBottom: 24,
                         transition: 'background 0.15s, border-color 0.15s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#6366f1'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = vq.blue[50]; e.currentTarget.style.borderColor = 'rgb(var(--vq-indigo-500))'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = vq.blue[50]; e.currentTarget.style.borderColor = 'rgb(var(--vq-slate-200))'; }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 44, height: 44, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: vq.blue[50], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <RotateCcw size={20} color="#6366f1" />
                         </div>
                         <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>Process Return</div>
-                            <div style={{ fontSize: 12, color: 'var(--text-sub, #64748b)', marginTop: 2 }}>Handle customer item returns</div>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main, rgb(var(--vq-slate-900)))' }}>Process Return</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-sub, rgb(var(--vq-slate-500)))', marginTop: 2 }}>Handle customer item returns</div>
                         </div>
                     </div>
                     <ArrowRight size={18} color="#94a3b8" />
@@ -160,14 +161,14 @@ export default function CashierDashboard({ session, attendance }) {
                     boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 42, height: 42, borderRadius: 12, background: isWorking ? '#10b98115' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 42, height: 42, borderRadius: 12, background: isWorking ? '#10b98115' : vq.blue[50], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {isWorking ? <CheckCircle2 size={20} color="#10b981" /> : <LogIn size={20} color="#94a3b8" />}
                         </div>
                         <div>
-                            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main, #0f172a)' }}>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main, rgb(var(--vq-slate-900)))' }}>
                                 {isWorking ? 'You\'re clocked in' : 'Not yet clocked in'}
                             </div>
-                            <div style={{ fontSize: 12, color: 'var(--text-sub, #64748b)', marginTop: 2 }}>
+                            <div style={{ fontSize: 12, color: 'var(--text-sub, rgb(var(--vq-slate-500)))', marginTop: 2 }}>
                                 {isWorking
                                     ? `Since ${new Date(clockIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
                                     : 'Use the POS to start your shift'}
@@ -175,14 +176,14 @@ export default function CashierDashboard({ session, attendance }) {
                         </div>
                     </div>
                     {isWorking && (
-                        <div style={{ padding: '5px 12px', borderRadius: 8, background: '#10b98112', border: '1px solid #10b98125', color: '#10b981', fontSize: 12, fontWeight: 700 }}>
+                        <div style={{ padding: '5px 12px', borderRadius: 8, background: 'rgb(var(--vq-emerald-500))12', border: '1px solid rgb(var(--vq-emerald-500))25', color: 'rgb(var(--vq-emerald-500))', fontSize: 12, fontWeight: 700 }}>
                             Active
                         </div>
                     )}
                 </div>
 
                 {/* Restricted Access Notice */}
-                <div style={{ marginTop: 24, padding: '14px 18px', borderRadius: 14, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ marginTop: 24, padding: '14px 18px', borderRadius: 14, background: vq.blue[50], border: '1px solid rgb(var(--vq-slate-200))', fontSize: 13, color: 'rgb(var(--vq-slate-500))', display: 'flex', alignItems: 'center', gap: 10 }}>
                     <Package size={14} color="#94a3b8" />
                     Need access to reports, inventory, or finances? Contact your Store Manager or Owner.
                 </div>

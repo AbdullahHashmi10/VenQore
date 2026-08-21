@@ -84,7 +84,7 @@ const GlobalDialogOverride = () => {
             case 'success': return <CheckCircle2 size={48} className="text-emerald-500" />;
             case 'error': return <XCircle size={48} className="text-red-500" />;
             case 'warning': return <AlertTriangle size={48} className="text-amber-500" />;
-            default: return <Info size={48} className="text-indigo-500" />;
+            default: return <Info size={48} className="text-brand-500" />;
         }
     };
 
@@ -93,20 +93,20 @@ const GlobalDialogOverride = () => {
             case 'success': return 'bg-emerald-100 dark:bg-emerald-900/30';
             case 'error': return 'bg-red-100 dark:bg-red-900/30';
             case 'warning': return 'bg-amber-100 dark:bg-amber-900/30';
-            default: return 'bg-indigo-100 dark:bg-indigo-900/30';
+            default: return 'bg-brand-100 dark:bg-brand-900/30';
         }
     };
 
     const getButtonClass = (type, isConfirm = false) => {
         if (isConfirm) {
             // For confirms, use warning/danger colors
-            return 'bg-red-500 hover:bg-red-600 shadow-red-500/20';
+            return 'bg-red-500 hover:bg-red-600 ';
         }
         switch (type) {
-            case 'success': return 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20';
-            case 'error': return 'bg-red-500 hover:bg-red-600 shadow-red-500/20';
-            case 'warning': return 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20';
-            default: return 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20';
+            case 'success': return 'bg-emerald-500 hover:bg-emerald-600 ';
+            case 'error': return 'bg-red-500 hover:bg-red-600 ';
+            case 'warning': return 'bg-amber-500 hover:bg-amber-600 ';
+            default: return 'bg-brand-600 hover:bg-brand-700 ';
         }
     };
 
@@ -131,29 +131,29 @@ const GlobalDialogOverride = () => {
     const alertType = detectAlertType(dialog.message);
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-command flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-fast"
                 onClick={() => closeDialog(dialog.type === 'confirm' ? false : true)}
             />
 
             {/* Modal */}
-            <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full animate-in zoom-in-95 fade-in slide-in-from-bottom-4 duration-200 overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="relative bg-surface rounded-2xl shadow-2xl max-w-sm w-full animate-in zoom-in-95 fade-in slide-in-from-bottom-4 duration-normal overflow-hidden border border-line">
                 {/* Content */}
                 <div className="flex flex-col items-center text-center p-6 pt-8">
                     {/* Icon */}
-                    <div className={`mb-4 w-20 h-20 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-300 ${getIconBg(alertType)}`}>
+                    <div className={`mb-4 w-20 h-20 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-slow ${getIconBg(alertType)}`}>
                         {getIcon(alertType)}
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-lg font-black text-slate-800 dark:text-white mb-2">
+                    <h3 className="text-lg font-bold text-ink mb-2">
                         {dialog.title}
                     </h3>
 
                     {/* Message */}
-                    <p className="text-slate-600 dark:text-slate-300 mb-8 max-w-xs leading-relaxed text-sm">
+                    <p className="text-ink-secondary mb-8 max-w-xs leading-relaxed text-sm">
                         {dialog.message}
                     </p>
 
@@ -162,7 +162,7 @@ const GlobalDialogOverride = () => {
                         {dialog.type === 'confirm' && (
                             <button
                                 onClick={() => closeDialog(false)}
-                                className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
+                                className="flex-1 py-3 bg-sunken text-ink-secondary dark:text-ink font-bold rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95"
                             >
                                 Cancel
                             </button>

@@ -11,8 +11,8 @@ export default function LeadConfirm({ found, confirmed }) {
                     {found ? (
                         <>
                             <CheckCircle2 size={48} className="text-emerald-500 dark:text-emerald-400 mx-auto mb-6" />
-                            <h1 className="text-2xl font-black mb-3 text-slate-900 dark:text-white">You're confirmed</h1>
-                            <p className="text-slate-600 dark:text-slate-400 mb-8">
+                            <h1 className="text-2xl font-bold mb-3 text-ink">You're confirmed</h1>
+                            <p className="text-ink-secondary mb-8">
                                 {confirmed
                                     ? "Thanks — you'll start getting occasional retail tips from VenQore. Unsubscribe anytime."
                                     : 'This subscription was already confirmed.'}
@@ -21,11 +21,11 @@ export default function LeadConfirm({ found, confirmed }) {
                     ) : (
                         <>
                             <XCircle size={48} className="text-red-500 dark:text-red-400 mx-auto mb-6" />
-                            <h1 className="text-2xl font-black mb-3 text-slate-900 dark:text-white">Link not found</h1>
-                            <p className="text-slate-600 dark:text-slate-400 mb-8">This confirmation link is invalid or has expired.</p>
+                            <h1 className="text-2xl font-bold mb-3 text-ink">Link not found</h1>
+                            <p className="text-ink-secondary mb-8">This confirmation link is invalid or has expired.</p>
                         </>
                     )}
-                    <Link href="/" className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+                    <Link href="/" className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300">
                         &larr; Back to VenQore
                     </Link>
                 </div>

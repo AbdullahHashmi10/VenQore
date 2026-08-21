@@ -267,8 +267,8 @@ export default function MarginCalculator({ toolGroups = [] }) {
         URL.revokeObjectURL(url);
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-400/60 transition-colors';
-    const labelCls = 'block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
+    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
 
     const currencyOptions = Object.entries(CURRENCIES).map(([code, symbol]) => ({
         value: code, label: `${code} (${symbol})`,
@@ -291,14 +291,14 @@ export default function MarginCalculator({ toolGroups = [] }) {
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Invoice Generator', href: '/tools/invoice-generator' }]}
         >
             {/* ── Bidirectional solver ─────────────────────────────────── */}
-            <div className="rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <Calculator size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <Calculator size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Solve any two</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Type into any two fields — cost, price, margin % or markup % — and the other two update live.</p>
+                        <h2 className="text-lg font-bold text-ink">Solve any two</h2>
+                        <p className="text-sm text-ink-muted">Type into any two fields — cost, price, margin % or markup % — and the other two update live.</p>
                     </div>
                 </div>
 
@@ -311,14 +311,14 @@ export default function MarginCalculator({ toolGroups = [] }) {
                     <div>
                         <label className={labelCls}>Cost</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                             <input type="number" step="0.01" value={cost} onChange={(e) => setField('cost', e.target.value)} className={`${inputCls} pl-8`} placeholder="0.00" />
                         </div>
                     </div>
                     <div>
                         <label className={labelCls}>Selling price</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                             <input type="number" step="0.01" value={price} onChange={(e) => setField('price', e.target.value)} className={`${inputCls} pl-8`} placeholder="0.00" />
                         </div>
                     </div>
@@ -326,14 +326,14 @@ export default function MarginCalculator({ toolGroups = [] }) {
                         <label className={labelCls}>Margin %</label>
                         <div className="relative">
                             <input type="number" step="0.01" value={margin} onChange={(e) => setField('margin', e.target.value)} className={`${inputCls} pr-8`} placeholder="—" />
-                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">%</span>
+                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">%</span>
                         </div>
                     </div>
                     <div>
                         <label className={labelCls}>Markup %</label>
                         <div className="relative">
                             <input type="number" step="0.01" value={markup} onChange={(e) => setField('markup', e.target.value)} className={`${inputCls} pr-8`} placeholder="—" />
-                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">%</span>
+                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">%</span>
                         </div>
                     </div>
                 </div>
@@ -352,70 +352,70 @@ export default function MarginCalculator({ toolGroups = [] }) {
                         ['Margin', fmtPct(solved.margin)],
                         ['Markup', fmtPct(solved.markup)],
                     ].map(([label, val]) => (
-                        <div key={label} className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-900/[0.06] dark:border-white/10 text-center">
-                            <p className="text-2xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1">{label}</p>
-                            <p className="text-xl font-black text-slate-900 dark:text-white">{val}</p>
+                        <div key={label} className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-center">
+                            <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">{label}</p>
+                            <p className="text-xl font-bold text-ink">{val}</p>
                         </div>
                     ))}
                 </div>
                 {Number.isFinite(parseFloat(solved.cost)) && Number.isFinite(parseFloat(solved.price)) && (
-                    <p className="text-xs text-slate-500 dark:text-slate-600 mt-3 text-center">
-                        Profit per unit: <strong className="text-slate-600 dark:text-slate-300">{fmtMoney(parseFloat(solved.price) - parseFloat(solved.cost))}</strong>
+                    <p className="text-xs text-ink-muted mt-3 text-center">
+                        Profit per unit: <strong className="text-ink-secondary">{fmtMoney(parseFloat(solved.price) - parseFloat(solved.cost))}</strong>
                     </p>
                 )}
             </div>
 
             {/* ── Target price modes ───────────────────────────────────── */}
-            <div className="mt-6 rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <TrendingUp size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <TrendingUp size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Price to hit a target</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Give a cost and a goal, get the price that hits it exactly.</p>
+                        <h2 className="text-lg font-bold text-ink">Price to hit a target</h2>
+                        <p className="text-sm text-ink-muted">Give a cost and a goal, get the price that hits it exactly.</p>
                     </div>
                 </div>
 
                 <div className="mb-5 max-w-xs">
                     <label className={labelCls}>Cost</label>
                     <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">{sym}</span>
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{sym}</span>
                         <input type="number" step="0.01" value={tCost} onChange={(e) => setTCost(e.target.value)} className={`${inputCls} pl-8`} />
                     </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-5">
-                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-900/[0.06] dark:border-white/10">
+                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                         <label className={labelCls}>Target margin %</label>
                         <div className="relative mb-3">
                             <input type="number" step="0.01" value={tMarginTarget} onChange={(e) => setTMarginTarget(e.target.value)} className={`${inputCls} pr-8`} />
-                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">%</span>
+                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">%</span>
                         </div>
                         {targetByMargin.error ? (
                             <p className="text-xs text-amber-600 dark:text-amber-400">{targetByMargin.error}</p>
                         ) : (
                             <>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Suggested price</p>
-                                <p className="text-2xl font-black text-slate-900 dark:text-white">{fmtMoney(targetByMargin.price)}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">Profit per unit: {fmtMoney(targetByMargin.profit)}</p>
+                                <p className="text-sm text-ink-muted">Suggested price</p>
+                                <p className="text-2xl font-bold text-ink">{fmtMoney(targetByMargin.price)}</p>
+                                <p className="text-xs text-ink-muted mt-1">Profit per unit: {fmtMoney(targetByMargin.profit)}</p>
                             </>
                         )}
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-900/[0.06] dark:border-white/10">
+                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                         <label className={labelCls}>Target markup %</label>
                         <div className="relative mb-3">
                             <input type="number" step="0.01" value={tMarkupTarget} onChange={(e) => setTMarkupTarget(e.target.value)} className={`${inputCls} pr-8`} />
-                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">%</span>
+                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">%</span>
                         </div>
                         {targetByMarkup.error ? (
                             <p className="text-xs text-amber-600 dark:text-amber-400">{targetByMarkup.error}</p>
                         ) : (
                             <>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Suggested price</p>
-                                <p className="text-2xl font-black text-slate-900 dark:text-white">{fmtMoney(targetByMarkup.price)}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">Profit per unit: {fmtMoney(targetByMarkup.profit)}</p>
+                                <p className="text-sm text-ink-muted">Suggested price</p>
+                                <p className="text-2xl font-bold text-ink">{fmtMoney(targetByMarkup.price)}</p>
+                                <p className="text-xs text-ink-muted mt-1">Profit per unit: {fmtMoney(targetByMarkup.profit)}</p>
                             </>
                         )}
                     </div>
@@ -423,14 +423,14 @@ export default function MarginCalculator({ toolGroups = [] }) {
             </div>
 
             {/* ── Bulk mode ─────────────────────────────────────────────── */}
-            <div className="mt-6 rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <TableIcon size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <TableIcon size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Bulk mode</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Price a whole product list at once, then export the results as CSV.</p>
+                        <h2 className="text-lg font-bold text-ink">Bulk mode</h2>
+                        <p className="text-sm text-ink-muted">Price a whole product list at once, then export the results as CSV.</p>
                     </div>
                 </div>
 
@@ -448,25 +448,25 @@ export default function MarginCalculator({ toolGroups = [] }) {
                         <button
                             type="button"
                             onClick={parseBulk}
-                            className="px-4 py-2 rounded-xl bg-indigo-500/15 border border-indigo-400/40 text-indigo-600 dark:text-indigo-300 text-xs font-black uppercase tracking-wide hover:bg-indigo-500/25 transition-colors inline-flex items-center gap-1.5 shrink-0"
+                            className="px-4 py-2 rounded-xl bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300 text-xs font-bold uppercase tracking-wide hover:bg-brand-500/25 transition-colors inline-flex items-center gap-1.5 shrink-0"
                         >
                             <ClipboardPaste size={14} /> Add rows
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-900/10 dark:border-white/10">
+                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
                     <table className="w-full text-sm min-w-[720px]">
                         <thead>
-                            <tr className="bg-slate-900/[0.03] dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
                                 {['Product', 'Cost', 'Price', 'Profit', 'Margin %', 'Markup %', ''].map((h) => (
-                                    <th key={h} className="px-3 py-2.5 font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wide">{h}</th>
+                                    <th key={h} className="px-3 py-2.5 font-bold text-ink-secondary text-xs uppercase tracking-wide">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {bulkResults.map((r, i) => (
-                                <tr key={i} className="border-t border-slate-900/[0.06] dark:border-white/[0.06]">
+                                <tr key={i} className="border-t border-line dark:border-white/[0.06]">
                                     <td className="px-3 py-2">
                                         <input value={r.name} onChange={(e) => updateRow(i, 'name', e.target.value)} className={`${inputCls} py-1.5`} placeholder="Product name" />
                                     </td>
@@ -476,11 +476,11 @@ export default function MarginCalculator({ toolGroups = [] }) {
                                     <td className="px-3 py-2 w-28">
                                         <input type="number" step="0.01" value={r.price} onChange={(e) => updateRow(i, 'price', e.target.value)} className={`${inputCls} py-1.5`} />
                                     </td>
-                                    <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{fmtMoney(r.profit)}</td>
-                                    <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{r.note ? <span className="text-amber-600 dark:text-amber-400 text-xs">{r.note}</span> : fmtPct(r.marginPct)}</td>
-                                    <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{r.note ? '—' : fmtPct(r.markupPct)}</td>
+                                    <td className="px-3 py-2 text-ink-secondary whitespace-nowrap">{fmtMoney(r.profit)}</td>
+                                    <td className="px-3 py-2 text-ink-secondary whitespace-nowrap">{r.note ? <span className="text-amber-600 dark:text-amber-400 text-xs">{r.note}</span> : fmtPct(r.marginPct)}</td>
+                                    <td className="px-3 py-2 text-ink-secondary whitespace-nowrap">{r.note ? '—' : fmtPct(r.markupPct)}</td>
                                     <td className="px-3 py-2">
-                                        <button onClick={() => removeRow(i)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
+                                        <button onClick={() => removeRow(i)} className="text-ink-muted hover:text-red-500 transition-colors">
                                             <Trash2 size={15} />
                                         </button>
                                     </td>
@@ -494,51 +494,51 @@ export default function MarginCalculator({ toolGroups = [] }) {
                     <button
                         type="button"
                         onClick={addRow}
-                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-wide hover:border-indigo-400/40 transition-colors inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
                     >
                         <Plus size={14} /> Add row
                     </button>
                     <button
                         type="button"
                         onClick={exportCsv}
-                        className="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-void-900 text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-void-900 text-xs font-bold uppercase tracking-wide transition-transform inline-flex items-center gap-1.5"
                     >
                         <Download size={14} /> Export CSV
                     </button>
-                    <p className="text-1xs text-slate-500 dark:text-slate-600">Downloads directly from your browser — nothing is sent to a server.</p>
+                    <p className="text-1xs text-ink-muted">Downloads directly from your browser — nothing is sent to a server.</p>
                 </div>
             </div>
 
             {/* ── Education section ────────────────────────────────────── */}
             <section className="mt-12">
-                <h2 className="text-2xl font-black mb-4 text-slate-900 dark:text-white">Margin vs. markup — what's the difference?</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                <h2 className="text-2xl font-bold mb-4 text-ink">Margin vs. markup — what's the difference?</h2>
+                <p className="text-sm text-ink-secondary leading-relaxed mb-4">
                     Both describe the same profit in dollars, but they divide it by a different number. <strong>Margin</strong> divides
-                    profit by the <em>selling price</em>: it tells you what share of each sales dollar is profit. <strong>Markup</strong>{' '}
+                    profit by the <em>selling price</em>: it tells you what share of each sales dollar is profit. <strong>Markup</strong>{''}
                     divides profit by the <em>cost</em>: it tells you how much you added on top of what you paid. Because the selling
                     price is always higher than the cost (assuming you're profitable), markup is always the larger percentage of the two.
                 </p>
                 <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                        <p className="font-bold text-slate-900 dark:text-white mb-1">Margin formula</p>
-                        <p className="font-mono text-sm text-indigo-600 dark:text-indigo-300">margin % = (price − cost) ÷ price × 100</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                        <p className="font-bold text-ink mb-1">Margin formula</p>
+                        <p className="font-mono text-sm text-brand-600 dark:text-brand-300">margin % = (price − cost) ÷ price × 100</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
-                        <p className="font-bold text-slate-900 dark:text-white mb-1">Markup formula</p>
-                        <p className="font-mono text-sm text-indigo-600 dark:text-indigo-300">markup % = (price − cost) ÷ cost × 100</p>
+                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                        <p className="font-bold text-ink mb-1">Markup formula</p>
+                        <p className="font-mono text-sm text-brand-600 dark:text-brand-300">markup % = (price − cost) ÷ cost × 100</p>
                     </div>
                 </div>
-                <div className="p-6 rounded-2xl bg-indigo-500/[0.06] dark:bg-indigo-500/10 border border-indigo-500/20 mb-6">
-                    <p className="font-bold text-slate-900 dark:text-white mb-2">Worked example</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                        Say a product costs you <strong>$40</strong> and you sell it for <strong>$100</strong>. Your gross profit is{' '}
+                <div className="p-6 rounded-2xl bg-brand-500/[0.06] dark:bg-brand-500/10 border border-brand-500/20 mb-6">
+                    <p className="font-bold text-ink mb-2">Worked example</p>
+                    <p className="text-sm text-ink-secondary leading-relaxed">
+                        Say a product costs you <strong>$40</strong> and you sell it for <strong>$100</strong>. Your gross profit is{''}
                         <strong>$60</strong> either way. As a <strong>margin</strong>, that's $60 ÷ $100 = <strong>60%</strong> — 60% of every
                         sales dollar is profit. As a <strong>markup</strong>, that's $60 ÷ $40 = <strong>150%</strong> — you sold it for
                         150% more than you paid for it. Same sale, same $60 profit, two very different-looking percentages: 60% margin
                         equals 150% markup, not the same number.
                     </p>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-sm text-ink-secondary leading-relaxed">
                     A common mix-up: pricing off a "50% markup" when you actually meant a 50% margin. A 50% markup on a $40 cost gives a
                     $60 price (50% margin instead would need a $80 price). Mixing the two up systematically under-prices inventory —
                     always double check which one you're quoting before you set shelf prices.

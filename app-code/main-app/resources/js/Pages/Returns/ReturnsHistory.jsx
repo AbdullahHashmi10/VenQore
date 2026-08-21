@@ -199,24 +199,24 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
     return (
         <OneGlanceLayout title="Returns History" activeMenu="Sell">
             <Head title="Returns History" />
-            <div className="flex flex-col min-h-full lg:h-full bg-slate-50 dark:bg-slate-950 p-1 md:p-2 gap-1 lg:overflow-hidden relative">
+            <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
                 <SellModuleTabs activeTab="returns" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
-                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     
                     {!isStatsExpanded && (
-                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                        <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
                             <div className="flex items-center gap-2">
-                                <span className="text-indigo-600 dark:text-indigo-400">Total: {stats?.total_returns || 0}</span>
-                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-brand-600 dark:text-brand-400">Total: {stats?.total_returns || 0}</span>
+                                <span className="text-neutral-300 dark:text-ink-secondary">|</span>
                                 <span className="text-emerald-600">Refunded: {formatCurrency(stats?.total_refunded || 0)}</span>
                             </div>
                         </div>
@@ -225,72 +225,72 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
 
                 {/* Stats Cards Section */}
                 <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <RefreshCcw size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Returns</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Returns</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{stats?.total_returns || 0}</p>
+                        <p className="text-base font-bold text-ink">{stats?.total_returns || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <History size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">This Month</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">This Month</p>
                         </div>
-                        <p className="text-base font-black text-amber-600">{stats?.this_month || 0}</p>
+                        <p className="text-base font-bold text-amber-600">{stats?.this_month || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <Package size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Items Returned</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Items Returned</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{stats?.items_returned || 0}</p>
+                        <p className="text-base font-bold text-ink">{stats?.items_returned || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckSquare size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Refunded</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Refunded</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.total_refunded || 0)}</p>
+                        <p className="text-base font-bold text-emerald-600">{formatCurrency(stats?.total_refunded || 0)}</p>
                     </div>
                 </div>
 
                 {/* PC / Desktop Header Area (Hidden on Mobile) */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
-                            Returns <span className="text-indigo-600">History</span>
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            Returns <span className="text-brand-600">History</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
                         <button
                             onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', start_date: '', end_date: '' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >All</button>
                         <button
                             onClick={() => { setActiveFilter('today'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'today', start_date: '', end_date: '' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Today</button>
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Custom</button>
                         {/* Custom Date Range */}
                         {activeFilter === 'custom' && (
                             <div className="flex items-center gap-1.5 ml-1">
                                 <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500" />
-                                <span className="text-slate-400 text-xs">→</span>
+                                    className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
+                                <span className="text-ink-muted text-xs">→</span>
                                 <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500" />
+                                    className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
                             </div>
                         )}
                     </div>
@@ -304,19 +304,19 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={handleServerSearch}
                                 placeholder="Search returns..."
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                             />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
                         </div>
-                        <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-2">
+                        <div className="flex items-center gap-2 border-l border-line pl-2">
                             <Link
                                 href={route('store.returns.create', { store_slug: store.slug })}
-                                className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                                className="p-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg active:scale-95"
                             >
                                 <Plus size={18} />
                                 <span className="text-sm font-bold hidden sm:inline">New Return</span>
                             </Link>
-                            <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print" onClick={() => window.print()}>
+                            <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
                                 <Printer size={18} />
                             </button>
                         </div>
@@ -324,29 +324,29 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                 </div>
 
                 {/* Mobile Layout Header Area */}
-                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center justify-between w-full">
-                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
                             Returns History
                         </h1>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Search"
                             >
                                 <Search size={16} />
                             </button>
                             <button
                                 onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Filters"
                             >
                                 <ChevronDown size={16} />
                             </button>
                             <Link
                                 href={route('store.returns.create', { store_slug: store.slug })}
-                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+                                className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
                                 title="New Return"
                             >
                                 <Plus size={16} />
@@ -355,38 +355,38 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                     </div>
 
                     {showMobileSearch && (
-                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                        <div className="w-full relative mt-1 border-t border-line pt-2">
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={handleServerSearch}
                                 placeholder="Search returns..."
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                             />
-                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
                         </div>
                     )}
 
                     {showMobileFilters && (
-                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                        <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => applyFilterType('all')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >All</button>
                                 <button
                                     onClick={() => applyFilterType('today')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >Today</button>
                             </div>
                         </div>
                     )}
                 </div>                {/* Main Table */}
-                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app">
                     <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
                                     <th
                                         key={col.key}
@@ -396,35 +396,35 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                                            cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
-                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
-                                        `}
+                                            p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
+                                            cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
+                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
+`}
                                         style={{ width: col.width }}
                                     >
                                         <div className="flex items-center gap-2">
                                             {col.label}
                                             {col.key !== 'actions' && sortConfig.key === col.key && (
-                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-indigo-500" /> : <ChevronDown size={14} className="text-indigo-500" />
+                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-brand-500" /> : <ChevronDown size={14} className="text-brand-500" />
                                             )}
                                         </div>
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {sortedReturns.length === 0 ? (
                                 <tr>
                                     <td colSpan={tableColumns.length} className="p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
-                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                                <RefreshCcw size={32} className="text-slate-400" />
+                                            <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
+                                                <RefreshCcw size={32} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">No returns found</p>
-                                            <p className="text-sm text-slate-500 mb-4">Returns will appear here exactly when they happen</p>
+                                            <p className="text-lg font-bold text-ink-secondary mb-1">No returns found</p>
+                                            <p className="text-sm text-ink-muted mb-4">Returns will appear here exactly when they happen</p>
                                             <Link
                                                 href={route('store.returns.create', { store_slug: store.slug })}
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                                className="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition-colors flex items-center gap-2"
                                             >
                                                 <Plus size={16} /> Create First Return
                                             </Link>
@@ -437,44 +437,44 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                                         key={row.id}
                                         onClick={() => setQuickViewReturn(row)}
                                         className={`
-                                            hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group cursor-pointer border-l-4 border-transparent hover:border-indigo-400
-                                        `}
+                                            hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all group cursor-pointer border-l-4 border-transparent hover:border-brand-400
+`}
                                     >
                                         {tableColumns.map((col) => (
-                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
+                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
                                                 {(() => {
                                                     switch (col.key) {
                                                         case 'date': return <span className="font-medium">{formatDate(row.created_at)}</span>;
                                                         case 'reference':
                                                             return (
-                                                                <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{row.reference_number || `RET-${row.id}`}</span>
+                                                                <span className="font-mono text-brand-600 dark:text-brand-400 font-semibold">{row.reference_number || `RET-${row.id}`}</span>
                                                             );
                                                         case 'customer':
                                                             return (
                                                                 <div>
                                                                     <p className="font-semibold">{row.customer?.name || 'Walk-in'}</p>
-                                                                    {row.customer?.phone && <p className="text-xs text-slate-400">{row.customer.phone}</p>}
+                                                                    {row.customer?.phone && <p className="text-xs text-ink-muted">{row.customer.phone}</p>}
                                                                 </div>
                                                             );
                                                         case 'items': return <span className="font-bold">{row.items?.length || 0}</span>;
                                                         case 'amount': return <span className="font-bold text-emerald-600">{formatCurrency(row.total)}</span>;
                                                         case 'method': return <span className="uppercase text-xs font-semibold">{row.payment_method || '-'}</span>;
                                                         case 'status':
-                                                            return <span className="px-2 py-1 rounded-md text-xs font-bold uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">{row.status}</span>;
+                                                            return <span className="px-2 py-1 rounded-md text-xs font-bold uppercase bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-secondary">{row.status}</span>;
                                                         case 'actions':
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2 relative">
                                                                     <div className="relative">
-                                                                        <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-indigo-600 bg-slate-100' : 'text-slate-500 hover:bg-slate-100'}`}>
+                                                                        <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-brand-600 bg-sunken' : 'text-ink-muted hover:bg-interactive-hover'}`}>
                                                                             <MoreVertical size={16} />
                                                                         </button>
                                                                         {activeActionMenu === row.id && (
-                                                                            <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+                                                                            <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
                                                                                 <div className="py-1">
-                                                                                    <Link href={route("store.sales.show", [store.slug, row.id])} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                                    <Link href={route("store.sales.show", [store.slug, row.id])} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
                                                                                         <Eye size={14} /> View Details
                                                                                     </Link>
-                                                                                    <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                                    <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
                                                                                         <Printer size={14} /> Print
                                                                                     </button>
                                                                                 </div>
@@ -497,35 +497,35 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                     {/* Mobile View - Cards List */}
                     <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
                         {sortedReturns.length === 0 ? (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
-                                <RefreshCcw size={32} className="mx-auto text-slate-400 mb-2" />
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No returns found</p>
+                            <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                                <RefreshCcw size={32} className="mx-auto text-ink-muted mb-2" />
+                                <p className="text-sm font-bold text-ink-secondary">No returns found</p>
                             </div>
                         ) : (
                             sortedReturns.map((row) => (
                                 <div
                                     key={row.id}
                                     onClick={() => setQuickViewReturn(row)}
-                                    className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-3 active:scale-[0.99] transition-transform cursor-pointer"
+                                    className="bg-surface p-4 rounded-xl border border-line shadow-sm flex flex-col gap-3 active:scale-[0.99] transition-transform cursor-pointer"
                                 >
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{row.reference_number || `RET-${row.id}`}</span>
-                                            <p className="text-2xs text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
+                                            <span className="font-mono text-xs text-brand-600 dark:text-brand-400 font-bold">{row.reference_number || `RET-${row.id}`}</span>
+                                            <p className="text-2xs text-ink-muted mt-0.5">{formatDate(row.created_at)}</p>
                                         </div>
-                                        <span className="px-2 py-0.5 rounded-md text-2xs font-black uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                        <span className="px-2 py-0.5 rounded-md text-2xs font-bold uppercase bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-secondary">
                                             {row.status}
                                         </span>
                                     </div>
 
-                                    <div className="flex justify-between items-center border-t border-b border-slate-100 dark:border-slate-800/60 py-2.5">
+                                    <div className="flex justify-between items-center border-t border-b border-line py-2.5">
                                         <div>
-                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer</p>
-                                            <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{row.customer?.name || 'Walk-in'}</p>
+                                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Customer</p>
+                                            <p className="text-sm font-bold text-ink mt-0.5">{row.customer?.name || 'Walk-in'}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Refund Amount</p>
-                                            <p className="text-sm font-black text-emerald-600 mt-0.5">{formatCurrency(row.total)}</p>
+                                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Refund Amount</p>
+                                            <p className="text-sm font-bold text-emerald-600 mt-0.5">{formatCurrency(row.total)}</p>
                                         </div>
                                     </div>
 
@@ -536,13 +536,13 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                                         <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                                             <button
                                                 onClick={() => PrintService.quickPrint(row)}
-                                                className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors border border-slate-100 dark:border-slate-700"
+                                                className="p-1.5 bg-app rounded-lg text-ink-muted hover:text-brand-600 transition-colors border border-line"
                                             >
                                                 <Printer size={14} />
                                             </button>
                                             <Link
                                                 href={route("store.sales.show", [store.slug, row.id])}
-                                                className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                                                className="px-3 py-1.5 bg-app border border-line rounded-lg font-bold text-ink-secondary hover:bg-interactive-hover transition-colors"
                                             >
                                                 View
                                             </Link>
@@ -554,62 +554,62 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                     </div>
 
                     {/* Infinite Scroll Sentinel */}
-                    <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800 opacity-0">
+                    <div ref={observerTarget} className="p-4 text-center text-ink-muted text-sm border-t border-line opacity-0">
                         {nextPageUrl ? 'Loading...' : (sortedReturns.length > 0 ? 'End of list' : '')}
                     </div>
                 </div>
             </div>
             {/* Quick View Modal */}
             {quickViewReturn && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setQuickViewReturn(null)}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-normal" onClick={() => setQuickViewReturn(null)}>
                     <div
-                        className="quick-view-modal w-full max-w-2xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                        className="quick-view-modal w-full max-w-2xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
+                        <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Return Details</p>
-                                <h3 className="text-xl font-black text-indigo-600">{quickViewReturn.reference_number || `RET-${quickViewReturn.id}`}</h3>
+                                <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Return Details</p>
+                                <h3 className="text-xl font-bold text-brand-600">{quickViewReturn.reference_number || `RET-${quickViewReturn.id}`}</h3>
                             </div>
                             <button
                                 onClick={() => setQuickViewReturn(null)}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                                className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
                             >
                                 <X size={18} />
                             </button>
                         </div>
                         <div className="p-6 overflow-auto">
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Customer</p>
-                                    <p className="font-bold text-slate-900 dark:text-white">{quickViewReturn.customer?.name || 'Walk-in'}</p>
-                                    <p className="text-sm text-slate-500">{quickViewReturn.customer?.phone}</p>
+                                <div className="p-4 bg-app rounded-xl">
+                                    <p className="text-xs font-bold text-ink-muted uppercase mb-1">Customer</p>
+                                    <p className="font-bold text-ink">{quickViewReturn.customer?.name || 'Walk-in'}</p>
+                                    <p className="text-sm text-ink-muted">{quickViewReturn.customer?.phone}</p>
                                 </div>
-                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Refund Amount</p>
-                                    <p className="font-black text-emerald-600 text-lg">{formatCurrency(quickViewReturn.total)}</p>
-                                    <p className="text-sm text-slate-500 uppercase">{quickViewReturn.payment_method || 'Cash'}</p>
+                                <div className="p-4 bg-app rounded-xl">
+                                    <p className="text-xs font-bold text-ink-muted uppercase mb-1">Refund Amount</p>
+                                    <p className="font-bold text-emerald-600 text-lg">{formatCurrency(quickViewReturn.total)}</p>
+                                    <p className="text-sm text-ink-muted uppercase">{quickViewReturn.payment_method || 'Cash'}</p>
                                 </div>
                             </div>
 
-                            <h4 className="font-bold text-slate-900 dark:text-white mb-3">Returned Items</h4>
-                            <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                            <h4 className="font-bold text-ink mb-3">Returned Items</h4>
+                            <div className="border border-line rounded-xl overflow-hidden">
                                 <table className="w-full text-sm">
-                                    <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                    <thead className="bg-app border-b border-line">
                                         <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-slate-500 uppercase">Item</th>
-                                            <th className="px-4 py-2 text-center text-xs font-bold text-slate-500 uppercase">Qty</th>
-                                            <th className="px-4 py-2 text-right text-xs font-bold text-slate-500 uppercase">Price</th>
-                                            <th className="px-4 py-2 text-right text-xs font-bold text-slate-500 uppercase">Total</th>
+                                            <th className="px-4 py-2 text-left text-xs font-bold text-ink-muted uppercase">Item</th>
+                                            <th className="px-4 py-2 text-center text-xs font-bold text-ink-muted uppercase">Qty</th>
+                                            <th className="px-4 py-2 text-right text-xs font-bold text-ink-muted uppercase">Price</th>
+                                            <th className="px-4 py-2 text-right text-xs font-bold text-ink-muted uppercase">Total</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <tbody className="divide-y divide-line">
                                         {quickViewReturn.items?.map((item, idx) => (
                                             <tr key={idx}>
-                                                <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">{item.product?.name || item.name}</td>
-                                                <td className="px-4 py-3 text-center text-slate-600">{item.quantity}</td>
-                                                <td className="px-4 py-3 text-right text-slate-600">{formatCurrency(item.price || item.unit_price || 0)}</td>
-                                                <td className="px-4 py-3 text-right font-bold text-slate-800 dark:text-white">{formatCurrency((item.price || 0) * item.quantity)}</td>
+                                                <td className="px-4 py-3 font-medium text-ink-secondary">{item.product?.name || item.name}</td>
+                                                <td className="px-4 py-3 text-center text-ink-secondary">{item.quantity}</td>
+                                                <td className="px-4 py-3 text-right text-ink-secondary">{formatCurrency(item.price || item.unit_price || 0)}</td>
+                                                <td className="px-4 py-3 text-right font-bold text-ink">{formatCurrency((item.price || 0) * item.quantity)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -619,13 +619,13 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                             <div className="mt-6 flex justify-end gap-3">
                                 <button
                                     onClick={() => PrintService.quickPrint(quickViewReturn)}
-                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-sunken text-ink-secondary font-bold rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-2"
                                 >
                                     <Printer size={16} /> Print Receipt
                                 </button>
                                 <Link
                                     href={route("store.sales.show", [store.slug, quickViewReturn.id])}
-                                    className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-colors flex items-center gap-2"
                                 >
                                     <Eye size={16} /> View Full Details
                                 </Link>

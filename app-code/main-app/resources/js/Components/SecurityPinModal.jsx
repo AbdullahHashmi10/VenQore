@@ -99,13 +99,13 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-neutral-900/90 backdrop-blur-md animate-in fade-in duration-normal">
+            <div className="bg-surface w-full max-w-sm rounded-2xl shadow-2xl border border-line overflow-hidden relative animate-in zoom-in-95 duration-normal">
                 
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute right-6 top-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-all z-10"
+                    className="absolute right-6 top-6 p-2 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted transition-all z-10"
                 >
                     <X size={20} />
                 </button>
@@ -113,19 +113,19 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                 {noPinSet ? (
                     /* No PIN Set Content */
                     <div className="p-8 text-center space-y-6">
-                        <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-[2rem] flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">
+                        <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">
                             <AlertCircle size={40} />
                         </div>
                         <div>
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Setup Required</h3>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                            <h3 className="text-2xl font-bold text-ink mb-2">Setup Required</h3>
+                            <p className="text-ink-muted text-sm leading-relaxed">
                                 A Security Passcode is required to perform this sensitive action. Please set it up in your profile settings.
                             </p>
                         </div>
                         <div className="flex flex-col gap-3">
                             <Link
                                 href={route('store.profile.edit', { store_slug: store?.slug }) + '#security-pin-section'}
-                                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-500/30 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
                                 onClick={onClose}
                             >
                                 <Settings size={18} />
@@ -133,7 +133,7 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                             </Link>
                             <button
                                 onClick={onClose}
-                                className="w-full py-3 text-slate-500 font-bold hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                                className="w-full py-3 text-ink-muted font-bold hover:text-ink-secondary dark:hover:text-neutral-300 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -142,42 +142,42 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                 ) : (
                     /* PIN Entry Content */
                     <>
-                        <div className="p-8 text-center border-b border-slate-100 dark:border-slate-800 space-y-4">
-                            <div className={`w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-[1.5rem] flex items-center justify-center mx-auto text-violet-600 dark:text-violet-400 transition-transform duration-300 ${loading ? 'animate-pulse scale-90' : ''}`}>
+                        <div className="p-8 text-center border-b border-line space-y-4">
+                            <div className={`w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-lg flex items-center justify-center mx-auto text-violet-600 dark:text-violet-400 transition-transform duration-slow ${loading ? 'animate-pulse scale-90' : ''}`}>
                                 <Shield size={32} />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white">Security Authorization</h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">Enter your 6-digit security passcode to authorize this action.</p>
+                                <h3 className="text-xl font-bold text-ink">Security Authorization</h3>
+                                <p className="text-ink-muted text-xs mt-1">Enter your 6-digit security passcode to authorize this action.</p>
                             </div>
                         </div>
 
                         {/* PIN Dots */}
-                        <div className={`py-10 bg-slate-50 dark:bg-slate-800/30 flex flex-col items-center gap-6 ${error ? 'animate-bounce' : ''}`}>
+                        <div className={`py-10 bg-app flex flex-col items-center gap-6 ${error ? 'animate-bounce' : ''}`}>
                             <div className="flex gap-4">
                                 {[...Array(6)].map((_, i) => (
                                     <div
                                         key={i}
-                                        className={`w-4 h-4 rounded-full transition-all duration-300 ${i < input.length
-                                            ? 'bg-violet-600 scale-125 shadow-lg shadow-violet-500/50'
-                                            : 'bg-slate-300 dark:bg-slate-700'
+                                        className={`w-4 h-4 rounded-full transition-all duration-slow ${i < input.length
+                                            ? 'bg-violet-600 scale-125 shadow-lg '
+                                            : 'bg-sunken'
                                             } ${error ? 'bg-red-500' : ''}`}
                                     />
                                 ))}
                             </div>
                             {error && (
-                                <p className="text-red-500 text-xs font-black uppercase tracking-wider">{error}</p>
+                                <p className="text-red-500 text-xs font-bold uppercase tracking-wider">{error}</p>
                             )}
                         </div>
 
                         {/* Keypad */}
-                        <div className="p-8 grid grid-cols-3 gap-3 bg-white dark:bg-slate-900">
+                        <div className="p-8 grid grid-cols-3 gap-3 bg-surface">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                                 <button
                                     key={num}
                                     disabled={loading}
                                     onClick={() => handleNumberClick(num.toString())}
-                                    className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-800/50 text-xl font-black text-slate-700 dark:text-white hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50"
+                                    className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50"
                                 >
                                     {num}
                                 </button>
@@ -185,21 +185,21 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                             <button
                                 disabled={loading}
                                 onClick={handleDelete}
-                                className="h-14 rounded-2xl flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all active:scale-95 disabled:opacity-50"
+                                className="h-14 rounded-2xl flex items-center justify-center text-ink-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all active:scale-95 disabled:opacity-50"
                             >
                                 <Delete size={24} />
                             </button>
                             <button
                                 disabled={loading}
                                 onClick={() => handleNumberClick('0')}
-                                className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-800/50 text-xl font-black text-slate-700 dark:text-white hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50"
+                                className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50"
                             >
                                 0
                             </button>
                             <button
                                 disabled={loading || input.length !== 6}
                                 onClick={() => verifySecurityPin(input)}
-                                className={`h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${input.length === 6 ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30 hover:bg-violet-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 cursor-not-allowed'}`}
+                                className={`h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${input.length === 6 ? 'bg-violet-600 text-white shadow-lg  hover:bg-violet-700' : 'bg-sunken text-ink-faint cursor-not-allowed'}`}
                             >
                                 <Check size={28} />
                             </button>

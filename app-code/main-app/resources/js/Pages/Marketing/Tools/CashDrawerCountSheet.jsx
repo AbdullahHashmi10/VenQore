@@ -125,7 +125,7 @@ const FAQS = [
 
 // A visually blank, lined write-in cell — never editable, never stores a value.
 function BlankCell({ className = '' }) {
-    return <div className={`border-b border-dotted border-slate-300 h-5 ${className}`} aria-hidden="true" />;
+    return <div className={`border-b border-dotted border-line h-5 ${className}`} aria-hidden="true" />;
 }
 
 export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegisters = 10, currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'], toolGroups = [] }) {
@@ -267,7 +267,7 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
             )}
 
             {/* Slim control bar */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
                 <div className="w-44">
                     <Select value={currency} onChange={setCurrency} options={currencyOptions} />
                 </div>
@@ -284,43 +284,43 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                 </div>
 
                 <div className="flex items-center gap-2 px-1">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Registers</span>
+                    <span className="text-xs font-bold text-ink-muted">Registers</span>
                     <button
                         type="button"
                         onClick={() => setRegisterCount(registers.length - 1)}
                         disabled={registers.length <= minRegisters}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:border-indigo-400/40 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary disabled:opacity-30 hover:border-brand-400/40 transition-colors"
                     >
                         <Minus size={13} />
                     </button>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 w-14 text-center">{registers.length} of {maxRegisters}</span>
+                    <span className="text-xs text-ink-muted w-14 text-center">{registers.length} of {maxRegisters}</span>
                     <button
                         type="button"
                         onClick={() => setRegisterCount(registers.length + 1)}
                         disabled={registers.length >= maxRegisters}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:border-indigo-400/40 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary disabled:opacity-30 hover:border-brand-400/40 transition-colors"
                     >
                         <Plus size={13} />
                     </button>
                 </div>
 
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-300 hover:border-indigo-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
-                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-ink-muted hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-1xs text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-1xs text-ink-muted hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -336,10 +336,10 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
 
             {/* THE DOCUMENT — this is the editor. Orientation visually widens the preview container. */}
             <div className={`mx-auto transition-all ${orientation === 'landscape' ? 'max-w-none' : 'max-w-3xl'}`}>
-            <div className="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 dark:shadow-black/40 border border-slate-900/10 dark:border-white/10 bg-white">
-                <div className="p-6 sm:p-10 text-slate-900 text-sm" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+            <div className="rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white">
+                <div className="p-6 sm:p-10 text-ink text-sm" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                     {/* Header */}
-                    <div className="flex flex-col sm:flex-row justify-between gap-6 mb-8 border-b-2 border-slate-900 pb-4">
+                    <div className="flex flex-col sm:flex-row justify-between gap-6 mb-8 border-b-2 border-neutral-900 pb-4">
                         <div>
                             {store.logo_base64 && <img src={store.logo_base64} alt="Logo" className="h-12 max-w-[160px] object-contain mb-2" />}
                             <EditableText
@@ -349,11 +349,11 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                                 inline={false}
                                 className="text-lg font-bold mb-1.5"
                             />
-                            <p className="text-xs text-slate-500 mt-1.5">Currency: {currency} ({symbol})</p>
+                            <p className="text-xs text-ink-muted mt-1.5">Currency: {currency} ({symbol})</p>
                         </div>
                         <div className="text-left sm:text-right">
-                            <div className="text-2xl font-black tracking-tight text-slate-900">CASH DRAWER COUNT SHEET</div>
-                            <p className="text-xs text-slate-500 mt-1">End-of-Shift Till Reconciliation</p>
+                            <div className="text-2xl font-bold tracking-tight text-ink">CASH DRAWER COUNT SHEET</div>
+                            <p className="text-xs text-ink-muted mt-1">End-of-Shift Till Reconciliation</p>
                         </div>
                     </div>
 
@@ -370,21 +370,21 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
 
                     {/* Compact indicator for remaining identical sections */}
                     {extraCount > 0 && (
-                        <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
-                            <div className="flex items-center gap-2 mb-3 text-slate-600">
+                        <div className="mt-6 rounded-xl border border-dashed border-line bg-surface p-4">
+                            <div className="flex items-center gap-2 mb-3 text-ink-secondary">
                                 <Layers size={15} />
                                 <p className="text-xs font-bold uppercase tracking-wide">
                                     {extraCount} more identical register section{extraCount === 1 ? '' : 's'} will be included in the PDF
                                 </p>
                             </div>
-                            <p className="text-1xs text-slate-500 dark:text-slate-400 mb-3">
+                            <p className="text-1xs text-ink-muted mb-3">
                                 Each repeats the same {currency} denomination table and blank Expected/Counted/Over-Short lines shown above, with its own header fields. Edit each register's name, date, shift, counted-by and verified-by below — the full denomination table isn't repeated here to keep this preview readable.
                             </p>
                             <div className="space-y-2">
                                 {registers.slice(1).map((r, i) => {
                                     const idx = i + 1;
                                     return (
-                                        <div key={idx} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-center bg-white rounded-lg border border-slate-200 px-3 py-2 text-xs">
+                                        <div key={idx} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-center bg-white rounded-lg border border-line px-3 py-2 text-xs">
                                             <EditableText value={r.name} onChange={(v) => updateRegister(idx, 'name', v)} placeholder={`Register ${idx + 1}`} className="font-bold" />
                                             <EditableText as="date" value={r.date} onChange={(v) => updateRegister(idx, 'date', v)} />
                                             <EditableText value={r.shift} onChange={(v) => updateRegister(idx, 'shift', v)} placeholder="Shift" />
@@ -399,20 +399,20 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
 
                     {/* Notes */}
                     <div className="mt-8">
-                        <p className="text-xs font-bold text-slate-700 mb-1">Notes / Discrepancy Explanation</p>
-                        <EditableText value={notes} onChange={setNotes} placeholder="Add a note (optional — the printed sheet always includes blank lines here too)" as="textarea" rows={2} className="block text-xs text-slate-500" />
+                        <p className="text-xs font-bold text-ink-secondary mb-1">Notes / Discrepancy Explanation</p>
+                        <EditableText value={notes} onChange={setNotes} placeholder="Add a note (optional — the printed sheet always includes blank lines here too)" as="textarea" rows={2} className="block text-xs text-ink-muted" />
                         <div className="mt-2 space-y-2">
                             <BlankCell />
                             <BlankCell />
                         </div>
                     </div>
 
-                    <p className="text-center text-2xs text-slate-600 dark:text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
+                    <p className="text-center text-2xs text-ink-secondary mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
                 </div>
             </div>
             </div>
 
-            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-ink-muted mt-4">
                 Denomination Count/Subtotal and Expected/Counted/Over-Short cells stay blank by design — click any other field above to edit it.
             </p>
         </ToolShell>
@@ -421,27 +421,27 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
 
 function RegisterSection({ register, onChange, symbol, denominations, headers, onHeaderChange, first }) {
     return (
-        <div className={first ? '' : 'mt-8 pt-6 border-t border-slate-200'}>
-            <div className="bg-slate-100 border border-slate-300 px-3 py-2 mb-3">
+        <div className={first ? '' : 'mt-8 pt-6 border-t border-line'}>
+            <div className="bg-sunken border border-line px-3 py-2 mb-3">
                 <EditableText value={register.name} onChange={(v) => onChange('name', v)} placeholder="Register 1" className="text-sm font-bold" />
             </div>
 
             {/* Meta table */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-                <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Date</span>
+                <div className="flex items-center gap-2 border border-line px-2 py-1.5">
+                    <span className="text-ink-muted w-24 shrink-0">Date</span>
                     <EditableText as="date" value={register.date} onChange={(v) => onChange('date', v)} className="flex-1" />
                 </div>
-                <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Shift</span>
+                <div className="flex items-center gap-2 border border-line px-2 py-1.5">
+                    <span className="text-ink-muted w-24 shrink-0">Shift</span>
                     <EditableText value={register.shift} onChange={(v) => onChange('shift', v)} placeholder="Morning" className="flex-1" />
                 </div>
-                <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Counted By</span>
+                <div className="flex items-center gap-2 border border-line px-2 py-1.5">
+                    <span className="text-ink-muted w-24 shrink-0">Counted By</span>
                     <EditableText value={register.counted_by} onChange={(v) => onChange('counted_by', v)} placeholder="Cashier name" className="flex-1" />
                 </div>
-                <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Verified By</span>
+                <div className="flex items-center gap-2 border border-line px-2 py-1.5">
+                    <span className="text-ink-muted w-24 shrink-0">Verified By</span>
                     <EditableText value={register.verified_by} onChange={(v) => onChange('verified_by', v)} placeholder="Manager name" className="flex-1" />
                 </div>
             </div>
@@ -449,17 +449,17 @@ function RegisterSection({ register, onChange, symbol, denominations, headers, o
             {/* Denomination table — labels are fixed data, Count/Subtotal are blank write-in cells */}
             <table className="w-full mb-4 border-collapse">
                 <thead>
-                    <tr className="text-left text-2xs font-bold uppercase tracking-wide text-slate-500 bg-slate-100">
-                        <th className="border border-slate-300 px-2 py-1.5 w-[34%]">
+                    <tr className="text-left text-2xs font-bold uppercase tracking-wide text-ink-muted bg-sunken">
+                        <th className="border border-line px-2 py-1.5 w-[34%]">
                             <EditableText value={headers.denomination} onChange={(v) => onHeaderChange('denomination', v)} pulse={false} className="normal-case font-bold" />
                         </th>
-                        <th className="border border-slate-300 px-2 py-1.5 w-[16%] text-right">
+                        <th className="border border-line px-2 py-1.5 w-[16%] text-right">
                             <EditableText value={headers.value} onChange={(v) => onHeaderChange('value', v)} pulse={false} className="normal-case font-bold" />
                         </th>
-                        <th className="border border-slate-300 px-2 py-1.5 w-[20%] text-center">
+                        <th className="border border-line px-2 py-1.5 w-[20%] text-center">
                             <EditableText value={headers.count} onChange={(v) => onHeaderChange('count', v)} pulse={false} className="normal-case font-bold" />
                         </th>
-                        <th className="border border-slate-300 px-2 py-1.5 w-[30%] text-center">
+                        <th className="border border-line px-2 py-1.5 w-[30%] text-center">
                             <EditableText value={headers.subtotal} onChange={(v) => onHeaderChange('subtotal', v)} pulse={false} className="normal-case font-bold" />
                         </th>
                     </tr>
@@ -467,62 +467,62 @@ function RegisterSection({ register, onChange, symbol, denominations, headers, o
                 <tbody>
                     {denominations ? denominations.map((row) => (
                         <tr key={row.label}>
-                            <td className="border border-slate-200 px-2 py-2 text-xs">{row.label}</td>
-                            <td className="border border-slate-200 px-2 py-2 text-xs text-right text-slate-500">{fmtValue(symbol, row.value)}</td>
-                            <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
-                            <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
+                            <td className="border border-line px-2 py-2 text-xs">{row.label}</td>
+                            <td className="border border-line px-2 py-2 text-xs text-right text-ink-muted">{fmtValue(symbol, row.value)}</td>
+                            <td className="border border-line px-2 py-2"><BlankCell /></td>
+                            <td className="border border-line px-2 py-2"><BlankCell /></td>
                         </tr>
                     )) : (
                         <>
                             <tr>
-                                <td className="border border-slate-200 px-2 py-2 text-xs">Coins (all denominations)</td>
-                                <td className="border border-slate-200 px-2 py-2 text-xs text-right text-slate-500 dark:text-slate-400">—</td>
-                                <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
-                                <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
+                                <td className="border border-line px-2 py-2 text-xs">Coins (all denominations)</td>
+                                <td className="border border-line px-2 py-2 text-xs text-right text-ink-muted">—</td>
+                                <td className="border border-line px-2 py-2"><BlankCell /></td>
+                                <td className="border border-line px-2 py-2"><BlankCell /></td>
                             </tr>
                             <tr>
-                                <td className="border border-slate-200 px-2 py-2 text-xs">Notes / Bills (all denominations)</td>
-                                <td className="border border-slate-200 px-2 py-2 text-xs text-right text-slate-500 dark:text-slate-400">—</td>
-                                <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
-                                <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
+                                <td className="border border-line px-2 py-2 text-xs">Notes / Bills (all denominations)</td>
+                                <td className="border border-line px-2 py-2 text-xs text-right text-ink-muted">—</td>
+                                <td className="border border-line px-2 py-2"><BlankCell /></td>
+                                <td className="border border-line px-2 py-2"><BlankCell /></td>
                             </tr>
                         </>
                     )}
-                    <tr className="bg-slate-50 font-bold">
-                        <td colSpan={3} className="border border-slate-200 px-2 py-2 text-xs">Grand Total Counted</td>
-                        <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
+                    <tr className="bg-sunken font-bold">
+                        <td colSpan={3} className="border border-line px-2 py-2 text-xs">Grand Total Counted</td>
+                        <td className="border border-line px-2 py-2"><BlankCell /></td>
                     </tr>
                 </tbody>
             </table>
 
             {/* Expected / Counted / Over-Short — blank write-in lines, never editable */}
             <div className="space-y-2 text-xs mb-4">
-                <div className="grid grid-cols-2 gap-3 items-center border border-slate-200 px-2 py-2">
-                    <span className="text-slate-600">Expected Amount (from POS / register)</span>
+                <div className="grid grid-cols-2 gap-3 items-center border border-line px-2 py-2">
+                    <span className="text-ink-secondary">Expected Amount (from POS / register)</span>
                     <BlankCell />
                 </div>
-                <div className="grid grid-cols-2 gap-3 items-center border border-slate-200 px-2 py-2">
-                    <span className="text-slate-600">Total Counted (carried from above)</span>
+                <div className="grid grid-cols-2 gap-3 items-center border border-line px-2 py-2">
+                    <span className="text-ink-secondary">Total Counted (carried from above)</span>
                     <BlankCell />
                 </div>
-                <div className="grid grid-cols-2 gap-3 items-center border border-slate-200 px-2 py-2">
+                <div className="grid grid-cols-2 gap-3 items-center border border-line px-2 py-2">
                     <div>
-                        <span className="text-slate-600 block">Over / Short</span>
-                        <span className="text-2xs text-slate-500 dark:text-slate-400">Formula: Total Counted − Expected Amount. Positive = over, negative = short.</span>
+                        <span className="text-ink-secondary block">Over / Short</span>
+                        <span className="text-2xs text-ink-muted">Formula: Total Counted − Expected Amount. Positive = over, negative = short.</span>
                     </div>
                     <BlankCell />
                 </div>
             </div>
 
             {/* Sign lines */}
-            <div className="grid grid-cols-2 gap-6 text-xs text-slate-500 mt-6">
-                <div className="border-t border-slate-900 pt-1.5">
+            <div className="grid grid-cols-2 gap-6 text-xs text-ink-muted mt-6">
+                <div className="border-t border-neutral-900 pt-1.5">
                     Counted By Signature
-                    <div className="text-slate-500 dark:text-slate-400">Time: ____________________</div>
+                    <div className="text-ink-muted">Time: ____________________</div>
                 </div>
-                <div className="border-t border-slate-900 pt-1.5 text-right">
+                <div className="border-t border-neutral-900 pt-1.5 text-right">
                     Verified By Signature (Manager)
-                    <div className="text-slate-500 dark:text-slate-400">Time: ____________________</div>
+                    <div className="text-ink-muted">Time: ____________________</div>
                 </div>
             </div>
         </div>

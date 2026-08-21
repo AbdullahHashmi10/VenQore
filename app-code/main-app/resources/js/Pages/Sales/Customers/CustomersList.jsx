@@ -102,27 +102,27 @@ export default function CustomersIndex({ customers, filters }) {
                 <div className="pb-8">
                     <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                         <form onSubmit={handleSearch} className="relative w-full md:w-96">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={20} />
                             <input
                                 type="text"
                                 placeholder="Search customers..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 ring-indigo-500/20 outline-none"
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-surface text-ink-secondary dark:text-ink focus:ring-2 ring-brand-500/20 outline-none"
                             />
                         </form>
                         <button
                             onClick={() => openModal()}
-                            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg active:scale-95"
+                            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg active:scale-95"
                         >
                             <Plus size={20} /> Add Customer
                         </button>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+                    <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
+                                <tr className="bg-app text-ink-muted text-xs uppercase tracking-wider">
                                     <th className="p-4 font-semibold">Name</th>
                                     <th className="p-4 font-semibold">Contact</th>
                                     <th className="p-4 font-semibold">Address</th>
@@ -130,20 +130,20 @@ export default function CustomersIndex({ customers, filters }) {
                                     <th className="p-4 font-semibold text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-line">
                                 {customers.data.length > 0 ? (
                                     customers.data.map((customer) => (
-                                        <tr key={customer.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <tr key={customer.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                             <td className="p-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                                                    <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold">
                                                         {customer.name.charAt(0)}
                                                     </div>
-                                                    <span className="font-medium text-slate-800 dark:text-white">{customer.name}</span>
+                                                    <span className="font-medium text-ink">{customer.name}</span>
                                                 </div>
                                             </td>
                                             <td className="p-4">
-                                                <div className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
+                                                <div className="flex flex-col gap-1 text-sm text-ink-secondary">
                                                     {customer.email && (
                                                         <div className="flex items-center gap-2">
                                                             <Mail size={14} /> {customer.email}
@@ -156,27 +156,27 @@ export default function CustomersIndex({ customers, filters }) {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="p-4 text-slate-600 dark:text-slate-400 text-sm">
+                                            <td className="p-4 text-ink-secondary text-sm">
                                                 {customer.address ? (
                                                     <div className="flex items-center gap-2">
                                                         <MapPin size={14} /> {customer.address}
                                                     </div>
                                                 ) : '-'}
                                             </td>
-                                            <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">
+                                            <td className="p-4 text-ink-secondary font-medium">
                                                 {customer.loyalty_points}
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => openModal(customer)}
-                                                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                                        className="p-2 text-ink-muted hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                                                     >
                                                         <Edit size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(customer.id)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                        className="p-2 text-ink-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -186,7 +186,7 @@ export default function CustomersIndex({ customers, filters }) {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="5" className="p-8 text-center text-slate-400">
+                                        <td colSpan="5" className="p-8 text-center text-ink-muted">
                                             No customers found.
                                         </td>
                                     </tr>
@@ -197,25 +197,25 @@ export default function CustomersIndex({ customers, filters }) {
                 </div>
             </div>
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-normal">
+                        <div className="p-6 border-b border-line flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-ink">
                                 {editingCustomer ? 'Edit Customer' : 'Add Customer'}
                             </h3>
-                            <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                            <button onClick={closeModal} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200">
                                 <X size={20} />
                             </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
+                                <label className="block text-sm font-medium text-ink-secondary mb-1">Name</label>
                                 <input
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     required
                                 />
                                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -223,22 +223,22 @@ export default function CustomersIndex({ customers, filters }) {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Email</label>
                                     <input
                                         type="email"
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phone</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Phone</label>
                                     <input
                                         type="text"
                                         value={data.phone}
                                         onChange={(e) => setData('phone', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                     {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                                 </div>
@@ -246,11 +246,11 @@ export default function CustomersIndex({ customers, filters }) {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pricing Tier</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Pricing Tier</label>
                                     <select
                                         value={data.pricing_tier}
                                         onChange={(e) => setData('pricing_tier', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     >
                                         <option value="standard">Standard</option>
                                         <option value="gold">Gold (Level 2)</option>
@@ -259,11 +259,11 @@ export default function CustomersIndex({ customers, filters }) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Billing Currency</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Billing Currency</label>
                                     <select
                                         value={data.currency_code}
                                         onChange={(e) => setData('currency_code', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     >
                                         <option value="USD">USD ($)</option>
                                         <option value="EUR">EUR (€)</option>
@@ -274,11 +274,11 @@ export default function CustomersIndex({ customers, filters }) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Main Address</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Main Address</label>
                                     <textarea
                                         value={data.address}
                                         onChange={(e) => setData('address', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none h-10 resize-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none h-10 resize-none"
                                     />
                                 </div>
                             </div>
@@ -289,51 +289,51 @@ export default function CustomersIndex({ customers, filters }) {
                                     id="is_tax_exempt"
                                     checked={data.is_tax_exempt}
                                     onChange={(e) => setData('is_tax_exempt', e.target.checked)}
-                                    className="rounded border-slate-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    className="rounded border-line text-brand-600 shadow-sm focus:ring-brand-500"
                                 />
-                                <label htmlFor="is_tax_exempt" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label htmlFor="is_tax_exempt" className="text-sm font-medium text-ink-secondary">
                                     Tax Exempt (Do not charge tax)
                                 </label>
                             </div>
 
                             <div className="grid grid-cols-3 gap-4 pt-2">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Credit Limit</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Credit Limit</label>
                                     <input
                                         type="number"
                                         min="0"
                                         value={data.credit_limit}
                                         onChange={(e) => setData('credit_limit', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date of Birth</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Date of Birth</label>
                                     <input
                                         type="date"
                                         value={data.date_of_birth}
                                         onChange={(e) => setData('date_of_birth', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Anniversary</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Anniversary</label>
                                     <input
                                         type="date"
                                         value={data.anniversary_date}
                                         onChange={(e) => setData('anniversary_date', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                             </div>
 
-                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <div className="pt-2 border-t border-line">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Additional Addresses</label>
+                                    <label className="block text-sm font-medium text-ink-secondary">Additional Addresses</label>
                                     <button
                                         type="button"
                                         onClick={addAddress}
-                                        className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-700"
+                                        className="text-xs flex items-center gap-1 text-brand-600 hover:text-brand-700"
                                     >
                                         <Plus size={14} /> Add Address
                                     </button>
@@ -341,11 +341,11 @@ export default function CustomersIndex({ customers, filters }) {
                                 
                                 <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
                                     {data.addresses.map((addr, idx) => (
-                                        <div key={idx} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 relative">
+                                        <div key={idx} className="p-3 bg-app rounded-xl border border-line relative">
                                             <button
                                                 type="button"
                                                 onClick={() => removeAddress(idx)}
-                                                className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
+                                                className="absolute top-2 right-2 text-ink-muted hover:text-red-500"
                                             >
                                                 <Trash2 size={14} />
                                             </button>
@@ -356,7 +356,7 @@ export default function CustomersIndex({ customers, filters }) {
                                                         placeholder="Label (e.g. Shipping)"
                                                         value={addr.label}
                                                         onChange={(e) => updateAddress(idx, 'label', e.target.value)}
-                                                        className="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                        className="w-full px-2 py-1 text-xs rounded border border-line bg-surface"
                                                     />
                                                 </div>
                                                 <div className="col-span-2">
@@ -365,7 +365,7 @@ export default function CustomersIndex({ customers, filters }) {
                                                         placeholder="City"
                                                         value={addr.city || ''}
                                                         onChange={(e) => updateAddress(idx, 'city', e.target.value)}
-                                                        className="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                        className="w-full px-2 py-1 text-xs rounded border border-line bg-surface"
                                                     />
                                                 </div>
                                             </div>
@@ -373,12 +373,12 @@ export default function CustomersIndex({ customers, filters }) {
                                                 placeholder="Full Address"
                                                 value={addr.address}
                                                 onChange={(e) => updateAddress(idx, 'address', e.target.value)}
-                                                className="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none h-16"
+                                                className="w-full px-2 py-1 text-xs rounded border border-line bg-surface resize-none h-16"
                                             />
                                         </div>
                                     ))}
                                     {data.addresses.length === 0 && (
-                                        <div className="text-center text-xs text-slate-400 py-2 italic">
+                                        <div className="text-center text-xs text-ink-muted py-2 italic">
                                             No additional addresses.
                                         </div>
                                     )}
@@ -389,14 +389,14 @@ export default function CustomersIndex({ customers, filters }) {
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors text-sm font-medium"
+                                    className="px-4 py-2 text-ink-secondary hover:bg-interactive-hover rounded-xl transition-colors text-sm font-medium"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg shadow-indigo-500/30"
+                                    className="px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg "
                                 >
                                     <Save size={16} />
                                     {processing ? 'Saving...' : 'Save Customer'}

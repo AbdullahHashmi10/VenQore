@@ -20,7 +20,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
             key: 'reference',
             label: 'Reference',
             render: (value) => (
-                <span className="font-mono text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                <span className="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">
                     {value || 'No Ref'}
                 </span>
             )
@@ -36,7 +36,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
                             day: '2-digit',
                             month: 'short'
                         })}</p>
-                        <p className="text-xs text-slate-400">{date.toLocaleTimeString('en-PK', {
+                        <p className="text-xs text-ink-muted">{date.toLocaleTimeString('en-PK', {
                             hour: '2-digit',
                             minute: '2-digit'
                         })}</p>
@@ -49,8 +49,8 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
             label: 'Customer',
             render: (value) => (
                 <div>
-                    <p className="font-semibold text-slate-800 dark:text-white">{value?.name || 'Walk-in'}</p>
-                    {value?.phone && <p className="text-xs text-slate-400">{value.phone}</p>}
+                    <p className="font-semibold text-ink">{value?.name || 'Walk-in'}</p>
+                    {value?.phone && <p className="text-xs text-ink-muted">{value.phone}</p>}
                 </div>
             )
         },
@@ -58,7 +58,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
             key: 'items_count',
             label: 'Items',
             render: (value) => (
-                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold">
+                <span className="px-2 py-1 bg-sunken rounded-lg text-xs font-semibold">
                     {value || 0} items
                 </span>
             )
@@ -67,7 +67,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
             key: 'total',
             label: 'Total',
             render: (value) => (
-                <span className="font-bold text-slate-800 dark:text-white">
+                <span className="font-bold text-ink">
                     {formatCurrency(value, store)}
                 </span>
             )
@@ -76,14 +76,14 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
             key: 'parked_by',
             label: 'Parked By',
             render: (value) => (
-                <span className="text-sm text-slate-500">{value?.name || 'Unknown'}</span>
+                <span className="text-sm text-ink-muted">{value?.name || 'Unknown'}</span>
             )
         },
         {
             key: 'note',
             label: 'Note',
             render: (value) => (
-                <span className="text-sm text-slate-400 truncate max-w-[150px] block">
+                <span className="text-sm text-ink-muted truncate max-w-[150px] block">
                     {value || '-'}
                 </span>
             )

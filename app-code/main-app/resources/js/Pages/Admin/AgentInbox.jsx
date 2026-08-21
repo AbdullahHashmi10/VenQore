@@ -504,17 +504,17 @@ export default function AgentInbox() {
 
             <div className="h-full w-full flex gap-6 overflow-hidden p-6">
                 {/* Left panel: Active sessions */}
-                <div className="w-80 h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-xl flex flex-col overflow-hidden relative shrink-0">
-                    <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                            <MessageSquare className="text-indigo-500" size={20} />
+                <div className="w-80 h-full bg-surface border border-line rounded-2xl shadow-xl flex flex-col overflow-hidden relative shrink-0">
+                    <div className="p-6 border-b border-line bg-sunken/50 dark:bg-app">
+                        <h3 className="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+                            <MessageSquare className="text-brand-500" size={20} />
                             Support Queue
                         </h3>
-                        <p className="text-xs text-slate-400 mt-1">Real-time customer inquiries</p>
+                        <p className="text-xs text-ink-muted mt-1">Real-time customer inquiries</p>
                     </div>
 
                     {/* Filter tabs */}
-                    <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex gap-1 bg-slate-50/50 dark:bg-slate-900/50 overflow-x-auto shrink-0 scrollbar-none">
+                    <div className="px-6 py-3 border-b border-line flex gap-1 bg-sunken/50 dark:bg-app overflow-x-auto shrink-0 scrollbar-none">
                         {[
                             { id: 'all', label: 'All Active' },
                             { id: 'referred', label: 'Referred' },
@@ -525,10 +525,10 @@ export default function AgentInbox() {
                                 key={tab.id}
                                 type="button"
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-2.5 py-1.5 rounded-full text-3xs font-black uppercase tracking-wider transition-all shrink-0 ${
+                                className={`px-2.5 py-1.5 rounded-full text-3xs font-bold uppercase tracking-wider transition-all shrink-0 ${
                                     activeTab === tab.id
-                                        ? 'bg-indigo-600 text-white shadow-md'
-                                        : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                        ? 'bg-brand-600 text-white shadow-md'
+                                        : 'bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted'
                                 }`}
                             >
                                 {tab.label}
@@ -538,7 +538,7 @@ export default function AgentInbox() {
 
                     <div className="flex-1 chat-scroll p-3 space-y-2">
                         {loadingSessions ? (
-                            <div className="flex flex-col items-center justify-center h-48 text-slate-400">
+                            <div className="flex flex-col items-center justify-center h-48 text-ink-muted">
                                 <Loader2 className="animate-spin mb-2" size={24} />
                                 <span className="text-xs">Loading queue...</span>
                             </div>
@@ -552,10 +552,10 @@ export default function AgentInbox() {
 
                             if (filteredSessions.length === 0) {
                                 return (
-                                    <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-center px-4">
+                                    <div className="flex flex-col items-center justify-center h-48 text-ink-muted text-center px-4">
                                         <CheckCircle2 className="text-emerald-400 mb-2" size={32} />
-                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">All clear!</span>
-                                        <span className="text-2xs text-slate-400 mt-1">No chats in this category</span>
+                                        <span className="text-xs font-bold text-ink-secondary">All clear!</span>
+                                        <span className="text-2xs text-ink-muted mt-1">No chats in this category</span>
                                     </div>
                                 );
                             }
@@ -579,20 +579,20 @@ export default function AgentInbox() {
                                         {/* Group Header */}
                                         <div 
                                             onClick={() => toggleGroup(groupName)}
-                                            className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/60 rounded-xl cursor-pointer select-none transition-all text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-800/50 shadow-sm"
+                                            className="flex items-center justify-between p-2.5 bg-surface hover:bg-sunken dark:hover:bg-interactive-hover rounded-xl cursor-pointer select-none transition-all text-ink border border-line shadow-sm"
                                         >
                                             <div className="flex items-center gap-2">
-                                                {isCollapsed ? <ChevronRight size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
-                                                <span className="text-2xs font-black uppercase tracking-wider">{groupName}</span>
+                                                {isCollapsed ? <ChevronRight size={14} className="text-ink-muted" /> : <ChevronDown size={14} className="text-ink-muted" />}
+                                                <span className="text-2xs font-bold uppercase tracking-wider">{groupName}</span>
                                             </div>
-                                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-3xs font-black rounded-full">
+                                            <span className="px-2 py-0.5 bg-brand-100 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 text-3xs font-bold rounded-full">
                                                 {groupSessions.length}
                                             </span>
                                         </div>
 
                                         {/* Group Sessions */}
                                         {!isCollapsed && (
-                                            <div className="space-y-2 pl-1.5 border-l border-slate-100 dark:border-slate-800/60 ml-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                                            <div className="space-y-2 pl-1.5 border-l border-line ml-2 animate-in fade-in slide-in-from-top-1 duration-fast">
                                                 {groupSessions.map(s => {
                                                     const isSelected = selectedSession?.session_uuid === s.session_uuid;
                                                     const isUnclaimed = s.status === 'human_requested';
@@ -603,30 +603,30 @@ export default function AgentInbox() {
                                                         <button
                                                             key={s.session_uuid}
                                                             onClick={() => setSelectedSession(s)}
-                                                            className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 relative overflow-hidden group flex flex-col gap-1.5 ${
+                                                            className={`w-full text-left p-4 rounded-2xl border transition-all duration-normal relative overflow-hidden group flex flex-col gap-1.5 ${
                                                                 isSelected 
-                                                                    ? 'bg-slate-900 border-slate-900 dark:bg-slate-800 dark:border-slate-700 text-white shadow-lg' 
-                                                                    : 'bg-slate-50/60 dark:bg-slate-800/20 border-slate-100 dark:border-slate-800/80 hover:bg-slate-100/50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                                                                    ? 'bg-neutral-900 border-neutral-900 dark:bg-surface dark:border-line text-white shadow-lg' 
+                                                                    : 'bg-sunken/60 dark:bg-surface border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'
                                                             }`}
                                                         >
                                                             {/* Status indicator indicator bar */}
                                                             <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${
                                                                 isUnclaimed ? 'bg-rose-500 animate-pulse' :
                                                                 isClaimedByMe ? 'bg-emerald-500' :
-                                                                isClaimedByOther ? 'bg-amber-500' : 'bg-slate-300'
+                                                                isClaimedByOther ? 'bg-amber-500' : 'bg-sunken'
                                                             }`} />
 
                                                             <div className="flex items-center justify-between w-full">
-                                                                <span className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}`}>
+                                                                <span className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-ink'}`}>
                                                                     {s.visitor_name || 'Website Guest'}
                                                                 </span>
-                                                                <span className="text-3xs text-slate-400 font-medium">
+                                                                <span className="text-3xs text-ink-muted font-medium">
                                                                     {s.last_message_at ? new Date(s.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                                                 </span>
                                                             </div>
 
                                                             {s.messages?.length > 0 && (
-                                                                <p className={`text-2xs truncate ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                                                                <p className={`text-2xs truncate ${isSelected ? 'text-neutral-300' : 'text-ink-muted'}`}>
                                                                     {s.messages[s.messages.length - 1].body}
                                                                 </p>
                                                             )}
@@ -634,34 +634,34 @@ export default function AgentInbox() {
                                                             <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
                                                                 {/* Priority status badge */}
                                                                 {isUnclaimed && (
-                                                                    <span className="px-2 py-0.5 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-4xs font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-4xs font-bold uppercase tracking-wider rounded-full">
                                                                         Action Required
                                                                     </span>
                                                                 )}
                                                                 {isClaimedByMe && (
-                                                                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-4xs font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-4xs font-bold uppercase tracking-wider rounded-full">
                                                                         Claimed by me
                                                                     </span>
                                                                 )}
                                                                 {isClaimedByOther && (
-                                                                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-4xs font-black uppercase tracking-wider rounded-full max-w-[120px] truncate">
+                                                                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-4xs font-bold uppercase tracking-wider rounded-full max-w-[120px] truncate">
                                                                         {s.claimed_by_name || 'Other'}
                                                                     </span>
                                                                 )}
                                                                 {s.referred_to === currentUser.id && (
-                                                                    <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 text-4xs font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 text-4xs font-bold uppercase tracking-wider rounded-full">
                                                                         Referred to me
                                                                     </span>
                                                                 )}
                                                                 {s.sub_status && (
-                                                                    <span className={`px-2 py-0.5 text-4xs font-black uppercase tracking-wider rounded-full ${
+                                                                    <span className={`px-2 py-0.5 text-4xs font-bold uppercase tracking-wider rounded-full ${
                                                                         s.sub_status === 'fixed' ? 'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950/20 text-amber-600'
                                                                     }`}>
                                                                         {s.sub_status}
                                                                     </span>
                                                                 )}
                                                                 {s.status === 'resolved' && (
-                                                                    <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-4xs font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-sunken text-ink-muted text-4xs font-bold uppercase tracking-wider rounded-full">
                                                                         Resolved
                                                                     </span>
                                                                 )}
@@ -679,23 +679,23 @@ export default function AgentInbox() {
                 </div>
 
                 {/* Right panel: Active chat window */}
-                <div className="flex-1 h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-xl flex flex-col overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
+                <div className="flex-1 h-full bg-surface border border-line rounded-2xl shadow-xl flex flex-col overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
                     {selectedSession ? (
                         <div className="flex-1 flex overflow-hidden relative z-10">
                             {/* Main Chat Flow */}
-                            <div className="flex-1 flex flex-col overflow-hidden border-r border-slate-100 dark:border-slate-800/80">
+                            <div className="flex-1 flex flex-col overflow-hidden border-r border-line">
                                 {/* Chat Header */}
-                                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shrink-0">
+                                <div className="p-6 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-app backdrop-blur-xl shrink-0">
                                     <div>
                                         <div className="flex items-center gap-3">
-                                            <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
+                                            <h3 className="text-base font-bold text-ink tracking-tight">
                                                 {selectedSession.visitor_name || 'Website Guest'}
                                             </h3>
                                             {selectedSession.visitor_email && (
-                                                <span className="text-xs text-slate-400">({selectedSession.visitor_email})</span>
+                                                <span className="text-xs text-ink-muted">({selectedSession.visitor_email})</span>
                                             )}
                                         </div>
                                         {selectedSession.escalation_reason && (
@@ -711,10 +711,10 @@ export default function AgentInbox() {
                                         <button
                                             type="button"
                                             onClick={() => setShowCopilot(!showCopilot)}
-                                            className={`px-3 py-1.5 rounded-xl text-2xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border active:scale-95 shrink-0 ${
+                                            className={`px-3 py-1.5 rounded-xl text-2xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border active:scale-95 shrink-0 ${
                                                 showCopilot
                                                     ? 'bg-purple-600/10 border-purple-500/30 text-purple-600 dark:text-purple-400 shadow-sm'
-                                                    : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                                    : 'bg-sunken border-line dark:bg-surface dark:border-line text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                                             }`}
                                         >
                                             <Sparkles size={11} className={showCopilot ? 'animate-pulse text-purple-500' : ''} />
@@ -722,10 +722,10 @@ export default function AgentInbox() {
                                         </button>
 
                                         {/* 1. AI Controller Badge & Toggle */}
-                                        <div className="flex items-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 gap-2 shrink-0">
+                                        <div className="flex items-center bg-app border border-line rounded-xl p-1 gap-2 shrink-0">
                                             {selectedSession.status === 'bot_active' ? (
                                                 <>
-                                                    <span className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-2xs font-black uppercase tracking-wider rounded-lg flex items-center gap-1">
+                                                    <span className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-2xs font-bold uppercase tracking-wider rounded-lg flex items-center gap-1">
                                                         <Sparkles size={11} className="animate-pulse" />
                                                         Vena AI Active
                                                     </span>
@@ -739,13 +739,13 @@ export default function AgentInbox() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-black uppercase tracking-wider rounded-lg">
+                                                    <span className="px-2.5 py-1 bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-wider rounded-lg">
                                                         Human Active
                                                     </span>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleGiveToAi(selectedSession.session_uuid)}
-                                                        className="px-3 py-1 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-2xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all shrink-0"
+                                                        className="px-3 py-1 border border-line text-ink-secondary rounded-lg text-2xs font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover active:scale-95 transition-all shrink-0"
                                                     >
                                                         Give to AI
                                                     </button>
@@ -759,7 +759,7 @@ export default function AgentInbox() {
                                                 <select
                                                     value={selectedSession.referred_to || ''}
                                                     onChange={(e) => handleRefer(selectedSession.session_uuid, e.target.value || null)}
-                                                    className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none outline-none cursor-pointer"
+                                                    className="px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold text-ink-secondary focus:outline-none outline-none cursor-pointer"
                                                 >
                                                     <option value="">Refer to Staff...</option>
                                                     {staffMembers.map(member => (
@@ -772,7 +772,7 @@ export default function AgentInbox() {
                                         )}
 
                                         {/* 3. Status Sub-state Buttons Selector */}
-                                        <div className="flex bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5 shrink-0">
+                                        <div className="flex bg-app border border-line rounded-xl p-0.5 shrink-0">
                                             {[
                                                 { id: 'active', label: 'Active' },
                                                 { id: 'fixed', label: 'Fixed' },
@@ -782,10 +782,10 @@ export default function AgentInbox() {
                                                     key={tag.id}
                                                     type="button"
                                                     onClick={() => handleSetStatus(selectedSession.session_uuid, tag.id)}
-                                                    className={`px-3 py-1.5 rounded-lg text-2xs font-black uppercase tracking-wider transition-all ${
+                                                    className={`px-3 py-1.5 rounded-lg text-2xs font-bold uppercase tracking-wider transition-all ${
                                                         selectedSession.sub_status === tag.id || (!selectedSession.sub_status && tag.id === 'active')
-                                                            ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
-                                                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                                                            ? 'bg-sunken shadow-sm text-ink'
+                                                            : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                                                     }`}
                                                 >
                                                     {tag.label}
@@ -797,7 +797,7 @@ export default function AgentInbox() {
                                         {selectedSession.status === 'human_requested' && (
                                             <button
                                                 onClick={() => handleClaim(selectedSession.session_uuid)}
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-md shadow-indigo-500/20 shrink-0"
+                                                className="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-md shrink-0"
                                             >
                                                 Claim Session
                                             </button>
@@ -806,7 +806,7 @@ export default function AgentInbox() {
                                         {selectedSession.status === 'bot_active' && (
                                             <button
                                                 onClick={() => handleSetStatus(selectedSession.session_uuid, 'resolved')}
-                                                className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1 shrink-0"
+                                                className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 active:scale-95 transition-all shadow-md flex items-center gap-1 shrink-0"
                                             >
                                                 <CheckCircle2 size={13} />
                                                 Resolve
@@ -817,14 +817,14 @@ export default function AgentInbox() {
                                             <div className="flex items-center gap-1.5 shrink-0">
                                                 <button
                                                     onClick={() => handleRelease(selectedSession.session_uuid)}
-                                                    className="px-3.5 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition-all flex items-center gap-1 shrink-0"
+                                                    className="px-3.5 py-2 border border-line text-ink-secondary rounded-xl text-xs font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover active:scale-95 transition-all flex items-center gap-1 shrink-0"
                                                 >
                                                     <LogOut size={13} className="rotate-180" />
                                                     Release
                                                 </button>
                                                 <button
                                                     onClick={() => handleResolve(selectedSession.session_uuid)}
-                                                    className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1 shrink-0"
+                                                    className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 active:scale-95 transition-all shadow-md flex items-center gap-1 shrink-0"
                                                 >
                                                     <CheckCircle2 size={13} />
                                                     Resolve
@@ -835,7 +835,7 @@ export default function AgentInbox() {
                                         <button
                                             onClick={() => handleDeleteSession(selectedSession.session_uuid)}
                                             title="Delete Session"
-                                            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md shadow-rose-500/20 flex items-center gap-1.5 shrink-0"
+                                            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md flex items-center gap-1.5 shrink-0"
                                         >
                                             <Trash2 size={13} />
                                             Delete
@@ -855,7 +855,7 @@ export default function AgentInbox() {
                                             if (isSystem) {
                                                 return (
                                                     <div key={m.id} className="flex justify-center my-2">
-                                                        <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 rounded-full text-2xs text-slate-500 font-bold uppercase tracking-wider text-center max-w-md">
+                                                        <span className="px-4 py-1.5 bg-sunken border border-line dark:border-line rounded-full text-2xs text-ink-muted font-bold uppercase tracking-wider text-center max-w-md">
                                                             {m.body}
                                                         </span>
                                                     </div>
@@ -865,17 +865,17 @@ export default function AgentInbox() {
                                             return (
                                                 <div 
                                                     key={m.id} 
-                                                    className={`flex ${isVisitor ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-1 duration-200`}
+                                                    className={`flex ${isVisitor ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-1 duration-normal`}
                                                 >
                                                     <div className={`max-w-md rounded-2xl px-5 py-3.5 shadow-sm text-sm ${
                                                         isVisitor 
-                                                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none' 
+                                                            ? 'bg-sunken text-ink rounded-bl-none' 
                                                             : isBot 
                                                                 ? 'bg-purple-600 text-white rounded-br-none font-medium' 
-                                                                : 'bg-indigo-600 text-white rounded-br-none font-medium'
+                                                                : 'bg-brand-600 text-white rounded-br-none font-medium'
                                                     }`}>
                                                         {/* Sender name if group chat */}
-                                                        <div className="text-2xs font-black uppercase tracking-wider mb-1 opacity-70">
+                                                        <div className="text-2xs font-bold uppercase tracking-wider mb-1 opacity-70">
                                                             {m.sender_name || (isVisitor ? 'Guest' : isBot ? 'Vena (AI)' : 'Agent')}
                                                         </div>
                                                         
@@ -890,8 +890,8 @@ export default function AgentInbox() {
                                         })}
 
                                         {visitorTyping && (
-                                            <div className="flex justify-start items-center gap-2 text-xs text-slate-400 font-medium py-2 animate-pulse">
-                                                <Loader2 size={12} className="animate-spin text-slate-300" />
+                                            <div className="flex justify-start items-center gap-2 text-xs text-ink-muted font-medium py-2 animate-pulse">
+                                                <Loader2 size={12} className="animate-spin text-neutral-300" />
                                                 <span>{typingText}</span>
                                             </div>
                                         )}
@@ -899,12 +899,12 @@ export default function AgentInbox() {
                                 </div>
 
                                 {/* Input Form area */}
-                                <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+                                <div className="p-6 border-t border-line bg-white/80 dark:bg-app backdrop-blur-xl">
                                     <div className="max-w-3xl mx-auto relative">
                                         {/* Canned response suggestion dropdown */}
                                         {slashSuggestions.length > 0 && (
-                                            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-2 z-50 max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-2">
-                                                <div className="px-3 py-1.5 text-2xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700/60 mb-1">
+                                            <div className="absolute bottom-full left-0 right-0 mb-2 bg-surface border border-line rounded-2xl shadow-2xl p-2 z-50 max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-2">
+                                                <div className="px-3 py-1.5 text-2xs font-bold text-ink-muted uppercase tracking-widest border-b border-line mb-1">
                                                     Canned Responses (Tap to insert)
                                                 </div>
                                                 {slashSuggestions.map((r, i) => (
@@ -912,12 +912,12 @@ export default function AgentInbox() {
                                                         key={i}
                                                         type="button"
                                                         onClick={() => selectCannedResponse(r)}
-                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-slate-50 dark:hover:bg-slate-700/60 flex items-center justify-between group"
+                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-interactive-hover dark:hover:bg-interactive-hover flex items-center justify-between group"
                                                     >
-                                                        <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-500">
+                                                        <span className="font-bold text-ink group-hover:text-brand-500">
                                                             /{r.shortcode}
                                                         </span>
-                                                        <span className="text-slate-400 text-2xs truncate max-w-[300px]">
+                                                        <span className="text-ink-muted text-2xs truncate max-w-[300px]">
                                                             {r.title}
                                                         </span>
                                                     </button>
@@ -927,8 +927,8 @@ export default function AgentInbox() {
 
                                         {/* Supervision / Active state resolution */}
                                         {selectedSession.status === 'resolved' ? (
-                                            <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-500 dark:text-slate-400 flex items-center gap-3 text-xs font-semibold">
-                                                <CheckCircle2 size={16} className="text-slate-400 shrink-0" />
+                                            <div className="p-4 bg-app border border-line rounded-2xl text-ink-muted flex items-center gap-3 text-xs font-semibold">
+                                                <CheckCircle2 size={16} className="text-ink-muted shrink-0" />
                                                 <span>This session has been resolved and closed.</span>
                                             </div>
                                         ) : (selectedSession.claimed_by && selectedSession.claimed_by !== currentUser.id && !isOwner) ? (
@@ -938,12 +938,12 @@ export default function AgentInbox() {
                                             </div>
                                         ) : (selectedSession.claimed_by !== currentUser.id) ? (
                                             // Unclaimed / Bot Active / Supervision Read-Only state
-                                            <div className="p-5 bg-slate-50/50 dark:bg-slate-850/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                                <div className="flex items-center gap-3 text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                                    <ShieldAlert size={16} className="text-indigo-500 shrink-0 animate-pulse" />
+                                            <div className="p-5 bg-surface/50 dark:bg-surface border border-line rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                <div className="flex items-center gap-3 text-xs font-semibold text-ink-secondary">
+                                                    <ShieldAlert size={16} className="text-brand-500 shrink-0 animate-pulse" />
                                                     <div>
-                                                        <p className="font-bold text-slate-800 dark:text-slate-200">Supervision Mode (Read-Only)</p>
-                                                        <p className="text-2xs text-slate-400 mt-0.5">
+                                                        <p className="font-bold text-ink">Supervision Mode (Read-Only)</p>
+                                                        <p className="text-2xs text-ink-muted mt-0.5">
                                                             {selectedSession.status === 'bot_active' 
                                                                 ? 'Vena AI is currently handling the thread.' 
                                                                 : selectedSession.claimed_by 
@@ -957,7 +957,7 @@ export default function AgentInbox() {
                                                          <button
                                                              type="button"
                                                              onClick={() => handleSetStatus(selectedSession.session_uuid, 'resolved')}
-                                                             className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-500/20 active:scale-95 shrink-0 flex items-center gap-1.5"
+                                                             className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0 flex items-center gap-1.5"
                                                          >
                                                              <CheckCircle2 size={13} />
                                                              Resolve Session
@@ -966,7 +966,7 @@ export default function AgentInbox() {
                                                      <button
                                                          type="button"
                                                          onClick={() => handleClaim(selectedSession.session_uuid)}
-                                                         className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-500/20 active:scale-95 shrink-0"
+                                                         className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
                                                      >
                                                          Take Over Session
                                                      </button>
@@ -979,13 +979,13 @@ export default function AgentInbox() {
                                                     type="text"
                                                     value={replyText}
                                                     onChange={handleInputChange}
-                                                    className="flex-1 px-5 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-slate-800 dark:text-white"
+                                                    className="flex-1 px-5 py-4 bg-app border border-line rounded-2xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all text-ink"
                                                     placeholder="Type message... (type '/' for canned responses)"
                                                 />
                                                 <button
                                                     type="submit"
                                                     disabled={!replyText.trim() || sending}
-                                                    className="p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 shrink-0 shadow-lg shadow-indigo-500/20"
+                                                    className="p-4 bg-brand-600 text-white rounded-2xl hover:bg-brand-700 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 shrink-0 shadow-lg "
                                                 >
                                                     <Send size={18} />
                                                 </button>
@@ -997,13 +997,13 @@ export default function AgentInbox() {
 
                             {/* Vena AI Co-Pilot Panel */}
                             {showCopilot && (
-                                <div className="w-96 h-full flex flex-col bg-slate-50/20 dark:bg-slate-900/10 overflow-hidden shrink-0 animate-in slide-in-from-right duration-300 border-l border-slate-100 dark:border-slate-800/80">
-                                    <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                <div className="w-96 h-full flex flex-col bg-sunken/20 dark:bg-app overflow-hidden shrink-0 animate-in slide-in-from-right duration-slow border-l border-line">
+                                    <div className="p-6 border-b border-line bg-sunken/50 dark:bg-app shrink-0">
+                                        <h3 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
                                             <Sparkles className="text-purple-500 animate-pulse" size={16} />
                                             Vena Assist Co-Pilot
                                         </h3>
-                                        <p className="text-2xs text-slate-400 mt-1">Real-time co-pilot assist drawer</p>
+                                        <p className="text-2xs text-ink-muted mt-1">Real-time co-pilot assist drawer</p>
                                     </div>
 
                                     <div className="flex-1 chat-scroll p-4 space-y-4">
@@ -1012,11 +1012,11 @@ export default function AgentInbox() {
                                             <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
                                             
                                             <div className="flex items-center justify-between">
-                                                <h4 className="text-2xs font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <h4 className="text-2xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
                                                     Suggested Draft
                                                 </h4>
                                                 {copilotSuggestion && (
-                                                    <span className={`px-2 py-0.5 rounded-full text-4xs font-black uppercase tracking-wider border ${
+                                                    <span className={`px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider border ${
                                                         copilotConfidence === 'high' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
                                                         copilotConfidence === 'medium' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
                                                         'bg-amber-500/10 border-amber-500/20 text-amber-400'
@@ -1027,7 +1027,7 @@ export default function AgentInbox() {
                                             </div>
 
                                             {copilotLoading ? (
-                                                <div className="flex flex-col items-center justify-center py-6 text-slate-400 gap-2">
+                                                <div className="flex flex-col items-center justify-center py-6 text-ink-muted gap-2">
                                                     <Loader2 className="animate-spin text-purple-400" size={18} />
                                                     <span className="text-2xs font-medium animate-pulse">Analyzing context...</span>
                                                 </div>
@@ -1037,21 +1037,21 @@ export default function AgentInbox() {
                                                         value={editableSuggestion}
                                                         onChange={(e) => setEditableSuggestion(e.target.value)}
                                                         rows={4}
-                                                        className="w-full text-xs leading-relaxed text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800 outline-none focus:border-purple-500/40 transition-all resize-none"
+                                                        className="w-full text-xs leading-relaxed text-ink-secondary dark:text-ink bg-white/40 dark:bg-app p-3 rounded-xl border border-line outline-none focus:border-purple-500/40 transition-all resize-none"
                                                     />
                                                     
                                                     <div className="grid grid-cols-3 gap-2">
                                                         <button
                                                             type="button"
                                                             onClick={() => handleReplyDirect(copilotSuggestion)}
-                                                            className="py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-3xs font-black uppercase tracking-wider transition-all"
+                                                            className="py-2 bg-neutral-800 hover:bg-interactive-hover text-neutral-200 rounded-lg text-3xs font-bold uppercase tracking-wider transition-all"
                                                         >
                                                             Send As-Is
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => handleReplyDirect(editableSuggestion)}
-                                                            className="py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-3xs font-black uppercase tracking-wider transition-all"
+                                                            className="py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-3xs font-bold uppercase tracking-wider transition-all"
                                                         >
                                                             Edit & Send
                                                         </button>
@@ -1063,38 +1063,38 @@ export default function AgentInbox() {
                                                                     detail: { message: 'Injected into reply box!', type: 'info' }
                                                                 }));
                                                             }}
-                                                            className="py-2 border border-slate-200 dark:border-slate-800 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-lg text-3xs font-black uppercase tracking-wider transition-all"
+                                                            className="py-2 border border-line text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-3xs font-bold uppercase tracking-wider transition-all"
                                                         >
                                                             Inject
                                                         </button>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <p className="text-2xs text-slate-400 py-4 text-center">
+                                                <p className="text-2xs text-ink-muted py-4 text-center">
                                                     Waiting for next customer message...
                                                 </p>
                                             )}
                                         </div>
 
                                         {/* Knowledge Base / Cheat Sheet Card */}
-                                        <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/10 p-4">
-                                            <h4 className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-3">
+                                        <div className="rounded-2xl border border-line bg-surface/30 dark:bg-surface p-4">
+                                            <h4 className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-3">
                                                 {copilotSimilarKb.length > 0 ? "Verified KB Matches" : "Support Cheat Sheet"}
                                             </h4>
                                             
                                             <div className="space-y-3.5">
                                                 {copilotSimilarKb.length > 0 ? (
                                                     copilotSimilarKb.map((item, idx) => (
-                                                        <div key={idx} className="border-b border-slate-100 dark:border-slate-800/60 pb-2.5 last:border-b-0 last:pb-0 flex flex-col gap-1">
+                                                        <div key={idx} className="border-b border-line pb-2.5 last:border-b-0 last:pb-0 flex flex-col gap-1">
                                                             <div className="flex items-center justify-between">
-                                                                <span className="text-3xs font-black text-slate-850 dark:text-slate-200 truncate max-w-[200px]">
+                                                                <span className="text-3xs font-bold text-ink truncate max-w-[200px]">
                                                                     Q: {item.question}
                                                                 </span>
-                                                                <span className="text-4xs bg-slate-100 dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-black">
+                                                                <span className="text-4xs bg-sunken text-ink-muted px-1.5 py-0.5 rounded font-bold">
                                                                     Seen {item.times_seen}x
                                                                 </span>
                                                             </div>
-                                                            <p className="text-3xs text-slate-500 dark:text-slate-400 leading-relaxed bg-white/[0.02] p-2 rounded-lg border border-white/[0.02]">
+                                                            <p className="text-3xs text-ink-muted leading-relaxed bg-white/[0.02] p-2 rounded-lg border border-white/[0.02]">
                                                                 {item.agent_answer}
                                                             </p>
                                                         </div>
@@ -1105,9 +1105,9 @@ export default function AgentInbox() {
                                                         { q: "Resetting store passcode?", a: "Go to Store Settings -> Staff -> select user -> Edit PIN. Only Owners can change this." },
                                                         { q: "Adding a new cashier?", a: "Cashiers are store-specific. Invite them at Store Admin -> Staff -> Invite Staff." }
                                                     ].map((item, idx) => (
-                                                        <div key={idx} className="border-b border-slate-100 dark:border-slate-800/60 pb-2 last:border-b-0 last:pb-0">
-                                                            <p className="text-2xs font-bold text-slate-800 dark:text-slate-200">{item.q}</p>
-                                                            <p className="text-3xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{item.a}</p>
+                                                        <div key={idx} className="border-b border-line pb-2 last:border-b-0 last:pb-0">
+                                                            <p className="text-2xs font-bold text-ink">{item.q}</p>
+                                                            <p className="text-3xs text-ink-muted mt-1 leading-relaxed">{item.a}</p>
                                                         </div>
                                                     ))
                                                 )}
@@ -1118,10 +1118,10 @@ export default function AgentInbox() {
                             )}
                         </div>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-center px-6">
-                            <MessageSquare className="text-slate-300 dark:text-slate-800 mb-3" size={64} />
-                            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No Chat Selected</h4>
-                            <p className="text-1xs text-slate-400 mt-1 max-w-[280px]">
+                        <div className="flex-1 flex flex-col items-center justify-center text-ink-muted text-center px-6">
+                            <MessageSquare className="text-neutral-300 dark:text-ink mb-3" size={64} />
+                            <h4 className="text-sm font-bold text-ink-secondary">No Chat Selected</h4>
+                            <p className="text-1xs text-ink-muted mt-1 max-w-[280px]">
                                 Click on a support session from the queue on the left to start conversing in real-time.
                             </p>
                         </div>
@@ -1131,29 +1131,29 @@ export default function AgentInbox() {
 
             {/* Resolve & AI Learning Log Modal */}
             {showResolveModal && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden flex flex-col gap-6 animate-in zoom-in-95 duration-300">
+                <div className="fixed inset-0 z-drawer bg-neutral-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-slow">
+                    <div className="w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-8 relative overflow-hidden flex flex-col gap-6 animate-in zoom-in-95 duration-slow">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/5 rounded-full blur-[80px] pointer-events-none -mt-32 -mr-32" />
                         
-                        <div className="flex items-center gap-3 border-b border-slate-800 pb-4 shrink-0">
+                        <div className="flex items-center gap-3 border-b border-neutral-800 pb-4 shrink-0">
                             <div className="w-10 h-10 bg-violet-500/10 rounded-xl flex items-center justify-center border border-violet-500/20 text-violet-400">
                                 <Sparkles size={18} className="animate-pulse" />
                             </div>
                             <div>
-                                <h3 className="text-base font-black text-white tracking-tight">AI Learning Engine Log</h3>
-                                <p className="text-xs text-slate-400">Teach Vena by documenting your verified resolution</p>
+                                <h3 className="text-base font-bold text-white tracking-tight">AI Learning Engine Log</h3>
+                                <p className="text-xs text-ink-muted">Teach Vena by documenting your verified resolution</p>
                             </div>
                         </div>
 
                         <form onSubmit={handleResolveSubmit} className="flex-1 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
                             <div>
-                                <label className="block text-2xs font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
+                                <label className="block text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted mb-2.5">
                                     Ticket Category
                                 </label>
                                 <select
                                     value={resolveCategory}
                                     onChange={(e) => setResolveCategory(e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs font-semibold focus:ring-2 focus:ring-violet-500 outline-none transition-all cursor-pointer animate-in fade-in"
+                                    className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white text-xs font-semibold focus:ring-2 focus:ring-violet-500 outline-none transition-all cursor-pointer animate-in fade-in"
                                 >
                                     <option value="general">General Support / FAQ</option>
                                     <option value="billing">Billing & Subscriptions</option>
@@ -1164,7 +1164,7 @@ export default function AgentInbox() {
                             </div>
 
                             <div>
-                                <label className="block text-2xs font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
+                                <label className="block text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted mb-2.5">
                                     Core Problem Encountered
                                 </label>
                                 <textarea
@@ -1173,12 +1173,12 @@ export default function AgentInbox() {
                                     onChange={(e) => setResolveProblem(e.target.value)}
                                     rows={3}
                                     placeholder="Explain the specific issue the customer had..."
-                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs leading-relaxed focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-700 resize-none"
+                                    className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white text-xs leading-relaxed focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-ink-secondary resize-none"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-2xs font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
+                                <label className="block text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted mb-2.5">
                                     Verified Solution Provided
                                 </label>
                                 <textarea
@@ -1187,22 +1187,22 @@ export default function AgentInbox() {
                                     onChange={(e) => setResolveSolution(e.target.value)}
                                     rows={3}
                                     placeholder="Outline the exact steps or correct answer that resolved it..."
-                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs leading-relaxed focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-slate-700 resize-none"
+                                    className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white text-xs leading-relaxed focus:ring-2 focus:ring-violet-500 outline-none transition-all placeholder:text-ink-secondary resize-none"
                                 />
                             </div>
 
-                            <div className="flex items-center gap-3 border-t border-slate-800 pt-6 mt-4">
+                            <div className="flex items-center gap-3 border-t border-neutral-800 pt-6 mt-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowResolveModal(false)}
-                                    className="flex-1 py-3 text-center border border-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-400 active:scale-95 transition-all"
+                                    className="flex-1 py-3 text-center border border-neutral-800 hover:bg-interactive-hover rounded-xl text-xs font-bold text-ink-muted active:scale-95 transition-all"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submittingResolve}
-                                    className="flex-1 py-3 text-center bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-violet-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 text-center bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
                                 >
                                     {submittingResolve ? (
                                         <>
@@ -1245,20 +1245,20 @@ export default function AgentInbox() {
                     background: transparent;
                 }
                 .chat-scroll::-webkit-scrollbar-thumb {
-                    background: #cbd5e1;
+                    background: rgb(var(--vq-slate-300));
                     border-radius: 10px;
                 }
                 .chat-scroll::-webkit-scrollbar-thumb:hover {
-                    background: #94a3b8;
+                    background: rgb(var(--vq-slate-400));
                 }
                 .dark .chat-scroll::-webkit-scrollbar-thumb {
-                    background: #334155;
+                    background: rgb(var(--vq-slate-700));
                     border-radius: 10px;
                 }
                 .dark .chat-scroll::-webkit-scrollbar-thumb:hover {
-                    background: #475569;
+                    background: rgb(var(--vq-slate-600));
                 }
-            `}</style>
+`}</style>
         </OneGlanceLayout>
     );
 }

@@ -31,7 +31,7 @@ export default function OfflineWarningBanner() {
                             ⚠️ OFFLINE MODE: Showing Local Data Only.
                         </p>
                         <p className="text-sm text-red-700 dark:text-red-300/80 mt-1 leading-relaxed">
-                            <strong className="font-extrabold">Data from other branches or historical archives is unavailable.</strong>
+                            <strong className="font-bold">Data from other branches or historical archives is unavailable.</strong>
                             <span className="block mt-1">You are currently viewing data stored on this device only. Sales made now will sync when connection returns.</span>
                         </p>
                     </div>
@@ -66,7 +66,7 @@ export default function OfflineWarningBanner() {
                             ⚠️ WARNING: SHOP IS OFFLINE
                         </p>
                         <p className="text-sm text-amber-700 dark:text-amber-300/80 mt-1 leading-relaxed">
-                            The data below is <strong className="font-extrabold">outdated</strong> (Last seen: {Math.floor(diffMinutes)} mins ago).
+                            The data below is <strong className="font-bold">outdated</strong> (Last seen: {Math.floor(diffMinutes)} mins ago).
                             The shop may have made transactions that are not reflected here yet.
                             <span className="block mt-1 font-medium">Please proceed with caution when making inventory decisions.</span>
                         </p>
@@ -80,16 +80,16 @@ export default function OfflineWarningBanner() {
     // Only show if user is admin (implied by usage context)
     if (isClosed) {
         return (
-            <div className="bg-slate-50 dark:bg-slate-800/50 border-l-4 border-slate-400 dark:border-slate-500 p-4 mb-6 rounded-r shadow-sm">
+            <div className="bg-app border-l-4 border-line-strong dark:border-line p-4 mb-6 rounded-r shadow-sm">
                 <div className="flex">
                     <div className="flex-shrink-0">
-                        <CheckCircle2 className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                        <CheckCircle2 className="h-5 w-5 text-ink-muted" />
                     </div>
                     <div className="ml-3">
-                        <p className="text-sm text-slate-700 dark:text-slate-200 font-bold">
+                        <p className="text-sm text-ink-secondary dark:text-ink font-bold">
                             Shop is Closed. Safe to edit.
                         </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-ink-secondary mt-1">
                             The register was closed normally. You can safely make inventory updates or price changes.
                             Changes will sync automatically when the shop opens.
                         </p>

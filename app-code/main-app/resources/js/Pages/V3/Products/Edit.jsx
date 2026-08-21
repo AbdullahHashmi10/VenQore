@@ -23,7 +23,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
     return (
         <div className="p-6 max-w-2xl">
             <div className="flex items-center gap-4 mb-6">
-                <Link href={route('store.v3.products.index', { store_slug: store?.slug })} className="text-gray-500 hover:text-gray-700">
+                <Link href={route('store.v3.products.index', { store_slug: store?.slug })} className="text-ink-muted hover:text-ink">
                     ← Products
                 </Link>
                 <h1 className="text-2xl font-bold">Edit: {product.name}</h1>
@@ -118,10 +118,10 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                 </div>
 
                 {uomConversions.length > 0 && (
-                    <div className="border rounded p-4 bg-gray-50">
+                    <div className="border rounded p-4 bg-sunken">
                         <p className="text-sm font-medium mb-2">UOM Conversions</p>
                         {uomConversions.map(c => (
-                            <p key={c.id} className="text-sm text-gray-600">
+                            <p key={c.id} className="text-sm text-ink-secondary">
                                 1 {data.base_unit} = {c.conversion_factor} {c.sale_uom}
                             </p>
                         ))}
@@ -135,10 +135,10 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                 )}
 
                 {priceTiers.length > 0 && (
-                    <div className="border rounded p-4 bg-gray-50">
+                    <div className="border rounded p-4 bg-sunken">
                         <p className="text-sm font-medium mb-2">Price Tiers</p>
                         {priceTiers.map(t => (
-                            <p key={t.id} className="text-sm text-gray-600">
+                            <p key={t.id} className="text-sm text-ink-secondary">
                                 {t.min_qty}–{t.max_qty ?? '∞'} units: {formatCurrency(t.unit_price, store)}
                             </p>
                         ))}
@@ -161,7 +161,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                     </button>
                     <Link
                         href={route('store.v3.products.index', { store_slug: store?.slug })}
-                        className="border px-6 py-2 rounded hover:bg-gray-50"
+                        className="border px-6 py-2 rounded hover:bg-interactive-hover"
                     >
                         Cancel
                     </Link>

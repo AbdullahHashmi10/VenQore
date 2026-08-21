@@ -17,38 +17,38 @@ import { formatCurrency } from '@/Utils/format';
 // ─── Section Card ─────────────────────────────────────────────────────────────
 function SectionCard({ title, icon: Icon, accounts = [], total, colorClass, totalColorClass }) {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-            <div className={`p-6 border-b border-slate-100 dark:border-slate-800 ${colorClass}`}>
+        <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
+            <div className={`p-6 border-b border-line ${colorClass}`}>
                 <h3 className="text-lg font-bold flex items-center gap-2">
                     <Icon size={20} />
                     {title}
                 </h3>
             </div>
 
-            <div className="divide-y divide-slate-50 dark:divide-slate-800/60">
+            <div className="divide-y divide-line">
                 {accounts.length === 0 ? (
-                    <p className="p-6 text-sm text-slate-400 italic text-center">No activity as of this date.</p>
+                    <p className="p-6 text-sm text-ink-muted italic text-center">No activity as of this date.</p>
                 ) : accounts.map((account) => (
                     <div
                         key={account.id}
-                        className="px-6 py-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                        className="px-6 py-3 flex justify-between items-center hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                     >
                         <div className="flex items-center gap-3">
-                            <span className="font-mono text-xs text-slate-400 w-12 shrink-0">{account.code}</span>
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{account.name}</span>
+                            <span className="font-mono text-xs text-ink-muted w-12 shrink-0">{account.code}</span>
+                            <span className="text-sm font-medium text-ink-secondary">{account.name}</span>
                         </div>
-                        <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
+                        <span className="text-sm font-bold text-ink tabular-nums">
                             {formatCurrency(account.balance)}
                         </span>
                     </div>
                 ))}
 
                 {/* Section total row */}
-                <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
-                    <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">
+                <div className="px-6 py-4 bg-app flex justify-between items-center">
+                    <span className="text-xs font-bold text-ink-secondary dark:text-ink uppercase tracking-widest">
                         Total {title}
                     </span>
-                    <span className={`text-lg font-black tabular-nums ${totalColorClass}`}>
+                    <span className={`text-lg font-bold tabular-nums ${totalColorClass}`}>
                         {formatCurrency(total)}
                     </span>
                 </div>
@@ -90,9 +90,9 @@ export default function BalanceSheet({
                     actions={
                         <div className="flex items-center gap-3">
                             {/* As-Of Date Picker */}
-                            <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800
-                                            border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
-                                <Calendar size={15} className="text-slate-400 shrink-0" />
+                            <div className="flex items-center gap-2 px-3 py-2 bg-surface
+ border border-line rounded-xl shadow-sm">
+                                <Calendar size={15} className="text-ink-muted shrink-0" />
                                 <input
                                     type="date"
                                     value={dateInput}
@@ -101,14 +101,14 @@ export default function BalanceSheet({
                                     onBlur={() => router.get(route('store.accounting.balance-sheet', { store_slug: store.slug }), { date: dateInput }, { preserveScroll: true })}
                                     onKeyDown={(e) => e.key === 'Enter' && router.get(route('store.accounting.balance-sheet', { store_slug: store.slug }), { date: dateInput }, { preserveScroll: true })}
                                     title="As-of date — all balances computed up to and including this date"
-                                    className="text-sm bg-transparent text-slate-800 dark:text-slate-200
-                                               outline-none cursor-pointer"
+                                    className="text-sm bg-transparent text-ink
+ outline-none cursor-pointer"
                                 />
                             </div>
 
-                            <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800
-                                               border border-slate-200 dark:border-slate-700 rounded-xl font-bold
-                                               text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-all shadow-sm">
+                            <button className="flex items-center gap-2 px-4 py-2 bg-surface
+ border border-line rounded-xl font-bold
+ text-ink-secondary hover:bg-interactive-hover transition-all shadow-sm">
                                 <Download size={18} /> Export PDF
                             </button>
                         </div>
@@ -145,35 +145,35 @@ export default function BalanceSheet({
                     </div>
 
                     {/* ── Accounting Equation Card ────────────────────────── */}
-                    <div className="p-8 rounded-3xl bg-indigo-600 text-white shadow-xl shadow-indigo-500/20
-                                    flex flex-col md:flex-row justify-between items-center gap-8 relative overflow-hidden">
+                    <div className="p-8 rounded-2xl bg-brand-600 text-white shadow-xl 
+ flex flex-col md:flex-row justify-between items-center gap-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                         {/* Total Assets */}
                         <div className="text-center md:text-left relative z-10">
-                            <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-2">
+                            <p className="text-brand-100 text-xs font-bold uppercase tracking-widest mb-2">
                                 Total Assets
                             </p>
-                            <h3 className="text-4xl font-black tabular-nums">
+                            <h3 className="text-4xl font-bold tabular-nums">
                                 {formatCurrency(total_assets)}
                             </h3>
                         </div>
 
-                        <div className="text-3xl font-light text-indigo-300 hidden md:block">=</div>
+                        <div className="text-3xl font-light text-brand-300 hidden md:block">=</div>
 
                         {/* Liabilities + Equity */}
                         <div className="flex gap-10 text-center md:text-right relative z-10">
                             <div>
-                                <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-2">
+                                <p className="text-brand-100 text-xs font-bold uppercase tracking-widest mb-2">
                                     Liabilities
                                 </p>
                                 <p className="text-2xl font-bold tabular-nums">
                                     {formatCurrency(total_liabilities)}
                                 </p>
                             </div>
-                            <div className="text-2xl font-light text-indigo-300 self-end pb-1">+</div>
+                            <div className="text-2xl font-light text-brand-300 self-end pb-1">+</div>
                             <div>
-                                <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-2">
+                                <p className="text-brand-100 text-xs font-bold uppercase tracking-widest mb-2">
                                     Equity
                                 </p>
                                 <p className="text-2xl font-bold tabular-nums">
@@ -211,8 +211,8 @@ export default function BalanceSheet({
                                 icon={TrendingUp}
                                 accounts={equity.accounts}
                                 total={total_equity}
-                                colorClass="bg-indigo-50/40 dark:bg-indigo-900/5 text-indigo-700 dark:text-indigo-400"
-                                totalColorClass="text-indigo-600 dark:text-indigo-400"
+                                colorClass="bg-brand-50/40 dark:bg-brand-900/5 text-brand-700 dark:text-brand-400"
+                                totalColorClass="text-brand-600 dark:text-brand-400"
                             />
                         </div>
 

@@ -109,37 +109,37 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
             <div className="flex flex-col h-full gap-5 w-full">
 
                 {/* Header */}
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-surface p-4 rounded-2xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-3">
-                        <Link href={route('store.reports.index', { store_slug: store.slug })} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 transition-colors">
+                        <Link href={route('store.reports.index', { store_slug: store.slug })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
                             <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Customer Insights</h1>
-                            <p className="text-xs text-slate-500 font-medium">Real-time cohort spend tracking and favorite category patterns</p>
+                            <h1 className="text-xl font-bold text-ink tracking-tight">Customer Insights</h1>
+                            <p className="text-xs text-ink-muted font-medium">Real-time cohort spend tracking and favorite category patterns</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 p-1.5 rounded-xl flex-wrap w-full lg:w-auto">
-                        <Calendar size={15} className="text-slate-400 ml-1.5" />
-                        <span className="text-2xs font-bold text-slate-400 uppercase tracking-wide">Period:</span>
-                        <div className="flex bg-slate-100 dark:bg-slate-900/50 p-0.5 rounded-lg">
+                    <div className="flex items-center gap-2 bg-app border border-line p-1.5 rounded-xl flex-wrap w-full lg:w-auto">
+                        <Calendar size={15} className="text-ink-muted ml-1.5" />
+                        <span className="text-2xs font-bold text-ink-muted uppercase tracking-wide">Period:</span>
+                        <div className="flex bg-sunken p-0.5 rounded-lg">
                             {[{ id: 'today', label: 'Today' }, { id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' }, { id: 'this_year', label: 'This Year' }, { id: 'custom', label: 'Custom' }].map((opt) => (
                                 <button
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
-                                    className={`px-2.5 py-1 rounded text-2xs font-black uppercase tracking-wider transition-all ${range === opt.id ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                    className={`px-2.5 py-1 rounded text-2xs font-bold uppercase tracking-wider transition-all ${range === opt.id ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400' : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
                                 >
                                     {opt.label}
                                 </button>
                             ))}
                         </div>
                         {range === 'custom' && (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-xl">
-                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300" />
-                                <span className="text-slate-400 text-xs font-bold">TO</span>
-                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300" />
-                                <button onClick={applyCustomRange} className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">Apply</button>
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-slow bg-surface border border-line p-1 rounded-xl">
+                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary" />
+                                <span className="text-ink-muted text-xs font-bold">TO</span>
+                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary" />
+                                <button onClick={applyCustomRange} className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">Apply</button>
                             </div>
                         )}
                     </div>
@@ -148,7 +148,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                 {/* KPIs Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
                     {stats.map((s, i) => {
-                        let colorClass = "text-indigo-500 bg-indigo-500/10";
+                        let colorClass = "text-brand-500 bg-brand-500/10";
                         let valPrefix = "";
                         if (s.label.includes('Revenue')) {
                             colorClass = "text-emerald-500 bg-emerald-500/10";
@@ -159,10 +159,10 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             valPrefix = "$ ";
                         }
                         return (
-                            <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-between">
+                            <div key={i} className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
-                                    <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-1">{valPrefix}{s.value}</h3>
+                                    <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{s.label}</p>
+                                    <h3 className="text-xl font-bold text-ink tracking-tight mt-1">{valPrefix}{s.value}</h3>
                                 </div>
                                 <div className={`p-2.5 rounded-xl ${colorClass} shrink-0`}>
                                     {s.label.includes('Customers') ? <Users size={18} /> : <DollarSign size={18} />}
@@ -176,24 +176,24 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
                     
                     {/* LEFT COLUMN: Customer Insights Table list */}
-                    <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden min-h-0">
-                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 dark:bg-slate-800/30 gap-4 shrink-0">
-                            <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Customer Loyalty Registry</h2>
+                    <div className="xl:col-span-2 bg-surface rounded-2xl border border-line shadow-sm flex flex-col overflow-hidden min-h-0">
+                        <div className="p-4 border-b border-line flex flex-col sm:flex-row justify-between items-start sm:items-center bg-sunken/50 dark:bg-surface gap-4 shrink-0">
+                            <h2 className="text-sm font-bold text-ink uppercase tracking-wider">Customer Loyalty Registry</h2>
                             <div className="relative w-full sm:w-64">
-                                <Search className="absolute left-2.5 top-2.5 text-slate-400" size={14} />
+                                <Search className="absolute left-2.5 top-2.5 text-ink-muted" size={14} />
                                 <input
                                     type="text"
                                     placeholder="Search customer patterns..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="pl-8 pr-3 py-1.5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500"
+                                    className="pl-8 pr-3 py-1.5 w-full bg-surface border border-line rounded-lg text-xs focus:ring-1 focus:ring-brand-500"
                                 />
                             </div>
                         </div>
 
                         <div className="flex-1 overflow-y-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-800">
+                                <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 z-10 border-b border-line">
                                     <tr>
                                         <th className="px-6 py-3 font-bold">Customer</th>
                                         <th className="px-4 py-3 text-right font-bold">Invoices</th>
@@ -201,29 +201,29 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                         <th className="px-4 py-3 font-bold">Preferences</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-line">
                                     {filtered.length === 0 ? (
-                                        <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic">No customer insights found.</td></tr>
+                                        <tr><td colSpan={4} className="px-6 py-12 text-center text-ink-muted italic">No customer insights found.</td></tr>
                                     ) : filtered.map((row, idx) => (
                                         <tr 
                                             key={row.party_id || idx} 
-                                            className="hover:bg-indigo-50/50 dark:hover:bg-slate-850/40 transition-all cursor-pointer group"
+                                            className="hover:bg-brand-50/50 dark:hover:bg-interactive-hover transition-all cursor-pointer group"
                                             onClick={() => handleSelectCustomer(row)}
                                         >
                                             <td className="px-6 py-3.5">
-                                                <div className="font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{row.party_name}</div>
-                                                <div className="text-3xs text-slate-400 font-mono mt-0.5">Last Active: {row.last_purchase_at || 'N/A'}</div>
+                                                <div className="font-bold text-ink-secondary dark:text-ink group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{row.party_name}</div>
+                                                <div className="text-3xs text-ink-muted font-mono mt-0.5">Last Active: {row.last_purchase_at || 'N/A'}</div>
                                             </td>
-                                            <td className="px-4 py-3.5 text-right font-mono font-semibold text-slate-500">{row.invoice_count}</td>
-                                            <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-800 dark:text-slate-200">
+                                            <td className="px-4 py-3.5 text-right font-mono font-semibold text-ink-muted">{row.invoice_count}</td>
+                                            <td className="px-4 py-3.5 text-right font-mono font-bold text-ink">
                                                 {formatCurrency(row.total_spend, store)}
-                                                <span className="block text-2xs text-slate-400 font-sans font-medium">Avg: {formatCurrency(row.avg_invoice_value, store)}</span>
+                                                <span className="block text-2xs text-ink-muted font-sans font-medium">Avg: {formatCurrency(row.avg_invoice_value, store)}</span>
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <div className="text-2xs font-bold text-indigo-500 flex items-center gap-1">
+                                                <div className="text-2xs font-bold text-brand-500 flex items-center gap-1">
                                                     <Award size={10} /> {row.favorite_category || 'N/A'}
                                                 </div>
-                                                <div className="text-3xs text-slate-400 italic mt-0.5 truncate w-36">Top: {row.most_bought_item || 'N/A'}</div>
+                                                <div className="text-3xs text-ink-muted italic mt-0.5 truncate w-36">Top: {row.most_bought_item || 'N/A'}</div>
                                             </td>
                                         </tr>
                                     ))}
@@ -234,8 +234,8 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
                     {/* MIDDLE COLUMN: Revenue Distribution Chart */}
                     <div className="xl:col-span-1 flex flex-col gap-4">
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col min-h-[300px]">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                        <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm flex flex-col min-h-[300px]">
+                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-4 flex items-center gap-2">
                                 <BarChart2 size={14} /> Top Customer Contribution
                             </h3>
                             <div className="flex-1 relative">
@@ -255,7 +255,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             </div>
                         </div>
 
-                        <div className="bg-indigo-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
+                        <div className="bg-brand-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                             <div className="relative z-10">
                                 <h3 className="text-xs font-bold opacity-90 mb-2 flex items-center gap-2">
@@ -273,37 +273,37 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
                     {/* RIGHT COLUMN: Customer Intelligence Card */}
                     <div className="xl:col-span-1 flex flex-col gap-4 h-full">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg text-white h-full relative overflow-hidden flex flex-col justify-between">
+                        <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg text-white h-full relative overflow-hidden flex flex-col justify-between">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                             <div className="space-y-4">
-                                <h3 className="text-base font-black uppercase tracking-tight mb-2 flex items-center gap-2 text-emerald-400">
+                                <h3 className="text-base font-bold uppercase tracking-tight mb-2 flex items-center gap-2 text-emerald-400">
                                     <Zap size={18} fill="currentColor" /> Cohort intelligence
                                 </h3>
 
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10 space-y-2">
-                                    <h4 className="text-xs font-bold text-indigo-300 mb-0.5 flex items-center gap-2"><Award size={12} /> Top Spender</h4>
-                                    <p className="text-1xs text-slate-300">
+                                    <h4 className="text-xs font-bold text-brand-300 mb-0.5 flex items-center gap-2"><Award size={12} /> Top Spender</h4>
+                                    <p className="text-1xs text-neutral-300">
                                         Your top buyer in this period is <strong className="text-white">{vipCustomers[0]?.party_name || 'N/A'}</strong> with a total spend of <strong className="text-emerald-400">{formatCurrency(vipCustomers[0]?.total_spend || 0, store)}</strong>.
                                     </p>
                                 </div>
 
                                 <div className="space-y-2 pt-2 border-t border-white/10">
-                                    <h4 className="text-2xs font-black uppercase text-slate-400 tracking-wider">Top Spenders (VIP Cluster)</h4>
+                                    <h4 className="text-2xs font-bold uppercase text-ink-muted tracking-wider">Top Spenders (VIP Cluster)</h4>
                                     {vipCustomers.map((c, idx) => (
                                         <div 
                                             key={idx} 
                                             onClick={() => handleSelectCustomer(c)}
                                             className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-1xs transition-all cursor-pointer group"
                                         >
-                                            <span className="text-slate-300 font-medium truncate w-32 group-hover:text-indigo-400">{c.party_name}</span>
+                                            <span className="text-neutral-300 font-medium truncate w-32 group-hover:text-brand-400">{c.party_name}</span>
                                             <span className="font-mono text-emerald-400 font-bold">{formatCurrency(c.total_spend, store)}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-3 rounded-xl border border-white/10 shrink-0 text-2xs text-slate-400">
+                            <div className="bg-white/5 p-3 rounded-xl border border-white/10 shrink-0 text-2xs text-ink-muted">
                                 Displays live ledger summaries. Click on any row to open the complete invoice log and itemized purchase breakdown.
                             </div>
                         </div>
@@ -312,19 +312,19 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
                 {/* Customer Details popup modal */}
                 {selectedCustomer && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-normal">
+                        <div className="bg-surface w-full max-w-5xl rounded-2xl shadow-2xl border border-line overflow-hidden animate-in zoom-in-95 duration-normal flex flex-col max-h-[85vh]">
                             
                             {/* Modal Header */}
-                            <div className="bg-indigo-600 p-5 text-white relative overflow-hidden shrink-0">
+                            <div className="bg-brand-600 p-5 text-white relative overflow-hidden shrink-0">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                 <div className="relative z-10 flex justify-between items-center">
                                     <div className="space-y-1">
-                                        <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-2xs font-black uppercase tracking-wider">
+                                        <span className="bg-brand-500/50 text-white border border-brand-400/30 px-3 py-1 rounded-full text-2xs font-bold uppercase tracking-wider">
                                             Spender Profile Analysis
                                         </span>
-                                        <h2 className="text-2xl font-black tracking-tight mt-1">{selectedCustomer.party_name}</h2>
-                                        <p className="text-indigo-100 text-xs font-semibold">
+                                        <h2 className="text-2xl font-bold tracking-tight mt-1">{selectedCustomer.party_name}</h2>
+                                        <p className="text-brand-100 text-xs font-semibold">
                                             Last Active Purchase: <span className="text-white font-bold">{selectedCustomer.last_purchase_at || 'N/A'}</span>
                                         </p>
                                     </div>
@@ -338,54 +338,54 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             <div className="p-6 space-y-6 overflow-y-auto flex-1">
                                 {/* Financial KPIs */}
                                 <div className="grid grid-cols-3 gap-6">
-                                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                        <p className="text-xs font-bold text-slate-400 uppercase">Total Spent in Period</p>
-                                        <p className="text-2xl font-black text-slate-800 dark:text-white mt-1">{formatCurrency(selectedCustomer.total_spend, store)}</p>
+                                    <div className="bg-app p-4 rounded-xl border border-line">
+                                        <p className="text-xs font-bold text-ink-muted uppercase">Total Spent in Period</p>
+                                        <p className="text-2xl font-bold text-ink mt-1">{formatCurrency(selectedCustomer.total_spend, store)}</p>
                                     </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                        <p className="text-xs font-bold text-slate-400 uppercase">Invoices Registered</p>
-                                        <p className="text-2xl font-black text-indigo-500 mt-1">{selectedCustomer.invoice_count}</p>
+                                    <div className="bg-app p-4 rounded-xl border border-line">
+                                        <p className="text-xs font-bold text-ink-muted uppercase">Invoices Registered</p>
+                                        <p className="text-2xl font-bold text-brand-500 mt-1">{selectedCustomer.invoice_count}</p>
                                     </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                        <p className="text-xs font-bold text-slate-400 uppercase">Average Ticket Value</p>
-                                        <p className="text-2xl font-black text-emerald-500 mt-1">{formatCurrency(selectedCustomer.avg_invoice_value, store)}</p>
+                                    <div className="bg-app p-4 rounded-xl border border-line">
+                                        <p className="text-xs font-bold text-ink-muted uppercase">Average Ticket Value</p>
+                                        <p className="text-2xl font-bold text-emerald-500 mt-1">{formatCurrency(selectedCustomer.avg_invoice_value, store)}</p>
                                     </div>
                                 </div>
 
                                 {/* Modal Split Columns */}
                                 {isLoadingDetails ? (
-                                    <div className="flex flex-col items-center justify-center py-20 text-indigo-500 gap-3">
+                                    <div className="flex flex-col items-center justify-center py-20 text-brand-500 gap-3">
                                         <span className="animate-spin text-3xl">⌛</span>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Querying Ledger...</span>
+                                        <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">Querying Ledger...</span>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                                         {/* Purchase Invoice log */}
                                         <div className="md:col-span-6 flex flex-col">
-                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Clock size={13} /> Invoice Purchase History</h4>
+                                            <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Clock size={13} /> Invoice Purchase History</h4>
                                             {modalDetails.invoices.length === 0 ? (
-                                                <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-slate-400 italic">
+                                                <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                     No invoice transaction logs found in this period.
                                                 </div>
                                             ) : (
-                                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm flex-1">
+                                                <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm flex-1">
                                                     <table className="w-full text-xs text-left">
-                                                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
+                                                        <thead className="bg-app text-ink-muted uppercase border-b border-line">
                                                             <tr>
                                                                 <th className="py-2.5 px-3">Date</th>
                                                                 <th className="py-2.5 px-3">Invoice No</th>
                                                                 <th className="py-2.5 px-3 text-right">Amount</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                        <tbody className="divide-y divide-line">
                                                             {modalDetails.invoices.map((inv, idx) => (
-                                                                <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
-                                                                    <td className="py-2.5 px-3 text-slate-500 font-mono">{inv.date}</td>
-                                                                    <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-250">
+                                                                <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover">
+                                                                    <td className="py-2.5 px-3 text-ink-muted font-mono">{inv.date}</td>
+                                                                    <td className="py-2.5 px-3 font-semibold text-ink-secondary dark:text-ink">
                                                                         {inv.invoice_no}
-                                                                        <span className={`inline-block ml-2 px-1 text-4xs rounded uppercase font-black ${inv.status === 'posted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20' : 'bg-amber-100 text-amber-600 dark:bg-amber-950/20'}`}>{inv.status}</span>
+                                                                        <span className={`inline-block ml-2 px-1 text-4xs rounded uppercase font-bold ${inv.status === 'posted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20' : 'bg-amber-100 text-amber-600 dark:bg-amber-950/20'}`}>{inv.status}</span>
                                                                     </td>
-                                                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700 dark:text-slate-200">{formatCurrency(inv.amount, store)}</td>
+                                                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-ink-secondary dark:text-ink">{formatCurrency(inv.amount, store)}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -396,30 +396,30 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
                                         {/* Top purchased products breakdown */}
                                         <div className="md:col-span-6 flex flex-col">
-                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><ShoppingBag size={13} /> Product Buying Preferences</h4>
+                                            <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><ShoppingBag size={13} /> Product Buying Preferences</h4>
                                             {modalDetails.top_items.length === 0 ? (
-                                                <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-slate-400 italic">
+                                                <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                     No products purchases found.
                                                 </div>
                                             ) : (
-                                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm flex-1">
+                                                <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm flex-1">
                                                     <table className="w-full text-xs text-left">
-                                                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
+                                                        <thead className="bg-app text-ink-muted uppercase border-b border-line">
                                                             <tr>
                                                                 <th className="py-2.5 px-3">Product</th>
                                                                 <th className="py-2.5 px-3 text-right">Qty Bought</th>
                                                                 <th className="py-2.5 px-3 text-right">Total Spent</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                        <tbody className="divide-y divide-line">
                                                             {modalDetails.top_items.map((item, idx) => (
-                                                                <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                                                                <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover">
                                                                     <td className="py-2.5 px-3">
-                                                                        <span className="font-bold text-slate-700 dark:text-slate-250 block">{item.name}</span>
-                                                                        <span className="text-3xs text-slate-400 font-mono">{item.sku}</span>
+                                                                        <span className="font-bold text-ink-secondary dark:text-ink block">{item.name}</span>
+                                                                        <span className="text-3xs text-ink-muted font-mono">{item.sku}</span>
                                                                     </td>
-                                                                    <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-500">{item.quantity}</td>
-                                                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700 dark:text-slate-200">{formatCurrency(item.total_spent, store)}</td>
+                                                                    <td className="py-2.5 px-3 text-right font-mono font-semibold text-ink-muted">{item.quantity}</td>
+                                                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-ink-secondary dark:text-ink">{formatCurrency(item.total_spent, store)}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -432,8 +432,8 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end shrink-0">
-                                <button onClick={() => handleSelectCustomer(null)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
+                            <div className="p-4 border-t border-line bg-app flex justify-end shrink-0">
+                                <button onClick={() => handleSelectCustomer(null)} className="px-5 py-2 bg-neutral-800 hover:bg-interactive-hover dark:hover:bg-interactive-hover text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
                             </div>
 
                         </div>

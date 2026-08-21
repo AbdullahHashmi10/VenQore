@@ -124,7 +124,7 @@ export default function FloatingAiBubble({
     return (
         <div
             ref={bubbleRef}
-            className={`fixed z-[150] select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`fixed z-modal select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{
                 left: position.x,
                 top: position.y,
@@ -136,10 +136,10 @@ export default function FloatingAiBubble({
             {/* Main Bubble */}
             <div
                 onClick={handleClick}
-                className={`relative group w-16 h-16 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 shadow-2xl shadow-indigo-500/30 flex items-center justify-center transition-transform ${isDragging ? 'scale-110' : 'hover:scale-105'}`}
+                className={`relative group w-16 h-16 rounded-full bg-gradient-to-br from-brand-600 to-purple-600 shadow-2xl  flex items-center justify-center transition-transform ${isDragging ? 'scale-110' : ''}`}
             >
                 {/* Animated ring */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-100 blur-md transition-opacity" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand-400 to-purple-500 opacity-0 group-hover:opacity-100 blur-md transition-opacity" />
 
                 {/* Icon */}
                 <div className="relative z-10 text-white">
@@ -149,9 +149,9 @@ export default function FloatingAiBubble({
                 {/* Message count badge removed */}
 
                 {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-neutral-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
                     AI Assistant
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-1 w-2 h-2 bg-slate-900 rotate-45" />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-1 w-2 h-2 bg-neutral-900 rotate-45" />
                 </div>
             </div>
 
@@ -159,7 +159,7 @@ export default function FloatingAiBubble({
             <button
                 data-close-button
                 onClick={onClose}
-                className="absolute -top-2 -left-2 w-6 h-6 bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white rounded-full flex items-center justify-center transition-colors shadow-lg opacity-0 group-hover:opacity-100"
+                className="absolute -top-2 -left-2 w-6 h-6 bg-neutral-800 hover:bg-red-600 text-ink-muted hover:text-white rounded-full flex items-center justify-center transition-colors shadow-lg opacity-0 group-hover:opacity-100"
                 title="Close assistant"
             >
                 <X size={12} />

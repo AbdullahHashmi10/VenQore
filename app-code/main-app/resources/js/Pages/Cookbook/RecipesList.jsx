@@ -63,7 +63,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                         actions={
                             <Link
                                 href={route('store.cookbook.create', { store_slug: store.slug })}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm hover:shadow-md font-medium"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors shadow-sm hover:shadow-md font-medium"
                             >
                                 <Plus size={18} />
                                 <span>New Recipe</span>
@@ -79,12 +79,12 @@ export default function CookbookIndex({ recipes = [], store }) {
                                     <ChefHat size={40} className="text-white/70" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-white mb-2">Your Cookbook is Empty</h3>
-                                <p className="text-indigo-200 mb-8">
+                                <p className="text-brand-200 mb-8">
                                     Start by creating your first recipe to track manufacturing costs, wastage, and profit margins.
                                 </p>
                                 <Link
                                     href={route('store.cookbook.create', { store_slug: store.slug })}
-                                    className="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors font-bold shadow-lg"
+                                    className="flex items-center gap-2 px-6 py-3 bg-white text-brand-600 rounded-xl hover:bg-brand-50 transition-colors font-bold shadow-lg"
                                 >
                                     <Plus size={20} />
                                     Create First Recipe
@@ -96,7 +96,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                             {recipes.map((recipe) => (
                                 <div
                                     key={recipe.id}
-                                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all group overflow-hidden"
+                                    className="bg-surface rounded-2xl border border-line shadow-sm hover:shadow-lg transition-all group overflow-hidden"
                                 >
                                     {/* Header with gradient */}
                                     <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4">
@@ -118,28 +118,28 @@ export default function CookbookIndex({ recipes = [], store }) {
                                     {/* Body */}
                                     <div className="p-4 space-y-4">
                                         {/* Description */}
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                                        <p className="text-sm text-ink-muted line-clamp-2">
                                             {recipe.description || 'No description provided'}
                                         </p>
 
                                         {/* Stats Row */}
                                         <div className="grid grid-cols-3 gap-3">
-                                            <div className="text-center p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                                <Package size={16} className="mx-auto text-slate-400 mb-1" />
-                                                <p className="text-xs text-slate-500">Ingredients</p>
-                                                <p className="font-bold text-slate-700 dark:text-slate-200">{recipe.ingredients_count}</p>
+                                            <div className="text-center p-2 bg-app rounded-xl">
+                                                <Package size={16} className="mx-auto text-ink-muted mb-1" />
+                                                <p className="text-xs text-ink-muted">Ingredients</p>
+                                                <p className="font-bold text-ink-secondary dark:text-ink">{recipe.ingredients_count}</p>
                                             </div>
-                                            <div className="text-center p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                            <div className="text-center p-2 bg-app rounded-xl">
                                                 <DollarSign size={16} className="mx-auto text-emerald-500 mb-1" />
-                                                <p className="text-xs text-slate-500">COGM</p>
+                                                <p className="text-xs text-ink-muted">COGM</p>
                                                 <p className="font-bold text-emerald-600 dark:text-emerald-400">
                                                     {getCurrencySymbol()} {parseFloat(recipe.total_cost || 0).toLocaleString()}
                                                 </p>
                                             </div>
-                                            <div className="text-center p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                            <div className="text-center p-2 bg-app rounded-xl">
                                                 <Flame size={16} className="mx-auto text-orange-500 mb-1" />
-                                                <p className="text-xs text-slate-500">Yield</p>
-                                                <p className="font-bold text-slate-700 dark:text-slate-200">{recipe.yield_quantity}</p>
+                                                <p className="text-xs text-ink-muted">Yield</p>
+                                                <p className="font-bold text-ink-secondary dark:text-ink">{recipe.yield_quantity}</p>
                                             </div>
                                         </div>
 
@@ -163,10 +163,10 @@ export default function CookbookIndex({ recipes = [], store }) {
                                     </div>
 
                                     {/* Actions Footer */}
-                                    <div className="border-t border-slate-100 dark:border-slate-800 p-3 flex justify-end gap-2">
+                                    <div className="border-t border-line p-3 flex justify-end gap-2">
                                         <button
                                             onClick={() => openSimulator(recipe)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors border border-indigo-200 dark:border-indigo-800"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors border border-brand-200 dark:border-brand-800"
                                             title="Simulate Production"
                                         >
                                             <PlayCircle size={14} />
@@ -184,7 +184,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                                         )}
                                         <Link
                                             href={route('store.cookbook.edit', { store_slug: store.slug, id: recipe.id })}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
                                         >
                                             <Edit size={14} />
                                             Edit
@@ -207,11 +207,11 @@ export default function CookbookIndex({ recipes = [], store }) {
                 <Modal show={simulatorOpen} onClose={() => setSimulatorOpen(false)} maxWidth="2xl">
                     <div className="p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <PlayCircle className="text-indigo-600" />
+                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+                                <PlayCircle className="text-brand-600" />
                                 Pre-Production Simulator
                             </h2>
-                            <button onClick={() => setSimulatorOpen(false)} className="text-slate-400 hover:text-slate-600">
+                            <button onClick={() => setSimulatorOpen(false)} className="text-ink-muted hover:text-ink-secondary">
                                 <XCircle size={24} />
                             </button>
                         </div>
@@ -219,28 +219,28 @@ export default function CookbookIndex({ recipes = [], store }) {
                         {selectedRecipe && (
                             <div className="space-y-6">
                                 {/* Input Section */}
-                                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl space-y-4">
+                                <div className="bg-app p-4 rounded-xl space-y-4">
                                     <div className="flex justify-between items-center">
                                         <div>
                                             <h3 className="font-bold text-lg dark:text-white">{selectedRecipe.name}</h3>
-                                            <p className="text-sm text-slate-500">How much do you want to produce?</p>
+                                            <p className="text-sm text-ink-muted">How much do you want to produce?</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
                                                 value={simQty}
                                                 onChange={e => setSimQty(parseFloat(e.target.value) || 0)}
-                                                className="w-24 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 font-bold"
+                                                className="w-24 px-3 py-2 rounded-lg border border-line dark:border-line dark:bg-raised font-bold"
                                                 min="1"
                                             />
-                                            <span className="font-medium text-slate-600 dark:text-slate-400">Units</span>
+                                            <span className="font-medium text-ink-secondary">Units</span>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={runSimulation}
                                         disabled={simLoading || simQty <= 0}
-                                        className="w-full py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                                        className="w-full py-2 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 disabled:opacity-50 transition-colors"
                                     >
                                         {simLoading ? 'Checking Stock...' : 'Can I Make This?'}
                                     </button>
@@ -248,7 +248,7 @@ export default function CookbookIndex({ recipes = [], store }) {
 
                                 {/* Results Section */}
                                 {simResult && (
-                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-slow">
                                         <div className={`p-4 rounded-xl border flex items-start gap-3 ${simResult.can_make
                                             ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
                                             : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
@@ -270,9 +270,9 @@ export default function CookbookIndex({ recipes = [], store }) {
                                             </div>
                                         </div>
 
-                                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                                        <div className="border border-line rounded-xl overflow-hidden">
                                             <table className="w-full text-sm text-left">
-                                                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
+                                                <thead className="bg-sunken text-ink-secondary font-bold">
                                                     <tr>
                                                         <th className="px-4 py-3">Ingredient</th>
                                                         <th className="px-4 py-3 text-right">Required</th>
@@ -280,14 +280,14 @@ export default function CookbookIndex({ recipes = [], store }) {
                                                         <th className="px-4 py-3 text-center">Status</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                <tbody className="divide-y divide-line">
                                                     {simResult.ingredients.map((ing, idx) => (
-                                                        <tr key={idx} className="bg-white dark:bg-slate-900">
+                                                        <tr key={idx} className="bg-surface">
                                                             <td className="px-4 py-3 font-medium dark:text-white">{ing.name}</td>
-                                                            <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-400">
+                                                            <td className="px-4 py-3 text-right text-ink-secondary">
                                                                 {parseFloat(ing.required).toFixed(2)} {ing.unit}
                                                             </td>
-                                                            <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-400">
+                                                            <td className="px-4 py-3 text-right text-ink-secondary">
                                                                 {parseFloat(ing.available).toFixed(2)} {ing.unit}
                                                             </td>
                                                             <td className="px-4 py-3 text-center">
@@ -317,11 +317,11 @@ export default function CookbookIndex({ recipes = [], store }) {
                 <Modal show={trainingOpen} onClose={() => setTrainingOpen(false)} maxWidth="4xl">
                     <div className="p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
                                 <BookOpen className="text-blue-600" />
                                 Training Resources: {selectedRecipe?.name}
                             </h2>
-                            <button onClick={() => setTrainingOpen(false)} className="text-slate-400 hover:text-slate-600">
+                            <button onClick={() => setTrainingOpen(false)} className="text-ink-muted hover:text-ink-secondary">
                                 <XCircle size={24} />
                             </button>
                         </div>
@@ -329,7 +329,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                         {selectedRecipe && selectedRecipe.media && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {selectedRecipe.media.map((media, idx) => (
-                                    <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                                    <div key={idx} className="bg-app rounded-xl overflow-hidden border border-line">
                                         {media.type === 'youtube' && (
                                             <div className="aspect-video">
                                                 <iframe
@@ -341,12 +341,12 @@ export default function CookbookIndex({ recipes = [], store }) {
                                             </div>
                                         )}
                                         {media.type === 'image' && (
-                                            <div className="aspect-video bg-slate-200 dark:bg-slate-700">
+                                            <div className="aspect-video bg-sunken">
                                                 <img src={media.url} alt={media.title} className="w-full h-full object-cover" />
                                             </div>
                                         )}
                                         <div className="p-3">
-                                            <h4 className="font-bold text-slate-800 dark:text-white">{media.title || `Resource #${idx + 1}`}</h4>
+                                            <h4 className="font-bold text-ink">{media.title || `Resource #${idx + 1}`}</h4>
                                             <a href={media.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">
                                                 Open Original Link
                                             </a>
@@ -356,7 +356,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                             </div>
                         )}
                         {(!selectedRecipe?.media || selectedRecipe.media.length === 0) && (
-                            <div className="text-center py-12 text-slate-500">
+                            <div className="text-center py-12 text-ink-muted">
                                 <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
                                 <p>No training resources attached to this recipe.</p>
                             </div>

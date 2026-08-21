@@ -105,20 +105,20 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                 {/* Header */}
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
                             <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl">
                                 <QrCode className="text-cyan-600 dark:text-cyan-400" size={24} />
                             </div>
                             E-Invoicing & E-Way Bill
                         </h1>
-                        <p className="text-slate-500 text-sm mt-1">Generate and manage government mandated electronic documents</p>
+                        <p className="text-ink-muted text-sm mt-1">Generate and manage government mandated electronic documents</p>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => { setActiveTab('e-invoice'); handleCloseModal(); }}
                             className={`px-4 py-2 rounded-xl font-bold transition-colors ${activeTab === 'e-invoice'
                                     ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                 }`}
                         >
                             E-Invoices
@@ -127,7 +127,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                             onClick={() => { setActiveTab('e-way-bill'); handleCloseModal(); }}
                             className={`px-4 py-2 rounded-xl font-bold transition-colors ${activeTab === 'e-way-bill'
                                     ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                 }`}
                         >
                             E-Way Bills
@@ -150,7 +150,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl">
                                 {activeTab === 'e-invoice' ? (
@@ -160,62 +160,62 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                 )}
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-bold">Generated Today</p>
-                                <p className="text-2xl font-black text-slate-800 dark:text-white">
+                                <p className="text-xs text-ink-muted uppercase font-bold">Generated Today</p>
+                                <p className="text-2xl font-bold text-ink">
                                     {activeTab === 'e-invoice' ? (stats.generated_today || 0) : (stats.waybills_today || 0)}
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
                                 <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-bold">Success Rate</p>
-                                <p className="text-2xl font-black text-emerald-600">{stats.success_rate || '100%'}</p>
+                                <p className="text-xs text-ink-muted uppercase font-bold">Success Rate</p>
+                                <p className="text-2xl font-bold text-emerald-600">{stats.success_rate || '100%'}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
                                 <AlertTriangle className="text-amber-600 dark:text-amber-400" size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-bold">Pending Generation</p>
-                                <p className="text-2xl font-black text-amber-600">
+                                <p className="text-xs text-ink-muted uppercase font-bold">Pending Generation</p>
+                                <p className="text-2xl font-bold text-amber-600">
                                     {activeTab === 'e-invoice' ? (stats.pending_generation || 0) : (stats.pending_waybills || 0)}
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
                                 <XCircle className="text-red-600 dark:text-red-400" size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-bold">Failed / Errors</p>
-                                <p className="text-2xl font-black text-red-600">{stats.failed_errors || 0}</p>
+                                <p className="text-xs text-ink-muted uppercase font-bold">Failed / Errors</p>
+                                <p className="text-2xl font-bold text-red-600">{stats.failed_errors || 0}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
+                <div className="bg-surface rounded-2xl p-4 border border-line shadow-sm">
                     <div className="flex flex-wrap gap-4">
                         <div className="flex-1 min-w-[200px]">
                             <div className="relative">
-                                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                 <input
                                     type="text"
                                     placeholder={`Search ${activeTab === 'e-invoice' ? 'E-Invoices' : 'E-Way Bills'}...`}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-slate-800 dark:text-white font-medium"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-app border border-line rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-ink font-medium"
                                 />
                             </div>
                         </div>
@@ -230,11 +230,11 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                 </div>
 
                 {/* Table */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                                <tr className="bg-app text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
                                     <th className="px-6 py-4 text-left">Date</th>
                                     <th className="px-6 py-4 text-left">Doc Number</th>
                                     <th className="px-6 py-4 text-left">Customer</th>
@@ -245,12 +245,12 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                     <th className="px-6 py-4 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-line">
                                 {filteredInvoices.length === 0 ? (
                                     <tr>
                                         <td colSpan={activeTab === 'e-way-bill' ? 8 : 7} className="px-6 py-12 text-center">
-                                            <QrCode size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                                            <p className="text-slate-500 font-medium">No {activeTab === 'e-invoice' ? 'E-Invoices' : 'E-Way Bills'} found</p>
+                                            <QrCode size={48} className="mx-auto text-neutral-300 dark:text-ink-secondary mb-4" />
+                                            <p className="text-ink-muted font-medium">No {activeTab === 'e-invoice' ? 'E-Invoices' : 'E-Way Bills'} found</p>
                                         </td>
                                     </tr>
                                 ) : (
@@ -258,28 +258,28 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                         const isWaybillGenerated = !!invoice.eway_bill_number;
                                         
                                         return (
-                                            <tr key={invoice.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
+                                            <tr key={invoice.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-ink">
                                                     {new Date(invoice.posted_at || invoice.created_at).toLocaleDateString()}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-ink">
                                                     {invoice.reference_number}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-ink-muted">
                                                     {invoice.customer?.name || 'Walk-in Customer'}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-slate-800 dark:text-slate-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-ink">
                                                     Rs {new Intl.NumberFormat().format(invoice.total)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-slate-500 dark:text-slate-400 font-mono">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-ink-muted font-mono">
                                                     {activeTab === 'e-invoice' ? (invoice.fbr_invoice_number || '-') : (invoice.eway_bill_number || '-')}
                                                 </td>
                                                 {activeTab === 'e-way-bill' && (
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-ink-muted">
                                                         {invoice.transporter_name ? (
                                                             <div>
-                                                                <p className="font-semibold text-slate-800 dark:text-slate-200">{invoice.transporter_name}</p>
-                                                                <p className="text-xs text-slate-400 font-mono">{invoice.vehicle_number}</p>
+                                                                <p className="font-semibold text-ink">{invoice.transporter_name}</p>
+                                                                <p className="text-xs text-ink-muted font-mono">{invoice.vehicle_number}</p>
                                                             </div>
                                                         ) : '-'}
                                                     </td>
@@ -365,21 +365,21 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
 
             {/* Selection Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-drawer flex items-center justify-center bg-neutral-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-normal">
+                    <div className="bg-surface rounded-2xl w-full max-w-2xl border border-line shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-normal">
                         {/* Modal Header */}
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                        <div className="p-6 border-b border-line flex justify-between items-center bg-app">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                                <h3 className="text-lg font-bold text-ink">
                                     {selectedSale ? 'Enter Transport Details' : `Generate New ${activeTab === 'e-invoice' ? 'E-Invoice' : 'E-Way Bill'}`}
                                 </h3>
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-ink-muted mt-1">
                                     {selectedSale ? `Provide shipping details for invoice ${selectedSale.reference_number}` : 'Select a posted transaction to report electronically'}
                                 </p>
                             </div>
                             <button
                                 onClick={handleCloseModal}
-                                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                className="p-2 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors"
                             >
                                 <XCircle size={20} />
                             </button>
@@ -388,10 +388,10 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                         {/* Modal Content */}
                         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
                             {errors && Object.keys(errors).length > 0 && (
-                                <div className="p-4 rounded-2xl bg-rose-500/10 border-2 border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold animate-in slide-in-from-top-4 duration-300">
+                                <div className="p-4 rounded-2xl bg-rose-500/10 border-2 border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold animate-in slide-in-from-top-4 duration-slow">
                                     <div className="flex items-center gap-2 mb-2">
                                         <AlertTriangle size={16} className="text-rose-500" />
-                                        <p className="font-extrabold uppercase tracking-wide">Validation failed:</p>
+                                        <p className="font-bold uppercase tracking-wide">Validation failed:</p>
                                     </div>
                                     <ul className="list-disc pl-5 space-y-0.5">
                                         {Object.entries(errors).map(([field, msg]) => (
@@ -404,33 +404,33 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                 <form onSubmit={handleWaybillSubmit} className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Transporter Name</label>
+                                            <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Transporter Name</label>
                                             <input
                                                 type="text"
                                                 required
                                                 placeholder="e.g. DHL, FedEx, Fast Logistics"
                                                 value={transporterName}
                                                 onChange={(e) => setTransporterName(e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-sm text-slate-800 dark:text-white font-medium"
+                                                className="w-full px-4 py-2.5 bg-app border border-line rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-sm text-ink font-medium"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Vehicle Number</label>
+                                            <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Vehicle Number</label>
                                             <input
                                                 type="text"
                                                 required
                                                 placeholder="e.g. ABC-1234, LH-5544"
                                                 value={vehicleNumber}
                                                 onChange={(e) => setVehicleNumber(e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-sm text-slate-800 dark:text-white font-medium"
+                                                className="w-full px-4 py-2.5 bg-app border border-line rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-sm text-ink font-medium"
                                             />
                                         </div>
                                     </div>
-                                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-850">
+                                    <div className="flex justify-end gap-3 pt-4 border-t border-line">
                                         <button
                                             type="button"
                                             onClick={() => setSelectedSale(null)}
-                                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm"
+                                            className="px-4 py-2 bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-secondary rounded-xl font-bold text-sm"
                                         >
                                             Back
                                         </button>
@@ -446,32 +446,32 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                             ) : (
                                 <>
                                     <div className="relative">
-                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                         <input
                                             type="text"
                                             placeholder="Search by invoice number or customer name..."
                                             value={modalSearch}
                                             onChange={(e) => setModalSearch(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-sm text-slate-800 dark:text-white font-medium"
+                                            className="w-full pl-9 pr-4 py-2.5 bg-app border border-line rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-sm text-ink font-medium"
                                         />
                                     </div>
 
                                     <div className="space-y-2">
                                         {unreportedInvoices.length === 0 ? (
-                                            <p className="text-center text-sm text-slate-500 py-8">
+                                            <p className="text-center text-sm text-ink-muted py-8">
                                                 No pending unreported transactions found.
                                             </p>
                                         ) : (
                                             unreportedInvoices.map((sale) => (
-                                                <div key={sale.id} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 rounded-2xl">
+                                                <div key={sale.id} className="flex justify-between items-center p-4 bg-app border border-line rounded-2xl">
                                                     <div>
-                                                        <p className="font-bold text-slate-800 dark:text-white text-sm">{sale.reference_number}</p>
-                                                        <p className="text-xs text-slate-500 mt-0.5">
+                                                        <p className="font-bold text-ink text-sm">{sale.reference_number}</p>
+                                                        <p className="text-xs text-ink-muted mt-0.5">
                                                             {sale.customer?.name || 'Walk-in Customer'} • {new Date(sale.posted_at || sale.created_at).toLocaleDateString()}
                                                         </p>
                                                     </div>
                                                     <div className="flex items-center gap-4">
-                                                        <span className="text-sm font-bold text-slate-800 dark:text-white">
+                                                        <span className="text-sm font-bold text-ink">
                                                             Rs {new Intl.NumberFormat().format(sale.total)}
                                                         </span>
                                                         <button

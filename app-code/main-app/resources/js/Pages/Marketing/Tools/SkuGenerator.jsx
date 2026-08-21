@@ -209,8 +209,8 @@ export default function SkuGenerator({ toolGroups = [] }) {
         URL.revokeObjectURL(url);
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-400/60 transition-colors';
-    const labelCls = 'block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
+    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
 
     const segmentTypeOptions = SEGMENT_TYPES;
     const separatorOptions = SEPARATORS;
@@ -234,14 +234,14 @@ export default function SkuGenerator({ toolGroups = [] }) {
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Product CSV Cleaner', href: '/tools/product-csv-cleaner' }]}
         >
             {/* ── Category / variant code maps ─────────────────────────── */}
-            <div className="rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <ListPlus size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <ListPlus size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Category & variant codes</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Map full names to short codes — these feed the scheme below.</p>
+                        <h2 className="text-lg font-bold text-ink">Category & variant codes</h2>
+                        <p className="text-sm text-ink-muted">Map full names to short codes — these feed the scheme below.</p>
                     </div>
                 </div>
 
@@ -253,11 +253,11 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 <div key={i} className="flex gap-2">
                                     <input value={c.name} onChange={(e) => updateMap(setCategories, i, 'name', e.target.value)} placeholder="Shoes" className={`${inputCls} flex-1`} />
                                     <input value={c.code} onChange={(e) => updateMap(setCategories, i, 'code', e.target.value)} placeholder="SH" className={`${inputCls} w-24 font-mono uppercase`} maxLength={8} />
-                                    <button onClick={() => removeMapRow(setCategories, i)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
+                                    <button onClick={() => removeMapRow(setCategories, i)} className="text-ink-muted hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
                                 </div>
                             ))}
                         </div>
-                        <button type="button" onClick={() => addMapRow(setCategories)} className="mt-3 px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-wide hover:border-indigo-400/40 transition-colors inline-flex items-center gap-1.5">
+                        <button type="button" onClick={() => addMapRow(setCategories)} className="mt-3 px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
                             <Plus size={13} /> Add category
                         </button>
                     </div>
@@ -269,11 +269,11 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 <div key={i} className="flex gap-2">
                                     <input value={v.name} onChange={(e) => updateMap(setVariants, i, 'name', e.target.value)} placeholder="Black" className={`${inputCls} flex-1`} />
                                     <input value={v.code} onChange={(e) => updateMap(setVariants, i, 'code', e.target.value)} placeholder="BLK" className={`${inputCls} w-24 font-mono uppercase`} maxLength={8} />
-                                    <button onClick={() => removeMapRow(setVariants, i)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
+                                    <button onClick={() => removeMapRow(setVariants, i)} className="text-ink-muted hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
                                 </div>
                             ))}
                         </div>
-                        <button type="button" onClick={() => addMapRow(setVariants)} className="mt-3 px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-wide hover:border-indigo-400/40 transition-colors inline-flex items-center gap-1.5">
+                        <button type="button" onClick={() => addMapRow(setVariants)} className="mt-3 px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
                             <Plus size={13} /> Add variant
                         </button>
                     </div>
@@ -281,14 +281,14 @@ export default function SkuGenerator({ toolGroups = [] }) {
             </div>
 
             {/* ── Scheme builder ────────────────────────────────────────── */}
-            <div className="mt-6 rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <Layers size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <Layers size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">SKU scheme</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Add, reorder and configure segments. The preview updates live.</p>
+                        <h2 className="text-lg font-bold text-ink">SKU scheme</h2>
+                        <p className="text-sm text-ink-muted">Add, reorder and configure segments. The preview updates live.</p>
                     </div>
                 </div>
 
@@ -299,9 +299,9 @@ export default function SkuGenerator({ toolGroups = [] }) {
 
                 <div className="space-y-3">
                     {segments.map((seg, i) => (
-                        <div key={seg.id} className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-900/[0.06] dark:border-white/10">
+                        <div key={seg.id} className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                             <div className="flex items-center gap-3 flex-wrap">
-                                <GripVertical size={15} className="text-slate-600 dark:text-slate-600 shrink-0" />
+                                <GripVertical size={15} className="text-ink-secondary dark:text-ink-secondary shrink-0" />
                                 <div className="w-full sm:w-48">
                                     <Select value={seg.type} onChange={(v) => updateSegment(seg.id, 'type', v)} options={segmentTypeOptions} />
                                 </div>
@@ -311,27 +311,27 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 )}
                                 {seg.type === 'sequence' && (
                                     <>
-                                        <label className="text-xs text-slate-500 dark:text-slate-400">Start</label>
+                                        <label className="text-xs text-ink-muted">Start</label>
                                         <input type="number" min="0" value={seg.start} onChange={(e) => updateSegment(seg.id, 'start', e.target.value)} className={`${inputCls} w-24`} />
-                                        <label className="text-xs text-slate-500 dark:text-slate-400">Digits</label>
+                                        <label className="text-xs text-ink-muted">Digits</label>
                                         <input type="number" min="1" max="10" value={seg.width} onChange={(e) => updateSegment(seg.id, 'width', e.target.value)} className={`${inputCls} w-20`} />
                                     </>
                                 )}
                                 {seg.type === 'random' && (
                                     <>
-                                        <label className="text-xs text-slate-500 dark:text-slate-400">Length</label>
+                                        <label className="text-xs text-ink-muted">Length</label>
                                         <input type="number" min="1" max="16" value={seg.length} onChange={(e) => updateSegment(seg.id, 'length', e.target.value)} className={`${inputCls} w-20`} />
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-600">no O/0 or I/1 ambiguity</span>
+                                        <span className="text-1xs text-ink-muted">no O/0 or I/1 ambiguity</span>
                                     </>
                                 )}
                                 {(seg.type === 'category' || seg.type === 'variant') && (
-                                    <span className="text-xs text-slate-500 dark:text-slate-600">Looked up per-row from the {seg.type} map above.</span>
+                                    <span className="text-xs text-ink-muted">Looked up per-row from the {seg.type} map above.</span>
                                 )}
 
                                 <div className="ml-auto flex items-center gap-1 shrink-0">
-                                    <button type="button" onClick={() => moveSegment(seg.id, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowUp size={14} /></button>
-                                    <button type="button" onClick={() => moveSegment(seg.id, 1)} disabled={i === segments.length - 1} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowDown size={14} /></button>
-                                    <button type="button" onClick={() => removeSegment(seg.id)} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                    <button type="button" onClick={() => moveSegment(seg.id, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowUp size={14} /></button>
+                                    <button type="button" onClick={() => moveSegment(seg.id, 1)} disabled={i === segments.length - 1} className="p-1.5 rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowDown size={14} /></button>
+                                    <button type="button" onClick={() => removeSegment(seg.id)} className="p-1.5 rounded-lg text-ink-muted hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
                                 </div>
                             </div>
                         </div>
@@ -340,7 +340,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
 
                 <div className="flex flex-wrap gap-2 mt-4">
                     {SEGMENT_TYPES.map((t) => (
-                        <button key={t.value} type="button" onClick={() => addSegment(t.value)} className="px-3.5 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-wide hover:border-indigo-400/40 transition-colors inline-flex items-center gap-1.5">
+                        <button key={t.value} type="button" onClick={() => addSegment(t.value)} className="px-3.5 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
                             <Plus size={13} /> {t.label}
                         </button>
                     ))}
@@ -353,21 +353,21 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     </div>
                 )}
 
-                <div className="mt-6 p-5 rounded-2xl bg-indigo-500/[0.06] dark:bg-indigo-500/10 border border-indigo-500/20 text-center">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-300 mb-1">Live preview</p>
-                    <p className="text-2xl font-black font-mono text-slate-900 dark:text-white">{previewSku}</p>
+                <div className="mt-6 p-5 rounded-2xl bg-brand-500/[0.06] dark:bg-brand-500/10 border border-brand-500/20 text-center">
+                    <p className="text-2xs font-bold uppercase tracking-widest text-brand-500 dark:text-brand-300 mb-1">Live preview</p>
+                    <p className="text-2xl font-bold font-mono text-ink">{previewSku}</p>
                 </div>
             </div>
 
             {/* ── Product rows / bulk generation ───────────────────────── */}
-            <div className="mt-6 rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <TableIcon size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <TableIcon size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Generate in bulk</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Add products, then export the generated SKUs as CSV.</p>
+                        <h2 className="text-lg font-bold text-ink">Generate in bulk</h2>
+                        <p className="text-sm text-ink-muted">Add products, then export the generated SKUs as CSV.</p>
                     </div>
                 </div>
 
@@ -385,25 +385,25 @@ export default function SkuGenerator({ toolGroups = [] }) {
                         <button
                             type="button"
                             onClick={parseBulk}
-                            className="px-4 py-2 rounded-xl bg-indigo-500/15 border border-indigo-400/40 text-indigo-600 dark:text-indigo-300 text-xs font-black uppercase tracking-wide hover:bg-indigo-500/25 transition-colors inline-flex items-center gap-1.5 shrink-0"
+                            className="px-4 py-2 rounded-xl bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300 text-xs font-bold uppercase tracking-wide hover:bg-brand-500/25 transition-colors inline-flex items-center gap-1.5 shrink-0"
                         >
                             <ClipboardPaste size={14} /> Add rows
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-900/10 dark:border-white/10">
+                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
                     <table className="w-full text-sm min-w-[720px]">
                         <thead>
-                            <tr className="bg-slate-900/[0.03] dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
                                 {['Product Name', 'Category', 'Variant', 'Generated SKU', ''].map((h) => (
-                                    <th key={h} className="px-3 py-2.5 font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wide">{h}</th>
+                                    <th key={h} className="px-3 py-2.5 font-bold text-ink-secondary text-xs uppercase tracking-wide">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {results.map((r, i) => (
-                                <tr key={i} className="border-t border-slate-900/[0.06] dark:border-white/[0.06]">
+                                <tr key={i} className="border-t border-line dark:border-white/[0.06]">
                                     <td className="px-3 py-2">
                                         <input value={r.name} onChange={(e) => updateRow(i, 'name', e.target.value)} className={`${inputCls} py-1.5`} placeholder="Product name" />
                                     </td>
@@ -414,11 +414,11 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                         <Select value={r.variant} onChange={(v) => updateRow(i, 'variant', v)} options={variantOptions} />
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap">
-                                        <span className={`font-mono font-bold ${duplicateSkus.has(r.sku) ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-200'}`}>{r.sku || '—'}</span>
+                                        <span className={`font-mono font-bold ${duplicateSkus.has(r.sku) ? 'text-amber-600 dark:text-amber-400' : 'text-ink-secondary dark:text-ink'}`}>{r.sku || '—'}</span>
                                         {duplicateSkus.has(r.sku) && <AlertTriangle size={13} className="inline-block ml-1.5 text-amber-500 dark:text-amber-400" />}
                                     </td>
                                     <td className="px-3 py-2">
-                                        <button onClick={() => removeRow(i)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
+                                        <button onClick={() => removeRow(i)} className="text-ink-muted hover:text-red-500 transition-colors">
                                             <Trash2 size={15} />
                                         </button>
                                     </td>
@@ -439,14 +439,14 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     <button
                         type="button"
                         onClick={addRow}
-                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-wide hover:border-indigo-400/40 transition-colors inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
                     >
                         <Plus size={14} /> Add row
                     </button>
                     <button
                         type="button"
                         onClick={copyToClipboard}
-                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-wide hover:border-indigo-400/40 transition-colors inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
                     >
                         {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                         {copied ? 'Copied SKUs!' : 'Copy SKUs'}
@@ -454,30 +454,30 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     <button
                         type="button"
                         onClick={exportCsv}
-                        className="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-[#05030f] text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-[#05030f] text-xs font-bold uppercase tracking-wide transition-transform inline-flex items-center gap-1.5"
                     >
                         <Download size={14} /> Export CSV
                     </button>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-600">Downloads directly from your browser — nothing is sent to a server.</p>
+                    <p className="text-1xs text-ink-muted">Downloads directly from your browser — nothing is sent to a server.</p>
                 </div>
             </div>
 
             {/* ── Education section ────────────────────────────────────── */}
             <section className="mt-12">
-                <h2 className="text-2xl font-black mb-4 text-slate-900 dark:text-white">What makes a good SKU scheme?</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                <h2 className="text-2xl font-bold mb-4 text-ink">What makes a good SKU scheme?</h2>
+                <p className="text-sm text-ink-secondary leading-relaxed mb-4">
                     A <strong>SKU</strong> (Stock Keeping Unit) is an internal code your business defines to identify a specific sellable
                     variant of a product — a particular size, color, or configuration. A good scheme is <strong>short</strong> (most
-                    retailers land on 6–12 characters), <strong>consistent</strong> across the whole catalogue, and encodes{' '}
+                    retailers land on 6–12 characters), <strong>consistent</strong> across the whole catalogue, and encodes{''}
                     <strong>useful information</strong> like category and variant so staff can recognize a product from the code alone.
                     Avoid characters that are easy to misread — the letter <strong>O</strong> versus the digit <strong>0</strong>, or the
                     letter <strong>I</strong> versus the digit <strong>1</strong> — especially if the code will ever be handwritten or
                     read off a small label. Never embed a <strong>price</strong> in a SKU: prices change with promotions and repricing,
                     but a SKU is meant to stay fixed for the life of the product.
                 </p>
-                <div className="p-6 rounded-2xl bg-indigo-500/[0.06] dark:bg-indigo-500/10 border border-indigo-500/20 mb-6">
-                    <p className="font-bold text-slate-900 dark:text-white mb-2">Worked example</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                <div className="p-6 rounded-2xl bg-brand-500/[0.06] dark:bg-brand-500/10 border border-brand-500/20 mb-6">
+                    <p className="font-bold text-ink mb-2">Worked example</p>
+                    <p className="text-sm text-ink-secondary leading-relaxed">
                         Scheme: category code + variant code + a 4-digit sequential number, joined with dashes. For "Running Shoe" in
                         category <strong>Shoes</strong> (SH) and variant <strong>Black</strong> (BLK), starting the sequence at 1, the
                         generator produces <strong className="font-mono">SH-BLK-0001</strong>. The next row in the same category and
@@ -485,14 +485,14 @@ export default function SkuGenerator({ toolGroups = [] }) {
                         when category and variant repeat.
                     </p>
                 </div>
-                <h2 className="text-2xl font-black mb-4 text-slate-900 dark:text-white">SKU vs. barcode vs. UPC</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                    A <strong>SKU</strong> is internal and fully under your control — you choose its structure and meaning. A{' '}
+                <h2 className="text-2xl font-bold mb-4 text-ink">SKU vs. barcode vs. UPC</h2>
+                <p className="text-sm text-ink-secondary leading-relaxed">
+                    A <strong>SKU</strong> is internal and fully under your control — you choose its structure and meaning. A{''}
                     <strong>UPC</strong> (Universal Product Code) is a standardized, globally unique 12-digit number assigned through
                     GS1, typically used by manufacturers so any retailer can recognize the same product. A <strong>barcode</strong> is
                     just the scannable graphic representation of a code — it can encode either a SKU or a UPC, or another symbology
-                    entirely. Once you've built a SKU scheme here, you can turn any SKU into a scannable barcode with the free{' '}
-                    <a href="/tools/barcode-generator" className="text-indigo-600 dark:text-indigo-300 font-bold hover:underline">Barcode Generator</a>.
+                    entirely. Once you've built a SKU scheme here, you can turn any SKU into a scannable barcode with the free{''}
+                    <a href="/tools/barcode-generator" className="text-brand-600 dark:text-brand-300 font-bold hover:underline">Barcode Generator</a>.
                 </p>
             </section>
         </ToolShell>

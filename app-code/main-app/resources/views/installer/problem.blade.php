@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VENQORE Installer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {{-- Local faces. An installer that has not finished cannot assume a
+         network, and this is the page it shows when it has not finished. --}}
+    <link href="/css/offline-fonts.css" rel="stylesheet">
     <style>
         :root { --primary: #3b82f6; --primary-dark: #2563eb; --bg: #0f172a; --panel: #1e293b; --border: #334155; --text: #e2e8f0; --success: #10b981; --error: #ef4444; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }

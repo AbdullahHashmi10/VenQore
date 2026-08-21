@@ -117,13 +117,13 @@ export default function MovementHistory({ movements = [], filters = {}, products
     // Helper for Type Styles
     const getTypeStyle = (type) => {
         switch (type) {
-            case 'sale': return { bg: 'bg-indigo-100 dark:bg-indigo-900/30', text: 'text-indigo-600 dark:text-indigo-400', icon: <TrendingUp size={14} />, label: 'Sale' };
+            case 'sale': return { bg: 'bg-brand-100 dark:bg-brand-900/30', text: 'text-brand-600 dark:text-brand-400', icon: <TrendingUp size={14} />, label: 'Sale' };
             case 'purchase': return { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', icon: <ArrowDownLeft size={14} />, label: 'Purchase' };
             case 'return': return { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', icon: <ArrowRightLeft size={14} />, label: 'Return' };
             case 'adjustment_in': return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', icon: <TrendingUp size={14} />, label: 'Adjustment (+)' };
             case 'adjustment_out': return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', icon: <TrendingDown size={14} />, label: 'Adjustment (-)' };
             case 'damage': return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-500', icon: <Activity size={14} />, label: 'Damage' };
-            default: return { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', icon: <Activity size={14} />, label: type?.replace('_', ' ') || 'Unknown' };
+            default: return { bg: 'bg-sunken', text: 'text-ink-secondary', icon: <Activity size={14} />, label: type?.replace('_', ' ') || 'Unknown' };
         }
     };
 
@@ -136,10 +136,10 @@ export default function MovementHistory({ movements = [], filters = {}, products
             width: '180px',
             render: (row) => (
                 <div className="flex flex-col">
-                    <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">
+                    <span className="font-bold text-ink-secondary dark:text-ink text-sm">
                         {new Date(row.created_at).toLocaleDateString()}
                     </span>
-                    <span className="text-1xs text-slate-400 font-mono">
+                    <span className="text-1xs text-ink-muted font-mono">
                         {new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                 </div>
@@ -152,16 +152,16 @@ export default function MovementHistory({ movements = [], filters = {}, products
             width: '280px',
             render: (row) => (
                 <div className="flex items-center gap-3 py-1">
-                    <div className="w-9 h-9 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div className="w-9 h-9 rounded-lg bg-app flex items-center justify-center shrink-0 border border-line overflow-hidden">
                         {row.product?.image ? (
                             <img src={`/storage/${row.product.image}`} className="w-full h-full object-cover" alt="" onError={(e) => e.target.style.display = 'none'} />
                         ) : (
-                            <Package size={16} className="text-slate-400" />
+                            <Package size={16} className="text-ink-muted" />
                         )}
                     </div>
                     <div>
-                        <div className="font-bold text-sm text-slate-800 dark:text-slate-200 line-clamp-1" title={row.product?.name}>{row.product?.name || 'Unknown Item'}</div>
-                        <div className="text-2xs font-mono text-slate-500">{row.product?.sku || 'NO-SKU'}</div>
+                        <div className="font-bold text-sm text-ink line-clamp-1" title={row.product?.name}>{row.product?.name || 'Unknown Item'}</div>
+                        <div className="text-2xs font-mono text-ink-muted">{row.product?.sku || 'NO-SKU'}</div>
                     </div>
                 </div>
             )
@@ -199,7 +199,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
             key: 'reference',
             label: 'Reference',
             render: (row) => (
-                <div className="flex items-center gap-2 text-slate-500">
+                <div className="flex items-center gap-2 text-ink-muted">
                     <FileText size={14} />
                     <span className="text-xs font-mono font-medium">
                         {row.reference_type ? row.reference_type.substring(0, 3).toUpperCase() : 'SYS'} #{row.reference_id}
@@ -211,7 +211,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
             key: 'warehouse',
             label: 'Location',
             render: (row) => (
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                <span className="text-xs font-medium text-ink-secondary bg-sunken px-2 py-1 rounded">
                     {row.warehouse?.name || 'Main'}
                 </span>
             )
@@ -222,10 +222,10 @@ export default function MovementHistory({ movements = [], filters = {}, products
             align: 'right',
             render: (row) => (
                 <div className="flex items-center justify-end gap-2">
-                    <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <div className="text-xs font-medium text-ink-secondary">
                         {row.user?.name || 'System'}
                     </div>
-                    <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-2xs font-bold text-slate-500">
+                    <div className="w-6 h-6 rounded-full bg-sunken flex items-center justify-center text-2xs font-bold text-ink-muted">
                         {row.user?.name ? row.user.name.charAt(0) : 'S'}
                     </div>
                 </div>

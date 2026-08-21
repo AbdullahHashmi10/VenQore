@@ -26,29 +26,29 @@ export default function Show({ staffMember, attendanceHistory }) {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href={route('store.staff-attendance.index', { store_slug: store.slug })} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 transition-colors">
+                        <Link href={route('store.staff-attendance.index', { store_slug: store.slug })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-full text-ink-muted transition-colors">
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                                <User className="text-indigo-600" />
+                            <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
+                                <User className="text-brand-600" />
                                 {staffMember.name}
                             </h1>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium">{staffMember.role || 'Staff Member'} • {staffMember.email}</p>
+                            <p className="text-ink-muted font-medium">{staffMember.role || 'Staff Member'} • {staffMember.email}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* History Table */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                        <h3 className="font-bold text-lg text-slate-800 dark:text-white">Attendance History</h3>
+                <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-line">
+                        <h3 className="font-bold text-lg text-ink">Attendance History</h3>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-50 dark:bg-slate-800/50">
-                                <tr className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <thead className="bg-app">
+                                <tr className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                                     <th className="px-6 py-4">Date</th>
                                     <th className="px-6 py-4 text-center">Status</th>
                                     <th className="px-6 py-4 text-center">Check In</th>
@@ -57,13 +57,13 @@ export default function Show({ staffMember, attendanceHistory }) {
                                     <th className="px-6 py-4 text-center">Gaps</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-line">
                                 {attendanceHistory.data.length > 0 ? (
                                     attendanceHistory.data.map((record) => (
-                                        <tr key={record.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">
+                                        <tr key={record.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                            <td className="px-6 py-4 font-medium text-ink">
                                                 <div className="flex items-center gap-2">
-                                                    <Calendar size={14} className="text-slate-400" />
+                                                    <Calendar size={14} className="text-ink-muted" />
                                                     {formatDate(record.check_in)}
                                                 </div>
                                             </td>
@@ -71,17 +71,17 @@ export default function Show({ staffMember, attendanceHistory }) {
                                                 {/* Status Badge Logic */}
                                                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase
                                                     ${record.status === 'present' ? 'bg-emerald-100 text-emerald-700' :
-                                                        record.status === 'absent' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
+                                                        record.status === 'absent' ? 'bg-red-100 text-red-700' : 'bg-sunken text-ink-secondary'}`}>
                                                     {record.status || 'Unknown'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-center font-mono text-sm text-slate-600 dark:text-slate-400">
+                                            <td className="px-6 py-4 text-center font-mono text-sm text-ink-secondary">
                                                 {formatTime(record.check_in)}
                                             </td>
-                                            <td className="px-6 py-4 text-center font-mono text-sm text-slate-600 dark:text-slate-400">
+                                            <td className="px-6 py-4 text-center font-mono text-sm text-ink-secondary">
                                                 {formatTime(record.check_out)}
                                             </td>
-                                            <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-300">
+                                            <td className="px-6 py-4 text-center font-bold text-ink-secondary">
                                                 {record.hours_worked ? parseFloat(record.hours_worked).toFixed(1) : '0.0'}h
                                             </td>
                                             <td className="px-6 py-4 text-center">
@@ -91,14 +91,14 @@ export default function Show({ staffMember, attendanceHistory }) {
                                                         {record.total_gap_minutes}m
                                                     </span>
                                                 ) : (
-                                                    <span className="text-slate-300">-</span>
+                                                    <span className="text-neutral-300">-</span>
                                                 )}
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
+                                        <td colSpan="6" className="px-6 py-12 text-center text-ink-muted">
                                             No attendance records found.
                                         </td>
                                     </tr>
@@ -109,13 +109,13 @@ export default function Show({ staffMember, attendanceHistory }) {
 
                     {/* Pagination */}
                     {attendanceHistory.links.length > 3 && (
-                        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-center">
+                        <div className="px-6 py-4 border-t border-line flex justify-center">
                             <div className="flex gap-1">
                                 {attendanceHistory.links.map((link, i) => (
                                     <Link
                                         key={i}
                                         href={link.url}
-                                        className={`px-3 py-1 rounded-lg text-sm font-bold ${link.active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} ${!link.url && 'opacity-50 pointer-events-none'}`}
+                                        className={`px-3 py-1 rounded-lg text-sm font-bold ${link.active ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-secondary hover:bg-interactive-hover'} ${!link.url && 'opacity-50 pointer-events-none'}`}
                                     >{(link.label || '').replace(/<[^>]*>/g, '').replace(/&laquo;/g, '\u00ab').replace(/&raquo;/g, '\u00bb').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')}</Link>
                                 ))}
                             </div>

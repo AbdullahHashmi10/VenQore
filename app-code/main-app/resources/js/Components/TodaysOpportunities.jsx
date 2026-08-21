@@ -76,10 +76,10 @@ const TodaysOpportunities = ({ className = '' }) => {
 
     if (loading && !data) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm">
                 <div className="animate-pulse space-y-4">
-                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-                    <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                    <div className="h-6 bg-sunken rounded w-1/3"></div>
+                    <div className="h-20 bg-sunken rounded"></div>
                 </div>
             </div>
         );
@@ -87,9 +87,9 @@ const TodaysOpportunities = ({ className = '' }) => {
 
     if (error) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-red-200 dark:border-red-800 shadow-sm text-center text-red-500">
+            <div className="bg-surface rounded-2xl p-6 border border-red-200 dark:border-red-800 shadow-sm text-center text-red-500">
                 {error}
-                <button onClick={fetchData} className="ml-2 text-indigo-500 hover:underline">Retry</button>
+                <button onClick={fetchData} className="ml-2 text-brand-500 hover:underline">Retry</button>
             </div>
         );
     }
@@ -112,7 +112,7 @@ const TodaysOpportunities = ({ className = '' }) => {
             case 'forecast': return <Package className="text-orange-500" size={18} />;
             case 'churn': return <AlertTriangle className="text-red-500" size={18} />;
             case 'recovery': return <Wallet className="text-amber-500" size={18} />;
-            default: return <TrendingUp className="text-indigo-500" size={18} />;
+            default: return <TrendingUp className="text-brand-500" size={18} />;
         }
     };
 
@@ -136,28 +136,28 @@ const TodaysOpportunities = ({ className = '' }) => {
     }
 
     return (
-        <div className={`bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden flex flex-col h-full ${className}`}>
+        <div className={`bg-surface rounded-2xl border border-line dark:border-white/5 shadow-sm overflow-hidden flex flex-col h-full ${className}`}>
             {/* Header */}
-            <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-white/5 dark:to-white/5">
+            <div className="p-6 border-b border-line dark:border-white/5 flex items-center justify-between bg-gradient-to-r from-brand-50 to-purple-50 dark:from-white/5 dark:to-white/5">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-500/25">
+                    <div className="p-2.5 bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl text-white shadow-lg ">
                         <TrendingUp size={20} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-800 dark:text-white text-lg">Today's Opportunities</h3>
-                        <p className="text-xs text-slate-500">AI-powered insights to grow your business</p>
+                        <h3 className="font-bold text-ink text-lg">Today's Opportunities</h3>
+                        <p className="text-xs text-ink-muted">AI-powered insights to grow your business</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="text-right">
-                        <p className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                        <p className="text-xl font-bold text-brand-600 dark:text-brand-400">
                                 {formatCurrency(data.total_potential_revenue || 0, store)}
                         </p>
-                        <p className="text-xs text-slate-500">Potential Revenue</p>
+                        <p className="text-xs text-ink-muted">Potential Revenue</p>
                     </div>
                     <button
                         onClick={() => fetchData(true)}
-                        className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-slate-800/50 text-slate-500 transition-all"
+                        className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-interactive-hover text-ink-muted transition-all"
                         disabled={loading}
                         title="Run AI Analysis"
                     >
@@ -167,7 +167,7 @@ const TodaysOpportunities = ({ className = '' }) => {
             </div>
 
             {/* Summary Cards */}
-            <div className="p-6 grid grid-cols-4 gap-4 border-b border-slate-100 dark:border-white/5">
+            <div className="p-6 grid grid-cols-4 gap-4 border-b border-line dark:border-white/5">
                 <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center">
                     <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.customers_due || 0}</p>
                     <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">Customers Due</p>
@@ -189,7 +189,7 @@ const TodaysOpportunities = ({ className = '' }) => {
             {/* Recommendations List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {recommendations.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400">
+                    <div className="p-8 text-center text-ink-muted">
                         <TrendingUp size={48} className="mx-auto mb-4 opacity-30" />
                         <p className="font-medium">No opportunities right now!</p>
                         <p className="text-sm">Check back later or run the AI analysis.</p>
@@ -198,21 +198,21 @@ const TodaysOpportunities = ({ className = '' }) => {
                     recommendations.slice(0, 10).map((rec) => (
                         <div
                             key={rec.id}
-                            className="p-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group"
+                            className="p-4 border-b border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group"
                         >
                             <div className="flex items-start gap-3">
                                 {/* Priority Dot */}
                                 <div className={`w-2 h-2 rounded-full mt-2 ${getPriorityColor(rec.priority)}`}></div>
 
                                 {/* Icon */}
-                                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg shrink-0">
+                                <div className="p-2 bg-sunken rounded-lg shrink-0">
                                     {getTypeIcon(rec.type)}
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
+                                        <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">
                                             {getTypeLabel(rec.type)}
                                         </span>
                                         {rec.priority === 'urgent' && (
@@ -221,8 +221,8 @@ const TodaysOpportunities = ({ className = '' }) => {
                                             </span>
                                         )}
                                     </div>
-                                    <p className="font-semibold text-slate-800 dark:text-white text-sm">{rec.title}</p>
-                                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">{rec.message}</p>
+                                    <p className="font-semibold text-ink text-sm">{rec.title}</p>
+                                    <p className="text-xs text-ink-muted mt-1 line-clamp-2">{rec.message}</p>
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -238,7 +238,7 @@ const TodaysOpportunities = ({ className = '' }) => {
                                         {rec.action_url && (
                                             <a
                                                 href={rec.action_url}
-                                                className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-colors ${rec.action_type === 'purchase_order' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-500 hover:bg-indigo-600'}`}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-colors ${rec.action_type === 'purchase_order' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-brand-500 hover:bg-brand-600'}`}
                                             >
                                                 {rec.action_type === 'purchase_order' ? <Package size={12} /> : <Eye size={12} />}
                                                 {rec.action_type === 'purchase_order' ? 'Order Stock' : 'View'}
@@ -246,7 +246,7 @@ const TodaysOpportunities = ({ className = '' }) => {
                                         )}
                                         <button
                                             onClick={() => dismissTip(rec.id)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-lg transition-colors"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-sunken hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary text-xs font-bold rounded-lg transition-colors"
                                         >
                                             <X size={12} />
                                             Dismiss
@@ -257,10 +257,10 @@ const TodaysOpportunities = ({ className = '' }) => {
                                 {/* Revenue Potential */}
                                 {rec.potential_revenue > 0 && (
                                     <div className="text-right shrink-0">
-                                        <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                                        <p className="text-sm font-bold text-brand-600 dark:text-brand-400">
                                             {formatCurrency(rec.potential_revenue || 0, store)}
                                         </p>
-                                        <p className="text-2xs text-slate-400">Potential</p>
+                                        <p className="text-2xs text-ink-muted">Potential</p>
                                     </div>
                                 )}
                             </div>
@@ -271,10 +271,10 @@ const TodaysOpportunities = ({ className = '' }) => {
 
             {/* Footer */}
             {recommendations.length > 10 && (
-                <div className="p-3 border-t border-slate-100 dark:border-slate-800 text-center">
+                <div className="p-3 border-t border-line text-center">
                     <a
                         href={route('store.growth-engine.index', { store_slug: store.slug })}
-                        className="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center justify-center gap-1"
+                        className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 flex items-center justify-center gap-1"
                     >
                         View All {recommendations.length} Opportunities
                         <ChevronRight size={16} />

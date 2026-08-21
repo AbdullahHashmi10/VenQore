@@ -109,12 +109,12 @@ export default function DangerSettingsSection({ data, setData }) {
                 Swal.fire({
                     title: 'Factory Reset In Progress',
                     html: `
-                        <div class="mb-2 flex justify-between text-sm font-medium text-slate-300">
+                        <div class="mb-2 flex justify-between text-sm font-medium text-neutral-300">
                             <span id="swal-reset-text">Initializing wipe sequence...</span>
                             <span id="swal-reset-percent">0%</span>
                         </div>
-                        <div class="w-full bg-slate-700 rounded-full h-3 mb-4 overflow-hidden border border-slate-600">
-                            <div id="swal-reset-bar" class="bg-red-600 h-3 rounded-full transition-all duration-300 relative" style="width: 0%">
+                        <div class="w-full bg-neutral-700 rounded-full h-3 mb-4 overflow-hidden border border-neutral-600">
+                            <div id="swal-reset-bar" class="bg-red-600 h-3 rounded-full transition-all duration-slow relative" style="width: 0%">
                                 <div class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
                             </div>
                         </div>
@@ -200,9 +200,9 @@ export default function DangerSettingsSection({ data, setData }) {
     };
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow">
             {/* Header / Intro */}
-            <div className="mb-8 p-8 rounded-[2.5rem] bg-gradient-to-br from-red-950 via-red-900 to-slate-900 relative overflow-hidden shadow-2xl border border-red-900/50">
+            <div className="mb-8 p-8 rounded-2xl bg-gradient-to-br from-red-950 via-red-900 to-neutral-900 relative overflow-hidden shadow-2xl border border-red-900/50">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
 
                 <div className="relative z-10">
@@ -210,7 +210,7 @@ export default function DangerSettingsSection({ data, setData }) {
                         <div className="p-2 bg-red-500/20 rounded-lg backdrop-blur-md border border-white/10">
                             <AlertOctagon className="text-red-400" size={24} />
                         </div>
-                        <h2 className="text-3xl font-black text-white tracking-tight">Danger Zone</h2>
+                        <h2 className="text-3xl font-bold text-white tracking-tight">Danger Zone</h2>
                     </div>
                     <p className="text-red-200/60 font-medium ml-14 text-lg max-w-2xl">
                         Irreversible destructive actions. Proceed with extreme caution.
@@ -218,14 +218,14 @@ export default function DangerSettingsSection({ data, setData }) {
                 </div>
             </div>
 
-            <div className="p-8 bg-red-50 dark:bg-red-900/10 rounded-[2rem] border border-red-100 dark:border-red-500/20">
+            <div className="p-8 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-500/20">
                 <div className="space-y-6">
                     {/* Factory Reset Button */}
                     <button
                         type="button"
                         onClick={() => handleFactoryReset('all')}
                         disabled={resetting}
-                        className={`w-full py-6 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-red-600/20 text-xl tracking-wide group ${resetting ? 'bg-red-900/80 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 hover:scale-[1.01] active:scale-95'}`}
+                        className={`w-full py-6 text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl  text-xl tracking-wide group ${resetting ? 'bg-red-900/80 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-95'}`}
                     >
                         {resetting ? (
                             <div className="flex items-center gap-3">
@@ -256,9 +256,9 @@ export default function DangerSettingsSection({ data, setData }) {
                             type="button"
                             onClick={() => handleFactoryReset('products')}
                             disabled={resetting}
-                            className="py-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-red-500 text-slate-600 dark:text-slate-300 hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
+                            className="py-6 bg-surface border-2 border-line hover:border-red-500 text-ink-secondary hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
                         >
-                            <span className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
+                            <span className="p-2 bg-sunken rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
                                 <Trash2 size={20} />
                             </span>
                             Delete All Products
@@ -267,9 +267,9 @@ export default function DangerSettingsSection({ data, setData }) {
                             type="button"
                             onClick={() => handleFactoryReset('sales')}
                             disabled={resetting}
-                            className="py-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-red-500 text-slate-600 dark:text-slate-300 hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
+                            className="py-6 bg-surface border-2 border-line hover:border-red-500 text-ink-secondary hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
                         >
-                            <span className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
+                            <span className="p-2 bg-sunken rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
                                 <Trash2 size={20} />
                             </span>
                             Delete All Sales
@@ -278,9 +278,9 @@ export default function DangerSettingsSection({ data, setData }) {
                             type="button"
                             onClick={() => handleFactoryReset('stock')}
                             disabled={resetting}
-                            className="py-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-red-500 text-slate-600 dark:text-slate-300 hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
+                            className="py-6 bg-surface border-2 border-line hover:border-red-500 text-ink-secondary hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
                         >
-                            <span className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
+                            <span className="p-2 bg-sunken rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
                                 <Trash2 size={20} />
                             </span>
                             Reset Stock to 0

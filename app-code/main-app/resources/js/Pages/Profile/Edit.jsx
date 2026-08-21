@@ -221,16 +221,16 @@ export default function Edit({ mustVerifyEmail, status }) {
                     {/* Back Link */}
                     <Link
                         href={store ? route('store.home', { store_slug: store.slug }) : '/VenQore'}
-                        className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 transition-colors"
+                        className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-brand-600 transition-colors"
                     >
                         <ArrowLeft size={16} />
                         Back to Dashboard
                     </Link>
 
                     {/* Profile Information Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
                         {/* Header */}
-                        <div className="p-6 bg-gradient-to-br from-indigo-600 to-violet-700 text-white relative overflow-hidden">
+                        <div className="p-6 bg-gradient-to-br from-brand-600 to-violet-700 text-white relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                             <div className="relative z-10 flex items-center gap-4">
                                 <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl font-bold">
@@ -238,7 +238,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 </div>
                                 <div>
                                     <h1 className="text-2xl font-bold">Profile Information</h1>
-                                    <p className="text-indigo-100 text-sm">Update your account's profile information and email address.</p>
+                                    <p className="text-brand-100 text-sm">Update your account's profile information and email address.</p>
                                 </div>
                             </div>
                         </div>
@@ -255,7 +255,7 @@ export default function Edit({ mustVerifyEmail, status }) {
 
                             {/* Name */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
                                     <User size={14} className="inline mr-2" />
                                     Name
                                 </label>
@@ -263,7 +263,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                                     placeholder="Your name"
                                 />
                                 {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name}</p>}
@@ -271,7 +271,7 @@ export default function Edit({ mustVerifyEmail, status }) {
 
                             {/* Email */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
                                     <Mail size={14} className="inline mr-2" />
                                     Email
                                 </label>
@@ -279,7 +279,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                     type="email"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                                     placeholder="your@email.com"
                                 />
                                 {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email}</p>}
@@ -288,7 +288,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                             {mustVerifyEmail && user.email_verified_at === null && (
                                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl">
                                     <p className="text-sm text-amber-700 dark:text-amber-400">
-                                        Your email address is unverified.{' '}
+                                        Your email address is unverified.{''}
                                         <Link
                                             href={route('verification.send')}
                                             method="post"
@@ -311,7 +311,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
                                 >
                                     <Save size={18} />
                                     {processing ? 'Saving...' : 'Save Changes'}
@@ -322,13 +322,13 @@ export default function Edit({ mustVerifyEmail, status }) {
 
                     {/* Onboarding Progress Card */}
                     {store && (
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-                            <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                                <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <CheckCircle className="text-indigo-500" />
+                        <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+                            <div className="p-6 border-b border-line">
+                                <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+                                    <CheckCircle className="text-brand-500" />
                                     Onboarding Setup Progress
                                 </h2>
-                                <p className="text-sm text-slate-500 mt-1">Track the setup steps required to unlock your dashboard analytics.</p>
+                                <p className="text-sm text-ink-muted mt-1">Track the setup steps required to unlock your dashboard analytics.</p>
                             </div>
                             <div className="p-6 space-y-4">
                                 {/* Checklist of steps */}
@@ -340,22 +340,22 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         { key: 'expense', label: 'Record Store Expense', isDone: usePage().props.onboarding_metrics?.has_expenses, desc: 'Keep track of daily business costs by adding an expense.', route: 'store.expenses.index' },
                                         { key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: usePage().props.onboarding_metrics?.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected, desc: 'Link your Google Drive for automated database backups.', route: 'store.admin.data', tab: 'drive_sync' }
                                     ].map((item, idx) => (
-                                        <div key={idx} className={`p-4 rounded-2xl border transition-all ${item.isDone ? 'bg-emerald-500/5 border-emerald-100 dark:border-emerald-950/50' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800'}`}>
+                                        <div key={idx} className={`p-4 rounded-2xl border transition-all ${item.isDone ? 'bg-emerald-500/5 border-emerald-100 dark:border-emerald-950/50' : 'bg-app border-line'}`}>
                                             <div className="flex items-start justify-between gap-3">
                                                 <div className="flex items-start gap-3">
-                                                    <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${item.isDone ? 'bg-emerald-500/15 text-emerald-500' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
-                                                        {item.isDone ? <CheckCircle size={12} className="fill-emerald-500/10" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />}
+                                                    <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${item.isDone ? 'bg-emerald-500/15 text-emerald-500' : 'bg-sunken text-ink-muted'}`}>
+                                                        {item.isDone ? <CheckCircle size={12} className="fill-emerald-500/10" /> : <div className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-raised" />}
                                                     </div>
                                                     <div>
-                                                        <p className={`font-bold text-sm ${item.isDone ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                        <p className={`font-bold text-sm ${item.isDone ? 'text-ink-muted line-through' : 'text-ink-secondary dark:text-ink'}`}>
                                                             {item.label}
                                                         </p>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                                        <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">
                                                             {item.desc}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span className={`text-2xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                                                <span className={`text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-brand-500/10 text-brand-500'}`}>
                                                     {item.isDone ? 'Done' : 'Pending'}
                                                 </span>
                                             </div>
@@ -363,7 +363,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                                 <div className="mt-3 flex justify-end">
                                                     <Link
                                                         href={route(item.route, { store_slug: store.slug, ...(item.tab ? { tab: item.tab } : {}) })}
-                                                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                                                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
                                                     >
                                                         Start Task &rarr;
                                                     </Link>
@@ -377,66 +377,66 @@ export default function Edit({ mustVerifyEmail, status }) {
                     )}
 
                     {/* Personal Preferences Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <Smartphone size={20} className="text-indigo-500" />
+                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+                        <div className="p-6 border-b border-line">
+                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+                                <Smartphone size={20} className="text-brand-500" />
                                 Personal Preferences
                             </h2>
-                            <p className="text-sm text-slate-500 mt-1">Customize your experience with these personal settings.</p>
+                            <p className="text-sm text-ink-muted mt-1">Customize your experience with these personal settings.</p>
                         </div>
 
                         <div className="p-6 space-y-4">
                             {/* Dark Mode Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                            <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                                        {preferences.dark_mode ? <Moon size={20} className="text-indigo-500" /> : <Sun size={20} className="text-amber-500" />}
+                                    <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
+                                        {preferences.dark_mode ? <Moon size={20} className="text-brand-500" /> : <Sun size={20} className="text-amber-500" />}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800 dark:text-white">Dark Mode</p>
-                                        <p className="text-xs text-slate-500">Switch between light and dark themes</p>
+                                        <p className="font-bold text-ink">Dark Mode</p>
+                                        <p className="text-xs text-ink-muted">Switch between light and dark themes</p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={toggleDarkMode}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${preferences.dark_mode ? 'bg-indigo-600 shadow-lg shadow-indigo-500/30' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                    className={`relative w-14 h-7 rounded-full transition-all duration-slow ${preferences.dark_mode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
                                 >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${preferences.dark_mode ? 'left-8' : 'left-1'}`} />
+                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${preferences.dark_mode ? 'left-8' : 'left-1'}`} />
                                 </button>
                             </div>
 
                             {/* Senior Mode Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                            <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                                        <Type size={20} className="text-indigo-500" />
+                                    <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
+                                        <Type size={20} className="text-brand-500" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800 dark:text-white">Senior Mode (Large Text)</p>
-                                        <p className="text-xs text-slate-500">Increase text size for better readability</p>
+                                        <p className="font-bold text-ink">Senior Mode (Large Text)</p>
+                                        <p className="text-xs text-ink-muted">Increase text size for better readability</p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={toggleSeniorMode}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${preferences.senior_mode ? 'bg-indigo-600 shadow-lg shadow-indigo-500/30' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                    className={`relative w-14 h-7 rounded-full transition-all duration-slow ${preferences.senior_mode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
                                 >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${preferences.senior_mode ? 'left-8' : 'left-1'}`} />
+                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${preferences.senior_mode ? 'left-8' : 'left-1'}`} />
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     {/* Personal Passcode Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <Key size={20} className="text-indigo-500" />
+                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+                        <div className="p-6 border-b border-line">
+                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+                                <Key size={20} className="text-brand-500" />
                                 Personal Passcode (Quick Login PIN)
                             </h2>
-                            <p className="text-sm text-slate-500 mt-1">Set up a 4-6 digit PIN for quick login instead of email/password.</p>
+                            <p className="text-sm text-ink-muted mt-1">Set up a 4-6 digit PIN for quick login instead of email/password.</p>
                         </div>
 
                         <form onSubmit={submitPasscode} className="p-6 space-y-6">
@@ -455,14 +455,14 @@ export default function Edit({ mustVerifyEmail, status }) {
                             )}
 
                             {/* Enable Passcode Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                            <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                        <Shield size={20} className="text-indigo-600" />
+                                    <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                                        <Shield size={20} className="text-brand-600" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800 dark:text-white">Enable Quick Login PIN</p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="font-bold text-ink">Enable Quick Login PIN</p>
+                                        <p className="text-xs text-ink-muted">
                                             {user.has_passcode ? 'You have a passcode set. Update or disable it below.' : 'No passcode set yet.'}
                                         </p>
                                     </div>
@@ -470,17 +470,17 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 <button
                                     type="button"
                                     onClick={() => setPasscodeData(prev => ({ ...prev, enable_passcode: !prev.enable_passcode }))}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${passcodeData.enable_passcode ? 'bg-indigo-600 shadow-lg shadow-indigo-500/30' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                    className={`relative w-14 h-7 rounded-full transition-all duration-slow ${passcodeData.enable_passcode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
                                 >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${passcodeData.enable_passcode ? 'left-8' : 'left-1'}`} />
+                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${passcodeData.enable_passcode ? 'left-8' : 'left-1'}`} />
                                 </button>
                             </div>
 
                             {passcodeData.enable_passcode && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-slow">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                            <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
                                                 New Passcode (4-6 digits)
                                             </label>
                                             <div className="relative">
@@ -488,36 +488,36 @@ export default function Edit({ mustVerifyEmail, status }) {
                                                     type={showPasscode ? "text" : "password"}
                                                     value={passcodeData.passcode}
                                                     onChange={(e) => setPasscodeData(prev => ({ ...prev, passcode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                    className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+                                                    className="w-full px-4 py-3 pr-12 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
                                                     placeholder="••••••"
                                                     maxLength={6}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPasscode(!showPasscode)}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary"
                                                 >
                                                     {showPasscode ? <EyeOff size={18} /> : <Eye size={18} />}
                                                 </button>
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                            <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
                                                 Confirm Passcode
                                             </label>
                                             <input
                                                 type={showPasscode ? "text" : "password"}
                                                 value={passcodeData.confirm_passcode}
                                                 onChange={(e) => setPasscodeData(prev => ({ ...prev, confirm_passcode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+                                                className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
                                                 placeholder="••••••"
                                                 maxLength={6}
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl">
-                                        <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                                    <div className="p-4 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl">
+                                        <p className="text-sm text-brand-700 dark:text-brand-300">
                                             <strong>Tip:</strong> This PIN allows you to quickly log in from the login screen using just a 4-6 digit code instead of your email and password.
                                         </p>
                                     </div>
@@ -531,8 +531,8 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         disabled={passcodeSaving}
                                         className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
                                             passcodeData.enable_passcode
-                                                ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30'
-                                                : 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
+                                                ? 'bg-brand-600 hover:bg-brand-700 '
+                                                : 'bg-red-500 hover:bg-red-600 '
                                         }`}
                                     >
                                         <Key size={18} />
@@ -549,13 +549,13 @@ export default function Edit({ mustVerifyEmail, status }) {
 
                     {/* Security Passcode Card (6 Digits) */}
                     {needsPasscode && (
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden" id="security-pin-section">
-                            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-900/10">
-                                <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden" id="security-pin-section">
+                            <div className="p-6 border-b border-line bg-violet-50/30 dark:bg-violet-900/10">
+                                <h2 className="text-xl font-bold text-ink flex items-center gap-2">
                                     <Shield size={20} className="text-violet-600" />
                                     Security Passcode (Transaction PIN)
                                 </h2>
-                                <p className="text-sm text-slate-500 mt-1">Set up a mandatory 6-digit PIN for sensitive tasks like adding capital, deleting records, or changing settings.</p>
+                                <p className="text-sm text-ink-muted mt-1">Set up a mandatory 6-digit PIN for sensitive tasks like adding capital, deleting records, or changing settings.</p>
                             </div>
 
                             <form onSubmit={submitSecurityPin} className="p-6 space-y-6">
@@ -574,14 +574,14 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 )}
 
                                 {/* Enable Security PIN Toggle */}
-                                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                                <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
                                             <Lock size={20} className="text-violet-600" />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-slate-800 dark:text-white">Enable Transaction Security</p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="font-bold text-ink">Enable Transaction Security</p>
+                                            <p className="text-xs text-ink-muted">
                                                 {user.security_pin ? 'Security PIN is currently active.' : 'Security PIN is not set yet.'}
                                             </p>
                                         </div>
@@ -589,17 +589,17 @@ export default function Edit({ mustVerifyEmail, status }) {
                                     <button
                                         type="button"
                                         onClick={() => setSecurityPinData(prev => ({ ...prev, enable_security_pin: !prev.enable_security_pin }))}
-                                        className={`relative w-14 h-7 rounded-full transition-all duration-300 ${securityPinData.enable_security_pin ? 'bg-violet-600 shadow-lg shadow-violet-500/30' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                        className={`relative w-14 h-7 rounded-full transition-all duration-slow ${securityPinData.enable_security_pin ? 'bg-violet-600 shadow-lg ' : 'bg-sunken'}`}
                                     >
-                                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${securityPinData.enable_security_pin ? 'left-8' : 'left-1'}`} />
+                                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${securityPinData.enable_security_pin ? 'left-8' : 'left-1'}`} />
                                     </button>
                                 </div>
 
                                 {securityPinData.enable_security_pin && (
-                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-slow">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
                                                     New Security PIN (Exactly 6 digits)
                                                 </label>
                                                 <div className="relative">
@@ -607,28 +607,28 @@ export default function Edit({ mustVerifyEmail, status }) {
                                                         type={showSecurityPin ? "text" : "password"}
                                                         value={securityPinData.security_pin}
                                                         onChange={(e) => setSecurityPinData(prev => ({ ...prev, security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                        className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+                                                        className="w-full px-4 py-3 pr-12 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
                                                         placeholder="••••••"
                                                         maxLength={6}
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowSecurityPin(!showSecurityPin)}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary"
                                                     >
                                                         {showSecurityPin ? <EyeOff size={18} /> : <Eye size={18} />}
                                                     </button>
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
                                                     Confirm Security PIN
                                                 </label>
                                                 <input
                                                     type={showSecurityPin ? "text" : "password"}
                                                     value={securityPinData.confirm_security_pin}
                                                     onChange={(e) => setSecurityPinData(prev => ({ ...prev, confirm_security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+                                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
                                                     placeholder="••••••"
                                                     maxLength={6}
                                                 />
@@ -650,8 +650,8 @@ export default function Edit({ mustVerifyEmail, status }) {
                                             disabled={securityPinSaving}
                                             className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
                                                 securityPinData.enable_security_pin
-                                                    ? 'bg-violet-600 hover:bg-violet-700 shadow-violet-500/30'
-                                                    : 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
+                                                    ? 'bg-violet-600 hover:bg-violet-700 '
+                                                    : 'bg-red-500 hover:bg-red-600 '
                                             }`}
                                         >
                                             <Shield size={18} />
@@ -668,13 +668,13 @@ export default function Edit({ mustVerifyEmail, status }) {
                     )}
 
                     {/* Update Password Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <Lock size={20} className="text-indigo-500" />
+                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+                        <div className="p-6 border-b border-line">
+                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+                                <Lock size={20} className="text-brand-500" />
                                 Update Password
                             </h2>
-                            <p className="text-sm text-slate-500 mt-1">Ensure your account is using a long, random password to stay secure.</p>
+                            <p className="text-sm text-ink-muted mt-1">Ensure your account is using a long, random password to stay secure.</p>
                         </div>
 
                         <form onSubmit={submitPassword} className="p-6 space-y-6">
@@ -687,35 +687,35 @@ export default function Edit({ mustVerifyEmail, status }) {
 
                             {!user.google_id && (
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Current Password</label>
+                                    <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">Current Password</label>
                                     <input
                                         type="password"
                                         value={passwordData.current_password}
                                         onChange={(e) => setPasswordData('current_password', e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                                     />
                                     {passwordErrors.current_password && <p className="mt-2 text-sm text-red-500">{passwordErrors.current_password}</p>}
                                 </div>
                             )}
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">New Password</label>
+                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">New Password</label>
                                 <input
                                     type="password"
                                     value={passwordData.password}
                                     onChange={(e) => setPasswordData('password', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                                 />
                                 {passwordErrors.password && <p className="mt-2 text-sm text-red-500">{passwordErrors.password}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Confirm Password</label>
+                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">Confirm Password</label>
                                 <input
                                     type="password"
                                     value={passwordData.password_confirmation}
                                     onChange={(e) => setPasswordData('password_confirmation', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                                 />
                                 {passwordErrors.password_confirmation && <p className="mt-2 text-sm text-red-500">{passwordErrors.password_confirmation}</p>}
                             </div>
@@ -724,7 +724,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 <button
                                     type="submit"
                                     disabled={passwordProcessing}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-sunken dark:bg-raised hover:bg-interactive-hover dark:hover:bg-interactive-hover text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
                                 >
                                     <Lock size={18} />
                                     {passwordProcessing ? 'Updating...' : 'Update Password'}
@@ -734,7 +734,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </div>
 
                     {/* Delete Account Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-red-200 dark:border-red-900/50 overflow-hidden">
+                    <div className="bg-surface rounded-2xl shadow-xl border border-red-200 dark:border-red-900/50 overflow-hidden">
                         <div className="p-6 border-b border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10">
                             <h2 className="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
                                 <AlertTriangle size={20} />
@@ -746,7 +746,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                         <div className="p-6">
                             <button
                                 onClick={() => setShowDeleteModal(true)}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 transition-all"
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition-all"
                             >
                                 <Trash2 size={18} />
                                 Delete Account
@@ -758,9 +758,9 @@ export default function Edit({ mustVerifyEmail, status }) {
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md p-6 m-4">
-                        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4">Are you sure?</h3>
-                        <p className="text-sm text-slate-500 mb-6">
+                    <div className="bg-surface rounded-2xl shadow-2xl border border-line w-full max-w-md p-6 m-4">
+                        <h3 className="text-xl font-bold text-ink mb-4">Are you sure?</h3>
+                        <p className="text-sm text-ink-muted mb-6">
                             Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm.
                         </p>
 
@@ -770,14 +770,14 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 value={deletePassword}
                                 onChange={(e) => setDeletePassword(e.target.value)}
                                 placeholder="Enter your password"
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all mb-4"
+                                className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all mb-4"
                             />
 
                             <div className="flex gap-3 justify-end">
                                 <button
                                     type="button"
                                     onClick={() => setShowDeleteModal(false)}
-                                    className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                                    className="px-5 py-2.5 rounded-xl border border-line text-ink-secondary font-medium hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all"
                                 >
                                     Cancel
                                 </button>

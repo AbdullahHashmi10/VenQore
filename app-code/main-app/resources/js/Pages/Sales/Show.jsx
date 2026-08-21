@@ -151,13 +151,13 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
                             .print-container { padding: 40px !important; box-shadow: none !important; border: none !important; }
                         }
-                    `}</style>
+`}</style>
 
                     <div className="max-w-4xl mx-auto">
                         <div className="flex justify-between items-center mb-6 no-print">
                             <Link
                                 href={route('store.sales.index', { store_slug: store?.slug })}
-                                className="flex items-center gap-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                                className="flex items-center gap-2 text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors"
                             >
                                 <ArrowLeft size={20} /> Back to Sales
                             </Link>
@@ -166,14 +166,14 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                     <>
                                         <button
                                             onClick={handleSendEmail}
-                                            className="flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 font-medium"
+                                            className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
                                             title="Send via Email"
                                         >
                                             <Mail size={20} />
                                         </button>
                                         <button
                                             onClick={handleSendWhatsApp}
-                                            className="flex items-center gap-2 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all active:scale-95 font-medium"
+                                            className="flex items-center gap-2 bg-surface text-emerald-600 dark:text-emerald-400 border border-line px-4 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all active:scale-95 font-medium"
                                             title="Send via WhatsApp"
                                         >
                                             <Phone size={20} />
@@ -193,17 +193,17 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-800 p-8 print-container">
+                        <div className="bg-surface rounded-2xl shadow-lg border border-line p-8 print-container">
                             {/* Header */}
                             <div className="flex justify-between items-start mb-12">
                                 <div>
                                     <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl">
+                                        <div className="w-12 h-12 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-2xl">
                                             A
                                         </div>
-                                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">VENQORE</h1>
+                                        <h1 className="text-2xl font-bold text-ink">VENQORE</h1>
                                     </div>
-                                    <div className="text-sm text-slate-500 space-y-1">
+                                    <div className="text-sm text-ink-muted space-y-1">
                                         <p>123 Business Street</p>
                                         <p>City, Country 12345</p>
                                         <p>Phone: +1 234 567 890</p>
@@ -211,46 +211,46 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">INVOICE</h2>
-                                    <p className="text-slate-500 font-medium">#{sale.reference_number}</p>
+                                    <h2 className="text-3xl font-bold text-ink mb-2">INVOICE</h2>
+                                    <p className="text-ink-muted font-medium">#{sale.reference_number}</p>
                                     <div className="mt-4 space-y-1 text-sm">
-                                        <p className="text-slate-500">Date: <span className="text-slate-800 dark:text-slate-200 font-medium">{new Date(sale.created_at).toLocaleDateString()}</span></p>
-                                        <p className="text-slate-500">Status: <span className="uppercase font-bold text-emerald-600">{sale.payment_status}</span></p>
+                                        <p className="text-ink-muted">Date: <span className="text-ink font-medium">{new Date(sale.created_at).toLocaleDateString()}</span></p>
+                                        <p className="text-ink-muted">Status: <span className="uppercase font-bold text-emerald-600">{sale.payment_status}</span></p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Customer Info */}
-                            <div className="border-t border-b border-slate-100 dark:border-slate-800 py-8 mb-8 grid grid-cols-2 gap-8">
+                            <div className="border-t border-b border-line py-8 mb-8 grid grid-cols-2 gap-8">
                                 <div>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bill To</h3>
+                                    <h3 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Bill To</h3>
                                     {sale.customer ? (
                                         <div className="space-y-1">
-                                            <p className="font-bold text-slate-800 dark:text-white text-lg">{sale.customer.name}</p>
+                                            <p className="font-bold text-ink text-lg">{sale.customer.name}</p>
                                             {sale.customer.email && (
-                                                <p className="text-sm text-slate-500 flex items-center gap-2">
+                                                <p className="text-sm text-ink-muted flex items-center gap-2">
                                                     <Mail size={14} /> {sale.customer.email}
                                                 </p>
                                             )}
                                             {sale.customer.phone && (
-                                                <p className="text-sm text-slate-500 flex items-center gap-2">
+                                                <p className="text-sm text-ink-muted flex items-center gap-2">
                                                     <Phone size={14} /> {sale.customer.phone}
                                                 </p>
                                             )}
                                             {sale.customer.address && (
-                                                <p className="text-sm text-slate-500 flex items-center gap-2">
+                                                <p className="text-sm text-ink-muted flex items-center gap-2">
                                                     <MapPin size={14} /> {sale.customer.address}
                                                 </p>
                                             )}
                                         </div>
                                     ) : (
-                                        <p className="font-bold text-slate-800 dark:text-white text-lg">Walk-in Customer</p>
+                                        <p className="font-bold text-ink text-lg">Walk-in Customer</p>
                                     )}
                                 </div>
                                 <div className="text-right">
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Payment Details</h3>
-                                    <p className="text-sm text-slate-500">Method: <span className="font-medium text-slate-800 dark:text-white capitalize">{sale.payment_method}</span></p>
-                                    <p className="text-sm text-slate-500">Cashier: <span className="font-medium text-slate-800 dark:text-white">{sale.user?.name}</span></p>
+                                    <h3 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Payment Details</h3>
+                                    <p className="text-sm text-ink-muted">Method: <span className="font-medium text-ink capitalize">{sale.payment_method}</span></p>
+                                    <p className="text-sm text-ink-muted">Cashier: <span className="font-medium text-ink">{sale.user?.name}</span></p>
                                 </div>
                             </div>
 
@@ -258,25 +258,25 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             <div className="mb-8">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="border-b border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        <tr className="border-b border-line text-xs font-bold text-ink-muted uppercase tracking-wider">
                                             <th className="py-3">Item Description</th>
                                             <th className="py-3 text-center">Qty</th>
                                             <th className="py-3 text-right">Unit Price</th>
                                             <th className="py-3 text-right">Amount</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <tbody className="divide-y divide-line">
                                         {sale.items.map((item, index) => (
                                             <tr key={index}>
                                                 <td className="py-4">
-                                                    <p className="font-bold text-slate-800 dark:text-white">{item.product.name}</p>
+                                                    <p className="font-bold text-ink">{item.product.name}</p>
                                                     {item.variant && (
-                                                        <p className="text-xs text-slate-500">Variant: {item.variant.sku}</p>
+                                                        <p className="text-xs text-ink-muted">Variant: {item.variant.sku}</p>
                                                     )}
                                                 </td>
-                                                <td className="py-4 text-center text-slate-600 dark:text-slate-300">{item.quantity}</td>
-                                                <td className="py-4 text-right text-slate-600 dark:text-slate-300">{formatCurrency(item.unit_price, store)}</td>
-                                                <td className="py-4 text-right font-medium text-slate-800 dark:text-white">{formatCurrency(item.subtotal, store)}</td>
+                                                <td className="py-4 text-center text-ink-secondary">{item.quantity}</td>
+                                                <td className="py-4 text-right text-ink-secondary">{formatCurrency(item.unit_price, store)}</td>
+                                                <td className="py-4 text-right font-medium text-ink">{formatCurrency(item.subtotal, store)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -286,20 +286,20 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             {/* Totals */}
                             <div className="flex justify-end">
                                 <div className="w-64 space-y-3">
-                                    <div className="flex justify-between text-slate-500 text-sm">
+                                    <div className="flex justify-between text-ink-muted text-sm">
                                         <span>Subtotal</span>
-                                        <span className="font-medium text-slate-800 dark:text-white">{formatCurrency(sale.subtotal, store)}</span>
+                                        <span className="font-medium text-ink">{formatCurrency(sale.subtotal, store)}</span>
                                     </div>
-                                    <div className="flex justify-between text-slate-500 text-sm">
+                                    <div className="flex justify-between text-ink-muted text-sm">
                                         <span>Tax</span>
-                                        <span className="font-medium text-slate-800 dark:text-white">{formatCurrency(sale.tax, store)}</span>
+                                        <span className="font-medium text-ink">{formatCurrency(sale.tax, store)}</span>
                                     </div>
-                                    <div className="flex justify-between text-slate-500 text-sm">
+                                    <div className="flex justify-between text-ink-muted text-sm">
                                         <span>Discount</span>
-                                        <span className="font-medium text-slate-800 dark:text-white">- {formatCurrency(sale.discount, store)}</span>
+                                        <span className="font-medium text-ink">- {formatCurrency(sale.discount, store)}</span>
                                     </div>
-                                    <div className="h-px bg-slate-200 dark:bg-slate-700 my-2"></div>
-                                    <div className="flex justify-between text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                                    <div className="h-px bg-sunken my-2"></div>
+                                    <div className="flex justify-between text-xl font-bold text-brand-600 dark:text-brand-400">
                                         <span>Total</span>
                                         <span>{formatCurrency(sale.total, store)}</span>
                                     </div>
@@ -307,15 +307,15 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             </div>
 
                             {/* Footer */}
-                            <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-sm">
+                            <div className="mt-12 pt-8 border-t border-line text-center text-ink-muted text-sm">
                                 <p>Thank you for your business!</p>
-                                <p className="mt-2 text-xs font-medium text-slate-500">
-                                    Powered by{' '}
+                                <p className="mt-2 text-xs font-medium text-ink-muted">
+                                    Powered by{''}
                                     <a
                                         href="https://venqore.com?utm_source=invoice_footer"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-indigo-500 hover:text-indigo-400 font-bold underline transition-colors"
+                                        className="text-brand-500 hover:text-brand-400 font-bold underline transition-colors"
                                     >
                                         VenQore
                                     </a>
@@ -328,10 +328,10 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
 
             {/* Return Modal */}
             {isReturnModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-normal">
                         {/* Header */}
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-red-500 to-rose-600">
+                        <div className="p-6 border-b border-line bg-gradient-to-r from-red-500 to-rose-600">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-xl font-bold text-white flex items-center gap-3">
                                     <div className="p-2 bg-white/20 rounded-xl">
@@ -351,13 +351,13 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                         <form onSubmit={handleReturnSubmit} className="p-6 space-y-6">
                             {/* Items Selection */}
                             <div>
-                                <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Select Items to Return</h4>
+                                <h4 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Select Items to Return</h4>
                                 <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                                     {data.items.map((item, index) => (
-                                        <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${item.quantity > 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>
+                                        <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${item.quantity > 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-app border-line'}`}>
                                             <div className="flex-1">
-                                                <p className="font-bold text-slate-800 dark:text-white">{item.name}</p>
-                                                <p className="text-xs text-slate-500">Purchased: {item.max_quantity} × {formatCurrency(item.price, store)}</p>
+                                                <p className="font-bold text-ink">{item.name}</p>
+                                                <p className="text-xs text-ink-muted">Purchased: {item.max_quantity} × {formatCurrency(item.price, store)}</p>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <button
@@ -373,7 +373,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                                     max={item.max_quantity}
                                                     value={item.quantity}
                                                     onChange={(e) => updateReturnQty(index, parseFloat(e.target.value) || 0)}
-                                                    className="w-16 px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-center font-bold focus:ring-2 ring-red-500/30 outline-none"
+                                                    className="w-16 px-2 py-2 rounded-lg border border-line dark:border-line bg-sunken text-center font-bold focus:ring-2 ring-red-500/30 outline-none"
                                                 />
                                             </div>
                                         </div>
@@ -384,7 +384,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             {/* Refund Method Selection (WHERE money goes - for registered customers) */}
                             {refundTotal > 0 && hasRegisteredCustomer && (
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Where should the refund go?</h4>
+                                    <h4 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Where should the refund go?</h4>
                                     <div className="grid grid-cols-2 gap-3">
                                         {/* Cash Refund */}
                                         <button
@@ -392,12 +392,12 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                             onClick={() => setRefundMethod('cash')}
                                             className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${refundMethod === 'cash'
                                                 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                                                : 'border-line hover:border-line'
                                                 }`}
                                         >
-                                            <Banknote size={28} className={refundMethod === 'cash' ? 'text-emerald-600' : 'text-slate-400'} />
-                                            <span className={`font-bold text-sm ${refundMethod === 'cash' ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-300'}`}>Cash Refund</span>
-                                            <span className="text-xs text-slate-500">Pay customer now</span>
+                                            <Banknote size={28} className={refundMethod === 'cash' ? 'text-emerald-600' : 'text-ink-muted'} />
+                                            <span className={`font-bold text-sm ${refundMethod === 'cash' ? 'text-emerald-600' : 'text-ink-secondary'}`}>Cash Refund</span>
+                                            <span className="text-xs text-ink-muted">Pay customer now</span>
                                         </button>
 
                                         {/* Credit to Ledger/Khata */}
@@ -406,12 +406,12 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                             onClick={() => setRefundMethod('ledger')}
                                             className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${refundMethod === 'ledger'
                                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                                                : 'border-line hover:border-line'
                                                 }`}
                                         >
-                                            <Wallet size={28} className={refundMethod === 'ledger' ? 'text-blue-600' : 'text-slate-400'} />
-                                            <span className={`font-bold text-sm ${refundMethod === 'ledger' ? 'text-blue-600' : 'text-slate-600 dark:text-slate-300'}`}>Credit to Khata</span>
-                                            <span className="text-xs text-slate-500">Add to balance</span>
+                                            <Wallet size={28} className={refundMethod === 'ledger' ? 'text-blue-600' : 'text-ink-muted'} />
+                                            <span className={`font-bold text-sm ${refundMethod === 'ledger' ? 'text-blue-600' : 'text-ink-secondary'}`}>Credit to Khata</span>
+                                            <span className="text-xs text-ink-muted">Add to balance</span>
                                         </button>
                                     </div>
                                 </div>
@@ -420,7 +420,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             {/* Refund Source Selection (WHERE money comes FROM - for cash refunds) */}
                             {refundTotal > 0 && refundMethod === 'cash' && (
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Refund From</h4>
+                                    <h4 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Refund From</h4>
                                     <div className="grid grid-cols-3 gap-2">
                                         {refundSourceOptions.map(option => {
                                             const Icon = option.icon;
@@ -437,11 +437,11 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                                     onClick={() => setRefundSource(option.value)}
                                                     className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${isSelected
                                                         ? colorClasses[option.color]
-                                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-400'
+                                                        : 'border-line hover:border-line text-ink-muted'
                                                         }`}
                                                 >
                                                     <Icon size={22} />
-                                                    <span className={`font-bold text-xs ${isSelected ? '' : 'text-slate-600 dark:text-slate-300'}`}>{option.label}</span>
+                                                    <span className={`font-bold text-xs ${isSelected ? '' : 'text-ink-secondary'}`}>{option.label}</span>
                                                 </button>
                                             );
                                         })}
@@ -452,7 +452,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                         <select
                                             value={selectedBankAccount}
                                             onChange={(e) => setSelectedBankAccount(e.target.value)}
-                                            className="mt-3 w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold focus:ring-2 ring-blue-500/20 outline-none"
+                                            className="mt-3 w-full p-3 rounded-xl border border-line bg-surface text-sm font-bold focus:ring-2 ring-blue-500/20 outline-none"
                                         >
                                             <option value="">Select Bank Account</option>
                                             {bankAccounts.map(acc => (
@@ -473,12 +473,12 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             )}
 
                             {/* Summary & Actions */}
-                            <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div className="flex justify-between items-center pt-4 border-t border-line">
                                 <div>
-                                    <p className="text-sm text-slate-500">Total Refund</p>
-                                    <p className="text-2xl font-black text-red-600">{formatCurrency(refundTotal, store)}</p>
+                                    <p className="text-sm text-ink-muted">Total Refund</p>
+                                    <p className="text-2xl font-bold text-red-600">{formatCurrency(refundTotal, store)}</p>
                                     {refundTotal > 0 && (
-                                        <p className="text-xs text-slate-500 mt-1">
+                                        <p className="text-xs text-ink-muted mt-1">
                                             {refundMethod === 'ledger' ? (
                                                 <span>→ Credit to <span className="font-bold text-blue-600">Khata</span></span>
                                             ) : (
@@ -491,14 +491,14 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                     <button
                                         type="button"
                                         onClick={() => setIsReturnModalOpen(false)}
-                                        className="px-5 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                                        className="px-5 py-3 text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-colors font-medium"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={processing || refundTotal === 0}
-                                        className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:from-red-600 hover:to-rose-700 transition-all font-bold flex items-center gap-2 shadow-lg shadow-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:from-red-600 hover:to-rose-700 transition-all font-bold flex items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {processing ? (
                                             <>

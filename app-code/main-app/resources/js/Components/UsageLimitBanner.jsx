@@ -175,7 +175,7 @@ export default function UsageLimitBanner({ usage = null, className = '' }) {
                 <button
                     type="button"
                     onClick={openUpgrade}
-                    className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                    className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
                 >
                     <Zap size={12} />
                     {isAtLimit ? 'Upgrade to continue' : 'View upgrade options'}

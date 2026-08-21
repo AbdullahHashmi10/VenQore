@@ -883,8 +883,8 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
     // Safe Loading State (After all hooks)
     if (!currentPurchase || (isEditMode && !editState)) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
-                <p className="text-slate-500 animate-pulse">Initializing Purchase Order...</p>
+            <div className="flex h-screen items-center justify-center bg-app">
+                <p className="text-ink-muted animate-pulse">Initializing Purchase Order...</p>
             </div>
         );
     }
@@ -892,20 +892,20 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
     return (
         <OneGlanceLayout title={isEditMode ? `Edit Purchase Order #${editState?.invoiceNumber || ''}` : "New Purchase Order"} activeMenu="Purchases" fullScreen={false} hideHeader={true} noPadding={true}>
             <Head title={isEditMode ? "Edit Purchase Order" : "New Purchase Order"} />
-            <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-void-800 transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
+            <div className={`h-full flex-1 flex flex-col bg-sunken dark:bg-void-800 transition-all duration-slower ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
                 <style>{`
                     .senior-mode input, .senior-mode button, .senior-mode p, .senior-mode span, .senior-mode td, .senior-mode th {
                         font-size: 1.25rem !important;
                     }
                     .senior-mode .text-emerald-400, .senior-mode .text-emerald-500 {
-                        color: #059669 !important;
+                        color: rgb(var(--vq-emerald-600)) !important;
                         font-weight: 900 !important;
                     }
-                    .senior-mode .text-indigo-400, .senior-mode .text-indigo-500 {
-                        color: #2563eb !important;
+                    .senior-mode .text-brand-400, .senior-mode .text-brand-500 {
+                        color: rgb(var(--vq-blue-600)) !important;
                         font-weight: 900 !important;
                     }
-                    .senior-mode .bg-slate-900, .senior-mode .bg-void-700 {
+                    .senior-mode .bg-neutral-900, .senior-mode .bg-void-700 {
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         border: 2px solid #000000 !important;
@@ -936,20 +936,20 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                     .text-scale-3 .text-xs { font-size: 0.95rem !important; }
                     .text-scale-4 .text-xs { font-size: 1.05rem !important; }
                     .text-scale-5 .text-xs { font-size: 1.15rem !important; }
-                `}</style>
+`}</style>
 
 
 
                 <div className={`flex-1 flex flex-col lg:flex-row gap-2 min-h-0 px-2 pb-0 pt-2 lg:overflow-hidden overflow-y-auto text-scale-${textSize}`}>
                     {/* LEFT SECTION - Main Workspace (Tabs + Items) */}
-                    <div className={`flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-[400px] lg:min-h-0 ${isReadOnly ? 'pointer-events-none opacity-85 select-none' : ''}`}>
+                    <div className={`flex-1 bg-surface rounded-2xl shadow-2xl border border-line flex flex-col overflow-hidden min-h-[400px] lg:min-h-0 ${isReadOnly ? 'pointer-events-none opacity-85 select-none' : ''}`}>
                         {isReadOnly && (
-                            <div className="bg-indigo-600 text-white font-bold text-xs px-4 py-2.5 text-center flex items-center justify-center gap-2 shrink-0">
+                            <div className="bg-brand-600 text-white font-bold text-xs px-4 py-2.5 text-center flex items-center justify-center gap-2 shrink-0">
                                 <Info size={14} /> This Purchase Order has been received and is read-only.
                             </div>
                         )}
                         {/* TABS BAR - Now inside left section (Desktop Only) */}
-                        <div className="hidden lg:flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                        <div className="hidden lg:flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-line bg-sunken/50 dark:bg-surface shrink-0">
                             {activePurchases.map((purchase, idx) => (
                                 <div
                                     key={purchase.id}
@@ -957,12 +957,12 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                     className={`
                                     flex items-center gap-2 px-3 py-1.5 rounded-t-lg cursor-pointer transition-all min-w-[100px] max-w-[160px] relative group text-xs
                                     ${currentPurchaseId === purchase.id
-                                            ? 'bg-white dark:bg-slate-900 text-indigo-600'
-                                            : 'bg-slate-200/50 dark:bg-slate-800/50 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800'
+                                            ? 'bg-surface text-brand-600'
+                                            : 'bg-sunken/50 dark:bg-surface text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }
-                                `}
+`}
                                 >
-                                    <div className={`w-2 h-2 rounded-full ${currentPurchaseId === purchase.id ? 'bg-indigo-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                    <div className={`w-2 h-2 rounded-full ${currentPurchaseId === purchase.id ? 'bg-brand-500 animate-pulse' : 'bg-neutral-400'}`}></div>
                                     <span className="text-xs font-bold truncate">
                                         {purchase.supplier?.name || `PO #${idx + 1}`}
                                     </span>
@@ -994,7 +994,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             ))}
                             <button
                                 onClick={() => addPurchase()}
-                                className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 shrink-0"
+                                className="px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-all shadow-lg active:scale-95 shrink-0"
                                 title="New Tab"
                             >
                                 <Plus size={12} />
@@ -1002,21 +1002,21 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                         </div>
 
                         {/* TOP ACTION BAR - Mobile View (Compact & Premium) */}
-                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-void-800 border-b border-slate-800/80 shrink-0">
+                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-void-800 border-b border-neutral-800/80 shrink-0">
                             {/* Row 1: Back (Left), Purchase Pill (Center), Settings (Right) */}
                             <div className="flex items-center justify-between w-full relative">
                                 <button
                                     onClick={() => router.visit(route('store.purchase-orders.index', { store_slug: store?.slug }))}
-                                    className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm"
+                                    className="flex items-center justify-center w-7 h-7 rounded-lg bg-neutral-800 text-ink-muted border border-neutral-700 shadow-sm"
                                     title="Go Back"
                                 >
                                     <ArrowLeft size={14} />
                                 </button>
                                 
                                 <button
-                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-900/30 border border-indigo-800 rounded-full text-1xs font-black text-indigo-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
+                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-brand-900/30 border border-brand-800 rounded-full text-1xs font-bold text-brand-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
                                 >
-                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0"></span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse shrink-0"></span>
                                     <span className="truncate">
                                         {currentPurchase.supplier?.name || `PO #${activePurchases.findIndex(inv => inv.id === currentPurchase.id) + 1}`}
                                     </span>
@@ -1025,7 +1025,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 <div className="flex items-center gap-1.5 shrink-0">
                                     <button
                                         onClick={() => setShowSettingsDrawer(true)}
-                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm hover:text-white"
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-neutral-800 text-ink-muted border border-neutral-700 shadow-sm hover:text-white"
                                         title="Settings"
                                     >
                                         <Settings size={13} />
@@ -1037,7 +1037,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 router.visit(route('store.purchase-orders.index', { store_slug: store.slug }));
                                             }
                                         }}
-                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-red-400 hover:text-red-500 border border-slate-700 shadow-sm active:scale-95 transition-all"
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-neutral-800 text-red-400 hover:text-red-500 border border-neutral-700 shadow-sm active:scale-95 transition-all"
                                         title="Cancel PO"
                                     >
                                         <X size={14} />
@@ -1048,19 +1048,19 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             {/* Row 2: Customer Search (Left), Payment & Term Controls (Right) */}
                             <div className="flex items-center gap-1.5 w-full">
                                 <div className="relative flex-1 min-w-0">
-                                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
+                                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted z-10 pointer-events-none">
                                         <User size={13} />
                                     </div>
                                     {currentPurchase.supplier ? (
                                         <div className="relative">
-                                            <div className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-7 py-1.5 flex items-center justify-between shadow-sm min-h-[36px]">
+                                            <div className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-7 pr-7 py-1.5 flex items-center justify-between shadow-sm min-h-[36px]">
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="font-bold text-slate-200 text-xs truncate leading-tight">{currentPurchase.supplier.name}</p>
-                                                    <p className="text-3xs text-slate-500 leading-none">{currentPurchase.supplier.phone || 'No Phone'}</p>
+                                                    <p className="font-bold text-neutral-200 text-xs truncate leading-tight">{currentPurchase.supplier.name}</p>
+                                                    <p className="text-3xs text-ink-muted leading-none">{currentPurchase.supplier.phone || 'No Phone'}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => { patchPurchase({ supplier: null }); setSupplierSearch(''); }}
-                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted hover:text-red-500 transition-colors"
                                                 >
                                                     <X size={12} />
                                                 </button>
@@ -1085,7 +1085,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 inputClassName={`h-9 min-h-[36px] text-xs py-1.5 ${supplierError ? '!border-red-500 !ring-red-500/20' : ''}`}
                                             />
                                             {supplierError && (
-                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-4xs font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
+                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-4xs font-bold uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
                                                     Please select supplier
                                                 </p>
                                             )}
@@ -1099,36 +1099,36 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                     <button
                                         type="button"
                                         onClick={() => patchPurchase({ isReceived: !currentPurchase.isReceived })}
-                                        className={`flex items-center justify-center w-[36px] h-[36px] rounded-lg border ${currentPurchase.isReceived ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
+                                        className={`flex items-center justify-center w-[36px] h-[36px] rounded-lg border ${currentPurchase.isReceived ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-neutral-800 text-ink-muted border-neutral-700'}`}
                                     >
                                         <Package size={13} />
                                     </button>
 
-                                    <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5 border border-slate-700 h-[36px]">
+                                    <div className="flex items-center gap-0.5 bg-neutral-800 rounded-lg p-0.5 border border-neutral-700 h-[36px]">
                                         <button
                                             type="button"
                                             onClick={() => patchPurchase({ paymentMethod: 'credit' })}
-                                            className={`px-2 py-1 rounded text-2xs font-black transition-all ${currentPurchase.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-2xs font-bold transition-all ${currentPurchase.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-ink-muted'}`}
                                         >
                                             CREDIT
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => patchPurchase({ paymentMethod: 'cash' })}
-                                            className={`px-2 py-1 rounded text-2xs font-black transition-all ${currentPurchase.paymentMethod === 'cash' ? 'bg-orange-655 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-2xs font-bold transition-all ${currentPurchase.paymentMethod === 'cash' ? 'bg-orange-655 text-white shadow-sm' : 'text-ink-muted'}`}
                                         >
                                             CASH
                                         </button>
                                     </div>
                                     
                                     <div className="relative group/accounts-mobile shrink-0 h-[36px]">
-                                        <button type="button" className="flex items-center justify-center w-9 h-[36px] rounded-lg bg-slate-800 text-indigo-400 border border-slate-700 shadow-sm active:scale-95">
+                                        <button type="button" className="flex items-center justify-center w-9 h-[36px] rounded-lg bg-neutral-800 text-brand-400 border border-neutral-700 shadow-sm active:scale-95">
                                             <Wallet size={13} />
                                         </button>
                                         <div className="absolute right-0 top-full pt-1 z-50 hidden group-hover/accounts-mobile:block">
-                                            <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden w-36 p-1">
-                                                <div className="p-1 border-b border-slate-700 bg-slate-900/50">
-                                                    <p className="text-4xs font-bold text-slate-500 uppercase">Pay From</p>
+                                            <div className="bg-neutral-800 rounded-lg shadow-xl border border-neutral-700 overflow-hidden w-36 p-1">
+                                                <div className="p-1 border-b border-neutral-700 bg-neutral-900/50">
+                                                    <p className="text-4xs font-bold text-ink-muted uppercase">Pay From</p>
                                                 </div>
                                                 <div className="max-h-32 overflow-y-auto custom-scrollbar p-0.5">
                                                     {accounts.map(acc => (
@@ -1150,7 +1150,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                                     });
                                                                 }
                                                             }}
-                                                            className={`w-full text-left px-1.5 py-0.5 rounded text-3xs font-bold transition-colors flex items-center justify-between ${(currentPurchase.paymentAccountId || 1) === acc.id ? 'bg-indigo-900/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-700'}`}
+                                                            className={`w-full text-left px-1.5 py-0.5 rounded text-3xs font-bold transition-colors flex items-center justify-between ${(currentPurchase.paymentAccountId || 1) === acc.id ? 'bg-brand-900/20 text-brand-400' : 'text-neutral-300 hover:bg-interactive-hover'}`}
                                                         >
                                                             <span className="truncate">{acc.name}</span>
                                                             {(currentPurchase.paymentAccountId || 1) === acc.id && <CheckCircle2 size={9} />}
@@ -1165,7 +1165,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                         </div>
 
                         {/* TOP ACTION BAR - Desktop View (Hidden on Mobile) */}
-                        <div className="hidden lg:flex px-3 py-2 border-b border-slate-100 dark:border-slate-800 items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                        <div className="hidden lg:flex px-3 py-2 border-b border-line items-center justify-between gap-3 bg-sunken/50 dark:bg-surface shrink-0">
                             {/* Left-Quick Entry & Scan Mode */}
                             <div className="flex items-center gap-2">
                                 <button
@@ -1175,14 +1175,14 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                             setTimeout(() => document.getElementById('quick-entry-input')?.focus(), 50);
                                         }
                                     }}
-                                    className={`flex items-center justify-center w-12 h-12 rounded-2xl transition-all border ${showQuickEntry ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/20' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50'} `}
+                                    className={`flex items-center justify-center w-12 h-12 rounded-2xl transition-all border ${showQuickEntry ? 'bg-brand-600 text-white border-brand-500 shadow-lg ' : 'bg-surface text-ink-muted border-line hover:bg-interactive-hover'}`}
                                     title="Toggle Quick Add (Alt+Q)"
                                 >
                                     <Zap size={20} className={showQuickEntry ? 'fill-current' : ''} />
                                 </button>
                                 <button
                                     onClick={() => setIsScanning(true)}
-                                    className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl hover:bg-slate-50 transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                                    className="flex items-center gap-2 px-5 py-3 bg-surface text-ink-secondary rounded-2xl hover:bg-interactive-hover transition-all border border-line shadow-sm"
                                     title="Scanning Mode"
                                 >
                                     <ScanBarcode size={20} />
@@ -1219,31 +1219,31 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 {/* Received Status Toggle */}
                                 <button
                                     onClick={() => patchPurchase({ isReceived: !currentPurchase.isReceived })}
-                                    className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentPurchase.isReceived
-                                        ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200'
+                                    className={`px-3 py-1.5 rounded-lg text-2xs font-bold flex items-center gap-1.5 transition-all ${currentPurchase.isReceived
+                                        ? 'bg-emerald-500 text-white shadow '
+                                        : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
                                         }`}
                                     title="Toggle Received Status"
                                 >
                                     <Package size={12} /> {currentPurchase.isReceived ? 'RECEIVED' : 'ORDERED'}
                                 </button>
 
-                                <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
+                                <div className="flex items-center gap-0.5 bg-sunken rounded-xl p-1 border border-line">
                                     <button
                                         onClick={() => patchPurchase({ paymentMethod: 'credit' })}
-                                        className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'credit'
-                                            ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
-                                            : 'text-slate-500 hover:text-slate-700'
-                                            } `}
+                                        className={`px-3 py-1.5 rounded-lg text-2xs font-bold flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'credit'
+                                            ? 'bg-emerald-500 text-white shadow '
+                                            : 'text-ink-muted hover:text-ink-secondary'
+                                            }`}
                                     >
                                         <CreditCard size={12} /> CREDIT
                                     </button>
                                     <button
                                         onClick={() => patchPurchase({ paymentMethod: 'cash' })}
-                                        className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'cash'
+                                        className={`px-3 py-1.5 rounded-lg text-2xs font-bold flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'cash'
                                             ? 'bg-orange-500 text-white shadow shadow-orange-500/20'
-                                            : 'text-slate-500 hover:text-slate-700'
-                                            } `}
+                                            : 'text-ink-muted hover:text-ink-secondary'
+                                            }`}
                                     >
                                         <Banknote size={12} /> CASH
                                     </button>
@@ -1252,19 +1252,19 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 {/* Payment Account Dropdown */}
                                 <div className="relative group/accounts">
                                     <button
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black min-w-[120px] justify-between"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all border border-line text-2xs font-bold min-w-[120px] justify-between"
                                     >
                                         <span className="flex items-center gap-1.5 truncate">
-                                            <Wallet size={12} className="text-indigo-500" />
+                                            <Wallet size={12} className="text-brand-500" />
                                             {currentPurchase.selectedBankName || accounts.find(a => a.id === (currentPurchase.paymentAccountId || 1))?.name || 'Cash in Hand'}
                                         </span>
-                                        <ChevronRight size={12} className="rotate-90 text-slate-400" />
+                                        <ChevronRight size={12} className="rotate-90 text-ink-muted" />
                                     </button>
 
                                     <div className="absolute top-full pt-2 right-0 w-48 z-50 overflow-hidden hidden group-hover/accounts:block animate-in fade-in slide-in-from-top-2">
-                                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
-                                            <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                                                <p className="text-2xs font-bold text-slate-400 uppercase">Pay From</p>
+                                        <div className="bg-surface rounded-xl shadow-xl border border-line overflow-hidden">
+                                            <div className="p-2 border-b border-line bg-app">
+                                                <p className="text-2xs font-bold text-ink-muted uppercase">Pay From</p>
                                             </div>
                                             <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
                                                 {accounts.map(acc => (
@@ -1275,7 +1275,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                                 patchPurchase({
                                                                     paymentAccountId: acc.realAccountId,
                                                                     selectedBankName: acc.name,
-                                                                    paymentReference: `Paid from: ${acc.name} `
+                                                                    paymentReference: `Paid from: ${acc.name}`
                                                                 });
                                                             } else {
                                                                 patchPurchase({
@@ -1286,9 +1286,9 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                             }
                                                         }}
                                                         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-between ${(currentPurchase.paymentAccountId || 1) === acc.id
-                                                            ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                                                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                                            } `}
+                                                            ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
+                                                            : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
+                                                            }`}
                                                     >
                                                         <span>{acc.name}</span>
                                                         {(currentPurchase.paymentAccountId || 1) === acc.id && <CheckCircle2 size={12} />}
@@ -1302,22 +1302,22 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 <div className="relative">
                                     <button
                                         onClick={() => setShowTextSizeMenu(!showTextSizeMenu)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-2xs font-black ${textSize > 1
-                                            ? 'bg-purple-500 text-white border-purple-500 shadow shadow-purple-500/20'
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-2xs font-bold ${textSize > 1
+                                            ? 'bg-purple-500 text-white border-purple-500 shadow '
                                             : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30'
-                                            } `}
+                                            }`}
                                         title="Change Text Size"
                                     >
                                         <Type size={12} /> Aa+ {textSize > 1 && `(${textSize})`}
                                     </button>
 
                                     {showTextSizeMenu && (
-                                        <div className="absolute top-full mt-2 right-0 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                        <div className="absolute top-full mt-2 right-0 w-32 bg-surface rounded-xl shadow-xl border border-line z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
                                             {[1, 2, 3, 4, 5].map((size) => (
                                                 <button
                                                     key={size}
                                                     onClick={() => { setTextSize(size); setShowTextSizeMenu(false); }}
-                                                    className={`w-full text-left px-4 py-3 text-xs font-bold hover: bg-slate-50 dark: hover: bg-slate-700 transition-colors ${textSize === size ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600' : 'text-slate-600 dark:text-slate-300'} `}
+                                                    className={`w-full text-left px-4 py-3 text-xs font-bold hover: bg-sunken dark: hover: bg-neutral-700 transition-colors ${textSize === size ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600' : 'text-ink-secondary'}`}
                                                 >
                                                     {size === 1 ? 'Normal' : size === 2 ? 'Large' : size === 3 ? 'Larger' : size === 4 ? 'Senior' : 'Max'}
                                                 </button>
@@ -1328,7 +1328,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 {/* Quick Settings */}
                                 <button
                                     onClick={() => setShowSettingsDrawer(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all border border-line text-2xs font-bold"
                                     title="Quick Settings"
                                 >
                                     <Settings size={12} />
@@ -1340,7 +1340,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                         <div className="flex-1 overflow-y-auto hide-scrollbar px-2 py-2">
                             <table className="hidden md:table w-full border-separate border-spacing-y-1.5">
                                 <thead>
-                                    <tr className="text-left text-xs font-bold text-slate-400 uppercase tracking-wide">
+                                    <tr className="text-left text-xs font-bold text-ink-muted uppercase tracking-wide">
                                         <th className="pb-2 w-8"></th>
                                         <th className="pb-2 pl-3 w-10 text-center">#</th>
                                         <th className="pb-2">Item Description</th>
@@ -1354,11 +1354,11 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 </thead>
                                 <tbody>
                                     {showQuickEntry && (
-                                        <tr className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/10 dark:to-purple-900/10 border border-indigo-200 dark:border-indigo-800/50 rounded-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+                                        <tr className="bg-gradient-to-r from-brand-50/50 to-purple-50/50 dark:from-brand-900/10 dark:to-purple-900/10 border border-brand-200 dark:border-brand-800/50 rounded-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-normal">
                                             <td className="py-3"></td>
                                             <td className="py-3 pl-3">
-                                                <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                                    <Zap size={16} className="text-indigo-600" />
+                                                <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                                                    <Zap size={16} className="text-brand-600" />
                                                 </div>
                                             </td>
                                             <td className="py-3 relative">
@@ -1390,7 +1390,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         if (e.key === 'Enter') discountRef.current?.focus();
                                                     }}
                                                     onFocus={() => setQuickResults([])}
-                                                    className="w-16 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 outline-none"
+                                                    className="w-16 bg-surface border border-brand-200 dark:border-brand-900/30 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-brand-500/20 outline-none"
                                                 />
                                             </td>
                                             <td className="py-3 text-center">
@@ -1410,7 +1410,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                     onChange={(e) => setQuickEntry(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                                                     onFocus={() => setQuickResults([])}
                                                     onKeyDown={(e) => e.key === 'Enter' && addQuickItem()}
-                                                    className="w-24 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 outline-none"
+                                                    className="w-24 bg-surface border border-brand-200 dark:border-brand-900/30 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-brand-500/20 outline-none"
                                                 />
                                             </td>
                                             <td className="py-3 text-right">
@@ -1422,14 +1422,14 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         onChange={(e) => setQuickEntry(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
                                                         onFocus={() => setQuickResults([])}
                                                         onKeyDown={(e) => e.key === 'Enter' && addQuickItem()}
-                                                        className="w-20 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 outline-none"
+                                                        className="w-20 bg-surface border border-brand-200 dark:border-brand-900/30 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-brand-500/20 outline-none"
                                                     />
                                                     <button
                                                         onClick={() => {
                                                             setQuickResults([]);
                                                             setQuickEntry(prev => ({ ...prev, discountType: prev.discountType === 'fixed' ? 'percent' : 'fixed' }));
                                                         }}
-                                                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${quickEntry.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
+                                                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${quickEntry.discountType === 'percent' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                                     >
                                                         {quickEntry.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                     </button>
@@ -1438,7 +1438,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                             <td className="py-3 text-right">
                                                 <button
                                                     onClick={addQuickItem}
-                                                    className="w-8 h-8 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow shadow-indigo-500/30 flex items-center justify-center active:scale-90"
+                                                    className="w-8 h-8 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-all shadow flex items-center justify-center active:scale-90"
                                                 >
                                                     <Plus size={18} />
                                                 </button>
@@ -1451,7 +1451,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                     {currentPurchase.items.map((item, idx) => (
                                         <tr
                                             key={item.id}
-                                            className={`group animate-in fade-in duration-200 ${draggedItemIndex === idx ? 'opacity-50' : ''}`}
+                                            className={`group animate-in fade-in duration-normal ${draggedItemIndex === idx ? 'opacity-50' : ''}`}
                                             draggable
                                             onDragStart={(e) => {}}
                                             onDragOver={(e) => handleDragOver(e, idx)}
@@ -1459,7 +1459,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                         >
                                             {/* Drag Handle - Strict */}
                                             <td
-                                                className="bg-slate-50 dark:bg-slate-800/50 rounded-l-xl py-3 pl-2 cursor-ns-resize group-active:cursor-grabbing"
+                                                className="bg-app rounded-l-xl py-3 pl-2 cursor-ns-resize group-active:cursor-grabbing"
                                                 onMouseDown={(e) => {
                                                     e.currentTarget.parentElement.setAttribute('draggable', 'true');
                                                 }}
@@ -1467,14 +1467,14 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                     e.currentTarget.parentElement.setAttribute('draggable', 'false');
                                                 }}
                                             >
-                                                <GripVertical size={16} className="text-slate-300 hover:text-slate-500 transition-colors" />
+                                                <GripVertical size={16} className="text-neutral-300 hover:text-ink-muted transition-colors" />
                                             </td>
                                             {/* Row Number */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-sm font-bold text-slate-400 text-center">
+                                            <td className="bg-app py-3 text-sm font-bold text-ink-muted text-center">
                                                 {idx + 1}
                                             </td>
                                             {/* Product Name */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 relative">
+                                            <td className="bg-app py-3 relative">
                                                 <AsyncProductCombobox
                                                     selectedItem={item.product}
                                                     onSelect={(product) => selectProduct(product, item.id)}
@@ -1494,7 +1494,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 />
                                             </td>
                                             {/* Quantity */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center align-middle">
+                                            <td className="bg-app py-3 text-center align-middle">
                                                 <div className="relative flex flex-col items-center">
                                                     <WheelInput
                                                         type="number"
@@ -1505,7 +1505,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                             setActiveItemIndex(null);
                                                             setProductResults([]);
                                                         }}
-                                                        className="w-16 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
+                                                        className="w-16 bg-sunken border border-line dark:border-line rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-brand-500/20 transition-all no-spinner"
                                                     />
                                                     {item.product && (
                                                         <span className={`absolute -bottom-4 text-2xs font-bold whitespace-nowrap ${item.available_stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
@@ -1515,7 +1515,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 </div>
                                             </td>
                                             {/* Free Quantity */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center align-middle">
+                                            <td className="bg-app py-3 text-center align-middle">
                                                 <WheelInput
                                                     type="number"
                                                     value={item.freeQuantity || ''}
@@ -1525,7 +1525,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 />
                                             </td>
                                             {/* Price */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right align-middle">
+                                            <td className="bg-app py-3 text-right align-middle">
                                                 <WheelInput
                                                     type="number"
                                                     value={item.price ?? 0}
@@ -1535,36 +1535,36 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         setActiveItemIndex(null);
                                                         setProductResults([]);
                                                     }}
-                                                    className="w-24 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
+                                                    className="w-24 bg-sunken border border-line dark:border-line rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-brand-500/20 transition-all no-spinner"
                                                 />
                                             </td>
                                             {/* Discount */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right align-middle">
+                                            <td className="bg-app py-3 text-right align-middle">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <WheelInput
                                                         type="number"
                                                         value={item.discount ?? 0}
                                                         onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
-                                                        className="w-20 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
+                                                        className="w-20 bg-sunken border border-line dark:border-line rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-brand-500/20 transition-all no-spinner"
                                                     />
                                                     <button
                                                         onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
-                                                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
+                                                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${item.discountType === 'percent' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-secondary'}`}
                                                     >
                                                         {item.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                     </button>
                                                 </div>
                                             </td>
                                             {/* Total - Editable with mode toggle */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 pr-3 align-middle">
+                                            <td className="bg-app py-3 pr-3 align-middle">
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     <button
                                                         onClick={() => toggleItemTotalMode(item.id)}
                                                         title={getItemTotalMode(item.id) === 'price' ? 'Recalculates: Price  (click → Qty mode)' : 'Recalculates: Qty  (click → Price mode)'}
-                                                        className={`w-7 h-7 rounded-md text-2xs font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                        className={`w-7 h-7 rounded-md text-2xs font-bold transition-all shrink-0 border flex items-center justify-center ${
                                                             getItemTotalMode(item.id) === 'price'
-                                                                ? 'bg-indigo-600 text-white border-indigo-500 shadow shadow-indigo-500/30'
-                                                                : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
+                                                                ? 'bg-brand-600 text-white border-brand-500 shadow '
+                                                                : 'bg-emerald-600 text-white border-emerald-500 shadow '
                                                         }`}
                                                     >
                                                         {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol()) : '#'}
@@ -1574,15 +1574,15 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         value={parseFloat(calculateLineTotal(item).toFixed(2))}
                                                         onChange={(e) => handleTotalChange(item, e.target.value)}
                                                         onFocus={(e) => e.target.select()}
-                                                        className="w-24 bg-white dark:bg-slate-700 border border-indigo-300 dark:border-indigo-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/30 transition-all text-slate-800 dark:text-white no-spinner"
+                                                        className="w-24 bg-sunken border border-brand-300 dark:border-brand-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-brand-500/30 transition-all text-ink no-spinner"
                                                     />
                                                 </div>
                                             </td>
                                             {/* Delete */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 rounded-r-xl py-3 pr-3 align-middle">
+                                            <td className="bg-app rounded-r-xl py-3 pr-3 align-middle">
                                                 <button
                                                     onClick={() => removeItem(item.id)}
-                                                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                    className="p-1.5 text-neutral-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -1595,9 +1595,9 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             {/* Mobile View - Items Card List (Mobile Only) */}
                             <div className="md:hidden flex flex-col gap-2">
                                 {showQuickEntry && (
-                                    <div className="bg-indigo-50/30 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-200">
+                                    <div className="bg-brand-50/30 dark:bg-brand-900/10 p-3 rounded-xl border border-brand-200/50 dark:border-brand-800/50 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-normal">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-indigo-600"><Zap size={16} /></span>
+                                            <span className="text-brand-600"><Zap size={16} /></span>
                                             <div className="flex-1">
                                                 <AsyncProductCombobox
                                                     selectedItem={quickEntry.product}
@@ -1620,36 +1620,36 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                         </div>
                                         <div className="grid grid-cols-4 gap-2">
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-3xs font-bold text-slate-400 uppercase">Qty</span>
+                                                <span className="text-3xs font-bold text-ink-muted uppercase">Qty</span>
                                                 <input
                                                     type="number"
                                                     value={quickEntry.quantity}
                                                     onChange={(e) => setQuickEntry(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
-                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-center text-xs font-bold py-1.5 focus:ring-2 ring-indigo-500/20"
+                                                    className="w-full bg-surface border border-brand-200 dark:border-brand-900/30 rounded-lg text-center text-xs font-bold py-1.5 focus:ring-2 ring-brand-500/20"
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-3xs font-bold text-slate-400 uppercase">Free</span>
+                                                <span className="text-3xs font-bold text-ink-muted uppercase">Free</span>
                                                 <input
                                                     type="number"
                                                     value={quickEntry.freeQuantity || ''}
                                                     onChange={(e) => setQuickEntry(prev => ({ ...prev, freeQuantity: parseFloat(e.target.value) || 0 }))}
-                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-center text-xs font-bold py-1.5 focus:ring-2 ring-indigo-500/20"
+                                                    className="w-full bg-surface border border-brand-200 dark:border-brand-900/30 rounded-lg text-center text-xs font-bold py-1.5 focus:ring-2 ring-brand-500/20"
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-3xs font-bold text-slate-400 uppercase">Price</span>
+                                                <span className="text-3xs font-bold text-ink-muted uppercase">Price</span>
                                                 <input
                                                     type="number"
                                                     value={quickEntry.price}
                                                     onChange={(e) => setQuickEntry(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-right text-xs font-bold py-1.5 px-2 focus:ring-2 ring-indigo-500/20"
+                                                    className="w-full bg-surface border border-brand-200 dark:border-brand-900/30 rounded-lg text-right text-xs font-bold py-1.5 px-2 focus:ring-2 ring-brand-500/20"
                                                 />
                                             </div>
                                             <div className="flex items-end">
                                                 <button
                                                     onClick={addQuickItem}
-                                                    className="w-full h-[32px] bg-indigo-600 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1 active:scale-95"
+                                                    className="w-full h-[32px] bg-brand-600 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1 active:scale-95"
                                                 >
                                                     <Plus size={12} /> Add
                                                 </button>
@@ -1659,16 +1659,16 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 )}
 
                                 {currentPurchase.items.length === 0 ? (
-                                    <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
-                                        <Package size={32} className="mx-auto text-slate-400 mb-2" />
-                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-350">No items added to note</p>
+                                    <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                                        <Package size={32} className="mx-auto text-ink-muted mb-2" />
+                                        <p className="text-xs font-bold text-ink-secondary">No items added to note</p>
                                     </div>
                                 ) : (
                                     currentPurchase.items.map((item, idx) => (
-                                        <div key={item.id} className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1.5">
+                                        <div key={item.id} className="bg-surface p-2.5 rounded-xl border border-line shadow-sm flex flex-col gap-1.5">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-2xs font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                                    <span className="w-5 h-5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-2xs font-bold text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
                                                         {idx + 1}
                                                     </span>
                                                     <div className="flex-1">
@@ -1694,7 +1694,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 </div>
                                                 <button
                                                     onClick={() => removeItem(item.id)}
-                                                    className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all shrink-0 ml-2"
+                                                    className="p-1 text-ink-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all shrink-0 ml-2"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -1704,30 +1704,30 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 <div className="grid grid-cols-12 gap-1.5 mt-1 items-end">
                                                     {/* Qty */}
                                                     <div className="col-span-3 flex flex-col gap-0.5">
-                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Qty</span>
+                                                        <span className="text-3xs font-bold text-ink-muted uppercase">Qty</span>
                                                         <WheelInput
                                                             type="number"
                                                             value={item.quantity ?? 1}
                                                             onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-xs font-bold py-1 focus:ring-1 ring-indigo-500/20 outline-none no-spinner"
+                                                            className="w-full bg-app border border-line rounded-lg text-center text-xs font-bold py-1 focus:ring-1 ring-brand-500/20 outline-none no-spinner"
                                                         />
                                                     </div>
 
                                                     {/* Price */}
                                                     <div className="col-span-3 flex flex-col gap-0.5">
-                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Price</span>
+                                                        <span className="text-3xs font-bold text-ink-muted uppercase">Price</span>
                                                         <WheelInput
                                                             type="number"
                                                             value={item.price ?? 0}
                                                             onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
-                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-xs font-bold py-1 px-1.5 focus:ring-1 ring-indigo-500/20 outline-none no-spinner"
+                                                            className="w-full bg-app border border-line rounded-lg text-right text-xs font-bold py-1 px-1.5 focus:ring-1 ring-brand-500/20 outline-none no-spinner"
                                                         />
                                                     </div>
 
                                                     {/* Discount */}
                                                     <div className="col-span-3 flex flex-col gap-0.5">
-                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Disc</span>
-                                                        <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pr-0.5">
+                                                        <span className="text-3xs font-bold text-ink-muted uppercase">Disc</span>
+                                                        <div className="flex items-center gap-0.5 bg-app border border-line rounded-lg pr-0.5">
                                                             <WheelInput
                                                                 type="number"
                                                                 value={item.discount ?? 0}
@@ -1737,7 +1737,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
-                                                                className={`w-3.5 h-3.5 rounded text-4xs font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
+                                                                className={`w-3.5 h-3.5 rounded text-4xs font-bold transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                                             >
                                                                 {item.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                             </button>
@@ -1746,14 +1746,14 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
 
                                                     {/* Total */}
                                                     <div className="col-span-3 flex flex-col gap-0.5 text-right">
-                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Total</span>
+                                                        <span className="text-3xs font-bold text-ink-muted uppercase">Total</span>
                                                         <div className="flex items-center gap-1">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => toggleItemTotalMode(item.id)}
-                                                                className={`w-5 h-5 rounded text-4xs font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                                className={`w-5 h-5 rounded text-4xs font-bold transition-all shrink-0 border flex items-center justify-center ${
                                                                     getItemTotalMode(item.id) === 'price'
-                                                                        ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500'
+                                                                        ? 'bg-brand-600 dark:bg-brand-500 text-white border-brand-600 dark:border-brand-500'
                                                                         : 'bg-emerald-600 dark:bg-emerald-500 text-white border-emerald-600 dark:border-emerald-500'
                                                                 }`}
                                                             >
@@ -1763,7 +1763,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                                 type="number"
                                                                 value={parseFloat(calculateLineTotal(item).toFixed(2))}
                                                                 onChange={(e) => handleTotalChange(item, e.target.value)}
-                                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-xs font-extrabold py-1 px-1 focus:ring-1 ring-indigo-500/20 text-slate-800 dark:text-white outline-none no-spinner"
+                                                                className="w-full bg-app border border-line rounded-lg text-right text-xs font-bold py-1 px-1 focus:ring-1 ring-brand-500/20 text-ink outline-none no-spinner"
                                                             />
                                                         </div>
                                                     </div>
@@ -1776,10 +1776,10 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                         </div>
 
                         {/* STICKY ADD BUTTON */}
-                        <div className="shrink-0 px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-center">
+                        <div className="shrink-0 px-4 py-2 border-t border-line bg-surface flex justify-center">
                             <button
                                 onClick={addItem}
-                                className="px-5 py-2 flex items-center justify-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-bold text-xs hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800 transition-all active:scale-95 shadow-sm"
+                                className="px-5 py-2 flex items-center justify-center gap-1.5 text-brand-600 dark:text-brand-400 font-bold text-xs hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl border border-dashed border-brand-200 dark:border-brand-800 transition-all active:scale-95 shadow-sm"
                             >
                                 <Plus size={14} /> ADD NEW ITEM
                             </button>
@@ -1788,37 +1788,37 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                         {/* MOBILE STICKY CHECKOUT PANEL (Mobile Only) */}
                         <div className="lg:hidden flex flex-col shrink-0">
                             {/* Row 1: Compact financial input fields */}
-                            <div className="grid grid-cols-4 gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                            <div className="grid grid-cols-4 gap-1.5 px-3 py-1.5 bg-app border-t border-line shrink-0">
                                 <div>
-                                    <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Discount</span>
+                                    <span className="text-4xs text-ink-muted font-bold block mb-0.5 uppercase">Discount</span>
                                     <input
                                         type="number"
                                         value={currentPurchase.discount ?? 0}
                                         onChange={(e) => patchPurchase({ discount: parseFloat(e.target.value) || 0 })}
-                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none"
+                                        className="w-full bg-sunken border border-line rounded-lg px-1.5 h-9 text-ink text-xs font-bold text-right outline-none"
                                         placeholder="0"
                                     />
                                 </div>
                                 <div>
-                                    <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Paid</span>
+                                    <span className="text-4xs text-ink-muted font-bold block mb-0.5 uppercase">Paid</span>
                                     <input
                                         type="number"
                                         value={currentPurchase.amountPaid ?? 0}
                                         onChange={(e) => patchPurchase({ amountPaid: parseFloat(e.target.value) || 0 })}
-                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none"
+                                        className="w-full bg-sunken border border-line rounded-lg px-1.5 h-9 text-ink text-xs font-bold text-right outline-none"
                                         placeholder="0"
                                     />
                                 </div>
                                 <div className="col-span-2">
-                                    <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Bal Due</span>
-                                    <div className={`w-full bg-slate-100 dark:bg-slate-800 rounded-lg px-1.5 h-9 text-xs font-extrabold text-right border ${balanceDue > 0 ? 'text-red-500 border-red-500/20' : 'text-emerald-500 border-emerald-500/20'} flex items-center justify-end`}>
+                                    <span className="text-4xs text-ink-muted font-bold block mb-0.5 uppercase">Bal Due</span>
+                                    <div className={`w-full bg-sunken rounded-lg px-1.5 h-9 text-xs font-bold text-right border ${balanceDue > 0 ? 'text-red-500 border-red-500/20' : 'text-emerald-500 border-emerald-500/20'} flex items-center justify-end`}>
                                         {formatCurrency(balanceDue, store)}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Row 2: Cancel (25%) & Complete Return (75%) */}
-                            <div className="flex items-center gap-2 px-2 py-1.5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                            <div className="flex items-center gap-2 px-2 py-1.5 bg-surface border-t border-line shrink-0">
                                 <button
                                     onClick={() => {
                                         if (window.confirm("Are you sure you want to cancel and discard this purchase order?")) {
@@ -1833,7 +1833,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 <button
                                     onClick={() => initiateSave(false)}
                                     disabled={saving}
-                                    className="w-3/4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 disabled:opacity-50"
+                                    className="w-3/4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
                                 >
                                     <CheckCircle2 size={16} />
                                     {saving ? 'SAVING...' : `CONFIRM ORDER (${formatCurrency(grandTotal, store)})`}
@@ -1843,49 +1843,49 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                     </div>
 
                     {/* RIGHT SECTION - Side Info Panel */}
-                    <div className="hidden lg:flex w-full lg:w-80 bg-void-700 flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800 shrink-0">
+                    <div className="hidden lg:flex w-full lg:w-80 bg-void-700 flex-col overflow-hidden rounded-2xl shadow-2xl border border-neutral-800 shrink-0">
 
                         {/* Customer Summary Section-Text Size Responsive */}
-                        <div className="p-4 border-b border-slate-800/50 bg-slate-900/30 shrink-0">
+                        <div className="p-4 border-b border-neutral-800/50 bg-neutral-900/30 shrink-0">
                             {currentPurchase.supplier ? (
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <div className={`rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shrink-0 ${textSize >= 4 ? 'w-16 h-16 text-xl' : textSize >= 3 ? 'w-14 h-14 text-lg' : 'w-12 h-12 text-lg'} `}>
+                                        <div className={`rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold shrink-0 ${textSize >= 4 ? 'w-16 h-16 text-xl' : textSize >= 3 ? 'w-14 h-14 text-lg' : 'w-12 h-12 text-lg'}`}>
                                             {currentPurchase.supplier.name.charAt(0)}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-white font-bold truncate ${textSize >= 4 ? 'text-lg' : textSize >= 3 ? 'text-base' : 'text-sm'} `}>{currentPurchase.supplier.name}</p>
-                                            <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-2xs'} `}>{currentPurchase.supplier.phone || 'No Phone'}</p>
+                                            <p className={`text-white font-bold truncate ${textSize >= 4 ? 'text-lg' : textSize >= 3 ? 'text-base' : 'text-sm'}`}>{currentPurchase.supplier.name}</p>
+                                            <p className={`text-ink-muted font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-2xs'}`}>{currentPurchase.supplier.phone || 'No Phone'}</p>
                                         </div>
                                         <button
                                             onClick={() => { patchPurchase({ supplier: null }); setSupplierSearch(''); }}
-                                            className="text-slate-600 hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
+                                            className="text-ink-secondary hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
                                         >
                                             <X size={16} />
                                         </button>
                                     </div>
                                     {/* Balance & Address */}
-                                    <div className={`space-y-1 bg-slate-800 / 30 rounded-lg p-2 ${textSize >= 3 ? 'text-sm' : 'text-xs'} `}>
+                                    <div className={`space-y-1 bg-neutral-800 / 30 rounded-lg p-2 ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-slate-500 font-medium">Balance:</span>
-                                            <span className={`font-black ${currentPurchase.supplier.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'} `}>
-                                                {currentPurchase.supplier.current_balance >= 0 ? (getCurrencySymbol()) + ' ' : '-' + (getCurrencySymbol()) + ' '}{Math.abs(currentPurchase.supplier.current_balance || 0).toLocaleString()}
+                                            <span className="text-ink-muted font-medium">Balance:</span>
+                                            <span className={`font-bold ${currentPurchase.supplier.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                {currentPurchase.supplier.current_balance >= 0 ? (getCurrencySymbol()) + ' ' : '-' + (getCurrencySymbol()) + ''}{Math.abs(currentPurchase.supplier.current_balance || 0).toLocaleString()}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-start gap-2">
-                                            <span className="text-slate-500 font-medium shrink-0">Address:</span>
-                                            <span className={`text-right ${currentPurchase.supplier.address ? 'text-slate-300' : 'text-slate-600 italic'} `}>
+                                            <span className="text-ink-muted font-medium shrink-0">Address:</span>
+                                            <span className={`text-right ${currentPurchase.supplier.address ? 'text-neutral-300' : 'text-ink-secondary italic'}`}>
                                                 {currentPurchase.supplier.address || 'Not set'}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center py-4 border border-dashed border-slate-700 rounded-xl">
-                                    <div className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-2 text-slate-500">
+                                <div className="text-center py-4 border border-dashed border-neutral-700 rounded-xl">
+                                    <div className="w-10 h-10 rounded-full bg-neutral-800/50 flex items-center justify-center mx-auto mb-2 text-ink-muted">
                                         <User size={20} />
                                     </div>
-                                    <p className={`text-slate-400 font-bold ${textSize >= 3 ? 'text-sm' : 'text-xs'} `}>No Supplier Selected</p>
+                                    <p className={`text-ink-muted font-bold ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>No Supplier Selected</p>
                                 </div>
                             )}
                         </div>
@@ -1895,33 +1895,33 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             {/* Invoice # & Date Row */}
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Po #</label>
+                                    <label className="text-3xs text-ink-muted font-bold uppercase block mb-1">Po #</label>
                                     <input
                                         type="text"
                                         value={currentPurchase.invoiceNumber || ''}
                                         onChange={(e) => patchPurchase({ invoiceNumber: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-brand-500/20 focus:border-brand-500 transition-all"
                                         placeholder="PO-000001"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Date</label>
+                                    <label className="text-3xs text-ink-muted font-bold uppercase block mb-1">Date</label>
                                     <input
                                         type="date"
                                         value={currentPurchase.date || ''}
                                         onChange={(e) => patchPurchase({ date: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-brand-500/20 focus:border-brand-500 transition-all"
                                     />
                                 </div>
                             </div>
 
                             {/* Terms Row */}
                             <div>
-                                <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Terms</label>
+                                <label className="text-3xs text-ink-muted font-bold uppercase block mb-1">Terms</label>
                                 <select
                                     value={currentPurchase.paymentTerms || 'net30'}
                                     onChange={(e) => patchPurchase({ paymentTerms: e.target.value })}
-                                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-brand-500/20 focus:border-brand-500 transition-all"
                                 >
                                     <option value="immediate">Immediate</option>
                                     <option value="net7">Net 7</option>
@@ -1932,8 +1932,8 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             </div>
                             
                             {/* Tax Inclusive Toggle */}
-                            <div className="flex items-center justify-between p-2 mt-2 bg-indigo-900/20 rounded-lg border border-indigo-800/30">
-                                <label htmlFor="is_tax_inclusive" className="text-xs text-indigo-300 font-bold cursor-pointer">
+                            <div className="flex items-center justify-between p-2 mt-2 bg-brand-900/20 rounded-lg border border-brand-800/30">
+                                <label htmlFor="is_tax_inclusive" className="text-xs text-brand-300 font-bold cursor-pointer">
                                     Prices Include Tax
                                 </label>
                                 <input
@@ -1941,93 +1941,93 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                     id="is_tax_inclusive"
                                     checked={currentPurchase.is_tax_inclusive ?? false}
                                     onChange={(e) => patchPurchase({ is_tax_inclusive: e.target.checked })}
-                                    className="rounded border-slate-600 bg-slate-800 text-indigo-500 shadow-sm focus:ring-indigo-500 cursor-pointer"
+                                    className="rounded border-neutral-600 bg-neutral-800 text-brand-500 shadow-sm focus:ring-brand-500 cursor-pointer"
                                 />
                             </div>
 
                             {/* CHEQUE DETAILS-Conditional */}
                             {currentPurchase.paymentAccountId === 'CHEQUE' && (
-                                <div className="grid grid-cols-2 gap-2 p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/30 animate-in slide-in-from-top-2">
+                                <div className="grid grid-cols-2 gap-2 p-2 bg-brand-500/10 rounded-lg border border-brand-500/30 animate-in slide-in-from-top-2">
                                     <div className="col-span-2">
-                                        <p className="text-2xs text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
+                                        <p className="text-2xs text-brand-400 font-bold uppercase mb-2 flex items-center gap-1">
                                             <Wallet size={12} /> CHEQUE DETAILS
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
+                                        <label className="text-3xs text-ink-muted font-bold uppercase block mb-1">Cheque No</label>
                                         <input
                                             type="text"
                                             value={currentPurchase.paymentReference || ''}
                                             onChange={(e) => patchPurchase({ paymentReference: e.target.value })}
-                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
+                                            className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-brand-500/20 focus:border-brand-500 transition-all placeholder-slate-600"
                                             placeholder="XXXXXX"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
+                                        <label className="text-3xs text-ink-muted font-bold uppercase block mb-1">Cheque Date</label>
                                         <input
                                             type="date"
                                             value={currentPurchase.chequeDate || new Date().toISOString().split('T')[0]}
                                             onChange={(e) => patchPurchase({ chequeDate: e.target.value })}
-                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                            className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-brand-500/20 focus:border-brand-500 transition-all"
                                         />
                                     </div>
                                 </div>
                             )}
 
                             {/* Financial Summary-Bigger */}
-                            <div className="space-y-2 pt-3 border-t border-slate-800/50">
+                            <div className="space-y-2 pt-3 border-t border-neutral-800/50">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-xs text-slate-400 font-bold">Subtotal</span>
+                                    <span className="text-xs text-ink-muted font-bold">Subtotal</span>
                                     <span className="text-white font-bold text-base">{formatCurrency(subtotal, store)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-xs text-slate-400 font-bold">Item Discounts</span>
+                                    <span className="text-xs text-ink-muted font-bold">Item Discounts</span>
                                     <span className="text-red-400 font-bold text-sm">- {formatCurrency(itemDiscounts, store)}</span>
                                 </div>
                             </div>
 
                             {/* Discount Row */}
-                            <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
-                                <span className="text-xs text-slate-400 font-bold">Invoice Discount</span>
+                            <div className="flex items-center justify-between bg-neutral-800/30 rounded-xl p-3 border border-neutral-700/50">
+                                <span className="text-xs text-ink-muted font-bold">Invoice Discount</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-slate-500 text-xs">{getCurrencySymbol()}</span>
+                                    <span className="text-ink-muted text-xs">{getCurrencySymbol()}</span>
                                     <input
                                         type="number"
                                         value={currentPurchase.discount ?? 0}
                                         onChange={(e) => patchPurchase({ discount: parseFloat(e.target.value) || 0 })}
-                                        className="w-20 bg-slate-700/50 border border-slate-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm text-right focus:ring-2 ring-indigo-500/20 transition-all"
+                                        className="w-20 bg-neutral-700/50 border border-neutral-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm text-right focus:ring-2 ring-brand-500/20 transition-all"
                                         placeholder="0"
                                     />
                                 </div>
                             </div>
 
                             {/* Tax Row */}
-                            <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
-                                <span className="text-xs text-slate-400 font-bold">Tax</span>
+                            <div className="flex items-center justify-between bg-neutral-800/30 rounded-xl p-3 border border-neutral-700/50">
+                                <span className="text-xs text-ink-muted font-bold">Tax</span>
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="number"
                                         value={currentPurchase.tax ?? 0}
                                         onChange={(e) => patchPurchase({ tax: parseFloat(e.target.value) || 0 })}
-                                        className="w-16 bg-slate-700/50 border border-slate-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm text-right focus:ring-2 ring-indigo-500/20 transition-all"
+                                        className="w-16 bg-neutral-700/50 border border-neutral-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm text-right focus:ring-2 ring-brand-500/20 transition-all"
                                         placeholder="0"
                                     />
-                                    <span className="text-slate-500 text-xs">%</span>
+                                    <span className="text-ink-muted text-xs">%</span>
                                 </div>
                             </div>
 
                             {/* Delivery Charge Row-Conditional */}
                             {showDeliveryCharges && (
-                                <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
-                                    <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
+                                <div className="flex items-center justify-between p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
+                                    <span className="text-xs text-ink-muted font-bold group-hover:text-ink-muted">Delivery Charges</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-600 text-2xs">{getCurrencySymbol()}</span>
+                                        <span className="text-ink-secondary text-2xs">{getCurrencySymbol()}</span>
                                         <input
                                             type="number"
                                             value={currentPurchase.delivery_charge ?? 0}
                                             onChange={(e) => patchPurchase({ delivery_charge: parseFloat(e.target.value) || 0 })}
-                                            className="w-20 bg-transparent border-b border-dashed border-slate-700 hover:border-indigo-500 transition-all text-xs font-bold text-slate-300 text-right focus:ring-0 focus:border-indigo-500"
+                                            className="w-20 bg-transparent border-b border-dashed border-neutral-700 hover:border-brand-500 transition-all text-xs font-bold text-neutral-300 text-right focus:ring-0 focus:border-brand-500"
                                             placeholder="0"
                                         />
                                     </div>
@@ -2039,24 +2039,24 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 <>
                                     {!enableMultipleExtras ? (
                                         /* Single Extra Field Mode */
-                                        (<div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
+                                        (<div className="flex items-center justify-between p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
                                             <div className="flex items-center gap-1">
                                                 <input
                                                     type="text"
                                                     value={currentPurchase.extra_charge_label ?? ''}
                                                     onChange={(e) => patchPurchase({ extra_charge_label: e.target.value })}
-                                                    className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
+                                                    className="bg-transparent border-none p-0 text-xs text-ink-muted font-bold w-20 group-hover:text-ink-muted focus:ring-0"
                                                     placeholder="Extra"
                                                 />
-                                                <span className="text-2xs text-slate-700">{"\u270E"}</span>
+                                                <span className="text-2xs text-ink-secondary">{"\u270E"}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-600 text-2xs">{getCurrencySymbol()}</span>
+                                                <span className="text-ink-secondary text-2xs">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={currentPurchase.extra_charge_value ?? 0}
                                                     onChange={(e) => patchPurchase({ extra_charge_value: parseFloat(e.target.value) || 0 })}
-                                                    className="w-20 bg-transparent border-b border-dashed border-slate-700 hover:border-indigo-500 transition-all text-xs font-bold text-slate-300 text-right focus:ring-0 focus:border-indigo-500"
+                                                    className="w-20 bg-transparent border-b border-dashed border-neutral-700 hover:border-brand-500 transition-all text-xs font-bold text-neutral-300 text-right focus:ring-0 focus:border-brand-500"
                                                     placeholder="0"
                                                 />
                                             </div>
@@ -2065,7 +2065,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                         /* Multiple Extra Fields Mode */
                                         (<div className="space-y-1">
                                             {(currentPurchase.extraFields || [{ id: 1, label: '', value: 0 }]).map((field, idx) => (
-                                                <div key={field.id || idx} className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
+                                                <div key={field.id || idx} className="flex items-center justify-between p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
                                                     <div className="flex items-center gap-1">
                                                         <input
                                                             type="text"
@@ -2075,13 +2075,13 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                                 updated[idx] = { ...updated[idx], label: e.target.value };
                                                                 patchPurchase({ extraFields: updated });
                                                             }}
-                                                            className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
-                                                            placeholder={`Extra ${idx + 1} `}
+                                                            className="bg-transparent border-none p-0 text-xs text-ink-muted font-bold w-20 group-hover:text-ink-muted focus:ring-0"
+                                                            placeholder={`Extra ${idx + 1}`}
                                                         />
-                                                        <span className="text-2xs text-slate-700">{"\u270E"}</span>
+                                                        <span className="text-2xs text-ink-secondary">{"\u270E"}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-slate-600 text-2xs">{getCurrencySymbol()}</span>
+                                                        <span className="text-ink-secondary text-2xs">{getCurrencySymbol()}</span>
                                                         <input
                                                             type="number"
                                                             value={field.value ?? 0}
@@ -2090,7 +2090,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                                 updated[idx] = { ...updated[idx], value: parseFloat(e.target.value) || 0 };
                                                                 patchPurchase({ extraFields: updated });
                                                             }}
-                                                            className="w-16 bg-transparent border-b border-dashed border-slate-700 hover:border-indigo-500 transition-all text-xs font-bold text-slate-300 text-right focus:ring-0 focus:border-indigo-500"
+                                                            className="w-16 bg-transparent border-b border-dashed border-neutral-700 hover:border-brand-500 transition-all text-xs font-bold text-neutral-300 text-right focus:ring-0 focus:border-brand-500"
                                                             placeholder="0"
                                                         />
                                                         {(currentPurchase.extraFields || []).length > 1 && (
@@ -2099,7 +2099,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                                     const updated = (currentPurchase.extraFields || []).filter((_, i) => i !== idx);
                                                                     patchPurchase({ extraFields: updated });
                                                                 }}
-                                                                className="text-slate-600 hover:text-red-400 p-0.5 opacity-0 group-hover:opacity-100 transition-all"
+                                                                className="text-ink-secondary hover:text-red-400 p-0.5 opacity-0 group-hover:opacity-100 transition-all"
                                                             >
                                                                 <X size={12} />
                                                             </button>
@@ -2113,7 +2113,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         const current = currentPurchase.extraFields || [{ id: 1, label: '', value: 0 }];
                                                         patchPurchase({ extraFields: [...current, { id: Date.now(), label: '', value: 0 }] });
                                                     }}
-                                                    className="w-full text-center text-2xs text-indigo-400 hover:text-indigo-300 font-bold py-1 hover:bg-indigo-900/20 rounded-lg transition-all"
+                                                    className="w-full text-center text-2xs text-brand-400 hover:text-brand-300 font-bold py-1 hover:bg-brand-900/20 rounded-lg transition-all"
                                                 >
                                                     + Add Extra Field
                                                 </button>
@@ -2140,25 +2140,25 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             </div>
 
                             {/* Balance Due Row */}
-                            <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'} `}>
-                                <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'} `}>Balance Due</span>
-                                <span className={`font-bold text-base ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'} `}>
+                            <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'}`}>
+                                <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>Balance Due</span>
+                                <span className={`font-bold text-base ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                                     {formatCurrency(balanceDue, store)}
                                 </span>
                             </div>
                         </div>
 
                         {/* GRAND TOTAL & SAVE-Compact */}
-                        <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
+                        <div className="p-3 bg-neutral-900 space-y-2 shrink-0 border-t border-neutral-800">
                             <div className="flex justify-between items-center">
-                                <span className="text-2xs text-slate-500 font-bold uppercase">Total</span>
-                                <span className="text-2xl font-black text-white">{formatCurrency(grandTotal, store)}</span>
+                                <span className="text-2xs text-ink-muted font-bold uppercase">Total</span>
+                                <span className="text-2xl font-bold text-white">{formatCurrency(grandTotal, store)}</span>
                             </div>
                             <div className="space-y-2">
                                 <button
                                     onClick={() => initiateSave(false)}
                                     disabled={saving || isReadOnly}
-                                    className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+                                    className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
                                 >
                                     <CheckCircle2 size={16} />
                                     {saving ? 'SAVING...' : (isReadOnly ? 'ORDER RECEIVED' : (isEditMode ? 'UPDATE ORDER' : 'COMPLETE ORDER'))}
@@ -2174,7 +2174,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                             }
                                         }}
                                         disabled={saving}
-                                        className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50"
+                                        className="flex-1 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
                                     >
                                         <Printer size={16} />
                                         {saving ? '...' : 'PRINT ORDER'}
@@ -2209,28 +2209,28 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
             {/* INLINE PROFIT DISPLAY-Shows when holding Margin button */}
             {
                 false && (
-                    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-200">
-                        <div className="bg-slate-900/95 backdrop-blur-lg rounded-2xl px-8 py-4 shadow-2xl border border-slate-700 flex items-center gap-6">
+                    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-normal">
+                        <div className="bg-neutral-900/95 backdrop-blur-lg rounded-2xl px-8 py-4 shadow-2xl border border-neutral-700 flex items-center gap-6">
                             <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${profit >= 0 ? 'bg-emerald-500/20' : 'bg-red-500/20'} `}>
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${profit >= 0 ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
                                     <TrendingUp size={24} className={profit >= 0 ? 'text-emerald-400' : 'text-red-400'} />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-400 font-bold uppercase">Profit Margin</p>
-                                    <p className={`text-2xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'} `}>
+                                    <p className="text-xs text-ink-muted font-bold uppercase">Profit Margin</p>
+                                    <p className={`text-2xl font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {formatCurrency(profit, store)}
                                     </p>
                                 </div>
                             </div>
                             {grandTotal > 0 && (
-                                <div className="border-l border-slate-700 pl-6">
-                                    <p className="text-xs text-slate-400 font-bold uppercase">Margin %</p>
-                                    <p className={`text-xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'} `}>
+                                <div className="border-l border-neutral-700 pl-6">
+                                    <p className="text-xs text-ink-muted font-bold uppercase">Margin %</p>
+                                    <p className={`text-xl font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {((profit / grandTotal) * 100).toFixed(1)}%
                                     </p>
                                 </div>
                             )}
-                            <p className="text-xs text-slate-500 italic">↓ Drag down for details</p>
+                            <p className="text-xs text-ink-muted italic">↓ Drag down for details</p>
                         </div>
                     </div>
                 )
@@ -2251,15 +2251,15 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                         <CheckCircle2 size={48} className="text-emerald-500" />
                     </div>
 
-                    <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">Transaction Successful</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">The purchase order has been generated and stock updated.</p>
+                    <h3 className="text-xl font-bold text-ink mb-2">Transaction Successful</h3>
+                    <p className="text-ink-muted text-sm mb-8">The purchase order has been generated and stock updated.</p>
 
                     <div className="grid grid-cols-1 gap-3 w-full">
                         <button
                             onClick={() => {
                                 window.open(route('store.purchase-orders.print', lastPurchaseId), '_blank');
                             }}
-                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20"
+                            className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl "
                         >
                             <Printer size={20} /> PRINT ORDER
                         </button>
@@ -2269,7 +2269,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 setShowSuccessModal(false);
                                 removePurchase(currentPurchase.id);
                             }}
-                            className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 transition-all"
+                            className="w-full py-4 bg-sunken text-ink-secondary rounded-2xl font-bold hover:bg-interactive-hover transition-all"
                         >
                             NEW ORDER
                         </button>
@@ -2279,20 +2279,20 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
             {/* SCANNING MODAL */}
             {
                 isScanning && (
-                    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900">
+                    <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-md z-drawer flex items-center justify-center p-4">
+                        <div className="bg-surface rounded-2xl shadow-2xl border border-line w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-slow">
+                            <div className="p-8 border-b border-line flex items-center justify-between bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800/50 dark:to-neutral-900">
                                 <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-500/20">
+                                    <div className="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-xl ">
                                         <ScanBarcode size={28} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-slate-800 dark:text-white">Scanning Mode</h2>
-                                        <p className="text-sm text-slate-500 font-bold">Scan items one after another</p>
+                                        <h2 className="text-2xl font-bold text-ink">Scanning Mode</h2>
+                                        <p className="text-sm text-ink-muted font-bold">Scan items one after another</p>
                                     </div>
                                 </div>
-                                <button onClick={() => setIsScanning(false)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all">
-                                    <X size={28} className="text-slate-400" />
+                                <button onClick={() => setIsScanning(false)} className="p-4 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-2xl transition-all">
+                                    <X size={28} className="text-ink-muted" />
                                 </button>
                             </div>
 
@@ -2305,7 +2305,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                         value={scanBuffer}
                                         onChange={(e) => setScanBuffer(e.target.value)}
                                         onKeyDown={handleScan}
-                                        className="w-full py-8 px-10 bg-slate-50 dark:bg-slate-800 border-4 border-indigo-100 dark:border-indigo-900/30 rounded-[32px] text-3xl font-black text-center focus:ring-8 ring-indigo-500/10 placeholder-slate-200 transition-all"
+                                        className="w-full py-8 px-10 bg-app border-4 border-brand-100 dark:border-brand-900/30 rounded-xl text-3xl font-bold text-center focus:ring-8 ring-brand-500/10 placeholder-slate-200 transition-all"
                                     />
                                     <div className="absolute right-8 top-1/2 -translate-y-1/2">
                                         <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
@@ -2314,26 +2314,26 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
 
                                 <div className="max-h-80 overflow-y-auto space-y-4 custom-scrollbar pr-2">
                                     {scannedItems.length === 0 ? (
-                                        <div className="text-center py-16 border-4 border-dashed border-slate-100 dark:border-slate-800 rounded-[40px]">
-                                            <Package size={64} className="mx-auto text-slate-200 mb-4" />
-                                            <p className="text-slate-400 font-black text-lg">No items scanned yet</p>
+                                        <div className="text-center py-16 border-4 border-dashed border-line rounded-2xl">
+                                            <Package size={64} className="mx-auto text-neutral-200 mb-4" />
+                                            <p className="text-ink-muted font-bold text-lg">No items scanned yet</p>
                                         </div>
                                     ) : (
                                         scannedItems.map((item, idx) => (
-                                            <div key={item.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border-2 border-slate-100 dark:border-slate-800 animate-in slide-in-from-bottom-2 duration-200">
+                                            <div key={item.id} className="flex items-center justify-between p-5 bg-app rounded-2xl border-2 border-line animate-in slide-in-from-bottom-2 duration-normal">
                                                 <div className="flex items-center gap-5">
-                                                    <span className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-xs font-black text-slate-400 shadow-sm">{idx + 1}</span>
+                                                    <span className="w-10 h-10 rounded-full bg-sunken flex items-center justify-center text-xs font-bold text-ink-muted shadow-sm">{idx + 1}</span>
                                                     <div>
-                                                        <p className="font-black text-slate-800 dark:text-white text-lg">
+                                                        <p className="font-bold text-ink text-lg">
                                                             {item.name}
                                                             {item.quantity > 1 && <span className="ml-2 text-emerald-500 text-base">x{item.quantity}</span>}
                                                         </p>
-                                                        <p className="text-sm text-indigo-500 font-black">
+                                                        <p className="text-sm text-brand-500 font-bold">
                                                             {item.quantity} @ {getCurrencySymbol()} {item.price.toLocaleString()} = {getCurrencySymbol()} {(item.quantity * item.price).toLocaleString()}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => setScannedItems(prev => prev.filter(i => i.id !== item.id))} className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
+                                                <button onClick={() => setScannedItems(prev => prev.filter(i => i.id !== item.id))} className="p-3 text-neutral-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
                                                     <Trash2 size={24} />
                                                 </button>
                                             </div>
@@ -2342,13 +2342,13 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 </div>
                             </div>
 
-                            <div className="p-8 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
-                                <p className="text-base font-black text-slate-500 uppercase tracking-widest">Total: <span className="text-indigo-600">{scannedItems.length} items</span></p>
+                            <div className="p-8 bg-app flex items-center justify-between border-t border-line">
+                                <p className="text-base font-bold text-ink-muted uppercase tracking-widest">Total: <span className="text-brand-600">{scannedItems.length} items</span></p>
                                 <div className="flex gap-4">
-                                    <button onClick={() => setScannedItems([])} className="px-8 py-4 text-sm font-black text-slate-500 hover:text-red-500 transition-colors uppercase tracking-widest">Clear All</button>
+                                    <button onClick={() => setScannedItems([])} className="px-8 py-4 text-sm font-bold text-ink-muted hover:text-red-500 transition-colors uppercase tracking-widest">Clear All</button>
                                     <button
                                         onClick={confirmScan}
-                                        className="bg-indigo-600 text-white px-12 py-4 rounded-2xl font-black shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95 uppercase tracking-widest"
+                                        className="bg-brand-600 text-white px-12 py-4 rounded-2xl font-bold shadow-xl hover:bg-brand-700 transition-all active:scale-95 uppercase tracking-widest"
                                     >
                                         Add to Invoice
                                     </button>
@@ -2361,24 +2361,24 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
             {/* PROFIT ANALYSIS MODAL */}
             {
                 false && (
-                    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
+                    <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-sm z-drawer flex items-center justify-center p-4">
+                        <div className="bg-surface rounded-2xl shadow-2xl border border-line w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-normal flex flex-col max-h-[80vh]">
                             {/* Header */}
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                            <div className="p-4 border-b border-line flex justify-between items-center bg-app shrink-0">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                                         <TrendingUp className="text-emerald-600" size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">Profit Analysis</h3>
-                                        <p className="text-xs text-slate-500">Per-item breakdown</p>
+                                        <h3 className="text-lg font-bold text-ink">Profit Analysis</h3>
+                                        <p className="text-xs text-ink-muted">Per-item breakdown</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => { /* setShowProfitModal(false); setProfitLocked(false); setShowProfit(false); */ }}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
+                                    className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-all"
                                 >
-                                    <X size={20} className="text-slate-400" />
+                                    <X size={20} className="text-ink-muted" />
                                 </button>
                             </div>
 
@@ -2386,7 +2386,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             <div className="flex-1 overflow-y-auto p-4">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="text-left text-2xs font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
+                                        <tr className="text-left text-2xs font-bold text-ink-muted uppercase border-b border-line">
                                             <th className="pb-2 pl-2">#</th>
                                             <th className="pb-2">Product</th>
                                             <th className="pb-2 text-center">Qty</th>
@@ -2405,22 +2405,22 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                             const marginPercent = lineTotal > 0 ? (lineProfit / lineTotal * 100).toFixed(1) : 0;
 
                                             return (
-                                                <tr key={item.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                                                    <td className="py-2 pl-2 text-slate-400 text-xs">{idx + 1}</td>
+                                                <tr key={item.id} className="border-b border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover">
+                                                    <td className="py-2 pl-2 text-ink-muted text-xs">{idx + 1}</td>
                                                     <td className="py-2">
-                                                        <p className="font-bold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name}</p>
-                                                        <p className="text-2xs text-slate-400">{item.product?.sku || 'N/A'}</p>
+                                                        <p className="font-bold text-ink text-xs">{item.product?.name || item.name}</p>
+                                                        <p className="text-2xs text-ink-muted">{item.product?.sku || 'N/A'}</p>
                                                     </td>
                                                     <td className="py-2 text-center text-xs">{item.quantity}</td>
-                                                    <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol()} {cost.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs text-ink-muted">{getCurrencySymbol()} {cost.toLocaleString()}</td>
                                                     <td className="py-2 text-right text-xs">{getCurrencySymbol()} {item.price.toLocaleString()}</td>
                                                     <td className="py-2 text-right">
-                                                        <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'} `}>
+                                                        <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                                             {marginPercent}%
                                                         </span>
                                                     </td>
                                                     <td className="py-2 text-right pr-2">
-                                                        <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'} `}>
+                                                        <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                             {getCurrencySymbol()} {lineProfit.toLocaleString()}
                                                         </span>
                                                     </td>
@@ -2431,26 +2431,26 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 </table>
 
                                 {currentPurchase.items.filter(item => item.product).length === 0 && (
-                                    <div className="text-center py-8 text-slate-400">
+                                    <div className="text-center py-8 text-ink-muted">
                                         <p className="text-sm">No products added yet</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* Summary Footer */}
-                            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                            <div className="p-4 bg-app border-t border-line shrink-0">
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Cost</p>
-                                        <p className="text-lg font-bold text-slate-600">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
+                                    <div className="bg-surface rounded-xl p-3 border border-line">
+                                        <p className="text-2xs text-ink-muted font-bold uppercase mb-1">Total Cost</p>
+                                        <p className="text-lg font-bold text-ink-secondary">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
                                     </div>
-                                    <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
-                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal, store)}</p>
+                                    <div className="bg-surface rounded-xl p-3 border border-line">
+                                        <p className="text-2xs text-ink-muted font-bold uppercase mb-1">Total Revenue</p>
+                                        <p className="text-lg font-bold text-ink">{formatCurrency(grandTotal, store)}</p>
                                     </div>
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
                                         <p className="text-2xs text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
-                                        <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'} `}>
+                                        <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                             {formatCurrency(profit, store)}
                                             {grandTotal > 0 && (
                                                 <span className="text-xs ml-1 opacity-70">({((profit / grandTotal) * 100).toFixed(1)}%)</span>
@@ -2469,27 +2469,27 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                     <>
                         {/* Backdrop */}
                         <div
-                            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[90] animate-in fade-in duration-200"
+                            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-drawer animate-in fade-in duration-normal"
                             onClick={() => setShowSettingsDrawer(false)}
                         />
                         {/* Drawer */}
-                        <div className="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 shadow-2xl z-[100] animate-in slide-in-from-right duration-300 flex flex-col">
+                        <div className="fixed top-0 right-0 h-full w-80 bg-surface shadow-2xl z-drawer animate-in slide-in-from-right duration-slow flex flex-col">
                             {/* Header */}
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                            <div className="p-4 border-b border-line flex items-center justify-between bg-app">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                        <Settings size={20} className="text-slate-600 dark:text-slate-400" />
+                                    <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
+                                        <Settings size={20} className="text-ink-secondary" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-slate-800 dark:text-white">Quick Settings</h3>
-                                        <p className="text-xs text-slate-500">Invoice preferences</p>
+                                        <h3 className="font-bold text-ink">Quick Settings</h3>
+                                        <p className="text-xs text-ink-muted">Invoice preferences</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowSettingsDrawer(false)}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
+                                    className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-all"
                                 >
-                                    <X size={20} className="text-slate-400" />
+                                    <X size={20} className="text-ink-muted" />
                                 </button>
                             </div>
 
@@ -2497,23 +2497,23 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                                 {/* Display Settings */}
                                 <div className="space-y-3">
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Display</h4>
+                                    <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wide">Display</h4>
 
                                     {/* Large Text Mode */}
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                    <div className="flex items-center justify-between p-3 bg-app rounded-xl">
                                         <div className="flex items-center gap-3">
                                             <Type size={18} className="text-purple-500" />
                                             <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Large Text</p>
-                                                <p className="text-xs text-slate-500">Bigger fonts for better visibility</p>
+                                                <p className="text-sm font-bold text-ink-secondary dark:text-white">Large Text</p>
+                                                <p className="text-xs text-ink-muted">Bigger fonts for better visibility</p>
                                             </div>
                                         </div>
-                                        <div className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1">
+                                        <div className="flex bg-sunken rounded-lg p-1">
                                             {[1, 2, 3, 4, 5].map(s => (
                                                 <button
                                                     key={s}
                                                     onClick={() => setTextSize(s)}
-                                                    className={`w-7 h-6 rounded-md text-xs font-bold transition-all ${textSize === s ? 'bg-purple-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'} `}
+                                                    className={`w-7 h-6 rounded-md text-xs font-bold transition-all ${textSize === s ? 'bg-purple-500 text-white shadow-sm' : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200'}`}
                                                 >
                                                     {s}
                                                 </button>
@@ -2522,37 +2522,37 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                     </div>
 
                                     {/* Show Quick Entry */}
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                    <div className="flex items-center justify-between p-3 bg-app rounded-xl">
                                         <div className="flex items-center gap-3">
-                                            <Zap size={18} className="text-indigo-500" />
+                                            <Zap size={18} className="text-brand-500" />
                                             <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Quick Entry</p>
-                                                <p className="text-xs text-slate-500">Fast product entry row</p>
+                                                <p className="text-sm font-bold text-ink-secondary dark:text-white">Quick Entry</p>
+                                                <p className="text-xs text-ink-muted">Fast product entry row</p>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => setShowQuickEntry(!showQuickEntry)}
-                                            className={`w-12 h-6 rounded-full transition-all ${showQuickEntry ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'} `}
+                                            className={`w-12 h-6 rounded-full transition-all ${showQuickEntry ? 'bg-brand-500' : 'bg-sunken'}`}
                                         >
-                                            <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showQuickEntry ? 'translate-x-6' : 'translate-x-0.5'} `} />
+                                            <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showQuickEntry ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Invoice Settings */}
                                 <div className="space-y-3">
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Permanent Defaults</h4>
+                                    <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wide">Permanent Defaults</h4>
 
                                     {/* Permanent Delivery */}
-                                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-2 border border-indigo-100 dark:border-indigo-800/50">
-                                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Default Delivery</p>
+                                    <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl space-y-2 border border-brand-100 dark:border-brand-800/50">
+                                        <p className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase">Default Delivery</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                            <span className="text-ink-muted text-xs font-bold">{getCurrencySymbol()}</span>
                                             <input
                                                 type="number"
                                                 value={defaultDelivery}
                                                 onChange={(e) => setDefaultDelivery(parseFloat(e.target.value) || 0)}
-                                                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-700 dark:text-white"
+                                                className="w-full bg-surface border border-line rounded-lg px-2 py-1.5 text-sm font-bold text-ink-secondary dark:text-white"
                                                 placeholder="0"
                                             />
                                         </div>
@@ -2566,16 +2566,16 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 type="text"
                                                 value={defaultExtraLabel}
                                                 onChange={(e) => setDefaultExtraLabel(e.target.value)}
-                                                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 dark:text-white"
+                                                className="w-full bg-surface border border-line rounded-lg px-2 py-1.5 text-xs font-bold text-ink-secondary dark:text-white"
                                                 placeholder="Field Name (e.g. Service)"
                                             />
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                                <span className="text-ink-muted text-xs font-bold">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={defaultExtraValue}
                                                     onChange={(e) => setDefaultExtraValue(parseFloat(e.target.value) || 0)}
-                                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-700 dark:text-white"
+                                                    className="w-full bg-surface border border-line rounded-lg px-2 py-1.5 text-sm font-bold text-ink-secondary dark:text-white"
                                                     placeholder="0"
                                                 />
                                             </div>
@@ -2588,15 +2588,15 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                     <Plus size={16} className="text-amber-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-slate-700 dark:text-white">Multiple Extra Fields</p>
-                                                    <p className="text-2xs text-slate-500">Add up to 10 custom charges</p>
+                                                    <p className="text-sm font-bold text-ink-secondary dark:text-white">Multiple Extra Fields</p>
+                                                    <p className="text-2xs text-ink-muted">Add up to 10 custom charges</p>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setEnableMultipleExtras(!enableMultipleExtras)}
-                                                className={`w-12 h-6 rounded-full transition-all ${enableMultipleExtras ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'} `}
+                                                className={`w-12 h-6 rounded-full transition-all ${enableMultipleExtras ? 'bg-amber-500' : 'bg-sunken'}`}
                                             >
-                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${enableMultipleExtras ? 'translate-x-6' : 'translate-x-0.5'} `} />
+                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${enableMultipleExtras ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                             </button>
                                         </div>
 
@@ -2604,51 +2604,51 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
 
                                     {/* Show/Hide Fields */}
                                     <div className="space-y-3">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Show/Hide Fields</h4>
+                                        <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wide">Show/Hide Fields</h4>
 
                                         {/* Show Delivery Charges Toggle */}
-                                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                        <div className="flex items-center justify-between p-3 bg-app rounded-xl">
                                             <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Delivery Charges</p>
-                                                <p className="text-2xs text-slate-500">Show delivery charges field</p>
+                                                <p className="text-sm font-bold text-ink-secondary dark:text-white">Delivery Charges</p>
+                                                <p className="text-2xs text-ink-muted">Show delivery charges field</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowDeliveryCharges(!showDeliveryCharges)}
-                                                className={`w-12 h-6 rounded-full transition-all ${showDeliveryCharges ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'} `}
+                                                className={`w-12 h-6 rounded-full transition-all ${showDeliveryCharges ? 'bg-brand-500' : 'bg-sunken'}`}
                                             >
-                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showDeliveryCharges ? 'translate-x-6' : 'translate-x-0.5'} `} />
+                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showDeliveryCharges ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                             </button>
                                         </div>
 
                                         {/* Show Extra Field Toggle */}
-                                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                        <div className="flex items-center justify-between p-3 bg-app rounded-xl">
                                             <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Extra Field</p>
-                                                <p className="text-2xs text-slate-500">Show extra charge field(s)</p>
+                                                <p className="text-sm font-bold text-ink-secondary dark:text-white">Extra Field</p>
+                                                <p className="text-2xs text-ink-muted">Show extra charge field(s)</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowExtraField(!showExtraField)}
-                                                className={`w-12 h-6 rounded-full transition-all ${showExtraField ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'} `}
+                                                className={`w-12 h-6 rounded-full transition-all ${showExtraField ? 'bg-brand-500' : 'bg-sunken'}`}
                                             >
-                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showExtraField ? 'translate-x-6' : 'translate-x-0.5'} `} />
+                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showExtraField ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                             </button>
                                         </div>
                                     </div>
 
                                     {/* Invoice Logic */}
                                     <div className="space-y-3">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Invoice Logic</h4>
+                                        <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wide">Invoice Logic</h4>
 
                                         {/* Default Payment Method */}
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
-                                            <p className="text-sm font-bold text-slate-700 dark:text-white">Payment Method</p>
+                                        <div className="p-3 bg-app rounded-xl space-y-2">
+                                            <p className="text-sm font-bold text-ink-secondary dark:text-white">Payment Method</p>
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => patchPurchase({ paymentMethod: 'credit' })}
                                                     className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${currentPurchase.paymentMethod === 'credit'
                                                         ? 'bg-emerald-500 text-white'
-                                                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
-                                                        } `}
+                                                        : 'bg-sunken text-ink-secondary border border-line dark:border-line'
+                                                        }`}
                                                 >
                                                     Credit
                                                 </button>
@@ -2656,8 +2656,8 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                     onClick={() => patchPurchase({ paymentMethod: 'cash' })}
                                                     className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${currentPurchase.paymentMethod === 'cash'
                                                         ? 'bg-orange-500 text-white'
-                                                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
-                                                        } `}
+                                                        : 'bg-sunken text-ink-secondary border border-line dark:border-line'
+                                                        }`}
                                                 >
                                                     Cash
                                                 </button>
@@ -2665,17 +2665,17 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                         </div>
 
                                         {/* Default Tax */}
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
-                                            <p className="text-sm font-bold text-slate-700 dark:text-white">Default Tax Rate</p>
+                                        <div className="p-3 bg-app rounded-xl space-y-2">
+                                            <p className="text-sm font-bold text-ink-secondary dark:text-white">Default Tax Rate</p>
                                             <div className="flex gap-2">
                                                 {[0, 5, 10, 17].map(rate => (
                                                     <button
                                                         key={rate}
                                                         onClick={() => patchPurchase({ tax: rate })}
                                                         className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${currentPurchase.tax === rate
-                                                            ? 'bg-indigo-500 text-white'
-                                                            : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
-                                                            } `}
+                                                            ? 'bg-brand-500 text-white'
+                                                            : 'bg-sunken text-ink-secondary border border-line dark:border-line'
+                                                            }`}
                                                     >
                                                         {rate}%
                                                     </button>
@@ -2684,12 +2684,12 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                         </div>
 
                                         {/* Payment Terms */}
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
-                                            <p className="text-sm font-bold text-slate-700 dark:text-white">Payment Terms</p>
+                                        <div className="p-3 bg-app rounded-xl space-y-2">
+                                            <p className="text-sm font-bold text-ink-secondary dark:text-white">Payment Terms</p>
                                             <select
                                                 value={currentPurchase.paymentTerms || 'net30'}
                                                 onChange={(e) => patchPurchase({ paymentTerms: e.target.value })}
-                                                className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 ring-indigo-500/20"
+                                                className="w-full bg-sunken border border-line dark:border-line rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 ring-brand-500/20"
                                             >
                                                 <option value="immediate">Immediate</option>
                                                 <option value="net7">Net 7 Days</option>
@@ -2703,10 +2703,10 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             </div>
 
                             {/* Footer */}
-                            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                            <div className="p-4 border-t border-line bg-app">
                                 <button
                                     onClick={() => setShowSettingsDrawer(false)}
-                                    className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90 transition-all"
+                                    className="w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-ink rounded-xl font-bold text-sm hover:opacity-90 transition-all"
                                 >
                                     Done
                                 </button>

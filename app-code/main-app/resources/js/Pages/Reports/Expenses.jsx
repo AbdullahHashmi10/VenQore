@@ -174,22 +174,22 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                 {/* HEADERS & FILTERS */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
                             <CreditCard className="text-rose-500" />
                             Expense Analytics
                         </h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Track company spending and overheads</p>
+                        <p className="text-sm text-ink-muted">Track company spending and overheads</p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search expenses..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 pr-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 w-48"
+                                className="pl-9 pr-4 py-2 text-sm border border-line rounded-lg bg-surface text-ink focus:ring-2 focus:ring-brand-500 w-48"
                             />
                         </div>
 
@@ -197,21 +197,21 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                             <select
                                 value={selectedCategory}
                                 onChange={handleCategoryChange}
-                                className="py-2 pl-3 pr-8 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500"
+                                className="py-2 pl-3 pr-8 text-sm border border-line rounded-lg bg-surface text-ink-secondary focus:ring-2 focus:ring-brand-500"
                             >
                                 <option value="">All Categories</option>
                                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
                         )}
 
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                        <div className="flex bg-sunken p-1 rounded-lg">
                             {['this_month', 'last_month', 'this_year', 'custom'].map((r) => (
                                 <button
                                     key={r}
                                     onClick={() => handleRangeChange(r)}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${dateRange === r
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                                         }`}
                                 >
                                     {r.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -220,30 +220,30 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                         </div>
 
                         {showCustomDate && (
-                            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg animate-in slide-in-from-right-5 fade-in duration-300">
+                            <div className="flex items-center gap-2 bg-sunken p-1 rounded-lg animate-in slide-in-from-right-5 fade-in duration-slow">
                                 <input
                                     type="date"
                                     value={customStart}
                                     onChange={(e) => setCustomStart(e.target.value)}
-                                    className="text-xs border-none bg-transparent focus:ring-0 p-1 text-slate-700 dark:text-slate-300"
+                                    className="text-xs border-none bg-transparent focus:ring-0 p-1 text-ink-secondary"
                                 />
-                                <span className="text-slate-400">-</span>
+                                <span className="text-ink-muted">-</span>
                                 <input
                                     type="date"
                                     value={customEnd}
                                     onChange={(e) => setCustomEnd(e.target.value)}
-                                    className="text-xs border-none bg-transparent focus:ring-0 p-1 text-slate-700 dark:text-slate-300"
+                                    className="text-xs border-none bg-transparent focus:ring-0 p-1 text-ink-secondary"
                                 />
                                 <button
                                     onClick={applyCustomRange}
-                                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded text-xs"
+                                    className="bg-brand-500 hover:bg-brand-600 text-white px-2 py-1 rounded text-xs"
                                 >
                                     Go
                                 </button>
                             </div>
                         )}
 
-                        <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <button className="p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg border border-line">
                             <Download size={18} />
                         </button>
                     </div>
@@ -263,7 +263,7 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                         value={stats.avg_daily}
                         isCurrency
                         icon={<PieIcon size={20} className="text-white" />}
-                        color="bg-indigo-500"
+                        color="bg-brand-500"
                     />
                     <StatCard
                         title="Top Category"
@@ -276,7 +276,7 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                         title="Total Records"
                         value={stats.count}
                         icon={<Receipt size={20} className="text-white" />}
-                        color="bg-slate-500"
+                        color="bg-neutral-500"
                     />
                 </div>
 
@@ -284,38 +284,38 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[500px]">
 
                     {/* LEFT: TABLE (2 Cols) */}
-                    <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex flex-col overflow-hidden h-full">
-                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                            <h2 className="font-bold text-slate-700 dark:text-slate-200">Expense History</h2>
-                            <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">{processedExpenses.length} Records</span>
+                    <div className="lg:col-span-2 bg-surface border border-line rounded-2xl shadow-sm flex flex-col overflow-hidden h-full">
+                        <div className="p-4 border-b border-line flex justify-between items-center">
+                            <h2 className="font-bold text-ink-secondary dark:text-ink">Expense History</h2>
+                            <span className="text-xs text-ink-muted bg-sunken px-2 py-1 rounded-full">{processedExpenses.length} Records</span>
                         </div>
 
                         <div className="flex-1 overflow-auto">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
+                                <thead className="bg-app sticky top-0 z-10">
                                     <tr>
-                                        <th className="p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                        <th className="p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reference</th>
-                                        <th className="p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
-                                        <th className="p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</th>
-                                        <th className="p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Amount</th>
+                                        <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">Date</th>
+                                        <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">Reference</th>
+                                        <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">Category</th>
+                                        <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">Description</th>
+                                        <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider text-right">Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-line">
                                     {processedExpenses.map((expense, idx) => (
-                                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group">
-                                            <td className="p-3 text-sm text-slate-500 font-mono">
+                                        <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors cursor-pointer group">
+                                            <td className="p-3 text-sm text-ink-muted font-mono">
                                                 {formatDate(expense.date)}
                                             </td>
-                                            <td className="p-3 text-sm font-bold text-slate-700 dark:text-slate-300 font-mono group-hover:text-indigo-500">
+                                            <td className="p-3 text-sm font-bold text-ink-secondary font-mono group-hover:text-brand-500">
                                                 {expense.reference}
                                             </td>
                                             <td className="p-3">
-                                                <span className="px-2 py-1 rounded-full text-2xs font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                                <span className="px-2 py-1 rounded-full text-2xs font-bold uppercase bg-sunken text-ink-secondary">
                                                     {(typeof expense.category === 'string' ? expense.category : expense.category?.name) || 'Uncategorized'}
                                                 </span>
                                             </td>
-                                            <td className="p-3 text-sm text-slate-600 dark:text-slate-400">
+                                            <td className="p-3 text-sm text-ink-secondary">
                                                 {expense.description}
                                             </td>
                                             <td className="p-3 text-sm font-bold text-rose-600 dark:text-rose-400 text-right">
@@ -325,7 +325,7 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                                     ))}
                                     {processedExpenses.length === 0 && (
                                         <tr>
-                                            <td colSpan="5" className="h-64 text-center text-slate-400">
+                                            <td colSpan="5" className="h-64 text-center text-ink-muted">
                                                 <div className="flex flex-col items-center justify-center opacity-60">
                                                     <CreditCard size={48} className="mb-2 stroke-1" />
                                                     <p>No expenses found</p>
@@ -342,10 +342,10 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                     <div className="h-full flex flex-col gap-4 overflow-hidden min-h-0">
 
                         {/* GROWTH ENGINE CARD */}
-                        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-4 shadow-lg text-white flex-shrink-0 animate-in slide-in-from-right duration-500">
+                        <div className="bg-gradient-to-br from-brand-600 to-violet-600 rounded-2xl p-4 shadow-lg text-white flex-shrink-0 animate-in slide-in-from-right duration-slower">
                             <div className="flex items-center gap-2 mb-3">
-                                <BrainCircuit className="text-indigo-200" size={20} />
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-100">Growth Engine AI</h3>
+                                <BrainCircuit className="text-brand-200" size={20} />
+                                <h3 className="text-sm font-bold uppercase tracking-wider text-brand-100">Growth Engine AI</h3>
                             </div>
                             <div className="space-y-3">
                                 {aiInsights.map((insight, idx) => (
@@ -361,8 +361,8 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                         </div>
 
                         {/* CHART */}
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Category Breakdown</h3>
+                        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
+                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Category Breakdown</h3>
                             <div className="flex-1 w-full min-h-0">
                                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                     <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 30 }}>
@@ -391,15 +391,15 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
 
 function StatCard({ title, value, icon, color, isCurrency = false, prefix = '', subtext }) {
     return (
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+        <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
             <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{title}</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white">
+                <p className="text-xs font-medium text-ink-muted uppercase tracking-wider mb-1">{title}</p>
+                <h3 className="text-2xl font-bold text-ink">
                     {prefix}{isCurrency ? formatCurrency(value || 0) : (value || 0)}
                 </h3>
-                {subtext && <p className="text-2xs text-slate-400 mt-1">{subtext}</p>}
+                {subtext && <p className="text-2xs text-ink-muted mt-1">{subtext}</p>}
             </div>
-            <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform`}>
+            <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shadow-lg  transition-transform`}>
                 {icon}
             </div>
         </div>

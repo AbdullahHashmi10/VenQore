@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../../node_modules/oxlint/configuration_schema.json",
+
+  "jsPlugins": ["../../../../scripts/ds-adherence-plugin.mjs"],
+
+  "categories": { "correctness": "off" },
+
+  "rules": {
+    "ds/no-unknown-prop": "error",
+    "ds/enum": "error",
+    "ds/required-prop": "error"
+  }
+}

@@ -15,16 +15,16 @@ export default function CompareIndex({ competitors }) {
             <section className="relative pt-32 pb-20 px-6 max-w-7xl mx-auto text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={Scale} text="HONEST COMPETITOR COMPARISONS" />
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6 mt-4">
+                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4">
                         How VenQore Compares to <br />
                         <span className="bg-gradient-to-r from-emerald-500 to-teal-400 bg-clip-text text-transparent">
                             Legacy POS & Billing Systems
                         </span>
                     </h1>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-                        Most POS software charges 2.6%+ on every sale or leaves your accounting incomplete. VenQore gives you a flat{' '}
-                        <InlineLink href="/pricing">subscription</InlineLink> with $0 processing markups and built-in{' '}
-                        <InlineLink href="/features/accounting">double-entry bookkeeping</InlineLink> on top of a{' '}
+                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+                        Most POS software charges 2.6%+ on every sale or leaves your accounting incomplete. VenQore gives you a flat{''}
+                        <InlineLink href="/pricing">subscription</InlineLink> with $0 processing markups and built-in{''}
+                        <InlineLink href="/features/accounting">double-entry bookkeeping</InlineLink> on top of a{''}
                         <InlineLink href="/features/point-of-sale">full point of sale</InlineLink>.
                     </p>
                 </RevealOnScroll>
@@ -35,25 +35,25 @@ export default function CompareIndex({ competitors }) {
                 <div className="grid md:grid-cols-2 gap-8">
                     {competitors.map((item, idx) => (
                         <RevealOnScroll key={item.slug} delay={idx * 0.15}>
-                            <div className="h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 flex flex-col justify-between">
+                            <div className="h-full bg-surface border border-line rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-slow hover:shadow-2xl hover: flex flex-col justify-between">
                                 <div>
                                     <div className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-4">
                                         {item.tag}
                                     </div>
-                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                                    <h2 className="text-2xl font-bold text-ink mb-3">
                                         VenQore vs {item.name}
                                     </h2>
-                                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                                    <p className="text-ink-secondary leading-relaxed mb-6">
                                         {item.summary}
                                     </p>
                                 </div>
-                                <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                <div className="pt-6 border-t border-line flex items-center justify-between">
                                     <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                                         Detailed Breakdown &amp; Pricing Math
                                     </span>
                                     <Link
                                         href={`/compare/${item.slug}`}
-                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold hover:bg-emerald-600 dark:hover:bg-emerald-400 transition-colors"
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-ink font-semibold hover:bg-emerald-600 dark:hover:bg-emerald-400 transition-colors"
                                     >
                                         Compare <ArrowRight className="w-4 h-4" />
                                     </Link>
@@ -65,13 +65,13 @@ export default function CompareIndex({ competitors }) {
             </section>
 
             {/* Core Pillars */}
-            <section className="py-20 bg-slate-50 dark:bg-slate-900/50 border-y border-slate-200 dark:border-slate-800 px-6">
+            <section className="py-20 bg-app border-y border-line px-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
                             The 4 VenQore Standard Guarantee
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-300">
+                        <p className="text-ink-secondary">
                             Every comparison page adheres to strict engineering and financial truth rules.
                         </p>
                     </div>
@@ -83,10 +83,10 @@ export default function CompareIndex({ competitors }) {
                             { icon: Zap, title: "100% Offline PWA", text: "Keep checking out customers even during complete internet blackouts." },
                             { icon: Layers, title: "1,500+ Automated Tests", text: "Financial precision verified by robust automated regression suites." },
                         ].map((pillar, i) => (
-                            <div key={i} className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div key={i} className="p-6 rounded-2xl bg-surface border border-line">
                                 <pillar.icon className="w-8 h-8 text-emerald-500 mb-4" />
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{pillar.title}</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{pillar.text}</p>
+                                <h3 className="text-lg font-bold text-ink mb-2">{pillar.title}</h3>
+                                <p className="text-sm text-ink-secondary leading-relaxed">{pillar.text}</p>
                             </div>
                         ))}
                     </div>
@@ -95,10 +95,10 @@ export default function CompareIndex({ competitors }) {
 
             {/* CTA */}
             <section className="py-24 px-6 text-center max-w-4xl mx-auto">
-                <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6">
+                <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6">
                     Ready to Take Control of Your Margins?
                 </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+                <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
                     Start a 14-day free trial with full feature access — no credit card required.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">

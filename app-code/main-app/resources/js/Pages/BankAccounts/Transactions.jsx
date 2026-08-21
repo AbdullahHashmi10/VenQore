@@ -69,53 +69,53 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
             credit: { label: 'Credit', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20', icon: ArrowDownCircle },
             debit: { label: 'Debit', color: 'text-red-600 bg-red-50 dark:bg-red-900/20', icon: ArrowUpCircle },
         };
-        return configs[type] || { label: type, color: 'text-slate-600', icon: FileText };
+        return configs[type] || { label: type, color: 'text-ink-secondary', icon: FileText };
     };
 
     return (
         <OneGlanceLayout title="Bank Transactions" activeMenu="Money">
             <Head title={`${bankAccount?.name || 'Bank'} Transactions`} />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <MoneyModuleTabs activeTab="bank-accounts" />
 
                 {/* Header */}
-                <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex items-center justify-between bg-surface p-3 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-3">
-                        <Link href={route('store.bank-accounts.index', { store_slug: store.slug })} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                            <ArrowLeft size={18} className="text-slate-500" />
+                        <Link href={route('store.bank-accounts.index', { store_slug: store.slug })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors">
+                            <ArrowLeft size={18} className="text-ink-muted" />
                         </Link>
                         <div>
-                            <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            <h1 className="text-lg font-bold text-ink uppercase tracking-tight">
                                 {bankAccount?.name}
                             </h1>
-                            <p className="text-xs font-bold text-slate-500 uppercase">
+                            <p className="text-xs font-bold text-ink-muted uppercase">
                                 {bankAccount?.bank_name} • {bankAccount?.account_number}
                             </p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs font-bold text-slate-500 uppercase">Current Balance</p>
-                        <p className="text-xl font-black text-indigo-600">{formatCurrency(bankAccount?.current_balance)}</p>
+                        <p className="text-xs font-bold text-ink-muted uppercase">Current Balance</p>
+                        <p className="text-xl font-bold text-brand-600">{formatCurrency(bankAccount?.current_balance)}</p>
                     </div>
                 </div>
 
                 {/* Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 backdrop-blur-sm">
+                        <thead className="bg-app border-b border-line sticky top-0 z-10 backdrop-blur-sm">
                             <tr>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Description</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reference</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Amount</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Date</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Description</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Reference</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Type</th>
+                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Amount</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {allTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="p-12 text-center text-slate-400">
+                                    <td colSpan="5" className="p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center gap-2">
                                             <FileText size={32} className="opacity-50" />
                                             <p className="font-medium">No transactions found for this account</p>
@@ -127,14 +127,14 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
                                     const config = getTypeConfig(row.type);
                                     const Icon = config.icon;
                                     return (
-                                        <tr key={`${row.source}-${row.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td className="p-4 text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                                        <tr key={`${row.source}-${row.id}`} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                            <td className="p-4 text-sm font-medium text-ink-secondary whitespace-nowrap">
                                                 {formatDate(row.date)}
                                             </td>
-                                            <td className="p-4 text-sm text-slate-600 dark:text-slate-400 font-medium">
+                                            <td className="p-4 text-sm text-ink-secondary font-medium">
                                                 {row.description}
                                             </td>
-                                            <td className="p-4 text-xs font-mono font-bold text-slate-500">
+                                            <td className="p-4 text-xs font-mono font-bold text-ink-muted">
                                                 {row.ref || '-'}
                                             </td>
                                             <td className="p-4">
@@ -144,7 +144,7 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
                                                 </span>
                                             </td>
                                             <td className="p-4 text-right">
-                                                <span className={`text-sm font-black font-mono ${row.type === 'credit' ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                <span className={`text-sm font-bold font-mono ${row.type === 'credit' ? 'text-emerald-600' : 'text-red-600'}`}>
                                                     {row.type === 'credit' ? '+' : '-'}{formatCurrency(row.amount)}
                                                 </span>
                                             </td>
@@ -160,7 +160,7 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
                             {loadingMore && (
                                 <tr>
                                     <td colSpan="5" className="p-4 text-center">
-                                        <div className="flex items-center justify-center gap-2 text-slate-400">
+                                        <div className="flex items-center justify-center gap-2 text-ink-muted">
                                             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                                             <span className="text-xs font-bold uppercase">Loading more...</span>
                                         </div>

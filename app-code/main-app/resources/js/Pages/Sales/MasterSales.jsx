@@ -129,12 +129,12 @@ const CustomerProfileCard = ({ customer, onClose }) => {
     const isOverLimit = (customer.balance || 0) > (customer.credit_limit || 999999);
 
     return (
-        <div className="absolute top-14 left-0 w-full bg-slate-900 border-b border-indigo-500/30 p-4 shadow-2xl z-20 grid grid-cols-4 gap-4 animate-in slide-in-from-top-2">
+        <div className="absolute top-14 left-0 w-full bg-neutral-900 border-b border-brand-500/30 p-4 shadow-2xl z-20 grid grid-cols-4 gap-4 animate-in slide-in-from-top-2">
 
             {/* 1. IDENTITY & CONTACT */}
-            <div className="border-r border-slate-700 pr-4">
-                <h4 className="text-indigo-400 font-bold text-lg mb-1">{customer.name}</h4>
-                <div className="text-xs text-slate-400 font-mono space-y-1">
+            <div className="border-r border-neutral-700 pr-4">
+                <h4 className="text-brand-400 font-bold text-lg mb-1">{customer.name}</h4>
+                <div className="text-xs text-ink-muted font-mono space-y-1">
                     <div>ID: #{customer.id}</div>
                     <div>Ph: {customer.phone || 'N/A'}</div>
                     <div className="flex items-center text-emerald-500">
@@ -145,17 +145,17 @@ const CustomerProfileCard = ({ customer, onClose }) => {
             </div>
 
             {/* 2. FINANCIAL HEALTH (Link to Ledgers) */}
-            <div className="border-r border-slate-700 px-4">
-                <div className="text-xs uppercase text-slate-500 font-bold mb-2">Financial Status</div>
+            <div className="border-r border-neutral-700 px-4">
+                <div className="text-xs uppercase text-ink-muted font-bold mb-2">Financial Status</div>
                 <div className="flex justify-between items-center mb-1">
-                    <span className="text-slate-400 text-sm">Balance:</span>
+                    <span className="text-ink-muted text-sm">Balance:</span>
                     <span className={`font-mono font-bold ${customer.balance > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                         {formatCurrency(customer.balance || 0, store)}
                     </span>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-slate-400 text-sm">Credit Limit:</span>
-                    <span className="font-mono text-slate-300">{customer.credit_limit ? formatCurrency(customer.credit_limit, store) : '∞'}</span>
+                    <span className="text-ink-muted text-sm">Credit Limit:</span>
+                    <span className="font-mono text-neutral-300">{customer.credit_limit ? formatCurrency(customer.credit_limit, store) : '∞'}</span>
                 </div>
                 {isOverLimit && (
                     <div className="mt-2 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded flex items-center">
@@ -165,8 +165,8 @@ const CustomerProfileCard = ({ customer, onClose }) => {
             </div>
 
             {/* 3. LOYALTY (Link to Rewards) */}
-            <div className="border-r border-slate-700 px-4">
-                <div className="text-xs uppercase text-slate-500 font-bold mb-2">Growth Engine</div>
+            <div className="border-r border-neutral-700 px-4">
+                <div className="text-xs uppercase text-ink-muted font-bold mb-2">Growth Engine</div>
                 <div className="bg-gradient-to-r from-amber-500/10 to-transparent p-2 rounded">
                     <div className="text-amber-500 font-bold text-lg">{customer.points || 0} PTS</div>
                     <div className="text-2xs text-amber-400/60">Redeemable Value: {formatCurrency((customer.points || 0) * 0.1, store)}</div>
@@ -175,13 +175,13 @@ const CustomerProfileCard = ({ customer, onClose }) => {
 
             {/* 4. HISTORY (Link to Sales) */}
             <div className="px-4 relative">
-                <button onClick={onClose} className="absolute top-0 right-0 p-1 hover:text-white text-slate-500">
+                <button onClick={onClose} className="absolute top-0 right-0 p-1 hover:text-white text-ink-muted">
                     <X className="w-4 h-4" />
                 </button>
-                <div className="text-xs uppercase text-slate-500 font-bold mb-2">Last Interaction</div>
-                <div className="text-sm text-slate-300">2 Days Ago</div>
-                <div className="text-2xs text-slate-500 mb-2">Invoice #INV-2024-001</div>
-                <button className="text-xs text-indigo-400 underline hover:text-indigo-300">View Full Ledger</button>
+                <div className="text-xs uppercase text-ink-muted font-bold mb-2">Last Interaction</div>
+                <div className="text-sm text-neutral-300">2 Days Ago</div>
+                <div className="text-2xs text-ink-muted mb-2">Invoice #INV-2024-001</div>
+                <button className="text-xs text-brand-400 underline hover:text-brand-300">View Full Ledger</button>
             </div>
         </div>
     );
@@ -201,21 +201,21 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
     const margin = item.price > 0 ? ((item.price - (item.cost || 0)) / item.price) * 100 : 0;
 
     return (
-        <tr className="group border-b border-slate-700/50 hover:bg-slate-800/40 transition-colors relative">
+        <tr className="group border-b border-neutral-700/50 hover:bg-interactive-hover transition-colors relative">
             {/* ROW ACTIONS (HOVER ONLY) */}
             <td className="w-10">
                 <div className="flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => onMove(index, -1)} className="p-1 hover:text-indigo-400"><ArrowUp className="w-3 h-3" /></button>
-                    <button onClick={() => onMove(index, 1)} className="p-1 hover:text-indigo-400"><ArrowDown className="w-3 h-3" /></button>
+                    <button onClick={() => onMove(index, -1)} className="p-1 hover:text-brand-400"><ArrowUp className="w-3 h-3" /></button>
+                    <button onClick={() => onMove(index, 1)} className="p-1 hover:text-brand-400"><ArrowDown className="w-3 h-3" /></button>
                 </div>
             </td>
 
             {/* PRODUCT DETAIL & METADATA */}
             <td className="p-3">
                 <div className="flex flex-col">
-                    <span className="font-bold text-slate-100">{item.name}</span>
-                    <div className="flex items-center space-x-2 text-2xs text-slate-500 font-mono mt-1">
-                        <span className="bg-slate-800 px-1 rounded border border-slate-700">SKU: {item.product?.sku || 'N/A'}</span>
+                    <span className="font-bold text-neutral-100">{item.name}</span>
+                    <div className="flex items-center space-x-2 text-2xs text-ink-muted font-mono mt-1">
+                        <span className="bg-neutral-800 px-1 rounded border border-neutral-700">SKU: {item.product?.sku || 'N/A'}</span>
                         {item.product?.stock_quantity <= 0 && <span className="text-red-500 flex items-center"><AlertCircle className="w-3 h-3 mr-1" /> Stock: 0</span>}
                         {item.product?.location && <span>Loc: {item.product.location}</span>}
                     </div>
@@ -225,12 +225,12 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
             {/* BATCH / SERIAL (The Hidden Detail) */}
             <td className="w-24 p-2">
                 {item.product?.has_batch ? (
-                    <select className="bg-slate-900 border border-slate-600 text-2xs rounded p-1 w-full text-amber-400 cursor-pointer">
+                    <select className="bg-neutral-900 border border-neutral-600 text-2xs rounded p-1 w-full text-amber-400 cursor-pointer">
                         <option>Batch A (Exp 2025)</option>
                         <option>Batch B (Exp 2026)</option>
                     </select>
                 ) : (
-                    <div className="text-center text-slate-700 text-xs">-</div>
+                    <div className="text-center text-ink-secondary text-xs">-</div>
                 )}
             </td>
 
@@ -241,11 +241,11 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
                         type="number"
                         value={item.quantity}
                         onChange={(e) => onUpdate(item.id, 'quantity', parseFloat(e.target.value))}
-                        className="w-16 bg-slate-800 border-slate-600 rounded text-center font-bold text-white focus:ring-indigo-500"
+                        className="w-16 bg-neutral-800 border-neutral-600 rounded text-center font-bold text-white focus:ring-brand-500"
                     />
-                    <div className="flex flex-col text-3xs text-slate-500 leading-tight">
-                        <span className="cursor-pointer hover:text-indigo-400">PCS</span>
-                        <span className="cursor-pointer hover:text-indigo-400">BOX</span>
+                    <div className="flex flex-col text-3xs text-ink-muted leading-tight">
+                        <span className="cursor-pointer hover:text-brand-400">PCS</span>
+                        <span className="cursor-pointer hover:text-brand-400">BOX</span>
                     </div>
                 </div>
             </td>
@@ -257,14 +257,14 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
                         type="number"
                         value={item.price}
                         onChange={(e) => onUpdate(item.id, 'price', parseFloat(e.target.value))}
-                        className="w-full bg-slate-800 border-slate-600 rounded text-right pr-2 text-emerald-400 font-mono"
+                        className="w-full bg-neutral-800 border-neutral-600 rounded text-right pr-2 text-emerald-400 font-mono"
                     />
                     {/* ATOMIC LINK: MARGIN TOOLTIP */}
-                    <div className="absolute top-full right-0 bg-slate-900 border border-slate-700 p-2 rounded shadow-xl z-50 hidden group-focus-within/price:block min-w-[150px]">
-                        <div className="text-2xs text-slate-400 flex justify-between">
+                    <div className="absolute top-full right-0 bg-neutral-900 border border-neutral-700 p-2 rounded shadow-xl z-50 hidden group-focus-within/price:block min-w-[150px]">
+                        <div className="text-2xs text-ink-muted flex justify-between">
                             <span>Cost:</span> <span>{formatCurrency(item.product?.cost || 0, store)}</span>
                         </div>
-                        <div className="text-2xs text-slate-400 flex justify-between">
+                        <div className="text-2xs text-ink-muted flex justify-between">
                             <span>Margin:</span>
                             <span className={margin < 15 ? 'text-red-400' : 'text-green-400'}>{margin.toFixed(1)}%</span>
                         </div>
@@ -273,26 +273,26 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
             </td>
 
             {/* TOTALS */}
-            <td className="w-32 p-3 text-right font-mono font-bold text-slate-200">
+            <td className="w-32 p-3 text-right font-mono font-bold text-neutral-200">
                 {formatCurrency(net, store)}
             </td>
 
             {/* MENU ACTIONS */}
             <td className="w-10 text-center">
                 <div className="relative group/menu">
-                    <button className="text-slate-500 hover:text-indigo-400"><MoreHorizontal className="w-4 h-4" /></button>
+                    <button className="text-ink-muted hover:text-brand-400"><MoreHorizontal className="w-4 h-4" /></button>
                     {/* DROPDOWN FOR "ALL THOSE THOUSAND THINGS" */}
-                    <div className="absolute right-0 top-6 w-40 bg-slate-800 border border-slate-700 rounded shadow-2xl overflow-hidden hidden group-hover/menu:block z-50">
-                        <button onClick={() => onDuplicate(item.id)} className="w-full text-left px-3 py-2 text-xs hover:bg-slate-700 flex items-center">
+                    <div className="absolute right-0 top-6 w-40 bg-neutral-800 border border-neutral-700 rounded shadow-2xl overflow-hidden hidden group-hover/menu:block z-50">
+                        <button onClick={() => onDuplicate(item.id)} className="w-full text-left px-3 py-2 text-xs hover:bg-interactive-hover flex items-center">
                             <Copy className="w-3 h-3 mr-2" /> Duplicate Row
                         </button>
-                        <button className="w-full text-left px-3 py-2 text-xs hover:bg-slate-700 flex items-center">
+                        <button className="w-full text-left px-3 py-2 text-xs hover:bg-interactive-hover flex items-center">
                             <FileText className="w-3 h-3 mr-2" /> Add Note
                         </button>
-                        <button className="w-full text-left px-3 py-2 text-xs hover:bg-slate-700 flex items-center">
+                        <button className="w-full text-left px-3 py-2 text-xs hover:bg-interactive-hover flex items-center">
                             <History className="w-3 h-3 mr-2" /> History
                         </button>
-                        <div className="border-t border-slate-700 my-1"></div>
+                        <div className="border-t border-neutral-700 my-1"></div>
                         <button onClick={() => onRemove(item.id)} className="w-full text-left px-3 py-2 text-xs hover:bg-red-900/50 text-red-400 flex items-center">
                             <Trash2 className="w-3 h-3 mr-2" /> Remove
                         </button>
@@ -385,11 +385,11 @@ export default function MasterSales() {
 
     // --- RENDER ---
     return (
-        <div className="h-screen w-full bg-void-800 text-slate-300 flex flex-col font-sans overflow-hidden">
+        <div className="h-screen w-full bg-void-800 text-neutral-300 flex flex-col font-sans overflow-hidden">
             <Head title="Master Sales Console" />
 
             {/* 1. TOP BAR: TAB MANAGEMENT (THE "VERY TOP" REQUIREMENT) */}
-            <div className="h-12 bg-slate-950 border-b border-slate-800 flex items-center px-2 space-x-2">
+            <div className="h-12 bg-neutral-950 border-b border-neutral-800 flex items-center px-2 space-x-2">
                 <div className="flex items-center space-x-1 overflow-x-auto no-scrollbar max-w-[80vw]">
                     {activeInvoices.map((inv, idx) => (
                         <div
@@ -398,11 +398,11 @@ export default function MasterSales() {
                             className={`
                                 relative group flex items-center px-4 py-2 rounded-t-lg cursor-pointer transition-all border-t-2 select-none min-w-[160px] max-w-[220px]
                                 ${inv.id === currentInvoiceId
-                                    ? 'bg-slate-800 border-indigo-500 text-white shadow-lg'
-                                    : 'bg-slate-900 border-transparent text-slate-500 hover:bg-slate-800'}
-                            `}
+                                    ? 'bg-neutral-800 border-brand-500 text-white shadow-lg'
+                                    : 'bg-neutral-900 border-transparent text-ink-muted hover:bg-interactive-hover'}
+`}
                         >
-                            <User className={`w-3 h-3 mr-2 ${inv.id === currentInvoiceId ? 'text-indigo-400' : 'opacity-0'}`} />
+                            <User className={`w-3 h-3 mr-2 ${inv.id === currentInvoiceId ? 'text-brand-400' : 'opacity-0'}`} />
                             <div className="flex flex-col truncate">
                                 <span className="text-xs font-bold truncate">
                                     {inv.customer?.name || `Invoice #${idx + 1}`}
@@ -414,36 +414,36 @@ export default function MasterSales() {
                             </div>
                             <button
                                 onClick={(e) => { e.stopPropagation(); removeInvoice(inv.id); }}
-                                className="absolute right-1 top-1 p-1 hover:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100"
+                                className="absolute right-1 top-1 p-1 hover:bg-interactive-hover rounded-full opacity-0 group-hover:opacity-100"
                             >
                                 <X className="w-3 h-3" />
                             </button>
                         </div>
                     ))}
-                    <button onClick={addInvoice} className="p-2 hover:bg-slate-800 rounded text-slate-400">
+                    <button onClick={addInvoice} className="p-2 hover:bg-interactive-hover rounded text-ink-muted">
                         <Plus className="w-4 h-4" />
                     </button>
                 </div>
                 <div className="flex-1"></div>
                 {/* GLOBAL SETTINGS LINK */}
-                <button className="p-2 text-slate-500 hover:text-white"><Settings className="w-5 h-5" /></button>
+                <button className="p-2 text-ink-muted hover:text-white"><Settings className="w-5 h-5" /></button>
             </div>
 
             {/* 2. THE WORKBENCH */}
             <div className="flex-1 flex overflow-hidden relative">
 
                 {/* LEFT: THE INVOICE SHEET */}
-                <div className="flex-1 flex flex-col bg-slate-900 relative">
+                <div className="flex-1 flex flex-col bg-neutral-900 relative">
 
                     {/* CUSTOMER HEADER (EXPANDABLE) */}
-                    <div className="h-16 border-b border-slate-800 bg-slate-900 flex items-center px-4 justify-between z-10 relative">
+                    <div className="h-16 border-b border-neutral-800 bg-neutral-900 flex items-center px-4 justify-between z-10 relative">
                         {/* Customer Search */}
                         <div className="flex items-center w-1/3 relative">
-                            <div className={`p-2 rounded-lg mr-3 ${currentInvoice?.customer ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-600'}`}>
+                            <div className={`p-2 rounded-lg mr-3 ${currentInvoice?.customer ? 'bg-brand-500/20 text-brand-400' : 'bg-neutral-800 text-ink-secondary'}`}>
                                 <User className="w-5 h-5" />
                             </div>
                             <div className="flex-1">
-                                <label className="text-2xs uppercase font-bold text-slate-500 tracking-wider">Customer / Client</label>
+                                <label className="text-2xs uppercase font-bold text-ink-muted tracking-wider">Customer / Client</label>
                                 <AsyncPartyCombobox
                                     partyType="all"
                                     onSelect={(party) => {
@@ -464,21 +464,21 @@ export default function MasterSales() {
                         {/* Meta Info */}
                         <div className="flex items-center space-x-6 text-right">
                             <div>
-                                <label className="text-2xs uppercase font-bold text-slate-500">Date</label>
-                                <div className="text-sm font-mono text-slate-300">{new Date().toLocaleDateString()}</div>
+                                <label className="text-2xs uppercase font-bold text-ink-muted">Date</label>
+                                <div className="text-sm font-mono text-neutral-300">{new Date().toLocaleDateString()}</div>
                             </div>
                             <div>
-                                <label className="text-2xs uppercase font-bold text-slate-500">Salesman</label>
-                                <div className="text-sm font-medium text-slate-300">Admin User</div>
+                                <label className="text-2xs uppercase font-bold text-ink-muted">Salesman</label>
+                                <div className="text-sm font-medium text-neutral-300">Admin User</div>
                             </div>
                         </div>
                     </div>
 
                     {/* ITEMS TABLE (SCROLLABLE AREA) */}
-                    <div className="flex-1 overflow-y-auto bg-slate-900" ref={tableRef}>
+                    <div className="flex-1 overflow-y-auto bg-neutral-900" ref={tableRef}>
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-800 sticky top-0 z-10 border-b border-slate-700 shadow-md">
-                                <tr className="text-2xs uppercase text-slate-400 font-bold tracking-wider">
+                            <thead className="bg-sunken sticky top-0 z-10 border-b border-neutral-700 shadow-md">
+                                <tr className="text-2xs uppercase text-ink-muted font-bold tracking-wider">
                                     <th className="p-2 w-10 text-center">#</th>
                                     <th className="p-2">Item Description</th>
                                     <th className="p-2 w-24">Batch/Serial</th>
@@ -516,25 +516,25 @@ export default function MasterSales() {
                     </div>
 
                     {/* FINANCIAL FOOTER (The "Bottom Layer") */}
-                    <div className="bg-slate-900 border-t border-slate-800 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20">
+                    <div className="bg-neutral-900 border-t border-neutral-800 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20">
                         <div className="flex justify-between items-start">
 
                             {/* PAYMENT SPLIT SIMULATOR */}
                             <div className="w-1/2 pr-10">
-                                <div className="text-2xs uppercase font-bold text-slate-500 mb-2 flex items-center">
+                                <div className="text-2xs uppercase font-bold text-ink-muted mb-2 flex items-center">
                                     <Layers className="w-3 h-3 mr-1" /> Payment Stack
                                 </div>
                                 <div className="flex space-x-2">
-                                    <div className="flex-1 bg-slate-800 rounded p-2 border border-slate-700 flex flex-col cursor-pointer hover:border-emerald-500 transition-colors">
+                                    <div className="flex-1 bg-neutral-800 rounded p-2 border border-neutral-700 flex flex-col cursor-pointer hover:border-emerald-500 transition-colors">
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs text-slate-400">Cash</span>
+                                            <span className="text-xs text-ink-muted">Cash</span>
                                             <Banknote className="w-4 h-4 text-emerald-500" />
                                         </div>
                                         <input type="number" className="bg-transparent border-none p-0 text-emerald-400 font-bold text-right" placeholder="0.00" />
                                     </div>
-                                    <div className="flex-1 bg-slate-800 rounded p-2 border border-slate-700 flex flex-col cursor-pointer hover:border-blue-500 transition-colors">
+                                    <div className="flex-1 bg-neutral-800 rounded p-2 border border-neutral-700 flex flex-col cursor-pointer hover:border-blue-500 transition-colors">
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs text-slate-400">Card</span>
+                                            <span className="text-xs text-ink-muted">Card</span>
                                             <CreditCard className="w-4 h-4 text-blue-500" />
                                         </div>
                                         <input type="number" className="bg-transparent border-none p-0 text-blue-400 font-bold text-right" placeholder="0.00" />
@@ -543,23 +543,23 @@ export default function MasterSales() {
                             </div>
 
                             {/* GRAND TOTALS */}
-                            <div className="w-1/2 pl-10 border-l border-slate-800">
+                            <div className="w-1/2 pl-10 border-l border-neutral-800">
                                 <div className="space-y-1">
-                                    <div className="flex justify-between text-xs text-slate-400">
+                                    <div className="flex justify-between text-xs text-ink-muted">
                                         <span>Subtotal</span>
                                         <span>{formatCurrency(currentInvoice?.subtotal || 0, store)}</span>
                                     </div>
-                                    <div className="flex justify-between text-xs text-slate-400">
+                                    <div className="flex justify-between text-xs text-ink-muted">
                                         <span>Tax (VAT 5%)</span>
                                         <span>{formatCurrency(currentInvoice?.tax || 0, store)}</span>
                                     </div>
-                                    <div className="flex justify-between text-xs text-slate-400">
+                                    <div className="flex justify-between text-xs text-ink-muted">
                                         <span>Discount</span>
                                         <span className="text-red-400">-{formatCurrency(currentInvoice?.discount || 0, store)}</span>
                                     </div>
-                                    <div className="border-t border-slate-700 my-2 pt-2 flex justify-between items-end">
-                                        <span className="text-sm font-bold text-slate-300">TOTAL DUE</span>
-                                        <span className="text-4xl font-black text-white">{formatCurrency(currentInvoice?.total || 0, store)}</span>
+                                    <div className="border-t border-neutral-700 my-2 pt-2 flex justify-between items-end">
+                                        <span className="text-sm font-bold text-neutral-300">TOTAL DUE</span>
+                                        <span className="text-4xl font-bold text-white">{formatCurrency(currentInvoice?.total || 0, store)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -567,10 +567,10 @@ export default function MasterSales() {
 
                         {/* FINAL ACTION BAR */}
                         <div className="mt-4 flex space-x-3">
-                            <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded shadow-lg shadow-emerald-900/40 flex items-center justify-center">
+                            <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded shadow-lg flex items-center justify-center">
                                 <Check className="w-5 h-5 mr-2" /> COMPLETE SALE (F10)
                             </button>
-                            <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-6 rounded font-bold flex items-center">
+                            <button className="bg-neutral-800 hover:bg-interactive-hover text-neutral-300 px-6 rounded font-bold flex items-center">
                                 <Printer className="w-5 h-5 mr-2" /> Print
                             </button>
                         </div>
@@ -578,26 +578,26 @@ export default function MasterSales() {
                 </div>
 
                 {/* RIGHT: THE CONTROL TOWER (SIDEBAR) */}
-                <div className="w-[350px] bg-slate-950 border-l border-slate-800 flex flex-col z-30 shadow-2xl">
+                <div className="w-[350px] bg-neutral-950 border-l border-neutral-800 flex flex-col z-30 shadow-2xl">
 
                     {/* MODE TOGGLE */}
-                    <div className="p-2 grid grid-cols-2 gap-2 bg-slate-900 border-b border-slate-800">
+                    <div className="p-2 grid grid-cols-2 gap-2 bg-neutral-900 border-b border-neutral-800">
                         <button
                             onClick={() => setScanMode(false)}
-                            className={`p-2 text-xs font-bold uppercase rounded flex flex-col items-center justify-center ${!scanMode ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-slate-500 hover:bg-slate-800'}`}
+                            className={`p-2 text-xs font-bold uppercase rounded flex flex-col items-center justify-center ${!scanMode ? 'bg-brand-600 text-white shadow-lg' : 'bg-transparent text-ink-muted hover:bg-interactive-hover'}`}
                         >
                             <Search className="w-4 h-4 mb-1" /> Search
                         </button>
                         <button
                             onClick={() => setScanMode(true)}
-                            className={`p-2 text-xs font-bold uppercase rounded flex flex-col items-center justify-center ${scanMode ? 'bg-emerald-600 text-white shadow-lg' : 'bg-transparent text-slate-500 hover:bg-slate-800'}`}
+                            className={`p-2 text-xs font-bold uppercase rounded flex flex-col items-center justify-center ${scanMode ? 'bg-emerald-600 text-white shadow-lg' : 'bg-transparent text-ink-muted hover:bg-interactive-hover'}`}
                         >
                             <ScanBarcode className="w-4 h-4 mb-1" /> Scan
                         </button>
                     </div>
 
                     {/* INPUT AREA */}
-                    <div className="p-4 border-b border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950">
+                    <div className="p-4 border-b border-neutral-800 bg-gradient-to-b from-neutral-900 to-neutral-950">
                         {scanMode ? (
                             <div className="relative">
                                 <input type="text" autoFocus className="w-full bg-black border-2 border-emerald-500/50 text-emerald-400 font-mono text-center text-xl p-3 rounded" placeholder="SCAN BARCODE..." />
@@ -612,7 +612,7 @@ export default function MasterSales() {
                                     }}
                                     placeholder="Search products... (Alt+P)"
                                 />
-                                <div className="flex justify-between mt-2 text-2xs text-slate-500">
+                                <div className="flex justify-between mt-2 text-2xs text-ink-muted">
                                     <span>Select to add to invoice</span>
                                     <span>Type to search</span>
                                 </div>
@@ -628,13 +628,13 @@ export default function MasterSales() {
                                     <div
                                         key={i}
                                         onClick={() => handleSelectProduct({ id: i, name: `Sample Product ${i}`, price: 10 + i, cost: 5 })}
-                                        className="p-3 bg-slate-800/30 border border-slate-700/50 rounded hover:bg-indigo-600/10 hover:border-indigo-500 cursor-pointer group transition-all"
+                                        className="p-3 bg-neutral-800/30 border border-neutral-700/50 rounded hover:bg-brand-600/10 hover:border-brand-500 cursor-pointer group transition-all"
                                     >
                                         <div className="flex justify-between">
-                                            <span className="font-bold text-slate-200 group-hover:text-white">Sample Product {i}</span>
+                                            <span className="font-bold text-neutral-200 group-hover:text-white">Sample Product {i}</span>
                                             <span className="font-mono text-emerald-400 font-bold">{formatCurrency(12.50, store)}</span>
                                         </div>
-                                        <div className="flex justify-between mt-1 text-2xs text-slate-500">
+                                        <div className="flex justify-between mt-1 text-2xs text-ink-muted">
                                             <span>Ware A: 50pcs</span>
                                             <span>Shelf: A-12</span>
                                         </div>
@@ -646,19 +646,19 @@ export default function MasterSales() {
                         {!searchQuery && !scanMode && (
                             <div className="mt-8 px-4 grid grid-cols-2 gap-4">
                                 {/* SHORTCUTS / LINKS */}
-                                <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-indigo-400 transition-all">
+                                <button className="aspect-square bg-neutral-900 border border-neutral-800 rounded flex flex-col items-center justify-center hover:bg-interactive-hover hover:border-line-strong text-ink-muted hover:text-brand-400 transition-all">
                                     <Calculator className="w-6 h-6 mb-2" />
                                     <span className="text-2xs uppercase font-bold">Calculator</span>
                                 </button>
-                                <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-emerald-400 transition-all">
+                                <button className="aspect-square bg-neutral-900 border border-neutral-800 rounded flex flex-col items-center justify-center hover:bg-interactive-hover hover:border-line-strong text-ink-muted hover:text-emerald-400 transition-all">
                                     <Truck className="w-6 h-6 mb-2" />
                                     <span className="text-2xs uppercase font-bold">Shipping</span>
                                 </button>
-                                <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-amber-400 transition-all">
+                                <button className="aspect-square bg-neutral-900 border border-neutral-800 rounded flex flex-col items-center justify-center hover:bg-interactive-hover hover:border-line-strong text-ink-muted hover:text-amber-400 transition-all">
                                     <History className="w-6 h-6 mb-2" />
                                     <span className="text-2xs uppercase font-bold">Recent</span>
                                 </button>
-                                <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-red-400 transition-all">
+                                <button className="aspect-square bg-neutral-900 border border-neutral-800 rounded flex flex-col items-center justify-center hover:bg-interactive-hover hover:border-line-strong text-ink-muted hover:text-red-400 transition-all">
                                     <AlertTriangle className="w-6 h-6 mb-2" />
                                     <span className="text-2xs uppercase font-bold">Hold Bill</span>
                                 </button>
@@ -667,16 +667,16 @@ export default function MasterSales() {
                     </div>
 
                     {/* ACTIVITY STREAM (THE MEMORY) */}
-                    <div className="h-48 border-t border-slate-800 bg-slate-950 flex flex-col">
-                        <div className="p-2 border-b border-slate-800 text-2xs uppercase font-bold text-slate-500 flex justify-between items-center">
+                    <div className="h-48 border-t border-neutral-800 bg-neutral-950 flex flex-col">
+                        <div className="p-2 border-b border-neutral-800 text-2xs uppercase font-bold text-ink-muted flex justify-between items-center">
                             <span>System Activity Log</span>
                             <RefreshCcw className="w-3 h-3" />
                         </div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-2 font-mono text-2xs">
                             {auditLog.map(log => (
-                                <div key={log.id} className="flex space-x-2 text-slate-500">
-                                    <span className="text-slate-600">{log.time}</span>
-                                    <span className="text-indigo-400 font-bold">{log.action}</span>
+                                <div key={log.id} className="flex space-x-2 text-ink-muted">
+                                    <span className="text-ink-secondary">{log.time}</span>
+                                    <span className="text-brand-400 font-bold">{log.action}</span>
                                     <span className="truncate">{log.details}</span>
                                 </div>
                             ))}

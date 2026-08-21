@@ -217,13 +217,13 @@ export default function LabelSheetTool({
             )}
 
             {/* Slim control bar — everything that ISN'T part of the label grid itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
                 <div className="w-56">
                     <Select value={preset} onChange={setPreset} options={presetOptions} />
-                    <p className="text-2xs text-slate-500 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
+                    <p className="text-2xs text-ink-muted mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400" htmlFor="ls-copies">Copies</label>
+                    <label className="text-xs font-bold text-ink-muted" htmlFor="ls-copies">Copies</label>
                     <input
                         id="ls-copies"
                         type="number"
@@ -231,18 +231,18 @@ export default function LabelSheetTool({
                         max={maxCopies}
                         value={copies}
                         onChange={(e) => setCopies(Math.max(1, Math.min(maxCopies, Number(e.target.value) || 1)))}
-                        className="w-16 px-2 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-sm text-slate-900 dark:text-white font-mono focus:outline-none focus:border-indigo-400/60 transition-colors"
+                        className="w-16 px-2 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-sm text-ink font-mono focus:outline-none focus:border-brand-400/60 transition-colors"
                     />
                 </div>
 
-                <div className="flex bg-slate-900/[0.06] dark:bg-white/[0.06] p-1 rounded-xl shrink-0">
+                <div className="flex bg-sunken dark:bg-white/[0.06] p-1 rounded-xl shrink-0">
                     <button
                         type="button"
                         onClick={() => setMode('grid')}
                         className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                             mode === 'grid'
-                                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                ? 'bg-surface text-ink shadow-sm'
+                                : 'text-ink-secondary hover:text-ink dark:hover:text-white'
                         }`}
                     >
                         Grid ({rows.length})
@@ -252,8 +252,8 @@ export default function LabelSheetTool({
                         onClick={() => setMode('bulk')}
                         className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 ${
                             mode === 'bulk'
-                                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                ? 'bg-surface text-ink shadow-sm'
+                                : 'text-ink-secondary hover:text-ink dark:hover:text-white'
                         }`}
                     >
                         <ClipboardPaste size={12} /> Bulk Paste
@@ -261,12 +261,12 @@ export default function LabelSheetTool({
                 </div>
 
                 <div className="ml-auto flex items-center gap-3">
-                    <span className="text-1xs text-slate-500 dark:text-slate-600 hidden sm:inline">{totalLabelsPreview} labels total</span>
+                    <span className="text-1xs text-ink-muted hidden sm:inline">{totalLabelsPreview} labels total</span>
                     <button
                         type="button"
                         onClick={buildPdf}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -275,26 +275,26 @@ export default function LabelSheetTool({
             </div>
 
             {mode === 'bulk' ? (
-                <div className="rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7 mb-4">
-                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-                        Paste Labels — separate each label with a <span className="text-indigo-500">blank line</span>
+                <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7 mb-4">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">
+                        Paste Labels — separate each label with a <span className="text-brand-500">blank line</span>
                     </label>
                     <textarea
                         rows={10}
                         value={bulkText}
                         onChange={(e) => setBulkText(e.target.value)}
                         placeholder={BULK_PLACEHOLDER}
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-mono leading-relaxed focus:outline-none focus:border-indigo-400/60 transition-colors"
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-xs font-mono leading-relaxed focus:outline-none focus:border-brand-400/60 transition-colors"
                     />
-                    <p className="text-1xs text-slate-500 dark:text-slate-500 mt-2">
-                        Within a block: line 1, line 2, line 3 (up to 3 lines become one label). Add a trailing <code className="font-mono text-indigo-500">x10</code> line to repeat that label 10 times.
+                    <p className="text-1xs text-ink-muted mt-2">
+                        Within a block: line 1, line 2, line 3 (up to 3 lines become one label). Add a trailing <code className="font-mono text-brand-500">x10</code> line to repeat that label 10 times.
                     </p>
                     <div className="flex items-center justify-end mt-3">
                         <button
                             type="button"
                             onClick={parseBulk}
                             disabled={parsing || !bulkText.trim()}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.01] transition-transform disabled:opacity-40"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-40"
                         >
                             {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                             Parse & Load Into Grid
@@ -304,12 +304,12 @@ export default function LabelSheetTool({
             ) : (
                 /* THE LABEL SHEET GRID — this is the editor, styled to mirror
                    resources/views/tools/pdf/label-sheet.blade.php exactly */
-                <div className="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 dark:shadow-black/40 border border-slate-900/10 dark:border-white/10 bg-white p-4 sm:p-6 mb-2">
+                <div className="rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white p-4 sm:p-6 mb-2">
                     <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
                         {rows.map((row) => (
                             <div
                                 key={row.id}
-                                className="group relative rounded-lg border border-dashed border-slate-300 bg-white p-2.5 min-h-[92px] flex flex-col"
+                                className="group relative rounded-lg border border-dashed border-line bg-white p-2.5 min-h-[92px] flex flex-col"
                             >
                                 {/* Remove */}
                                 <button
@@ -317,7 +317,7 @@ export default function LabelSheetTool({
                                     onClick={() => removeRow(row.id)}
                                     disabled={rows.length <= 1}
                                     title="Remove label"
-                                    className="absolute top-1 right-1 p-1 rounded-md bg-white/90 text-slate-600 dark:text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity shadow-sm"
+                                    className="absolute top-1 right-1 p-1 rounded-md bg-white/90 text-ink-secondary hover:text-red-500 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity shadow-sm"
                                 >
                                     <Trash2 size={12} />
                                 </button>
@@ -329,32 +329,32 @@ export default function LabelSheetTool({
                                         value={row.line1}
                                         onChange={(v) => updateRow(row.id, 'line1', v)}
                                         placeholder="Line 1"
-                                        className={`block w-full text-[13px] leading-tight ${row.bold_first ? 'font-black' : 'font-semibold'} text-slate-800 mb-1`}
+                                        className={`block w-full text-[13px] leading-tight ${row.bold_first ? 'font-bold' : 'font-semibold'} text-ink mb-1`}
                                     />
                                     <EditableText
                                         inline={false}
                                         value={row.line2}
                                         onChange={(v) => updateRow(row.id, 'line2', v)}
                                         placeholder="Line 2 (optional)"
-                                        className="block w-full text-1xs leading-tight text-slate-700 mt-1 mb-1"
+                                        className="block w-full text-1xs leading-tight text-ink-secondary mt-1 mb-1"
                                     />
                                     <EditableText
                                         inline={false}
                                         value={row.line3}
                                         onChange={(v) => updateRow(row.id, 'line3', v)}
                                         placeholder="Line 3 (optional)"
-                                        className="block w-full text-2xs leading-tight text-slate-500 mt-1"
+                                        className="block w-full text-2xs leading-tight text-ink-muted mt-1"
                                     />
                                 </div>
 
                                 {/* Per-card inline controls: align, bold-first-line, qty */}
-                                <div className="flex items-center justify-between gap-1 mt-2 pt-1.5 border-t border-slate-100">
+                                <div className="flex items-center justify-between gap-1 mt-2 pt-1.5 border-t border-line">
                                     <div className="flex items-center gap-0.5">
                                         <button
                                             type="button"
                                             onClick={() => updateRow(row.id, 'align', 'left')}
                                             title="Left align"
-                                            className={`p-1 rounded transition-colors ${row.align === 'left' ? 'bg-indigo-500 text-white' : 'text-slate-300 hover:text-slate-500'}`}
+                                            className={`p-1 rounded transition-colors ${row.align === 'left' ? 'bg-brand-500 text-white' : 'text-neutral-300 hover:text-ink-muted'}`}
                                         >
                                             <AlignLeft size={11} />
                                         </button>
@@ -362,7 +362,7 @@ export default function LabelSheetTool({
                                             type="button"
                                             onClick={() => updateRow(row.id, 'align', 'center')}
                                             title="Center align"
-                                            className={`p-1 rounded transition-colors ${row.align === 'center' ? 'bg-indigo-500 text-white' : 'text-slate-300 hover:text-slate-500'}`}
+                                            className={`p-1 rounded transition-colors ${row.align === 'center' ? 'bg-brand-500 text-white' : 'text-neutral-300 hover:text-ink-muted'}`}
                                         >
                                             <AlignCenter size={11} />
                                         </button>
@@ -370,20 +370,20 @@ export default function LabelSheetTool({
                                             type="button"
                                             onClick={() => updateRow(row.id, 'bold_first', !row.bold_first)}
                                             title="Bold first line"
-                                            className={`p-1 rounded transition-colors ${row.bold_first ? 'bg-indigo-500 text-white' : 'text-slate-300 hover:text-slate-500'}`}
+                                            className={`p-1 rounded transition-colors ${row.bold_first ? 'bg-brand-500 text-white' : 'text-neutral-300 hover:text-ink-muted'}`}
                                         >
                                             <Bold size={11} />
                                         </button>
                                     </div>
                                     <div className="flex items-center gap-1" title="Repeat this label N times">
-                                        <span className="text-3xs font-black uppercase text-slate-600 dark:text-slate-300">Qty</span>
+                                        <span className="text-3xs font-bold uppercase text-ink-secondary">Qty</span>
                                         <EditableText
                                             as="number"
                                             min="1"
                                             max={maxRowQty}
                                             value={row.qty}
                                             onChange={(v) => updateRow(row.id, 'qty', Math.max(1, Math.min(maxRowQty, Number(v) || 1)))}
-                                            className="text-2xs font-mono w-7 text-right text-slate-500"
+                                            className="text-2xs font-mono w-7 text-right text-ink-muted"
                                         />
                                     </div>
                                 </div>
@@ -395,20 +395,20 @@ export default function LabelSheetTool({
                             type="button"
                             onClick={addRow}
                             disabled={rows.length >= maxRows}
-                            className="min-h-[92px] rounded-lg border-2 border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 hover:text-indigo-500 transition-colors disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-transparent"
+                            className="min-h-[92px] rounded-lg border-2 border-dashed border-line hover:border-brand-300 hover:bg-brand-50/40 flex flex-col items-center justify-center gap-1 text-ink-muted hover:text-brand-500 transition-colors disabled:opacity-40 disabled:hover:border-line disabled:hover:bg-transparent"
                         >
                             <Plus size={16} />
                             <span className="text-1xs font-bold">Add label</span>
                         </button>
                     </div>
 
-                    <p className="text-1xs text-slate-500 dark:text-slate-400 text-center mt-4">
+                    <p className="text-1xs text-ink-muted text-center mt-4">
                         {rows.length} / {maxRows} labels &middot; {totalLabelsPreview} total with quantity &amp; copies &middot; click any line to edit
                     </p>
                 </div>
             )}
 
-            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-ink-muted mt-4">
                 This preview matches your downloaded PDF layout — click any label above to edit it. Print at 100% / "Actual size".
             </p>
         </ToolShell>

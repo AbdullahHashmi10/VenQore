@@ -59,33 +59,33 @@ export default function GiftShow({
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
+                    <div className="w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px]" />
                 </div>
             </div>
 
             <div className="relative z-10 max-w-xl w-full text-center">
-                <div className="w-24 h-24 mx-auto rounded-[2rem] bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-4xl mb-8 shadow-2xl">
+                <div className="w-24 h-24 mx-auto rounded-xl bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-4xl mb-8 shadow-2xl">
                     🎁
                 </div>
 
-                <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 uppercase tracking-widest">
+                <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-brand-500/10 border border-brand-500/20 text-brand-400 uppercase tracking-widest">
                     You've Been Gifted
                 </span>
 
-                <h1 className="text-4xl font-black mt-4 mb-3 tracking-tight">
+                <h1 className="text-4xl font-bold mt-4 mb-3 tracking-tight">
                     {planLabel}
                     <br />
-                    <span className="bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-brand-400 to-purple-500 bg-clip-text text-transparent">
                         for {durationText}
                     </span>
                 </h1>
 
                 {plan_description && (
-                    <p className="text-slate-400 text-lg mb-8 leading-relaxed">{plan_description}</p>
+                    <p className="text-ink-muted text-lg mb-8 leading-relaxed">{plan_description}</p>
                 )}
 
                 {label && (
-                    <p className="text-slate-600 text-sm mb-6 italic">"{label}"</p>
+                    <p className="text-ink-secondary text-sm mb-6 italic">"{label}"</p>
                 )}
 
                 {already_redeemed_by_me ? (
@@ -98,7 +98,7 @@ export default function GiftShow({
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/25 disabled:opacity-60"
+                                className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:shadow-lg hover: disabled:opacity-60"
                             >
                                 <Sparkles size={18} />
                                 {processing ? 'Applying your gift…' : 'Accept Gift'}
@@ -108,13 +108,13 @@ export default function GiftShow({
                             <div className="space-y-3">
                                 <a
                                     href={registerUrl}
-                                    className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:scale-[1.02]"
+                                    className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 text-white font-bold text-base transition-all"
                                 >
                                     <Sparkles size={18} /> Create Account &amp; Accept Gift
                                 </a>
                                 <a
                                     href={loginUrl}
-                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all"
+                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-neutral-300 font-bold text-sm transition-all"
                                 >
                                     <LogIn size={15} /> Already have an account? Log in
                                 </a>
@@ -123,7 +123,7 @@ export default function GiftShow({
                     </form>
                 )}
 
-                <p className="text-slate-700 text-xs mt-8 flex items-center justify-center gap-1.5">
+                <p className="text-ink-secondary text-xs mt-8 flex items-center justify-center gap-1.5">
                     <Clock size={12} /> Your access starts the moment you accept.
                 </p>
             </div>

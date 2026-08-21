@@ -14,7 +14,6 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 import { LaserFlow } from '@/Components/ReactBits/LaserFlow';
-import SplitText from '@/Components/ReactBits/SplitText';
 import {
     BklitAreaChart, BklitDonut, BklitBarChart,
     RingChart, Ring, RingCenter,
@@ -321,7 +320,7 @@ export default function AdminDashboard({
                     animation: vq-shine-sweep 3.5s linear infinite;
                     display: inline-block;
                 }
-            `}</style>
+`}</style>
 
             {/* ═══ PAGE WRAPPER ═══ */}
             <div style={{
@@ -339,17 +338,15 @@ export default function AdminDashboard({
                         <div>
                             <Eyebrow color="var(--vq-accent-text)">Executive Overview</Eyebrow>
                             <div style={{ marginTop: '3px' }}>
-                                <SplitText
-                                    text="Business Dashboard"
-                                    tag="h1"
-                                    className="exec-h1"
-                                    splitType="words"
-                                    from={{ opacity: 0, y: 18 }}
-                                    to={{ opacity: 1, y: 0 }}
-                                    duration={0.65}
-                                    delay={55}
-                                    textAlign="left"
-                                />
+                                {/*
+                                  * Was a per-word staggered reveal. DESIGN-RULES
+                                  * v3.0 §14: inside the product the only motion
+                                  * is state feedback, and a heading animating
+                                  * itself in carries no information — the user
+                                  * asked for this page, they know what it is.
+                                  * The whole ReactBits component is gone with it.
+                                  */}
+                                <h1 className="exec-h1">Business Dashboard</h1>
                             </div>
                         </div>
                         <Link

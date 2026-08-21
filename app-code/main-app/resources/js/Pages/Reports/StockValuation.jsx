@@ -47,8 +47,8 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
             sortable: true,
             render: (row) => (
                 <div>
-                    <div className="font-medium text-slate-900 dark:text-white">{row.name}</div>
-                    <div className="text-xs text-slate-500">{row.sku}</div>
+                    <div className="font-medium text-ink">{row.name}</div>
+                    <div className="text-xs text-ink-muted">{row.sku}</div>
                 </div>
             )
         },
@@ -89,7 +89,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
             label: 'Retail Value',
             align: 'right',
             sortable: true,
-            render: (row) => <span className="font-medium text-slate-600 dark:text-slate-400">{formatCurrency(row.retail_value, store)}</span>
+            render: (row) => <span className="font-medium text-ink-secondary">{formatCurrency(row.retail_value, store)}</span>
         }
     ];
 
@@ -181,24 +181,24 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
 
             {/* Print View Styling */}
             <div className="hidden print:block p-8">
-                <div className="text-center mb-10 border-b-2 border-slate-900 pb-6">
-                    <h1 className="text-3xl font-black">{store.name}</h1>
-                    <h2 className="text-xl font-bold text-slate-600 uppercase tracking-widest mt-2">Stock Valuation Report</h2>
-                    <p className="text-sm text-slate-500 mt-1">Generated on {new Date().toLocaleDateString()}</p>
+                <div className="text-center mb-10 border-b-2 border-neutral-900 pb-6">
+                    <h1 className="text-3xl font-bold">{store.name}</h1>
+                    <h2 className="text-xl font-bold text-ink-secondary uppercase tracking-widest mt-2">Stock Valuation Report</h2>
+                    <p className="text-sm text-ink-muted mt-1">Generated on {new Date().toLocaleDateString()}</p>
                 </div>
 
                 <div className="grid grid-cols-4 gap-4 mb-10">
                     {reportStats.map((s, idx) => (
                         <div key={idx} className="border p-4 rounded-xl">
-                            <p className="text-2xs font-bold text-slate-400 uppercase">{s.label}</p>
-                            <p className="text-xl font-black">{s.value}</p>
+                            <p className="text-2xs font-bold text-ink-muted uppercase">{s.label}</p>
+                            <p className="text-xl font-bold">{s.value}</p>
                         </div>
                     ))}
                 </div>
 
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b-2 border-slate-900">
+                        <tr className="border-b-2 border-neutral-900">
                             <th className="py-2 text-xs font-bold uppercase">Product / SKU</th>
                             <th className="py-2 text-xs font-bold uppercase text-right">Qty</th>
                             <th className="py-2 text-xs font-bold uppercase text-right">Cost</th>
@@ -210,11 +210,11 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
                             <tr key={idx}>
                                 <td className="py-3">
                                     <div className="font-bold">{row.name}</div>
-                                    <div className="text-2xs text-slate-500">{row.sku}</div>
+                                    <div className="text-2xs text-ink-muted">{row.sku}</div>
                                 </td>
                                 <td className="py-3 text-right font-bold">{formatNumber(row.stock_quantity)}</td>
                                 <td className="py-3 text-right">{formatCurrency(row.unit_cost, store)}</td>
-                                <td className="py-3 text-right font-black">{formatCurrency(row.stock_value, store)}</td>
+                                <td className="py-3 text-right font-bold">{formatCurrency(row.stock_value, store)}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -19,7 +19,7 @@ const NebulaBackground = () => (
         <div className="absolute inset-0 bg-void-950" />
 
         {/* Animated Gradient Orbs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-indigo-900/20 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen" />
+        <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-brand-900/20 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-violet-900/10 rounded-full blur-[120px] animate-pulse-slow delay-1000 mix-blend-screen" />
 
         {/* Cinematic Grid Floor */}
@@ -63,7 +63,7 @@ const NebulaBackground = () => (
                 background-size: 200% auto;
                 animation: shimmer 8s linear infinite;
             }
-        `}</style>
+`}</style>
     </div>
 );
 
@@ -105,12 +105,12 @@ const CustomCursor = () => {
         <>
             <div
                 ref={cursorRef}
-                className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
+                className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-command mix-blend-difference"
                 style={{ marginTop: -4, marginLeft: -4 }}
             />
             <div
                 ref={followerRef}
-                className="fixed top-0 left-0 w-12 h-12 border border-white/20 rounded-full pointer-events-none z-[9998] transition-opacity duration-300 flex items-center justify-center mix-blend-overlay"
+                className="fixed top-0 left-0 w-12 h-12 border border-white/20 rounded-full pointer-events-none z-command transition-opacity duration-slow flex items-center justify-center mix-blend-overlay"
             >
                 <div className="w-1 h-1 bg-white/50 rounded-full" />
             </div>
@@ -157,22 +157,22 @@ const FeatureCard = ({ icon: Icon, title, description, colorClass, glowColor }) 
             onMouseLeave={handleMouseLeave}
         >
             {/* Background Blob */}
-            <div className={`absolute inset-0 ${colorClass} rounded-3xl blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-500`} />
+            <div className={`absolute inset-0 ${colorClass} rounded-2xl blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-slower`} />
 
             {/* Card Content */}
             <div
                 ref={cardRef}
-                className="relative h-full w-full bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 flex flex-col items-center text-center transition-transform duration-100 ease-out will-change-transform shadow-xl"
+                className="relative h-full w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 flex flex-col items-center text-center transition-transform duration-fast ease-out will-change-transform shadow-xl"
                 style={{ transformStyle: 'preserve-3d' }}
             >
-                <div ref={glowRef} className="absolute inset-0 transition-opacity duration-300 pointer-events-none opacity-0 mix-blend-soft-light z-20 rounded-3xl" />
+                <div ref={glowRef} className="absolute inset-0 transition-opacity duration-slow pointer-events-none opacity-0 mix-blend-soft-light z-20 rounded-2xl" />
 
                 <div className="relative z-10 flex-1 flex flex-col items-center">
-                    <div className={`mb-6 p-4 rounded-2xl bg-white/5 border border-white/10 ${glowColor} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={`mb-6 p-4 rounded-2xl bg-white/5 border border-white/10 ${glowColor} shadow-lg transition-transform duration-slow`}>
                         <Icon size={40} />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-indigo-200 transition-colors">{title}</h3>
-                    <p className="text-slate-400 leading-relaxed text-sm lg:text-base font-light">{description}</p>
+                    <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-brand-200 transition-colors">{title}</h3>
+                    <p className="text-ink-muted leading-relaxed text-sm lg:text-base font-light">{description}</p>
                 </div>
             </div>
         </div>
@@ -208,11 +208,11 @@ const Section = ({ id, onVisible, children, className = "" }) => {
 
 const AnimatedHeader = ({ text, subtitle, trigger }) => {
     return (
-        <div className={`text-center mb-16 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] transform ${trigger ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-12 opacity-0 blur-xl'}`}>
+        <div className={`text-center mb-16 transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] transform ${trigger ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-12 opacity-0 blur-xl'}`}>
             <h2 className="text-5xl lg:text-7xl font-bold mb-6 tracking-tight text-white drop-shadow-2xl">
                 {text}
             </h2>
-            <p className="text-xl text-slate-400 font-light max-w-2xl mx-auto">
+            <p className="text-xl text-ink-muted font-light max-w-2xl mx-auto">
                 {subtitle}
             </p>
         </div>
@@ -225,7 +225,7 @@ export default function Welcome() {
     const sections = ['hero', 'intelligence', 'operations', 'resilience', 'final'];
 
     return (
-        <div className="fixed inset-0 z-[100] bg-void-950 text-white font-sans selection:bg-indigo-500/50 h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar cursor-none">
+        <div className="fixed inset-0 z-drawer bg-void-950 text-white font-sans selection:bg-brand-500/50 h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar cursor-none">
             <Head title="Welcome to VenQore" />
             <NebulaBackground />
             <CustomCursor />
@@ -241,7 +241,7 @@ export default function Welcome() {
                     />
 
                     {/* Fallback in case image doesn't load */}
-                    <span className="hidden text-xl font-black tracking-tight drop-shadow-2xl">VenQore<span className="text-indigo-400">.</span></span>
+                    <span className="hidden text-xl font-bold tracking-tight drop-shadow-2xl">VenQore<span className="text-brand-400">.</span></span>
                 </div>
             </nav>
 
@@ -250,7 +250,7 @@ export default function Welcome() {
                 {sections.map((sec) => (
                     <div
                         key={sec}
-                        className={`transition-all duration-500 rounded-full ${activeSection === sec ? 'w-1.5 h-12 bg-indigo-400 shadow-[0_0_15px_#818cf8]' : 'w-1.5 h-1.5 bg-white/10'}`}
+                        className={`transition-all duration-slower rounded-full ${activeSection === sec ? 'w-1.5 h-12 bg-brand-400 shadow-[0_0_15px_#818cf8]' : 'w-1.5 h-1.5 bg-white/10'}`}
                     />
                 ))}
             </div>
@@ -258,37 +258,37 @@ export default function Welcome() {
             {/* 1. HERO */}
             <Section id="hero" onVisible={setActiveSection}>
                 <div className="text-center max-w-5xl z-10">
-                    <div className={`transition-all duration-1000 transform ease-[cubic-bezier(0.22,1,0.36,1)] ${activeSection === 'hero' ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-10 opacity-0 blur-sm'}`}>
-                        <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-indigo-500/5 border border-indigo-500/20 text-indigo-300 text-sm font-semibold tracking-widest uppercase mb-10 animate-pulse-slow backdrop-blur-md">
+                    <div className={`transition-all duration-slower transform ease-[cubic-bezier(0.22,1,0.36,1)] ${activeSection === 'hero' ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-10 opacity-0 blur-sm'}`}>
+                        <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-500/5 border border-brand-500/20 text-brand-300 text-sm font-semibold tracking-widest uppercase mb-10 animate-pulse-slow backdrop-blur-md">
                             <Sparkles size={14} />
                             <span>Access Granted</span>
                         </div>
                         
-                        <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-8 leading-[0.85] drop-shadow-2xl overflow-hidden">
+                        <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-8 leading-[0.85] drop-shadow-2xl overflow-hidden">
                             <div className="flex flex-col">
                                 <span className="relative inline-block overflow-hidden">
-                                     <span className="block animate-character-rise bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                                     <span className="block animate-character-rise bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
                                         WELCOME
                                      </span>
-                                     <span className="absolute inset-0 bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent opacity-20 blur-sm animate-glitch-fast">WELCOME</span>
+                                     <span className="absolute inset-0 bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent opacity-20 blur-sm animate-glitch-fast">WELCOME</span>
                                 </span>
                                 <span className="relative inline-block overflow-hidden">
-                                     <span className="block animate-character-rise-delay bg-gradient-to-r from-indigo-300 via-indigo-500 to-indigo-300 bg-clip-text text-transparent text-glow">
+                                     <span className="block animate-character-rise-delay bg-gradient-to-r from-brand-300 via-brand-500 to-brand-300 bg-clip-text text-transparent text-glow">
                                         TO VENQORE.
                                      </span>
-                                     <span className="absolute inset-0 bg-gradient-to-r from-indigo-300 via-indigo-500 to-indigo-300 bg-clip-text text-transparent opacity-20 blur-sm animate-glitch-slow">TO VENQORE.</span>
+                                     <span className="absolute inset-0 bg-gradient-to-r from-brand-300 via-brand-500 to-brand-300 bg-clip-text text-transparent opacity-20 blur-sm animate-glitch-slow">TO VENQORE.</span>
                                 </span>
                             </div>
                         </h1>
 
-                        <p className="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed mb-16 font-light animate-fade-in-delayed">
+                        <p className="text-xl md:text-2xl text-ink-muted max-w-3xl mx-auto leading-relaxed mb-16 font-light animate-fade-in-delayed">
                             The engine is primed. The data is live. <br />
                             You have officially entered the <span className="text-white font-medium text-glow-indigo">Growth Frequency</span>.
                         </p>
                         
                         <div className="flex flex-col items-center gap-4 opacity-50 animate-bounce-slow">
-                            <MousePointer2 className="text-indigo-400" />
-                            <span className="text-xs uppercase tracking-[0.4em] text-indigo-400/70 font-bold">Scroll to Begin</span>
+                            <MousePointer2 className="text-brand-400" />
+                            <span className="text-xs uppercase tracking-[0.4em] text-brand-400/70 font-bold">Scroll to Begin</span>
                         </div>
                     </div>
                 </div>
@@ -341,7 +341,7 @@ export default function Welcome() {
                     }
                     
                     .text-glow-indigo { text-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
-                `}</style>
+`}</style>
             </Section>
 
             {/* 2. THE INTELLIGENCE SUITE (AI + GROWTH + ANALYTICS) */}
@@ -353,20 +353,20 @@ export default function Welcome() {
                         trigger={activeSection === 'intelligence'}
                     />
 
-                    <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-1000 delay-300 ease-out ${activeSection === 'intelligence' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
+                    <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-slower delay-300 ease-out ${activeSection === 'intelligence' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
                         <FeatureCard
                             icon={Brain}
                             title="AI Insights"
                             description="Predictive algorithms that decode market trends before they happen."
                             colorClass="bg-violet-600"
-                            glowColor="text-violet-400 shadow-violet-500/20"
+                            glowColor="text-violet-400 "
                         />
                         <FeatureCard
                             icon={TrendingUp}
                             title="Growth Engine"
                             description="Automated marketing and retention tools working 24/7."
                             colorClass="bg-emerald-600"
-                            glowColor="text-emerald-400 shadow-emerald-500/20"
+                            glowColor="text-emerald-400 "
                         />
                         <FeatureCard
                             icon={BarChart3}
@@ -388,13 +388,13 @@ export default function Welcome() {
                         trigger={activeSection === 'operations'}
                     />
 
-                    <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-1000 delay-300 ease-out ${activeSection === 'operations' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
+                    <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-slower delay-300 ease-out ${activeSection === 'operations' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
                         <FeatureCard
                             icon={Zap}
                             title="Lightning POS"
                             description="Process sales in milliseconds. Designed for pure speed."
                             colorClass="bg-amber-600"
-                            glowColor="text-amber-400 shadow-amber-500/20"
+                            glowColor="text-amber-400 "
                         />
                         <FeatureCard
                             icon={Package}
@@ -407,8 +407,8 @@ export default function Welcome() {
                             icon={Layers}
                             title="Multi-Branch"
                             description="Scale without limits. Manage infinite locations from one dashboard."
-                            colorClass="bg-indigo-600"
-                            glowColor="text-indigo-400 shadow-indigo-500/20"
+                            colorClass="bg-brand-600"
+                            glowColor="text-brand-400 "
                         />
                     </div>
                 </div>
@@ -423,7 +423,7 @@ export default function Welcome() {
                         trigger={activeSection === 'resilience'}
                     />
 
-                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-10 transition-all duration-1000 delay-300 ease-out ${activeSection === 'resilience' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
+                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-10 transition-all duration-slower delay-300 ease-out ${activeSection === 'resilience' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
                         <FeatureCard
                             icon={Users}
                             title="Customer Intel"
@@ -435,8 +435,8 @@ export default function Welcome() {
                             icon={WifiOff}
                             title="Offline Mode"
                             description="Internet down? No problem. Full functionality continues seamlessly."
-                            colorClass="bg-slate-600"
-                            glowColor="text-slate-400 shadow-slate-500/20"
+                            colorClass="bg-neutral-600"
+                            glowColor="text-ink-muted shadow-neutral-500/20"
                         />
                     </div>
                 </div>
@@ -444,8 +444,8 @@ export default function Welcome() {
 
             {/* 5. FINAL LAUNCHPAD */}
             <Section id="final" onVisible={setActiveSection} className="text-center">
-                <div className={`max-w-4xl mx-auto flex flex-col items-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${activeSection === 'final' ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-                    <div className="w-24 h-24 bg-white/5 backdrop-blur-xl rounded-[2rem] flex items-center justify-center mb-10 shadow-[0_0_50px_rgba(139,92,246,0.3)] animate-pulse border border-white/10">
+                <div className={`max-w-4xl mx-auto flex flex-col items-center transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] ${activeSection === 'final' ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+                    <div className="w-24 h-24 bg-white/5 backdrop-blur-xl rounded-xl flex items-center justify-center mb-10 shadow-[0_0_50px_rgba(139,92,246,0.3)] animate-pulse border border-white/10">
                         <Sparkles size={48} className="text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
                     </div>
                     <AnimatedHeader
@@ -457,15 +457,15 @@ export default function Welcome() {
                     {/* CTA BUTTON */}
                     <Link
                         href={safeRoute('login')}
-                        className="group relative inline-flex items-center gap-4 px-12 py-6 bg-white text-black hover:bg-indigo-50 rounded-full font-bold text-xl md:text-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.6)] mt-8"
+                        className="group relative inline-flex items-center gap-4 px-12 py-6 bg-white text-black hover:bg-brand-50 rounded-full font-bold text-xl md:text-2xl transition-all duration-slow hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.6)] mt-8"
                     >
                         <span>Start Your Journey</span>
-                        <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                        <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-slow">
                             <ArrowRight size={20} />
                         </div>
                     </Link>
 
-                    <p className="mt-16 text-slate-600 text-sm tracking-wide">
+                    <p className="mt-16 text-ink-secondary text-sm tracking-wide">
                         © {new Date().getFullYear()} VenQore Point of Sale. Built for the ambitious.
                     </p>
                 </div>

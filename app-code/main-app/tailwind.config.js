@@ -151,6 +151,34 @@ export default {
                     REQUIRED_ROLES.map((role) => [role, rampScale(role)]),
                 ),
 
+                // 2b. The accent's mode-aware forms, on top of its ramp.
+                //
+                //     bg-accent-500   fixed pigment, same in both modes
+                //     bg-accent       the identity colour, flips with the mode
+                //     bg-accent-quiet the tint wash — takes ink text on top
+                //     text-accent-text  links and inline accent, contrast-safe
+                //     bg-accent-fill  solid buttons, white on top
+                //
+                // V6 separates "the identity colour" from "the colour a solid
+                // button is filled with", and the ramp alone cannot express
+                // that: a ramp stop is one pigment, and both of these are a
+                // DIFFERENT stop in dark mode. They read the V6 token layer
+                // directly, so there is still one source.
+                //
+                // These four hold resolved colours rather than channel
+                // triplets, so `/50` opacity modifiers do not apply to them.
+                // That is correct — they are already-composed values, and an
+                // alpha on top of a tint is how you get mud.
+                accent: {
+                    ...rampScale('accent'),
+                    DEFAULT: 'var(--vq-accent)',
+                    text: 'var(--vq-accent-text)',
+                    quiet: 'var(--vq-accent-quiet)',
+                    fill: 'var(--vq-accent-fill)',
+                    'fill-hover': 'var(--vq-accent-fill-hover)',
+                    on: 'var(--vq-on-accent)',
+                },
+
                 // 3. Mode-aware single-value tokens. These flip between light and
                 //    dark on their own, so `bg-surface` needs no `dark:` twin —
                 //    which is the main reason to prefer them in new code.

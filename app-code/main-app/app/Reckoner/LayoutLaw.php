@@ -177,12 +177,20 @@ class LayoutLaw
         return self::categoriesForChart($chart)[0] ?? 'C4';
     }
 
+    /**
+     * Stated per chart rather than derived — see the note in layout-law.json.
+     * Taking index 1 of the legal list put a stat in a C2 Strip, 64px tall,
+     * with no room for a delta pill beneath the value.
+     */
     public static function defaultCategoryForChart(string $chart): string
     {
+        $stated = self::law()['chartDefaultCategory'][$chart] ?? null;
+        if (is_string($stated) && self::isCategoryLegal($chart, $stated)) {
+            return $stated;
+        }
+
         $cats = self::categoriesForChart($chart);
 
-        // Middle of the legal range: the leanest is a floor, not a
-        // recommendation, and the widest hogs a board nobody asked to spend.
         return $cats[min(1, count($cats) - 1)] ?? 'C4';
     }
 

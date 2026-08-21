@@ -98,7 +98,7 @@ export const AlertProvider = ({ children }) => {
             case 'success': return <CheckCircle2 size={48} className="text-emerald-500" />;
             case 'error': return <XCircle size={48} className="text-red-500" />;
             case 'warning': return <AlertTriangle size={48} className="text-amber-500" />;
-            default: return <Info size={48} className="text-indigo-500" />;
+            default: return <Info size={48} className="text-brand-500" />;
         }
     };
 
@@ -114,14 +114,14 @@ export const AlertProvider = ({ children }) => {
                 size="sm"
             >
                 <div className="flex flex-col items-center text-center p-4">
-                    <div className={`mb-4 w-20 h-20 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-200 ${alertState.type === 'success' ? 'bg-emerald-100' :
+                    <div className={`mb-4 w-20 h-20 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-normal ${alertState.type === 'success' ? 'bg-emerald-100' :
                         alertState.type === 'error' ? 'bg-red-100' :
-                            alertState.type === 'warning' ? 'bg-amber-100' : 'bg-indigo-100'
+                            alertState.type === 'warning' ? 'bg-amber-100' : 'bg-brand-100'
                         }`}>
                         {getIcon()}
                     </div>
 
-                    <p className="text-slate-600 dark:text-slate-300 mb-8 max-w-xs leading-relaxed">
+                    <p className="text-ink-secondary mb-8 max-w-xs leading-relaxed">
                         {alertState.message}
                     </p>
 
@@ -129,17 +129,17 @@ export const AlertProvider = ({ children }) => {
                         {alertState.isConfirm && (
                             <button
                                 onClick={alertState.onCancel}
-                                className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                className="flex-1 py-3 bg-sunken text-ink-secondary dark:text-ink font-bold rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                             >
                                 {alertState.cancelLabel}
                             </button>
                         )}
                         <button
                             onClick={alertState.onConfirm}
-                            className={`flex-1 py-3 font-bold rounded-xl text-white shadow-lg transition-all active:scale-95 ${alertState.type === 'error' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' :
-                                alertState.type === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20' :
-                                    alertState.type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' :
-                                        'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20'
+                            className={`flex-1 py-3 font-bold rounded-xl text-white shadow-lg transition-all active:scale-95 ${alertState.type === 'error' ? 'bg-red-500 hover:bg-red-600 ' :
+                                alertState.type === 'warning' ? 'bg-amber-500 hover:bg-amber-600 ' :
+                                    alertState.type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 ' :
+                                        'bg-brand-600 hover:bg-brand-700 '
                                 }`}
                         >
                             {alertState.confirmLabel}

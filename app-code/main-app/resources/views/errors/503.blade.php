@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VenQore — System Optimization in Progress</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    {{-- Local faces. This page renders mid-deploy, when the built asset
+         manifest may not exist and the network may not either. --}}
+    <link href="/css/offline-fonts.css" rel="stylesheet">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
@@ -87,7 +89,7 @@
         }
 
         h1 {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Bricolage Grotesque', sans-serif;
             font-size: 2.25rem;
             font-weight: 800;
             margin: 0 0 1rem 0;

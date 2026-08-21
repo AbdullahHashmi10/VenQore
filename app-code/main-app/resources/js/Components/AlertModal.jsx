@@ -19,7 +19,7 @@ export default function AlertModal({ show, onClose, type = 'error', title, messa
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="sm">
-            <div className={`p-8 text-center rounded-2xl transition-all duration-300 ${isSaleCompleted ? 'bg-slate-900 text-white' : ''}`}>
+            <div className={`p-8 text-center rounded-2xl transition-all duration-slow ${isSaleCompleted ? 'bg-neutral-900 text-white' : ''}`}>
                 <div className="flex justify-center mb-5">
                     <div className={`p-4 rounded-full bg-opacity-10 ${
                         type === 'error' ? 'bg-red-500' :
@@ -30,12 +30,12 @@ export default function AlertModal({ show, onClose, type = 'error', title, messa
                     </div>
                 </div>
 
-                <h2 className={`text-2xl font-black mb-4 tracking-tight ${isSaleCompleted ? 'text-white' : 'text-slate-800 dark:text-white'}`}>
+                <h2 className={`text-2xl font-bold mb-4 tracking-tight ${isSaleCompleted ? 'text-white' : 'text-ink'}`}>
                     {title}
                 </h2>
 
                 {typeof message === 'string' ? (
-                    <p className={`mb-6 whitespace-pre-line text-sm leading-relaxed ${isSaleCompleted ? 'text-slate-300 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <p className={`mb-6 whitespace-pre-line text-sm leading-relaxed ${isSaleCompleted ? 'text-neutral-300 font-medium' : 'text-ink-muted'}`}>
                         {message}
                     </p>
                 ) : (
@@ -46,13 +46,13 @@ export default function AlertModal({ show, onClose, type = 'error', title, messa
 
                 <button
                     onClick={handleAction}
-                    className={`w-full py-4 rounded-xl font-extrabold text-white shadow-lg active:scale-[0.98] transition-all text-base ${
+                    className={`w-full py-4 rounded-xl font-bold text-white shadow-lg active:scale-[0.98] transition-all text-base ${
                         isSaleCompleted 
-                        ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' 
-                        : (type === 'error' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
-                           type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' :
-                           type === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
-                           'bg-blue-500 hover:bg-blue-600 shadow-blue-500/30')
+                        ? 'bg-emerald-500 hover:bg-emerald-600 ' 
+                        : (type === 'error' ? 'bg-red-500 hover:bg-red-600 ' :
+                           type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 ' :
+                           type === 'warning' ? 'bg-amber-500 hover:bg-amber-600 ' :
+                           'bg-blue-500 hover:bg-blue-600 ')
                     }`}
                 >
                     {actionLabel}

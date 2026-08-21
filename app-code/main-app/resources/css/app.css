@@ -1,14 +1,15 @@
 /* ════════════════════════════════════════════════════════════════════════════
    VenQore V6 — the token layer. The single place a design value is typed.
-   Loaded FIRST so its `@import url(…)` for the three brand faces reaches the
-   top of the bundle, where CSS requires every @import to be.
+   Loaded FIRST because CSS requires every @import to sit above every rule, and
+   the token layer is what everything below it reads.
    ════════════════════════════════════════════════════════════════════════════ */
 @import './venqore-v6/index.css';
 
-/* Self-hosted Figtree. Retained only so its @font-face rules keep resolving for
-   anything still naming the family directly; V6 typography is Bricolage
-   Grotesque / Plus Jakarta Sans / Space Grotesk. Unused faces cost nothing —
-   a browser only fetches a face something asks for. */
+/* The Appearance-menu faces — Inter, Figtree, Source Serif 4 — self-hosted.
+   V6's own three (Bricolage Grotesque / Plus Jakarta Sans / Space Grotesk) come
+   from venqore-v6/tokens/fonts.css, imported above. Declaring a face nobody
+   asks for costs nothing: the browser fetches only what a stack names, and
+   unicode-range narrows it again to the subset a glyph actually needs. */
 @import './fonts.css';
 
 /* Bklit UI ↔ VQ Bridge — maps --chart-1..5 to VQ series tokens */

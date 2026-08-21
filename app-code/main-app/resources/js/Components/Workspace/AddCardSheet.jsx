@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { vq } from '@/theme/runtime';
 /**
  * The "Add a card" sheet — a direct build of mockup 1b.
  *
@@ -69,7 +70,7 @@ export default function AddCardSheet({ catalog = [], active = [], onAdd, onClose
                 style={{
                     width: 520,
                     maxWidth: '100%',
-                    background: '#f5f4f0',
+                    background: vq.slate[50],
                     borderRadius: 14,
                     overflow: 'hidden',
                     boxShadow: '0 20px 60px rgba(0,0,0,.22)',

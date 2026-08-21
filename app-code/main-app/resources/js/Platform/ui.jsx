@@ -26,13 +26,13 @@ export function ensurePlatformStyles() {
       @keyframes vq-rise { from { opacity:0; transform: translateY(16px) scale(.985);} to { opacity:1; transform:none;} }
       @keyframes vq-spin { to { transform: rotate(360deg);} }
       @keyframes vq-shimmer { 0% { background-position: -468px 0;} 100% { background-position: 468px 0;} }
-      @keyframes vq-pulse-ring { 0% { box-shadow:0 0 0 0 rgba(99,102,241,.35);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
+      @keyframes vq-pulse-ring { 0% { box-shadow:0 0 0 0 var(--vq-accent-quiet);} 70%{box-shadow:0 0 0 10px transparent;} 100%{box-shadow:0 0 0 0 transparent;} }
       @keyframes vq-float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
       @keyframes vq-drift { 0%{transform:translate(0,0);} 50%{transform:translate(14px,-10px);} 100%{transform:translate(0,0);} }
       .vq-scroll::-webkit-scrollbar{width:8px;height:8px;}
       .vq-scroll::-webkit-scrollbar-track{background:transparent;}
-      .vq-scroll::-webkit-scrollbar-thumb{background:rgba(120,130,160,.28);border-radius:10px;}
-      .vq-scroll::-webkit-scrollbar-thumb:hover{background:rgba(120,130,160,.5);}
+      .vq-scroll::-webkit-scrollbar-thumb{background:var(--vq-line-strong);border-radius:var(--vq-r-sm);}
+      .vq-scroll::-webkit-scrollbar-thumb:hover{background:var(--vq-text-3);}
       .vq-card-hover{transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s;}
       .vq-card-hover:hover{transform:translateY(-3px);}
       .vq-row{transition:background .15s;}
@@ -54,7 +54,7 @@ export function Panel({ children, style, className = '', hover = false, pad = 20
             style={{
                 background: t.panel, border: `1px solid ${t.border}`, borderRadius: 18,
                 padding: pad, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: t.isDark ? 'none' : '0 1px 2px rgba(15,23,42,0.04)',
+                boxShadow: t.isDark ? 'none' : 'var(--vq-elev-1)',
                 ...style,
             }}
             {...rest}
@@ -73,11 +73,11 @@ export function Button({ children, variant = 'primary', size = 'md', icon: Icon,
         lg: { padding: '13px 22px', fontSize: 15, gap: 9, iconSize: 18 },
     }[size];
     const variants = {
-        primary: { background: GRADIENTS.brand, color: '#fff', border: '1px solid transparent', boxShadow: '0 8px 20px -6px rgba(99,102,241,.5)' },
+        primary: { background: GRADIENTS.brand, color: 'var(--vq-on-accent)', border: '1px solid transparent', boxShadow: 'var(--vq-glow-accent)' },
         secondary: { background: t.inputBg, color: t.ink, border: `1px solid ${t.border2}` },
         ghost: { background: 'transparent', color: t.sub, border: '1px solid transparent' },
-        danger: { background: 'rgba(239,68,68,0.12)', color: vq.red[400], border: '1px solid rgba(239,68,68,0.35)' },
-        success: { background: 'rgba(16,185,129,0.12)', color: vq.emerald[400], border: '1px solid rgba(16,185,129,0.35)' },
+        danger: { background: 'var(--vq-danger-bg)', color: 'var(--vq-danger)', border: '1px solid var(--vq-danger-line)' },
+        success: { background: 'var(--vq-success-bg)', color: 'var(--vq-success)', border: '1px solid var(--vq-success-line)' },
     }[variant];
     return (
         <button
@@ -103,7 +103,7 @@ export function Badge({ children, color, tone = 'soft', style }) {
     const t = useT();
     const c = color || BRAND.slate;
     const bg = tone === 'solid' ? c : `${c}22`;
-    const fg = tone === 'solid' ? '#fff' : c;
+    const fg = tone === 'solid' ? 'var(--vq-on-accent)' : c;
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px',
@@ -188,8 +188,8 @@ export function Skeleton({ w = '100%', h = 14, r = 8, style }) {
         <div style={{
             width: w, height: h, borderRadius: r,
             background: t.isDark
-                ? 'linear-gradient(90deg, rgba(148,163,184,.08) 25%, rgba(148,163,184,.16) 37%, rgba(148,163,184,.08) 63%)'
-                : 'linear-gradient(90deg, rgba(15,23,42,.05) 25%, rgba(15,23,42,.10) 37%, rgba(15,23,42,.05) 63%)',
+                ? 'linear-gradient(90deg, var(--vq-line-soft) 25%, var(--vq-line) 37%, var(--vq-line-soft) 63%)'
+                : 'linear-gradient(90deg, var(--vq-line-soft) 25%, var(--vq-line) 37%, var(--vq-line-soft) 63%)',
             backgroundSize: '936px 100%', animation: 'vq-shimmer 1.4s ease infinite',
             ...style,
         }} />
@@ -229,7 +229,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
     if (!open) return null;
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1000 }}>
-            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(2,4,10,0.55)', backdropFilter: 'blur(4px)', animation: 'vq-fade-soft .25s ease' }} />
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'var(--vq-scrim)', backdropFilter: 'blur(4px)', animation: 'vq-fade-soft .25s ease' }} />
             <div className="vq-scroll" style={{
                 position: 'absolute', top: 0, right: 0, bottom: 0, width: `min(${width}px, 100%)`,
                 background: t.panelSolid, borderLeft: `1px solid ${t.border2}`, boxShadow: t.shadow,
@@ -267,9 +267,9 @@ export function ConfirmModal({ open, onClose, onConfirm, title, message, confirm
     const ready = !typeToConfirm || typed === typeToConfirm;
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1100, display: 'grid', placeItems: 'center', padding: 20 }}>
-            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(2,4,10,0.6)', backdropFilter: 'blur(4px)', animation: 'vq-fade-soft .2s ease' }} />
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'var(--vq-scrim)', backdropFilter: 'blur(4px)', animation: 'vq-fade-soft .2s ease' }} />
             <div style={{ position: 'relative', width: 'min(440px,100%)', background: t.panelSolid, border: `1px solid ${t.border2}`, borderRadius: 20, padding: 26, boxShadow: t.shadow, animation: 'vq-rise .25s ease both' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: danger ? 'rgba(239,68,68,.14)' : `${BRAND.indigo}1f`, color: danger ? BRAND.rose : BRAND.indigo2, display: 'grid', placeItems: 'center', marginBottom: 14 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 'var(--vq-r-md)', background: danger ? 'var(--vq-danger-bg)' : 'var(--vq-accent-quiet)', color: danger ? BRAND.rose : BRAND.indigo2, display: 'grid', placeItems: 'center', marginBottom: 14 }}>
                     <AlertTriangle size={24} />
                 </div>
                 <h3 style={{ margin: 0, fontSize: 19, fontWeight: 900, color: t.ink, letterSpacing: '-0.02em' }}>{title}</h3>

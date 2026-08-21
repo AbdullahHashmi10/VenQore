@@ -23,40 +23,40 @@ const ChartSection = ({ isDarkMode, salesData }) => {
     const totalProfit = chartData.reduce((sum, item) => sum + (item.profit || 0), 0);
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 h-full flex flex-col relative group">
+        <div className="bg-surface rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-line h-full flex flex-col relative group">
             {/* Single Line Header */}
             <div className="flex items-center justify-between mb-4 z-10">
                 <div className="flex items-center gap-3 flex-wrap">
                     {/* Icon + Title */}
                     <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600">
+                        <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600">
                             <TrendingUp size={16} />
                         </div>
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white">Revenue Analytics</h2>
+                        <h2 className="text-lg font-bold text-ink">Revenue Analytics</h2>
                     </div>
 
                     {/* Sales with color indicator and value */}
                     <div className="flex items-center gap-1.5 text-xs">
-                        <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                        <span className="font-bold text-slate-600 dark:text-slate-400">Sales</span>
-                        <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(totalSales, store || settings)}</span>
+                        <div className="w-3 h-3 rounded-full bg-brand-500"></div>
+                        <span className="font-bold text-ink-secondary">Sales</span>
+                        <span className="font-bold text-brand-600 dark:text-brand-400">{formatCurrency(totalSales, store || settings)}</span>
                     </div>
 
                     {/* Gross Profit with color indicator and value */}
                     <div className="flex items-center gap-1.5 text-xs">
                         <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                        <span className="font-bold text-slate-600 dark:text-slate-400">Gross Profit</span>
+                        <span className="font-bold text-ink-secondary">Gross Profit</span>
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(totalProfit, store || settings)}</span>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <div className="flex bg-sunken p-1 rounded-xl">
                     {['Today', 'Month', 'Year'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-sunken shadow-sm text-brand-600' : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
                         >
                             {tab}
                         </button>

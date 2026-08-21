@@ -577,7 +577,7 @@ function FeatureMatrix({ plans }) {
                             from { opacity: 0; transform: translate(-50%, 20px); }
                             to   { opacity: 1; transform: translate(-50%, 0); }
                         }
-                    `}</style>
+`}</style>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <span style={{
                             display: 'flex',
@@ -622,7 +622,7 @@ function FeatureMatrix({ plans }) {
                             onClick={handleSaveStaged}
                             disabled={saving}
                             style={{
-                                background: 'linear-gradient(to right, #6366f1, #8b5cf6)',
+                                background: 'linear-gradient(to right, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))',
                                 border: 'none',
                                 color: '#ffffff',
                                 padding: '8px 20px',
@@ -712,7 +712,7 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
                 position: 'relative'
             }}>
                 {/* Decorative Glowing Edge */}
-                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, background: 'linear-gradient(to bottom, #6366f1, #8b5cf6)' }} />
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, background: 'linear-gradient(to bottom, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))' }} />
 
                 <div style={{ padding: '28px 32px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
@@ -962,7 +962,7 @@ export default function PlansIndex({ plans, platforms }) {
                     from { transform: rotate(0deg); }
                     to   { transform: rotate(360deg); }
                 }
-            `}</style>
+`}</style>
 
             <div style={{ padding: '32px 40px', minHeight: '100vh', background: vq.gray[950], position: 'relative', overflow: 'hidden' }}>
 
@@ -1090,7 +1090,7 @@ export default function PlansIndex({ plans, platforms }) {
                                             >
                                                 <td style={{ padding: '18px 20px' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: plan.is_active ? vq.emerald[500] : vq.slate[500], boxShadow: plan.is_active ? '0 0 8px #10b981' : 'none', flexShrink: 0 }} />
+                                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: plan.is_active ? vq.emerald[500] : vq.slate[500], boxShadow: plan.is_active ? '0 0 8px rgb(var(--vq-emerald-500))' : 'none', flexShrink: 0 }} />
                                                         <div>
                                                             <div style={{ fontWeight: 800, color: vq.slate[100], fontSize: 14 }}>{plan.name}</div>
                                                             <div style={{ fontSize: 10, color: vq.slate[600], marginTop: 2, fontFamily: 'monospace' }}>{plan.slug}</div>
@@ -1279,7 +1279,7 @@ const inputPrefix = {
 };
 
 const btnPrimary = {
-    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+    background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))',
     color: '#fff', border: 'none', padding: '11px 24px',
     borderRadius: 12, fontWeight: 800, fontSize: 13,
     cursor: 'pointer', boxShadow: '0 8px 24px rgba(99,102,241,0.25)',

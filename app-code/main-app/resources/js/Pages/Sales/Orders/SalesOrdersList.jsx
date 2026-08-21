@@ -32,7 +32,7 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
             key: 'order_number',
             label: 'Order #',
             render: (value) => (
-                <span className="font-mono text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                <span className="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">
                     {value}
                 </span>
             )
@@ -51,8 +51,8 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
             label: 'Customer',
             render: (value) => (
                 <div>
-                    <p className="font-semibold text-slate-800 dark:text-white">{value?.name || 'Walk-in'}</p>
-                    {value?.phone && <p className="text-xs text-slate-400">{value.phone}</p>}
+                    <p className="font-semibold text-ink">{value?.name || 'Walk-in'}</p>
+                    {value?.phone && <p className="text-xs text-ink-muted">{value.phone}</p>}
                 </div>
             )
         },
@@ -60,7 +60,7 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
             key: 'items_count',
             label: 'Items',
             render: (value) => (
-                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold">
+                <span className="px-2 py-1 bg-sunken rounded-lg text-xs font-semibold">
                     {value || 0} items
                 </span>
             )
@@ -73,7 +73,7 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
                     pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400', icon: Clock },
                     confirmed: { label: 'Confirmed', color: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400', icon: CheckCircle },
                     processing: { label: 'Processing', color: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400', icon: Package },
-                    shipped: { label: 'Shipped', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400', icon: Truck },
+                    shipped: { label: 'Shipped', color: 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400', icon: Truck },
                     completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400', icon: CheckCircle },
                     cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400', icon: XCircle }
                 };
@@ -99,7 +99,7 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
             key: 'total',
             label: 'Total',
             render: (value) => (
-                <span className="font-bold text-slate-800 dark:text-white">
+                <span className="font-bold text-ink">
                     {formatCurrency(value, store)}
                 </span>
             )
@@ -171,7 +171,7 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
                         actions={
                             <button
                                 onClick={handleCreate}
-                                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-indigo-500/25"
+                                className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold flex items-center gap-2 transition-colors shadow-lg "
                             >
                                 <Plus size={18} />
                                 New Order

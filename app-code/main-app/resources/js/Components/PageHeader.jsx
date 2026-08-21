@@ -27,22 +27,22 @@ export default function PageHeader({
                 <nav className="flex items-center gap-1 text-sm mb-3">
                     <Link
                         href={route('store.home', { store_slug: store?.slug })}
-                        className="text-slate-400 hover:text-indigo-600 transition-colors"
+                        className="text-ink-muted hover:text-brand-600 transition-colors"
                     >
                         <Home size={14} />
                     </Link>
                     {breadcrumbs.map((crumb, idx) => (
                         <React.Fragment key={idx}>
-                            <ChevronRight size={14} className="text-slate-300 dark:text-slate-600" />
+                            <ChevronRight size={14} className="text-neutral-300 dark:text-ink-secondary" />
                             {crumb.href ? (
                                 <Link
                                     href={crumb.href}
-                                    className="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                    className="text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
                                 >
                                     {crumb.label}
                                 </Link>
                             ) : (
-                                <span className="text-slate-700 dark:text-slate-200 font-medium">
+                                <span className="text-ink-secondary dark:text-ink font-medium">
                                     {crumb.label}
                                 </span>
                             )}
@@ -55,16 +55,16 @@ export default function PageHeader({
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center gap-3">
                     {Icon && (
-                        <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                        <div className="p-2.5 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-xl">
                             <Icon size={24} />
                         </div>
                     )}
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">
+                        <h1 className="text-2xl font-bold text-ink tracking-tight">
                             {title}
                         </h1>
                         {subtitle && (
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                            <p className="text-sm text-ink-muted mt-0.5">
                                 {subtitle}
                             </p>
                         )}

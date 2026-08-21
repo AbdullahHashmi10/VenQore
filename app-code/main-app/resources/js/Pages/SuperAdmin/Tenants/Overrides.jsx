@@ -28,7 +28,7 @@ function OverrideDrawer({ open, tenant, availableKeys, onClose }) {
         <div style={{ position:'fixed', inset:0, zIndex:50, display:'flex' }}>
             <div style={{ flex:1, background:'rgba(0,0,0,0.5)' }} onClick={onClose} />
             <div style={{ width:500, background:vq.slate[900], overflowY:'auto', boxShadow:'-4px 0 32px rgba(0,0,0,0.5)' }}>
-                <div style={{ padding:'24px 28px 16px', borderBottom:'1px solid #1e293b', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div style={{ padding:'24px 28px 16px', borderBottom:'1px solid rgb(var(--vq-slate-800))', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div>
                         <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:vq.slate[100] }}>Apply Override</h2>
                         <p style={{ margin:'4px 0 0', fontSize:13, color:vq.slate[500] }}>{tenant.name} · Plan: <b style={{color:vq.slate[400]}}>{tenant.plan}</b></p>
@@ -78,7 +78,7 @@ function OverrideDrawer({ open, tenant, availableKeys, onClose }) {
                         )}
                     </div>
 
-                    <div style={{ display:'flex', justifyContent:'flex-end', gap:12, paddingTop:16, borderTop:'1px solid #1e293b' }}>
+                    <div style={{ display:'flex', justifyContent:'flex-end', gap:12, paddingTop:16, borderTop:'1px solid rgb(var(--vq-slate-800))' }}>
                         <button type="button" onClick={onClose} style={btnSec}>Cancel</button>
                         <button type="submit" disabled={processing || !data.override_key} style={btnPri}>
                             {processing ? 'Applying…' : '⚡ Apply Override'}
@@ -136,7 +136,7 @@ export default function TenantOverrides({ tenants, filters }) {
                 </form>
 
                 {/* Tenants Table */}
-                <div style={{ background:vq.slate[900], borderRadius:16, border:'1px solid #1e293b', overflow:'hidden' }}>
+                <div style={{ background:vq.slate[900], borderRadius:16, border:'1px solid rgb(var(--vq-slate-800))', overflow:'hidden' }}>
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:14 }}>
                         <thead>
                             <tr style={{ background:vq.slate[800] }}>
@@ -155,7 +155,7 @@ export default function TenantOverrides({ tenants, filters }) {
                             ) : tenants.data?.map((tenant, i) => (
                                 <tr
                                     key={tenant.id}
-                                    style={{ borderTop: i > 0 ? '1px solid #1e293b' : 'none' }}
+                                    style={{ borderTop: i > 0 ? '1px solid rgb(var(--vq-slate-800))' : 'none' }}
                                     onMouseEnter={e => e.currentTarget.style.background = vq.slate[900]}
                                     onMouseLeave={e => e.currentTarget.style.background = ''}
                                 >
@@ -264,13 +264,13 @@ const Field = ({ label, error, children }) => (
 
 const inp = {
     width:'100%', boxSizing:'border-box',
-    background:vq.slate[800], border:'1px solid #334155',
+    background:vq.slate[800], border:'1px solid rgb(var(--vq-slate-700))',
     color:vq.slate[100], padding:'8px 12px',
     borderRadius:8, fontSize:14, outline:'none', fontFamily:'inherit',
 };
 
 const btnPri = {
-    background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+    background:'linear-gradient(135deg,rgb(var(--vq-indigo-500)),rgb(var(--vq-violet-500)))',
     color:'#fff', border:'none', padding:'10px 22px',
     borderRadius:10, fontWeight:700, fontSize:14, cursor:'pointer',
     whiteSpace:'nowrap',

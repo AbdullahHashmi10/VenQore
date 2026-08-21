@@ -1175,29 +1175,29 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             
             const messageElement = (
                 <div className="flex flex-col gap-5 py-3">
-                    <div className="bg-slate-950 p-6 rounded-2xl border-2 border-slate-800 shadow-2xl flex flex-col items-center justify-center">
-                        <span className="text-sm font-black text-slate-400 uppercase block tracking-widest mb-2">
+                    <div className="bg-neutral-950 p-6 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col items-center justify-center">
+                        <span className="text-sm font-bold text-ink-muted uppercase block tracking-widest mb-2">
                             Amount Paid
                         </span>
-                        <span className="text-5xl font-black text-emerald-450 dark:text-emerald-400 block animate-pulse whitespace-nowrap">
+                        <span className="text-5xl font-bold text-emerald-400 dark:text-emerald-400 block animate-pulse whitespace-nowrap">
                             {formatCurrency(paymentData.totalPaid, store || settings)}
                         </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 flex flex-col items-center justify-center">
-                            <span className="text-1xs font-black text-slate-400 uppercase block tracking-wider mb-1.5">
+                        <div className="bg-neutral-950 p-4 rounded-2xl border-2 border-neutral-800 flex flex-col items-center justify-center">
+                            <span className="text-1xs font-bold text-ink-muted uppercase block tracking-wider mb-1.5">
                                 Change Due
                             </span>
-                            <span className="text-2xl font-black text-indigo-400 block whitespace-nowrap">
+                            <span className="text-2xl font-bold text-brand-400 block whitespace-nowrap">
                                 {formatCurrency(paymentData.change, store || settings)}
                             </span>
                         </div>
-                        <div className="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 text-center">
-                            <span className="text-1xs font-black text-slate-400 uppercase block tracking-wider mb-1.5">
+                        <div className="bg-neutral-950 p-4 rounded-2xl border-2 border-neutral-800 text-center">
+                            <span className="text-1xs font-bold text-ink-muted uppercase block tracking-wider mb-1.5">
                                 Total Items
                             </span>
-                            <span className="text-2xl font-black text-white block">
+                            <span className="text-2xl font-bold text-white block">
                                 {totalItemsCount}
                             </span>
                         </div>
@@ -1915,7 +1915,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     return (
         <>
-            <div className="h-full w-full flex flex-col pl-3 pr-0 pb-0 pt-3 animate-in fade-in zoom-in-95 duration-300">
+            <div className="h-full w-full flex flex-col pl-3 pr-0 pb-0 pt-3 animate-in fade-in zoom-in-95 duration-slow">
             {/* TOP BAR */}
             <div className="h-10 flex items-end gap-1 shrink-0 px-2 select-none">
                 {sales.map(sale => (
@@ -1923,29 +1923,29 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         key={sale.id}
                         onClick={() => setActiveSaleId(sale.id)}
                         className={`
-                            group relative min-w-[160px] max-w-[240px] h-9 px-4 rounded-t-xl flex items-center justify-between cursor-pointer transition-all duration-200
+                            group relative min-w-[160px] max-w-[240px] h-9 px-4 rounded-t-xl flex items-center justify-between cursor-pointer transition-all duration-normal
                             ${activeSaleId === sale.id
-                                ? 'bg-white dark:bg-slate-900 text-indigo-600 font-bold shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-10 h-10 pb-1'
-                                : 'bg-slate-200/50 dark:bg-slate-800/50 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 mb-1'
+                                ? 'bg-surface text-brand-600 font-bold shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-10 h-10 pb-1'
+                                : 'bg-sunken/50 dark:bg-surface text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover mb-1'
                             }
-                        `}
+`}
                     >
                         <span className="text-xs truncate flex-1">Sale #{sale.id}</span>
                         <button
                             onClick={(e) => closeSale(e, sale.id)}
                             className={`ml-1 flex items-center justify-center w-5 h-5 rounded-md transition-all ${activeSaleId === sale.id
                                     ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 opacity-100'
-                                    : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600'
+                                    : 'opacity-0 group-hover:opacity-100 text-ink-muted hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600'
                                 }`}
                         >
                             <X size={10} strokeWidth={3} />
                         </button>
                         {activeSaleId === sale.id && (
-                            <div className="absolute -bottom-1 left-0 right-0 h-2 bg-white dark:bg-slate-900 z-20"></div>
+                            <div className="absolute -bottom-1 left-0 right-0 h-2 bg-surface z-20"></div>
                         )}
                     </div>
                 ))}
-                <button onClick={createNewSale} className="h-8 w-8 mb-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center transition-colors">
+                <button onClick={createNewSale} className="h-8 w-8 mb-1 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center justify-center transition-colors">
                     <Plus size={18} />
                 </button>
 
@@ -1956,14 +1956,14 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         onClick={() => setSeniorMode(!seniorMode)}
                         className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
                             seniorMode 
-                                ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800'
-                                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 border-transparent'
+                                ? 'bg-brand-50 text-brand-600 border-brand-200 dark:bg-brand-950/40 dark:text-brand-400 dark:border-brand-800'
+                                : 'bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted border-transparent'
                         }`}
                         title="Toggle Senior Mode for larger text"
                     >
                         <span className="relative flex h-2 w-2">
-                            {seniorMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>}
-                            <span className={`relative inline-flex rounded-full h-2 w-2 ${seniorMode ? 'bg-indigo-500' : 'bg-slate-400'}`}></span>
+                            {seniorMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>}
+                            <span className={`relative inline-flex rounded-full h-2 w-2 ${seniorMode ? 'bg-brand-500' : 'bg-neutral-400'}`}></span>
                         </span>
                         <span>Senior Mode</span>
                     </button>
@@ -1982,13 +1982,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
                             returnMode
                                 ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800'
-                                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 border-transparent'
+                                : 'bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted border-transparent'
                         }`}
                         title="Toggle Return Mode"
                     >
                         <span className="relative flex h-2 w-2">
                             {returnMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
-                            <span className={`relative inline-flex rounded-full h-2 w-2 ${returnMode ? 'bg-red-500' : 'bg-slate-400'}`}></span>
+                            <span className={`relative inline-flex rounded-full h-2 w-2 ${returnMode ? 'bg-red-500' : 'bg-neutral-400'}`}></span>
                         </span>
                         <span>Return Mode</span>
                     </button>
@@ -1998,7 +1998,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             setParkedDropdownOpen(!parkedDropdownOpen);
                             if (!parkedDropdownOpen) loadParkedSales();
                         }}
-                        className="h-8 px-3 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 flex items-center gap-2 transition-colors text-xs font-bold"
+                        className="h-8 px-3 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center gap-2 transition-colors text-xs font-bold"
                     >
                         <Pause size={14} />
                         <span>Parked ({parkedSales.length})</span>
@@ -2011,7 +2011,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 setShowRecentInvoices(!showRecentInvoices);
                                 if (!showRecentInvoices) loadRecentInvoices();
                             }}
-                            className="h-8 px-3 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 flex items-center gap-2 transition-colors text-xs font-bold"
+                            className="h-8 px-3 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center gap-2 transition-colors text-xs font-bold"
                             title="Recent Invoices"
                         >
                             <History size={14} />
@@ -2019,13 +2019,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </button>
 
                         {showRecentInvoices && (
-                            <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
-                                <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-                                    <h3 className="font-bold text-slate-800 dark:text-white text-sm">Recent Invoices</h3>
-                                    {loadingRecent && <div className="animate-spin w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full"></div>}
+                            <div className="absolute top-full right-0 mt-2 w-80 bg-surface rounded-xl shadow-2xl border border-line z-50 overflow-hidden">
+                                <div className="p-3 border-b border-line bg-app flex justify-between items-center">
+                                    <h3 className="font-bold text-ink text-sm">Recent Invoices</h3>
+                                    {loadingRecent && <div className="animate-spin w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full"></div>}
                                 </div>
                                 {recentInvoices.length === 0 && !loadingRecent ? (
-                                    <div className="p-8 text-center text-slate-400 text-xs">
+                                    <div className="p-8 text-center text-ink-muted text-xs">
                                         No recent invoices found.
                                     </div>
                                 ) : (
@@ -2033,16 +2033,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         {recentInvoices.map(sale => (
                                             <div
                                                 key={sale.id}
-                                                className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700/50 last:border-0 transition-colors flex items-center justify-between"
+                                                className="p-4 hover:bg-interactive-hover dark:hover:bg-interactive-hover border-b border-line last:border-0 transition-colors flex items-center justify-between"
                                             >
                                                 <div className="flex-1">
-                                                    <p className="font-bold text-slate-800 dark:text-white text-sm">
+                                                    <p className="font-bold text-ink text-sm">
                                                         {sale.customer ? sale.customer.name : 'Walk-in Customer'}
                                                     </p>
-                                                    <p className="text-xs text-slate-500">
+                                                    <p className="text-xs text-ink-muted">
                                                         #{sale.reference_number || sale.id} · {new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </p>
-                                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1">
+                                                    <p className="text-xs font-bold text-ink-secondary mt-1">
                                                         {formatCurrency(sale.total || 0, store || settings)}
                                                     </p>
                                                 </div>
@@ -2051,7 +2051,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                         const printType = settings?.default_print_type || 'thermal';
                                                         PrintService.quickPrint(sale, printType, settings);
                                                     }}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 text-indigo-600 dark:text-indigo-400 transition-colors"
+                                                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-800/40 text-brand-600 dark:text-brand-400 transition-colors"
                                                     title="Print Receipt"
                                                 >
                                                     <Printer size={14} />
@@ -2071,7 +2071,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     </div>
 
                     {/* Hardware Status Badge */}
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isStationConnected ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isStationConnected ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'bg-sunken text-ink-muted dark:bg-surface dark:text-ink-muted'}`}>
                         <Printer size={14} />
                         <span>{isStationConnected ? 'Hardware Active' : 'No Printer Device'}</span>
                     </div>
@@ -2088,12 +2088,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     )}
 
                     {parkedDropdownOpen && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
-                            <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                                <h3 className="font-bold text-slate-800 dark:text-white text-sm">Parked Sales</h3>
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-surface rounded-xl shadow-2xl border border-line z-50 overflow-hidden">
+                            <div className="p-3 border-b border-line bg-app">
+                                <h3 className="font-bold text-ink text-sm">Parked Sales</h3>
                             </div>
                             {parkedSales.length === 0 ? (
-                                <div className="p-8 text-center text-slate-400 text-xs">
+                                <div className="p-8 text-center text-ink-muted text-xs">
                                     No parked sales found.
                                 </div>
                             ) : (
@@ -2102,20 +2102,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <div
                                             key={parked.id}
                                             onClick={() => handleRecallSale(parked.id)}
-                                            className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer border-b border-slate-100 dark:border-slate-700/50 last:border-0 transition-colors"
+                                            className="p-4 hover:bg-interactive-hover dark:hover:bg-interactive-hover cursor-pointer border-b border-line last:border-0 transition-colors"
                                         >
                                             <div className="flex items-start justify-between mb-2">
                                                 <div className="flex-1">
-                                                    <p className="font-bold text-slate-800 dark:text-white text-sm">
+                                                    <p className="font-bold text-ink text-sm">
                                                         {parked.customer_name || 'Walk-in Customer'}
                                                     </p>
-                                                    <p className="text-xs text-slate-500">
+                                                    <p className="text-xs text-ink-muted">
                                                         {parked.items_count} {parked.items_count === 1 ? 'item' : 'items'} · {formatCurrency(parked.total || 0, store || settings)}
                                                     </p>
                                                 </div>
                                                 <button
                                                     onClick={(e) => handleDeleteParked(parked.id, e)}
-                                                    className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-slate-400 hover:text-red-600 transition-colors"
+                                                    className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-ink-muted hover:text-red-600 transition-colors"
                                                 >
                                                     <X size={14} />
                                                 </button>
@@ -2139,28 +2139,28 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             </div>
 
             {/* Mobile Tab Bar */}
-            <div className="lg:hidden flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shrink-0">
+            <div className="lg:hidden flex border-b border-line bg-app shrink-0">
                 {[['catalog','Catalog'],['cart','Cart'],['checkout','Pay']].map(([tab, label]) => (
                     <button key={tab} onClick={() => setActiveMobileTab(tab)}
                         className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors
                             ${activeMobileTab === tab
-                                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                                : 'text-slate-500 dark:text-slate-400'}`}>
+                                ? 'text-brand-600 border-b-2 border-brand-600'
+                                : 'text-ink-muted'}`}>
                         {label}
                     </button>
                 ))}
             </div>
 
             {/* MAIN WORKSPACE */}
-            <div className="flex-1 flex gap-0 min-h-0 bg-slate-50 dark:bg-slate-950 rounded-t-3xl rounded-b-none shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden z-0 relative">
+            <div className="flex-1 flex gap-0 min-h-0 bg-app rounded-t-3xl rounded-b-none shadow-sm border border-line overflow-hidden z-0 relative">
 
                 {/* LEFT: Transaction List */}
                 <div className={`w-full lg:w-[40%] flex flex-col min-w-0 relative ${activeMobileTab !== 'catalog' ? 'hidden lg:flex' : ''}`}>
                     {/* Search Bar */}
-                    <div className="h-14 px-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
+                    <div className="h-14 px-3 border-b border-line flex items-center gap-3 bg-sunken/50 dark:bg-surface relative z-20">
                         <button
                             onClick={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
-                            className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-colors shrink-0"
+                            className="w-9 h-9 rounded-xl bg-surface border-2 border-dashed border-line dark:border-line flex items-center justify-center text-ink-muted hover:text-brand-500 hover:border-brand-500 transition-colors shrink-0"
                             title="Quick Add Product"
                         >
                             <PackagePlus size={16} />
@@ -2178,10 +2178,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 hideCostAndMargin={true}
                                 hideSearchIcon={true}
                             />
-                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10">
                                 <ScanBarcode size={16} />
                             </div>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10">
                                 <Search size={16} />
                             </div>
                         </div>
@@ -2191,11 +2191,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     <div className="flex-1 flex flex-col overflow-hidden">
                         
                         {/* Categories Horizontal List Wrapper */}
-                        <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 py-2 gap-2 select-none shrink-0 relative">
+                        <div className="flex items-center bg-surface border-b border-line px-3 py-2 gap-2 select-none shrink-0 relative">
                             {/* Scroll Left Button */}
                             <button 
                                 onClick={() => scrollCategories('left')}
-                                className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                                className="w-6 h-6 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center justify-center shrink-0 border border-line shadow-sm"
                             >
                                 <ChevronLeft size={14} />
                             </button>
@@ -2209,10 +2209,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             >
                                 <button
                                     onClick={() => setSelectedCategory(null)}
-                                    className={`px-3 py-1.5 rounded-full text-1xs font-black transition-all shrink-0 border ${
+                                    className={`px-3 py-1.5 rounded-full text-1xs font-bold transition-all shrink-0 border ${
                                         selectedCategory === null
-                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                            ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                                            : 'bg-sunken text-ink-secondary border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }`}
                                 >
                                     All
@@ -2221,17 +2221,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <button
                                         key={cat.id}
                                         onClick={() => setSelectedCategory(cat.id)}
-                                        className={`px-3 py-1.5 rounded-full text-1xs font-black transition-all shrink-0 border flex items-center gap-1.5 ${
+                                        className={`px-3 py-1.5 rounded-full text-1xs font-bold transition-all shrink-0 border flex items-center gap-1.5 ${
                                             selectedCategory === cat.id
-                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                                ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                                                : 'bg-sunken text-ink-secondary border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }`}
                                     >
                                         <span>{cat.name}</span>
                                         <span className={`text-3xs px-1 py-0.2 rounded-full shrink-0 ${
                                             selectedCategory === cat.id 
                                                 ? 'bg-white/20 text-white' 
-                                                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                                : 'bg-sunken text-ink-muted'
                                         }`}>
                                             {cat.products_count ?? cat.product_count ?? 0}
                                         </span>
@@ -2242,26 +2242,26 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             {/* Scroll Right Button */}
                             <button 
                                 onClick={() => scrollCategories('right')}
-                                className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                                className="w-6 h-6 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center justify-center shrink-0 border border-line shadow-sm"
                             >
                                 <ChevronRight size={14} />
                             </button>
                         </div>
 
                         {/* Product Rows List Container */}
-                        <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
+                        <div className="flex-1 flex flex-col bg-app overflow-hidden">
                             <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                                 {isLoadingProducts ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
-                                        <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+                                    <div className="h-full flex flex-col items-center justify-center text-ink-muted gap-4">
+                                        <div className="w-12 h-12 border-4 border-brand-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
                                         <p className="font-bold text-sm">Loading products...</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
                                         {selectedCategory && categoryProducts.length === 0 ? (
                                             <div className="py-20 text-center">
-                                                <Archive className="mx-auto text-slate-300 mb-4" size={48} />
-                                                <p className="text-slate-500 font-bold">No products in this category</p>
+                                                <Archive className="mx-auto text-neutral-300 mb-4" size={48} />
+                                                <p className="text-ink-muted font-bold">No products in this category</p>
                                             </div>
                                         ) : (
                                             Array.isArray(categoryProducts) && categoryProducts.map(product => (
@@ -2274,22 +2274,22 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                         }
                                                         handleProductSelect(product);
                                                     }}
-                                                    className="w-full bg-white dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition-all shadow-sm hover:shadow-md text-left flex items-center justify-between p-3 gap-3 active:scale-98 relative overflow-hidden"
+                                                    className="w-full bg-surface rounded-2xl border-2 border-transparent hover:border-brand-500 transition-all shadow-sm hover:shadow-md text-left flex items-center justify-between p-3 gap-3 active:scale-98 relative overflow-hidden"
                                                 >
                                                     {/* Left Section: Image and Name */}
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                                                        <div className="w-12 h-12 rounded-xl bg-sunken flex items-center justify-center overflow-hidden shrink-0">
                                                             {product.image_url || product.image_path ? (
                                                                 <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <Package className="text-slate-400" size={20} />
+                                                                <Package className="text-ink-muted" size={20} />
                                                             )}
                                                         </div>
                                                         <div className="min-w-0 flex-1">
-                                                            <h4 className="font-black text-slate-800 dark:text-white leading-snug break-words text-lg">
+                                                            <h4 className="font-bold text-ink leading-snug break-words text-lg">
                                                                 {product.name}
                                                             </h4>
-                                                            <span className="text-2xs text-slate-400 font-bold uppercase tracking-wider block mt-0.5">
+                                                            <span className="text-2xs text-ink-muted font-bold uppercase tracking-wider block mt-0.5">
                                                                 {product.category?.name || product.category_name || 'General'}
                                                             </span>
                                                         </div>
@@ -2298,14 +2298,14 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                     {/* Right Section: Stock Qty and Price */}
                                                     <div className="text-right shrink-0 flex items-center gap-4">
                                                         <div>
-                                                            <span className="text-4xs font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Stock</span>
+                                                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block mb-0.5 leading-none">Stock</span>
                                                             <span className={`text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                                                 {formatNumber(product.stock_quantity || 0, 0)}
                                                             </span>
                                                         </div>
                                                         <div className="min-w-[75px]">
-                                                            <span className="text-4xs font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Price</span>
-                                                            <span className="font-black text-sky-500 dark:text-sky-400 block leading-none text-lg">
+                                                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block mb-0.5 leading-none">Price</span>
+                                                            <span className="font-bold text-sky-500 dark:text-sky-400 block leading-none text-lg">
                                                                 {formatCurrency(product.price || product.selling_price || 0, store || settings)}
                                                             </span>
                                                         </div>
@@ -2313,7 +2313,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                                                     {product.variants && product.variants.length > 0 && (
                                                         <div className="absolute top-1.5 right-1.5 flex gap-1">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></div>
                                                         </div>
                                                     )}
                                                 </button>
@@ -2322,12 +2322,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                                         {/* Show instructional message if no category selected AND no products loaded */}
                                         {!selectedCategory && categoryProducts.length === 0 && (
-                                            <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-4 opacity-50">
-                                                <div className="w-20 h-20 rounded-[2.5rem] bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                                            <div className="py-20 flex flex-col items-center justify-center text-ink-muted gap-4 opacity-50">
+                                                <div className="w-20 h-20 rounded-2xl bg-sunken dark:bg-surface flex items-center justify-center">
                                                     <Search size={32} />
                                                 </div>
                                                 <div className="text-center">
-                                                    <p className="font-black text-lg text-slate-600 dark:text-white">Start Selling</p>
+                                                    <p className="font-bold text-lg text-ink-secondary dark:text-white">Start Selling</p>
                                                     <p className="text-sm font-medium">Select a category or browse all items</p>
                                                 </div>
                                             </div>
@@ -2342,13 +2342,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Cart & Payment Panel */}
-                <div className={`w-full lg:w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-950 border-l border-slate-100 dark:border-slate-800 ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}>
+                <div className={`w-full lg:w-[40%] shrink-0 flex flex-col bg-app border-l border-line ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}>
 
                     {/* Cart Header */}
-                    <div className="h-14 px-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="h-14 px-3 bg-sunken/50 dark:bg-surface border-b border-line flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm">
-                                <ShoppingCart size={18} className="text-indigo-600" />
+                            <h3 className="font-bold text-ink flex items-center gap-2 text-sm">
+                                <ShoppingCart size={18} className="text-brand-600" />
                                 CURRENT ORDER
                             </h3>
                             
@@ -2362,14 +2362,14 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             onChange={(e) => setShowFreeQty(e.target.checked)}
                                             className="sr-only"
                                         />
-                                        <div className={`w-8 h-4 rounded-full transition-colors ${showFreeQty ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                        <div className={`w-8 h-4 rounded-full transition-colors ${showFreeQty ? 'bg-emerald-500' : 'bg-sunken'}`}></div>
                                         <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${showFreeQty ? 'translate-x-4' : ''}`}></div>
                                     </div>
-                                    <span className="text-2xs font-bold text-slate-500 dark:text-slate-400">FREE QTY</span>
+                                    <span className="text-2xs font-bold text-ink-muted">FREE QTY</span>
                                 </label>
                             )}
                         </div>
-                        <span className={`px-2 py-0.5 rounded-lg font-black text-2xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400`}>
+                        <span className={`px-2 py-0.5 rounded-lg font-bold text-2xs bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400`}>
                             {activeSale.cart.length} ITEMS • {activeSale.cart.reduce((sum, item) => sum + item.qty + (item.freeQuantity || 0), 0)} QTY
                         </span>
                     </div>
@@ -2387,7 +2387,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             onChange={e => setReturnSaleRef(e.target.value)}
                                             onKeyDown={e => e.key === 'Enter' && returnSaleRef.trim() && lookupSaleForReturn()}
                                             placeholder="Reference number (optional)..."
-                                            className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
+                                            className="flex-1 px-3 py-1.5 text-xs bg-neutral-800 border border-neutral-600 rounded-lg text-white placeholder:text-ink-muted outline-none focus:border-red-400"
                                         />
                                         {returnSaleRef.trim() && (
                                             <button
@@ -2410,7 +2410,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             onChange={e => setReturnSaleRef(e.target.value)}
                                             onKeyDown={e => e.key === 'Enter' && lookupSaleForReturn()}
                                             placeholder="Reference number or customer name/phone..."
-                                            className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
+                                            className="flex-1 px-3 py-1.5 text-xs bg-neutral-800 border border-neutral-600 rounded-lg text-white placeholder:text-ink-muted outline-none focus:border-red-400"
                                         />
                                         <button
                                             onClick={lookupSaleForReturn}
@@ -2431,7 +2431,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             onChange={e => setReturnSaleRef(e.target.value)}
                                             onKeyDown={e => e.key === 'Enter' && lookupSaleForReturn()}
                                             placeholder="Enter sale reference number..."
-                                            className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
+                                            className="flex-1 px-3 py-1.5 text-xs bg-neutral-800 border border-neutral-600 rounded-lg text-white placeholder:text-ink-muted outline-none focus:border-red-400"
                                         />
                                         <button
                                             onClick={lookupSaleForReturn}
@@ -2449,22 +2449,22 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     {/* Cart List (Moved from Left) */}
                     <div ref={cartListRef} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
                         {activeSale.cart.map((item, index) => (
-                            <div key={item.cartItemId} className="bg-white dark:bg-slate-800 px-3 py-2.5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between gap-3 text-xs relative group overflow-hidden">
+                            <div key={item.cartItemId} className="bg-surface px-3 py-2.5 rounded-2xl border border-line shadow-sm flex items-center justify-between gap-3 text-xs relative group overflow-hidden">
                                 {/* Left Section: Index, name, category, stock warning */}
                                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <span className="text-2xs font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+                                    <span className="text-2xs font-bold text-ink-muted bg-sunken rounded-full w-5 h-5 flex items-center justify-center shrink-0">
                                         {index + 1}
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <h4 className="font-black text-slate-900 dark:text-white text-sm leading-snug break-words">
+                                        <h4 className="font-bold text-ink text-sm leading-snug break-words">
                                             {item.name}
                                         </h4>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-3xs text-slate-400 font-bold uppercase tracking-wider">
+                                            <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">
                                                 {item.category}
                                             </span>
                                             {item.qty > item.stock && (
-                                                <span className="text-3xs font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded animate-pulse">
+                                                <span className="text-3xs font-bold text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded animate-pulse">
                                                     ⚠️ Over Stock ({item.stock})
                                                 </span>
                                             )}
@@ -2478,11 +2478,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         {hasDiscountPerm ? (
                                             <button
                                                 onClick={() => openItemDiscountModal(item)}
-                                                className="text-1xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
+                                                className="text-1xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10 px-2 py-1 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
                                             >
                                                 {item.discount > 0 ? (
                                                     <>
-                                                        <span className="line-through text-3xs text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
+                                                        <span className="line-through text-3xs text-ink-muted opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
                                                         <span>{formatCurrency(item.price, store || settings)}</span>
                                                     </>
                                                 ) : (
@@ -2490,12 +2490,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 )}
                                             </button>
                                         ) : (
-                                            <span className="text-1xs font-black text-slate-900 dark:text-white">
+                                            <span className="text-1xs font-bold text-ink">
                                                 {formatCurrency(item.price, store || settings)}
                                             </span>
                                         )}
                                         {item.discount > 0 && (
-                                            <span className="text-3xs font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                            <span className="text-3xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                                                 Disc: -{formatCurrency(item.discount, store || settings)}
                                             </span>
                                         )}
@@ -2504,7 +2504,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <button
                                         onClick={() => openConverterModal(item)}
                                         title="Edit Price / Qty / Total"
-                                        className="text-1xs font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
+                                        className="text-1xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
                                     >
                                         ⇄
                                     </button>
@@ -2513,19 +2513,19 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 {/* Qty & Free Qty Controls */}
                                 <div className="flex items-center gap-2 shrink-0">
                                     {/* Regular Qty */}
-                                    <div className="flex items-center bg-slate-50 dark:bg-slate-900 p-0.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <div className="flex items-center bg-app p-0.5 rounded-xl border border-line">
                                         <button
                                             onClick={() => updateQty(item.cartItemId, -1)}
-                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all active:scale-90"
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-interactive-hover text-ink-muted transition-all active:scale-90"
                                         >
                                             <MinusCircle size={15} />
                                         </button>
-                                        <span className="w-7 text-center font-black text-xs text-slate-900 dark:text-white">
+                                        <span className="w-7 text-center font-bold text-xs text-ink">
                                             {item.qty}
                                         </span>
                                         <button
                                             onClick={() => updateQty(item.cartItemId, 1)}
-                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all active:scale-90"
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-interactive-hover text-ink-muted transition-all active:scale-90"
                                         >
                                             <PlusCircle size={15} />
                                         </button>
@@ -2536,19 +2536,19 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-0.5 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
                                             <button
                                                 onClick={() => updateFreeQty(item.cartItemId, -1)}
-                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-interactive-hover text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
                                             >
                                                 <MinusCircle size={15} />
                                             </button>
                                             <div className="flex flex-col items-center w-7 leading-none">
-                                                <span className="font-black text-xs text-emerald-700 dark:text-emerald-400">
+                                                <span className="font-bold text-xs text-emerald-700 dark:text-emerald-400">
                                                     {item.freeQuantity || 0}
                                                 </span>
                                                 <span className="text-[7px] font-bold text-emerald-500 uppercase">FREE</span>
                                             </div>
                                             <button
                                                 onClick={() => updateFreeQty(item.cartItemId, 1)}
-                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-interactive-hover text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
                                             >
                                                 <PlusCircle size={15} />
                                             </button>
@@ -2559,8 +2559,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 {/* Right Section: Line Total & Trash */}
                                 <div className="flex items-center gap-2 shrink-0">
                                     <div className="text-right min-w-[75px]">
-                                        <span className="text-4xs font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Line Total</span>
-                                        <span className="font-black text-slate-900 dark:text-white text-sm block leading-none">
+                                        <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Line Total</span>
+                                        <span className="font-bold text-ink text-sm block leading-none">
                                             {formatCurrency(item.price * item.qty, store || settings)}
                                         </span>
                                         {(settings?.show_margin_percentage === '1' || settings?.show_margin_percentage === true) && item.cost_price > 0 && (
@@ -2571,7 +2571,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     </div>
                                     <button
                                         onClick={() => removeFromCart(item.cartItemId)}
-                                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                        className="text-ink-muted hover:text-red-500 transition-colors p-1"
                                     >
                                         <Trash2 size={15} />
                                     </button>
@@ -2580,9 +2580,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         ))}
 
                         {activeSale.cart.length === 0 && (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-40 py-20">
+                            <div className="h-full flex flex-col items-center justify-center text-ink-muted opacity-40 py-20">
                                 <ShoppingCart size={64} strokeWidth={1} className="mb-4" />
-                                <p className="font-black text-lg">Your cart is empty</p>
+                                <p className="font-bold text-lg">Your cart is empty</p>
                                 <p className="text-sm">Start adding products to create a sale</p>
                             </div>
                         )}
@@ -2590,23 +2590,23 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Payment & Summary Panel */}
-                <div className={`w-full lg:w-[20%] shrink-0 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-200 dark:border-slate-800 ${activeMobileTab !== 'checkout' ? 'hidden lg:flex' : ''}`}>
+                <div className={`w-full lg:w-[20%] shrink-0 bg-app text-ink flex flex-col shadow-2xl relative overflow-hidden border-l border-line ${activeMobileTab !== 'checkout' ? 'hidden lg:flex' : ''}`}>
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none"></div>
 
-                    <div className="h-14 px-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                        <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm uppercase">
+                    <div className="h-14 px-4 bg-sunken/50 dark:bg-surface border-b border-line flex items-center justify-between">
+                        <h2 className="font-bold text-ink flex items-center gap-2 text-sm uppercase">
                             <Receipt size={18} className="text-emerald-600 dark:text-emerald-400" /> Payment Details
                         </h2>
-                        <span className="px-2 py-0.5 rounded-lg font-black text-2xs bg-slate-200 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700/50">
+                        <span className="px-2 py-0.5 rounded-lg font-bold text-2xs bg-sunken dark:bg-surface text-ink-secondary border border-line dark:border-line">
                             #{activeSale.id}
                         </span>
                     </div>
 
                     <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
                         {/* 1. Customer Search Row - Full Width to prevent clipping (At the very top) */}
-                        <div id="tour-pos-customer" className="relative z-[60]">
+                        <div id="tour-pos-customer" className="relative z-sticky">
                             {customerDropdownOpen ? (
-                                <div className="animate-in slide-in-from-top-2 duration-200">
+                                <div className="animate-in slide-in-from-top-2 duration-normal">
                                     <AsyncPartyCombobox
                                         defaultOptions={initialCustomers}
                                         selectedItem={activeSale.customer}
@@ -2615,7 +2615,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             setCustomerDropdownOpen(false);
                                         }}
                                         className="h-full"
-                                        inputClassName="bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-emerald-500/50 h-14 shadow-sm"
+                                        inputClassName="bg-white dark:bg-white/5 border-line dark:border-white/5 text-ink placeholder-slate-400 dark:placeholder-slate-500 focus:ring-emerald-500/50 h-14 shadow-sm"
                                         placeholder="Search Customer (Name, Phone)..."
                                         onQueryChange={(val) => setCustomerSearchTerm(val)}
                                         onCreateNew={() => setShowQuickPartyModal(true)}
@@ -2628,7 +2628,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     />
                                     <button 
                                         onClick={() => setCustomerDropdownOpen(false)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:hover:text-white"
                                     >
                                         <X size={16} />
                                     </button>
@@ -2636,20 +2636,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             ) : (
                                 <button
                                     onClick={() => setCustomerDropdownOpen(true)}
-                                    className="w-full bg-white dark:bg-white/5 p-4 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-all border border-slate-200 dark:border-white/5 shadow-sm flex items-center justify-between group"
+                                    className="w-full bg-white dark:bg-white/5 p-4 rounded-xl text-left hover:bg-interactive-hover dark:hover:bg-white/10 transition-all border border-line dark:border-white/5 shadow-sm flex items-center justify-between group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                                        <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-600 dark:text-brand-400 transition-transform">
                                             <User size={20} />
                                         </div>
                                         <div>
-                                            <label className="text-2xs uppercase font-black text-slate-500 block mb-0.5">Customer / Party</label>
-                                            <span className="text-sm font-bold text-slate-900 dark:text-white">
+                                            <label className="text-2xs uppercase font-bold text-ink-muted block mb-0.5">Customer / Party</label>
+                                            <span className="text-sm font-bold text-ink">
                                                 {activeSale.customer?.name || 'Walk-in Customer'}
                                             </span>
                                         </div>
                                     </div>
-                                    <Search size={18} className="text-slate-500 group-hover:text-indigo-500 transition-colors" />
+                                    <Search size={18} className="text-ink-muted group-hover:text-brand-500 transition-colors" />
                                 </button>
                             )}
                         </div>
@@ -2667,12 +2667,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 value: activeSale.discountValue ? String(activeSale.discountValue) : ''
                                             });
                                         }}
-                                        className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
+                                        className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-interactive-hover dark:hover:bg-white/10 transition-colors border border-line dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                     >
-                                        <label className="text-3xs uppercase font-bold text-slate-500 block mb-0.5">Discount</label>
+                                        <label className="text-3xs uppercase font-bold text-ink-muted block mb-0.5">Discount</label>
                                         <div className="flex items-center gap-1.5">
                                             <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-500 flex items-center justify-center text-2xs font-bold">%</div>
-                                            <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                            <span className="text-xs font-bold text-ink truncate">
                                                 {activeSale.discountType === 'percentage'
                                                     ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
                                                     : `${formatCurrency(globalDiscount, store || settings)}`
@@ -2688,17 +2688,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 <div className="group relative h-full">
                                     <button 
                                         onClick={() => setPaymentDropdownOpen(!paymentDropdownOpen)}
-                                        className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
+                                        className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-interactive-hover dark:hover:bg-white/10 transition-colors border border-line dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                     >
-                                        <label className="text-3xs uppercase font-bold text-slate-500 block mb-0.5">Method</label>
+                                        <label className="text-3xs uppercase font-bold text-ink-muted block mb-0.5">Method</label>
                                         <div className="flex items-center gap-1.5">
-                                            <CreditCard size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-                                            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">{paymentMethod}</span>
+                                            <CreditCard size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
+                                            <span className="text-xs font-bold text-ink uppercase truncate">{paymentMethod}</span>
                                         </div>
                                     </button>
                                     {/* Dropdown - Click to toggle */}
                                     {paymentDropdownOpen && (
-                                        <div className="absolute top-full right-0 mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[75] animate-in slide-in-from-top-2 duration-200">
+                                        <div className="absolute top-full right-0 mt-1 w-36 bg-surface rounded-xl shadow-2xl border border-line overflow-hidden z-sticky animate-in slide-in-from-top-2 duration-normal">
                                             {['cash', 'credit', 'bank', 'card', 'online'].map(method => {
                                                 // Restricted: Credit only for registered customers
                                                 if (method === 'credit' && !activeSale.customer) return null;
@@ -2710,7 +2710,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             setPaymentMethod(method);
                                                             setPaymentDropdownOpen(false);
                                                         }}
-                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors uppercase ${paymentMethod === method ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors uppercase ${paymentMethod === method ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-ink-secondary'}`}
                                                     >
                                                         {method}
                                                     </button>
@@ -2725,12 +2725,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         {/* 3. Bank Account Selector (Conditional for Bank/Card/Online) */}
                         {['bank', 'card', 'online'].includes(paymentMethod) && (
                             bankAccounts.length > 0 ? (
-                                <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-inner animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-inner animate-in fade-in slide-in-from-top-1 duration-normal">
                                     <div className="flex justify-between items-center mb-2 px-1">
-                                        <label className="text-2xs uppercase font-black text-slate-500 block">Deposit To Account</label>
+                                        <label className="text-2xs uppercase font-bold text-ink-muted block">Deposit To Account</label>
                                         <button 
                                             onClick={() => setShowQuickAccountModal(true)}
-                                            className="text-3xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+                                            className="text-3xs font-bold text-brand-400 hover:text-brand-300 transition-colors"
                                         >
                                             + Add New
                                         </button>
@@ -2739,17 +2739,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <button 
                                             type="button"
                                             onClick={() => setBankAccountDropdownOpen(!bankAccountDropdownOpen)}
-                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-2.5 px-3 text-xs font-bold text-white focus:ring-2 focus:ring-indigo-500/50 outline-none flex items-center justify-between cursor-pointer"
+                                            className="w-full bg-neutral-800/50 border border-white/5 rounded-xl py-2.5 px-3 text-xs font-bold text-white focus:ring-2 focus:ring-brand-500/50 outline-none flex items-center justify-between cursor-pointer"
                                         >
                                             <span>
                                                 {bankAccounts.find(acc => String(acc.id) === String(selectedBankAccountId))?.name || 'Select Account'}
                                                 {bankAccounts.find(acc => String(acc.id) === String(selectedBankAccountId))?.code ? ` (${bankAccounts.find(acc => String(acc.id) === String(selectedBankAccountId))?.code})` : ''}
                                             </span>
-                                            <span className="text-slate-400 font-bold ml-1">▼</span>
+                                            <span className="text-ink-muted font-bold ml-1">▼</span>
                                         </button>
                                         
                                         {bankAccountDropdownOpen && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[75] animate-in slide-in-from-top-2 duration-200 max-h-48 overflow-y-auto">
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-surface rounded-xl shadow-2xl border border-line overflow-hidden z-sticky animate-in slide-in-from-top-2 duration-normal max-h-48 overflow-y-auto">
                                                 {bankAccounts.map(acc => (
                                                     <button
                                                         key={acc.id}
@@ -2758,7 +2758,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             setSelectedBankAccountId(acc.id);
                                                             setBankAccountDropdownOpen(false);
                                                         }}
-                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors ${String(selectedBankAccountId) === String(acc.id) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors ${String(selectedBankAccountId) === String(acc.id) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-ink-secondary'}`}
                                                     >
                                                         {acc.name} {acc.code ? `(${acc.code})` : ''}
                                                     </button>
@@ -2768,17 +2768,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     </div>
                                 </div>
                             ) : (
-                                <div className="bg-rose-500/10 p-4 rounded-xl border border-rose-500/20 animate-in shake duration-300">
+                                <div className="bg-rose-500/10 p-4 rounded-xl border border-rose-500/20 animate-in shake duration-slow">
                                     <div className="flex items-center gap-2 mb-2">
                                         <AlertCircle size={14} className="text-rose-500" />
-                                        <span className="text-2xs uppercase font-black text-rose-500">No Bank Accounts Found</span>
+                                        <span className="text-2xs uppercase font-bold text-rose-500">No Bank Accounts Found</span>
                                     </div>
-                                    <p className="text-1xs text-slate-400 mb-3 leading-tight">
+                                    <p className="text-1xs text-ink-muted mb-3 leading-tight">
                                         You need at least one bank/online account to receive digital payments.
                                     </p>
                                     <button 
                                         onClick={() => setShowQuickAccountModal(true)}
-                                        className="w-full bg-rose-500 hover:bg-rose-600 text-white py-2 rounded-lg text-xs font-bold transition-all shadow-lg shadow-rose-500/20 active:scale-95 flex items-center justify-center gap-2"
+                                        className="w-full bg-rose-500 hover:bg-rose-600 text-white py-2 rounded-lg text-xs font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
                                     >
                                         <Plus size={14} /> 
                                         <span>Create Bank Account</span>
@@ -2788,10 +2788,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         )}
 
                         {/* 4. Summary Block - Now Positioned before Amount Tendered */}
-                        <div className="space-y-2 bg-slate-100 dark:bg-white/5 p-3 rounded-xl">
-                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
+                        <div className="space-y-2 bg-sunken dark:bg-white/5 p-3 rounded-xl">
+                            <div className="flex justify-between text-ink-muted text-xs">
                                 <span>Subtotal</span>
-                                <span className="text-slate-900 dark:text-white">{formatCurrency(subtotal, store || settings)}</span>
+                                <span className="text-ink">{formatCurrency(subtotal, store || settings)}</span>
                             </div>
                             {totalDiscounts > 0 && (
                                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs font-bold">
@@ -2802,16 +2802,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <span>-{formatCurrency(totalDiscounts, store || settings)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs">
+                            <div className="flex justify-between items-center text-ink-muted text-xs">
                                 <span>Tax</span>
                                 <div className="flex items-center gap-1">
                                     <button
                                         type="button"
                                         onClick={() => updateActiveSale({ taxInclusive: !taxInclusive })}
-                                        className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border transition-colors cursor-pointer mr-1 ${
+                                        className={`text-3xs font-bold uppercase px-1.5 py-0.5 rounded border transition-colors cursor-pointer mr-1 ${
                                             taxInclusive 
-                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-950/30 dark:border-indigo-900/50 dark:text-indigo-400' 
-                                                : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-800'
+                                                ? 'bg-brand-50 border-brand-200 text-brand-600 dark:bg-brand-950/30 dark:border-brand-900/50 dark:text-brand-400' 
+                                                : 'bg-sunken border-line text-ink-muted dark:bg-app dark:border-line'
                                         }`}
                                     >
                                         {taxInclusive ? 'Inclusive' : 'Exclusive'}
@@ -2820,7 +2820,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <button 
                                             type="button"
                                             onClick={() => setTaxDropdownOpen(!taxDropdownOpen)}
-                                            className="bg-transparent hover:bg-slate-200 dark:hover:bg-white/10 px-2 py-1 rounded-lg text-slate-900 dark:text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                                            className="bg-transparent hover:bg-interactive-hover dark:hover:bg-white/10 px-2 py-1 rounded-lg text-ink font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
                                         >
                                             <span>
                                                 {taxRate === 0 
@@ -2828,18 +2828,18 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                     : (parsedTaxRates.find(t => parseFloat(t.rate) === parseFloat(taxRate))?.name + ` (${taxRate}%)` || `${taxRate}%`)
                                                 }
                                             </span>
-                                            <span className="text-slate-400 text-2xs">▼</span>
+                                            <span className="text-ink-muted text-2xs">▼</span>
                                         </button>
                                         
                                         {taxDropdownOpen && (
-                                            <div className="absolute right-0 bottom-full mb-1 w-40 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[75] animate-in slide-in-from-bottom-2 duration-200">
+                                            <div className="absolute right-0 bottom-full mb-1 w-40 bg-surface rounded-xl shadow-2xl border border-line overflow-hidden z-sticky animate-in slide-in-from-bottom-2 duration-normal">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         updateActiveSale({ taxRate: 0 });
                                                         setTaxDropdownOpen(false);
                                                     }}
-                                                    className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors ${taxRate === 0 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                    className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors ${taxRate === 0 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-ink-secondary'}`}
                                                 >
                                                     None (0%)
                                                 </button>
@@ -2851,7 +2851,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             updateActiveSale({ taxRate: parseFloat(tax.rate) || 0 });
                                                             setTaxDropdownOpen(false);
                                                         }}
-                                                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors ${parseFloat(taxRate) === parseFloat(tax.rate) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors ${parseFloat(taxRate) === parseFloat(tax.rate) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-ink-secondary'}`}
                                                     >
                                                         {tax.name} ({tax.rate}%)
                                                     </button>
@@ -2859,25 +2859,25 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             </div>
                                         )}
                                     </div>
-                                    <span className="text-slate-900 dark:text-white font-bold">{formatCurrency(taxAmount, store || settings)}</span>
+                                    <span className="text-ink font-bold">{formatCurrency(taxAmount, store || settings)}</span>
                                 </div>
                             </div>
-                            <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs mt-2">
+                            <div className="flex justify-between items-center text-ink-muted text-xs mt-2">
                                 <span>Fulfillment</span>
                                 <button
                                     type="button"
                                     onClick={() => updateActiveSale({ is_dropship: !(activeSale.is_dropship || false) })}
-                                    className={`text-[10px] font-extrabold uppercase px-2 py-1 rounded border transition-colors cursor-pointer flex items-center gap-1 ${
+                                    className={`text-2xs font-bold uppercase px-2 py-1 rounded border transition-colors cursor-pointer flex items-center gap-1 ${
                                         activeSale.is_dropship 
                                             ? 'bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-400' 
-                                            : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-800'
+                                            : 'bg-sunken border-line text-ink-muted dark:bg-app dark:border-line'
                                     }`}
                                 >
                                     <Truck size={12} />
                                     {activeSale.is_dropship ? 'Dropship' : 'Local Stock'}
                                 </button>
                             </div>
-                            <div className="h-px bg-slate-200 dark:bg-white/10 my-2"></div>
+                            <div className="h-px bg-sunken dark:bg-white/10 my-2"></div>
                             <div className="flex justify-between font-bold text-emerald-600 dark:text-emerald-400 text-2xl">
                                 <span>Total</span>
                                 <span>{formatCurrency(cartTotal, store || settings)}</span>
@@ -2886,20 +2886,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                         {/* 5. Amount Tendered Section with inline Split Payment button */}
                         <div className="space-y-3">
-                            <div id="tour-pos-paid" className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm transition-all">
+                            <div id="tour-pos-paid" className="bg-white dark:bg-white/5 p-4 rounded-xl border border-line dark:border-white/5 shadow-sm transition-all">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <label className="text-xs uppercase font-bold text-ink-muted flex items-center gap-1.5">
                                         {returnMode ? 'AMOUNT TO REFUND' : 'Amount Tendered'}
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <button 
                                             onClick={() => setPaymentModalOpen(true)}
-                                            className="text-3xs font-black text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider"
+                                            className="text-3xs font-bold text-brand-600 dark:text-brand-400 hover:underline uppercase tracking-wider"
                                             title="Open multi-method split payment options"
                                         >
                                             + Split Payment
                                         </button>
-                                        <span className="text-2xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
+                                        <span className="text-2xs bg-sunken text-ink-secondary px-1.5 py-0.5 rounded font-bold">
                                             {paymentMethod.toUpperCase()}
                                         </span>
                                     </div>
@@ -2913,13 +2913,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
                                         onKeyDown={handleTenderedKeyDown}
                                         placeholder="0.00"
-                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-3 pl-8 pr-4 text-2xl font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all no-spinner shadow-inner"
+                                        className="w-full bg-surface border border-line rounded-lg py-3 pl-8 pr-4 text-2xl font-bold text-ink placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all no-spinner shadow-inner"
                                         disabled={activeSale.cart.length === 0}
                                     />
                                     {/* Quick Exact Button */}
                                     <button
                                         onClick={() => updateActiveSale({ cashReceived: cartTotal })}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-600 dark:text-slate-300 px-2 py-1 rounded transition-colors border border-slate-200 dark:border-slate-600 font-bold"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-xs text-ink-secondary px-2 py-1 rounded transition-colors border border-line dark:border-line font-bold"
                                     >
                                         Exact
                                     </button>
@@ -2937,7 +2937,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                                         {changeDue >= 0 ? 'Change Due' : 'Shortage'}
                                     </span>
-                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    <span className={`text-2xl font-bold ${changeDue >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                                         {formatCurrency(Math.abs(changeDue), store || settings)}
                                     </span>
                                 </div>
@@ -2945,13 +2945,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         )}
                     </div>
 
-                    <div className="p-4 bg-slate-100/50 dark:bg-black/20 backdrop-blur-sm space-y-2">
+                    <div className="p-4 bg-sunken/50 dark:bg-black/20 backdrop-blur-sm space-y-2">
                         {/* Print Settings Toggle */}
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-slate-500 dark:text-slate-400">Auto-print on complete</span>
+                            <span className="text-xs text-ink-muted">Auto-print on complete</span>
                             <button
                                 onClick={() => setPrintOnComplete(!printOnComplete)}
-                                className={`relative w-12 h-6 rounded-full transition-colors ${printOnComplete ? 'bg-emerald-500' : 'bg-slate-600'}`}
+                                className={`relative w-12 h-6 rounded-full transition-colors ${printOnComplete ? 'bg-emerald-500' : 'bg-neutral-600'}`}
                             >
                                 <div className={`absolute top-1 ${printOnComplete ? 'right-1' : 'left-1'} w-4 h-4 bg-white rounded-full transition-all`}></div>
                             </button>
@@ -3011,7 +3011,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 id="tour-pos-checkout"
                                 onClick={handleCheckoutClick}
                                 disabled={processingPayment || activeSale.cart.length === 0}
-                                className={`w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg  flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <div className="flex items-center justify-center gap-2.5 w-full">
                                     {printOnComplete ? (
@@ -3019,7 +3019,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     ) : (
                                         <><Check size={20} /> <span>{processingPayment ? 'Processing...' : 'Complete Sale'}</span></>
                                     )}
-                                    <span className="px-3 py-1 rounded-lg text-sm font-black bg-white/20 border border-white/10 shrink-0 ml-1.5">
+                                    <span className="px-3 py-1 rounded-lg text-sm font-bold bg-white/20 border border-white/10 shrink-0 ml-1.5">
                                         {formatCurrency(cartTotal, store || settings)}
                                     </span>
                                 </div>
@@ -3039,7 +3039,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                             <button
                                 onClick={() => updateActiveSale({ cart: [], cashReceived: '' })}
-                                className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+                                className="flex-1 py-3 bg-sunken hover:bg-interactive-hover dark:bg-white/5 dark:hover:bg-white/10 text-ink-secondary rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
                             >
                                 <X size={18} /> Cancel
                             </button>
@@ -3050,54 +3050,54 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             </div>
 
             {/* Bottom Bar - Shortcuts Strip (Moved Outside) */}
-            <div className="bg-slate-900 dark:bg-slate-950 border-t border-slate-800 flex items-center justify-between px-6 py-1.5 text-1xs font-bold text-slate-400 shadow-lg shrink-0 z-10 select-none">
+            <div className="bg-neutral-900 dark:bg-app border-t border-neutral-800 flex items-center justify-between px-6 py-1.5 text-1xs font-bold text-ink-muted shadow-lg shrink-0 z-10 select-none">
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F1</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">F1</span>
                     <span>Search</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F2</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">F2</span>
                     <span>Qty</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F3</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">F3</span>
                     <span>Item Disc</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F4</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">F4</span>
                     <span>Remove</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F5</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">F5</span>
                     <span>Price</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F11</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">F11</span>
                     <span>Customer</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F12</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">F12</span>
                     <span>Remarks</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">^S</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">^S</span>
                     <span>Save</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">^P</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">^P</span>
                     <span>Print</span>
                 </div>
-                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">Alt+Z</span>
+                    <span className="bg-neutral-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-neutral-700">Alt+Z</span>
                     <span>Fullscr</span>
                 </div>
             </div>
@@ -3105,8 +3105,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             {/* Variant Selection Modal */}
             {variantModalOpen && selectedProductForVariant && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="p-4 border-b border-line flex justify-between items-center">
                             <h3 className="font-bold text-lg">Select Variant</h3>
                             <button onClick={() => setVariantModalOpen(false)}><X size={20} /></button>
                         </div>
@@ -3115,18 +3115,18 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 <div
                                     key={variant.id}
                                     onClick={() => addToCart(selectedProductForVariant, variant)}
-                                    className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl cursor-pointer border border-slate-100 dark:border-slate-700 mb-2 flex justify-between items-center"
+                                    className="p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl cursor-pointer border border-line mb-2 flex justify-between items-center"
                                 >
                                     <div>
                                         <p className="font-bold">{variant.sku}</p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-ink-muted">
                                             {/* Display attributes if available, else just SKU */}
                                             {variant.attributes ? JSON.stringify(variant.attributes) : 'Variant'}
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-indigo-600">{formatCurrency(variant.price, store || settings)}</p>
-                                        <p className="text-xs text-slate-500">Stock: {variant.stock_quantity}</p>
+                                        <p className="font-bold text-brand-600">{formatCurrency(variant.price, store || settings)}</p>
+                                        <p className="text-xs text-ink-muted">Stock: {variant.stock_quantity}</p>
                                     </div>
                                 </div>
                             ))}
@@ -3160,7 +3160,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 title={inputState.title}
                 placeholder={inputState.placeholder}
                 onSubmit={inputState.onSubmit}
-                zIndex="z-[150]"
+                zIndex="z-modal"
             />
 
             <PaymentModal
@@ -3176,32 +3176,32 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
             {/* Custom Global Discount Preset Modal */}
             {globalDiscountModal.show && (
-                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl border border-white/10 overflow-hidden text-white">
+                <div className="fixed inset-0 z-drawer flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-normal">
+                    <div className="bg-neutral-900 w-full max-w-sm rounded-2xl shadow-2xl border border-white/10 overflow-hidden text-white">
                         <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <div>
-                                <h3 className="text-base font-black uppercase tracking-tight">Apply <span className="text-emerald-400">Discount</span></h3>
-                                <p className="text-1xs text-slate-400">Select type and discount value</p>
+                                <h3 className="text-base font-bold uppercase tracking-tight">Apply <span className="text-emerald-400">Discount</span></h3>
+                                <p className="text-1xs text-ink-muted">Select type and discount value</p>
                             </div>
                             <button onClick={() => setGlobalDiscountModal({ show: false, type: 'fixed', value: '' })} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
-                                <X size={18} className="text-slate-500 hover:text-white" />
+                                <X size={18} className="text-ink-muted hover:text-white" />
                             </button>
                         </div>
 
                         <div className="p-5 space-y-4">
                             {/* Type Toggle Tabs */}
-                            <div className="flex bg-slate-800 p-1 rounded-xl">
+                            <div className="flex bg-neutral-800 p-1 rounded-xl">
                                 <button
                                     type="button"
                                     onClick={() => setGlobalDiscountModal(prev => ({ ...prev, type: 'fixed' }))}
-                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${globalDiscountModal.type === 'fixed' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${globalDiscountModal.type === 'fixed' ? 'bg-emerald-600 text-white shadow-md' : 'text-ink-muted hover:text-white'}`}
                                 >
                                     Fixed Amount ({getCurrencySymbol(store || settings)})
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setGlobalDiscountModal(prev => ({ ...prev, type: 'percentage' }))}
-                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${globalDiscountModal.type === 'percentage' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${globalDiscountModal.type === 'percentage' ? 'bg-emerald-600 text-white shadow-md' : 'text-ink-muted hover:text-white'}`}
                                 >
                                     Percentage (%)
                                 </button>
@@ -3211,7 +3211,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             {globalDiscountModal.type === 'percentage' && (
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between items-center">
-                                        <label className="text-2xs uppercase font-bold text-slate-500 block">Presets (Hold to Edit)</label>
+                                        <label className="text-2xs uppercase font-bold text-ink-muted block">Presets (Hold to Edit)</label>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         {discountPresets.map((val, idx) => {
@@ -3247,7 +3247,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                     onMouseUp={endHold}
                                                     onTouchStart={startHold}
                                                     onTouchEnd={endHold}
-                                                    className={`py-2 text-xs font-bold rounded-lg border transition-all ${parseFloat(globalDiscountModal.value) === val ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400' : 'bg-slate-800/50 border-white/5 text-slate-350 hover:bg-slate-800'}`}
+                                                    className={`py-2 text-xs font-bold rounded-lg border transition-all ${parseFloat(globalDiscountModal.value) === val ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400' : 'bg-neutral-800/50 border-white/5 text-neutral-300 hover:bg-interactive-hover'}`}
                                                 >
                                                     {val}%
                                                 </button>
@@ -3259,7 +3259,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                             {/* Discount Value Input field */}
                             <div>
-                                <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">
+                                <label className="text-2xs uppercase font-bold text-ink-muted block mb-1.5">
                                     {globalDiscountModal.type === 'percentage' ? 'Discount Percentage (%)' : `Discount Value (${getCurrencySymbol(store || settings)})`}
                                 </label>
                                 <input
@@ -3267,7 +3267,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     value={globalDiscountModal.value}
                                     onChange={(e) => setGlobalDiscountModal(prev => ({ ...prev, value: e.target.value }))}
                                     placeholder="0.00"
-                                    className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 px-4 text-lg font-bold text-white placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-3 px-4 text-lg font-bold text-white placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -3280,7 +3280,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     setGlobalDiscountModal({ show: false, type: 'fixed', value: '' });
                                     addToast('Discount cleared', 'info');
                                 }}
-                                className="flex-1 py-2.5 text-xs font-bold text-slate-400 hover:text-white bg-slate-800 rounded-xl transition-all"
+                                className="flex-1 py-2.5 text-xs font-bold text-ink-muted hover:text-white bg-neutral-800 rounded-xl transition-all"
                             >
                                 Clear
                             </button>
@@ -3292,7 +3292,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     setGlobalDiscountModal({ show: false, type: 'fixed', value: '' });
                                     addToast('Discount applied successfully', 'success');
                                 }}
-                                className="flex-1 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-lg shadow-emerald-950/50"
+                                className="flex-1 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-lg "
                             >
                                 Apply
                             </button>
@@ -3305,45 +3305,45 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
             {/* Quick Bank Account Modal */}
             {showQuickAccountModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                <div className="fixed inset-0 z-drawer flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-normal">
+                    <div className="bg-neutral-900 w-full max-w-md rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
                         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <div>
-                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Create <span className="text-indigo-400">Bank Account</span></h3>
-                                <p className="text-xs text-slate-400">Add a ledger to receive digital payments</p>
+                                <h3 className="text-lg font-bold text-white uppercase tracking-tight">Create <span className="text-brand-400">Bank Account</span></h3>
+                                <p className="text-xs text-ink-muted">Add a ledger to receive digital payments</p>
                             </div>
                             <button onClick={() => setShowQuickAccountModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                                <X size={20} className="text-slate-500" />
+                                <X size={20} className="text-ink-muted" />
                             </button>
                         </div>
                         
                         <div className="p-6 space-y-4">
                             <div>
-                                <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">Account Name</label>
+                                <label className="text-2xs uppercase font-bold text-ink-muted block mb-1.5">Account Name</label>
                                 <input 
                                     id="quick-acc-name"
                                     type="text" 
                                     placeholder="e.g. Meezan Bank, HBL Shop" 
-                                    className="w-full bg-slate-800 border-white/5 rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                                    className="w-full bg-neutral-800 border-white/5 rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-brand-500/50 outline-none"
                                     autoFocus
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">Type</label>
-                                    <select id="quick-acc-type" className="w-full bg-slate-800 border-white/5 rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                                    <label className="text-2xs uppercase font-bold text-ink-muted block mb-1.5">Type</label>
+                                    <select id="quick-acc-type" className="w-full bg-neutral-800 border-white/5 rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-brand-500/50 outline-none">
                                         <option value="checking">Checking</option>
                                         <option value="savings">Savings</option>
                                         <option value="cash">Branch Cash</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">Bank Name</label>
+                                    <label className="text-2xs uppercase font-bold text-ink-muted block mb-1.5">Bank Name</label>
                                     <input 
                                         id="quick-acc-bank"
                                         type="text" 
                                         placeholder="Optional" 
-                                        className="w-full bg-slate-800 border-white/5 rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                                        className="w-full bg-neutral-800 border-white/5 rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-brand-500/50 outline-none"
                                     />
                                 </div>
                             </div>
@@ -3352,7 +3352,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="p-6 bg-white/5 border-t border-white/5 flex gap-3">
                             <button 
                                 onClick={() => setShowQuickAccountModal(false)}
-                                className="flex-1 py-3 rounded-xl font-bold text-xs text-slate-400 hover:bg-white/5 transition-colors"
+                                className="flex-1 py-3 rounded-xl font-bold text-xs text-ink-muted hover:bg-white/5 transition-colors"
                             >
                                 CANCEL
                             </button>
@@ -3386,7 +3386,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     }
                                 }}
                                 disabled={creatingAccount}
-                                className="flex-[2] py-3 rounded-xl font-black text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                                className="flex-[2] py-3 rounded-xl font-bold text-xs bg-brand-600 hover:bg-brand-700 text-white shadow-lg transition-all flex items-center justify-center gap-2"
                             >
                                 {creatingAccount ? (
                                     <>
@@ -3434,13 +3434,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             >
                 <div className="p-4">
                     <div className="text-center mb-6">
-                        <h3 className="text-xl font-black text-slate-800 dark:text-white mb-1">
+                        <h3 className="text-xl font-bold text-ink mb-1">
                             Use Excess Amount
                         </h3>
-                        <div className="text-3xl font-black text-emerald-500 my-2">
+                        <div className="text-3xl font-bold text-emerald-500 my-2">
                             {formatCurrency(overpaymentDetails.amount, store || settings)}
                         </div>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-ink-muted">
                             Customer paid extra. Choose action:
                         </p>
                     </div>
@@ -3448,13 +3448,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     <div className="space-y-3">
                         <button
                             onClick={() => processCheckout(pendingPaymentData, false)}
-                            className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-sunken text-ink-secondary rounded-xl font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center justify-center gap-2"
                         >
                             Return Change
                         </button>
                         <button
                             onClick={() => processCheckout(pendingPaymentData, true)}
-                            className="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 shadow-lg transition-colors flex items-center justify-center gap-2"
                         >
                             Add to Ledger
                         </button>
@@ -3464,24 +3464,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
             {/* â”€â”€ Item Discount Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {itemDiscountModal.show && (
-                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
                         <div>
-                            <h3 className="text-lg font-black text-slate-800 dark:text-white">Apply Item Discount</h3>
-                            <p className="text-xs text-slate-400 mt-1 truncate">{itemDiscountModal.item?.name}</p>
+                            <h3 className="text-lg font-bold text-ink">Apply Item Discount</h3>
+                            <p className="text-xs text-ink-muted mt-1 truncate">{itemDiscountModal.item?.name}</p>
                         </div>
 
                         {/* % / Rs Toggle */}
-                        <div className="flex gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
+                        <div className="flex gap-2 bg-sunken p-1 rounded-xl">
                             <button
                                 onClick={() => setItemDiscountModal(p => ({ ...p, discType: 'fixed' }))}
-                                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${itemDiscountModal.discType === 'fixed' ? 'bg-white dark:bg-slate-600 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
+                                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${itemDiscountModal.discType === 'fixed' ? 'bg-sunken shadow text-brand-600 dark:text-brand-400' : 'text-ink-muted'}`}
                             >
                                 {getCurrencySymbol(store || settings)} Fixed
                             </button>
                             <button
                                 onClick={() => setItemDiscountModal(p => ({ ...p, discType: 'percentage' }))}
-                                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${itemDiscountModal.discType === 'percentage' ? 'bg-white dark:bg-slate-600 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
+                                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${itemDiscountModal.discType === 'percentage' ? 'bg-sunken shadow text-brand-600 dark:text-brand-400' : 'text-ink-muted'}`}
                             >
                                 % Percent
                             </button>
@@ -3497,18 +3497,18 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 onChange={e => setItemDiscountModal(p => ({ ...p, discValue: e.target.value }))}
                                 onKeyDown={e => e.key === 'Enter' && applyItemDiscount()}
                                 placeholder={itemDiscountModal.discType === 'percentage' ? 'Enter % (e.g. 10)' : `Max: ${formatCurrency(itemDiscountModal.originalPrice, store || settings)}`}
-                                className="w-full px-4 py-3 pr-12 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white text-lg font-bold focus:ring-2 focus:ring-indigo-400 outline-none"
+                                className="w-full px-4 py-3 pr-12 border border-line dark:border-line rounded-xl bg-sunken text-ink text-lg font-bold focus:ring-2 focus:ring-brand-400 outline-none"
                             />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted font-bold text-sm">
                                 {itemDiscountModal.discType === 'percentage' ? '%' : (getCurrencySymbol(store || settings))}
                             </span>
                         </div>
 
                         {/* Preview */}
                         {itemDiscountModal.discValue && !isNaN(parseFloat(itemDiscountModal.discValue)) && (
-                            <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-3 text-sm flex justify-between">
-                                <span className="text-slate-500">Discounted price</span>
-                                <span className="font-black text-indigo-600 dark:text-indigo-400">
+                            <div className="bg-brand-50 dark:bg-brand-900/30 rounded-xl p-3 text-sm flex justify-between">
+                                <span className="text-ink-muted">Discounted price</span>
+                                <span className="font-bold text-brand-600 dark:text-brand-400">
                                     {formatCurrency(
                                         itemDiscountModal.originalPrice - (
                                             itemDiscountModal.discType === 'percentage'
@@ -3524,13 +3524,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' })}
-                                className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                className="flex-1 py-3 bg-sunken text-ink-secondary rounded-xl font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={applyItemDiscount}
-                                className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30"
+                                className="flex-1 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-lg "
                             >
                                 Apply
                             </button>
@@ -3541,26 +3541,26 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
             {/* â”€â”€ Converter Modal (Price / Qty / Total) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {converterModal.show && (
-                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
                         <div>
-                            <h3 className="text-lg font-black text-slate-800 dark:text-white">Edit Item Values</h3>
-                            <p className="text-xs text-slate-400 mt-1 truncate">{converterModal.item?.name}</p>
+                            <h3 className="text-lg font-bold text-ink">Edit Item Values</h3>
+                            <p className="text-xs text-ink-muted mt-1 truncate">{converterModal.item?.name}</p>
                         </div>
 
                         {/* Mode toggle: what does Total changing affect? */}
                         <div>
-                            <p className="text-2xs font-bold text-slate-400 uppercase mb-2">When Total changes, recalculate:</p>
-                            <div className="flex gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
+                            <p className="text-2xs font-bold text-ink-muted uppercase mb-2">When Total changes, recalculate:</p>
+                            <div className="flex gap-2 bg-sunken p-1 rounded-xl">
                                 <button
                                     onClick={() => setConverterModal(p => ({ ...p, mode: 'price' }))}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${converterModal.mode === 'price' ? 'bg-white dark:bg-slate-600 shadow text-amber-600 dark:text-amber-400' : 'text-slate-500'}`}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${converterModal.mode === 'price' ? 'bg-sunken shadow text-amber-600 dark:text-amber-400' : 'text-ink-muted'}`}
                                 >
                                     {getCurrencySymbol(store || settings)} Price
                                 </button>
                                 <button
                                     onClick={() => setConverterModal(p => ({ ...p, mode: 'qty' }))}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${converterModal.mode === 'qty' ? 'bg-white dark:bg-slate-600 shadow text-amber-600 dark:text-amber-400' : 'text-slate-500'}`}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${converterModal.mode === 'qty' ? 'bg-sunken shadow text-amber-600 dark:text-amber-400' : 'text-ink-muted'}`}
                                 >
                                     # Qty
                                 </button>
@@ -3574,16 +3574,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             { label: 'Total', field: 'total', icon: (getCurrencySymbol(store || settings)), color: 'amber' },
                         ].map(({ label, field, icon, color }) => (
                             <div key={field}>
-                                <label className="text-2xs font-bold text-slate-400 uppercase block mb-1">{label}</label>
+                                <label className="text-2xs font-bold text-ink-muted uppercase block mb-1">{label}</label>
                                 <div className="relative">
-                                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-black text-sm text-${color}-500`}>{icon}</span>
+                                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-bold text-sm text-${color}-500`}>{icon}</span>
                                     <input
                                         type="number"
                                         min="0"
                                         value={converterModal[field]}
                                         onChange={e => handleConverterChange(field, e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && applyConverter()}
-                                        className={`w-full pl-8 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white font-bold text-base focus:ring-2 focus:ring-${color}-400 outline-none`}
+                                        className={`w-full pl-8 pr-4 py-3 border border-line dark:border-line rounded-xl bg-sunken text-ink font-bold text-base focus:ring-2 focus:ring-${color}-400 outline-none`}
                                     />
                                 </div>
                             </div>
@@ -3592,13 +3592,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setConverterModal({ show: false, item: null, mode: 'price', price: '', qty: '', total: '' })}
-                                className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                className="flex-1 py-3 bg-sunken text-ink-secondary rounded-xl font-bold hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={applyConverter}
-                                className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/30"
+                                className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg "
                             >
                                 Apply
                             </button>
@@ -3613,20 +3613,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
         {/* --- OFFLINE SYNC HUB MODAL --- */}
         {showSyncHub && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 text-lg">
+            <div className="fixed inset-0 z-drawer flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-normal">
+                <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-line text-lg">
                     {/* Header */}
                     <div className="p-6 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg ">
                                 <Database size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight">Sync Hub</h2>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium font-mono uppercase tracking-widest">{pendingCount} Pending Sales</p>
+                                <h2 className="text-xl font-bold text-ink leading-tight">Sync Hub</h2>
+                                <p className="text-sm text-ink-muted font-medium font-mono uppercase tracking-widest">{pendingCount} Pending Sales</p>
                             </div>
                         </div>
-                        <button onClick={() => setShowSyncHub(false)} className="w-10 h-10 rounded-full hover:bg-white dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 transition-colors">
+                        <button onClick={() => setShowSyncHub(false)} className="w-10 h-10 rounded-full hover:bg-white dark:hover:bg-interactive-hover flex items-center justify-center text-ink-muted transition-colors">
                             <X size={24} />
                         </button>
                     </div>
@@ -3647,25 +3647,25 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                         {offlineSales.length === 0 ? (
                             <div className="py-12 text-center">
-                                <div className="w-20 h-20 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-300 mx-auto mb-4">
+                                <div className="w-20 h-20 rounded-full bg-app flex items-center justify-center text-neutral-300 mx-auto mb-4">
                                     <Check size={40} />
                                 </div>
-                                <p className="text-slate-400 font-bold">All sales are synced!</p>
+                                <p className="text-ink-muted font-bold">All sales are synced!</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {offlineSales.map(sale => (
-                                    <div key={sale.id} className="p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-900/40 bg-slate-50/50 dark:bg-slate-900/30 transition-all group">
+                                    <div key={sale.id} className="p-4 rounded-2xl border border-line hover:border-amber-200 dark:hover:border-amber-900/40 bg-surface/50 dark:bg-app transition-all group">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-2xs font-black uppercase text-slate-400 tracking-tighter">OFFLINE</span>
-                                                    <span className="font-black text-slate-800 dark:text-white">{sale.data.customer_name || 'Walk-in Customer'}</span>
+                                                    <span className="px-2 py-0.5 rounded-md bg-surface border border-line text-2xs font-bold uppercase text-ink-muted tracking-tighter">OFFLINE</span>
+                                                    <span className="font-bold text-ink">{sale.data.customer_name || 'Walk-in Customer'}</span>
                                                 </div>
-                                                <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
-                                                    <span className="flex items-center gap-1.5"><ShoppingCart size={14} className="text-indigo-400" /> {sale.data.cart?.length || 0} Items</span>
+                                                <div className="flex items-center gap-4 text-xs font-bold text-ink-muted">
+                                                    <span className="flex items-center gap-1.5"><ShoppingCart size={14} className="text-brand-400" /> {sale.data.cart?.length || 0} Items</span>
                                                     <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.total_amount || 0, store || settings)}</span>
-                                                    <span className="flex items-center gap-1.5 text-slate-400"><Clock size={14} /> {new Date(sale.created_at).toLocaleTimeString()}</span>
+                                                    <span className="flex items-center gap-1.5 text-ink-muted"><Clock size={14} /> {new Date(sale.created_at).toLocaleTimeString()}</span>
                                                     {sale.attempt_count > 0 && (
                                                         <span className="flex items-center gap-1 text-amber-500">&#9888; {sale.attempt_count} attempt{sale.attempt_count !== 1 ? 's' : ''}</span>
                                                     )}
@@ -3680,7 +3680,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button 
                                                     onClick={() => handleRecallOfflineSale(sale)}
-                                                    className="h-9 px-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-xs font-bold transition-all shadow-sm"
+                                                    className="h-9 px-4 rounded-xl bg-surface border border-line text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-xs font-bold transition-all shadow-sm"
                                                 >
                                                     Recall to Cart
                                                 </button>
@@ -3691,7 +3691,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             setOfflineSales(prev => prev.filter(s => s.id !== sale.id));
                                                         }, true);
                                                     }}
-                                                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-500 hover:bg-red-50 transition-all shadow-sm"
+                                                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface border border-line text-red-500 hover:bg-red-50 transition-all shadow-sm"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -3704,18 +3704,18 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     </div>
 
                     {/* Footer */}
-                    <div className="p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                        <div className="text-xs text-slate-400 font-bold">
+                    <div className="p-6 bg-app border-t border-line flex items-center justify-between">
+                        <div className="text-xs text-ink-muted font-bold">
                             {lastSyncTime ? `Last checked: ${lastSyncTime.toLocaleTimeString()}` : 'Syncing enabled'}
                         </div>
                         <div className="flex items-center gap-3">
                             <button 
                                 onClick={() => syncPendingSales()}
                                 disabled={isSyncing || !isOnline}
-                                className={`px-6 h-12 rounded-2xl flex items-center gap-2 font-black transition-all ${
+                                className={`px-6 h-12 rounded-2xl flex items-center gap-2 font-bold transition-all ${
                                     isSyncing || !isOnline 
-                                    ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 cursor-not-allowed' 
-                                    : 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0'
+                                    ? 'bg-sunken text-ink-muted dark:bg-surface cursor-not-allowed' 
+                                    : 'bg-brand-600 text-white shadow-lg  hover:bg-brand-700 hover:-translate-y-0.5 active:translate-y-0'
                                 }`}
                             >
                                 <RefreshCcw size={18} className={isSyncing ? 'animate-spin' : ''} />

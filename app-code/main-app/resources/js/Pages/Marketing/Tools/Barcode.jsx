@@ -219,7 +219,7 @@ export default function BarcodeTool({
         badge: p.per_sheet > 1 ? `${p.per_sheet}/sheet` : 'Roll',
     }));
 
-    const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-400/60 transition-colors';
+    const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/60 transition-colors';
 
     return (
         <ToolShell
@@ -238,14 +238,14 @@ export default function BarcodeTool({
             related={[{ label: 'Barcode Validator', href: '/tools/barcode-validator' }]}
         >
             {/* ── Generator ─────────────────────────────────────────────── */}
-            <div className="rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
                     {/* Controls */}
                     <div className="space-y-5 min-w-0">
                         <div>
-                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Format</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">Format</label>
                             <Select value={format} onChange={(v) => { setValue(''); setFormat(v); }} options={formatOptions} />
-                            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1.5">
+                            <p className="text-xs text-ink-muted mt-1.5">
                                 {isTextCapable
                                     ? 'Accepts any text — a product name, SKU or description works fine.'
                                     : 'Digits only. Pick Code128 if you want to encode text.'}
@@ -253,7 +253,7 @@ export default function BarcodeTool({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">
                                 {isTextCapable ? 'Value or text to encode' : 'Value to encode'}
                             </label>
                             <input
@@ -291,17 +291,17 @@ export default function BarcodeTool({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Bar width</label>
-                                <input type="range" min="1" max="6" value={widthFactor} onChange={(e) => setWidthFactor(Number(e.target.value))} className="w-full accent-indigo-500" />
+                                <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">Bar width</label>
+                                <input type="range" min="1" max="6" value={widthFactor} onChange={(e) => setWidthFactor(Number(e.target.value))} className="w-full accent-brand-500" />
                             </div>
                             <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Height</label>
-                                <input type="range" min="40" max="200" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="w-full accent-indigo-500" />
+                                <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">Height</label>
+                                <input type="range" min="40" max="200" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="w-full accent-brand-500" />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Image format</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">Image format</label>
                             <div className="flex gap-2 flex-wrap">
                                 {['png', 'svg', 'jpg'].map((fmt) => {
                                     const disabled = !supportsRaster && fmt !== 'svg';
@@ -311,10 +311,10 @@ export default function BarcodeTool({
                                             onClick={() => !disabled && setOutput(fmt)}
                                             disabled={disabled}
                                             title={disabled ? 'Enable the GD extension in PHP to export PNG/JPG' : ''}
-                                            className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
+                                            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
                                                 output === fmt
-                                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-[#05030f]'
-                                                    : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                                    ? 'bg-sunken dark:bg-white text-white dark:text-[#05030f]'
+                                                    : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted hover:text-ink dark:hover:text-white'
                                             }`}
                                         >
                                             {fmt}
@@ -332,15 +332,15 @@ export default function BarcodeTool({
                         {/* Toggles */}
                         <div className="space-y-2.5 pt-1">
                             <label className="flex items-center gap-2.5 cursor-pointer">
-                                <input type="checkbox" checked={showValue} onChange={(e) => setShowValue(e.target.checked)} className="w-4 h-4 rounded accent-indigo-500" />
-                                <span className="text-sm text-slate-700 dark:text-slate-300">Show the number under the barcode</span>
+                                <input type="checkbox" checked={showValue} onChange={(e) => setShowValue(e.target.checked)} className="w-4 h-4 rounded accent-brand-500" />
+                                <span className="text-sm text-ink-secondary">Show the number under the barcode</span>
                             </label>
 
                             <div className="flex flex-wrap gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setShowCaption((v) => !v)}
-                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors ${showCaption ? 'bg-indigo-500/15 border border-indigo-400/40 text-indigo-600 dark:text-indigo-300' : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400'}`}
+                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors ${showCaption ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}
                                 >
                                     <Type size={13} /> Add label text
                                 </button>
@@ -349,7 +349,7 @@ export default function BarcodeTool({
                                     onClick={() => { if (!logo) logoInputRef.current?.click(); else setLogo(null); }}
                                     disabled={!supportsRaster}
                                     title={!supportsRaster ? 'Logo overlay needs the GD extension' : ''}
-                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors disabled:opacity-35 ${logo ? 'bg-indigo-500/15 border border-indigo-400/40 text-indigo-600 dark:text-indigo-300' : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400'}`}
+                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors disabled:opacity-35 ${logo ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}
                                 >
                                     <ImageIcon size={13} /> {logo ? 'Remove logo' : 'Add logo'}
                                 </button>
@@ -368,10 +368,10 @@ export default function BarcodeTool({
                             )}
 
                             {logo && (
-                                <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10">
+                                <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                                     <img src={logo} alt="" className="w-9 h-9 object-contain rounded bg-white" />
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 flex-1 leading-snug">Keep it small — a large logo over the bars can stop the code scanning.</span>
-                                    <button onClick={() => setLogo(null)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
+                                    <span className="text-xs text-ink-muted flex-1 leading-snug">Keep it small — a large logo over the bars can stop the code scanning.</span>
+                                    <button onClick={() => setLogo(null)} className="text-ink-muted hover:text-red-500 transition-colors"><X size={16} /></button>
                                 </div>
                             )}
                         </div>
@@ -397,8 +397,8 @@ export default function BarcodeTool({
 
                     {/* Preview */}
                     <div className="flex flex-col min-w-0">
-                        <div className="w-full aspect-[3/2] rounded-2xl bg-white border border-slate-900/[0.08] flex items-center justify-center p-6 mb-3">
-                            {loading && <Loader2 size={20} className="text-slate-500 dark:text-slate-400 animate-spin" />}
+                        <div className="w-full aspect-[3/2] rounded-2xl bg-white border border-line flex items-center justify-center p-6 mb-3">
+                            {loading && <Loader2 size={20} className="text-ink-muted animate-spin" />}
                             {!loading && result && (
                                 <img
                                     src={`data:${result.mime_type};base64,${result.image_base64}`}
@@ -406,40 +406,40 @@ export default function BarcodeTool({
                                     className="max-w-full max-h-full"
                                 />
                             )}
-                            {!loading && !result && <span className="text-slate-500 dark:text-slate-400 text-sm text-center px-4">Enter a value to see your barcode</span>}
+                            {!loading && !result && <span className="text-ink-muted text-sm text-center px-4">Enter a value to see your barcode</span>}
                         </div>
 
                         <button
                             onClick={download}
                             disabled={!result}
-                            className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-black uppercase tracking-wide hover:scale-[1.01] transition-transform disabled:opacity-40 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                            className="w-full py-3.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-40 disabled: flex items-center justify-center gap-2"
                         >
                             <Download size={16} /> Download {result ? result.file_extension.toUpperCase() : output.toUpperCase()}
                         </button>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-600 text-center mt-2">Free — no email, no watermark.</p>
+                        <p className="text-1xs text-ink-muted text-center mt-2">Free — no email, no watermark.</p>
                     </div>
                 </div>
             </div>
 
             {/* ── Print sheet ───────────────────────────────────────────── */}
-            <div className="mt-6 rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="flex items-start gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
-                        <Printer size={17} className="text-indigo-500 dark:text-indigo-300" />
+                    <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+                        <Printer size={17} className="text-brand-500 dark:text-brand-300" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 dark:text-white">Print a sheet of labels</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Same barcode repeated at an exact label size — thermal rolls or A4 sheets, as a print-ready PDF.</p>
+                        <h2 className="text-lg font-bold text-ink">Print a sheet of labels</h2>
+                        <p className="text-sm text-ink-muted">Same barcode repeated at an exact label size — thermal rolls or A4 sheets, as a print-ready PDF.</p>
                     </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4 mb-5">
                     <div>
-                        <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Label size</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">Label size</label>
                         <Select value={preset} onChange={setPreset} options={presetOptions} />
                     </div>
                     <div>
-                        <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">
                             How many labels
                         </label>
                         <input
@@ -456,32 +456,32 @@ export default function BarcodeTool({
                 <button
                     onClick={onSheetClick}
                     disabled={sheetLoading}
-                    className="w-full sm:w-auto px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-black uppercase tracking-wide transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
                 >
                     {sheetLoading ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
                     {sheetLoading ? 'Building PDF…' : 'Download print sheet (PDF)'}
                 </button>
-                <p className="text-[11px] text-slate-500 dark:text-slate-600 mt-2.5 leading-relaxed">
+                <p className="text-1xs text-ink-muted mt-2.5 leading-relaxed">
                     Print at 100% / "Actual size" — never "Fit to page", or the labels won't line up with your stock.
                 </p>
             </div>
 
             {/* Format table */}
             <section className="mt-12">
-                <h2 className="text-2xl font-black mb-6 text-slate-900 dark:text-white">Supported formats</h2>
-                <div className="overflow-x-auto rounded-2xl border border-slate-900/10 dark:border-white/10">
+                <h2 className="text-2xl font-bold mb-6 text-ink">Supported formats</h2>
+                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
                     <table className="w-full text-sm min-w-[560px]">
                         <thead>
-                            <tr className="bg-slate-900/[0.03] dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
                                 {['Format', 'Character set', 'Length', 'Typical retail use'].map((h) => (
-                                    <th key={h} className="px-4 py-3 font-black text-slate-700 dark:text-slate-300">{h}</th>
+                                    <th key={h} className="px-4 py-3 font-bold text-ink-secondary">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {FORMAT_TABLE.map((row) => (
-                                <tr key={row[0]} className="border-t border-slate-900/[0.06] dark:border-white/[0.06]">
-                                    {row.map((cell, i) => <td key={i} className="px-4 py-3 text-slate-600 dark:text-slate-400">{cell}</td>)}
+                                <tr key={row[0]} className="border-t border-line dark:border-white/[0.06]">
+                                    {row.map((cell, i) => <td key={i} className="px-4 py-3 text-ink-secondary">{cell}</td>)}
                                 </tr>
                             ))}
                         </tbody>
@@ -490,13 +490,13 @@ export default function BarcodeTool({
             </section>
 
             <section className="mt-10">
-                <h2 className="text-lg font-black text-slate-600 dark:text-slate-300 mb-4">Generate a specific format</h2>
+                <h2 className="text-lg font-bold text-ink-secondary mb-4">Generate a specific format</h2>
                 <div className="flex flex-wrap gap-2.5">
                     {Object.entries(FORMAT_META).map(([slug, m]) => (
                         <Link
                             key={slug}
                             href={`/tools/barcode-generator/${slug}`}
-                            className="px-4 py-2 rounded-full bg-slate-900/[0.03] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-indigo-400/40 transition-colors"
+                            className="px-4 py-2 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-sm font-bold text-ink-secondary hover:text-ink dark:hover:text-white hover:border-brand-400/40 transition-colors"
                         >
                             {m.name}
                         </Link>

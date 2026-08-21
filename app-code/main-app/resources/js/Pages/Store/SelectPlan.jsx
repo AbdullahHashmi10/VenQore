@@ -23,25 +23,25 @@ const TIER_STYLES = {
         iconBg: 'bg-blue-500/10 text-blue-400',
         accentFrom: 'from-blue-500/[0.10]',
         accentBorder: 'border-blue-500/40',
-        glow: 'shadow-blue-900/30',
+        glow: '',
         badge: 'bg-blue-500/10 border-blue-500/20 text-blue-300',
         dot: 'text-blue-400',
     },
     growth: {
         icon: TrendingUp,
-        iconBg: 'bg-indigo-500/10 text-indigo-400',
-        accentFrom: 'from-indigo-500/[0.12]',
-        accentBorder: 'border-indigo-500/50',
-        glow: 'shadow-indigo-900/40',
-        badge: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300',
-        dot: 'text-indigo-400',
+        iconBg: 'bg-brand-500/10 text-brand-400',
+        accentFrom: 'from-brand-500/[0.12]',
+        accentBorder: 'border-brand-500/50',
+        glow: '',
+        badge: 'bg-brand-500/10 border-brand-500/20 text-brand-300',
+        dot: 'text-brand-400',
     },
     business: {
         icon: Crown,
         iconBg: 'bg-purple-500/10 text-purple-400',
         accentFrom: 'from-purple-500/[0.10]',
         accentBorder: 'border-purple-500/40',
-        glow: 'shadow-purple-900/30',
+        glow: '',
         badge: 'bg-purple-500/10 border-purple-500/20 text-purple-300',
         dot: 'text-purple-400',
     },
@@ -84,7 +84,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
 
             {/* Ambient */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-indigo-900/15 rounded-full blur-[140px]" />
+                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-brand-900/15 rounded-full blur-[140px]" />
                 <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-[100px]" />
             </div>
 
@@ -92,11 +92,11 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
             <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
                 <div className="flex items-center gap-2">
                     <img src="/images/logo.png" alt="VenQore" className="h-8 w-8 object-contain" />
-                    <span className="font-black text-lg text-white">VenQore<span className="text-indigo-400">.</span></span>
+                    <span className="font-bold text-lg text-white">VenQore<span className="text-brand-400">.</span></span>
                 </div>
                 <Link
                     href={route('hub')}
-                    className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-white transition-colors"
                 >
                     <ArrowLeft size={14} /> Back
                 </Link>
@@ -106,14 +106,14 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
 
                 {/* Header */}
                 <div className="text-center mb-9">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-semibold mb-5">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-300 text-sm font-semibold mb-5">
                         <Sparkles size={14} />
                         {trial_days}-day free trial · No card required
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-3">
+                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">
                         Choose a plan to start your trial
                     </h1>
-                    <p className="text-slate-400 text-base max-w-xl mx-auto">
+                    <p className="text-ink-muted text-base max-w-xl mx-auto">
                         Pick the plan that fits your store. You won't be charged today —
                         we'll only bill you when your {trial_days}-day trial ends, and you can cancel anytime.
                     </p>
@@ -125,15 +125,15 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                 <button
                                     key={opt.key}
                                     onClick={() => setInterval(opt.key)}
-                                    className={`relative px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition-all duration-300 ${
+                                    className={`relative px-5 py-2 rounded-lg text-xs font-bold tracking-wide transition-all duration-slow ${
                                         interval === opt.key
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'text-slate-400 hover:text-slate-200'
+                                            ? 'bg-brand-600 text-white shadow-md'
+                                            : 'text-ink-muted hover:text-neutral-200'
                                     }`}
                                 >
                                     {opt.label}
                                     {opt.badge && (
-                                        <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-4xs font-black rounded-full whitespace-nowrap">
+                                        <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-4xs font-bold rounded-full whitespace-nowrap">
                                             {opt.badge}
                                         </span>
                                     )}
@@ -155,17 +155,17 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                 key={plan.slug}
                                 id={`plan-${plan.slug}`}
                                 onClick={() => setSelected(plan.slug)}
-                                className={`relative rounded-[1.75rem] border cursor-pointer overflow-hidden transition-all duration-300 flex flex-col
+                                className={`relative rounded-xl border cursor-pointer overflow-hidden transition-all duration-slow flex flex-col
                                     ${isSelected
                                         ? `bg-gradient-to-b ${style.accentFrom} to-transparent ${style.accentBorder} shadow-2xl ${style.glow} scale-[1.015]`
                                         : 'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15'}`}
                             >
                                 {plan.popular && (
-                                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500" />
+                                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-500 via-purple-400 to-brand-500" />
                                 )}
                                 {plan.popular && (
                                     <div className="absolute top-3 right-4">
-                                        <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-3xs font-black tracking-widest uppercase">
+                                        <span className="px-2.5 py-1 rounded-full bg-brand-500/15 border border-brand-500/25 text-brand-300 text-3xs font-bold tracking-widest uppercase">
                                             Most Popular
                                         </span>
                                     </div>
@@ -178,9 +178,9 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                             <PlanIcon size={18} />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-white font-black text-base tracking-tight">{plan.name}</span>
+                                            <span className="text-white font-bold text-base tracking-tight">{plan.name}</span>
                                             {isSelected && (
-                                                <span className={`text-3xs font-black tracking-[0.15em] uppercase px-2 py-0.5 rounded-full border ${style.badge}`}>
+                                                <span className={`text-3xs font-bold tracking-[0.15em] uppercase px-2 py-0.5 rounded-full border ${style.badge}`}>
                                                     Selected
                                                 </span>
                                             )}
@@ -190,26 +190,26 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                     {/* Price */}
                                     <div className="mb-5">
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-4xl font-black text-white tracking-tight">
+                                            <span className="text-4xl font-bold text-white tracking-tight">
                                                 {fmt(perMonth(plan))}
                                             </span>
-                                            <span className="text-slate-500 text-sm font-semibold">/mo</span>
+                                            <span className="text-ink-muted text-sm font-semibold">/mo</span>
                                         </div>
-                                        <span className="text-2xs text-slate-500 font-semibold mt-1 block">
+                                        <span className="text-2xs text-ink-muted font-semibold mt-1 block">
                                             {interval === 'annual'
                                                 ? `billed annually — ${fmt(plan.annual_total)}/yr`
                                                 : 'billed monthly'}
                                         </span>
                                     </div>
 
-                                    <p className="text-xs text-slate-500 leading-relaxed mb-5">{plan.tagline}</p>
+                                    <p className="text-xs text-ink-muted leading-relaxed mb-5">{plan.tagline}</p>
 
                                     {/* Features */}
                                     <div className="space-y-2">
                                         {plan.features.map((f, i) => (
                                             <div key={i} className="flex items-center gap-2.5">
                                                 <Check size={12} className={`${style.dot} flex-shrink-0`} />
-                                                <span className="text-xs text-slate-300">{f}</span>
+                                                <span className="text-xs text-neutral-300">{f}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -219,10 +219,10 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                 <div className="px-6 sm:px-7 pb-6 pt-2 mt-auto">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); proceed(plan.slug); }}
-                                        className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 duration-200 flex items-center justify-center gap-2 ${
+                                        className={`w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 duration-normal flex items-center justify-center gap-2 ${
                                             isSelected
-                                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
-                                                : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border border-white/[0.06]'
+                                                ? 'bg-gradient-to-r from-brand-500 to-purple-600 text-white shadow-lg '
+                                                : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08] border border-white/[0.06]'
                                         }`}
                                     >
                                         Start {plan.name} trial <ArrowRight size={13} />
@@ -244,9 +244,9 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                 <p className="text-sm font-bold text-white">
                                     {selectedPlan ? `${selectedPlan.name} · ${interval === 'annual' ? 'Annual' : 'Monthly'}` : 'Select a plan'}
                                 </p>
-                                <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
-                                    <Clock size={11} className="text-slate-500" />
-                                    Free for {selectedPlan?.trial_days ?? trial_days} days, then{' '}
+                                <p className="text-xs text-ink-muted mt-0.5 flex items-center gap-1.5">
+                                    <Clock size={11} className="text-ink-muted" />
+                                    Free for {selectedPlan?.trial_days ?? trial_days} days, then{''}
                                     {selectedPlan
                                         ? `${fmt(interval === 'annual' ? selectedPlan.annual_total : selectedPlan.price_monthly)}/${interval === 'annual' ? 'yr' : 'mo'}`
                                         : '—'}
@@ -257,12 +257,12 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                             id="select-plan-continue"
                             onClick={() => selected && proceed(selected)}
                             disabled={!selected}
-                            className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 whitespace-nowrap"
+                            className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-400 hover:to-purple-500 text-white font-bold text-sm transition-all disabled:opacity-50 disabled:scale-100 whitespace-nowrap"
                         >
                             Continue <ArrowRight size={15} />
                         </button>
                     </div>
-                    <p className="text-center sm:text-left text-1xs text-slate-500 mt-4 flex items-center gap-1.5 justify-center sm:justify-start">
+                    <p className="text-center sm:text-left text-1xs text-ink-muted mt-4 flex items-center gap-1.5 justify-center sm:justify-start">
                         <CreditCard size={11} /> No credit card required to start. Cancel anytime before your trial ends.
                     </p>
                 </div>

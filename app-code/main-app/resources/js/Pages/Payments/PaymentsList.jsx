@@ -26,7 +26,7 @@ const MethodIcon = ({ method }) => {
 const SortBtn = ({ label, sortKey, current, onSort }) => (
     <button
         onClick={() => onSort(sortKey)}
-        className="flex items-center gap-1 text-xs font-bold text-slate-500 uppercase hover:text-slate-800 dark:hover:text-white transition-colors"
+        className="flex items-center gap-1 text-xs font-bold text-ink-muted uppercase hover:text-ink dark:hover:text-white transition-colors"
     >
         {label}
         {current.key === sortKey
@@ -38,25 +38,25 @@ const SortBtn = ({ label, sortKey, current, onSort }) => (
 function PaymentRow({ item, type, store }) {
     const isIn = type === 'in';
     return (
-        <tr className="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0">
+        <tr className="group hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border-b border-line last:border-0">
             {/* Date */}
-            <td className="px-4 py-3 text-xs font-semibold text-slate-500 tabular-nums whitespace-nowrap">
+            <td className="px-4 py-3 text-xs font-semibold text-ink-muted tabular-nums whitespace-nowrap">
                 {formatDate(item.date || item.created_at)}
             </td>
             {/* Party */}
             <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-2xs font-black shrink-0 ${isIn ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-2xs font-bold shrink-0 ${isIn ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
                             : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'
                         }`}>
                         {(item.party?.name || 'G')[0].toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-800 dark:text-white truncate">
-                            {item.party?.name || <span className="text-slate-400 italic">No party</span>}
+                        <p className="text-sm font-bold text-ink truncate">
+                            {item.party?.name || <span className="text-ink-muted italic">No party</span>}
                         </p>
                         {item.reference && (
-                            <span className="text-2xs font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            <span className="text-2xs font-mono text-ink-muted bg-sunken px-1.5 py-0.5 rounded">
                                 {item.reference}
                             </span>
                         )}
@@ -65,18 +65,18 @@ function PaymentRow({ item, type, store }) {
             </td>
             {/* Method */}
             <td className="px-4 py-3">
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-2xs font-bold text-slate-600 dark:text-slate-400 uppercase">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-sunken text-2xs font-bold text-ink-secondary uppercase">
                     <MethodIcon method={item.method} />
                     {item.method || '—'}
                 </span>
             </td>
             {/* Notes */}
-            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 max-w-[180px] truncate">
+            <td className="px-4 py-3 text-xs text-ink-muted max-w-[180px] truncate">
                 {item.notes || '—'}
             </td>
             {/* Amount */}
             <td className="px-4 py-3 text-right">
-                <span className={`text-sm font-black tabular-nums ${isIn ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                <span className={`text-sm font-bold tabular-nums ${isIn ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                     }`}>
                     {isIn ? '+' : '−'} {formatCurrency(item.amount, store)}
                 </span>
@@ -99,7 +99,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
     });
 
     return (
-        <div className="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden min-h-0 flex-1">
+        <div className="flex flex-col rounded-2xl border border-line bg-surface shadow-sm overflow-hidden min-h-0 flex-1">
             {/* Panel Header */}
             <div className={`flex items-center justify-between px-4 py-3 border-b ${accent.border} ${accent.light}`}>
                 <div className="flex items-center gap-2">
@@ -107,26 +107,26 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                         {isIn ? <ArrowDownCircle size={14} /> : <ArrowUpCircle size={14} />}
                     </div>
                     <div>
-                        <p className="text-sm font-black text-slate-800 dark:text-white">
+                        <p className="text-sm font-bold text-ink">
                             {isIn ? 'Payment In' : 'Payment Out'}
                         </p>
-                        <p className="text-2xs text-slate-500">
+                        <p className="text-2xs text-ink-muted">
                             {isIn ? 'Money received' : 'Money sent'}
                         </p>
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className={`text-lg font-black tabular-nums ${accent.text}`}>
+                    <p className={`text-lg font-bold tabular-nums ${accent.text}`}>
                         {formatCurrency(stats?.total || 0, store)}
                     </p>
-                    <p className="text-2xs text-slate-400">
+                    <p className="text-2xs text-ink-muted">
                         {payments.length} records · Today: {formatCurrency(stats?.today || 0, store)}
                     </p>
                 </div>
             </div>
 
             {/* Add Button */}
-            <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
+            <div className="px-4 py-2 border-b border-line shrink-0">
                 <Link
                     href={isIn ? route('store.payments.in', { store_slug: store.slug }) : route('store.payments.out', { store_slug: store.slug })}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90 active:scale-95 ${accent.bg}`}
@@ -139,7 +139,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
             {/* Table */}
             <div className="overflow-auto flex-1 min-h-0">
                 <table className="w-full text-left">
-                    <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                    <thead className="sticky top-0 z-10 bg-app border-b border-line">
                         <tr>
                             <th className="px-4 py-2.5">
                                 <SortBtn label="Date" sortKey="date" current={sort} onSort={onSort} />
@@ -147,8 +147,8 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                             <th className="px-4 py-2.5">
                                 <SortBtn label="Party" sortKey="party" current={sort} onSort={onSort} />
                             </th>
-                            <th className="px-4 py-2.5 text-xs font-bold text-slate-500 uppercase">Method</th>
-                            <th className="px-4 py-2.5 text-xs font-bold text-slate-500 uppercase">Notes</th>
+                            <th className="px-4 py-2.5 text-xs font-bold text-ink-muted uppercase">Method</th>
+                            <th className="px-4 py-2.5 text-xs font-bold text-ink-muted uppercase">Notes</th>
                             <th className="px-4 py-2.5 text-right">
                                 <SortBtn label="Amount" sortKey="amount" current={sort} onSort={onSort} />
                             </th>
@@ -157,12 +157,12 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                     <tbody>
                         {sorted.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="py-16 text-center text-slate-400">
+                                <td colSpan={5} className="py-16 text-center text-ink-muted">
                                     <div className={`w-12 h-12 rounded-full ${accent.light} flex items-center justify-center mx-auto mb-3`}>
                                         {isIn ? <ArrowDownCircle size={22} className={accent.text} /> : <ArrowUpCircle size={22} className={accent.text} />}
                                     </div>
-                                    <p className="font-bold text-slate-500 dark:text-slate-400 text-sm">No {isIn ? 'incoming' : 'outgoing'} payments yet</p>
-                                    <p className="text-xs text-slate-400 mt-1">Use the button above to record one</p>
+                                    <p className="font-bold text-ink-muted text-sm">No {isIn ? 'incoming' : 'outgoing'} payments yet</p>
+                                    <p className="text-xs text-ink-muted mt-1">Use the button above to record one</p>
                                 </td>
                             </tr>
                         ) : (
@@ -172,7 +172,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                             <td colSpan={5}>
                                 {loading && (
                                     <div className="flex justify-center py-2">
-                                        <RefreshCw size={14} className="text-slate-400 animate-spin" />
+                                        <RefreshCw size={14} className="text-ink-muted animate-spin" />
                                     </div>
                                 )}
                             </td>
@@ -280,58 +280,58 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
         <OneGlanceLayout title="Payments" activeMenu="Money">
             <Head title="Payments — In & Out" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-2 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-2 overflow-hidden">
                 <MoneyModuleTabs activeTab="payments" />
 
                 {/* ── Top Summary Bar ── */}
                 <div className="grid grid-cols-3 gap-2 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
+                    <div className="bg-surface px-4 py-2.5 rounded-xl border border-line flex items-center justify-between shadow-sm">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600">
                                 <ArrowDownCircle size={15} />
                             </div>
                             <div>
-                                <p className="text-2xs font-bold text-slate-400 uppercase">Total Received</p>
-                                <p className="text-base font-black text-emerald-600">{formatCurrency(totalIn, store)}</p>
+                                <p className="text-2xs font-bold text-ink-muted uppercase">Total Received</p>
+                                <p className="text-base font-bold text-emerald-600">{formatCurrency(totalIn, store)}</p>
                             </div>
                         </div>
-                        <p className="text-2xs text-slate-400">Today: <span className="font-bold text-emerald-500">{formatCurrency(todayIn, store)}</span></p>
+                        <p className="text-2xs text-ink-muted">Today: <span className="font-bold text-emerald-500">{formatCurrency(todayIn, store)}</span></p>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
+                    <div className="bg-surface px-4 py-2.5 rounded-xl border border-line flex items-center justify-between shadow-sm">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600">
                                 <ArrowUpCircle size={15} />
                             </div>
                             <div>
-                                <p className="text-2xs font-bold text-slate-400 uppercase">Total Paid Out</p>
-                                <p className="text-base font-black text-rose-600">{formatCurrency(totalOut, store)}</p>
+                                <p className="text-2xs font-bold text-ink-muted uppercase">Total Paid Out</p>
+                                <p className="text-base font-bold text-rose-600">{formatCurrency(totalOut, store)}</p>
                             </div>
                         </div>
-                        <p className="text-2xs text-slate-400">Today: <span className="font-bold text-rose-500">{formatCurrency(todayOut, store)}</span></p>
+                        <p className="text-2xs text-ink-muted">Today: <span className="font-bold text-rose-500">{formatCurrency(todayOut, store)}</span></p>
                     </div>
 
                     <div className={`px-4 py-2.5 rounded-xl border shadow-sm flex items-center justify-between ${netFlow >= 0
-                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800/40'
+                            ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800/40'
                             : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/40'
                         }`}>
                         <div className="flex items-center gap-2">
-                            <div className={`p-1.5 rounded-lg ${netFlow >= 0 ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-600'}`}>
+                            <div className={`p-1.5 rounded-lg ${netFlow >= 0 ? 'bg-brand-100 dark:bg-brand-900/50 text-brand-600' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-600'}`}>
                                 {netFlow >= 0 ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
                             </div>
                             <div>
-                                <p className="text-2xs font-bold text-slate-400 uppercase">Net Cash Flow</p>
-                                <p className={`text-base font-black tabular-nums ${netFlow >= 0 ? 'text-indigo-600' : 'text-amber-600'}`}>
+                                <p className="text-2xs font-bold text-ink-muted uppercase">Net Cash Flow</p>
+                                <p className={`text-base font-bold tabular-nums ${netFlow >= 0 ? 'text-brand-600' : 'text-amber-600'}`}>
                                     {netFlow >= 0 ? '+' : '−'} {formatCurrency(Math.abs(netFlow), store)}
                                 </p>
                             </div>
                         </div>
-                        <p className="text-2xs text-slate-400">{filteredIn.length + filteredOut.length} transactions</p>
+                        <p className="text-2xs text-ink-muted">{filteredIn.length + filteredOut.length} transactions</p>
                     </div>
                 </div>
 
                 {/* ── Filter Bar ── */}
-                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Period pills */}
                     <div className="flex items-center gap-1">
                         {periods.map(p => (
@@ -339,8 +339,8 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                                 key={p.val}
                                 onClick={() => handlePeriod(p.val)}
                                 className={`px-3 py-1 text-2xs font-bold uppercase rounded-full transition-all ${period === p.val
-                                        ? 'bg-indigo-600 text-white shadow-sm'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        ? 'bg-brand-600 text-white shadow-sm'
+                                        : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }`}
                             >
                                 {p.label}
@@ -350,24 +350,24 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
 
                     {period === 'custom' && (
                         <div className="flex items-center gap-1.5 animate-in fade-in">
-                            <Calendar size={13} className="text-slate-400" />
+                            <Calendar size={13} className="text-ink-muted" />
                             <input type="date" name="from" value={dateRange.from} onChange={handleDate}
-                                className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500" />
-                            <span className="text-slate-400 text-xs">→</span>
+                                className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
+                            <span className="text-ink-muted text-xs">→</span>
                             <input type="date" name="to" value={dateRange.to} onChange={handleDate}
-                                className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500" />
+                                className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
                         </div>
                     )}
 
                     <div className="relative ml-auto">
-                        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted" />
                         <input
                             type="text"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && applyFilters({ search })}
                             placeholder="Search party, reference..."
-                            className="pl-7 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 w-52 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                            className="pl-7 pr-3 py-1.5 text-xs bg-app border border-line rounded-lg text-ink-secondary dark:text-ink w-52 focus:ring-1 focus:ring-brand-500 focus:outline-none"
                         />
                     </div>
                 </div>

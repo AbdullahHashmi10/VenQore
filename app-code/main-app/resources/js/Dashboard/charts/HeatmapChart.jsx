@@ -33,7 +33,7 @@ export default function HeatmapChart({ data }) {
                     return (
                         <React.Fragment key={dayIndex}>
                             {/* Day Header */}
-                            <div className="text-[8px] font-semibold text-ink-muted capitalize">{d}</div>
+                            <div className="text-4xs font-semibold text-ink-muted capitalize">{d}</div>
                             
                             {/* Grid block intensities */}
                             {[10, 12, 14, 16, 18].map((hour, hourIndex) => {

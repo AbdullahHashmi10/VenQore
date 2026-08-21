@@ -18,10 +18,10 @@ import {
 
 const ROLE_INFO = {
     owner:   { label: 'Owner',   icon: Crown,   color: 'text-amber-400',   bg: 'bg-amber-400/10',   border: 'border-amber-400/20' },
-    admin:   { label: 'Admin',   icon: Zap,     color: 'text-indigo-400',  bg: 'bg-indigo-400/10',  border: 'border-indigo-400/20' },
+    admin:   { label: 'Admin',   icon: Zap,     color: 'text-brand-400',  bg: 'bg-brand-400/10',  border: 'border-brand-400/20' },
     manager: { label: 'Manager', icon: Users,   color: 'text-blue-400',    bg: 'bg-blue-400/10',    border: 'border-blue-400/20' },
     cashier: { label: 'Cashier', icon: Store,   color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
-    viewer:  { label: 'Viewer',  icon: Users,   color: 'text-slate-400',   bg: 'bg-slate-400/10',   border: 'border-slate-400/20' },
+    viewer:  { label: 'Viewer',  icon: Users,   color: 'text-ink-muted',   bg: 'bg-neutral-400/10',   border: 'border-line-strong' },
 };
 
 export default function AcceptInvite({ token, invite_email, store_name, role }) {
@@ -49,7 +49,7 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
 
             {/* Ambient */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-indigo-900/15 rounded-full blur-[120px]" />
+                <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-brand-900/15 rounded-full blur-[120px]" />
             </div>
 
             <div className="relative z-10 w-full max-w-md">
@@ -70,16 +70,16 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
                             <RoleIcon size={14} />
                             {roleInfo.label}
                         </div>
-                        <h1 className="text-2xl font-black text-white tracking-tight mb-2">
+                        <h1 className="text-2xl font-bold text-white tracking-tight mb-2">
                             You're invited!
                         </h1>
-                        <p className="text-slate-300 text-sm">
-                            <strong className="text-white">{store_name}</strong> has invited you to join as a{' '}
+                        <p className="text-neutral-300 text-sm">
+                            <strong className="text-white">{store_name}</strong> has invited you to join as a{''}
                             <strong className={roleInfo.color}>{roleInfo.label}</strong>.
                         </p>
-                        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-slate-500">
+                        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-ink-muted">
                             <Mail size={12} />
-                            <span>Sent to: <span className="text-slate-300">{invite_email}</span></span>
+                            <span>Sent to: <span className="text-neutral-300">{invite_email}</span></span>
                         </div>
                     </div>
 
@@ -89,7 +89,7 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
 
                         {/* Name */}
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">
+                            <label className="block text-sm font-semibold text-neutral-300 mb-2">
                                 Your Name <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -99,7 +99,7 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
                                 onChange={e => setData('name', e.target.value)}
                                 placeholder="How should we call you?"
                                 className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600
-                                    focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors
+                                    focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors
                                     ${errors.name ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
                                 autoFocus
                             />
@@ -108,8 +108,8 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
 
                         {/* Password — only if new user */}
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">
-                                Set a Password <span className="text-slate-500 font-normal">(skip if you already have an account)</span>
+                            <label className="block text-sm font-semibold text-neutral-300 mb-2">
+                                Set a Password <span className="text-ink-muted font-normal">(skip if you already have an account)</span>
                             </label>
                             <div className="relative">
                                 <input
@@ -119,13 +119,13 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
                                     onChange={e => setData('password', e.target.value)}
                                     placeholder="Min 8 characters"
                                     className={`w-full px-4 py-3 pr-11 rounded-xl bg-white/5 border text-white placeholder-slate-600
-                                        focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors
+                                        focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors
                                         ${errors.password ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPass(!showPass)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-neutral-300 transition-colors"
                                 >
                                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
@@ -139,11 +139,11 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
                             type="submit"
                             disabled={processing || !data.name}
                             className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
-                                bg-gradient-to-r from-indigo-500 to-purple-600
-                                hover:from-indigo-400 hover:to-purple-500
-                                text-white font-bold text-base transition-all
-                                hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/25
-                                disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed mt-2"
+ bg-gradient-to-r from-brand-500 to-purple-600
+ hover:from-brand-400 hover:to-purple-500
+ text-white font-bold text-base transition-all
+ hover:shadow-xl hover:
+ disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed mt-2"
                         >
                             {processing ? (
                                 <><Loader2 size={18} className="animate-spin" /> Joining…</>
@@ -153,13 +153,13 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
                         </button>
                     </form>
 
-                    <p className="text-center text-xs text-slate-600 mt-5">
-                        By joining, you agree to VenQore's{' '}
-                        <a href="/terms" className="text-slate-500 hover:text-slate-300 underline">Terms of Service</a>.
+                    <p className="text-center text-xs text-ink-secondary mt-5">
+                        By joining, you agree to VenQore's{''}
+                        <a href="/terms" className="text-ink-muted hover:text-neutral-300 underline">Terms of Service</a>.
                     </p>
                 </div>
 
-                <p className="text-center text-xs text-slate-600 mt-4">
+                <p className="text-center text-xs text-ink-secondary mt-4">
                     If you weren't expecting this invite, you can safely close this page.
                 </p>
             </div>

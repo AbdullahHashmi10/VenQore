@@ -75,19 +75,19 @@ export default function BarcodeValidatorTool({ prefill = '', toolGroups = [] }) 
             }}
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }]}
         >
-            <div className="rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-8">
+            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-8">
                 <form onSubmit={check} className="flex gap-3 mb-6 flex-col sm:flex-row">
                     <input
                         type="text"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         placeholder="e.g. 012345678905"
-                        className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-mono focus:outline-none focus:border-indigo-400/60"
+                        className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-sm font-mono focus:outline-none focus:border-brand-400/60"
                     />
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-7 py-3 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 shrink-0"
+                        className="px-7 py-3 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 shrink-0"
                     >
                         {loading ? 'Checking…' : 'Validate'}
                     </button>
@@ -107,38 +107,38 @@ export default function BarcodeValidatorTool({ prefill = '', toolGroups = [] }) 
                             ) : (
                                 <XCircle size={22} className="text-red-500 dark:text-red-400 shrink-0" />
                             )}
-                            <p className={`font-black ${result.valid ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>
+                            <p className={`font-bold ${result.valid ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>
                                 {result.valid ? `Valid ${result.format_name}` : `Invalid ${result.format_name}`}
                             </p>
                         </div>
 
-                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">{result.explanation}</p>
+                        <p className="text-sm text-ink-secondary leading-relaxed mb-4">{result.explanation}</p>
 
                         <div className="grid sm:grid-cols-2 gap-3 mb-4 text-sm">
-                            <p className="text-slate-500 dark:text-slate-400">
-                                Supplied check digit: <span className="font-mono text-slate-900 dark:text-white">{result.supplied_check_digit}</span>
+                            <p className="text-ink-muted">
+                                Supplied check digit: <span className="font-mono text-ink">{result.supplied_check_digit}</span>
                             </p>
-                            <p className="text-slate-500 dark:text-slate-400">
-                                Computed check digit: <span className="font-mono text-slate-900 dark:text-white">{result.computed_check_digit}</span>
+                            <p className="text-ink-muted">
+                                Computed check digit: <span className="font-mono text-ink">{result.computed_check_digit}</span>
                             </p>
-                            <p className="text-slate-500 dark:text-slate-400 sm:col-span-2">
-                                GTIN-14 form: <span className="font-mono text-slate-900 dark:text-white">{result.gtin14}</span>
+                            <p className="text-ink-muted sm:col-span-2">
+                                GTIN-14 form: <span className="font-mono text-ink">{result.gtin14}</span>
                             </p>
                         </div>
 
                         <details className="text-sm">
-                            <summary className="cursor-pointer font-bold text-slate-600 dark:text-slate-300 mb-2">Show the arithmetic</summary>
-                            <div className="mt-2 font-mono text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                            <summary className="cursor-pointer font-bold text-ink-secondary mb-2">Show the arithmetic</summary>
+                            <div className="mt-2 font-mono text-xs text-ink-muted space-y-1">
                                 {result.breakdown.map((row, i) => (
                                     <p key={i}>digit {row.digit} &times; weight {row.weight} = {row.product}</p>
                                 ))}
-                                <p className="pt-2 border-t border-slate-900/10 dark:border-white/10 text-slate-700 dark:text-slate-300">sum = {result.sum} &rarr; check digit = (10 &minus; ({result.sum} mod 10)) mod 10 = {result.computed_check_digit}</p>
+                                <p className="pt-2 border-t border-line dark:border-white/10 text-ink-secondary">sum = {result.sum} &rarr; check digit = (10 &minus; ({result.sum} mod 10)) mod 10 = {result.computed_check_digit}</p>
                             </div>
                         </details>
 
                         {!result.valid && (
-                            <div className="mt-4 pt-4 border-t border-slate-900/10 dark:border-white/10">
-                                <a href="/tools/barcode-generator" className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                            <div className="mt-4 pt-4 border-t border-line dark:border-white/10">
+                                <a href="/tools/barcode-generator" className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline">
                                     Regenerate this as a new, valid barcode &rarr;
                                 </a>
                             </div>

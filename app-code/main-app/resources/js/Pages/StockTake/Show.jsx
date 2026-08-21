@@ -15,7 +15,7 @@ export default function Show({ audit }) {
     if (!audit) return null;
 
     const statusColors = {
-        draft: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+        draft: 'bg-neutral-100 text-ink-secondary dark:bg-surface dark:text-ink-muted',
         completed: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
     };
 
@@ -29,20 +29,20 @@ export default function Show({ audit }) {
                     <div className="flex items-center gap-4">
                         <Link
                             href={route('store.stock-takes.index', { store_slug: store.slug })}
-                            className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 transition-colors"
+                            className="p-2 rounded-xl bg-surface border border-line hover:bg-interactive-hover transition-colors"
                         >
-                            <ArrowLeft size={20} className="text-slate-500" />
+                            <ArrowLeft size={20} className="text-ink-muted" />
                         </Link>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                                <h1 className="text-2xl font-bold text-ink">
                                     Stock Audit #{audit.reference_number || audit.id}
                                 </h1>
-                                <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider ${statusColors[audit.status] || 'bg-slate-100'}`}>
+                                <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider ${statusColors[audit.status] || 'bg-sunken'}`}>
                                     {audit.status}
                                 </span>
                             </div>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-ink-muted">
                                 Created on {new Date(audit.created_at).toLocaleDateString()}
                             </p>
                         </div>
@@ -52,45 +52,45 @@ export default function Show({ audit }) {
                 {/* Details Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Warehouse Info */}
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600">
+                            <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-lg text-brand-600">
                                 <Store size={20} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Warehouse</p>
-                                <p className="font-bold text-slate-800 dark:text-white">{audit.warehouse?.name || 'Unknown'}</p>
+                                <p className="text-xs font-bold text-ink-muted uppercase">Warehouse</p>
+                                <p className="font-bold text-ink">{audit.warehouse?.name || 'Unknown'}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500">
+                            <div className="p-2 bg-app rounded-lg text-ink-muted">
                                 <Calendar size={20} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Audit Date</p>
-                                <p className="font-bold text-slate-800 dark:text-white">{audit.date}</p>
+                                <p className="text-xs font-bold text-ink-muted uppercase">Audit Date</p>
+                                <p className="font-bold text-ink">{audit.date}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Creator Info */}
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
                                 <User size={20} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Audited By</p>
-                                <p className="font-bold text-slate-800 dark:text-white">{audit.creator?.name || 'System'}</p>
+                                <p className="text-xs font-bold text-ink-muted uppercase">Audited By</p>
+                                <p className="font-bold text-ink">{audit.creator?.name || 'System'}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500">
+                            <div className="p-2 bg-app rounded-lg text-ink-muted">
                                 <FileText size={20} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Notes</p>
-                                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 line-clamp-2">
+                                <p className="text-xs font-bold text-ink-muted uppercase">Notes</p>
+                                <p className="text-sm font-medium text-ink-secondary line-clamp-2">
                                     {audit.notes || 'No notes provided.'}
                                 </p>
                             </div>
@@ -98,33 +98,33 @@ export default function Show({ audit }) {
                     </div>
 
                     {/* Stats */}
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-center">
+                    <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm flex flex-col justify-center">
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                <p className="text-2xl font-black text-slate-800 dark:text-white">{audit.items?.length || 0}</p>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Total Items</p>
+                            <div className="text-center p-3 bg-app rounded-xl">
+                                <p className="text-2xl font-bold text-ink">{audit.items?.length || 0}</p>
+                                <p className="text-xs font-bold text-ink-muted uppercase">Total Items</p>
                             </div>
-                            <div className="text-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                <p className="text-2xl font-black text-rose-500">
+                            <div className="text-center p-3 bg-app rounded-xl">
+                                <p className="text-2xl font-bold text-rose-500">
                                     {audit.items?.filter(i => i.difference !== 0).length || 0}
                                 </p>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Discrepancies</p>
+                                <p className="text-xs font-bold text-ink-muted uppercase">Discrepancies</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Items Table */}
-                <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <ClipboardList size={20} className="text-indigo-500" />
+                <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-line">
+                        <h2 className="text-lg font-bold text-ink flex items-center gap-2">
+                            <ClipboardList size={20} className="text-brand-500" />
                             Audit Results
                         </h2>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
+                            <thead className="bg-app text-ink-muted font-bold uppercase text-xs">
                                 <tr>
                                     <th className="px-6 py-4">Product</th>
                                     <th className="px-6 py-4 text-right">Expected</th>
@@ -133,30 +133,30 @@ export default function Show({ audit }) {
                                     <th className="px-6 py-4 text-right">Cost Impact</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-line">
                                 {audit.items?.map((item) => {
                                     const diff = parseFloat(item.difference);
-                                    const diffColor = diff === 0 ? 'text-slate-400' : diff > 0 ? 'text-emerald-500' : 'text-rose-500';
+                                    const diffColor = diff === 0 ? 'text-ink-muted' : diff > 0 ? 'text-emerald-500' : 'text-rose-500';
                                     const impact = diff * (item.cost_price || 0);
 
                                     return (
-                                        <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">
+                                        <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                            <td className="px-6 py-4 font-medium text-ink">
                                                 {item.product?.name || 'Unknown Product'}
-                                                <span className="block text-xs text-slate-400 font-mono mt-0.5">
+                                                <span className="block text-xs text-ink-muted font-mono mt-0.5">
                                                     {item.product?.code}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right text-slate-500">
+                                            <td className="px-6 py-4 text-right text-ink-muted">
                                                 {parseFloat(item.expected_quantity)}
                                             </td>
-                                            <td className="px-6 py-4 text-right font-bold text-slate-700 dark:text-slate-200">
+                                            <td className="px-6 py-4 text-right font-bold text-ink-secondary dark:text-ink">
                                                 {parseFloat(item.counted_quantity)}
                                             </td>
                                             <td className={`px-6 py-4 text-right font-bold ${diffColor}`}>
                                                 {diff > 0 ? `+${diff}` : diff}
                                             </td>
-                                            <td className={`px-6 py-4 text-right font-mono ${diff === 0 ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                            <td className={`px-6 py-4 text-right font-mono ${diff === 0 ? 'text-ink-muted' : 'text-ink-secondary'}`}>
                                                 {impact === 0 ? '-' : (impact > 0 ? `+${impact.toFixed(2)}` : impact.toFixed(2))}
                                             </td>
                                         </tr>

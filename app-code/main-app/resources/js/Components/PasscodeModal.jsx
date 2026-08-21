@@ -80,34 +80,34 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-neutral-900/80 backdrop-blur-sm animate-in fade-in duration-normal">
             {/* No Hidden Input Needed - Using Global Listener */}
 
-            <div className="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-full max-w-xs rounded-2xl shadow-2xl border border-line overflow-hidden scale-100 animate-in zoom-in-95 duration-normal" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
-                <div className="p-6 text-center border-b border-slate-100 dark:border-slate-800 relative">
+                <div className="p-6 text-center border-b border-line relative">
                     <button
                         onClick={onClose}
-                        className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        className="absolute right-4 top-4 text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors"
                     >
                         <X size={20} />
                     </button>
-                    <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-indigo-600 dark:text-indigo-400">
+                    <div className="w-12 h-12 bg-brand-100 dark:bg-brand-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-brand-600 dark:text-brand-400">
                         <Lock size={24} />
                     </div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white">Admin Access</h3>
+                    <h3 className="text-lg font-bold text-ink">Admin Access</h3>
                     <div className="h-4"></div>
                 </div>
 
                 {/* Display */}
-                <div className="py-8 bg-slate-50 dark:bg-slate-800/50 flex justify-center">
+                <div className="py-8 bg-app flex justify-center">
                     <div className="flex gap-3">
                         {[...Array(6)].map((_, i) => (
                             <div
                                 key={i}
-                                className={`w-4 h-4 rounded-full transition-all duration-200 ${i < input.length
-                                    ? 'bg-indigo-600 scale-110'
-                                    : 'bg-slate-300 dark:bg-slate-700'
+                                className={`w-4 h-4 rounded-full transition-all duration-normal ${i < input.length
+                                    ? 'bg-brand-600 scale-110'
+                                    : 'bg-sunken'
                                     } ${error ? 'bg-red-500 animate-pulse' : ''}`}
                             />
                         ))}
@@ -123,7 +123,7 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
                         <button
                             key={num}
                             onClick={() => handleNumberClick(num.toString())}
-                            className="h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-xl font-bold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-lg hover:scale-105 transition-all active:scale-95"
+                            className="h-14 rounded-2xl bg-sunken text-xl font-bold text-ink-secondary dark:text-ink hover:bg-white dark:hover:bg-interactive-hover hover:shadow-lg transition-all active:scale-95"
                         >
                             {num}
                         </button>
@@ -132,7 +132,7 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
                     <div className="col-start-1">
                         <button
                             onClick={() => verifyPasscode(input)}
-                            className="w-full h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/30 hover:shadow-lg hover:scale-105 transition-all active:scale-95 flex items-center justify-center"
+                            className="w-full h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-800/30 hover:shadow-lg transition-all active:scale-95 flex items-center justify-center"
                         >
                             <Check size={28} />
                         </button>
@@ -141,7 +141,7 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
                     <div className="col-start-2">
                         <button
                             onClick={() => handleNumberClick('0')}
-                            className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-xl font-bold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-lg hover:scale-105 transition-all active:scale-95"
+                            className="w-full h-14 rounded-2xl bg-sunken text-xl font-bold text-ink-secondary dark:text-ink hover:bg-white dark:hover:bg-interactive-hover hover:shadow-lg transition-all active:scale-95"
                         >
                             0
                         </button>
@@ -150,7 +150,7 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
                     <div className="col-start-3">
                         <button
                             onClick={handleDelete}
-                            className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all flex items-center justify-center active:scale-95"
+                            className="w-full h-14 rounded-2xl bg-sunken text-ink-muted hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all flex items-center justify-center active:scale-95"
                         >
                             <Delete size={24} />
                         </button>

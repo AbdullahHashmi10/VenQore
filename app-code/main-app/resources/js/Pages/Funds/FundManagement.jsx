@@ -37,12 +37,12 @@ import { vq } from '@/theme/runtime';
 const Modal = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700 overflow-hidden" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">{title}</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
-                        <X size={18} className="text-slate-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-normal" onClick={onClose}>
+            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md border border-line overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between p-5 border-b border-line">
+                    <h3 className="text-lg font-bold text-ink">{title}</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-colors">
+                        <X size={18} className="text-ink-muted" />
                     </button>
                 </div>
                 <div className="p-5">{children}</div>
@@ -85,30 +85,30 @@ const ActionCard3D = ({ icon: Icon, title, description, colorClass, glowColor, o
     return (
         <button
             onClick={onClick}
-            className="group relative w-full h-[120px] cursor-pointer block animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-backwards z-10 hover:z-20"
+            className="group relative w-full h-[120px] cursor-pointer block animate-in fade-in slide-in-from-bottom-4 duration-slower fill-mode-backwards z-10 hover:z-20"
             style={{ animationDelay: `${delay}ms` }}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
             {/* Background Blob */}
-            <div className={`absolute inset-0 ${colorClass} rounded-2xl blur-[30px] opacity-20 group-hover:opacity-40 transition-opacity duration-500`} />
+            <div className={`absolute inset-0 ${colorClass} rounded-2xl blur-[30px] opacity-20 group-hover:opacity-40 transition-opacity duration-slower`} />
 
             {/* Card Content */}
             <div
                 ref={cardRef}
-                className="relative h-full w-full bg-white dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-white/10 p-4 flex flex-col items-center justify-center text-center transition-transform duration-100 ease-out will-change-transform shadow-sm group-hover:shadow-xl dark:shadow-black/50"
+                className="relative h-full w-full bg-surface backdrop-blur-xl rounded-2xl border border-line dark:border-white/10 p-4 flex flex-col items-center justify-center text-center transition-transform duration-fast ease-out will-change-transform shadow-sm group-hover:shadow-xl dark:shadow-black/50"
                 style={{ transformStyle: 'preserve-3d' }}
             >
-                <div ref={glowRef} className="absolute inset-0 transition-opacity duration-300 pointer-events-none opacity-0 mix-blend-soft-light z-20 rounded-2xl" />
+                <div ref={glowRef} className="absolute inset-0 transition-opacity duration-slow pointer-events-none opacity-0 mix-blend-soft-light z-20 rounded-2xl" />
 
                 <div className="relative z-10 flex flex-col items-center">
-                    <div className={`mb-2 p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 ${glowColor} shadow-inner group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={`mb-2 p-2.5 rounded-xl bg-surface dark:bg-white/5 border border-line dark:border-white/10 ${glowColor} shadow-inner transition-transform duration-slow`}>
                         <Icon size={20} />
                     </div>
-                    <h3 className="text-sm font-bold mb-0.5 text-slate-800 dark:text-white group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors">
+                    <h3 className="text-sm font-bold mb-0.5 text-ink group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">
                         {title}
                     </h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-2xs font-medium">
+                    <p className="text-ink-muted text-2xs font-medium">
                         {description}
                     </p>
                 </div>
@@ -144,10 +144,10 @@ const FundFlowChart = ({ transactions, store }) => {
     }, [transactions]);
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm h-full min-h-[300px] flex flex-col">
+        <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm h-full min-h-[300px] flex flex-col">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600">
+                <h2 className="text-lg font-bold text-ink flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600">
                         <TrendingUp size={16} />
                     </div>
                     Fund Flow Analysis
@@ -345,73 +345,73 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                 store={store}
             />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-2 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-2 overflow-hidden">
 
                 {/* 1. Main Tabs */}
                 <MoneyModuleTabs activeTab="funds" className="!mb-2" />
 
                 {/* 2. Sub Navigation Bar */}
-                <div className="flex items-center gap-2 overflow-x-auto p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0 no-scrollbar">
+                <div className="flex items-center gap-2 overflow-x-auto p-1 bg-surface rounded-xl border border-line shadow-sm shrink-0 no-scrollbar">
                     <button
                         onClick={() => handleNavClick('dashboard')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'dashboard' ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'dashboard' ? 'bg-neutral-800 text-white dark:bg-white dark:text-ink shadow-md' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         <Settings2 size={16} /> Dashboard
                     </button>
-                    <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                    <div className="w-px h-6 bg-sunken mx-1"></div>
                     <button
                         onClick={() => handleNavClick('transactions', 'all')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'transactions' && subMode === 'all' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'transactions' && subMode === 'all' ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         All Transactions
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'deposits')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'deposits' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'deposits' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Deposits <span className="text-2xs bg-emerald-200 dark:bg-emerald-800 px-1.5 rounded-full ml-1">Add</span>
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'withdrawals')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'withdrawals' ? 'bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'withdrawals' ? 'bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Withdrawals <span className="text-2xs bg-rose-200 dark:bg-rose-800 px-1.5 rounded-full ml-1">Rem</span>
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'transfers')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'transactions' && subMode === 'transfers' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'transactions' && subMode === 'transfers' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Transfers
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'adjustments')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'transactions' && subMode === 'adjustments' ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'transactions' && subMode === 'adjustments' ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Adjustments
                     </button>
-                    <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                    <div className="w-px h-6 bg-sunken mx-1"></div>
                     <button
                         onClick={() => handleNavClick('transactions', 'sales')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'sales' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'sales' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Sales
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'purchases')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'purchases' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'purchases' ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Purchases
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'expenses')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'expenses' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'expenses' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Expenses
                     </button>
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-hidden animate-in fade-in duration-300">
+                <div className="flex-1 overflow-hidden animate-in fade-in duration-slow">
 
                     {/* MODE 1: DASHBOARD */}
                     {mode === 'dashboard' && (
@@ -467,29 +467,29 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
 
                                 {/* Financial Pulse (Spans 4 cols) - Midnight Nebula Theme */}
                                 <div className="lg:col-span-4 h-full flex flex-col">
-                                    <div className="flex-1 bg-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden group border border-slate-800">
+                                    <div className="flex-1 bg-neutral-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group border border-neutral-800">
                                         {/* Stars/Noise Overlay */}
                                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
-                                        <div className="absolute top-0 right-0 p-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/20 transition-colors duration-500"></div>
-                                        <div className="absolute bottom-0 left-0 p-24 bg-purple-500/10 rounded-full blur-3xl -ml-12 -mb-12 group-hover:bg-purple-500/20 transition-colors duration-500"></div>
+                                        <div className="absolute top-0 right-0 p-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors duration-slower"></div>
+                                        <div className="absolute bottom-0 left-0 p-24 bg-purple-500/10 rounded-full blur-3xl -ml-12 -mb-12 group-hover:bg-purple-500/20 transition-colors duration-slower"></div>
 
                                         <div className="relative z-10 flex flex-col justify-between h-full">
                                             <div>
-                                                <h3 className="text-slate-400 font-medium text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+                                                <h3 className="text-ink-muted font-medium text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
                                                     <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)] animate-pulse"></div>
                                                     Total Business Liquidity
                                                 </h3>
-                                                <h2 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-indigo-300">
+                                                <h2 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-brand-100 to-brand-300">
                                                     {getCurrencySymbol()} {parseFloat(totalFunds).toLocaleString()}
                                                 </h2>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 mt-6">
                                                 <div className="bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
-                                                    <p className="text-2xs text-slate-400 uppercase font-bold mb-1">Cash In Hand</p>
+                                                    <p className="text-2xs text-ink-muted uppercase font-bold mb-1">Cash In Hand</p>
                                                     <p className="font-bold text-lg text-emerald-400">{getCurrencySymbol()} {parseFloat(cashAccount.balance).toLocaleString()}</p>
                                                 </div>
                                                 <div className="bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
-                                                    <p className="text-2xs text-slate-400 uppercase font-bold mb-1">Bank Accounts</p>
+                                                    <p className="text-2xs text-ink-muted uppercase font-bold mb-1">Bank Accounts</p>
                                                     <p className="font-bold text-lg text-blue-400">{getCurrencySymbol()} {bankAccounts.reduce((sum, b) => sum + parseFloat(b.balance), 0).toLocaleString()}</p>
                                                 </div>
                                             </div>
@@ -499,21 +499,21 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                             </div>
 
                             {/* Recent Activity (Expanded to fill remaining space) */}
-                            <div className="flex-1 min-h-0 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                            <div className="flex-1 min-h-0 bg-surface rounded-2xl p-6 border border-line shadow-sm flex flex-col">
                                 <div className="flex justify-between items-center mb-4 shrink-0">
-                                    <h3 className="text-slate-800 dark:text-white font-bold flex items-center gap-2">
-                                        <Clock size={16} className="text-slate-400" /> Recent Activity
+                                    <h3 className="text-ink font-bold flex items-center gap-2">
+                                        <Clock size={16} className="text-ink-muted" /> Recent Activity
                                     </h3>
                                     <button 
                                         onClick={() => setMode('transactions')}
-                                        className="text-2xs font-black uppercase text-indigo-500 hover:text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                                        className="text-2xs font-bold uppercase text-brand-500 hover:text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
                                     >
                                         Full History <ExternalLink size={10} />
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
                                     {transactions.slice(0, 10).map(tx => (
-                                        <div key={tx.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-transparent dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10">
+                                        <div key={tx.id} className="flex items-center justify-between p-3 bg-app rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent dark:border-white/5 hover:border-line dark:hover:border-white/10">
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                                                     ['add', 'sale'].includes(tx.type) ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' :
@@ -525,25 +525,25 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                                      <ArrowLeftRight size={18} />}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-slate-800 dark:text-white text-sm line-clamp-1">{tx.reason || 'Transaction'}</p>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <p className="font-bold text-ink text-sm line-clamp-1">{tx.reason || 'Transaction'}</p>
+                                                    <div className="flex items-center gap-2 text-xs text-ink-muted">
                                                         <span>{tx.created_at}</span>
-                                                        <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></span>
+                                                        <span className="w-1 h-1 rounded-full bg-sunken"></span>
                                                         <span>{tx.account_name}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <span className={`text-sm font-bold ${tx.type === 'add' ? 'text-emerald-600' :
                                                 tx.type === 'remove' ? 'text-rose-600' :
-                                                    'text-slate-700 dark:text-slate-300'
+                                                    'text-ink-secondary'
                                                 }`}>
                                                 {tx.type === 'add' ? '+' : tx.type === 'remove' ? '-' : ''} {getCurrencySymbol()} {parseFloat(tx.amount).toLocaleString()}
                                             </span>
                                         </div>
                                     ))}
                                     {transactions.length === 0 && (
-                                        <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                                            <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-3">
+                                        <div className="h-full flex flex-col items-center justify-center text-ink-muted">
+                                            <div className="p-4 bg-sunken rounded-full mb-3">
                                                 <Clock size={24} className="opacity-50" />
                                             </div>
                                             <p className="text-sm">No recent activity</p>
@@ -556,25 +556,25 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
 
                     {/* MODE 2: ALL TRANSACTIONS */}
                     {mode === 'transactions' && (
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-full mb-4">
+                        <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden flex flex-col h-full mb-4">
                             {/* Toolbar */}
-                            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/50 text-black dark:text-white">
+                            <div className="p-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sunken/50 dark:bg-surface text-black dark:text-white">
                                 <div className="flex items-center gap-2 w-full sm:w-auto">
                                     <div className="relative w-full sm:w-64">
-                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                         <input
                                             type="text"
                                             value={searchTerm}
                                             onChange={e => setSearchTerm(e.target.value)}
                                             placeholder="Search..."
-                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-surface text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none"
                                         />
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 flex items-center gap-2 cursor-pointer">
-                                        <Filter size={14} className="text-slate-400" />
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                                    <div className="bg-surface border border-line rounded-xl px-3 py-2 flex items-center gap-2 cursor-pointer">
+                                        <Filter size={14} className="text-ink-muted" />
+                                        <span className="text-xs font-bold text-ink-secondary">
                                             {filteredTransactions.length} records
                                         </span>
                                     </div>
@@ -584,29 +584,29 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                             {/* Table */}
                             <div className="flex-1 overflow-auto custom-scrollbar">
                                 <table className="w-full text-left border-collapse">
-                                    <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                    <thead className="sticky top-0 z-10 bg-app border-b border-line">
                                         <tr>
-                                            <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[15%]">Date</th>
-                                            <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[10%]">Type</th>
-                                            <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[30%]">Details</th>
-                                            <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[15%]">Account</th>
-                                            <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right w-[15%]">Amount</th>
-                                            <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[15%] text-right">Reference</th>
+                                            <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[15%]">Date</th>
+                                            <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[10%]">Type</th>
+                                            <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[30%]">Details</th>
+                                            <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[15%]">Account</th>
+                                            <th className="p-4 text-xs font-bold text-ink-muted uppercase text-right w-[15%]">Amount</th>
+                                            <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[15%] text-right">Reference</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <tbody className="divide-y divide-line">
                                         {filteredTransactions.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="p-12 text-center text-slate-400">
+                                                <td colSpan={6} className="p-12 text-center text-ink-muted">
                                                     <p>No transactions match your search.</p>
                                                 </td>
                                             </tr>
                                         ) : (
                                             filteredTransactions.map(tx => (
-                                                <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                    <td className="p-4 text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{tx.created_at}</td>
+                                                <tr key={tx.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                                    <td className="p-4 text-sm font-medium text-ink-secondary whitespace-nowrap">{tx.created_at}</td>
                                                     <td className="p-4">
-                                                        <span className={`px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wide border ${
+                                                        <span className={`px-2.5 py-1 rounded-full text-2xs font-bold uppercase tracking-wide border ${
                                                             ['add', 'sale'].includes(tx.type) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                                                             ['remove', 'purchase', 'expense'].includes(tx.type) ? 'bg-rose-50 text-rose-600 border-rose-200' :
                                                             tx.type === 'transfer' ? 'bg-blue-50 text-blue-600 border-blue-200' :
@@ -622,16 +622,16 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                                         </span>
                                                     </td>
                                                     <td className="p-4">
-                                                        <p className="text-sm font-bold text-slate-800 dark:text-white line-clamp-1">{tx.reason}</p>
-                                                        {tx.notes && <p className="text-xs text-slate-400 line-clamp-1 italic">{tx.notes}</p>}
+                                                        <p className="text-sm font-bold text-ink line-clamp-1">{tx.reason}</p>
+                                                        {tx.notes && <p className="text-xs text-ink-muted line-clamp-1 italic">{tx.notes}</p>}
                                                     </td>
-                                                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{tx.account_name}</td>
-                                                    <td className={`p-4 text-right text-sm font-black tabular-nums ${
+                                                    <td className="p-4 text-sm text-ink-secondary">{tx.account_name}</td>
+                                                    <td className={`p-4 text-right text-sm font-bold tabular-nums ${
                                                         tx.is_outgoing ? 'text-rose-600' : 'text-emerald-600'
                                                     }`}>
                                                         {tx.is_outgoing ? '-' : '+'} {getCurrencySymbol()} {parseFloat(tx.amount).toLocaleString()}
                                                     </td>
-                                                    <td className="p-4 text-right text-xs font-mono text-slate-400">{tx.reference || '-'}</td>
+                                                    <td className="p-4 text-right text-xs font-mono text-ink-muted">{tx.reference || '-'}</td>
                                                 </tr>
                                             ))
                                         )}
@@ -651,13 +651,13 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
             <Modal isOpen={activeModal === 'add'} onClose={() => setActiveModal(null)} title="Add Funds">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Add To</label>
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Add To</label>
                         <div className="grid grid-cols-2 gap-2">
-                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'cash' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'cash' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'cash' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'cash' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-line'}`}>
                                 <Wallet size={20} className="mx-auto mb-1 text-emerald-500" />
                                 <p className="text-sm font-medium">Cash</p>
                             </button>
-                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'bank' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'bank' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'bank' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'bank' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-line'}`}>
                                 <Landmark size={20} className="mx-auto mb-1 text-blue-500" />
                                 <p className="text-sm font-medium">Bank</p>
                             </button>
@@ -665,22 +665,22 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                     </div>
                     {formData.account_type === 'bank' && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select Bank Account</label>
-                            <select value={formData.bank_account_id} onChange={e => setFormData({ ...formData, bank_account_id: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <label className="block text-sm font-medium text-ink-secondary mb-2">Select Bank Account</label>
+                            <select value={formData.bank_account_id} onChange={e => setFormData({ ...formData, bank_account_id: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none">
                                 <option value="">Select account...</option>
                                 {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                             </select>
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount ({getCurrencySymbol()})</label>
-                        <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Amount ({getCurrencySymbol()})</label>
+                        <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none text-lg font-bold" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason</label>
-                        <input type="text" value={formData.reason} onChange={e => setFormData({ ...formData, reason: e.target.value })} placeholder="e.g., Owner capital investment" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none" />
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Reason</label>
+                        <input type="text" value={formData.reason} onChange={e => setFormData({ ...formData, reason: e.target.value })} placeholder="e.g., Owner capital investment" className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none" />
                     </div>
-                    <button onClick={() => handleSubmit('add')} disabled={processing || !formData.amount || !formData.reason} className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors">
+                    <button onClick={() => handleSubmit('add')} disabled={processing || !formData.amount || !formData.reason} className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-sunken text-white font-bold rounded-xl transition-colors">
                         {processing ? 'Processing...' : 'Add Funds'}
                     </button>
                 </div>
@@ -690,13 +690,13 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
             <Modal isOpen={activeModal === 'remove'} onClose={() => setActiveModal(null)} title="Remove Funds">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Remove From</label>
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Remove From</label>
                         <div className="grid grid-cols-2 gap-2">
-                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'cash' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'cash' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'cash' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'cash' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-line'}`}>
                                 <Wallet size={20} className="mx-auto mb-1 text-emerald-500" />
                                 <p className="text-sm font-medium">Cash</p>
                             </button>
-                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'bank' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'bank' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'bank' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'bank' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-line'}`}>
                                 <Landmark size={20} className="mx-auto mb-1 text-blue-500" />
                                 <p className="text-sm font-medium">Bank</p>
                             </button>
@@ -704,22 +704,22 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                     </div>
                     {formData.account_type === 'bank' && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select Bank Account</label>
-                            <select value={formData.bank_account_id} onChange={e => setFormData({ ...formData, bank_account_id: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <label className="block text-sm font-medium text-ink-secondary mb-2">Select Bank Account</label>
+                            <select value={formData.bank_account_id} onChange={e => setFormData({ ...formData, bank_account_id: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none">
                                 <option value="">Select account...</option>
                                 {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                             </select>
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount ({getCurrencySymbol()})</label>
-                        <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Amount ({getCurrencySymbol()})</label>
+                        <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none text-lg font-bold" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason</label>
-                        <input type="text" value={formData.reason} onChange={e => setFormData({ ...formData, reason: e.target.value })} placeholder="e.g., Owner personal withdrawal" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none" />
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Reason</label>
+                        <input type="text" value={formData.reason} onChange={e => setFormData({ ...formData, reason: e.target.value })} placeholder="e.g., Owner personal withdrawal" className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none" />
                     </div>
-                    <button onClick={() => handleSubmit('remove')} disabled={processing || !formData.amount || !formData.reason} className="w-full py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors">
+                    <button onClick={() => handleSubmit('remove')} disabled={processing || !formData.amount || !formData.reason} className="w-full py-3 bg-red-500 hover:bg-red-600 disabled:bg-sunken text-white font-bold rounded-xl transition-colors">
                         {processing ? 'Processing...' : 'Remove Funds'}
                     </button>
                 </div>
@@ -731,41 +731,41 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                     <div className="space-y-6">
                         {/* FROM SECTION */}
                         <div>
-                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-400 mb-3">Transfer From</label>
+                            <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-3">Transfer From</label>
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, from_type: 'cash' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-300 ${formData.from_type === 'cash' ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-500/10 shadow-lg shadow-indigo-500/10' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50'}`}
+                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.from_type === 'cash' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-xl ${formData.from_type === 'cash' ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                        <div className={`p-2 rounded-xl ${formData.from_type === 'cash' ? 'bg-brand-500 text-white' : 'bg-sunken text-ink-muted'}`}>
                                             <Wallet size={18} />
                                         </div>
-                                        <span className={`text-sm font-black ${formData.from_type === 'cash' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}>Cash</span>
+                                        <span className={`text-sm font-bold ${formData.from_type === 'cash' ? 'text-brand-600 dark:text-brand-400' : 'text-ink-muted'}`}>Cash</span>
                                     </div>
-                                    {formData.from_type === 'cash' && <div className="w-2 h-2 rounded-full bg-indigo-500"></div>}
+                                    {formData.from_type === 'cash' && <div className="w-2 h-2 rounded-full bg-brand-500"></div>}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, from_type: 'bank' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-300 ${formData.from_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg shadow-blue-500/10' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50'}`}
+                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.from_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-xl ${formData.from_type === 'bank' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                        <div className={`p-2 rounded-xl ${formData.from_type === 'bank' ? 'bg-blue-500 text-white' : 'bg-sunken text-ink-muted'}`}>
                                             <Landmark size={18} />
                                         </div>
-                                        <span className={`text-sm font-black ${formData.from_type === 'bank' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`}>Bank</span>
+                                        <span className={`text-sm font-bold ${formData.from_type === 'bank' ? 'text-blue-600 dark:text-blue-400' : 'text-ink-muted'}`}>Bank</span>
                                     </div>
                                     {formData.from_type === 'bank' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
                                 </button>
                             </div>
                             {formData.from_type === 'bank' && (
-                                <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
+                                <div className="mt-3 animate-in slide-in-from-top-2 duration-slow">
                                     <select
                                         value={formData.from_bank_id}
                                         onChange={e => setFormData({ ...formData, from_bank_id: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-bold transition-all shadow-inner"
+                                        className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none text-xs font-bold transition-all shadow-inner"
                                     >
                                         <option value="">Select Origin Bank Account...</option>
                                         {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({getCurrencySymbol()} {parseFloat(acc.balance).toLocaleString()})</option>)}
@@ -776,48 +776,48 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
 
                         {/* ARROW DIVIDER */}
                         <div className="flex justify-center -my-2 relative z-10">
-                            <div className="bg-white dark:bg-slate-800 p-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-xl text-slate-400">
+                            <div className="bg-surface p-2 rounded-full border border-line shadow-xl text-ink-muted">
                                 <Minus className="rotate-90" size={16} />
                             </div>
                         </div>
 
                         {/* TO SECTION */}
                         <div>
-                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-400 mb-3">Transfer To</label>
+                            <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-3">Transfer To</label>
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, to_type: 'cash' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-300 ${formData.to_type === 'cash' ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-500/10 shadow-lg shadow-indigo-500/10' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50'}`}
+                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.to_type === 'cash' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-xl ${formData.to_type === 'cash' ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                        <div className={`p-2 rounded-xl ${formData.to_type === 'cash' ? 'bg-brand-500 text-white' : 'bg-sunken text-ink-muted'}`}>
                                             <Wallet size={18} />
                                         </div>
-                                        <span className={`text-sm font-black ${formData.to_type === 'cash' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}>Cash</span>
+                                        <span className={`text-sm font-bold ${formData.to_type === 'cash' ? 'text-brand-600 dark:text-brand-400' : 'text-ink-muted'}`}>Cash</span>
                                     </div>
-                                    {formData.to_type === 'cash' && <div className="w-2 h-2 rounded-full bg-indigo-500"></div>}
+                                    {formData.to_type === 'cash' && <div className="w-2 h-2 rounded-full bg-brand-500"></div>}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, to_type: 'bank' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-300 ${formData.to_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg shadow-blue-500/10' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50'}`}
+                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.to_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-xl ${formData.to_type === 'bank' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                        <div className={`p-2 rounded-xl ${formData.to_type === 'bank' ? 'bg-blue-500 text-white' : 'bg-sunken text-ink-muted'}`}>
                                             <Landmark size={18} />
                                         </div>
-                                        <span className={`text-sm font-black ${formData.to_type === 'bank' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`}>Bank</span>
+                                        <span className={`text-sm font-bold ${formData.to_type === 'bank' ? 'text-blue-600 dark:text-blue-400' : 'text-ink-muted'}`}>Bank</span>
                                     </div>
                                     {formData.to_type === 'bank' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
                                 </button>
                             </div>
                             {formData.to_type === 'bank' && (
-                                <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
+                                <div className="mt-3 animate-in slide-in-from-top-2 duration-slow">
                                     <select
                                         value={formData.to_bank_id}
                                         onChange={e => setFormData({ ...formData, to_bank_id: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-bold transition-all shadow-inner"
+                                        className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none text-xs font-bold transition-all shadow-inner"
                                     >
                                         <option value="">Select Destination Bank Account...</option>
                                         {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
@@ -827,10 +827,10 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount ({getCurrencySymbol()})</label>
-                        <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Amount ({getCurrencySymbol()})</label>
+                        <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none text-lg font-bold" />
                     </div>
-                    <button onClick={() => handleSubmit('transfer')} disabled={processing || !formData.amount} className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors">
+                    <button onClick={() => handleSubmit('transfer')} disabled={processing || !formData.amount} className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-sunken text-white font-bold rounded-xl transition-colors">
                         {processing ? 'Processing...' : 'Transfer Funds'}
                     </button>
                 </div>
@@ -846,14 +846,14 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                         </p>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Account</label>
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Account</label>
                         <div className="grid grid-cols-2 gap-2">
-                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'cash', new_balance: cashAccount.balance })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'cash' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'cash', new_balance: cashAccount.balance })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'cash' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-line'}`}>
                                 <Wallet size={20} className="mx-auto mb-1 text-emerald-500" />
                                 <p className="text-sm font-medium">Cash</p>
-                                <p className="text-xs text-slate-400">{getCurrencySymbol()} {parseFloat(cashAccount.balance).toLocaleString()}</p>
+                                <p className="text-xs text-ink-muted">{getCurrencySymbol()} {parseFloat(cashAccount.balance).toLocaleString()}</p>
                             </button>
-                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'bank' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'bank' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                            <button type="button" onClick={() => setFormData({ ...formData, account_type: 'bank' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'bank' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-line'}`}>
                                 <Landmark size={20} className="mx-auto mb-1 text-blue-500" />
                                 <p className="text-sm font-medium">Bank</p>
                             </button>
@@ -861,22 +861,22 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                     </div>
                     {formData.account_type === 'bank' && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select Bank Account</label>
-                            <select value={formData.bank_account_id} onChange={e => setFormData({ ...formData, bank_account_id: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                            <label className="block text-sm font-medium text-ink-secondary mb-2">Select Bank Account</label>
+                            <select value={formData.bank_account_id} onChange={e => setFormData({ ...formData, bank_account_id: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-line bg-surface">
                                 <option value="">Select account...</option>
                                 {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} - {getCurrencySymbol()} {parseFloat(acc.balance).toLocaleString()}</option>)}
                             </select>
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Correct Balance ({getCurrencySymbol()})</label>
-                        <input type="number" value={formData.new_balance} onChange={e => setFormData({ ...formData, new_balance: e.target.value })} placeholder="Enter actual balance" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Correct Balance ({getCurrencySymbol()})</label>
+                        <input type="number" value={formData.new_balance} onChange={e => setFormData({ ...formData, new_balance: e.target.value })} placeholder="Enter actual balance" className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink focus:ring-2 focus:ring-brand-500 outline-none text-lg font-bold" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason for Adjustment</label>
-                        <input type="text" value={formData.reason} onChange={e => setFormData({ ...formData, reason: e.target.value })} placeholder="e.g., Physical cash count correction" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" />
+                        <label className="block text-sm font-medium text-ink-secondary mb-2">Reason for Adjustment</label>
+                        <input type="text" value={formData.reason} onChange={e => setFormData({ ...formData, reason: e.target.value })} placeholder="e.g., Physical cash count correction" className="w-full px-4 py-3 rounded-xl border border-line bg-surface" />
                     </div>
-                    <button onClick={() => handleSubmit('adjust')} disabled={processing || formData.new_balance === '' || !formData.reason} className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors">
+                    <button onClick={() => handleSubmit('adjust')} disabled={processing || formData.new_balance === '' || !formData.reason} className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-sunken text-white font-bold rounded-xl transition-colors">
                         {processing ? 'Processing...' : 'Adjust Balance'}
                     </button>
                 </div>

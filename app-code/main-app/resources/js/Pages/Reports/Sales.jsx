@@ -98,39 +98,39 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
             <div className="flex flex-col h-full gap-4 w-full relative">
 
                 {/* 1. Header & Controls */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-surface p-3 rounded-2xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-3 pl-2">
                         <Link href={route("store.reports.index", {
                             store_slug: store.slug
-                        })} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 transition-colors">
+                        })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
                             <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-                                Sales <span className="text-slate-400 font-medium text-sm">Overview</span>
+                            <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
+                                Sales <span className="text-ink-muted font-medium text-sm">Overview</span>
                             </h1>
-                            <p className="text-xs text-slate-500 font-medium">Revenue performance & trends</p>
+                            <p className="text-xs text-ink-muted font-medium">Revenue performance & trends</p>
                         </div>
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center gap-2">
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                        <div className="flex bg-sunken p-1 rounded-xl">
                             {[{ id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' }, { id: 'this_year', label: 'This Year' }, { id: 'custom', label: 'Custom' }].map((opt) => (
                                 <button
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${range === opt.id ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${range === opt.id ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400' : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
                                 >
                                     {opt.label}
                                 </button>
                             ))}
                         </div>
                         {range === 'custom' && (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-xl">
-                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300" />
-                                <span className="text-slate-400 text-xs font-bold">TO</span>
-                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300" />
-                                <button onClick={applyCustomRange} className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">Apply</button>
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-slow bg-surface border border-line p-1 rounded-xl">
+                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary" />
+                                <span className="text-ink-muted text-xs font-bold">TO</span>
+                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary" />
+                                <button onClick={applyCustomRange} className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">Apply</button>
                             </div>
                         )}
                     </div>
@@ -154,13 +154,13 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
 
                     {/* LEFT COL: Table */}
-                    <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white">Recent Transactions</h2>
+                    <div className="xl:col-span-2 bg-surface rounded-2xl border border-line shadow-sm flex flex-col overflow-hidden">
+                        <div className="p-5 border-b border-line flex justify-between items-center bg-sunken/50 dark:bg-surface">
+                            <h2 className="text-lg font-bold text-ink">Recent Transactions</h2>
                         </div>
                         <div className="flex-1 overflow-y-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 sticky top-0 backdrop-blur-sm z-10">
+                                <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 backdrop-blur-sm z-10">
                                     <tr>
                                         <th className="px-6 py-3 font-bold">Ref #</th>
                                         <th className="px-6 py-3 font-bold">Customer</th>
@@ -168,16 +168,16 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                         <th className="px-6 py-3 text-right font-bold">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-line">
                                     {sales.length > 0 ? sales.map((sale, idx) => {
                                         const total = Number(sale.total_amount) || 0;
                                         const paid = Number(sale.paid_amount) || 0;
                                         const due = total - paid;
                                         return (
-                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => setQuickViewSale(sale)}>
-                                                <td className="px-6 py-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">#{sale.invoice_number || sale.reference_number}</td>
-                                                <td className="px-6 py-3 font-medium text-slate-700 dark:text-slate-200">{sale.party?.name || 'Walk-in Customer'}</td>
-                                                <td className="px-6 py-3 text-right font-bold font-mono text-slate-800 dark:text-white">{formatCurrency(total, store)}</td>
+                                            <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors cursor-pointer" onClick={() => setQuickViewSale(sale)}>
+                                                <td className="px-6 py-3 font-mono font-bold text-brand-600 dark:text-brand-400">#{sale.invoice_number || sale.reference_number}</td>
+                                                <td className="px-6 py-3 font-medium text-ink-secondary dark:text-ink">{sale.party?.name || 'Walk-in Customer'}</td>
+                                                <td className="px-6 py-3 text-right font-bold font-mono text-ink">{formatCurrency(total, store)}</td>
                                                 <td className="px-6 py-3 text-right">
                                                     {due > 5 ? (
                                                         <span className="px-2 py-0.5 rounded text-2xs font-bold bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Unpaid</span>
@@ -189,7 +189,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                         );
                                     }) : (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-8 text-center text-slate-400 italic">No sales found for this period.</td>
+                                            <td colSpan="4" className="px-6 py-8 text-center text-ink-muted italic">No sales found for this period.</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -199,8 +199,8 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
 
                     {/* MIDDLE COL: Visuals */}
                     <div className="xl:col-span-1 flex flex-col gap-4">
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 min-h-[300px] flex flex-col">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                        <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm flex-1 min-h-[300px] flex flex-col">
+                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-4 flex items-center gap-2">
                                 <TrendingUp size={14} /> Revenue Trend
                             </h3>
                             <div className="flex-1 relative">
@@ -221,7 +221,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                             </div>
                         </div>
 
-                        <div className="bg-indigo-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
+                        <div className="bg-brand-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                             <div className="relative z-10">
                                 <h3 className="text-xs font-bold opacity-90 mb-2 flex items-center gap-2">
@@ -239,25 +239,25 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
 
                     {/* RIGHT COL: Growth Engine */}
                     <div className="xl:col-span-1 flex flex-col gap-4 h-full">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg text-white h-full relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg text-white h-full relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                            <h3 className="text-base font-black uppercase tracking-tight mb-4 flex items-center gap-2 text-emerald-400">
+                            <h3 className="text-base font-bold uppercase tracking-tight mb-4 flex items-center gap-2 text-emerald-400">
                                 <Zap size={18} fill="currentColor" /> Sales Engine
                             </h3>
 
                             <div className="space-y-4">
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                                     <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2"><Activity size={12} /> Live Pulse</h4>
-                                    <p className="text-1xs text-slate-300 mobile-relaxed">Monitor real-time sales velocity and detect dips before they become trends.</p>
+                                    <p className="text-1xs text-neutral-300 mobile-relaxed">Monitor real-time sales velocity and detect dips before they become trends.</p>
                                 </div>
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                                     <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2"><Lightbulb size={12} /> Smart Insight</h4>
-                                    <p className="text-1xs text-slate-300">Reducing total outstanding by 10% improves cash flow significantly.</p>
+                                    <p className="text-1xs text-neutral-300">Reducing total outstanding by 10% improves cash flow significantly.</p>
                                 </div>
                             </div>
 
-                            <button onClick={runAnalysis} disabled={isAnalyzing} className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait">
+                            <button onClick={runAnalysis} disabled={isAnalyzing} className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait">
                                 {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} fill="currentColor" />}
                                 {isAnalyzing ? 'Scanning Sales...' : 'Run Sales Diagnosis'}
                             </button>
@@ -267,29 +267,29 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
 
                 {/* Analysis Modal */}
                 {analysisResult && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
-                            <div className="bg-indigo-600 p-6 text-white relative overflow-hidden">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-normal">
+                        <div className="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-line overflow-hidden animate-in zoom-in-95 duration-normal">
+                            <div className="bg-brand-600 p-6 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md"><Activity size={24} /></div>
                                         <button onClick={() => setAnalysisResult(null)} className="text-white/70 hover:text-white transition-colors"><X size={20} /></button>
                                     </div>
-                                    <h2 className="text-2xl font-black tracking-tight">Sales Intelligence</h2>
-                                    <p className="text-indigo-200 text-sm font-medium">Performance Score: <span className="text-white font-bold">{analysisResult.score.toFixed(0)}/100</span></p>
+                                    <h2 className="text-2xl font-bold tracking-tight">Sales Intelligence</h2>
+                                    <p className="text-brand-200 text-sm font-medium">Performance Score: <span className="text-white font-bold">{analysisResult.score.toFixed(0)}/100</span></p>
                                 </div>
                             </div>
                             <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                                 {analysisResult.insights.map((insight, idx) => (
-                                    <div key={idx} className={`p-4 rounded-xl border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10 text-rose-700' : insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10 text-amber-700' : insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10 text-emerald-700' : 'bg-slate-50 border-indigo-500 dark:bg-slate-800 text-slate-700'}`}>
+                                    <div key={idx} className={`p-4 rounded-xl border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10 text-rose-700' : insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10 text-amber-700' : insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10 text-emerald-700' : 'bg-sunken border-brand-500 dark:bg-surface text-ink-secondary'}`}>
                                         <h4 className="text-sm font-bold mb-1">{insight.title}</h4>
                                         <p className="text-xs opacity-80">{insight.text}</p>
                                     </div>
                                 ))}
                             </div>
-                            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
-                                <button onClick={() => setAnalysisResult(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors">Dismiss</button>
+                            <div className="p-4 border-t border-line bg-app flex justify-end">
+                                <button onClick={() => setAnalysisResult(null)} className="px-4 py-2 bg-neutral-800 hover:bg-interactive-hover text-white text-xs font-bold rounded-lg transition-colors">Dismiss</button>
                             </div>
                         </div>
                     </div>
@@ -297,20 +297,20 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
 
                 {/* Quick View Modal - Centered Popup */}
                 {quickViewSale && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setQuickViewSale(null)}>
+                    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-normal" onClick={() => setQuickViewSale(null)}>
                         <div
-                            className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                            className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Header */}
-                            <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
                                 <div className="flex flex-wrap items-center gap-3">
                                     <div>
-                                        <p className="text-2xs sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Preview</p>
-                                        <h3 className="text-lg sm:text-xl font-black text-indigo-600 truncate">{quickViewSale.reference_number || quickViewSale.invoice_number}</h3>
+                                        <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-wider">Invoice Preview</p>
+                                        <h3 className="text-lg sm:text-xl font-bold text-brand-600 truncate">{quickViewSale.reference_number || quickViewSale.invoice_number}</h3>
                                     </div>
                                     {quickViewSale.source === 'pos' && (
-                                        <span className="text-2xs font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase shrink-0">POS</span>
+                                        <span className="text-2xs font-bold bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase shrink-0">POS</span>
                                     )}
                                     <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${quickViewSale.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
                                         quickViewSale.payment_status === 'partial' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
@@ -323,19 +323,19 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                     <a
                                         href={route("store.sales.print", [store.slug, quickViewSale.id])}
                                         target="_blank"
-                                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
+                                        className="px-3 py-1.5 bg-sunken text-ink-secondary text-xs font-bold rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-1"
                                     >
                                         <Printer size={14} /> Print
                                     </a>
                                     <Link
                                         href={route("store.sales.edit", [store.slug, quickViewSale.id])}
-                                        className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                                        className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition-colors flex items-center gap-1"
                                     >
                                         <Edit size={14} /> Edit Invoice
                                     </Link>
                                     <button
                                         onClick={() => setQuickViewSale(null)}
-                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                                        className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
                                     >
                                         <X size={18} />
                                     </button>
@@ -346,65 +346,65 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                             <div className="flex-1 overflow-auto p-4">
                                 {/* Top Info Row */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                                    <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Customer</p>
-                                        <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewSale.party?.name || quickViewSale.customer?.name || 'Walk-in'}</p>
+                                    <div className="bg-app p-3 rounded-xl">
+                                        <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Customer</p>
+                                        <p className="font-bold text-ink text-sm">{quickViewSale.party?.name || quickViewSale.customer?.name || 'Walk-in'}</p>
                                         {quickViewSale.party?.phone && (
-                                            <p className="text-xs text-slate-500">{quickViewSale.party.phone}</p>
+                                            <p className="text-xs text-ink-muted">{quickViewSale.party.phone}</p>
                                         )}
                                     </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date & Time</p>
-                                        <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewSale.created_at)}</p>
-                                        <p className="text-xs text-slate-500">{new Date(quickViewSale.created_at).toLocaleTimeString()}</p>
+                                    <div className="bg-app p-3 rounded-xl">
+                                        <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Date & Time</p>
+                                        <p className="font-bold text-ink text-sm">{formatDate(quickViewSale.created_at)}</p>
+                                        <p className="text-xs text-ink-muted">{new Date(quickViewSale.created_at).toLocaleTimeString()}</p>
                                     </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Payment</p>
-                                        <p className="font-bold text-slate-800 dark:text-white text-sm uppercase">{quickViewSale.payment_method || 'Cash'}</p>
+                                    <div className="bg-app p-3 rounded-xl">
+                                        <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Payment</p>
+                                        <p className="font-bold text-ink text-sm uppercase">{quickViewSale.payment_method || 'Cash'}</p>
                                     </div>
-                                    <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                        <p className="text-2xs font-bold text-indigo-600 uppercase mb-1">Total</p>
-                                        <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total_amount || quickViewSale.total, store)}</p>
+                                    <div className="bg-gradient-to-br from-brand-100 to-purple-100 dark:from-brand-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-brand-200 dark:border-brand-800">
+                                        <p className="text-2xs font-bold text-brand-600 uppercase mb-1">Total</p>
+                                        <p className="font-bold text-brand-600 text-lg">{formatCurrency(quickViewSale.total_amount || quickViewSale.total, store)}</p>
                                     </div>
                                 </div>
 
                                 {/* Items Table */}
-                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                                    <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">
+                                <div className="border border-line rounded-xl overflow-hidden">
+                                    <div className="bg-app px-4 py-2 border-b border-line">
+                                        <p className="text-xs font-bold text-ink-secondary uppercase">
                                             Items in this Invoice ({quickViewSale.sale_items?.length || quickViewSale.items?.length || 0})
                                         </p>
                                     </div>
                                     {/* Desktop Table View */}
                                     <div className="hidden sm:block max-h-[300px] overflow-auto">
                                         <table className="w-full text-sm">
-                                            <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                                            <thead className="sticky top-0 bg-surface border-b border-line">
                                                 <tr>
-                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
-                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
-                                                    <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
-                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
-                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
+                                                    <th className="text-left p-3 text-2xs font-bold text-ink-muted uppercase">#</th>
+                                                    <th className="text-left p-3 text-2xs font-bold text-ink-muted uppercase">Item Name</th>
+                                                    <th className="text-center p-3 text-2xs font-bold text-ink-muted uppercase">Qty</th>
+                                                    <th className="text-right p-3 text-2xs font-bold text-ink-muted uppercase">Rate</th>
+                                                    <th className="text-right p-3 text-2xs font-bold text-ink-muted uppercase">Total</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            <tbody className="divide-y divide-line">
                                                 {(quickViewSale.sale_items || quickViewSale.items || []).length > 0 ? (
                                                     (quickViewSale.sale_items || quickViewSale.items).map((item, idx) => (
-                                                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                                            <td className="p-3 text-slate-400 font-mono text-xs">{idx + 1}</td>
+                                                        <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover">
+                                                            <td className="p-3 text-ink-muted font-mono text-xs">{idx + 1}</td>
                                                             <td className="p-3">
-                                                                <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
+                                                                <p className="font-semibold text-ink">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                             </td>
-                                                            <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{formatNumber(item.quantity)}</td>
-                                                            <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.unit_price || item.price || 0, store)}</td>
-                                                            <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
+                                                            <td className="p-3 text-center font-bold text-ink-secondary">{formatNumber(item.quantity)}</td>
+                                                            <td className="p-3 text-right text-ink-secondary">{formatCurrency(item.unit_price || item.price || 0, store)}</td>
+                                                            <td className="p-3 text-right font-bold text-ink">
                                                                 {formatCurrency(item.total_price || ((item.quantity) * (item.unit_price || item.price || 0)), store)}
                                                             </td>
                                                         </tr>
                                                     ))
                                                 ) : (
                                                     <tr>
-                                                        <td colSpan={5} className="p-6 text-center text-slate-400">
+                                                        <td colSpan={5} className="p-6 text-center text-ink-muted">
                                                             No items data available
                                                         </td>
                                                     </tr>
@@ -414,35 +414,35 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                     </div>
 
                                     {/* Mobile Stacked List View */}
-                                    <div className="block sm:hidden divide-y divide-slate-150 dark:divide-slate-800 max-h-[300px] overflow-auto">
+                                    <div className="block sm:hidden divide-y divide-line max-h-[300px] overflow-auto">
                                         {(quickViewSale.sale_items || quickViewSale.items || []).length > 0 ? (
                                             (quickViewSale.sale_items || quickViewSale.items).map((item, idx) => (
-                                                <div key={idx} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex flex-col gap-2">
+                                                <div key={idx} className="p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover flex flex-col gap-2">
                                                     <div className="flex items-start justify-between gap-2">
                                                         <div className="flex gap-2 items-start">
-                                                            <span className="text-slate-400 font-mono text-xs">{idx + 1}.</span>
+                                                            <span className="text-ink-muted font-mono text-xs">{idx + 1}.</span>
                                                             <div>
-                                                                <p className="font-semibold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name || 'Unknown Item'}</p>
+                                                                <p className="font-semibold text-ink text-xs">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                             </div>
                                                         </div>
-                                                        <p className="text-xs font-bold text-slate-800 dark:text-white shrink-0">
+                                                        <p className="text-xs font-bold text-ink shrink-0">
                                                             {formatCurrency(item.total_price || ((item.quantity) * (item.unit_price || item.price || 0)), store)}
                                                         </p>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-2 text-2xs bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                                                    <div className="grid grid-cols-2 gap-2 text-2xs bg-surface/50 dark:bg-app p-2 rounded-lg border border-line">
                                                         <div>
-                                                            <span className="text-slate-400 block uppercase">Qty</span>
-                                                            <span className="font-bold text-slate-700 dark:text-slate-300">{formatNumber(item.quantity)}</span>
+                                                            <span className="text-ink-muted block uppercase">Qty</span>
+                                                            <span className="font-bold text-ink-secondary">{formatNumber(item.quantity)}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-slate-400 block uppercase">Rate</span>
-                                                            <span className="font-semibold text-slate-700 dark:text-slate-300">{formatCurrency(item.unit_price || item.price || 0, store)}</span>
+                                                            <span className="text-ink-muted block uppercase">Rate</span>
+                                                            <span className="font-semibold text-ink-secondary">{formatCurrency(item.unit_price || item.price || 0, store)}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="p-6 text-center text-slate-400 text-xs">
+                                            <div className="p-6 text-center text-ink-muted text-xs">
                                                 No items data available
                                             </div>
                                         )}
@@ -450,10 +450,10 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                 </div>
 
                                 {/* Payment Info */}
-                                <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-between sm:items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-between sm:items-center p-3 bg-app rounded-xl">
                                     <div className="flex gap-6 justify-between w-full sm:w-auto">
                                         <div>
-                                            <p className="text-2xs text-slate-400 uppercase">Paid Amount</p>
+                                            <p className="text-2xs text-ink-muted uppercase">Paid Amount</p>
                                             <p className="font-bold text-emerald-600">{formatCurrency(Number(quickViewSale.paid_amount) || 0, store)}</p>
                                         </div>
                                         {(() => {
@@ -463,7 +463,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                             if (balance > 1) {
                                                 return (
                                                     <div>
-                                                        <p className="text-2xs text-slate-400 uppercase">Balance Due</p>
+                                                        <p className="text-2xs text-ink-muted uppercase">Balance Due</p>
                                                         <p className="font-bold text-red-600">{formatCurrency(balance, store)}</p>
                                                     </div>
                                                 );
@@ -488,15 +488,15 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
 }
 
 function RatioCard({ title, value, color, icon }) {
-    const colors = { indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400', emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400', rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400', blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400', amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' };
+    const colors = { indigo: 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400', emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400', rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400', blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400', amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' };
 
     return (
-        <div className="bg-white dark:bg-slate-900 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3 hover:shadow-md transition-all group">
-            <div className={`p-2 rounded-lg ${colors[color]} shrink-0 group-hover:scale-105 transition-transform`}>
+        <div className="bg-surface px-4 py-3 rounded-xl border border-line shadow-sm flex items-center gap-3 hover:shadow-md transition-all group">
+            <div className={`p-2 rounded-lg ${colors[color]} shrink-0 transition-transform`}>
                 {React.cloneElement(icon, { size: 16 })}
             </div>
-            <span className="text-1xs font-bold text-slate-500 uppercase tracking-wider">{title}</span>
-            <span className="ml-auto text-base font-black text-slate-800 dark:text-white tracking-tight">{value}</span>
+            <span className="text-1xs font-bold text-ink-muted uppercase tracking-wider">{title}</span>
+            <span className="ml-auto text-base font-bold text-ink tracking-tight">{value}</span>
         </div>
     );
 }

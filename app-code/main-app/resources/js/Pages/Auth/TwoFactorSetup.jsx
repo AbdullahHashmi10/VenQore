@@ -15,11 +15,11 @@ export default function TwoFactorSetup({ secret, qrCodeUrl }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-indigo-500/40 p-4 sm:p-6 relative overflow-hidden">
+        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-brand-500/40 p-4 sm:p-6 relative overflow-hidden">
             <Head title="Setup Two-Factor Authentication" />
 
             {/* Ambient */}
-            <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-indigo-900/15 rounded-full blur-[160px] pointer-events-none" />
+            <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-brand-900/15 rounded-full blur-[160px] pointer-events-none" />
             <div className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] bg-violet-900/10 rounded-full blur-[140px] pointer-events-none" />
             <div className="absolute inset-0 opacity-20" style={{
                 backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
@@ -28,18 +28,18 @@ export default function TwoFactorSetup({ secret, qrCodeUrl }) {
 
             <div className="relative z-10 w-full max-w-md">
                 {/* Card */}
-                <div className="bg-white/[0.02] border border-white/[0.06] rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 backdrop-blur-sm">
+                <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-6 sm:p-10 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-11 h-11 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                        <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400">
                             <ShieldCheck size={20} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>Secure Your Account</h2>
-                            <p className="text-xs text-slate-400">Enable Two-Factor Authentication</p>
+                            <h2 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>Secure Your Account</h2>
+                            <p className="text-xs text-ink-muted">Enable Two-Factor Authentication</p>
                         </div>
                     </div>
 
-                    <div className="space-y-6 text-sm text-slate-300">
+                    <div className="space-y-6 text-sm text-neutral-300">
                         <p>
                             To protect your store and financial data, 2FA is required for your role.
                         </p>
@@ -47,20 +47,20 @@ export default function TwoFactorSetup({ secret, qrCodeUrl }) {
                         {/* QR Code Container */}
                         <div className="flex flex-col items-center justify-center p-6 bg-white/[0.03] border border-white/[0.06] rounded-2xl">
                             <img src={qrCodeUrl} alt="2FA QR Code" className="w-48 h-48 rounded-xl border border-white/10 mb-4 bg-white p-2" />
-                            <span className="text-xs text-slate-400 text-center select-all">
+                            <span className="text-xs text-ink-muted text-center select-all">
                                 Key: <code className="text-white font-mono bg-white/5 px-2 py-1 rounded">{secret}</code>
                             </span>
                         </div>
 
-                        <p className="text-xs text-slate-400 leading-relaxed">
+                        <p className="text-xs text-ink-muted leading-relaxed">
                             Scan the QR code with an authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code below to confirm setup.
                         </p>
 
                         <form onSubmit={submit} className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Verification Code</label>
-                                <div className={`flex items-center gap-3 bg-white/[0.03] border rounded-2xl px-4 py-4 transition-all duration-300 ${focused ? 'border-indigo-500 bg-indigo-500/[0.02] shadow-[0_0_20px_rgba(99,102,241,0.1)]' : 'border-white/[0.08] hover:border-white/[0.15]'}`}>
-                                    <KeyRound size={20} className={focused ? 'text-indigo-400' : 'text-slate-400'} />
+                                <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Verification Code</label>
+                                <div className={`flex items-center gap-3 bg-white/[0.03] border rounded-2xl px-4 py-4 transition-all duration-slow ${focused ? 'border-brand-500 bg-brand-500/[0.02] shadow-[0_0_20px_rgba(99,102,241,0.1)]' : 'border-white/[0.08] hover:border-white/[0.15]'}`}>
+                                    <KeyRound size={20} className={focused ? 'text-brand-400' : 'text-ink-muted'} />
                                     <input
                                         type="text"
                                         placeholder="000000"
@@ -69,7 +69,7 @@ export default function TwoFactorSetup({ secret, qrCodeUrl }) {
                                         onChange={(e) => setData('code', e.target.value)}
                                         onFocus={() => setFocused(true)}
                                         onBlur={() => setFocused(false)}
-                                        className="bg-transparent border-0 outline-none text-white text-base tracking-widest font-mono p-0 w-full placeholder:text-slate-600 focus:ring-0 focus:outline-none"
+                                        className="bg-transparent border-0 outline-none text-white text-base tracking-widest font-mono p-0 w-full placeholder:text-ink-secondary focus:ring-0 focus:outline-none"
                                         required
                                         autoFocus
                                     />
@@ -80,7 +80,7 @@ export default function TwoFactorSetup({ secret, qrCodeUrl }) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-2xl font-black text-sm transition-all duration-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:scale-100"
+                                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-500 hover:to-violet-500 text-white rounded-2xl font-bold text-sm transition-all duration-slow hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:scale-100"
                             >
                                 {processing ? (
                                     <Loader2 size={16} className="animate-spin" />

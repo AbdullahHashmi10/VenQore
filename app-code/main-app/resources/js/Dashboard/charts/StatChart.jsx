@@ -56,6 +56,11 @@ export default function StatChart({ data, definition, settings, card }) {
     // frame, so they take the small step; everything else takes the full one.
     const lean = card?.category === 'C1' || card?.category === 'C2';
 
+    // M1: on the one accent-filled card of the board, everything inverts. The
+    // frame paints the mint fill; the block on top of it has to follow, or the
+    // headline metric is the one number nobody can read.
+    const accent = Boolean(card?.style?.accent);
+
     const trend = resolveTrend(changePct, direction);
 
     return (
@@ -85,7 +90,7 @@ export default function StatChart({ data, definition, settings, card }) {
                         lineHeight: 'var(--vq-lh-metric)',
                         letterSpacing: 'var(--vq-ls-metric)',
                         fontWeight: 'var(--vq-fw-semi)',
-                        color: 'var(--vq-text)',
+                        color: accent ? 'var(--vq-on-accent)' : 'var(--vq-text)',
                         fontVariantNumeric: 'tabular-nums',
                         minWidth: 0,
                         overflow: 'hidden',
@@ -97,7 +102,7 @@ export default function StatChart({ data, definition, settings, card }) {
                     {displayValue}
                 </div>
 
-                {trend && <DeltaPill trend={trend} changePct={changePct} />}
+                {trend && <DeltaPill trend={trend} changePct={changePct} accent={accent} />}
             </div>
 
             {/* ── Context and sparkline ────────────────────────────────────── */}
@@ -117,7 +122,7 @@ export default function StatChart({ data, definition, settings, card }) {
                     letterSpacing: 'var(--vq-ls-eyebrow)',
                     textTransform: 'uppercase',
                     fontWeight: 'var(--vq-fw-medium)',
-                    color: 'var(--vq-text-3)',
+                    color: accent ? 'rgb(255 255 255 / .72)' : 'var(--vq-text-3)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -125,7 +130,7 @@ export default function StatChart({ data, definition, settings, card }) {
                     {displayPrevious ? `vs ${displayPrevious}` : ''}
                 </div>
 
-                <Sparkline points={data?.series} />
+                <Sparkline points={data?.series} accent={accent} />
             </div>
         </div>
     );
@@ -171,8 +176,14 @@ const TONE_TOKENS = {
     neutral: { fg: 'var(--vq-text-2)', bg: 'var(--vq-sunken)', line: 'var(--vq-line)' },
 };
 
-function DeltaPill({ trend, changePct }) {
-    const t = TONE_TOKENS[trend.tone];
+function DeltaPill({ trend, changePct, accent }) {
+    // On the accent fill a semantic tint has nothing to sit against — a pale
+    // green pill on mint is invisible. The pill goes to a white scrim instead,
+    // and the GLYPH keeps carrying the direction, which is what M3 actually
+    // requires: never colour alone.
+    const t = accent
+        ? { fg: 'var(--vq-on-accent)', bg: 'rgb(255 255 255 / .18)', line: 'rgb(255 255 255 / .28)' }
+        : TONE_TOKENS[trend.tone];
 
     return (
         <div style={{
@@ -216,8 +227,11 @@ const SPARK_H = 36;
  * with the same DOM id and every one of them referenced the first — which is
  * invisible until the first card unmounts and the other three lose their fill.
  */
-function Sparkline({ points }) {
+function Sparkline({ points, accent }) {
     const gradientId = useId().replace(/:/g, '');
+    // The stroke is the accent everywhere except ON the accent, where it would
+    // vanish into its own background.
+    const ink = accent ? 'var(--vq-on-accent)' : PALETTE.accent;
 
     if (!Array.isArray(points) || points.length < 2) return null;
 
@@ -244,8 +258,8 @@ function Sparkline({ points }) {
             >
                 <defs>
                     <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={PALETTE.accent} stopOpacity="0.22" />
-                        <stop offset="100%" stopColor={PALETTE.accent} stopOpacity="0" />
+                        <stop offset="0%" stopColor={ink} stopOpacity="0.22" />
+                        <stop offset="100%" stopColor={ink} stopOpacity="0" />
                     </linearGradient>
                 </defs>
 
@@ -253,7 +267,7 @@ function Sparkline({ points }) {
                 <path
                     d={line}
                     fill="none"
-                    stroke={PALETTE.accent}
+                    stroke={ink}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"

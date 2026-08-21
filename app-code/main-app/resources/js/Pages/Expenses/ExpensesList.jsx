@@ -96,20 +96,20 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
 
     return (
         <div ref={containerRef} className="relative">
-            <div className={`flex items-center gap-4 px-6 h-16 rounded-2xl border transition-all focus-within:ring-[6px] focus-within:ring-indigo-500/10 shadow-sm ${selectedParty ? 'border-emerald-500/60 bg-white dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700 focus-within:border-indigo-500 bg-white dark:bg-slate-800'}
+            <div className={`flex items-center gap-4 px-6 h-16 rounded-2xl border transition-all focus-within:ring-[6px] focus-within:ring-brand-500/10 shadow-sm ${selectedParty ? 'border-emerald-500/60 bg-surface' : 'border-line focus-within:border-brand-500 bg-surface'}
                 }`}>
-                <Search size={14} className="text-slate-400 shrink-0" />
+                <Search size={14} className="text-ink-muted shrink-0" />
                 <input
                     type="text" name={AC_OFF} value={query}
                     onChange={handleInput} onFocus={handleFocus}
                     placeholder="Search party name or phone..."
                     autoComplete="new-password"
-                    className="flex-1 bg-transparent border-none outline-none text-base font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:ring-0"
+                    className="flex-1 bg-transparent border-none outline-none text-base font-bold text-ink placeholder-slate-400 focus:ring-0"
                     style={{ boxShadow: 'none' }}
                 />
-                {searching && <div className="w-3.5 h-3.5 border-2 border-slate-500 border-t-emerald-400 rounded-full animate-spin shrink-0" />}
+                {searching && <div className="w-3.5 h-3.5 border-2 border-line-strong border-t-emerald-400 rounded-full animate-spin shrink-0" />}
                 {(query || selectedParty) && !searching && (
-                    <button type="button" onClick={handleClear} className="text-slate-500 hover:text-white transition shrink-0"><X size={13} /></button>
+                    <button type="button" onClick={handleClear} className="text-ink-muted hover:text-white transition shrink-0"><X size={13} /></button>
                 )}
             </div>
 
@@ -117,12 +117,12 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
                 <div className="mt-1.5 flex items-center gap-2 px-1">
                     <div className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center"><User size={9} className="text-emerald-400" /></div>
                     <span className="text-xs font-semibold text-emerald-400">{selectedParty.name}</span>
-                    {selectedParty.type && <span className="text-3xs font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/10 text-slate-400">{selectedParty.type}</span>}
+                    {selectedParty.type && <span className="text-3xs font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/10 text-ink-muted">{selectedParty.type}</span>}
                 </div>
             )}
 
             {open && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-2xl z-[60] max-h-52 overflow-auto" style={{ background: vq.slate[800] }}>
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-2xl z-sticky max-h-52 overflow-auto" style={{ background: vq.slate[800] }}>
                     {results.map(party => {
                         const bal = parseFloat(party.current_balance || 0);
                         const settled = Math.abs(bal) < 0.01;
@@ -137,14 +137,14 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-white truncate">{party.name}</p>
-                                    <p className="text-2xs text-slate-400 truncate">{party.phone || party.email || party.type}</p>
+                                    <p className="text-2xs text-ink-muted truncate">{party.phone || party.email || party.type}</p>
                                 </div>
                                 {!settled && (
                                     <span className={`text-2xs font-bold px-1.5 py-0.5 rounded-full shrink-0 ${isReceive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}`}>
                                         {isReceive ? 'To Receive' : 'To Pay'}: {getCurrencySymbol()} {Math.abs(bal).toLocaleString()}
                                     </span>
                                 )}
-                                {settled && <span className="text-2xs font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-white/10 text-slate-400">Settled</span>}
+                                {settled && <span className="text-2xs font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-white/10 text-ink-muted">Settled</span>}
                             </button>
                         );
                     })}
@@ -152,7 +152,7 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
             )}
 
             {open && results.length === 0 && !searching && query && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-xl z-[60] px-4 py-4 text-center text-sm text-slate-500" style={{ background: vq.slate[800] }}>
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-xl z-sticky px-4 py-4 text-center text-sm text-ink-muted" style={{ background: vq.slate[800] }}>
                     No results for "{query}"
                 </div>
             )}
@@ -177,22 +177,22 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className={`w-full h-16 px-6 rounded-2xl text-base font-bold flex justify-between items-center border transition-all shadow-sm outline-none cursor-pointer bg-white dark:bg-slate-800 ${open ? 'border-indigo-500 ring-[6px] ring-indigo-500/10' :
-                    error ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700 hover:border-slate-400'
+                className={`w-full h-16 px-6 rounded-2xl text-base font-bold flex justify-between items-center border transition-all shadow-sm outline-none cursor-pointer bg-surface ${open ? 'border-brand-500 ring-[6px] ring-brand-500/10' :
+                    error ? 'border-rose-500' : 'border-line hover:border-line-strong'
                     }`}
             >
-                <span className={selected ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-500'}>
+                <span className={selected ? 'text-ink' : 'text-ink-muted'}>
                     {selected ? selected.label : placeholder}
                 </span>
-                <ChevronDown size={14} className={`text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border border-white/10 z-[120] py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: vq.slate[800] }}>
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border border-white/10 z-drawer py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: vq.slate[800] }}>
                     <button
                         type="button"
                         onClick={() => { onChange(''); setOpen(false); }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-slate-500 hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-sm text-ink-muted hover:bg-white/5 transition-colors"
                     >
                         {placeholder}
                     </button>
@@ -205,8 +205,8 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
                                 type="button"
                                 onClick={() => { onChange(opt.value); setOpen(false); }}
                                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-l-2 ${isSelected
-                                    ? 'border-indigo-500 bg-indigo-500/10 text-white font-bold'
-                                    : 'border-transparent text-slate-300 hover:bg-white/5 hover:text-white'
+                                    ? 'border-brand-500 bg-brand-500/10 text-white font-bold'
+                                    : 'border-transparent text-neutral-300 hover:bg-white/5 hover:text-white'
                                     }`}
                             >
                                 {opt.label}
@@ -220,7 +220,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
                             id="tour-add-expense-category-btn"
                             type="button"
                             onClick={() => { setOpen(false); onAddNew(); }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-indigo-400 font-bold hover:bg-indigo-500/10 transition-colors flex items-center gap-2 border-t border-white/5 mt-1"
+                            className="w-full text-left px-4 py-2.5 text-sm text-brand-400 font-bold hover:bg-brand-500/10 transition-colors flex items-center gap-2 border-t border-white/5 mt-1"
                         >
                             <Plus size={14} />
                             Create New Category
@@ -597,24 +597,24 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
         <OneGlanceLayout title="Expenses" activeMenu="Money">
             <Head title="Expenses" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-y-auto md:overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-y-auto md:overflow-hidden">
                 <MoneyModuleTabs activeTab="expenses" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
-                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     
                     {!isStatsExpanded && (
-                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                        <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
                             <div className="flex items-center gap-2">
                                 <span className="text-rose-600 dark:text-rose-400">Today: {formatCurrency(stats.today)}</span>
-                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-neutral-300 dark:text-ink-secondary">|</span>
                                 <span className="text-purple-600 dark:text-purple-400">Month: {formatCurrency(stats.month)}</span>
                             </div>
                         </div>
@@ -623,41 +623,41 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                 {/* Stats Cards - Compact Row */}
                 <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <TrendingDown size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Today's Expenses</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Today's Expenses</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats.today)}</p>
+                        <p className="text-base font-bold text-ink">{formatCurrency(stats.today)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <Calendar size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">This Week</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">This Week</p>
                         </div>
-                        <p className="text-base font-black text-amber-600">{formatCurrency(stats.week)}</p>
+                        <p className="text-base font-bold text-amber-600">{formatCurrency(stats.week)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
                                 <Wallet size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">This Month</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">This Month</p>
                         </div>
-                        <p className="text-base font-black text-purple-600">{formatCurrency(stats.month)}</p>
+                        <p className="text-base font-bold text-purple-600">{formatCurrency(stats.month)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg">
+                            <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
                                 <Receipt size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Expenses</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Expenses</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats.total)}</p>
+                        <p className="text-base font-bold text-ink">{formatCurrency(stats.total)}</p>
                     </div>
                 </div>
 
@@ -668,17 +668,17 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     onMouseLeave={handleMouseLeave}
                     onMouseUp={handleMouseUp}
                     onMouseMove={handleMouseMove}
-                    className="bg-white dark:bg-slate-900 px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0 flex items-center gap-2 overflow-x-auto custom-scrollbar cursor-grab active:cursor-grabbing select-none"
+                    className="bg-surface px-2 py-2 rounded-xl border border-line shadow-sm shrink-0 flex items-center gap-2 overflow-x-auto custom-scrollbar cursor-grab active:cursor-grabbing select-none"
                 >
                     {/* Label: hidden on mobile */}
                     <div className="hidden md:flex items-center gap-2 shrink-0">
-                        <Layers size={14} className="text-slate-400" />
-                        <span className="text-xs font-bold text-slate-500 uppercase mr-2">Categories:</span>
+                        <Layers size={14} className="text-ink-muted" />
+                        <span className="text-xs font-bold text-ink-muted uppercase mr-2">Categories:</span>
                     </div>
 
                     {/* Add Category Section */}
                     {isCreatingCategory && !isModalOpen ? (
-                        <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 relative z-[10]">
+                        <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 relative z-raised">
                             <input
                                 autoFocus
                                 type="text"
@@ -689,7 +689,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     if (e.key === 'Escape') setIsCreatingCategory(false);
                                 }}
                                 placeholder="Category Name"
-                                className="w-40 md:w-56 px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-indigo-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none transition-all shadow-sm"
+                                className="w-40 md:w-56 px-3 py-1.5 text-xs font-semibold bg-surface border border-brand-300 dark:border-line rounded-lg text-ink placeholder-slate-400 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none transition-all shadow-sm"
                             />
                             <div className="flex items-center gap-1">
                                 <button
@@ -701,7 +701,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                 </button>
                                 <button
                                     onClick={() => setIsCreatingCategory(false)}
-                                    className="p-1.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 shadow-sm active:scale-95 transition-all"
+                                    className="p-1.5 bg-sunken text-ink-muted dark:text-ink-secondary rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover shadow-sm active:scale-95 transition-all"
                                     title="Cancel (Esc)"
                                 >
                                     <X size={14} />
@@ -713,14 +713,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             {/* Desktop: full label button */}
                             <button
                                 onClick={() => setIsCreatingCategory(true)}
-                                className="hidden md:flex px-3 py-1.5 rounded-lg text-xs font-bold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all whitespace-nowrap items-center gap-1"
+                                className="hidden md:flex px-3 py-1.5 rounded-lg text-xs font-bold border border-dashed border-line dark:border-line text-ink-muted hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50 transition-all whitespace-nowrap items-center gap-1"
                             >
                                 <Plus size={12} /> Add Category
                             </button>
                             {/* Mobile: icon-only button */}
                             <button
                                 onClick={() => setIsCreatingCategory(true)}
-                                className="md:hidden p-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all shrink-0"
+                                className="md:hidden p-1.5 rounded-lg border border-dashed border-line dark:border-line text-ink-muted hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50 transition-all shrink-0"
                                 title="Add Category"
                             >
                                 <Plus size={14} />
@@ -728,11 +728,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         </>
                     )}
 
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0"></div>
+                    <div className="h-6 w-px bg-sunken mx-1 shrink-0"></div>
 
                     <button
                         onClick={() => handleCategoryChange('all')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-neutral-800 text-white dark:bg-white dark:text-ink' : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         {/* Mobile: shorter label */}
                         <span className="md:hidden">All</span>
@@ -743,7 +743,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         <button
                             key={cat.id}
                             onClick={() => handleCategoryChange(cat.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${String(activeCategory) === String(cat.id) ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'}`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${String(activeCategory) === String(cat.id) ? 'bg-brand-600 text-white shadow-lg ' : 'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/30'}`}
                         >
                             <span>{cat.name}</span>
                         </button>
@@ -751,23 +751,23 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                 </div>
 
                 {/* Mobile Toolbar (hidden on desktop) */}
-                <div className="md:hidden flex flex-col gap-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="md:hidden flex flex-col gap-0 bg-surface rounded-xl border border-line shadow-sm shrink-0">
                     {/* Title row + icon buttons */}
                     <div className="flex items-center justify-between px-3 py-2">
-                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
                             Expenses <span className="text-rose-600">Transactions</span>
                         </h1>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Search"
                             >
                                 <Search size={16} />
                             </button>
                             <button
                                 onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Filter"
                             >
                                 <Filter size={16} />
@@ -784,7 +784,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                     {/* Expandable Search */}
                     {showMobileSearch && (
-                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800 pt-2 animate-in slide-in-from-top duration-200">
+                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
                             <div className="relative w-full">
                                 <input
                                     autoFocus
@@ -793,23 +793,23 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onKeyDown={handleServerSearch}
                                     placeholder="Search expenses..."
-                                    className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                    className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                                 />
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
                             </div>
                         </div>
                     )}
 
                     {/* Expandable Filters */}
                     {showMobileFilters && (
-                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800 pt-2 animate-in slide-in-from-top duration-200 flex flex-col gap-2">
+                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal flex flex-col gap-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Period:</span>
-                                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1 flex-1">
-                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>All</button>
-                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
-                                    <button onClick={() => { handleFilterChange('month'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'month' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Month</button>
-                                    <button onClick={() => { handleFilterChange('year'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'year' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Year</button>
+                                <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider shrink-0">Period:</span>
+                                <div className="flex bg-sunken rounded-lg p-1 gap-1 flex-1">
+                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-sunken text-ink shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}>All</button>
+                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Today</button>
+                                    <button onClick={() => { handleFilterChange('month'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'month' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Month</button>
+                                    <button onClick={() => { handleFilterChange('year'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'year' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Year</button>
                                 </div>
                             </div>
                         </div>
@@ -817,9 +817,9 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                 </div>
 
                 {/* Main Content Area - Desktop table / Mobile cards below */}
-                <div className="hidden md:flex flex-col flex-1 min-h-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="hidden md:flex flex-col flex-1 min-h-0 bg-surface rounded-xl border border-line shadow-sm overflow-hidden">
                     {/* Toolbar */}
-                    <div className="p-2 md:p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
+                    <div className="p-2 md:p-3 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-2 bg-sunken/50 dark:bg-surface shrink-0">
                         {/* Left/Top actions: Search & Filters (Desktop) / Mobile Toggle Buttons */}
                         <div className="flex items-center justify-between md:justify-start gap-2 w-full md:w-auto">
                             <div className="hidden md:flex items-center gap-2">
@@ -830,14 +830,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         onKeyDown={handleServerSearch}
                                         placeholder="Search expenses..."
-                                        className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                        className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                                     />
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
                                 </div>
 
-                                <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1">
-                                    <button onClick={() => handleFilterChange('all')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
-                                    <button onClick={() => handleFilterChange('today')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                <div className="flex bg-surface rounded-lg border border-line p-1">
+                                    <button onClick={() => handleFilterChange('all')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-sunken text-ink' : 'text-ink-muted hover:text-ink-secondary'}`}>All Time</button>
+                                    <button onClick={() => handleFilterChange('today')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Today</button>
                                 </div>
                             </div>
 
@@ -845,13 +845,13 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             <div className="flex md:hidden items-center gap-1">
                                 <button
                                     onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                    className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                    className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 >
                                     <Search size={18} />
                                 </button>
                                 <button
                                     onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                    className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                    className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 >
                                     <Filter size={18} />
                                 </button>
@@ -872,7 +872,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             <button
                                 id="tour-expense-create-btn"
                                 onClick={handleCreate}
-                                className="px-4 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg shadow-rose-500/20 active:scale-95 font-bold text-sm"
+                                className="px-4 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg active:scale-95 font-bold text-sm"
                             >
                                 <Plus size={16} />
                                 Record Expense
@@ -882,7 +882,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                     {/* Mobile Expandable Search */}
                     {showMobileSearch && (
-                        <div className="md:hidden px-3 py-2 border-b border-slate-150 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 animate-in slide-in-from-top duration-200 w-full">
+                        <div className="md:hidden px-3 py-2 border-b border-line bg-app animate-in slide-in-from-top duration-normal w-full">
                             <div className="relative w-full">
                                 <input
                                     type="text"
@@ -890,21 +890,21 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onKeyDown={handleServerSearch}
                                     placeholder="Search expenses..."
-                                    className="w-full pl-9 pr-4 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                    className="w-full pl-9 pr-4 py-2 text-sm bg-surface border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                                 />
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
                             </div>
                         </div>
                     )}
 
                     {/* Mobile Expandable Filters */}
                     {showMobileFilters && (
-                        <div className="md:hidden px-3 py-2.5 border-b border-slate-150 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 animate-in slide-in-from-top duration-200 flex flex-col gap-2 w-full">
+                        <div className="md:hidden px-3 py-2.5 border-b border-line bg-app animate-in slide-in-from-top duration-normal flex flex-col gap-2 w-full">
                             <div className="flex items-center gap-2">
-                                <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">Time:</span>
-                                <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1 flex-1">
-                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
-                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider">Time:</span>
+                                <div className="flex bg-surface rounded-lg border border-line p-1 flex-1">
+                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-sunken text-ink' : 'text-ink-muted hover:text-ink-secondary'}`}>All Time</button>
+                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Today</button>
                                 </div>
                             </div>
                         </div>
@@ -913,61 +913,61 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     {/* Table / List View */}
                     <div className="flex-1 overflow-auto hidden md:block">
                         <table className="hidden md:table w-full text-left border-collapse">
-                            <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10 bg-app border-b border-line">
                                 <tr>
-                                    <th onClick={() => handleSort('date')} className="p-4 text-xs font-bold text-slate-500 uppercase cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors w-[12%]">
+                                    <th onClick={() => handleSort('date')} className="p-4 text-xs font-bold text-ink-muted uppercase cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover transition-colors w-[12%]">
                                         <div className="flex items-center gap-1">Date {sortConfig.key === 'date' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}</div>
                                     </th>
-                                    <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[15%]">Category</th>
-                                    <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[25%]">Description & Payee</th>
-                                    <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[12%]">Payment</th>
-                                    <th className="p-4 text-xs font-bold text-slate-500 uppercase w-[10%]">Ref</th>
-                                    <th onClick={() => handleSort('amount')} className="p-4 text-xs font-bold text-slate-500 uppercase cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-right w-[15%]">
+                                    <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[15%]">Category</th>
+                                    <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[25%]">Description & Payee</th>
+                                    <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[12%]">Payment</th>
+                                    <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[10%]">Ref</th>
+                                    <th onClick={() => handleSort('amount')} className="p-4 text-xs font-bold text-ink-muted uppercase cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover transition-colors text-right w-[15%]">
                                         <div className="flex items-center justify-end gap-1">Amount {sortConfig.key === 'amount' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}</div>
                                     </th>
-                                    <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right w-[11%]">Actions</th>
+                                    <th className="p-4 text-xs font-bold text-ink-muted uppercase text-right w-[11%]">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                            <tbody className="divide-y divide-line bg-surface">
                                 {sortedExpenses.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="p-12 text-center text-slate-400">
-                                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                <Layers size={32} className="text-slate-300" />
+                                        <td colSpan={7} className="p-12 text-center text-ink-muted">
+                                            <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <Layers size={32} className="text-neutral-300" />
                                             </div>
-                                            <p className="font-bold text-slate-600 dark:text-slate-300">No expenses found</p>
+                                            <p className="font-bold text-ink-secondary">No expenses found</p>
                                             <p className="text-sm opacity-70">Try adjusting filters or record a new expense.</p>
                                         </td>
                                     </tr>
                                 ) : (
                                     sortedExpenses.map((item) => (
-                                        <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 group transition-colors">
-                                            <td className="p-4 text-sm font-medium text-slate-700 dark:text-slate-300 tabular-nums">{formatDate(item.date)}</td>
+                                        <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover group transition-colors">
+                                            <td className="p-4 text-sm font-medium text-ink-secondary tabular-nums">{formatDate(item.date)}</td>
                                             <td className="p-4">
-                                                <span className={`px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wide border ${item.category_color ? `bg-${item.category_color}-50 text-${item.category_color}-600 border-${item.category_color}-200` : 'bg-slate-100 text-slate-600 border-slate-200'} `}>
+                                                <span className={`px-2.5 py-1 rounded-full text-2xs font-bold uppercase tracking-wide border ${item.category_color ? `bg-${item.category_color}-50 text-${item.category_color}-600 border-${item.category_color}-200` : 'bg-sunken text-ink-secondary border-line'}`}>
                                                     {item.category || 'Uncategorized'}
                                                 </span>
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-slate-800 dark:text-white line-clamp-1">{item.description || 'No description'}</span>
-                                                    {item.payee && <span className="text-1xs font-semibold text-slate-500 flex items-center gap-1"><Search size={10} /> {item.payee}</span>}
+                                                    <span className="text-sm font-bold text-ink line-clamp-1">{item.description || 'No description'}</span>
+                                                    {item.payee && <span className="text-1xs font-semibold text-ink-muted flex items-center gap-1"><Search size={10} /> {item.payee}</span>}
                                                 </div>
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex items-center gap-2">
                                                     <span className={`w-2 h-2 rounded-full ${item.payment_method === 'cash' ? 'bg-emerald-500' : 'bg-blue-500'}`}></span>
-                                                    <span className="uppercase text-xs font-bold text-slate-600 dark:text-slate-400">{item.payment_method}</span>
+                                                    <span className="uppercase text-xs font-bold text-ink-secondary">{item.payment_method}</span>
                                                 </div>
                                             </td>
-                                            <td className="p-4 text-xs font-mono text-slate-500">{item.reference || '-'}</td>
+                                            <td className="p-4 text-xs font-mono text-ink-muted">{item.reference || '-'}</td>
                                             <td className="p-4 text-right">
-                                                <span className="font-black text-rose-600 text-sm tabular-nums">{formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}</span>
-                                                {item.tax_amount > 0 && <p className="text-3xs text-slate-400">(Inc. Tax: {getCurrencySymbol()} {item.tax_amount})</p>}
+                                                <span className="font-bold text-rose-600 text-sm tabular-nums">{formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}</span>
+                                                {item.tax_amount > 0 && <p className="text-3xs text-ink-muted">(Inc. Tax: {getCurrencySymbol()} {item.tax_amount})</p>}
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleEdit(item)} className="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 rounded transition-colors" title="Edit">
+                                                    <button onClick={() => handleEdit(item)} className="p-1.5 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-brand-600 rounded transition-colors" title="Edit">
                                                         <Edit size={14} />
                                                     </button>
                                                     <button onClick={() => handleDeleteClick(item.id)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-600 rounded transition-colors" title="Delete">
@@ -984,34 +984,34 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         {/* Mobile View - Cards List (hidden — rendered outside this container for natural page scroll) */}
                         <div className="hidden">
                             {sortedExpenses.length === 0 ? (
-                                <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800 mx-2">
-                                    <Layers size={32} className="mx-auto text-slate-400 mb-2" />
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No expenses found</p>
+                                <div className="bg-surface rounded-xl p-8 text-center border border-line mx-2">
+                                    <Layers size={32} className="mx-auto text-ink-muted mb-2" />
+                                    <p className="text-sm font-bold text-ink-secondary">No expenses found</p>
                                 </div>
                             ) : (
                                 sortedExpenses.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="p-3 mx-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex flex-col gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        className="p-3 mx-0 bg-surface border-b border-line flex flex-col gap-2 cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
                                         onClick={() => handleEdit(item)}
                                     >
                                         {/* Row 1: Description/Payee (Left), Reference & Date (Right) */}
                                         <div className="flex items-start justify-between">
                                             <div>
-                                                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm leading-tight">
+                                                <h3 className="font-bold text-ink text-sm leading-tight">
                                                     {item.description || 'No description'}
                                                 </h3>
                                                 {item.payee && (
-                                                    <p className="text-2xs text-slate-400 font-semibold mt-0.5">{item.payee}</p>
+                                                    <p className="text-2xs text-ink-muted font-semibold mt-0.5">{item.payee}</p>
                                                 )}
                                             </div>
                                             <div className="text-right shrink-0 ml-2">
                                                 {item.reference && (
-                                                    <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                                    <span className="font-mono text-xs font-bold text-brand-600 dark:text-brand-400 block">
                                                         {item.reference}
                                                     </span>
                                                 )}
-                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-ink-muted font-semibold block mt-0.5">
                                                     {formatDate(item.date)}
                                                 </span>
                                             </div>
@@ -1019,29 +1019,29 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                         {/* Row 2: Category badge + payment method badge */}
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-3xs font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                            <span className="text-3xs font-bold uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
                                                 {item.category || 'Uncategorized'}
                                             </span>
                                             {item.payment_method && (
-                                                <span className="text-3xs font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
+                                                <span className="text-3xs font-bold uppercase bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-muted px-2 py-0.5 rounded border border-line dark:border-line">
                                                     {item.payment_method}
                                                 </span>
                                             )}
                                         </div>
 
                                         {/* Row 3: Amount (Left) + Action Icons (Right) */}
-                                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                        <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
-                                                    <span className="text-xs font-black text-rose-600 dark:text-rose-400 tabular-nums">
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Amount</span>
+                                                    <span className="text-xs font-bold text-rose-600 dark:text-rose-400 tabular-nums">
                                                         {formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}
                                                     </span>
                                                 </div>
                                                 {parseFloat(item.tax_amount) > 0 && (
                                                     <div>
-                                                        <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
-                                                        <span className="text-xs font-black text-amber-600 dark:text-amber-400 tabular-nums">
+                                                        <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Tax</span>
+                                                        <span className="text-xs font-bold text-amber-600 dark:text-amber-400 tabular-nums">
                                                             {formatCurrency(item.tax_amount)}
                                                         </span>
                                                     </div>
@@ -1052,14 +1052,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => handleEdit(item)}
-                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(item.id)}
-                                                    className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
+                                                    className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-ink-muted hover:text-rose-600 transition-colors"
                                                     title="Delete"
                                                 >
                                                     <Trash2 size={16} />
@@ -1072,7 +1072,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         </div>
 
                         {/* Desktop infinite scroll observer */}
-                        <div ref={observerTarget} className="hidden md:block mt-4 p-4 text-center text-slate-400 text-sm opacity-0 h-4">
+                        <div ref={observerTarget} className="hidden md:block mt-4 p-4 text-center text-ink-muted text-sm opacity-0 h-4">
                             {nextPageUrl ? 'Loading...' : ''}
                         </div>
                     </div>
@@ -1081,35 +1081,35 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                 {/* Mobile Cards - outside the container so page scrolls freely */}
                 <div className="md:hidden flex flex-col gap-2 pb-20">
                     {sortedExpenses.length === 0 ? (
-                        <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
-                            <Layers size={32} className="mx-auto text-slate-400 mb-2" />
-                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No expenses found</p>
-                            <p className="text-xs text-slate-400 mt-1">Try adjusting filters or record a new expense.</p>
+                        <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                            <Layers size={32} className="mx-auto text-ink-muted mb-2" />
+                            <p className="text-sm font-bold text-ink-secondary">No expenses found</p>
+                            <p className="text-xs text-ink-muted mt-1">Try adjusting filters or record a new expense.</p>
                         </div>
                     ) : (
                         sortedExpenses.map((item) => (
                             <div
                                 key={item.id}
-                                className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+                                className="p-3 bg-surface rounded-xl border border-line shadow-sm flex flex-col gap-2 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
                                 onClick={() => handleEdit(item)}
                             >
                                 {/* Row 1: Description/Payee (Left), Reference & Date (Right) */}
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <h3 className="font-extrabold text-slate-800 dark:text-white text-sm leading-tight">
+                                        <h3 className="font-bold text-ink text-sm leading-tight">
                                             {item.description || 'No description'}
                                         </h3>
                                         {item.payee && (
-                                            <p className="text-2xs text-slate-400 font-semibold mt-0.5">{item.payee}</p>
+                                            <p className="text-2xs text-ink-muted font-semibold mt-0.5">{item.payee}</p>
                                         )}
                                     </div>
                                     <div className="text-right shrink-0 ml-2">
                                         {item.reference && (
-                                            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                            <span className="font-mono text-xs font-bold text-brand-600 dark:text-brand-400 block">
                                                 {item.reference}
                                             </span>
                                         )}
-                                        <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
+                                        <span className="text-2xs text-ink-muted font-semibold block mt-0.5">
                                             {formatDate(item.date)}
                                         </span>
                                     </div>
@@ -1117,29 +1117,29 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                 {/* Row 2: Category badge + payment method badge */}
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-3xs font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                    <span className="text-3xs font-bold uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
                                         {item.category || 'Uncategorized'}
                                     </span>
                                     {item.payment_method && (
-                                        <span className="text-3xs font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
+                                        <span className="text-3xs font-bold uppercase bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-muted px-2 py-0.5 rounded border border-line dark:border-line">
                                             {item.payment_method}
                                         </span>
                                     )}
                                 </div>
 
                                 {/* Row 3: Amount + Tax (Left) | Actions (Right) */}
-                                <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
                                     <div className="flex items-center gap-6">
                                         <div>
-                                            <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
-                                            <span className="text-xs font-black text-rose-600 dark:text-rose-400 tabular-nums">
+                                            <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Amount</span>
+                                            <span className="text-xs font-bold text-rose-600 dark:text-rose-400 tabular-nums">
                                                 {formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}
                                             </span>
                                         </div>
                                         {parseFloat(item.tax_amount) > 0 && (
                                             <div>
-                                                <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
-                                                <span className="text-xs font-black text-amber-600 dark:text-amber-400 tabular-nums">
+                                                <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Tax</span>
+                                                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 tabular-nums">
                                                     {formatCurrency(item.tax_amount)}
                                                 </span>
                                             </div>
@@ -1149,14 +1149,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                         <button
                                             onClick={() => handleEdit(item)}
-                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                            className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                                             title="Edit"
                                         >
                                             <Edit size={16} />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteClick(item.id)}
-                                            className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
+                                            className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-ink-muted hover:text-rose-600 transition-colors"
                                             title="Delete"
                                         >
                                             <Trash2 size={16} />
@@ -1168,7 +1168,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     )}
 
                     {/* Mobile infinite scroll observer */}
-                    <div ref={observerTarget} className="py-4 text-center text-slate-400 text-sm">
+                    <div ref={observerTarget} className="py-4 text-center text-ink-muted text-sm">
                         {nextPageUrl ? 'Loading more...' : ''}
                     </div>
                 </div>
@@ -1176,46 +1176,46 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
             {/* -- Modern Pro Expense Modal -- */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6" style={{ backdropFilter: 'blur(16px)', backgroundColor: 'rgba(15, 23, 42, 0.85)' }}>
-                    <div className="relative w-full max-w-[95vw] 2xl:max-w-[1500px] h-full sm:h-auto sm:max-h-[96vh] bg-slate-50 dark:bg-slate-900 rounded-none sm:rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
+                <div className="fixed inset-0 z-drawer flex items-end sm:items-center justify-center p-0 sm:p-6" style={{ backdropFilter: 'blur(16px)', backgroundColor: 'rgba(15, 23, 42, 0.85)' }}>
+                    <div className="relative w-full max-w-[95vw] 2xl:max-w-[1500px] h-full sm:h-auto sm:max-h-[96vh] bg-app rounded-none sm:rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden border border-line animate-in fade-in zoom-in-95 duration-slower">
 
-                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
                         {/* -- Header -- */}
-                        <div className="relative z-10 px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900/90 backdrop-blur-xl">
+                        <div className="relative z-10 px-4 sm:px-8 py-4 sm:py-6 border-b border-line flex items-center justify-between bg-surface backdrop-blur-xl">
                             <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 flex items-center justify-center shadow-xl shadow-indigo-500/30 transform transition-transform hover:rotate-3 duration-300">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-violet-800 flex items-center justify-center shadow-xl transform transition-transform hover:rotate-3 duration-slow">
                                     <Receipt size={28} className="text-white" />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                                    <h2 className="text-2xl font-bold text-ink tracking-tight">
                                         {editingExpense ? 'Refine Record' : 'Record New Expense'}
                                     </h2>
                                     <div className="flex items-center gap-3 mt-1.5">
                                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                            <span className="text-3xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active V3 Sync</span>
+                                            <span className="text-3xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active V3 Sync</span>
                                         </div>
-                                        <p className="text-3xs font-black text-slate-400 uppercase tracking-widest opacity-80">Verified Ledger Entry</p>
+                                        <p className="text-3xs font-bold text-ink-muted uppercase tracking-widest opacity-80">Verified Ledger Entry</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-6">
                                 {grandTotalValue > 0 && (
-                                    <div className="hidden lg:block text-right px-6 py-2.5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 shadow-inner">
-                                        <p className="text-3xs font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Grand Total Impact</p>
-                                        <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+                                    <div className="hidden lg:block text-right px-6 py-2.5 rounded-2xl bg-brand-50/50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800/50 shadow-inner">
+                                        <p className="text-3xs font-bold text-brand-400 uppercase tracking-widest leading-none mb-1.5">Grand Total Impact</p>
+                                        <p className="text-2xl font-bold text-brand-600 dark:text-brand-400 tracking-tight">
                                             {formatCurrency(grandTotalValue)}
                                         </p>
                                     </div>
                                 )}
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className="w-12 h-12 flex items-center justify-center rounded-2xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all border border-transparent hover:border-rose-200 dark:hover:border-rose-900 group"
+                                    className="w-12 h-12 flex items-center justify-center rounded-2xl text-ink-muted hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all border border-transparent hover:border-rose-200 dark:hover:border-rose-900 group"
                                 >
-                                    <X size={24} className="group-hover:scale-110 transition-transform" />
+                                    <X size={24} className="transition-transform" />
                                 </button>
                             </div>
                         </div>
@@ -1223,10 +1223,10 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         {/* -- Body -- */}
                         <div className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-8 custom-scrollbar">
                             {errors && Object.keys(errors).length > 0 && (
-                                <div className="mb-6 p-6 rounded-[2rem] bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-300">
+                                <div className="mb-6 p-6 rounded-xl bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-slow">
                                     <div className="flex items-center gap-3 mb-3">
                                         <AlertTriangle size={24} className="shrink-0 text-rose-500" />
-                                        <h4 className="text-base font-black uppercase tracking-wider">Please correct the following:</h4>
+                                        <h4 className="text-base font-bold uppercase tracking-wider">Please correct the following:</h4>
                                     </div>
                                     <ul className="list-disc pl-5 space-y-1 text-sm font-bold">
                                         {Object.entries(errors).map(([field, messages]) => {
@@ -1247,19 +1247,19 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     {/* Primary Logistics */}
                                     <div className="space-y-8">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                            <div className="w-10 h-10 rounded-xl bg-surface shadow-md border border-line flex items-center justify-center text-brand-600 dark:text-brand-400">
                                                 <Layers size={20} />
                                             </div>
-                                            <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Basic Details</h3>
+                                            <h3 className="text-xs font-bold text-ink uppercase tracking-widest">Basic Details</h3>
                                         </div>
 
                                         <div className="space-y-6">
                                             <div id="tour-expense-category" className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-indigo-500 transition-colors">Expense Category <span className="text-rose-500">*</span></label>
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1 group-focus-within:text-brand-500 transition-colors">Expense Category <span className="text-rose-500">*</span></label>
                                                 {isCreatingCategory && isModalOpen ? (
-                                                    <div className="flex items-center gap-2 animate-in zoom-in-95 duration-200">
+                                                    <div className="flex items-center gap-2 animate-in zoom-in-95 duration-normal">
                                                         <div className="relative flex-1">
-                                                            <Tag size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                            <Tag size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                                             <input
                                                                 id="tour-new-expense-category-name"
                                                                 autoFocus
@@ -1271,11 +1271,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                                     if (e.key === 'Escape') setIsCreatingCategory(false);
                                                                 }}
                                                                 placeholder="New Category Name..."
-                                                                className="w-full h-12 pl-9 pr-4 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 border border-indigo-500 text-slate-800 dark:text-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
+                                                                className="w-full h-12 pl-9 pr-4 rounded-xl text-sm font-bold bg-surface border border-brand-500 text-ink focus:ring-4 focus:ring-brand-500/10 outline-none transition-all shadow-sm"
                                                             />
                                                         </div>
                                                         <button type="button" onClick={() => handleCreateCategory()} className="w-12 h-12 flex items-center justify-center bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 active:scale-95 transition-all"><Check size={18} /></button>
-                                                        <button type="button" onClick={() => setIsCreatingCategory(false)} className="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 rounded-xl hover:text-rose-500 hover:border-rose-500 active:scale-95 transition-all"><X size={18} /></button>
+                                                        <button type="button" onClick={() => setIsCreatingCategory(false)} className="w-12 h-12 flex items-center justify-center bg-surface border border-line text-ink-muted rounded-xl hover:text-rose-500 hover:border-rose-500 active:scale-95 transition-all"><X size={18} /></button>
                                                     </div>
                                                 ) : (
                                                     <CustomSelect
@@ -1291,27 +1291,27 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             </div>
 
                                             <div className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-indigo-500 transition-colors">Date of Expense <span className="text-rose-500">*</span></label>
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1 group-focus-within:text-brand-500 transition-colors">Date of Expense <span className="text-rose-500">*</span></label>
                                                 <input
                                                     type="date"
                                                     value={formData.date}
                                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                                    className="w-full h-12 px-4 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm"
+                                                    className="w-full h-12 px-4 rounded-xl text-sm font-bold bg-surface border border-line text-ink focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none shadow-sm"
                                                 />
                                             </div>
 
-                                            <div id="tour-expense-amount" className="group p-6 rounded-[2rem] bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden">
+                                            <div id="tour-expense-amount" className="group p-6 rounded-xl bg-brand-600 text-white shadow-xl relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                                                <label className="block text-3xs font-black text-indigo-200 uppercase tracking-widest mb-3">Amount (Excl. Tax) <span className="text-white">*</span></label>
+                                                <label className="block text-3xs font-bold text-brand-200 uppercase tracking-widest mb-3">Amount (Excl. Tax) <span className="text-white">*</span></label>
                                                 <div className="relative flex items-center">
-                                                    <span className="text-3xl font-black text-indigo-300/40 mr-3 select-none">{getCurrencySymbol()}</span>
+                                                    <span className="text-3xl font-bold text-brand-300/40 mr-3 select-none">{getCurrencySymbol()}</span>
                                                     <input
                                                         type="number"
                                                         step="0.01"
                                                         value={formData.amount}
                                                         onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                                                         placeholder="0.00"
-                                                        className="w-full bg-transparent text-4xl font-black text-white border-none focus:ring-0 placeholder-indigo-400/50 p-0"
+                                                        className="w-full bg-transparent text-4xl font-bold text-white border-none focus:ring-0 placeholder-indigo-400/50 p-0"
                                                     />
                                                 </div>
                                                 {errors.amount?.[0] && <div className="mt-3 bg-rose-500/30 backdrop-blur-sm border border-rose-500/30 px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5"><X size={10} /> <span className="text-3xs font-bold">{errors.amount[0]}</span></div>}
@@ -1322,15 +1322,15 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     {/* Financial Routing */}
                                     <div className="space-y-8">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-emerald-500">
+                                            <div className="w-10 h-10 rounded-xl bg-surface shadow-md border border-line flex items-center justify-center text-emerald-500">
                                                 <CreditCard size={20} />
                                             </div>
-                                            <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Payment & Tax</h3>
+                                            <h3 className="text-xs font-bold text-ink uppercase tracking-widest">Payment & Tax</h3>
                                         </div>
 
                                         <div className="space-y-6">
                                             <div className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Payee / Vendor</label>
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Payee / Vendor</label>
                                                 <PartySearchField
                                                     store={store}
                                                     value={formData.payee}
@@ -1347,19 +1347,19 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             </div>
 
                                             <div className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Payment Method</label>
-                                                <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-inner">
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Payment Method</label>
+                                                <div className="grid grid-cols-2 gap-3 p-1.5 bg-sunken rounded-2xl border border-line shadow-inner">
                                                     <button
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, payment_method: 'cash' })}
-                                                        className={`h-11 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all ${formData.payment_method === 'cash' ? 'bg-white dark:bg-slate-700 shadow text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                                        className={`h-11 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all ${formData.payment_method === 'cash' ? 'bg-sunken shadow text-emerald-600 dark:text-emerald-400 border border-line dark:border-line' : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
                                                     >
                                                         <DollarSign size={14} /> CASH
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, payment_method: 'bank' })}
-                                                        className={`h-11 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all ${formData.payment_method === 'bank' ? 'bg-white dark:bg-slate-700 shadow text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                                        className={`h-11 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all ${formData.payment_method === 'bank' ? 'bg-sunken shadow text-blue-600 dark:text-blue-400 border border-line dark:border-line' : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
                                                     >
                                                         <Monitor size={14} /> BANK
                                                     </button>
@@ -1367,8 +1367,8 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             </div>
 
                                             {formData.payment_method === 'bank' && (
-                                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                    <label className="block text-2xs font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-2 ml-1">Bank Account <span className="text-rose-500">*</span></label>
+                                                <div className="animate-in fade-in slide-in-from-top-2 duration-slow">
+                                                    <label className="block text-2xs font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-2 ml-1">Bank Account <span className="text-rose-500">*</span></label>
                                                     <CustomSelect
                                                         value={formData.bank_account_id}
                                                         onChange={(val) => setFormData({ ...formData, bank_account_id: val })}
@@ -1379,9 +1379,9 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                             label: (
                                                                 <div className="flex items-center justify-between gap-2 w-full">
                                                                     <span className="truncate">
-                                                                        {b.name || b.bank_name} {b.account_number && <span className="text-slate-500 text-2xs ml-1">({b.account_number})</span>}
+                                                                        {b.name || b.bank_name} {b.account_number && <span className="text-ink-muted text-2xs ml-1">({b.account_number})</span>}
                                                                     </span>
-                                                                    <span className="text-2xs font-bold text-slate-400 shrink-0">{getCurrencySymbol()} {b.current_balance?.toLocaleString() || 0}</span>
+                                                                    <span className="text-2xs font-bold text-ink-muted shrink-0">{getCurrencySymbol()} {b.current_balance?.toLocaleString() || 0}</span>
                                                                 </div>
                                                             )
                                                         }))}
@@ -1391,26 +1391,26 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             )}
 
                                             {formData.payment_method === 'cash' && (
-                                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                    <label className="block text-2xs font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Current Liquidity</label>
-                                                    <div className="flex items-center justify-between h-12 px-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Cash in Hand</span>
-                                                        <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{getCurrencySymbol()} {cashBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+                                                <div className="animate-in fade-in slide-in-from-top-2 duration-slow">
+                                                    <label className="block text-2xs font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Current Liquidity</label>
+                                                    <div className="flex items-center justify-between h-12 px-4 rounded-xl bg-surface border border-line shadow-sm">
+                                                        <span className="text-sm font-bold text-ink-secondary">Cash in Hand</span>
+                                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{getCurrencySymbol()} {cashBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
                                                     </div>
                                                 </div>
                                             )}
 
                                             <div className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Tax Amount</label>
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Tax Amount</label>
                                                 <div className="relative flex items-center">
-                                                    <span className="absolute left-4 text-slate-400 dark:text-slate-500 font-bold text-xs">{getCurrencySymbol()}</span>
+                                                    <span className="absolute left-4 text-ink-muted font-bold text-xs">{getCurrencySymbol()}</span>
                                                     <input
                                                         type="number"
                                                         step="0.01"
                                                         value={formData.tax_amount}
                                                         onChange={(e) => setFormData({ ...formData, tax_amount: e.target.value })}
                                                         placeholder="0.00"
-                                                        className="w-full h-12 pl-12 px-4 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm"
+                                                        className="w-full h-12 pl-12 px-4 rounded-xl text-sm font-bold bg-surface border border-line text-ink focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none shadow-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -1420,60 +1420,60 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     {/* Context & Proof */}
                                     <div className="space-y-8">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-sky-500">
+                                            <div className="w-10 h-10 rounded-xl bg-surface shadow-md border border-line flex items-center justify-center text-sky-500">
                                                 <FileText size={20} />
                                             </div>
-                                            <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Context & Proof</h3>
+                                            <h3 className="text-xs font-bold text-ink uppercase tracking-widest">Context & Proof</h3>
                                         </div>
 
                                         <div className="space-y-6">
                                             <div className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Reference No.</label>
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Reference No.</label>
                                                 <input
                                                     type="text"
                                                     value={formData.reference}
                                                     onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
                                                     placeholder="Receipt # or Bill Code"
-                                                    className="w-full h-12 px-4 rounded-xl text-sm font-mono bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm"
+                                                    className="w-full h-12 px-4 rounded-xl text-sm font-mono bg-surface border border-line text-ink focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none shadow-sm"
                                                 />
                                             </div>
 
                                             <div id="tour-expense-description" className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Description <span className="text-rose-500">*</span></label>
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Description <span className="text-rose-500">*</span></label>
                                                 <textarea
                                                     value={formData.description}
                                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                     placeholder="Specify the operational purpose..."
                                                     rows={3}
-                                                    className={`w-full px-4 py-3 rounded-xl text-sm font-medium bg-white dark:bg-slate-800 border ${errors.description ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'} text-slate-800 dark:text-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none resize-none placeholder-slate-400 dark:placeholder-slate-500 shadow-sm`}
+                                                    className={`w-full px-4 py-3 rounded-xl text-sm font-medium bg-surface border ${errors.description ? 'border-rose-500' : 'border-line'} text-ink focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none resize-none placeholder-slate-400 dark:placeholder-slate-500 shadow-sm`}
                                                 />
                                                 {errors.description?.[0] && <p className="text-rose-500 text-2xs font-bold mt-2 ml-1"><X size={10} className="inline" /> {errors.description[0]}</p>}
                                             </div>
 
                                             <div className="group">
-                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Physical Evidence</label>
+                                                <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Physical Evidence</label>
                                                 <label
-                                                    className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-all p-6 text-center cursor-pointer ${formData.attachment ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-400 shadow-sm' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500'}`}
+                                                    className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-all p-6 text-center cursor-pointer ${formData.attachment ? 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-400 shadow-sm' : 'bg-app border-line hover:border-brand-400 dark:hover:border-brand-500'}`}
                                                 >
                                                     <input type="file" className="sr-only" onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })} accept="image/*,.pdf" />
                                                     {formData.attachment ? (
                                                         <>
-                                                            <div className="w-14 h-14 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg animate-in zoom-in-75 duration-300">
+                                                            <div className="w-14 h-14 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-lg animate-in zoom-in-75 duration-slow">
                                                                 <Check size={28} />
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 truncate max-w-[200px] px-2">{formData.attachment.name}</p>
-                                                                <p className="text-3xs text-slate-500 font-bold uppercase tracking-widest">Captured Successfully</p>
+                                                                <p className="text-xs font-bold text-brand-600 dark:text-brand-400 truncate max-w-[200px] px-2">{formData.attachment.name}</p>
+                                                                <p className="text-3xs text-ink-muted font-bold uppercase tracking-widest">Captured Successfully</p>
                                                             </div>
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <div className="w-14 h-14 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shadow-sm group-hover:scale-105 transition-transform duration-300">
+                                                            <div className="w-14 h-14 rounded-xl bg-surface border border-line flex items-center justify-center text-ink-muted shadow-sm transition-transform duration-slow">
                                                                 <Upload size={24} />
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <p className="text-xs font-bold text-slate-600 dark:text-slate-400 group-hover:text-indigo-500 transition-colors uppercase tracking-widest">SECURE RECEIPT</p>
-                                                                <p className="text-3xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">PDF or Image Transfer</p>
+                                                                <p className="text-xs font-bold text-ink-secondary group-hover:text-brand-500 transition-colors uppercase tracking-widest">SECURE RECEIPT</p>
+                                                                <p className="text-3xs text-ink-muted font-bold uppercase tracking-widest">PDF or Image Transfer</p>
                                                             </div>
                                                         </>
                                                     )}
@@ -1487,28 +1487,28 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         </div>
 
                         {/* -- Footer -- */}
-                        <div className="relative z-20 px-4 sm:px-8 py-4 sm:py-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="relative z-20 px-4 sm:px-8 py-4 sm:py-6 border-t border-line bg-app flex flex-col sm:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-8">
                                 <div className="flex flex-col">
-                                    <p className="text-3xs font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Total Payable</p>
+                                    <p className="text-3xs font-bold text-ink-muted uppercase tracking-widest leading-none mb-2">Total Payable</p>
                                     <div className="flex items-baseline gap-2">
-                                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                        <p className="text-3xl font-bold text-ink tracking-tight">
                                             {formatCurrency(grandTotalValue)}
                                         </p>
                                         <span className="text-2xs font-bold text-rose-500 uppercase tracking-widest px-1.5 py-0.5 bg-rose-500/10 rounded-md border border-rose-500/20">OUT</span>
                                     </div>
                                 </div>
-                                <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
+                                <div className="h-10 w-px bg-sunken dark:bg-surface hidden md:block" />
                                 <div className="hidden md:flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
                                         <div className={`w-2 h-2 rounded-full ${formData.payment_method === 'cash' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`} />
-                                        <p className="text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                        <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                             {formData.payment_method === 'cash' ? 'Direct Liquidity Reduction' : 'Bank Reconciliation Pending'}
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                                        <p className="text-3xs text-slate-500 font-bold uppercase tracking-widest">Automatic V3 Ledger Sync</p>
+                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface border border-line">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
+                                        <p className="text-3xs text-ink-muted font-bold uppercase tracking-widest">Automatic V3 Ledger Sync</p>
                                     </div>
                                 </div>
                             </div>
@@ -1517,7 +1517,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 sm:flex-none px-6 h-12 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-all uppercase tracking-widest border border-transparent hover:border-slate-300 dark:hover:border-slate-700"
+                                    className="flex-1 sm:flex-none px-6 h-12 rounded-xl text-xs font-bold text-ink-muted hover:text-ink dark:hover:text-neutral-200 transition-all uppercase tracking-widest border border-transparent hover:border-line dark:hover:border-line-strong"
                                 >
                                     Cancel
                                 </button>
@@ -1526,7 +1526,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     type="button"
                                     onClick={handleSubmit}
                                     disabled={loading}
-                                    className="flex-1 sm:flex-none px-10 h-12 rounded-xl bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-600/30 active:scale-95 transition-all disabled:opacity-50"
+                                    className="flex-1 sm:flex-none px-10 h-12 rounded-xl bg-brand-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-brand-700 hover:shadow-lg hover: active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     {loading ? (
                                         <div className="flex items-center gap-3">

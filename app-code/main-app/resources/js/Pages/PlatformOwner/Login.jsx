@@ -60,7 +60,7 @@ const css = `
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 14px;
         padding: 13px 16px 13px 48px;
-        color: #f1f5f9;
+        color: rgb(var(--vq-slate-100));
         font-size: 15px;
         font-family: 'Inter', sans-serif;
         outline: none;
@@ -78,7 +78,7 @@ const css = `
     .hq-btn {
         width: 100%; padding: 14px;
         border-radius: 14px; border: none;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #7c3aed 100%);
+        background: linear-gradient(135deg, rgb(var(--vq-indigo-500)) 0%, rgb(var(--vq-violet-500)) 60%, rgb(var(--vq-violet-600)) 100%);
         color: #fff; font-size: 15px; font-weight: 700;
         font-family: 'Inter', sans-serif;
         cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -104,7 +104,7 @@ const css = `
         height: 48px; border-radius: 14px;
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.09);
-        color: #f1f5f9; font-size: 20px; font-weight: 700;
+        color: rgb(var(--vq-slate-100)); font-size: 20px; font-weight: 700;
         font-family: 'Inter', sans-serif;
         cursor: pointer; transition: all 0.15s;
         display: flex; align-items: center; justify-content: center;
@@ -123,12 +123,12 @@ const css = `
     .pin-key.del:hover {
         background: rgba(239,68,68,0.14);
         border-color: rgba(239,68,68,0.35);
-        color: #ef4444;
+        color: rgb(var(--vq-red-500));
     }
     .pin-key.submit {
         background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.25));
         border-color: rgba(99,102,241,0.5);
-        color: #a5b4fc;
+        color: rgb(var(--vq-indigo-300));
     }
     .pin-key.submit:hover {
         background: linear-gradient(135deg, rgba(99,102,241,0.5), rgba(139,92,246,0.4));
@@ -143,7 +143,7 @@ const css = `
         display: flex; align-items: center; gap: 6px;
         padding: 6px 0;
     }
-    .toggle-mode:hover { color: #a5b4fc; }
+    .toggle-mode:hover { color: rgb(var(--vq-indigo-300)); }
 
     .mode-tab {
         flex: 1; padding: 9px; border-radius: 10px; border: none;
@@ -153,7 +153,7 @@ const css = `
     }
     .mode-tab.active {
         background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.2));
-        color: #a5b4fc; border: 1px solid rgba(99,102,241,0.35);
+        color: rgb(var(--vq-indigo-300)); border: 1px solid rgba(99,102,241,0.35);
     }
     .mode-tab.inactive {
         background: transparent; color: rgba(148,163,184,0.7);

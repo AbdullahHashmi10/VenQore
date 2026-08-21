@@ -22,7 +22,7 @@ export default function ImpersonationBanner() {
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-            background: 'linear-gradient(135deg, #7c3aed, #dc2626)',
+            background: 'linear-gradient(135deg, rgb(var(--vq-violet-600)), rgb(var(--vq-red-600)))',
             padding: '10px 24px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             gap: 16,
@@ -64,7 +64,7 @@ export default function ImpersonationBanner() {
                     from { transform: translateY(-100%); opacity: 0; }
                     to   { transform: translateY(0);     opacity: 1; }
                 }
-            `}</style>
+`}</style>
         </div>
     );
 }

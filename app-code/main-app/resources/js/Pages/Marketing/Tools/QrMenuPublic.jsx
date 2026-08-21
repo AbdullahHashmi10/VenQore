@@ -27,27 +27,27 @@ export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
-            <div className="min-h-screen bg-slate-50" style={{ '--theme': theme_color }}>
+            <div className="min-h-screen bg-app" style={{ '--theme': theme_color }}>
                 <header
-                    className="px-5 pt-10 pb-8 text-center text-slate-900 dark:text-white"
+                    className="px-5 pt-10 pb-8 text-center text-ink"
                     style={{ background: `linear-gradient(135deg, ${theme_color}, ${theme_color}cc)` }}
                 >
                     {logo_base64 && (
                         <img src={logo_base64} alt={`${restaurant_name} logo`} className="w-16 h-16 object-contain rounded-full bg-white mx-auto mb-3 p-1.5" />
                     )}
-                    <h1 className="text-2xl font-black tracking-tight">{restaurant_name}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{restaurant_name}</h1>
                     <p className="text-xs uppercase tracking-widest font-bold opacity-80 mt-1">Menu</p>
                 </header>
 
                 <main className="max-w-lg mx-auto px-4 py-6 pb-16">
                     {categories.length === 0 && (
-                        <p className="text-center text-slate-500 dark:text-slate-400 py-16">This menu doesn't have any items yet.</p>
+                        <p className="text-center text-ink-muted py-16">This menu doesn't have any items yet.</p>
                     )}
 
                     {categories.map((cat, ci) => (
                         <section key={ci} className="mb-8">
                             <h2
-                                className="text-lg font-black mb-3 pb-2 border-b-2"
+                                className="text-lg font-bold mb-3 pb-2 border-b-2"
                                 style={{ color: theme_color, borderColor: `${theme_color}33` }}
                             >
                                 {cat.name}
@@ -56,12 +56,12 @@ export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color
                                 {cat.items.map((item, ii) => (
                                     <div key={ii} className="flex items-start justify-between gap-4 bg-white rounded-2xl p-4 shadow-sm">
                                         <div className="min-w-0">
-                                            <p className="font-bold text-slate-900 text-base leading-snug">{item.name}</p>
+                                            <p className="font-bold text-ink text-base leading-snug">{item.name}</p>
                                             {item.description && (
-                                                <p className="text-sm text-slate-500 mt-1 leading-snug">{item.description}</p>
+                                                <p className="text-sm text-ink-muted mt-1 leading-snug">{item.description}</p>
                                             )}
                                         </div>
-                                        <p className="font-black text-lg shrink-0" style={{ color: theme_color }}>
+                                        <p className="font-bold text-lg shrink-0" style={{ color: theme_color }}>
                                             {symbol}{Number(item.price).toFixed(2)}
                                         </p>
                                     </div>
@@ -71,7 +71,7 @@ export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color
                     ))}
                 </main>
 
-                <footer className="text-center text-1xs text-slate-500 dark:text-slate-400 pb-8 px-4">
+                <footer className="text-center text-1xs text-ink-muted pb-8 px-4">
                     Menu powered by <a href="/tools/qr-menu-generator" className="underline font-semibold">VenQore</a> — free QR menus for restaurants.
                 </footer>
             </div>

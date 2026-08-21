@@ -71,7 +71,7 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
             <div className="flex items-center justify-between">
                 <button
                     onClick={onBack}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl text-slate-400 hover:text-white text-xs font-semibold transition-all"
+                    className="flex items-center gap-2 px-4 py-2 bg-neutral-900/80 hover:bg-interactive-hover border border-neutral-800 rounded-xl text-ink-muted hover:text-white text-xs font-semibold transition-all"
                 >
                     <ArrowLeft size={16} />
                     <span>Back to Mode Choice</span>
@@ -84,10 +84,10 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
 
             {/* Header Title */}
             <div className="text-center space-y-2">
-                <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+                <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
                     Select Your Business Template
                 </h2>
-                <p className="text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                <p className="text-ink-muted text-sm max-w-lg mx-auto leading-relaxed">
                     Choose a pre-configured architecture for your industry. You can add or remove any module later with zero data loss.
                 </p>
             </div>
@@ -106,10 +106,10 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
                                 setSelectedKey(key);
                                 setExpandedKey(isExpanded ? null : key);
                             }}
-                            className={`group cursor-pointer p-6 rounded-3xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between ${
+                            className={`group cursor-pointer p-6 rounded-2xl border transition-all duration-slow relative overflow-hidden flex flex-col justify-between ${
                                 isSelected
-                                    ? 'bg-slate-900/90 border-purple-500 shadow-2xl shadow-purple-500/20 ring-1 ring-purple-500'
-                                    : 'bg-slate-900/60 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700'
+                                    ? 'bg-neutral-900/90 border-purple-500 shadow-2xl  ring-1 ring-purple-500'
+                                    : 'bg-neutral-900/60 hover:bg-interactive-hover border-neutral-800/80 hover:border-line-strong'
                             }`}
                         >
                             {/* Accent Glow */}
@@ -122,17 +122,17 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
                                     <div className={`p-3 rounded-2xl border transition-colors ${
                                         isSelected
                                             ? 'bg-purple-500/15 border-purple-500/40 text-purple-300'
-                                            : 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white'
+                                            : 'bg-neutral-800 border-neutral-700 text-ink-muted group-hover:text-white'
                                     }`}>
                                         <IconComp size={26} />
                                     </div>
 
                                     {isSelected ? (
-                                        <span className="px-3 py-1 bg-purple-500 text-white text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                                        <span className="px-3 py-1 bg-purple-500 text-white text-2xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
                                             <Check size={12} /> Selected
                                         </span>
                                     ) : (
-                                        <span className="text-[10px] text-slate-500 uppercase font-mono tracking-wider">
+                                        <span className="text-2xs text-ink-muted uppercase font-mono tracking-wider">
                                             {(item.modules || []).length} Modules
                                         </span>
                                     )}
@@ -142,7 +142,7 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
                                     <h3 className="text-lg font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">
                                         {item.label}
                                     </h3>
-                                    <p className="text-slate-400 text-xs leading-relaxed">
+                                    <p className="text-ink-muted text-xs leading-relaxed">
                                         {item.description}
                                     </p>
                                 </div>
@@ -152,7 +152,7 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
                                     {(item.modules || []).map((mod) => (
                                         <span
                                             key={mod}
-                                            className="px-2 py-0.5 bg-slate-950/80 border border-slate-800 rounded-lg text-[10px] text-slate-300 font-mono"
+                                            className="px-2 py-0.5 bg-neutral-950/80 border border-neutral-800 rounded-lg text-2xs text-neutral-300 font-mono"
                                         >
                                             +{mod.replace(/_/g, ' ')}
                                         </span>
@@ -162,11 +162,11 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
                                 {/* Split Accordion Detail Drawer */}
                                 {isExpanded && (
                                     <div className="pt-3 mt-3 border-t border-white/5 space-y-2 animate-fadeIn text-xs">
-                                        <div className="text-slate-400">
-                                            <strong className="text-slate-300">Opens for:</strong> {item.opens}
+                                        <div className="text-ink-muted">
+                                            <strong className="text-neutral-300">Opens for:</strong> {item.opens}
                                         </div>
                                         {item.terms && (
-                                            <div className="text-slate-400">
+                                            <div className="text-ink-muted">
                                                 <strong className="text-purple-300 font-mono">Adapts Terms:</strong> {item.terms}
                                             </div>
                                         )}
@@ -182,8 +182,8 @@ export default function PresetPicker({ presets = {}, onSelectPreset, onNext, onB
                                 }}
                                 className={`mt-6 w-full py-3 px-4 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                                     isSelected
-                                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-xl shadow-purple-500/25'
-                                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                                        ? 'bg-gradient-to-r from-purple-600 to-brand-600 hover:from-purple-500 hover:to-brand-500 text-white shadow-xl '
+                                        : 'bg-neutral-800 hover:bg-interactive-hover text-neutral-200'
                                 }`}
                             >
                                 <span>Use This Template</span>

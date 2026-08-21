@@ -63,32 +63,32 @@ export default function Create({ invoices = [] }) {
                 <div className="flex items-center gap-3">
                     <Link
                         href={route('store.invoice-reminders.index', { store_slug: store.slug })}
-                        className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-all"
+                        className="p-2 bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-secondary rounded-xl transition-all"
                     >
                         <ArrowLeft size={18} />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Schedule Payment Reminder</h1>
-                        <p className="text-slate-500 text-sm mt-1">Set up automated notifications for your unpaid invoices</p>
+                        <h1 className="text-2xl font-bold text-ink">Schedule Payment Reminder</h1>
+                        <p className="text-ink-muted text-sm mt-1">Set up automated notifications for your unpaid invoices</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
                     {/* Form Panel Wrapper */}
-                    <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800">
+                    <div className="lg:col-span-7 bg-surface rounded-2xl p-6 border border-line">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             
                             {/* Select Invoice */}
                             <div className="space-y-2">
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+                                <label className="block text-sm font-bold text-ink-secondary">
                                     Select Unpaid/Partial Invoice <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <select
                                         value={data.invoice_id}
                                         onChange={(e) => setData('invoice_id', e.target.value)}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-orange-500/20 outline-none font-medium appearance-none"
+                                        className="w-full px-4 py-3 bg-app border border-line rounded-xl focus:ring-2 ring-orange-500/20 outline-none font-medium appearance-none"
                                     >
                                         <option value="">-- Choose an Invoice --</option>
                                         {invoices.map((invoice) => (
@@ -97,7 +97,7 @@ export default function Create({ invoices = [] }) {
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted">
                                         <FileText size={18} />
                                     </div>
                                 </div>
@@ -110,14 +110,14 @@ export default function Create({ invoices = [] }) {
                             {selectedInvoice && (
                                 <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-xl border border-orange-100 dark:border-orange-900/30 grid grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-xs text-slate-500 block">Customer</span>
-                                        <span className="font-bold text-slate-800 dark:text-white flex items-center gap-1.5 mt-0.5">
-                                            <User size={14} className="text-slate-400" />
+                                        <span className="text-xs text-ink-muted block">Customer</span>
+                                        <span className="font-bold text-ink flex items-center gap-1.5 mt-0.5">
+                                            <User size={14} className="text-ink-muted" />
                                             {selectedInvoice.party?.name || 'Unknown'}
                                         </span>
                                     </div>
                                     <div>
-                                        <span className="text-xs text-slate-500 block">Amount Due</span>
+                                        <span className="text-xs text-ink-muted block">Amount Due</span>
                                         <span className="font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1 mt-0.5">
                                             <DollarSign size={14} />
                                             {formatCurrency(parseFloat(selectedInvoice.invoice_total ?? selectedInvoice.total ?? 0), store || settings)}
@@ -128,7 +128,7 @@ export default function Create({ invoices = [] }) {
 
                             {/* Schedule Time */}
                             <div className="space-y-2">
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+                                <label className="block text-sm font-bold text-ink-secondary">
                                     Scheduled For <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
@@ -137,7 +137,7 @@ export default function Create({ invoices = [] }) {
                                         value={data.scheduled_at}
                                         onChange={(e) => setData('scheduled_at', e.target.value)}
                                         min={new Date(Date.now() + 60000).toISOString().slice(0, 16)} // must be future date
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-orange-500/20 outline-none font-medium text-slate-800 dark:text-white"
+                                        className="w-full px-4 py-3 bg-app border border-line rounded-xl focus:ring-2 ring-orange-500/20 outline-none font-medium text-ink"
                                     />
                                 </div>
                                 {errors.scheduled_at && (
@@ -147,7 +147,7 @@ export default function Create({ invoices = [] }) {
 
                             {/* Type/Channel */}
                             <div className="space-y-2">
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+                                <label className="block text-sm font-bold text-ink-secondary">
                                     Delivery Channel <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-2 gap-4">
@@ -157,7 +157,7 @@ export default function Create({ invoices = [] }) {
                                         className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
                                             data.type === 'whatsapp'
                                                 ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/10 text-orange-600 dark:text-orange-400 font-bold'
-                                                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                                : 'border-line text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }`}
                                     >
                                         <MessageSquare size={24} />
@@ -169,7 +169,7 @@ export default function Create({ invoices = [] }) {
                                         className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
                                             data.type === 'email'
                                                 ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/10 text-orange-600 dark:text-orange-400 font-bold'
-                                                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                                : 'border-line text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }`}
                                     >
                                         <Mail size={24} />
@@ -197,9 +197,9 @@ export default function Create({ invoices = [] }) {
 
                     {/* Preview Panel */}
                     <div className="lg:col-span-5 space-y-4">
-                        <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5">
-                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
-                                <Info size={18} className="text-slate-400" />
+                        <div className="bg-app border border-line rounded-2xl p-5">
+                            <h3 className="font-bold text-ink flex items-center gap-2 mb-4">
+                                <Info size={18} className="text-ink-muted" />
                                 Reminder Preview
                             </h3>
                             
@@ -207,31 +207,31 @@ export default function Create({ invoices = [] }) {
                                 /* WhatsApp Mock */
                                 <div className="bg-[#efeae2] dark:bg-void-800 rounded-xl p-4 min-h-[220px] flex flex-col justify-between border border-emerald-100 dark:border-emerald-950/30">
                                     <div className="space-y-2">
-                                        <div className="inline-block bg-white dark:bg-gray-800 text-slate-800 dark:text-slate-200 rounded-2xl rounded-tl-none p-3.5 text-sm shadow-sm max-w-[85%] whitespace-pre-wrap leading-relaxed relative">
+                                        <div className="inline-block bg-white dark:bg-surface text-ink rounded-2xl rounded-tl-none p-3.5 text-sm shadow-sm max-w-[85%] whitespace-pre-wrap leading-relaxed relative">
                                             {getMessagePreview()}
-                                            <span className="block text-2xs text-slate-400 text-right mt-1.5">
+                                            <span className="block text-2xs text-ink-muted text-right mt-1.5">
                                                 {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="text-center text-xs text-slate-400 mt-4 italic">
+                                    <div className="text-center text-xs text-ink-muted mt-4 italic">
                                         Simulated WhatsApp delivery
                                     </div>
                                 </div>
                             ) : (
                                 /* Email Mock */
-                                <div className="bg-white dark:bg-slate-950 rounded-xl p-4 min-h-[220px] flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+                                <div className="bg-surface rounded-xl p-4 min-h-[220px] flex flex-col justify-between border border-line">
                                     <div className="space-y-3">
-                                        <div className="border-b border-slate-100 dark:border-slate-800 pb-2 text-xs text-slate-400 space-y-1">
+                                        <div className="border-b border-line pb-2 text-xs text-ink-muted space-y-1">
                                             <div><span className="font-bold">From:</span> system@venqore.com</div>
                                             <div><span className="font-bold">To:</span> {selectedInvoice?.party?.email || 'customer@email.com'}</div>
                                             <div><span className="font-bold">Subject:</span> Friendly Payment Reminder: Invoice #{selectedInvoice?.reference_number || '----'}</div>
                                         </div>
-                                        <div className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
+                                        <div className="text-ink-secondary text-sm whitespace-pre-wrap leading-relaxed">
                                             {getMessagePreview()}
                                         </div>
                                     </div>
-                                    <div className="text-center text-xs text-slate-400 mt-4 italic">
+                                    <div className="text-center text-xs text-ink-muted mt-4 italic">
                                         Simulated Email delivery
                                     </div>
                                 </div>

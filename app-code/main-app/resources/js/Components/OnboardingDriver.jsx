@@ -134,14 +134,14 @@ const OnboardingDriver = () => {
                 box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
             }
             .dark .driver-popover {
-                background-color: #0f172a !important;
-                border-color: #1e293b !important;
-                color: #f8fafc !important;
+                background-color: rgb(var(--vq-slate-900)) !important;
+                border-color: rgb(var(--vq-slate-800)) !important;
+                color: rgb(var(--vq-slate-50)) !important;
             }
             .driver-popover-title {
                 font-size: 18px !important;
                 font-weight: 800 !important;
-                color: #1e293b !important;
+                color: rgb(var(--vq-slate-800)) !important;
                 margin-bottom: 8px !important;
             }
             .dark .driver-popover-title {
@@ -149,11 +149,11 @@ const OnboardingDriver = () => {
             }
             .driver-popover-description {
                 font-size: 14px !important;
-                color: #64748b !important;
+                color: rgb(var(--vq-slate-500)) !important;
                 line-height: 1.6 !important;
             }
             .dark .driver-popover-description {
-                color: #94a3b8 !important;
+                color: rgb(var(--vq-slate-400)) !important;
             }
             .driver-popover-btn {
                 border-radius: 10px !important;
@@ -163,20 +163,20 @@ const OnboardingDriver = () => {
                 transition: all 0.2s !important;
             }
             .driver-popover-next-btn {
-                background-color: #4f46e5 !important;
+                background-color: rgb(var(--vq-indigo-600)) !important;
                 color: white !important;
             }
             .driver-popover-prev-btn {
-                background-color: #f1f5f9 !important;
-                color: #64748b !important;
+                background-color: rgb(var(--vq-slate-100)) !important;
+                color: rgb(var(--vq-slate-500)) !important;
             }
             .dark .driver-popover-prev-btn {
-                background-color: #1e293b !important;
-                color: #94a3b8 !important;
+                background-color: rgb(var(--vq-slate-800)) !important;
+                color: rgb(var(--vq-slate-400)) !important;
             }
             .driver-popover-progress-text {
                 font-weight: 600 !important;
-                color: #94a3b8 !important;
+                color: rgb(var(--vq-slate-400)) !important;
             }
         `;
         document.head.appendChild(style);

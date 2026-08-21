@@ -110,15 +110,15 @@ const OnboardingTour = ({ onComplete }) => {
     return (
         <>
             {/* Backdrop */}
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] animate-in fade-in duration-300" />
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-tooltip animate-in fade-in duration-slow" />
 
             {/* Modal */}
-            <div className="fixed inset-0 z-[301] flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="fixed inset-0 z-tooltip flex items-center justify-center p-4">
+                <div className="bg-surface rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-slow">
                     {/* Progress Bar */}
-                    <div className="h-1 bg-slate-100 dark:bg-slate-800">
+                    <div className="h-1 bg-sunken">
                         <div
-                            className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-brand-500 to-purple-600 transition-all duration-slower"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
@@ -126,15 +126,15 @@ const OnboardingTour = ({ onComplete }) => {
                     {/* Content */}
                     <div className="p-8 text-center">
                         {/* Icon */}
-                        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white shadow-lg ">
                             <StepIcon size={36} />
                         </div>
 
                         {/* Text */}
-                        <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">
+                        <h2 className="text-2xl font-bold text-ink mb-3">
                             {step.title}
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
+                        <p className="text-ink-secondary leading-relaxed mb-6">
                             {step.description}
                         </p>
 
@@ -142,7 +142,7 @@ const OnboardingTour = ({ onComplete }) => {
                         {step.action && (
                             <button
                                 onClick={() => handleAction(step.action)}
-                                className="mb-6 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                                className="mb-6 px-6 py-3 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-xl font-medium hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"
                             >
                                 {step.action.label} →
                             </button>
@@ -155,10 +155,10 @@ const OnboardingTour = ({ onComplete }) => {
                                     key={idx}
                                     onClick={() => setCurrentStep(idx)}
                                     className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentStep
-                                            ? 'bg-indigo-500 w-8'
+                                            ? 'bg-brand-500 w-8'
                                             : idx < currentStep
-                                                ? 'bg-indigo-300'
-                                                : 'bg-slate-200 dark:bg-slate-700'
+                                                ? 'bg-brand-300'
+                                                : 'bg-sunken'
                                         }`}
                                 />
                             ))}
@@ -166,11 +166,11 @@ const OnboardingTour = ({ onComplete }) => {
                     </div>
 
                     {/* Footer */}
-                    <div className="px-8 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                    <div className="px-8 py-4 border-t border-line flex items-center justify-between bg-app">
                         {currentStep > 0 ? (
                             <button
                                 onClick={handlePrev}
-                                className="flex items-center gap-2 px-4 py-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 font-medium transition-colors"
                             >
                                 <ChevronLeft size={18} />
                                 Back
@@ -178,7 +178,7 @@ const OnboardingTour = ({ onComplete }) => {
                         ) : (
                             <button
                                 onClick={handleSkip}
-                                className="px-4 py-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium transition-colors"
+                                className="px-4 py-2 text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 font-medium transition-colors"
                             >
                                 Skip Tour
                             </button>
@@ -186,7 +186,7 @@ const OnboardingTour = ({ onComplete }) => {
 
                         <button
                             onClick={handleNext}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all hover:scale-105"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-brand-500 to-purple-600 text-white rounded-xl font-bold shadow-lg hover: transition-all"
                         >
                             {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
                             {currentStep < steps.length - 1 && <ChevronRight size={18} />}
@@ -196,7 +196,7 @@ const OnboardingTour = ({ onComplete }) => {
                     {/* Close Button */}
                     <button
                         onClick={handleSkip}
-                        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                        className="absolute top-4 right-4 p-2 text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 transition-colors"
                     >
                         <X size={20} />
                     </button>

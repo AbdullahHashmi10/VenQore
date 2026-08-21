@@ -79,19 +79,19 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
             width: '320px',
             render: (row) => (
                 <div className="flex items-center gap-3 py-1">
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div className="w-10 h-10 rounded-lg bg-sunken flex items-center justify-center shrink-0 border border-line overflow-hidden">
                         {row.image ? (
                             <img src={`/storage/${row.image}`} className="w-full h-full object-cover" alt={row.name} onError={(e) => e.target.style.display = 'none'} />
                         ) : (
-                            <Package size={18} className="text-slate-400" />
+                            <Package size={18} className="text-ink-muted" />
                         )}
                     </div>
                     <div>
-                        <div className="font-bold text-sm text-slate-800 dark:text-slate-200 line-clamp-1" title={row.name}>{row.name}</div>
-                        <div className="text-1xs font-mono text-slate-500 flex items-center gap-2">
+                        <div className="font-bold text-sm text-ink line-clamp-1" title={row.name}>{row.name}</div>
+                        <div className="text-1xs font-mono text-ink-muted flex items-center gap-2">
                             <span>{row.sku}</span>
                             {row.category && (
-                                <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-2xs text-slate-500 border border-slate-200 dark:border-slate-700">
+                                <span className="bg-sunken px-1.5 py-0.5 rounded text-2xs text-ink-muted border border-line">
                                     {row.category.name}
                                 </span>
                             )}
@@ -122,10 +122,10 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                             <span className={stock === 0 ? 'text-red-500' : (stock < min ? 'text-orange-500' : 'text-emerald-500')}>
                                 {formatNumber(stock)} units
                             </span>
-                            <span className="text-slate-400">Min: {formatNumber(min)}</span>
+                            <span className="text-ink-muted">Min: {formatNumber(min)}</span>
                         </div>
-                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
-                            <div className={`h-full ${colorClass} transition-all duration-500 relative`} style={{ width: `${percentage}%` }}>
+                        <div className="h-2 w-full bg-sunken rounded-full overflow-hidden border border-line">
+                            <div className={`h-full ${colorClass} transition-all duration-slower relative`} style={{ width: `${percentage}%` }}>
                                 {stock < min && <div className="absolute right-0 top-0 bottom-0 w-px bg-white/50 animate-pulse"></div>}
                             </div>
                         </div>
@@ -145,7 +145,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                         <span className="font-mono font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-lg border border-red-100 dark:border-red-900/30 shadow-sm">
                             +{formatNumber(shortage)}
                         </span>
-                        <span className="text-2xs text-slate-400 mt-1">units needed</span>
+                        <span className="text-2xs text-ink-muted mt-1">units needed</span>
                     </div>
                 );
             }
@@ -160,7 +160,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                 const unitCost = row.avg_unit_cost ?? row.cost_price ?? 0;
                 const cost = unitCost * shortage;
                 return (
-                    <div className="font-mono text-sm text-slate-600 dark:text-slate-400">
+                    <div className="font-mono text-sm text-ink-secondary">
                         {formatCurrency(cost)}
                     </div>
                 );
@@ -171,7 +171,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
             label: 'Supplier',
             render: (row) => (
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700">
+                    <span className="text-xs font-bold text-ink-secondary bg-sunken px-2 py-1 rounded-md border border-line">
                         {row.supplier?.name || 'Any'}
                     </span>
                 </div>
@@ -182,8 +182,8 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
             label: 'Action',
             align: 'right',
             render: (row) => (
-                <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-indigo-600 hover:text-indigo-700 transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group" title="Create Purchase Order">
-                    <ShoppingCart size={16} className="group-hover:scale-110 transition-transform" />
+                <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-brand-600 hover:text-brand-700 transition-all border border-transparent hover:border-line dark:hover:border-line-strong group" title="Create Purchase Order">
+                    <ShoppingCart size={16} className="transition-transform" />
                 </button>
             )
         }

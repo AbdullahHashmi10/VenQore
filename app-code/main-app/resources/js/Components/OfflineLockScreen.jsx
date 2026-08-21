@@ -51,20 +51,20 @@ export default function OfflineLockScreen() {
     if (!isBlocked) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-command bg-neutral-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6 animate-in fade-in duration-slow">
             {/* Background Ambience */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-[100px] animate-pulse"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
 
-            <div className="relative z-10 max-w-md w-full bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
+            <div className="relative z-10 max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
                 <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-slow">
                     <WifiOff size={40} className="text-red-500" />
                 </div>
 
-                <h2 className="text-3xl font-black text-white mb-3 tracking-tight">Access Suspended</h2>
-                <p className="text-slate-300 mb-8 text-lg leading-relaxed">
+                <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">Access Suspended</h2>
+                <p className="text-neutral-300 mb-8 text-lg leading-relaxed">
                     {reason}
                 </p>
 
@@ -72,7 +72,7 @@ export default function OfflineLockScreen() {
                     <button
                         id="retry-btn"
                         onClick={checkConnection}
-                        className="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 transform hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                        className="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold rounded-xl shadow-lg transform active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                     >
                         <RotateCcw size={20} />
                         Retry Connection
@@ -81,7 +81,7 @@ export default function OfflineLockScreen() {
                     {!showGame && (
                         <button
                             onClick={() => setShowGame(true)}
-                            className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold rounded-xl transition-all flex items-center justify-center gap-3"
+                            className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 font-bold rounded-xl transition-all flex items-center justify-center gap-3"
                         >
                             <MonitorX size={20} />
                             I'm bored, let's play
@@ -102,7 +102,7 @@ export default function OfflineLockScreen() {
                             ></iframe>
                             <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]"></div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-3 font-mono">Connection will auto-retry in the background.</p>
+                        <p className="text-xs text-ink-muted mt-3 font-mono">Connection will auto-retry in the background.</p>
                     </div>
                 )}
             </div>
@@ -119,7 +119,7 @@ export default function OfflineLockScreen() {
                 .animate-bounce-slow {
                     animation: bounce 3s infinite;
                 }
-            `}</style>
+`}</style>
         </div>
     );
 }

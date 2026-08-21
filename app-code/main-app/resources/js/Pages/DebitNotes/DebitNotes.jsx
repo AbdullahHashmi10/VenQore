@@ -226,24 +226,24 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
         <OneGlanceLayout title="Debit Notes" activeMenu="Purchase">
             <Head title="Debit Notes" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <PurchaseModuleTabs activeTab="debit-notes" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
-                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     
                     {!isStatsExpanded && (
-                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                        <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
                             <div className="flex items-center gap-2">
-                                <span className="text-indigo-600 dark:text-indigo-400">Total: {formatCurrency(computedStats.totalAmount, store)}</span>
-                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-brand-600 dark:text-brand-400">Total: {formatCurrency(computedStats.totalAmount, store)}</span>
+                                <span className="text-neutral-300 dark:text-ink-secondary">|</span>
                                 <span className="text-blue-600 dark:text-blue-400">Txns: {computedStats.total}</span>
                             </div>
                         </div>
@@ -252,75 +252,75 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
 
                 {/* Stats Cards - Compact */}
                 <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg">
+                            <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
                                 <FileMinus size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Notes</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Notes</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{computedStats.total}</p>
+                        <p className="text-base font-bold text-ink">{computedStats.total}</p>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <DollarSign size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Value</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Value</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{formatCurrency(computedStats.totalAmount, store)}</p>
+                        <p className="text-base font-bold text-emerald-600">{formatCurrency(computedStats.totalAmount, store)}</p>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <ArrowUpRight size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Open Credits</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Open Credits</p>
                         </div>
-                        <p className="text-base font-black text-blue-600">{computedStats.open}</p>
+                        <p className="text-base font-bold text-blue-600">{computedStats.open}</p>
                     </div>
 
-                    <Link href={route('store.debit-notes.create', { store_slug: store.slug })} className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 transition-all">
+                    <Link href={route('store.debit-notes.create', { store_slug: store.slug })} className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all">
                         <Plus size={18} />
                         <span className="font-bold text-sm">New Debit Note</span>
                     </Link>
                 </div>
 
                 {/* PC / Desktop Header Area (Hidden on Mobile) */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0 flex items-center gap-2">
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0 flex items-center gap-2">
                             Debit <span className="text-red-600">Notes</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
                         <button
                             onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >All</button>
                         <button
                             onClick={() => { setActiveFilter('open'); applyFilters({ filter: 'open' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Open</button>
                         <button
                             onClick={() => { setActiveFilter('used'); applyFilters({ filter: 'used' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Used</button>
 
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Custom</button>
 
                         {activeFilter === 'custom' && (
                             <div className="flex items-center gap-1.5 ml-1">
                                 <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-red-500" />
-                                <span className="text-slate-400 text-xs">→</span>
+                                    className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-red-500" />
+                                <span className="text-ink-muted text-xs">→</span>
                                 <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-red-500" />
+                                    className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-red-500" />
                             </div>
                         )}
                     </div>
@@ -343,11 +343,11 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                 filterKey="reference_number"
                             />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print" onClick={() => window.print()}>
+                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
                                 <Printer size={18} />
                             </button>
                         </div>
@@ -355,22 +355,22 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                 </div>
 
                 {/* Mobile Layout Header Area */}
-                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center justify-between w-full">
-                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
                             Debit Notes
                         </h1>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-red-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Search"
                             >
                                 <Search size={16} />
                             </button>
                             <button
                                 onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-red-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Filters"
                             >
                                 <Filter size={16} />
@@ -386,32 +386,32 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                     </div>
 
                     {showMobileSearch && (
-                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                        <div className="w-full relative mt-1 border-t border-line pt-2">
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search note reference..."
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-shadow outline-none text-slate-800 dark:text-white"
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-shadow outline-none text-ink"
                             />
-                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
                         </div>
                     )}
 
                     {showMobileFilters && (
-                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                        <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >All</button>
                                 <button
                                     onClick={() => { setActiveFilter('open'); applyFilters({ filter: 'open' }); }}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >Open</button>
                                 <button
                                     onClick={() => { setActiveFilter('used'); applyFilters({ filter: 'used' }); }}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >Used</button>
                             </div>
                         </div>
@@ -419,10 +419,10 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                 </div>
 
                 {/* Main Table Container */}
-                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app">
                     <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
                                     <th
                                         key={col.key}
@@ -432,10 +432,10 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                                            cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
+                                            p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
+                                            cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
                                             ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-red-500' : ''}
-                                        `}
+`}
                                         style={{ width: col.width }}
                                     >
                                         <div className="flex items-center gap-2">
@@ -448,15 +448,15 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {sortedData.length === 0 ? (
                                 <tr>
                                     <td colSpan={tableColumns.length} className="p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
-                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                                <FileMinus size={32} className="text-slate-400" />
+                                            <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
+                                                <FileMinus size={32} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">No debit notes found</p>
+                                            <p className="text-lg font-bold text-ink-secondary mb-1">No debit notes found</p>
                                             <Link
                                                 href={route('store.debit-notes.create', { store_slug: store.slug })}
                                                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors flex items-center gap-2 mt-2"
@@ -473,10 +473,10 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                         onClick={() => setQuickViewItem(row)}
                                         className={`
                                             hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-all group cursor-pointer border-l-4 border-transparent hover:border-red-400
-                                        `}
+`}
                                     >
                                         {tableColumns.map((col) => (
-                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
+                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
                                                 {(() => {
                                                     switch (col.key) {
                                                         case 'date': return <span className="font-medium">{formatDate(row.date)}</span>;
@@ -486,11 +486,11 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                                             return (
                                                                 <div>
                                                                     <p className="font-semibold">{row.supplier?.name || 'Unknown'}</p>
-                                                                    {row.supplier?.phone && <p className="text-xs text-slate-400">{row.supplier.phone}</p>}
+                                                                    {row.supplier?.phone && <p className="text-xs text-ink-muted">{row.supplier.phone}</p>}
                                                                 </div>
                                                             );
                                                         case 'amount': return <span className="font-bold text-emerald-600">{formatCurrency(row.amount, store)}</span>;
-                                                        case 'reason': return <span className="text-slate-500 text-xs italic">{row.reason || '-'}</span>;
+                                                        case 'reason': return <span className="text-ink-muted text-xs italic">{row.reason || '-'}</span>;
                                                         case 'status':
                                                             const styles = {
                                                                 used: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -503,16 +503,16 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2 relative">
                                                                     <div className="relative">
-                                                                        <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-red-600 bg-slate-100' : 'text-slate-500 hover:bg-slate-100'}`}>
+                                                                        <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-red-600 bg-sunken' : 'text-ink-muted hover:bg-interactive-hover'}`}>
                                                                             <MoreVertical size={16} />
                                                                         </button>
                                                                         {activeActionMenu === row.id && (
-                                                                            <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+                                                                            <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
                                                                                 <div className="py-1">
-                                                                                    <Link href={route('store.debit-notes.show', row.id)} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                                    <Link href={route('store.debit-notes.show', row.id)} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
                                                                                         <Eye size={14} /> View Details
                                                                                     </Link>
-                                                                                    <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                                    <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
                                                                                         <Printer size={14} /> Print
                                                                                     </button>
                                                                                 </div>
@@ -536,7 +536,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                             {loading && (
                                 <tr>
                                     <td colSpan={tableColumns.length} className="p-4 text-center">
-                                        <div className="flex items-center justify-center gap-2 text-slate-400">
+                                        <div className="flex items-center justify-center gap-2 text-ink-muted">
                                             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                                             <span className="text-xs font-bold uppercase">Loading more...</span>
                                         </div>
@@ -549,9 +549,9 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                     {/* Mobile View - Cards List */}
                     <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
                         {sortedData.length === 0 ? (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
-                                <FileMinus size={32} className="mx-auto text-slate-400 mb-2" />
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No debit notes found</p>
+                            <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                                <FileMinus size={32} className="mx-auto text-ink-muted mb-2" />
+                                <p className="text-sm font-bold text-ink-secondary">No debit notes found</p>
                             </div>
                         ) : (
                             sortedData.map((row) => {
@@ -566,25 +566,25 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                         key={row.id}
                                         onClick={() => setQuickViewItem(row)}
                                         className={`
-                                            p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2 relative cursor-pointer hover:border-red-400 transition-colors
+                                            p-3 bg-surface rounded-xl border border-line shadow-sm flex flex-col gap-2 relative cursor-pointer hover:border-red-400 transition-colors
                                             ${quickViewItem?.id === row.id ? 'ring-2 ring-red-500 ring-inset bg-red-50/20 dark:bg-red-900/10' : ''}
-                                        `}
+`}
                                     >
                                         {/* Row 1: Supplier Name (Left), Invoice Reference & Date (Right) */}
                                         <div className="flex items-start justify-between">
                                             <div>
-                                                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm">
+                                                <h3 className="font-bold text-ink text-sm">
                                                     {row.supplier?.name || 'Unknown Supplier'}
                                                 </h3>
                                                 {row.supplier?.phone && (
-                                                    <p className="text-2xs text-slate-400 font-semibold">{row.supplier.phone}</p>
+                                                    <p className="text-2xs text-ink-muted font-semibold">{row.supplier.phone}</p>
                                                 )}
                                             </div>
                                             <div className="text-right">
                                                 <span className="font-mono text-xs font-bold text-red-600 dark:text-red-400 block">
                                                     {row.reference_number || `DN-${row.id}`}
                                                 </span>
-                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-ink-muted font-semibold block mt-0.5">
                                                     {formatDate(row.date || row.created_at)}
                                                 </span>
                                             </div>
@@ -592,27 +592,27 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
 
                                         {/* Row 2: Badges (Transaction type & status) */}
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-3xs font-black uppercase bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 px-2 py-0.5 rounded border border-red-200/30">
+                                            <span className="text-3xs font-bold uppercase bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 px-2 py-0.5 rounded border border-red-200/30">
                                                 Debit Note
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[row.status] || 'bg-slate-100 text-slate-700'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[row.status] || 'bg-sunken text-ink-secondary'}`}>
                                                 {row.status}
                                             </span>
                                         </div>
 
                                         {/* Row 3: Totals & Action Icons */}
-                                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                        <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
-                                                    <span className="text-xs font-black text-emerald-600">
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Amount</span>
+                                                    <span className="text-xs font-bold text-emerald-600">
                                                         {formatCurrency(row.amount, store)}
                                                     </span>
                                                 </div>
                                                 {row.reason && (
                                                     <div className="max-w-[150px] truncate">
-                                                        <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Reason</span>
-                                                        <span className="text-2xs text-slate-500 italic">
+                                                        <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Reason</span>
+                                                        <span className="text-2xs text-ink-muted italic">
                                                             {row.reason}
                                                         </span>
                                                     </div>
@@ -623,7 +623,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                                 <Link
                                                     href={route('store.debit-notes.show', row.id)}
-                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-red-600 transition-colors"
+                                                    className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-red-600 transition-colors"
                                                     title="View"
                                                 >
                                                     <Eye size={16} />
@@ -640,44 +640,44 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
 
             {/* Quick View Modal */}
             {quickViewItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setQuickViewItem(null)}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-normal" onClick={() => setQuickViewItem(null)}>
                     <div
-                        className="quick-view-modal w-full max-w-2xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                        className="quick-view-modal w-full max-w-2xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
+                        <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Note Details</p>
-                                <h3 className="text-xl font-black text-red-600">{quickViewItem.reference_number || `DN-${quickViewItem.id}`}</h3>
+                                <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Note Details</p>
+                                <h3 className="text-xl font-bold text-red-600">{quickViewItem.reference_number || `DN-${quickViewItem.id}`}</h3>
                             </div>
                             <button
                                 onClick={() => setQuickViewItem(null)}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                                className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
                             >
                                 <X size={18} />
                             </button>
                         </div>
                         <div className="p-6 overflow-auto">
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Supplier</p>
-                                    <p className="font-bold text-slate-900 dark:text-white">{quickViewItem.supplier?.name || 'Unknown'}</p>
-                                    <p className="text-sm text-slate-500">{quickViewItem.supplier?.phone}</p>
+                                <div className="p-4 bg-app rounded-xl">
+                                    <p className="text-xs font-bold text-ink-muted uppercase mb-1">Supplier</p>
+                                    <p className="font-bold text-ink">{quickViewItem.supplier?.name || 'Unknown'}</p>
+                                    <p className="text-sm text-ink-muted">{quickViewItem.supplier?.phone}</p>
                                 </div>
-                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Amount</p>
-                                    <p className="font-black text-emerald-600 text-lg">{formatCurrency(quickViewItem.amount, store)}</p>
-                                    <p className="text-sm text-slate-500 uppercase">{quickViewItem.status}</p>
+                                <div className="p-4 bg-app rounded-xl">
+                                    <p className="text-xs font-bold text-ink-muted uppercase mb-1">Amount</p>
+                                    <p className="font-bold text-emerald-600 text-lg">{formatCurrency(quickViewItem.amount, store)}</p>
+                                    <p className="text-sm text-ink-muted uppercase">{quickViewItem.status}</p>
                                 </div>
                             </div>
 
                             <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-xl border border-orange-100 dark:border-orange-800/30 mb-6">
                                 <p className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase mb-1">Reason</p>
-                                <p className="text-slate-700 dark:text-slate-300 italic">{quickViewItem.reason || 'No specific reason provided.'}</p>
+                                <p className="text-ink-secondary italic">{quickViewItem.reason || 'No specific reason provided.'}</p>
                             </div>
 
                             <div className="mt-6 flex justify-end gap-3">
-                                <button className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2">
+                                <button className="px-4 py-2 bg-sunken text-ink-secondary font-bold rounded-xl hover:bg-interactive-hover transition-colors flex items-center gap-2">
                                     <Printer size={16} /> Print Receipt
                                 </button>
                                 <Link

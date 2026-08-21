@@ -94,22 +94,22 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
             <div className="mb-6 flex items-center justify-between">
                 <Link
                     href={route('store.inventory.index', { store_slug: store?.slug })}
-                    className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors"
+                    className="flex items-center gap-2 text-ink-muted hover:text-brand-600 transition-colors"
                 >
                     <ArrowLeft size={20} /> Back to Products
                 </Link>
                 <button
                     onClick={() => openModal()}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg"
+                    className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg"
                 >
                     <Plus size={20} /> Add Variant
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
+                        <tr className="bg-app text-ink-muted text-xs uppercase tracking-wider">
                             <th className="p-4 font-semibold">Attributes</th>
                             <th className="p-4 font-semibold">SKU</th>
                             <th className="p-4 font-semibold">Price Override</th>
@@ -117,35 +117,35 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                             <th className="p-4 font-semibold text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-line">
                         {variants.length > 0 ? (
                             variants.map((variant) => (
-                                <tr key={variant.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <tr key={variant.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                     <td className="p-4">
                                         <div className="flex flex-wrap gap-2">
                                             {Object.entries(variant.attributes).map(([key, value]) => (
-                                                <span key={key} className="px-2 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded text-xs font-medium border border-indigo-100 dark:border-indigo-800">
+                                                <span key={key} className="px-2 py-1 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded text-xs font-medium border border-brand-100 dark:border-brand-800">
                                                     {key}: {value}
                                                 </span>
                                             ))}
                                         </div>
                                     </td>
-                                    <td className="p-4 text-slate-700 dark:text-slate-300 font-medium">{variant.sku || '-'}</td>
-                                    <td className="p-4 text-slate-700 dark:text-slate-300">
-                                        {variant.price ? `$${variant.price}` : <span className="text-slate-400 italic">Default</span>}
+                                    <td className="p-4 text-ink-secondary font-medium">{variant.sku || '-'}</td>
+                                    <td className="p-4 text-ink-secondary">
+                                        {variant.price ? `$${variant.price}` : <span className="text-ink-muted italic">Default</span>}
                                     </td>
-                                    <td className="p-4 text-slate-700 dark:text-slate-300">{variant.stock_quantity}</td>
+                                    <td className="p-4 text-ink-secondary">{variant.stock_quantity}</td>
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => openModal(variant)}
-                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                                className="p-2 text-ink-muted hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                                             >
                                                 <Edit size={16} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(variant.id)}
-                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                className="p-2 text-ink-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -155,7 +155,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="p-8 text-center text-slate-400">
+                                <td colSpan="5" className="p-8 text-center text-ink-muted">
                                     No variants found. Create one to get started.
                                 </td>
                             </tr>
@@ -166,13 +166,13 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-normal">
+                        <div className="p-6 border-b border-line flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-ink">
                                 {editingVariant ? 'Edit Variant' : 'Add Variant'}
                             </h3>
-                            <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                            <button onClick={closeModal} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200">
                                 <X size={20} />
                             </button>
                         </div>
@@ -180,7 +180,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             {/* Attributes */}
                             <div className="space-y-3">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Attributes</label>
+                                <label className="block text-sm font-medium text-ink-secondary">Attributes</label>
                                 {data.attributes.map((attr, index) => (
                                     <div key={index} className="flex gap-2">
                                         <input
@@ -189,7 +189,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                                             placeholder="Name (e.g. Size)"
                                             value={attr.name}
                                             onChange={(e) => handleAttributeChange(index, 'name', e.target.value)}
-                                            className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                            className="flex-1 px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                             required
                                         />
                                         <datalist id={`attr-list-${index}`}>
@@ -202,7 +202,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                                             placeholder="Value (e.g. XL)"
                                             value={attr.value}
                                             onChange={(e) => handleAttributeChange(index, 'value', e.target.value)}
-                                            className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                            className="flex-1 px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                             required
                                         />
                                         {data.attributes.length > 1 && (
@@ -219,7 +219,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                                 <button
                                     type="button"
                                     onClick={addAttribute}
-                                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+                                    className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
                                 >
                                     <Plus size={14} /> Add Attribute
                                 </button>
@@ -227,34 +227,34 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">SKU (Optional)</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">SKU (Optional)</label>
                                     <input
                                         type="text"
                                         value={data.sku}
                                         onChange={(e) => setData('sku', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                     {errors.sku && <p className="text-red-500 text-xs mt-1">{errors.sku}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Stock Quantity</label>
+                                    <label className="block text-sm font-medium text-ink-secondary mb-1">Stock Quantity</label>
                                     <input
                                         type="number"
                                         value={data.stock_quantity}
                                         onChange={(e) => setData('stock_quantity', e.target.value)}
-                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                        className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Price Override (Optional)</label>
+                                <label className="block text-sm font-medium text-ink-secondary mb-1">Price Override (Optional)</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={data.price}
                                     onChange={(e) => setData('price', e.target.value)}
-                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    className="w-full px-3 py-2 rounded-xl border border-line bg-app text-sm focus:ring-2 ring-brand-500/20 outline-none"
                                     placeholder={`Default: $${product.price}`}
                                 />
                             </div>
@@ -263,14 +263,14 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors text-sm font-medium"
+                                    className="px-4 py-2 text-ink-secondary hover:bg-interactive-hover rounded-xl transition-colors text-sm font-medium"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg shadow-indigo-500/30"
+                                    className="px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg "
                                 >
                                     <Save size={16} />
                                     {processing ? 'Saving...' : 'Save Variant'}

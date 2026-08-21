@@ -181,16 +181,16 @@ const CommandPalette = () => {
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] animate-in fade-in duration-200"
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-modal animate-in fade-in duration-normal"
                 onClick={() => setIsOpen(false)}
             />
 
             {/* Palette */}
-            <div className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-2xl z-[201] animate-in fade-in zoom-in-95 duration-200">
-                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-2xl z-modal animate-in fade-in zoom-in-95 duration-normal">
+                <div className="bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden">
                     {/* Search Input */}
-                    <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                        <Search size={20} className="text-slate-400" />
+                    <div className="flex items-center gap-3 px-5 py-4 border-b border-line">
+                        <Search size={20} className="text-ink-muted" />
                         <input
                             ref={inputRef}
                             type="text"
@@ -201,10 +201,10 @@ const CommandPalette = () => {
                             }}
                             onKeyDown={handleKeyDown}
                             placeholder="Type a command or search..."
-                            className="flex-1 bg-transparent border-none outline-none text-slate-800 dark:text-white text-lg placeholder-slate-400"
+                            className="flex-1 bg-transparent border-none outline-none text-ink text-lg placeholder-slate-400"
                         />
-                        <div className="flex items-center gap-1 text-xs text-slate-400">
-                            <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono">esc</kbd>
+                        <div className="flex items-center gap-1 text-xs text-ink-muted">
+                            <kbd className="px-1.5 py-0.5 bg-sunken rounded font-mono">esc</kbd>
                             <span>to close</span>
                         </div>
                     </div>
@@ -212,14 +212,14 @@ const CommandPalette = () => {
                     {/* Results */}
                     <div ref={listRef} className="max-h-[400px] overflow-y-auto p-2">
                         {Object.keys(groupedCommands).length === 0 ? (
-                            <div className="p-8 text-center text-slate-400">
+                            <div className="p-8 text-center text-ink-muted">
                                 <p className="font-medium">No commands found</p>
                                 <p className="text-sm">Try a different search term</p>
                             </div>
                         ) : (
                             Object.entries(groupedCommands).map(([category, cmds]) => (
                                 <div key={category} className="mb-3">
-                                    <p className="px-3 py-1.5 text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                    <p className="px-3 py-1.5 text-xs font-bold uppercase text-ink-muted tracking-wider">
                                         {category}
                                     </p>
                                     {cmds.map((cmd, idx) => {
@@ -235,17 +235,17 @@ const CommandPalette = () => {
                                                 className={`
                                                     w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all
                                                     ${isSelected
-                                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-                                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                        ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400'
+                                                        : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                                     }
-                                                `}
+`}
                                             >
-                                                <div className={`p-2 rounded-lg ${isSelected ? 'bg-indigo-100 dark:bg-indigo-800/50' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                                                <div className={`p-2 rounded-lg ${isSelected ? 'bg-brand-100 dark:bg-brand-800/50' : 'bg-sunken'}`}>
                                                     <cmd.icon size={16} />
                                                 </div>
                                                 <span className="flex-1 font-medium">{cmd.name}</span>
                                                 {isSelected && (
-                                                    <ArrowRight size={16} className="text-indigo-500" />
+                                                    <ArrowRight size={16} className="text-brand-500" />
                                                 )}
                                             </button>
                                         );
@@ -256,15 +256,15 @@ const CommandPalette = () => {
                     </div>
 
                     {/* Footer */}
-                    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                    <div className="px-4 py-3 border-t border-line flex items-center justify-between text-xs text-ink-muted">
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1">
-                                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono">↑</kbd>
-                                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono">↓</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-sunken rounded font-mono">↑</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-sunken rounded font-mono">↓</kbd>
                                 <span>to navigate</span>
                             </span>
                             <span className="flex items-center gap-1">
-                                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono">↵</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-sunken rounded font-mono">↵</kbd>
                                 <span>to select</span>
                             </span>
                         </div>

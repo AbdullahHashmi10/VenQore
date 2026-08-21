@@ -151,14 +151,14 @@ const MagBtn = ({ children, href, variant = 'primary', className = '', onClick }
        need their light/dark pairs written by hand. `glow` and `accent` sit on
        saturated backgrounds and stay white in both themes. */
     const variants = {
-        primary: 'px-9 py-4 bg-slate-900 dark:bg-white text-white dark:text-void-900 font-black text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(99,102,241,0.45)] dark:hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]',
-        glow: 'px-9 py-4 text-white font-black text-[15px] rounded-full vq-cta-glow',
-        ghost: 'px-8 py-4 bg-slate-900/[0.04] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/12 text-slate-900 dark:text-white font-bold text-[15px] rounded-full hover:bg-slate-900/[0.08] dark:hover:bg-white/[0.08] hover:border-slate-900/25 dark:hover:border-white/25 backdrop-blur-md',
-        accent: 'px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm rounded-full shadow-xl shadow-indigo-600/25',
+        primary: 'px-9 py-4 bg-neutral-900 dark:bg-white text-white dark:text-void-900 font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(99,102,241,0.45)] dark:hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]',
+        glow: 'px-9 py-4 text-white font-bold text-[15px] rounded-full vq-cta-glow',
+        ghost: 'px-8 py-4 bg-neutral-900/[0.04] dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md',
+        accent: 'px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-full shadow-xl ',
     };
     return (
         <Link ref={r} href={href || '/register'} onClick={onClick}
-            className={`group/btn relative inline-flex items-center justify-center gap-2.5 transition-[transform,box-shadow,background] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${variants[variant]} ${className}`}>
+            className={`group/btn relative inline-flex items-center justify-center gap-2.5 transition-[transform,box-shadow,background] duration-slow ease-[cubic-bezier(0.22,1,0.36,1)] ${variants[variant]} ${className}`}>
             {children}
         </Link>
     );
@@ -167,7 +167,7 @@ const MagBtn = ({ children, href, variant = 'primary', className = '', onClick }
 /* ── Eyebrow label ───────────────────────────────────────────────────────── */
 const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
     const tones = {
-        indigo: 'bg-indigo-500/10 border-indigo-400/20 text-indigo-300',
+        indigo: 'bg-brand-500/10 border-brand-400/20 text-brand-300',
         cyan: 'bg-cyan-500/10 border-cyan-400/20 text-cyan-300',
         amber: 'bg-amber-500/10 border-amber-400/20 text-amber-300',
         emerald: 'bg-emerald-500/10 border-emerald-400/20 text-emerald-300',
@@ -175,7 +175,7 @@ const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
         violet: 'bg-violet-500/10 border-violet-400/20 text-violet-300',
     };
     return (
-        <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border ${tones[tone]} text-2xs font-black tracking-[0.32em] uppercase mb-7 backdrop-blur-sm`}>
+        <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border ${tones[tone]} text-2xs font-bold tracking-[0.32em] uppercase mb-7 backdrop-blur-sm`}>
             {Ic && <Ic size={13} />}
             {children}
         </div>
@@ -184,8 +184,8 @@ const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
 
 /* ── Glass surface ───────────────────────────────────────────────────────── */
 const Glass = ({ children, className = '', glow = false }) => (
-    <div className={`relative rounded-[2rem] border border-slate-900/[0.10] dark:border-white/[0.08] bg-white/[0.025] backdrop-blur-xl ${glow ? 'shadow-[0_30px_120px_-40px_rgba(99,102,241,0.45)]' : ''} ${className}`}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-[2rem]" />
+    <div className={`relative rounded-xl border border-line dark:border-white/[0.08] bg-white/[0.025] backdrop-blur-xl ${glow ? 'shadow-[0_30px_120px_-40px_rgba(99,102,241,0.45)]' : ''} ${className}`}>
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-xl" />
         {children}
     </div>
 );
@@ -247,8 +247,8 @@ const TrueCostCalculator = () => {
     const Slider = ({ label, value, onChange, min, max, step, format }) => (
         <div>
             <div className="flex items-baseline justify-between mb-2">
-                <label className="text-2xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{label}</label>
-                <span className="text-lg font-black text-slate-900 dark:text-white tabular-nums" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                <label className="text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted">{label}</label>
+                <span className="text-lg font-bold text-ink tabular-nums" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                     {format(value)}
                 </span>
             </div>
@@ -267,10 +267,10 @@ const TrueCostCalculator = () => {
                 {/* Inputs */}
                 <div className="lg:col-span-5 space-y-7">
                     <div>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                        <h3 className="text-xl font-bold text-ink tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                             Your numbers.
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-sm text-ink-muted leading-relaxed">
                             Move the sliders. Everything is calculated in your browser — nothing is sent anywhere.
                         </p>
                     </div>
@@ -284,17 +284,17 @@ const TrueCostCalculator = () => {
 
                 {/* Output */}
                 <div className="lg:col-span-7">
-                    <div className="rounded-[1.5rem] border border-rose-500/20 bg-rose-500/[0.06] p-7 md:p-8 mb-4">
-                        <p className="text-2xs font-black uppercase tracking-[0.28em] text-rose-500 dark:text-rose-400 mb-3">
+                    <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.06] p-7 md:p-8 mb-4">
+                        <p className="text-2xs font-bold uppercase tracking-[0.28em] text-rose-500 dark:text-rose-400 mb-3">
                             Cost of wrong numbers · per year
                         </p>
                         <div
-                            className={`text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums ${reduced ? '' : 'transition-all duration-500'}`}
+                            className={`text-4xl md:text-6xl font-bold tracking-tighter text-ink tabular-nums ${reduced ? '' : 'transition-all duration-slower'}`}
                             style={{ fontFamily: "'Space Grotesk',sans-serif" }}
                         >
                             {money(annual)}
                         </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+                        <p className="text-sm text-ink-secondary mt-3 leading-relaxed">
                             Not a fee anyone charges you. It is margin that leaks because the books were
                             approximately right instead of exactly right.
                         </p>
@@ -315,16 +315,16 @@ const TrueCostCalculator = () => {
                             {
                                 v: `${realMargin.toFixed(1)}%`, l: 'Your actual margin', m: `reported as ${margin}%`,
                                 note: 'The gap between these two is where pricing decisions go wrong.',
-                                tone: 'border-indigo-500/20 bg-indigo-500/[0.05]', accent: 'text-indigo-600 dark:text-indigo-400',
+                                tone: 'border-brand-500/20 bg-brand-500/[0.05]', accent: 'text-brand-600 dark:text-brand-400',
                             },
                         ].map((c, i) => (
                             <div key={i} className={`p-5 rounded-2xl border ${c.tone}`}>
-                                <div className={`text-2xl font-black tracking-tight tabular-nums ${c.accent}`} style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                <div className={`text-2xl font-bold tracking-tight tabular-nums ${c.accent}`} style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                     {c.v}
                                 </div>
-                                <div className="text-2xs font-black uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300 mt-1.5">{c.l}</div>
-                                <div className="text-3xs uppercase tracking-widest text-slate-500 dark:text-slate-500 mt-0.5">{c.m}</div>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">{c.note}</p>
+                                <div className="text-2xs font-bold uppercase tracking-[0.18em] text-ink-secondary mt-1.5">{c.l}</div>
+                                <div className="text-3xs uppercase tracking-widest text-ink-muted mt-0.5">{c.m}</div>
+                                <p className="text-xs text-ink-muted mt-3 leading-relaxed">{c.note}</p>
                             </div>
                         ))}
                     </div>
@@ -380,15 +380,15 @@ const SameSaleSplit = () => {
     const Column = ({ side, title, subtitle }) => {
         const isVq = side === 'venqore';
         return (
-            <div className={`rounded-[1.5rem] border p-6 ${isVq
+            <div className={`rounded-lg border p-6 ${isVq
                 ? 'border-emerald-500/25 bg-emerald-500/[0.04]'
-                : 'border-slate-900/10 dark:border-white/[0.08] bg-slate-900/[0.02] dark:bg-white/[0.02]'}`}>
+                : 'border-line dark:border-white/[0.08] bg-sunken dark:bg-white/[0.02]'}`}>
                 <div className="mb-5">
-                    <h4 className={`text-base font-black tracking-tight ${isVq ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}
+                    <h4 className={`text-base font-bold tracking-tight ${isVq ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-secondary'}`}
                         style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                         {title}
                     </h4>
-                    <p className="text-2xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mt-1">{subtitle}</p>
+                    <p className="text-2xs uppercase tracking-[0.2em] text-ink-muted mt-1">{subtitle}</p>
                 </div>
                 <div className="space-y-2.5">
                     {SALE_STEPS.map((s, i) => {
@@ -397,7 +397,7 @@ const SameSaleSplit = () => {
                         return (
                             <div
                                 key={i}
-                                className={`p-3.5 rounded-xl border transition-all duration-500 ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'} ${
+                                className={`p-3.5 rounded-xl border transition-all duration-slower ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'} ${
                                     cell.ok
                                         ? 'border-emerald-500/20 bg-emerald-500/[0.06]'
                                         : 'border-rose-500/20 bg-rose-500/[0.05]'
@@ -408,8 +408,8 @@ const SameSaleSplit = () => {
                                         ? <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
                                         : <AlertTriangle size={15} className="text-rose-500 shrink-0 mt-0.5" />}
                                     <div className="min-w-0">
-                                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums">{cell.line}</div>
-                                        <div className="text-2xs text-slate-500 dark:text-slate-400 mt-0.5">{cell.note}</div>
+                                        <div className="text-sm font-bold text-ink tabular-nums">{cell.line}</div>
+                                        <div className="text-2xs text-ink-muted mt-0.5">{cell.note}</div>
                                     </div>
                                 </div>
                             </div>
@@ -427,10 +427,10 @@ const SameSaleSplit = () => {
                 {SALE_STEPS.map((s, i) => (
                     <div
                         key={i}
-                        className={`px-3.5 py-1.5 rounded-full text-2xs font-black uppercase tracking-[0.15em] border transition-all duration-500 ${
+                        className={`px-3.5 py-1.5 rounded-full text-2xs font-bold uppercase tracking-[0.15em] border transition-all duration-slower ${
                             i <= step
-                                ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
-                                : 'border-slate-900/10 dark:border-white/[0.08] text-slate-500 dark:text-slate-600'
+                                ? 'border-brand-500/40 bg-brand-500/10 text-brand-600 dark:text-brand-300'
+                                : 'border-line dark:border-white/[0.08] text-ink-muted'
                         }`}
                     >
                         {s.t}
@@ -443,7 +443,7 @@ const SameSaleSplit = () => {
                 <Column side="venqore" title="VenQore" subtitle="Numbers that reconcile" />
             </div>
 
-            <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-7 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-center text-sm text-ink-muted mt-7 max-w-2xl mx-auto leading-relaxed">
                 Same customer. Same $115. One system ends the day $11 wrong on a single sale and cannot tell you why —
                 the other can show you the journal entry.
             </p>
@@ -486,42 +486,42 @@ const LedgerTape = () => {
     const totalDr = visible.reduce((s, r) => s + r.amt, 0);
 
     return (
-        <div ref={ref} className="rounded-[1.5rem] border border-slate-900/10 dark:border-white/[0.08] bg-slate-950/[0.03] dark:bg-slate-950/60 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-900/[0.07] dark:border-white/[0.06]">
+        <div ref={ref} className="rounded-lg border border-line dark:border-white/[0.08] bg-sunken dark:bg-app overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-line dark:border-white/[0.06]">
                 <div className="flex items-center gap-2.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                    <span className="text-2xs font-black uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                    <span className="text-2xs font-bold uppercase tracking-[0.22em] text-ink-muted">
                         General ledger · posting live
                     </span>
                 </div>
-                <span className="hidden sm:block text-2xs font-mono text-slate-500 dark:text-slate-600">double-entry · DECIMAL(20,4)</span>
+                <span className="hidden sm:block text-2xs font-mono text-ink-muted">double-entry · DECIMAL(20,4)</span>
             </div>
 
-            <div className="divide-y divide-slate-900/[0.05] dark:divide-white/[0.04]">
+            <div className="divide-y divide-line dark:divide-white/[0.04]">
                 {visible.map((r, i) => (
                     <div
                         key={r.key}
                         className={`grid grid-cols-12 gap-2 px-5 py-3 text-xs ${i === 0 && !reduced ? 'vq-row-in' : ''}`}
                         style={{ opacity: 1 - r.fade * 0.75 }}
                     >
-                        <span className="col-span-2 font-mono text-slate-500 dark:text-slate-600">{r.ref}</span>
-                        <span className="col-span-4 font-semibold text-slate-700 dark:text-slate-200 truncate">{r.d}</span>
-                        <span className="col-span-4 text-slate-500 dark:text-slate-400 truncate">{r.c}</span>
-                        <span className="col-span-2 text-right font-bold tabular-nums text-slate-800 dark:text-slate-100">
+                        <span className="col-span-2 font-mono text-ink-muted">{r.ref}</span>
+                        <span className="col-span-4 font-semibold text-ink-secondary dark:text-ink truncate">{r.d}</span>
+                        <span className="col-span-4 text-ink-muted truncate">{r.c}</span>
+                        <span className="col-span-2 text-right font-bold tabular-nums text-ink">
                             {r.amt.toFixed(2)}
                         </span>
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-2 border-t border-slate-900/[0.07] dark:border-white/[0.06]">
+            <div className="grid grid-cols-2 border-t border-line dark:border-white/[0.06]">
                 {[
                     { l: 'Total debits', v: totalDr },
                     { l: 'Total credits', v: totalDr },
                 ].map((t, i) => (
-                    <div key={i} className={`px-5 py-4 ${i === 0 ? 'border-r border-slate-900/[0.07] dark:border-white/[0.06]' : ''}`}>
-                        <div className="text-3xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500">{t.l}</div>
-                        <div className="text-lg font-black tabular-nums text-slate-900 dark:text-white mt-0.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                    <div key={i} className={`px-5 py-4 ${i === 0 ? 'border-r border-line dark:border-white/[0.06]' : ''}`}>
+                        <div className="text-3xs font-bold uppercase tracking-[0.2em] text-ink-muted">{t.l}</div>
+                        <div className="text-lg font-bold tabular-nums text-ink mt-0.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                             {t.v.toFixed(2)}
                         </div>
                     </div>
@@ -530,7 +530,7 @@ const LedgerTape = () => {
 
             <div className="flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500/[0.07] border-t border-emerald-500/15">
                 <CheckCircle2 size={14} className="text-emerald-500" />
-                <span className="text-2xs font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+                <span className="text-2xs font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
                     Balanced — every entry, every time
                 </span>
             </div>
@@ -542,8 +542,8 @@ const LedgerTape = () => {
 const ScrollProgressBar = () => {
     const p = useScrollProgress();
     return (
-        <div className="fixed top-0 left-0 right-0 z-[60] h-[2px] bg-transparent">
-            <div className="h-full bg-gradient-to-r from-indigo-500 via-violet-400 to-cyan-400 origin-left transition-transform duration-150 ease-out"
+        <div className="fixed top-0 left-0 right-0 z-sticky h-[2px] bg-transparent">
+            <div className="h-full bg-gradient-to-r from-brand-500 via-violet-400 to-cyan-400 origin-left transition-transform duration-fast ease-out"
                 style={{ transform: `scaleX(${p})`, width: '100%' }} />
         </div>
     );
@@ -640,7 +640,7 @@ const Spotlight = () => {
     }, [reduced]);
     if (reduced) return null;
     return (
-        <div className="fixed inset-0 pointer-events-none z-[5] hidden md:block">
+        <div className="fixed inset-0 pointer-events-none z-base hidden md:block">
             <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full"
                 style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.07), transparent 60%)' }} />
         </div>
@@ -727,17 +727,17 @@ const ACT_TONE = {
 };
 const TIMES = ['just now', '2m ago', '6m ago', '11m ago', '18m ago', '25m ago'];
 const ActivityRow = ({ a, fresh, t }) => (
-    <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-900/[0.04] dark:hover:bg-white/5 transition-colors ${fresh ? 'vq-row-in' : ''}`}>
+    <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-interactive-hover/[0.04] dark:hover:bg-white/5 transition-colors ${fresh ? 'vq-row-in' : ''}`}>
         <div className="flex items-center gap-2.5 min-w-0">
             <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${ACT_TONE[a.tone]}`}>
                 {a.dir === 'in' ? <ArrowDownRight size={12} /> : a.dir === 'move' ? <RefreshCw size={12} /> : <ArrowUpRight size={12} />}
             </div>
             <div className="leading-tight min-w-0">
-                <div className="text-1xs font-semibold text-slate-800 dark:text-white/90 truncate">{a.type} <span className="text-slate-500 font-mono">· {a.ref}</span></div>
-                <div className="text-3xs text-slate-500">{t}</div>
+                <div className="text-1xs font-semibold text-ink/90 truncate">{a.type} <span className="text-ink-muted font-mono">· {a.ref}</span></div>
+                <div className="text-3xs text-ink-muted">{t}</div>
             </div>
         </div>
-        <span className={`text-1xs font-bold tabular-nums shrink-0 ${a.dir === 'in' ? 'text-emerald-600 dark:text-emerald-400' : a.dir === 'move' ? 'text-orange-300' : 'text-slate-600 dark:text-slate-300'}`}>{a.amt}</span>
+        <span className={`text-1xs font-bold tabular-nums shrink-0 ${a.dir === 'in' ? 'text-emerald-600 dark:text-emerald-400' : a.dir === 'move' ? 'text-orange-300' : 'text-ink-secondary'}`}>{a.amt}</span>
     </div>
 );
 const ActivityFeed = () => {
@@ -800,9 +800,9 @@ const HeroDashboard = () => {
                 <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
                 <span className="text-1xs font-bold text-emerald-200">Balanced to the cent</span>
             </div>
-            <div ref={setChip(1)} className="hidden md:flex absolute -right-4 top-32 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-400/20 backdrop-blur-xl shadow-2xl vq-float-2">
-                <ScanBarcode size={16} className="text-indigo-300" />
-                <span className="text-1xs font-bold text-indigo-100">Scan → Journal · 1.2s</span>
+            <div ref={setChip(1)} className="hidden md:flex absolute -right-4 top-32 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-brand-500/10 border border-brand-400/20 backdrop-blur-xl shadow-2xl vq-float-2">
+                <ScanBarcode size={16} className="text-brand-300" />
+                <span className="text-1xs font-bold text-brand-100">Scan → Journal · 1.2s</span>
             </div>
             <div ref={setChip(2)} className="hidden lg:flex absolute -left-10 bottom-24 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 backdrop-blur-xl shadow-2xl vq-float-3">
                 <Layers size={16} className="text-cyan-300" />
@@ -814,30 +814,30 @@ const HeroDashboard = () => {
             </div>
 
             {/* Glass window */}
-            <div ref={cardRef} className="relative z-10 rounded-[1.75rem] border border-slate-900/[0.10] dark:border-white/[0.08] bg-slate-950/70 backdrop-blur-2xl shadow-[0_50px_160px_-50px_rgba(99,102,241,0.6)] overflow-hidden transition-transform duration-300 ease-out">
+            <div ref={cardRef} className="relative z-10 rounded-xl border border-line dark:border-white/[0.08] bg-neutral-950/70 backdrop-blur-2xl shadow-[0_50px_160px_-50px_rgba(99,102,241,0.6)] overflow-hidden transition-transform duration-slow ease-out">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                 {/* window bar */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-900/[0.08] dark:border-white/[0.06]">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-line dark:border-white/[0.06]">
                     <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-full bg-rose-400/70" />
                         <span className="w-3 h-3 rounded-full bg-amber-400/70" />
                         <span className="w-3 h-3 rounded-full bg-emerald-400/70" />
                     </div>
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/[0.06]">
-                        <Lock size={10} className="text-slate-500" />
-                        <span className="text-2xs font-mono text-slate-500 dark:text-slate-400">app.venqore.com/dashboard</span>
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.06]">
+                        <Lock size={10} className="text-ink-muted" />
+                        <span className="text-2xs font-mono text-ink-muted">app.venqore.com/dashboard</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                        <span className="text-3xs font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Live Sync</span>
+                        <span className="text-3xs font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Live Sync</span>
                     </div>
                 </div>
                 {/* body */}
                 <div className="flex">
                     {/* rail */}
-                    <div className="hidden sm:flex flex-col items-center gap-4 py-5 px-3 border-r border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015]">
+                    <div className="hidden sm:flex flex-col items-center gap-4 py-5 px-3 border-r border-line dark:border-white/[0.06] bg-white/[0.015]">
                         {railIcons.map((Ic, i) => (
-                            <div key={i} className={`w-9 h-9 rounded-xl flex items-center justify-center ${i === 0 ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-600'}`}>
+                            <div key={i} className={`w-9 h-9 rounded-xl flex items-center justify-center ${i === 0 ? 'bg-brand-500/20 text-brand-300' : 'text-ink-secondary'}`}>
                                 <Ic size={16} />
                             </div>
                         ))}
@@ -846,8 +846,8 @@ const HeroDashboard = () => {
                     <div className="flex-1 p-4 sm:p-5 min-w-0">
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <div className="text-2xs font-black uppercase tracking-[0.25em] text-slate-500">VenQore</div>
-                                <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Dashboard</div>
+                                <div className="text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted">VenQore</div>
+                                <div className="text-lg font-bold text-ink tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Dashboard</div>
                             </div>
                             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20">
                                 <Sparkles size={12} className="text-violet-300" />
@@ -858,60 +858,60 @@ const HeroDashboard = () => {
                         {/* KPI row — real dashboard cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
                             {/* Performance */}
-                            <div className="rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] p-3">
+                            <div className="rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] p-3">
                                 <div className="flex items-center gap-2 mb-2.5">
-                                    <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-300"><TrendingUp size={14} /></div>
-                                    <span className="text-2xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Performance</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-slate-500">Month <ChevronDown size={10} /></span>
+                                    <div className="p-1.5 rounded-lg bg-brand-500/15 text-brand-300"><TrendingUp size={14} /></div>
+                                    <span className="text-2xs font-bold uppercase tracking-wide text-ink-muted">Performance</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-ink-muted">Month <ChevronDown size={10} /></span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-900/[0.08] dark:bg-white/[0.06]" />
+                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-sunken dark:bg-white/[0.06]" />
                                     <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Sales</div>
-                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={1245670} group duration={2200} /></div>
+                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Sales</div>
+                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={1245670} group duration={2200} /></div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Gross Profit</div>
-                                        <div className="text-sm font-black text-emerald-600 dark:text-emerald-400 tabular-nums">$<AnimCounter end={772315} group duration={2400} /></div>
+                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Gross Profit</div>
+                                        <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">$<AnimCounter end={772315} group duration={2400} /></div>
                                     </div>
                                 </div>
                             </div>
                             {/* Outstanding */}
-                            <div className="rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] p-3">
+                            <div className="rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] p-3">
                                 <div className="flex items-center gap-2 mb-2.5">
                                     <div className="p-1.5 rounded-lg bg-orange-500/15 text-orange-300"><CreditCard size={14} /></div>
-                                    <span className="text-2xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Outstanding</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-slate-500">Month <ChevronDown size={10} /></span>
+                                    <span className="text-2xs font-bold uppercase tracking-wide text-ink-muted">Outstanding</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-ink-muted">Month <ChevronDown size={10} /></span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-900/[0.08] dark:bg-white/[0.06]" />
+                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-sunken dark:bg-white/[0.06]" />
                                     <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">To Receive</div>
-                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={84200} group duration={2200} /></div>
+                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">To Receive</div>
+                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={84200} group duration={2200} /></div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">To Pay</div>
-                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={51940} group duration={2400} /></div>
+                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">To Pay</div>
+                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={51940} group duration={2400} /></div>
                                     </div>
                                 </div>
                             </div>
                             {/* Net Profit */}
-                            <div className="rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] p-3 relative overflow-hidden">
+                            <div className="rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] p-3 relative overflow-hidden">
                                 <div className="absolute -right-3 -top-3 w-16 h-16 bg-emerald-500/10 rounded-full blur-2xl" />
                                 <div className="flex items-center gap-2 mb-2.5 relative">
                                     <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-300"><Wallet size={14} /></div>
-                                    <span className="text-2xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Net Profit</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-slate-500">Month <ChevronDown size={10} /></span>
+                                    <span className="text-2xs font-bold uppercase tracking-wide text-ink-muted">Net Profit</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-ink-muted">Month <ChevronDown size={10} /></span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-900/[0.08] dark:bg-white/[0.06]" />
+                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-sunken dark:bg-white/[0.06]" />
                                     <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Status</div>
-                                        <div className="text-sm font-black text-emerald-600 dark:text-emerald-400">Healthy</div>
+                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Status</div>
+                                        <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Healthy</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Net</div>
-                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={184920} group duration={2400} /></div>
+                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Net</div>
+                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={184920} group duration={2400} /></div>
                                     </div>
                                 </div>
                             </div>
@@ -919,56 +919,56 @@ const HeroDashboard = () => {
 
                         {/* Revenue Analytics + Right panel */}
                         <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-                            <div className="lg:col-span-3 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015] p-3.5">
+                            <div className="lg:col-span-3 rounded-2xl border border-line dark:border-white/[0.06] bg-white/[0.015] p-3.5">
                                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-300"><TrendingUp size={14} /></div>
-                                        <span className="text-[13px] font-bold text-slate-900 dark:text-white">Revenue Analytics</span>
+                                        <div className="p-1.5 rounded-lg bg-brand-500/15 text-brand-300"><TrendingUp size={14} /></div>
+                                        <span className="text-[13px] font-bold text-ink">Revenue Analytics</span>
                                     </div>
-                                    <div className="flex bg-slate-900/[0.035] dark:bg-white/[0.04] p-0.5 rounded-lg">
+                                    <div className="flex bg-sunken dark:bg-white/[0.04] p-0.5 rounded-lg">
                                         {['Today', 'Month', 'Year'].map(t => (
-                                            <button key={t} onClick={() => setRevTab(t)} className={`px-2.5 py-0.5 text-2xs font-bold rounded-md transition-all ${revTab === t ? 'bg-slate-900/[0.05] dark:bg-white/10 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>{t}</button>
+                                            <button key={t} onClick={() => setRevTab(t)} className={`px-2.5 py-0.5 text-2xs font-bold rounded-md transition-all ${revTab === t ? 'bg-sunken dark:bg-white/10 text-brand-300' : 'text-ink-muted hover:text-neutral-300'}`}>{t}</button>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 mb-1">
-                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500" /><span className="font-semibold text-slate-500 dark:text-slate-400">Sales</span></span>
-                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span className="font-semibold text-slate-500 dark:text-slate-400">Gross Profit</span></span>
+                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-brand-500" /><span className="font-semibold text-ink-muted">Sales</span></span>
+                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span className="font-semibold text-ink-muted">Gross Profit</span></span>
                                 </div>
                                 <RevenueChart height={168} tab={revTab} reduced={reduced} />
                             </div>
 
-                            <div className="lg:col-span-2 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-void-800 p-3.5 relative overflow-hidden">
-                                <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+                            <div className="lg:col-span-2 rounded-2xl border border-line dark:border-white/[0.06] bg-void-800 p-3.5 relative overflow-hidden">
+                                <div className="absolute -right-10 -top-10 w-40 h-40 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
                                 <div className="relative flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-slate-900/[0.05] dark:bg-white/10 flex items-center justify-center"><Wallet size={15} className="text-slate-900 dark:text-white" /></div>
+                                        <div className="w-8 h-8 rounded-full bg-sunken dark:bg-white/10 flex items-center justify-center"><Wallet size={15} className="text-ink" /></div>
                                         <div>
-                                            <div className="text-3xs text-slate-500 dark:text-slate-400 font-medium">Total Balance</div>
-                                            <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={328400} group duration={2400} /></div>
+                                            <div className="text-3xs text-ink-muted font-medium">Total Balance</div>
+                                            <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={328400} group duration={2400} /></div>
                                         </div>
                                     </div>
-                                    <MoreHorizontal size={16} className="text-slate-500" />
+                                    <MoreHorizontal size={16} className="text-ink-muted" />
                                 </div>
                                 <div className="relative grid grid-cols-3 gap-1.5 mb-3">
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300"><ArrowDownRight size={14} /><span className="text-4xs font-black tracking-wider">SALE</span></div>
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-orange-500/10 border border-orange-500/40 text-orange-300"><ArrowUpRight size={14} /><span className="text-4xs font-black tracking-wider">PURCHASE</span></div>
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/40 text-indigo-300"><Plus size={14} /><span className="text-4xs font-black tracking-wider">ACTIONS</span></div>
+                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300"><ArrowDownRight size={14} /><span className="text-4xs font-bold tracking-wider">SALE</span></div>
+                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-orange-500/10 border border-orange-500/40 text-orange-300"><ArrowUpRight size={14} /><span className="text-4xs font-bold tracking-wider">PURCHASE</span></div>
+                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-brand-500/10 border border-brand-500/40 text-brand-300"><Plus size={14} /><span className="text-4xs font-bold tracking-wider">ACTIONS</span></div>
                                 </div>
                                 <div className="relative grid grid-cols-2 gap-1.5 mb-3">
-                                    <div className="rounded-xl bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/10 p-2.5">
-                                        <div className="flex items-center gap-1.5 mb-1"><Wallet size={12} className="text-emerald-300" /><span className="text-3xs font-bold text-slate-600 dark:text-slate-300">Cash</span></div>
-                                        <div className="text-[12px] font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={142300} group duration={2200} /></div>
+                                    <div className="rounded-xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 p-2.5">
+                                        <div className="flex items-center gap-1.5 mb-1"><Wallet size={12} className="text-emerald-300" /><span className="text-3xs font-bold text-ink-secondary">Cash</span></div>
+                                        <div className="text-[12px] font-bold text-ink tabular-nums">$<AnimCounter end={142300} group duration={2200} /></div>
                                     </div>
-                                    <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-2.5">
-                                        <div className="flex items-center gap-1.5 mb-1"><Package size={12} className="text-indigo-300" /><span className="text-3xs font-bold text-slate-600 dark:text-slate-300">Stock Value</span></div>
-                                        <div className="text-[12px] font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={486100} group duration={2400} /></div>
+                                    <div className="rounded-xl bg-gradient-to-br from-brand-500/10 to-purple-500/10 border border-brand-500/20 p-2.5">
+                                        <div className="flex items-center gap-1.5 mb-1"><Package size={12} className="text-brand-300" /><span className="text-3xs font-bold text-ink-secondary">Stock Value</span></div>
+                                        <div className="text-[12px] font-bold text-ink tabular-nums">$<AnimCounter end={486100} group duration={2400} /></div>
                                     </div>
                                 </div>
-                                <div className="relative rounded-xl bg-black/30 border border-slate-900/[0.06] dark:border-white/5 p-2.5">
+                                <div className="relative rounded-xl bg-black/30 border border-line dark:border-white/5 p-2.5">
                                     <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-3xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Activity</span>
-                                        <span className="flex items-center gap-2 text-4xs text-slate-500">
+                                        <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Activity</span>
+                                        <span className="flex items-center gap-2 text-4xs text-ink-muted">
                                             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Sale</span>
                                             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" />Buy</span>
                                         </span>
@@ -980,36 +980,36 @@ const HeroDashboard = () => {
 
                         {/* Bottom tables (lg+) */}
                         <div className="hidden lg:grid grid-cols-5 gap-3 mt-3">
-                            <div className="col-span-3 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015] p-3.5">
+                            <div className="col-span-3 rounded-2xl border border-line dark:border-white/[0.06] bg-white/[0.015] p-3.5">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
-                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white">Top Products</span>
+                                    <span className="text-[13px] font-bold text-ink">Top Products</span>
                                 </div>
                                 <div className="space-y-1">
                                     {[['🥤', 'Cola 500ml', 'Beverages', '312', '$1,840'], ['🍫', 'Dark Choco', 'Snacks', '268', '$1,210'], ['🧴', 'Hand Wash', 'Care', '190', '$980']].map((r, i) => (
                                         <div key={i} className="flex items-center justify-between py-1.5">
                                             <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className="w-7 h-7 rounded-lg bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10 flex items-center justify-center text-sm">{r[0]}</div>
-                                                <div className="min-w-0"><div className="text-[12px] font-bold text-slate-200 truncate">{r[1]}</div><div className="text-3xs text-slate-500">{r[2]}</div></div>
+                                                <div className="w-7 h-7 rounded-lg bg-sunken dark:bg-white/5 border border-line dark:border-white/10 flex items-center justify-center text-sm">{r[0]}</div>
+                                                <div className="min-w-0"><div className="text-[12px] font-bold text-neutral-200 truncate">{r[1]}</div><div className="text-3xs text-ink-muted">{r[2]}</div></div>
                                             </div>
                                             <div className="flex items-center gap-3 shrink-0">
-                                                <span className="text-2xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-900/[0.03] dark:bg-white/5 px-1.5 py-0.5 rounded">{r[3]}</span>
+                                                <span className="text-2xs font-semibold text-ink-muted bg-sunken dark:bg-white/5 px-1.5 py-0.5 rounded">{r[3]}</span>
                                                 <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums w-14 text-right">{r[4]}</span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="col-span-2 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015] p-3.5">
+                            <div className="col-span-2 rounded-2xl border border-line dark:border-white/[0.06] bg-white/[0.015] p-3.5">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="w-1.5 h-4 rounded-full bg-red-500" />
-                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white">Low Stock Alerts</span>
+                                    <span className="text-[13px] font-bold text-ink">Low Stock Alerts</span>
                                 </div>
                                 <div className="space-y-2">
                                     {[['SKU-492 · Alpha 12', '5', '20'], ['SKU-781 · Beta 4', '8', '25']].map((r, i) => (
                                         <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-red-500/[0.06] border border-red-500/15">
-                                            <div className="min-w-0"><div className="text-1xs font-bold text-slate-200 truncate">{r[0]}</div><div className="text-3xs text-red-400 font-bold">Stock: {r[1]} / {r[2]}</div></div>
-                                            <span className="text-3xs font-black text-slate-500 dark:text-slate-400 bg-slate-900/[0.03] dark:bg-white/5 px-2 py-1 rounded-lg">Order</span>
+                                            <div className="min-w-0"><div className="text-1xs font-bold text-neutral-200 truncate">{r[0]}</div><div className="text-3xs text-red-400 font-bold">Stock: {r[1]} / {r[2]}</div></div>
+                                            <span className="text-3xs font-bold text-ink-muted bg-sunken dark:bg-white/5 px-2 py-1 rounded-lg">Order</span>
                                         </div>
                                     ))}
                                 </div>
@@ -1037,43 +1037,43 @@ const ScanToJournal = () => {
         <div ref={ref} className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 lg:gap-10 items-center">
             {/* Scan side */}
             <div className="flex flex-col items-center gap-4">
-                <div className={`relative w-40 h-28 rounded-2xl border flex items-center justify-center transition-all duration-500 ${active(0) ? 'border-indigo-400/40 bg-indigo-500/10' : 'border-slate-900/[0.08] dark:border-white/10 bg-slate-900/[0.02] dark:bg-white/[0.02]'}`}>
+                <div className={`relative w-40 h-28 rounded-2xl border flex items-center justify-center transition-all duration-slower ${active(0) ? 'border-brand-400/40 bg-brand-500/10' : 'border-line dark:border-white/10 bg-sunken dark:bg-white/[0.02]'}`}>
                     <svg viewBox="0 0 120 60" className="w-28 h-14">
                         {[4, 10, 13, 20, 26, 30, 38, 44, 48, 56, 62, 66, 74, 80, 86, 94, 100, 106, 112].map((x, i) => (
                             <rect key={i} x={x} y="8" width={i % 3 === 0 ? 3.5 : 1.8} height="44"
-                                fill={active(0) ? vq.indigo[200] : vq.slate[600]} className="transition-colors duration-500" />
+                                fill={active(0) ? vq.indigo[200] : vq.slate[600]} className="transition-colors duration-slower" />
                         ))}
                     </svg>
                     {!reduced && active(0) && <div className="absolute left-2 right-2 h-0.5 bg-rose-400 shadow-[0_0_12px_2px_rgba(251,113,133,0.8)] vq-scanline" />}
                 </div>
-                <span className="text-2xs font-black uppercase tracking-[0.25em] text-slate-500">Barcode Scan</span>
+                <span className="text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted">Barcode Scan</span>
             </div>
             {/* Flow → ledger */}
             <div className="relative">
-                <div className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 text-slate-600">
-                    <ArrowRight size={22} className={`transition-all duration-500 ${active(1) ? 'text-indigo-600 dark:text-indigo-400 translate-x-1' : ''}`} />
+                <div className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 text-ink-secondary">
+                    <ArrowRight size={22} className={`transition-all duration-slower ${active(1) ? 'text-brand-600 dark:text-brand-400 translate-x-1' : ''}`} />
                 </div>
-                <Glass className={`p-5 transition-all duration-700 ${active(2) ? 'opacity-100 translate-y-0' : 'opacity-40 translate-y-2'}`}>
+                <Glass className={`p-5 transition-all duration-slower ${active(2) ? 'opacity-100 translate-y-0' : 'opacity-40 translate-y-2'}`}>
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-2xs font-black uppercase tracking-[0.22em] text-slate-500">Journal Entry · Auto-posted</span>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-3xs font-black uppercase tracking-wider transition-all duration-500 ${active(3) ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-900/[0.03] dark:bg-white/5 text-slate-600'}`}>
+                        <span className="text-2xs font-bold uppercase tracking-[0.22em] text-ink-muted">Journal Entry · Auto-posted</span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-3xs font-bold uppercase tracking-wider transition-all duration-slower ${active(3) ? 'bg-emerald-500/15 text-emerald-300' : 'bg-sunken dark:bg-white/5 text-ink-secondary'}`}>
                             <CheckCircle2 size={11} /> {active(3) ? 'Balanced' : 'Posting…'}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 gap-3 font-mono text-sm">
                         <div className="space-y-2">
-                            <div className="text-3xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Debit</div>
-                            <div className="flex justify-between text-slate-200"><span>Cash</span><span className="tabular-nums">1,250.00</span></div>
-                            <div className="flex justify-between text-slate-200"><span>COGS</span><span className="tabular-nums">742.50</span></div>
+                            <div className="text-3xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">Debit</div>
+                            <div className="flex justify-between text-neutral-200"><span>Cash</span><span className="tabular-nums">1,250.00</span></div>
+                            <div className="flex justify-between text-neutral-200"><span>COGS</span><span className="tabular-nums">742.50</span></div>
                         </div>
                         <div className="space-y-2">
-                            <div className="text-3xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Credit</div>
-                            <div className="flex justify-between text-slate-200"><span>Revenue + VAT</span><span className="tabular-nums">1,250.00</span></div>
-                            <div className="flex justify-between text-slate-200"><span>Inventory (FIFO)</span><span className="tabular-nums">742.50</span></div>
+                            <div className="text-3xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Credit</div>
+                            <div className="flex justify-between text-neutral-200"><span>Revenue + VAT</span><span className="tabular-nums">1,250.00</span></div>
+                            <div className="flex justify-between text-neutral-200"><span>Inventory (FIFO)</span><span className="tabular-nums">742.50</span></div>
                         </div>
                     </div>
-                    <div className="mt-4 pt-3 border-t border-slate-900/[0.08] dark:border-white/[0.06] flex items-center justify-between text-xs">
-                        <span className="text-slate-500 font-bold uppercase tracking-wider">Σ Debits = Σ Credits</span>
+                    <div className="mt-4 pt-3 border-t border-line dark:border-white/[0.06] flex items-center justify-between text-xs">
+                        <span className="text-ink-muted font-bold uppercase tracking-wider">Σ Debits = Σ Credits</span>
                         <span className="font-mono text-emerald-300 tabular-nums">1,992.50 = 1,992.50</span>
                     </div>
                 </Glass>
@@ -1095,26 +1095,26 @@ const IntegrityPipeline = () => {
     const [ref, inView] = useInView(0.3);
     return (
         <div ref={ref} className="relative">
-            <div className="absolute left-0 right-0 top-7 h-0.5 bg-slate-900/[0.08] dark:bg-white/[0.06] hidden md:block">
-                <div className="h-full bg-gradient-to-r from-indigo-500 via-violet-400 to-cyan-400 origin-left transition-transform duration-[2200ms] ease-out"
+            <div className="absolute left-0 right-0 top-7 h-0.5 bg-sunken dark:bg-white/[0.06] hidden md:block">
+                <div className="h-full bg-gradient-to-r from-brand-500 via-violet-400 to-cyan-400 origin-left transition-transform duration-slower ease-out"
                     style={{ transform: `scaleX(${reduced ? 1 : (inView ? 1 : 0)})` }} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-3 relative">
                 {INTEGRITY.map((n, i) => (
                     <div key={i} className="relative">
                         <div className="flex md:flex-col items-center md:items-start gap-4 md:gap-0">
-                            <div className={`relative z-10 w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 md:mb-5 transition-all duration-700 ${(reduced || inView) ? 'bg-indigo-500/15 border-indigo-400/40 text-indigo-200' : 'bg-slate-900/[0.02] dark:bg-white/[0.02] border-slate-900/[0.08] dark:border-white/10 text-slate-600'}`}
+                            <div className={`relative z-10 w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 md:mb-5 transition-all duration-slower ${(reduced || inView) ? 'bg-brand-500/15 border-brand-400/40 text-brand-200' : 'bg-sunken dark:bg-white/[0.02] border-line dark:border-white/10 text-ink-secondary'}`}
                                 style={{ transitionDelay: reduced ? '0s' : `${i * 0.28}s` }}>
-                                <span className="text-lg font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{i + 1}</span>
-                                <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center transition-all duration-500 ${(reduced || inView) ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+                                <span className="text-lg font-bold" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{i + 1}</span>
+                                <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center transition-all duration-slower ${(reduced || inView) ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                                     style={{ transitionDelay: reduced ? '0s' : `${i * 0.28 + 0.4}s` }}>
                                     <Check size={11} className="text-void-900" strokeWidth={4} />
                                 </span>
                             </div>
                             <div>
-                                <div className="text-2xs font-black uppercase tracking-[0.18em] text-slate-500 mb-1">Layer {i + 1}</div>
-                                <h4 className="text-slate-900 dark:text-white font-bold text-[15px] tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{n.t}</h4>
-                                <p className="text-slate-500 text-[12.5px] leading-relaxed">{n.d}</p>
+                                <div className="text-2xs font-bold uppercase tracking-[0.18em] text-ink-muted mb-1">Layer {i + 1}</div>
+                                <h4 className="text-ink font-bold text-[15px] tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{n.t}</h4>
+                                <p className="text-ink-muted text-[12.5px] leading-relaxed">{n.d}</p>
                             </div>
                         </div>
                     </div>
@@ -1167,50 +1167,50 @@ const AIChatDemo = () => {
     return (
         <div ref={ref}>
             <Glass className="p-5 sm:p-6" glow>
-                <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-900/[0.08] dark:border-white/[0.06]">
+                <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-line dark:border-white/[0.06]">
                     <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center"><Bot size={16} className="text-violet-300" /></div>
                     <div>
-                        <div className="text-sm font-black text-slate-900 dark:text-white tracking-tight">VenQore Assistant</div>
+                        <div className="text-sm font-bold text-ink tracking-tight">VenQore Assistant</div>
                         <div className="text-2xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" /> Reading your ledger</div>
                     </div>
                 </div>
                 {/* user bubble */}
                 <div className="flex justify-end mb-4">
-                    <div key={`q${idx}`} className="vq-row-in max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-indigo-500/15 border border-indigo-400/20 text-indigo-50 text-sm font-medium">
+                    <div key={`q${idx}`} className="vq-row-in max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-brand-500/15 border border-brand-400/20 text-brand-50 text-sm font-medium">
                         {cur.q}
                     </div>
                 </div>
                 {/* assistant */}
                 <div className="flex justify-start">
                     {phase === 'typing' && !reduced ? (
-                        <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/[0.06] flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-slate-400 vq-dot" />
-                            <span className="w-2 h-2 rounded-full bg-slate-400 vq-dot" style={{ animationDelay: '0.15s' }} />
-                            <span className="w-2 h-2 rounded-full bg-slate-400 vq-dot" style={{ animationDelay: '0.3s' }} />
+                        <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.06] flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-neutral-400 vq-dot" />
+                            <span className="w-2 h-2 rounded-full bg-neutral-400 vq-dot" style={{ animationDelay: '0.15s' }} />
+                            <span className="w-2 h-2 rounded-full bg-neutral-400 vq-dot" style={{ animationDelay: '0.3s' }} />
                         </div>
                     ) : (
-                        <div key={`a${idx}`} className="vq-row-in max-w-[92%] w-full px-4 py-3.5 rounded-2xl rounded-tl-sm bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/[0.06]">
-                            <p className="text-slate-200 text-sm font-medium mb-3">{cur.head}</p>
+                        <div key={`a${idx}`} className="vq-row-in max-w-[92%] w-full px-4 py-3.5 rounded-2xl rounded-tl-sm bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.06]">
+                            <p className="text-neutral-200 text-sm font-medium mb-3">{cur.head}</p>
                             {cur.type === 'bars' && (
                                 <div className="space-y-2.5">
                                     {cur.rows.map(([name, val], i) => (
                                         <div key={i}>
                                             <div className="flex justify-between text-1xs mb-1">
-                                                <span className="text-slate-500 dark:text-slate-400 font-semibold">{name}</span>
-                                                <span className="text-slate-500 tabular-nums">{val}{cur.unit.includes('%') ? '%' : 'd'}</span>
+                                                <span className="text-ink-muted font-semibold">{name}</span>
+                                                <span className="text-ink-muted tabular-nums">{val}{cur.unit.includes('%') ? '%' : 'd'}</span>
                                             </div>
-                                            <div className="h-1.5 rounded-full bg-slate-900/[0.08] dark:bg-white/[0.06] overflow-hidden">
+                                            <div className="h-1.5 rounded-full bg-sunken dark:bg-white/[0.06] overflow-hidden">
                                                 <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-rose-400 origin-left"
                                                     style={{ transform: `scaleX(${reduced ? 1 : (phase === 'answer' ? Math.min(1, val / 100 + 0.12) : 0)})`, transition: 'transform 1s cubic-bezier(0.22,1,0.36,1)', transitionDelay: `${i * 0.12}s` }} />
                                             </div>
                                         </div>
                                     ))}
-                                    <div className="text-2xs font-black uppercase tracking-widest text-slate-600 pt-1">{cur.unit}</div>
+                                    <div className="text-2xs font-bold uppercase tracking-widest text-ink-secondary pt-1">{cur.unit}</div>
                                 </div>
                             )}
                             {cur.type === 'stat' && (
                                 <div className="flex items-end gap-3">
-                                    <span className="text-3xl font-black text-slate-900 dark:text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{cur.stat[0]}</span>
+                                    <span className="text-3xl font-bold text-ink" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{cur.stat[0]}</span>
                                     <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">{cur.stat[1]}</span>
                                 </div>
                             )}
@@ -1239,15 +1239,15 @@ const MODULES = [
 ];
 const ModuleCard = ({ m, delay }) => (
     <Reveal delay={delay}>
-        <div className="group relative h-full p-5 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
-            <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        <div className="group relative h-full p-5 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] hover:bg-white/[0.04] hover:border-brand-400/25 transition-all duration-slower hover:-translate-y-1 overflow-hidden">
+            <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-slower"
                 style={{ background: 'radial-gradient(220px circle at var(--mx,50%) var(--my,0%), rgba(129,140,248,0.12), transparent 70%)' }} />
             <div className="relative z-10">
-                <div className="w-11 h-11 rounded-xl bg-indigo-500/12 text-indigo-300 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                <div className="w-11 h-11 rounded-xl bg-brand-500/12 text-brand-300 flex items-center justify-center mb-4 group-hover:rotate-3 transition-transform duration-slower">
                     <m.ic size={20} />
                 </div>
-                <h4 className="text-slate-900 dark:text-white font-bold text-[15px] tracking-tight mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m.n}</h4>
-                <p className="text-slate-500 text-[12.5px] leading-snug">{m.d}</p>
+                <h4 className="text-ink font-bold text-[15px] tracking-tight mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m.n}</h4>
+                <p className="text-ink-muted text-[12.5px] leading-snug">{m.d}</p>
             </div>
         </div>
     </Reveal>
@@ -1260,15 +1260,15 @@ const ModuleCard = ({ m, delay }) => (
 
 /* ── FAQ accordion ───────────────────────────────────────────────────────── */
 const FaqItem = ({ q, a, open, onClick }) => (
-    <div className="border-b border-slate-900/[0.08] dark:border-white/[0.07]">
+    <div className="border-b border-line dark:border-white/[0.07]">
         <button onClick={onClick} className="w-full py-6 flex items-center justify-between text-left group gap-6">
-            <span className="text-[17px] font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-300 transition-colors">{q}</span>
-            <span className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-500 ${open ? 'rotate-180 border-indigo-400/40 bg-indigo-500/10 text-indigo-300' : 'border-slate-900/[0.08] dark:border-white/10 text-slate-600'}`}>
+            <span className="text-[17px] font-bold text-ink tracking-tight group-hover:text-brand-300 transition-colors">{q}</span>
+            <span className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-slower ${open ? 'rotate-180 border-brand-400/40 bg-brand-500/10 text-brand-300' : 'border-line dark:border-white/10 text-ink-secondary'}`}>
                 <ChevronDown size={16} />
             </span>
         </button>
-        <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-72 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[15px] max-w-3xl">{a}</p>
+        <div className={`overflow-hidden transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-72 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <p className="text-ink-muted leading-relaxed text-[15px] max-w-3xl">{a}</p>
         </div>
     </div>
 );
@@ -1343,24 +1343,24 @@ export default function LandingPage() {
                 {/* ══ 1 · HERO ══ */}
                 <section className="relative px-6 pt-32 md:pt-40 pb-20">
                     <div className="max-w-7xl mx-auto text-center">
-                        <div className={`transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/10 backdrop-blur-md text-2xs font-black tracking-[0.3em] uppercase mb-10">
+                        <div className={`transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 backdrop-blur-md text-2xs font-bold tracking-[0.3em] uppercase mb-10">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                                <span className="text-slate-600 dark:text-slate-300">226+ Features · One Source of Truth</span>
+                                <span className="text-ink-secondary">226+ Features · One Source of Truth</span>
                             </div>
 
                             <h1 className="mb-8 leading-[0.86]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter text-slate-900 dark:text-white hero-rise">
+                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-bold tracking-tighter text-ink hero-rise">
                                     The last software
                                 </span>
-                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter -mt-1 md:-mt-4 hero-rise-d">
+                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-bold tracking-tighter -mt-1 md:-mt-4 hero-rise-d">
                                     <span className="vq-headline-grad vq-text-glow">your business will need.</span>
                                 </span>
                             </h1>
 
                             {/* Hero Interactive AI Prompt — Start With The Question */}
-                            <div className="max-w-2xl mx-auto my-8 p-4 md:p-6 bg-slate-900/90 dark:bg-slate-900/90 border border-indigo-500/30 rounded-3xl shadow-2xl backdrop-blur-2xl text-left space-y-4">
-                                <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+                            <div className="max-w-2xl mx-auto my-8 p-4 md:p-6 bg-neutral-900 border border-brand-500/30 rounded-2xl shadow-2xl backdrop-blur-2xl text-left space-y-4">
+                                <div className="flex items-center gap-2 text-brand-400 text-xs font-bold uppercase tracking-wider">
                                     <Bot size={16} />
                                     <span>What does your business need?</span>
                                 </div>
@@ -1375,14 +1375,14 @@ export default function LandingPage() {
                                                 window.location.href = `/build-workspace?prompt=${encodeURIComponent(e.target.value)}`;
                                             }
                                         }}
-                                        className="w-full px-5 py-4 bg-slate-950 border border-slate-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all pr-32"
+                                        className="w-full px-5 py-4 bg-neutral-950 border border-neutral-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all pr-32"
                                     />
                                     <button
                                         onClick={() => {
                                             const val = document.getElementById('hero-ai-prompt')?.value || '';
                                             window.location.href = `/build-workspace?prompt=${encodeURIComponent(val)}`;
                                         }}
-                                        className="absolute right-2 top-2 bottom-2 px-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all"
+                                        className="absolute right-2 top-2 bottom-2 px-5 bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all"
                                     >
                                         <span>Build Workspace</span>
                                         <ArrowRight size={14} />
@@ -1390,8 +1390,8 @@ export default function LandingPage() {
                                 </div>
 
                                 <div className="flex items-center justify-between text-xs">
-                                    <span className="text-slate-400 text-[11px]">
-                                        Try: <button onClick={() => { document.getElementById('hero-ai-prompt').value = "I run a grocery store with 2 counters and sell on credit."; }} className="text-indigo-400 hover:underline text-left">"Grocery store with 2 counters"</button>
+                                    <span className="text-ink-muted text-1xs">
+                                        Try: <button onClick={() => { document.getElementById('hero-ai-prompt').value = "I run a grocery store with 2 counters and sell on credit."; }} className="text-brand-400 hover:underline text-left">"Grocery store with 2 counters"</button>
                                     </span>
                                     <a
                                         href="/build-workspace"
@@ -1403,21 +1403,21 @@ export default function LandingPage() {
                                 </div>
                             </div>
 
-                            <p className="text-1xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-12 hero-fade-2">No upfront signup required · Experience value first · Live in 30 seconds</p>
+                            <p className="text-1xs font-bold uppercase tracking-[0.2em] text-ink-muted mb-12 hero-fade-2">No upfront signup required · Experience value first · Live in 30 seconds</p>
                         </div>
 
                         {/* Living command center */}
-                        <div className={`transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] delay-200 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`}>
+                        <div className={`transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] delay-200 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`}>
                             <HeroDashboard />
                         </div>
 
                         {/* Trust marquee */}
                         <div className="mt-20 max-w-5xl mx-auto">
-                            <p className="text-2xs font-black uppercase tracking-[0.3em] text-slate-600 mb-6">Built for real businesses</p>
+                            <p className="text-2xs font-bold uppercase tracking-[0.3em] text-ink-secondary mb-6">Built for real businesses</p>
                             <div className="relative overflow-hidden vq-marquee-mask">
                                 <div className="flex gap-10 vq-marquee whitespace-nowrap">
                                     {[...marquee, ...marquee].map((m, i) => (
-                                        <span key={i} className="text-lg font-black text-slate-700 uppercase tracking-wider shrink-0" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m}</span>
+                                        <span key={i} className="text-lg font-bold text-ink-secondary uppercase tracking-wider shrink-0" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m}</span>
                                     ))}
                                 </div>
                             </div>
@@ -1434,14 +1434,14 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center max-w-3xl mx-auto mb-14">
                                 <Eyebrow icon={AlertTriangle} tone="rose">The Uncomfortable Truth</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter text-slate-900 dark:text-white mb-7 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-ink mb-7 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                     Wrong numbers<br />
                                     <span className="bg-gradient-to-r from-rose-500 to-amber-500 dark:from-rose-400 dark:to-amber-400 bg-clip-text text-transparent italic">have a price.</span>
                                 </h2>
-                                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                <p className="text-lg md:text-xl text-ink-secondary leading-relaxed font-medium">
                                     Your revenue includes tax you owe the government. Your profit uses a cost that was
                                     overwritten three purchases ago. Nobody sends you an invoice for that —
-                                    <span className="text-slate-900 dark:text-white font-semibold"> so here is what it actually costs.</span>
+                                    <span className="text-ink font-semibold"> so here is what it actually costs.</span>
                                 </p>
                             </div>
                         </Reveal>
@@ -1454,10 +1454,10 @@ export default function LandingPage() {
                             <Reveal>
                                 <div className="text-center max-w-2xl mx-auto mb-12">
                                     <Eyebrow icon={Repeat} tone="amber">Watch it happen</Eyebrow>
-                                    <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.95]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    <h3 className="text-3xl md:text-5xl font-bold tracking-tighter text-ink leading-[0.95]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                         One sale.<br /><span className="text-amber-500 dark:text-amber-400">Two very different stories.</span>
                                     </h3>
-                                    <p className="text-slate-500 dark:text-slate-400 mt-5 leading-relaxed">
+                                    <p className="text-ink-muted mt-5 leading-relaxed">
                                         A single $115 transaction, posted by both systems at the same time.
                                     </p>
                                 </div>
@@ -1469,19 +1469,19 @@ export default function LandingPage() {
                         <div className="mt-24 md:mt-32 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
                             <Reveal direction="right" className="lg:col-span-5">
                                 <Eyebrow icon={ShieldCheck} tone="emerald">The engine underneath</Eyebrow>
-                                <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.95] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                <h3 className="text-3xl md:text-5xl font-bold tracking-tighter text-ink leading-[0.95] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                     Debits equal credits.<br /><span className="text-emerald-500 dark:text-emerald-400">Always.</span>
                                 </h3>
-                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
+                                <p className="text-ink-secondary leading-relaxed mb-6">
                                     Every sale, purchase, return, transfer and payment writes a balanced journal entry the
                                     instant it happens. Not at month end. Not after an export. Immediately — and the entry
                                     is immutable, so a correction posts a reversal instead of quietly rewriting history.
                                 </p>
                                 <div className="flex flex-wrap gap-3">
-                                    <Link href="/features/accounting" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900/[0.05] dark:bg-white/[0.06] border border-slate-900/10 dark:border-white/10 text-2xs font-black uppercase tracking-[0.15em] text-slate-700 dark:text-slate-200 hover:bg-slate-900/[0.09] dark:hover:bg-white/[0.1] transition-colors">
+                                    <Link href="/features/accounting" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.06] border border-line dark:border-white/10 text-2xs font-bold uppercase tracking-[0.15em] text-ink-secondary dark:text-ink hover:bg-interactive-hover/[0.09] dark:hover:bg-white/[0.1] transition-colors">
                                         How the ledger works <ArrowRight size={12} />
                                     </Link>
-                                    <Link href="/features/inventory-management" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900/[0.05] dark:bg-white/[0.06] border border-slate-900/10 dark:border-white/10 text-2xs font-black uppercase tracking-[0.15em] text-slate-700 dark:text-slate-200 hover:bg-slate-900/[0.09] dark:hover:bg-white/[0.1] transition-colors">
+                                    <Link href="/features/inventory-management" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.06] border border-line dark:border-white/10 text-2xs font-bold uppercase tracking-[0.15em] text-ink-secondary dark:text-ink hover:bg-interactive-hover/[0.09] dark:hover:bg-white/[0.1] transition-colors">
                                         FIFO costing <ArrowRight size={12} />
                                     </Link>
                                 </div>
@@ -1499,10 +1499,10 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-14">
                                 <Eyebrow icon={ScanBarcode}>How it works</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    One scan becomes<br /><span className="text-indigo-600 dark:text-indigo-400">balanced accounting.</span>
+                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    One scan becomes<br /><span className="text-brand-600 dark:text-brand-400">balanced accounting.</span>
                                 </h2>
-                                <p className="text-slate-500 text-lg max-w-2xl mx-auto mt-6">No exports. No month-end reconstruction. The instant an item is scanned, a correct double-entry posts — and your statements update live.</p>
+                                <p className="text-ink-muted text-lg max-w-2xl mx-auto mt-6">No exports. No month-end reconstruction. The instant an item is scanned, a correct double-entry posts — and your statements update live.</p>
                             </div>
                         </Reveal>
                         <Reveal delay={0.12}>
@@ -1517,7 +1517,7 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-16">
                                 <Eyebrow icon={ShieldCheck} tone="emerald">Financial Verification</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                     Five layers between you<br />and a wrong number.
                                 </h2>
                             </div>
@@ -1531,11 +1531,11 @@ export default function LandingPage() {
                                 { e: 4, s: '', l: 'Decimal Precision', disp: 'DECIMAL(20,4)' },
                             ].map((s, i) => (
                                 <Reveal key={i} delay={0.08 * i}>
-                                    <div className="text-center p-6 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02]">
-                                        <div className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-1 tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    <div className="text-center p-6 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02]">
+                                        <div className="text-2xl md:text-3xl font-bold text-ink mb-1 tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                             {s.disp ? <span className="text-base md:text-lg">{s.disp}</span> : <><AnimCounter end={s.e} group={s.g} />{s.s}</>}
                                         </div>
-                                        <div className="text-2xs text-slate-600 font-black uppercase tracking-[0.18em]">{s.l}</div>
+                                        <div className="text-2xs text-ink-secondary font-bold uppercase tracking-[0.18em]">{s.l}</div>
                                     </div>
                                 </Reveal>
                             ))}
@@ -1548,22 +1548,22 @@ export default function LandingPage() {
                     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
                         <Reveal direction="right">
                             <Eyebrow icon={Cpu} tone="violet">AI Growth Engine</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                            <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                 Ask your business<br /><span className="text-violet-400">anything.</span>
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-8 max-w-xl">
+                            <p className="text-ink-muted text-lg leading-relaxed mb-8 max-w-xl">
                                 A context-aware assistant reads your live ledger and answers in plain English — no spreadsheets, no SQL. Behind it, three models work continuously so you act before problems do.
                             </p>
                             <div className="space-y-3">
                                 {aiBrains.map((b, i) => (
                                     <Reveal key={i} delay={0.08 * i} direction="right">
-                                        <div className="flex items-start gap-4 p-4 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${b.tone === 'indigo' ? 'bg-indigo-500/15 text-indigo-300' : b.tone === 'cyan' ? 'bg-cyan-500/15 text-cyan-300' : 'bg-rose-500/15 text-rose-300'}`}>
+                                        <div className="flex items-start gap-4 p-4 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${b.tone === 'indigo' ? 'bg-brand-500/15 text-brand-300' : b.tone === 'cyan' ? 'bg-cyan-500/15 text-cyan-300' : 'bg-rose-500/15 text-rose-300'}`}>
                                                 <b.ic size={18} />
                                             </div>
                                             <div>
-                                                <h3 className="text-slate-900 dark:text-white font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{b.t}</h3>
-                                                <p className="text-slate-500 dark:text-slate-400 text-sm leading-snug">{b.d}</p>
+                                                <h3 className="text-ink font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{b.t}</h3>
+                                                <p className="text-ink-muted text-sm leading-snug">{b.d}</p>
                                             </div>
                                         </div>
                                     </Reveal>
@@ -1580,10 +1580,10 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-14">
                                 <Eyebrow icon={Layers}>One platform, twelve engines</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    Every part of the business,<br /><span className="text-indigo-600 dark:text-indigo-400">one connected system.</span>
+                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    Every part of the business,<br /><span className="text-brand-600 dark:text-brand-400">one connected system.</span>
                                 </h2>
-                                <p className="text-slate-500 text-lg max-w-2xl mx-auto mt-6">From the counter to the godown to the general ledger — twelve modules, no integrations, nothing to sync.</p>
+                                <p className="text-ink-muted text-lg max-w-2xl mx-auto mt-6">From the counter to the godown to the general ledger — twelve modules, no integrations, nothing to sync.</p>
                             </div>
                         </Reveal>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -1603,10 +1603,10 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-12 max-w-3xl mx-auto">
                                 <Eyebrow icon={Cpu} tone="violet">Qore — The Intelligence Core</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                     One core.<br /><span className="vq-headline-grad">Every module, in sync.</span>
                                 </h2>
-                                <p className="text-slate-500 dark:text-slate-400 text-lg mt-6">
+                                <p className="text-ink-muted text-lg mt-6">
                                     Qore is the engine at the centre of VenQore — continuously coordinating Sales, Inventory, Accounting, AI and every other module so your whole business runs on one live set of numbers.
                                 </p>
                             </div>
@@ -1622,10 +1622,10 @@ export default function LandingPage() {
                                 { ic: Building2, t: 'Multi-Store', d: 'All branches, one view' },
                             ].map((c, i) => (
                                 <Reveal key={i} delay={0.06 * i}>
-                                    <div className="p-4 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] text-center hover:border-indigo-400/25 hover:bg-white/[0.04] transition-all duration-500">
-                                        <c.ic size={20} className="text-indigo-300 mb-2 mx-auto" />
-                                        <h3 className="text-slate-900 dark:text-white font-bold text-[13px] tracking-tight mb-1">{c.t}</h3>
-                                        <p className="text-slate-500 dark:text-slate-400 text-1xs leading-snug">{c.d}</p>
+                                    <div className="p-4 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] text-center hover:border-brand-400/25 hover:bg-white/[0.04] transition-all duration-slower">
+                                        <c.ic size={20} className="text-brand-300 mb-2 mx-auto" />
+                                        <h3 className="text-ink font-bold text-[13px] tracking-tight mb-1">{c.t}</h3>
+                                        <p className="text-ink-muted text-1xs leading-snug">{c.d}</p>
                                     </div>
                                 </Reveal>
                             ))}
@@ -1638,26 +1638,26 @@ export default function LandingPage() {
                     <div className="max-w-6xl mx-auto text-center">
                         <Reveal>
                             <Eyebrow icon={BarChart3} tone="amber">Report Factory</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                            <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                 40+ reports.<br /><span className="text-amber-600 dark:text-amber-400">One source of truth.</span>
                             </h2>
-                            <p className="text-slate-500 text-lg max-w-2xl mx-auto mb-12">P&amp;L, balance sheet and cash flow don’t come from separate calculators — they read the same verified ledger, so they always agree.</p>
+                            <p className="text-ink-muted text-lg max-w-2xl mx-auto mb-12">P&amp;L, balance sheet and cash flow don’t come from separate calculators — they read the same verified ledger, so they always agree.</p>
                         </Reveal>
                         <Reveal delay={0.1}>
                             <div className="flex flex-wrap justify-center gap-3">
                                 {reports.map((r, i) => (
-                                    <span key={r} className="px-5 py-2.5 rounded-full border border-slate-900/[0.10] dark:border-white/[0.08] bg-slate-900/[0.02] dark:bg-white/[0.025] text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-amber-400/30 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                    <span key={r} className="px-5 py-2.5 rounded-full border border-line dark:border-white/[0.08] bg-sunken dark:bg-white/[0.025] text-sm font-bold text-ink-secondary hover:border-amber-400/30 hover:text-ink dark:hover:text-white transition-colors">
                                         {r}
                                     </span>
                                 ))}
-                                <span className="px-5 py-2.5 rounded-full border border-amber-400/25 bg-amber-500/10 text-sm font-black text-amber-300">+32 more</span>
+                                <span className="px-5 py-2.5 rounded-full border border-amber-400/25 bg-amber-500/10 text-sm font-bold text-amber-300">+32 more</span>
                             </div>
                         </Reveal>
                     </div>
                 </section>
 
                 {/* ══ 9 · STAT BAND ══ */}
-                <section className="py-20 px-6 border-y border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.012]">
+                <section className="py-20 px-6 border-y border-line dark:border-white/[0.06] bg-white/[0.012]">
                     <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10">
                         {[
                             { e: 226, s: '+', l: 'Platform Features' },
@@ -1667,10 +1667,10 @@ export default function LandingPage() {
                         ].map((s, i) => (
                             <Reveal key={i} delay={0.07 * i}>
                                 <div className="text-center">
-                                    <div className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter mb-2 vq-headline-grad" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    <div className="text-4xl md:text-6xl font-bold text-ink tracking-tighter mb-2 vq-headline-grad" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                         <AnimCounter end={s.e} />{s.s}
                                     </div>
-                                    <div className="text-2xs md:text-1xs text-slate-500 font-black uppercase tracking-[0.22em]">{s.l}</div>
+                                    <div className="text-2xs md:text-1xs text-ink-muted font-bold uppercase tracking-[0.22em]">{s.l}</div>
                                 </div>
                             </Reveal>
                         ))}
@@ -1682,10 +1682,10 @@ export default function LandingPage() {
                     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
                         <Reveal direction="right">
                             <Eyebrow icon={Users}>Built for operators</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter mb-6 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Real results.<br /><span className="text-indigo-600 dark:text-indigo-400">Real operators.</span>
+                            <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter mb-6 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                Real results.<br /><span className="text-brand-600 dark:text-brand-400">Real operators.</span>
                             </h2>
-                            <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-md">We built VenQore for the operator who is done guessing. Here’s what changes when the numbers are finally right.</p>
+                            <p className="text-lg text-ink-muted leading-relaxed mb-8 max-w-md">We built VenQore for the operator who is done guessing. Here’s what changes when the numbers are finally right.</p>
                             <MagBtn href="/about" variant="ghost">Read our story <ArrowRight size={15} /></MagBtn>
                         </Reveal>
                         <div className="space-y-5">
@@ -1695,10 +1695,10 @@ export default function LandingPage() {
                             ].map((q, i) => (
                                 <Reveal key={i} delay={i * 0.12} direction="left">
                                     <Glass className="p-7">
-                                        <Quote size={26} className="text-indigo-400/50 mb-4" />
-                                        <p className="text-lg text-slate-200 leading-relaxed mb-5">{q.t}</p>
+                                        <Quote size={26} className="text-brand-400/50 mb-4" />
+                                        <p className="text-lg text-neutral-200 leading-relaxed mb-5">{q.t}</p>
                                         <div className="flex items-center gap-1 mb-3">{[...Array(5)].map((_, k) => <span key={k} className="text-amber-600 dark:text-amber-400">★</span>)}</div>
-                                        <div className="text-1xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em]">{q.a}</div>
+                                        <div className="text-1xs font-bold text-ink-muted uppercase tracking-[0.15em]">{q.a}</div>
                                     </Glass>
                                 </Reveal>
                             ))}
@@ -1714,15 +1714,15 @@ export default function LandingPage() {
                                 <div className="absolute inset-0 vq-grid opacity-30 pointer-events-none" />
                                 <div className="relative z-10">
                                     <Eyebrow icon={BadgeCheck} tone="emerald">Risk-free to start</Eyebrow>
-                                    <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                         Try the whole platform.<br /><span className="text-emerald-600 dark:text-emerald-400">Free for 14 days.</span>
                                     </h2>
-                                    <p className="text-slate-500 dark:text-slate-400 text-lg max-w-xl mx-auto mb-9">Full access. No credit card. Launch a pre-populated demo store in one click, or start your own and be live in 15 minutes.</p>
+                                    <p className="text-ink-muted text-lg max-w-xl mx-auto mb-9">Full access. No credit card. Launch a pre-populated demo store in one click, or start your own and be live in 15 minutes.</p>
                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
                                         <MagBtn href="/register" variant="primary">Start Free Trial <ArrowRight size={18} /></MagBtn>
                                         <MagBtn href="/pricing" variant="ghost">See pricing</MagBtn>
                                     </div>
-                                    <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-bold text-slate-500">
+                                    <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-bold text-ink-muted">
                                         {['No credit card', 'Cancel anytime', 'Export your data', 'Free demo store'].map(x => (
                                             <span key={x} className="inline-flex items-center gap-1.5"><Check size={13} className="text-emerald-600 dark:text-emerald-400" /> {x}</span>
                                         ))}
@@ -1737,8 +1737,8 @@ export default function LandingPage() {
                 <section className="py-24 md:py-32 px-6">
                     <div className="max-w-3xl mx-auto">
                         <Reveal>
-                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white text-center mb-14 tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Common <span className="text-indigo-600 dark:text-indigo-400">questions</span>
+                            <h2 className="text-3xl md:text-5xl font-bold text-ink text-center mb-14 tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                Common <span className="text-brand-600 dark:text-brand-400">questions</span>
                             </h2>
                         </Reveal>
                         <Reveal delay={0.1}>
@@ -1752,15 +1752,15 @@ export default function LandingPage() {
                 </section>
 
                 {/* ══ 13 · NEWSLETTER (preserved) ══ */}
-                <section className="py-24 px-6 border-t border-slate-900/[0.08] dark:border-white/[0.06] relative">
-                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/[0.06] to-transparent pointer-events-none" />
+                <section className="py-24 px-6 border-t border-line dark:border-white/[0.06] relative">
+                    <div className="absolute inset-0 bg-gradient-to-b from-brand-500/[0.06] to-transparent pointer-events-none" />
                     <div className="max-w-4xl mx-auto relative z-10 text-center">
                         <Reveal>
                             <Eyebrow icon={Mail}>Stay updated</Eyebrow>
-                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Subscribe to <span className="text-indigo-600 dark:text-indigo-400">VenQore Insights</span>
+                            <h2 className="text-4xl md:text-5xl font-bold text-ink tracking-tighter mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                Subscribe to <span className="text-brand-600 dark:text-brand-400">VenQore Insights</span>
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                            <p className="text-ink-muted text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
                                 Direct news on system upgrades, cloud accounting releases, and platform enhancements.
                             </p>
                         </Reveal>
@@ -1772,12 +1772,12 @@ export default function LandingPage() {
                                     value={newsletterEmail}
                                     onChange={e => setNewsletterEmail(e.target.value)}
                                     placeholder="Enter your email address"
-                                    className="w-full px-5 py-3.5 bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.10] dark:border-white/[0.08] hover:border-white/15 focus:border-indigo-500/50 rounded-xl text-slate-900 dark:text-white text-sm outline-none transition-all duration-300"
+                                    className="w-full px-5 py-3.5 bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.08] hover:border-white/15 focus:border-brand-500/50 rounded-xl text-ink text-sm outline-none transition-all duration-slow"
                                 />
                                 <button
                                     type="submit"
                                     disabled={newsletterStatus === 'loading'}
-                                    className="w-full sm:w-auto h-12 px-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shrink-0 shadow-lg shadow-indigo-600/20"
+                                    className="w-full sm:w-auto h-12 px-8 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shrink-0 shadow-lg "
                                 >
                                     {newsletterStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
                                     <ArrowRight size={14} />
@@ -1795,12 +1795,12 @@ export default function LandingPage() {
                 {/* ══ 14 · FINAL CTA ══ */}
                 <section className="py-28 md:py-40 px-6 text-center overflow-hidden">
                     <div className="max-w-4xl mx-auto relative">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-600/10 rounded-full blur-[150px] pointer-events-none" />
                         <Reveal>
-                            <h2 className="text-5xl md:text-8xl font-black text-slate-900 dark:text-white mb-8 tracking-tighter leading-[0.9] relative z-10" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                            <h2 className="text-5xl md:text-8xl font-bold text-ink mb-8 tracking-tighter leading-[0.9] relative z-10" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                 You already suspect<br />your <span className="vq-headline-grad">numbers are wrong.</span>
                             </h2>
-                            <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed relative z-10">
+                            <p className="text-xl text-ink-muted mb-12 max-w-2xl mx-auto leading-relaxed relative z-10">
                                 The only question is whether you fix it this year — or keep guessing. 14-day free trial, full access, no credit card.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
@@ -1829,7 +1829,7 @@ html { scroll-behavior: smooth; }
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
 .vq-headline-grad {
-    background: linear-gradient(100deg,#818cf8 0%,#a78bfa 40%,#22d3ee 80%);
+    background: linear-gradient(100deg,rgb(var(--vq-indigo-400)) 0%,rgb(var(--vq-violet-400)) 40%,#22d3ee 80%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
     background-size: 200% auto; animation: vq-shimmer 6s linear infinite;
 }
@@ -1886,17 +1886,17 @@ html { scroll-behavior: smooth; }
 @keyframes vq-pulsenode { 0%,100%{opacity:0.9;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);filter:drop-shadow(0 0 18px rgba(167,139,250,0.7));} }
 .vq-pulse-node { animation: vq-pulsenode 2.8s ease-in-out infinite; }
 
-.vq-cta-glow { background: linear-gradient(100deg,#6366f1,#8b5cf6,#22d3ee); background-size:200% auto; box-shadow:0 10px 50px -12px rgba(99,102,241,0.6); animation: vq-shimmer 5s linear infinite; }
+.vq-cta-glow { background: linear-gradient(100deg,rgb(var(--vq-indigo-500)),rgb(var(--vq-violet-500)),#22d3ee); background-size:200% auto; box-shadow:0 10px 50px -12px rgba(99,102,241,0.6); animation: vq-shimmer 5s linear infinite; }
 
 /* Range sliders in the cost calculator — native inputs look wrong in both
    themes, so the track and thumb are drawn explicitly. */
 .vq-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; background: rgba(15,23,42,0.10); outline: none; cursor: pointer; }
 .dark .vq-range { background: rgba(255,255,255,0.10); }
-.vq-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 999px; background: #6366f1; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; transition: transform .15s ease; }
+.vq-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-indigo-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; transition: transform .15s ease; }
 .dark .vq-range::-webkit-slider-thumb { border-color: #0c0922; }
 .vq-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .vq-range::-webkit-slider-thumb:active { cursor: grabbing; }
-.vq-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: #6366f1; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; }
+.vq-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-indigo-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; }
 .dark .vq-range::-moz-range-thumb { border-color: #0c0922; }
 .vq-range:focus-visible::-webkit-slider-thumb { outline: 2px solid #818cf8; outline-offset: 2px; }
 

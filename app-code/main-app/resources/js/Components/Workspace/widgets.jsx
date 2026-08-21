@@ -362,7 +362,7 @@ const renderers = {
                         <p className="text-sm text-ink-secondary">
                             <span className="font-semibold text-ink">
                                 {item.amount !== undefined ? money(item.amount) : formatNumber(item.count ?? 0)}
-                            </span>{' '}
+                            </span>{''}
                             {item.label}
                         </p>
                     </li>

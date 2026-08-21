@@ -88,7 +88,7 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
 
                 <div className="grid grid-cols-3 gap-6">
                     {/* Form Card */}
-                    <div className="col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 relative overflow-hidden">
+                    <div className="col-span-2 bg-surface rounded-2xl border border-line p-6 relative overflow-hidden">
                         {/* Background Effect */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
@@ -157,7 +157,7 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
                                 />
                             </FormField>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-line">
                                 <SecondaryButton onClick={() => router.visit(route('store.production.index', { store_slug: store?.slug }))}>
                                     Cancel
                                 </SecondaryButton>
@@ -169,8 +169,8 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
                     </div>
 
                     {/* Recipe Preview */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
-                        <h3 className="font-semibold text-lg text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                    <div className="bg-surface rounded-2xl border border-line p-6">
+                        <h3 className="font-semibold text-lg text-ink mb-4 flex items-center gap-2">
                             <Package size={18} />
                             Recipe Ingredients
                         </h3>
@@ -178,23 +178,23 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
                         {selectedRecipe ? (
                             <div className="space-y-3">
                                 {selectedRecipe.ingredients?.map((ing, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div key={idx} className="flex items-center justify-between p-3 bg-app rounded-lg">
                                         <div>
-                                            <p className="font-medium text-slate-800 dark:text-white">{ing.product?.name}</p>
-                                            <p className="text-xs text-slate-400">{ing.product?.sku}</p>
+                                            <p className="font-medium text-ink">{ing.product?.name}</p>
+                                            <p className="text-xs text-ink-muted">{ing.product?.sku}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-indigo-600">{ing.quantity * formData.quantity}</p>
-                                            <p className="text-xs text-slate-400">needed</p>
+                                            <p className="font-bold text-brand-600">{ing.quantity * formData.quantity}</p>
+                                            <p className="text-xs text-ink-muted">needed</p>
                                         </div>
                                     </div>
                                 ))}
                                 {selectedRecipe.ingredients?.length === 0 && (
-                                    <p className="text-sm text-slate-400">No ingredients defined</p>
+                                    <p className="text-sm text-ink-muted">No ingredients defined</p>
                                 )}
                             </div>
                         ) : (
-                            <div className="text-center py-8 text-slate-400">
+                            <div className="text-center py-8 text-ink-muted">
                                 <Package size={32} className="mx-auto mb-2 opacity-50" />
                                 <p>Select a recipe to see ingredients</p>
                             </div>

@@ -27,7 +27,7 @@ export default function PriceTiers({ product, tiers }) {
             <div className="flex items-center gap-4 mb-6">
                 <Link
                     href={route('store.v3.products.edit', { store_slug: store.slug, product: product.id })}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-ink-muted hover:text-ink"
                 >
                     ← {product.name}
                 </Link>
@@ -46,26 +46,26 @@ export default function PriceTiers({ product, tiers }) {
 
             {/* Existing tiers */}
             {tiers.length > 0 ? (
-                <table className="w-full border-collapse border border-gray-200 mb-6">
-                    <thead className="bg-gray-50">
+                <table className="w-full border-collapse border border-line mb-6">
+                    <thead className="bg-sunken">
                         <tr>
-                            <th className="border border-gray-200 px-4 py-2 text-left">Min Qty</th>
-                            <th className="border border-gray-200 px-4 py-2 text-left">Max Qty</th>
-                            <th className="border border-gray-200 px-4 py-2 text-right">Unit Price</th>
-                            <th className="border border-gray-200 px-4 py-2"></th>
+                            <th className="border border-line px-4 py-2 text-left">Min Qty</th>
+                            <th className="border border-line px-4 py-2 text-left">Max Qty</th>
+                            <th className="border border-line px-4 py-2 text-right">Unit Price</th>
+                            <th className="border border-line px-4 py-2"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {tiers.map(t => (
-                            <tr key={t.id} className="hover:bg-gray-50">
-                                <td className="border border-gray-200 px-4 py-2">{t.min_qty}</td>
-                                <td className="border border-gray-200 px-4 py-2">
-                                    {t.max_qty ?? <span className="text-gray-400">∞ (no limit)</span>}
+                            <tr key={t.id} className="hover:bg-interactive-hover">
+                                <td className="border border-line px-4 py-2">{t.min_qty}</td>
+                                <td className="border border-line px-4 py-2">
+                                    {t.max_qty ?? <span className="text-ink-muted">∞ (no limit)</span>}
                                 </td>
-                                <td className="border border-gray-200 px-4 py-2 text-right">
+                                <td className="border border-line px-4 py-2 text-right">
                                     {formatCurrency(t.unit_price, store)}
                                 </td>
-                                <td className="border border-gray-200 px-4 py-2 text-center">
+                                <td className="border border-line px-4 py-2 text-center">
                                     <button
                                         onClick={() => remove(t.id)}
                                         className="text-red-600 hover:underline text-sm"
@@ -78,13 +78,13 @@ export default function PriceTiers({ product, tiers }) {
                     </tbody>
                 </table>
             ) : (
-                <p className="text-gray-500 text-sm mb-6">
+                <p className="text-ink-muted text-sm mb-6">
                     No price tiers configured. Product uses flat sale price.
                 </p>
             )}
 
             {/* Add new */}
-            <div className="border rounded p-4 bg-gray-50">
+            <div className="border rounded p-4 bg-sunken">
                 <h2 className="font-medium mb-4">Add Price Tier</h2>
                 <form onSubmit={submit}>
                     <div className="grid grid-cols-3 gap-4 mb-4">
@@ -104,7 +104,7 @@ export default function PriceTiers({ product, tiers }) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">
-                                Max Qty <span className="text-gray-400">(blank = no limit)</span>
+                                Max Qty <span className="text-ink-muted">(blank = no limit)</span>
                             </label>
                             <input
                                 type="number"

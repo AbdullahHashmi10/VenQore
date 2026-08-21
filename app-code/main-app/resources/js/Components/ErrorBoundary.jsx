@@ -18,18 +18,18 @@ class ErrorBoundary extends React.Component {
     render() {
         if (this.state.hasError) {
             return (
-                <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <div className="min-h-screen flex items-center justify-center bg-app">
                     <div className="text-center p-8">
                         <AlertTriangle size={64} className="mx-auto text-red-500 mb-4" />
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
+                        <h1 className="text-2xl font-bold text-ink mb-2">
                             Something went wrong
                         </h1>
-                        <p className="text-slate-600 dark:text-slate-400 mb-4">
+                        <p className="text-ink-secondary mb-4">
                             We're sorry for the inconvenience. Please refresh the page or contact support.
                         </p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                            className="px-6 py-3 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
                         >
                             Refresh Page
                         </button>

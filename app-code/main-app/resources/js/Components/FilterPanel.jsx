@@ -30,13 +30,13 @@ export default function FilterPanel({
     const hasActiveFilters = Object.values(values).some(v => v !== '' && v !== null && v !== undefined);
 
     const renderFilter = (filter) => {
-        const inputBaseClass = `w-full ${compact ? 'px-2 py-1 text-xs rounded-lg' : 'px-3 py-2 text-sm rounded-xl'} bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 ring-indigo-500/20`;
+        const inputBaseClass = `w-full ${compact ? 'px-2 py-1 text-xs rounded-lg' : 'px-3 py-2 text-sm rounded-xl'} bg-surface border border-line outline-none focus:ring-2 ring-brand-500/20`;
 
         switch (filter.type) {
             case 'select':
                 return (
                     <div key={filter.key} className="flex-1 min-w-[150px]">
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
                             {filter.label}
                         </label>
                         <div className="relative">
@@ -52,7 +52,7 @@ export default function FilterPanel({
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
                         </div>
                     </div>
                 );
@@ -61,7 +61,7 @@ export default function FilterPanel({
                 const dateValue = values[filter.key] ? String(values[filter.key]).substring(0, 10) : '';
                 return (
                     <div key={filter.key} className="flex-1 min-w-[150px]">
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
                             {filter.label}
                         </label>
                         <div className="relative">
@@ -80,7 +80,7 @@ export default function FilterPanel({
                 const toValue = values[`${filter.key}_to`] ? String(values[`${filter.key}_to`]).substring(0, 10) : '';
                 return (
                     <div key={filter.key} className="flex-1 min-w-[300px]">
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
                             {filter.label}
                         </label>
                         <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ export default function FilterPanel({
                                     className={inputBaseClass}
                                 />
                             </div>
-                            <span className="text-slate-400 text-sm">to</span>
+                            <span className="text-ink-muted text-sm">to</span>
                             <div className="relative flex-1">
                                 <input
                                     type="date"
@@ -108,7 +108,7 @@ export default function FilterPanel({
             case 'search':
                 return (
                     <div key={filter.key} className="flex-1 min-w-[200px]">
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
                             {filter.label}
                         </label>
                         <input
@@ -124,7 +124,7 @@ export default function FilterPanel({
             case 'number':
                 return (
                     <div key={filter.key} className="flex-1 min-w-[120px]">
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
                             {filter.label}
                         </label>
                         <input
@@ -143,17 +143,17 @@ export default function FilterPanel({
     };
 
     return (
-        <div className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden ${compact ? 'mb-2 shadow-sm' : 'mb-6'}`}>
+        <div className={`bg-surface rounded-xl border border-line overflow-hidden ${compact ? 'mb-2 shadow-sm' : 'mb-6'}`}>
             {/* Header */}
             <div
-                className={`flex items-center justify-between ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-3'} ${collapsible ? 'cursor-pointer' : ''} border-b border-slate-100 dark:border-slate-800`}
+                className={`flex items-center justify-between ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-3'} ${collapsible ? 'cursor-pointer' : ''} border-b border-line`}
                 onClick={() => collapsible && setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-2">
-                    <Filter size={compact ? 14 : 16} className="text-slate-400" />
-                    <span className={`font-semibold ${compact ? 'text-xs uppercase tracking-wider' : 'text-sm'} text-slate-700 dark:text-slate-200`}>Filters</span>
+                    <Filter size={compact ? 14 : 16} className="text-ink-muted" />
+                    <span className={`font-semibold ${compact ? 'text-xs uppercase tracking-wider' : 'text-sm'} text-ink-secondary dark:text-ink`}>Filters</span>
                     {hasActiveFilters && (
-                        <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-bold rounded">
+                        <span className="px-1.5 py-0.5 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold rounded">
                             Active
                         </span>
                     )}
@@ -166,7 +166,7 @@ export default function FilterPanel({
                             {hasActiveFilters && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onReset(); }}
-                                    className="px-2 py-0.5 text-2xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 transition-colors"
+                                    className="px-2 py-0.5 text-2xs font-medium text-ink-muted hover:text-ink-secondary bg-sunken rounded hover:bg-interactive-hover transition-colors"
                                 >
                                     Clear
                                 </button>
@@ -174,7 +174,7 @@ export default function FilterPanel({
                             {onApply && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onApply(); }}
-                                    className="px-2 py-0.5 text-2xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 transition-colors"
+                                    className="px-2 py-0.5 text-2xs font-medium text-white bg-brand-600 rounded hover:bg-brand-700 transition-colors"
                                 >
                                     Apply
                                 </button>
@@ -185,7 +185,7 @@ export default function FilterPanel({
                     {collapsible && (
                         <ChevronDown
                             size={16}
-                            className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            className={`text-ink-muted transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                         />
                     )}
                 </div>
@@ -200,11 +200,11 @@ export default function FilterPanel({
 
                     {/* Standard Actions Footer (Only if NOT compact) */}
                     {!compact && (
-                        <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-line">
                             {hasActiveFilters && (
                                 <button
                                     onClick={onReset}
-                                    className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1.5 transition-colors"
+                                    className="px-3 py-1.5 text-sm text-ink-secondary hover:text-ink dark:hover:text-neutral-200 flex items-center gap-1.5 transition-colors"
                                 >
                                     <X size={14} />
                                     Clear
@@ -213,7 +213,7 @@ export default function FilterPanel({
                             {onApply && (
                                 <button
                                     onClick={onApply}
-                                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+                                    className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
                                 >
                                     <RefreshCw size={14} />
                                     Apply
@@ -248,7 +248,7 @@ export function DateRangePresets({ onSelect }) {
                 <button
                     key={preset.value}
                     onClick={() => onSelect(preset.value)}
-                    className="px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    className="px-3 py-1 text-xs font-medium text-ink-secondary bg-sunken hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
                 >
                     {preset.label}
                 </button>

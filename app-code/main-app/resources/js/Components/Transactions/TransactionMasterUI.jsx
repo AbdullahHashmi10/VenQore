@@ -33,20 +33,20 @@ import {
 
 export const StatCard = ({
     icon: Icon,
-    iconBgClass = 'bg-indigo-100 dark:bg-indigo-900/30',
-    iconColorClass = 'text-indigo-600 dark:text-indigo-400',
+    iconBgClass = 'bg-brand-100 dark:bg-brand-900/30',
+    iconColorClass = 'text-brand-600 dark:text-brand-400',
     label,
     value,
-    valueColorClass = 'text-slate-900 dark:text-white'
+    valueColorClass = 'text-ink'
 }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+        <div className="bg-surface p-4 rounded-xl border border-line shadow-sm flex items-center gap-4">
             <div className={`p-3 ${iconBgClass} ${iconColorClass} rounded-lg`}>
                 <Icon size={24} />
             </div>
             <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</p>
-                <p className={`text-xl font-black ${valueColorClass}`}>{value}</p>
+                <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">{label}</p>
+                <p className={`text-xl font-bold ${valueColorClass}`}>{value}</p>
             </div>
         </div>
     );
@@ -56,11 +56,11 @@ export const TotalSaleCard = ({ value, formatCurrency }) => {
     return (
         <StatCard
             icon={FileText}
-            iconBgClass="bg-indigo-100 dark:bg-indigo-900/30"
-            iconColorClass="text-indigo-600 dark:text-indigo-400"
+            iconBgClass="bg-brand-100 dark:bg-brand-900/30"
+            iconColorClass="text-brand-600 dark:text-brand-400"
             label="Total Sale"
             value={formatCurrency ? formatCurrency(value) : `Rs ${value?.toLocaleString() || 0}`}
-            valueColorClass="text-slate-900 dark:text-white"
+            valueColorClass="text-ink"
         />
     );
 };
@@ -99,7 +99,7 @@ export const TransactionCountCard = ({ value }) => {
             iconColorClass="text-blue-600 dark:text-blue-400"
             label="Transactions"
             value={value || 0}
-            valueColorClass="text-slate-900 dark:text-white"
+            valueColorClass="text-ink"
         />
     );
 };
@@ -121,8 +121,8 @@ export const FilterPill = ({ label, isActive, onClick }) => {
         <button
             onClick={onClick}
             className={`px-3 py-1 text-2xs font-bold uppercase rounded-full transition-all ${isActive
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                ? 'bg-brand-600 text-white'
+                : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                 }`}
         >
             {label}
@@ -130,7 +130,7 @@ export const FilterPill = ({ label, isActive, onClick }) => {
     );
 };
 
-export const FilterPillGroup = ({ activeFilter, onFilterChange, filters = ['all', 'today', 'month', 'year'], activeColorClass = "bg-indigo-600 text-white" }) => {
+export const FilterPillGroup = ({ activeFilter, onFilterChange, filters = ['all', 'today', 'month', 'year'], activeColorClass = "bg-brand-600 text-white" }) => {
     const labels = {
         all: 'All',
         today: 'Today',
@@ -146,7 +146,7 @@ export const FilterPillGroup = ({ activeFilter, onFilterChange, filters = ['all'
                     onClick={() => onFilterChange(filter)}
                     className={`px-3 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === filter
                         ? activeColorClass
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                         }`}
                 >
                     {labels[filter] || filter}
@@ -158,22 +158,22 @@ export const FilterPillGroup = ({ activeFilter, onFilterChange, filters = ['all'
 
 export const DateRangePicker = ({ dateRange, onDateChange }) => {
     return (
-        <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
-            <span className="text-2xs font-bold text-slate-400 uppercase mr-1">Range:</span>
+        <div className="flex items-center gap-1 bg-app px-2 py-1 rounded-lg border border-line">
+            <span className="text-2xs font-bold text-ink-muted uppercase mr-1">Range:</span>
             <input
                 type="date"
                 name="from"
                 value={dateRange.from || ''}
                 onChange={onDateChange}
-                className="bg-transparent border-none p-0 text-xs font-bold text-slate-600 dark:text-slate-300 w-28 focus:ring-0"
+                className="bg-transparent border-none p-0 text-xs font-bold text-ink-secondary w-28 focus:ring-0"
             />
-            <span className="text-slate-300">→</span>
+            <span className="text-neutral-300">→</span>
             <input
                 type="date"
                 name="to"
                 value={dateRange.to || ''}
                 onChange={onDateChange}
-                className="bg-transparent border-none p-0 text-xs font-bold text-slate-600 dark:text-slate-300 w-28 focus:ring-0"
+                className="bg-transparent border-none p-0 text-xs font-bold text-ink-secondary w-28 focus:ring-0"
             />
         </div>
     );
@@ -182,20 +182,20 @@ export const DateRangePicker = ({ dateRange, onDateChange }) => {
 export const TransactionSearchBar = ({ value, onChange, onKeyDown, placeholder = "Search..." }) => {
     return (
         <div className="relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
             <input
                 type="text"
                 placeholder={placeholder}
                 value={value}
                 onChange={onChange}
                 onKeyDown={onKeyDown}
-                className="pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 w-full transition-all font-bold"
+                className="pl-9 pr-4 py-2 bg-sunken border-none rounded-lg text-sm focus:ring-2 focus:ring-brand-500 w-full transition-all font-bold"
             />
         </div>
     );
 };
 
-export const ActionButton = ({ icon: Icon, onClick, href, title, colorClass = "text-slate-600 dark:text-slate-400", hoverBgClass = "hover:bg-slate-100 dark:hover:bg-slate-800" }) => {
+export const ActionButton = ({ icon: Icon, onClick, href, title, colorClass = "text-ink-secondary", hoverBgClass = "hover:bg-interactive-hover dark:hover:bg-interactive-hover" }) => {
     const className = `p-2 ${hoverBgClass} rounded-lg ${colorClass} transition-colors`;
 
     if (href) {
@@ -215,7 +215,7 @@ export const ActionButton = ({ icon: Icon, onClick, href, title, colorClass = "t
 
 export const ActionIconGroup = ({ exportHref, analyticsHref, onPrint }) => {
     return (
-        <div className="flex items-center gap-1 border-l border-slate-200 dark:border-slate-700 pl-2 ml-2">
+        <div className="flex items-center gap-1 border-l border-line pl-2 ml-2">
             {exportHref && (
                 <ActionButton
                     icon={FileSpreadsheet}
@@ -258,10 +258,10 @@ export const PageHeader = ({
     onPrint
 }) => {
     return (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-surface p-4 rounded-xl border border-line shadow-sm shrink-0">
             <div className="flex flex-col gap-1">
-                <h1 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
-                    {title} <span className="text-indigo-600">{highlightedTitle}</span>
+                <h1 className="text-xl font-bold text-ink uppercase tracking-tight">
+                    {title} <span className="text-brand-600">{highlightedTitle}</span>
                 </h1>
                 <FilterPillGroup activeFilter={activeFilter} onFilterChange={onFilterChange} />
             </div>
@@ -288,7 +288,7 @@ export const PageHeader = ({
 export const ActionBarRow = ({ children, label = "Manage your records" }) => {
     return (
         <div className="flex justify-between items-center shrink-0">
-            <div className="text-sm text-slate-500">{label}</div>
+            <div className="text-sm text-ink-muted">{label}</div>
             <div className="flex gap-2">
                 {children}
             </div>
@@ -304,8 +304,8 @@ export const NewActionButton = ({ href, label, variant = 'secondary', bgClass = 
         variantClasses = `${bgClass} text-white shadow-sm`;
     } else {
         variantClasses = variant === 'primary'
-            ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
-            : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700";
+            ? "bg-brand-600 text-white hover:bg-brand-700 shadow-sm"
+            : "bg-surface border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover";
     }
 
     return (
@@ -321,7 +321,7 @@ export const NewActionButton = ({ href, label, variant = 'secondary', bgClass = 
 
 export const TableContainer = ({ children }) => {
     return (
-        <div className="flex-1 overflow-visible rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <div className="flex-1 overflow-visible rounded-xl border border-line shadow-sm bg-surface">
             {children}
         </div>
     );
@@ -362,19 +362,19 @@ export const SortableTableHeader = ({
             onDrop={(e) => onDrop?.(e, index)}
             onClick={() => colObj.key !== 'actions' && onSort?.(colObj.key)}
             className={`
-                p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
+                p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
+                cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
                 ${align === 'right' ? 'text-right' : ''}
-                ${isBeingDragged ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
-            `}
+                ${isBeingDragged ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
+`}
             style={{ width: colObj.width }}
         >
             <div className={`flex items-center gap-2 ${align === 'right' ? 'justify-end' : ''}`}>
                 {colObj.label}
                 {colObj.key !== 'actions' && isSorted && (
                     sortConfig.direction === 'asc'
-                        ? <ChevronUp size={14} className="text-indigo-500" />
-                        : <ChevronDown size={14} className="text-indigo-500" />
+                        ? <ChevronUp size={14} className="text-brand-500" />
+                        : <ChevronDown size={14} className="text-brand-500" />
                 )}
             </div>
         </th>
@@ -393,7 +393,7 @@ export const TableHeaderRow = ({
 }) => {
     return (
         <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+            <tr className="bg-app border-b border-line">
                 {columns ? columns.map((col, index) => (
                     <SortableTableHeader
                         key={col.key || index}
@@ -417,7 +417,7 @@ export const TransactionRowWrapper = ({ children, onClick, onDoubleClick }) => {
         <tr
             onClick={onClick}
             onDoubleClick={onDoubleClick}
-            className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-none"
+            className="group hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors cursor-pointer border-b border-line last:border-none"
         >
             {children}
         </tr>
@@ -438,7 +438,7 @@ export const EmptyStateRow = ({ colSpan, message = "No records found" }) => {
             <td colSpan={colSpan} className="p-20 text-center">
                 <div className="flex flex-col items-center gap-3 opacity-20 dark:opacity-40">
                     <History size={48} />
-                    <p className="font-black text-xs uppercase tracking-widest">{message}</p>
+                    <p className="font-bold text-xs uppercase tracking-widest">{message}</p>
                 </div>
             </td>
         </tr>
@@ -447,7 +447,7 @@ export const EmptyStateRow = ({ colSpan, message = "No records found" }) => {
 
 export const TableBody = ({ children }) => {
     return (
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+        <tbody className="divide-y divide-line">
             {children}
         </tbody>
     );
@@ -464,7 +464,7 @@ export const DateCell = ({ date, formatDate }) => {
 
     return (
         <TableCell>
-            <span className="text-slate-600 dark:text-slate-400 font-medium">{formatted}</span>
+            <span className="text-ink-secondary font-medium">{formatted}</span>
         </TableCell>
     );
 };
@@ -473,7 +473,7 @@ export const InvoiceNumberCell = ({ reference, onClick }) => {
     return (
         <TableCell>
             <span
-                className="font-mono text-indigo-600 dark:text-indigo-400 font-bold cursor-pointer hover:underline"
+                className="font-mono text-brand-600 dark:text-brand-400 font-bold cursor-pointer hover:underline"
                 onClick={onClick}
             >
                 {reference}
@@ -486,8 +486,8 @@ export const PartyNameCell = ({ name, phone }) => {
     return (
         <TableCell>
             <div className="flex flex-col">
-                <span className="font-bold text-slate-900 dark:text-white capitalize">{name || 'Walk-in'}</span>
-                {phone && <span className="text-2xs font-bold text-slate-400 uppercase tracking-tight">{phone}</span>}
+                <span className="font-bold text-ink capitalize">{name || 'Walk-in'}</span>
+                {phone && <span className="text-2xs font-bold text-ink-muted uppercase tracking-tight">{phone}</span>}
             </div>
         </TableCell>
     );
@@ -503,7 +503,7 @@ export const TransactionTypeBadge = ({ type = 'sale' }) => {
     };
 
     return (
-        <span className={`text-2xs font-black uppercase px-2 py-0.5 rounded-md ${styles[type] || styles.sale}`}>
+        <span className={`text-2xs font-bold uppercase px-2 py-0.5 rounded-md ${styles[type] || styles.sale}`}>
             {type}
         </span>
     );
@@ -512,7 +512,7 @@ export const TransactionTypeBadge = ({ type = 'sale' }) => {
 export const PaymentTypeCell = ({ method }) => {
     return (
         <TableCell>
-            <span className="uppercase text-2xs font-black text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+            <span className="uppercase text-2xs font-bold text-ink-muted bg-sunken px-2 py-0.5 rounded-md">
                 {method || '-'}
             </span>
         </TableCell>
@@ -526,7 +526,7 @@ export const AmountCell = ({ amount, formatCurrency }) => {
 
     return (
         <TableCell className="text-right">
-            <span className="font-black text-slate-900 dark:text-slate-100">{formatted}</span>
+            <span className="font-bold text-ink">{formatted}</span>
         </TableCell>
     );
 };
@@ -545,7 +545,7 @@ export const BalanceCell = ({ total, paid, formatCurrency }) => {
         return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatted}</span>;
     }
     return (
-        <span className="text-emerald-500 text-2xs font-black bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
+        <span className="text-emerald-500 text-2xs font-bold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
             Settled
         </span>
     );
@@ -556,14 +556,14 @@ export const StatusBadge = ({ status }) => {
         paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
         unpaid: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
         partial: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
-        draft: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
+        draft: 'bg-neutral-100 text-ink-secondary dark:bg-surface dark:text-ink-muted',
         sent: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
         accepted: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
         declined: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
     };
 
     return (
-        <span className={`px-3 py-1 rounded-lg text-2xs font-black uppercase tracking-wider ${styles[status] || styles.draft}`}>
+        <span className={`px-3 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider ${styles[status] || styles.draft}`}>
             {status}
         </span>
     );
@@ -576,7 +576,7 @@ export const StatusBadge = ({ status }) => {
 export const ActionMenuItem = ({ icon: Icon, label, onClick, href, variant = 'default', className = "" }) => {
     const baseClasses = "w-full text-left px-3 py-2 rounded flex items-center gap-2 text-sm transition-colors font-bold";
     const variantClasses = {
-        default: "hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300",
+        default: "hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary",
         danger: "hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
     };
 
@@ -603,7 +603,7 @@ export const SharePopup = ({ isOpen, onEmailClick, onWhatsAppClick }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+        <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
             <ActionMenuItem icon={Mail} label="Email" onClick={onEmailClick} />
             <ActionMenuItem icon={MessageCircle} label="WhatsApp" onClick={onWhatsAppClick} />
         </div>
@@ -629,7 +629,7 @@ export const RowActionMenu = ({
     if (!isOpen) return null;
 
     return (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
             <div className="py-1">
                 <ActionMenuItem icon={Edit} label="View/Edit" onClick={onEdit} />
                 {onReturn && <ActionMenuItem icon={RefreshCcw} label="Convert To Return" onClick={onReturn} />}
@@ -637,7 +637,7 @@ export const RowActionMenu = ({
                 <ActionMenuItem icon={Truck} label="Preview Delivery Challan" onClick={onDeliveryChallan} />
                 <ActionMenuItem icon={History} label="Payment History" onClick={onPaymentHistory} />
                 <ActionMenuItem icon={XCircle} label="Cancel Invoice" onClick={onCancel} variant="danger" />
-                <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                <div className="h-px bg-sunken my-1"></div>
                 <ActionMenuItem icon={Trash2} label="Delete" onClick={onDelete} variant="danger" />
                 <ActionMenuItem icon={Copy} label="Duplicate" onClick={onDuplicate} />
                 <ActionMenuItem icon={FileText} label="Open PDF" href={printHref} />
@@ -677,7 +677,7 @@ export const RowActionsCell = ({
                     href={printHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors"
+                    className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                 >
                     <Printer size={16} />
                 </a>
@@ -685,7 +685,7 @@ export const RowActionsCell = ({
                 <div className="relative">
                     <button
                         onClick={(e) => { e.stopPropagation(); onShareToggle?.(row.id); }}
-                        className={`p-1.5 rounded-lg transition-colors ${activeSharePopup === row.id ? 'text-indigo-600 bg-slate-100 dark:bg-slate-800 shadow-inner' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`p-1.5 rounded-lg transition-colors ${activeSharePopup === row.id ? 'text-brand-600 bg-sunken shadow-inner' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         <CornerUpRight size={16} />
                     </button>
@@ -699,7 +699,7 @@ export const RowActionsCell = ({
                 <div className="relative">
                     <button
                         onClick={(e) => { e.stopPropagation(); onMenuToggle?.(row.id); }}
-                        className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-indigo-600 bg-slate-100 dark:bg-slate-800 shadow-inner' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-brand-600 bg-sunken shadow-inner' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         <MoreVertical size={16} />
                     </button>

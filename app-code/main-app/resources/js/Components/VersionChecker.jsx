@@ -53,8 +53,8 @@ export default function VersionChecker({ checkInterval = 60000 }) {
     if (!newVersionAvailable) return null;
 
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-in slide-in-from-bottom-5 fade-in duration-500">
-            <div className="bg-slate-900 border border-slate-700/50 shadow-2xl rounded-2xl p-4 pl-5 flex items-center gap-6 max-w-md w-full relative overflow-hidden">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-command animate-in slide-in-from-bottom-5 fade-in duration-slower">
+            <div className="bg-neutral-900 border border-neutral-700/50 shadow-2xl rounded-2xl p-4 pl-5 flex items-center gap-6 max-w-md w-full relative overflow-hidden">
 
                 {/* Ambient Glow */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500"></div>
@@ -68,7 +68,7 @@ export default function VersionChecker({ checkInterval = 60000 }) {
                         </div>
                         <h4 className="font-bold text-white text-md">Update Available</h4>
                     </div>
-                    <p className="text-slate-400 text-xs font-medium">
+                    <p className="text-ink-muted text-xs font-medium">
                         A new version of the application has been released.
                         <br />Reload to unlock new features.
                     </p>
@@ -77,9 +77,9 @@ export default function VersionChecker({ checkInterval = 60000 }) {
                 {/* Action */}
                 <button
                     onClick={handleReload}
-                    className="group bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap"
+                    className="group bg-emerald-500 hover:bg-emerald-400 text-ink font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
                 >
-                    <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
+                    <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-slower" />
                     RELOAD
                 </button>
             </div>

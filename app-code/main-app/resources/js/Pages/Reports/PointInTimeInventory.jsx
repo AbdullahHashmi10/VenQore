@@ -180,43 +180,43 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
             <div className="flex flex-col h-full gap-5 w-full">
 
                 {/* Header Section */}
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-surface p-4 rounded-2xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-3">
-                        <Link href={route('store.reports.index', { store_slug: store.slug })} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 transition-colors">
+                        <Link href={route('store.reports.index', { store_slug: store.slug })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
                             <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Point-In-Time Inventory</h1>
-                            <p className="text-xs text-slate-500 font-medium">Historical inventory ledger valuation & snapshot builder</p>
+                            <h1 className="text-xl font-bold text-ink tracking-tight">Point-In-Time Inventory</h1>
+                            <p className="text-xs text-ink-muted font-medium">Historical inventory ledger valuation & snapshot builder</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 p-1.5 rounded-xl flex-wrap w-full lg:w-auto">
-                        <Calendar size={15} className="text-slate-400 ml-1.5" />
-                        <span className="text-2xs font-bold text-slate-400 uppercase tracking-wide">Target Moment:</span>
+                    <div className="flex items-center gap-2 bg-app border border-line p-1.5 rounded-xl flex-wrap w-full lg:w-auto">
+                        <Calendar size={15} className="text-ink-muted ml-1.5" />
+                        <span className="text-2xs font-bold text-ink-muted uppercase tracking-wide">Target Moment:</span>
                         <input
                             type="date"
                             value={asOfDate}
                             max={new Date().toISOString().split('T')[0]}
                             onChange={(e) => setAsOfDate(e.target.value)}
-                            className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 font-bold"
+                            className="px-2 py-1 bg-surface border border-line rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary font-bold"
                         />
-                        <Clock size={13} className="text-slate-400" />
+                        <Clock size={13} className="text-ink-muted" />
                         <input
                             type="time"
                             value={asOfTime}
                             onChange={(e) => setAsOfTime(e.target.value)}
-                            className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 font-bold w-24"
+                            className="px-2 py-1 bg-surface border border-line rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary font-bold w-24"
                         />
                         {asOfTime && (
                             <button
                                 onClick={() => setAsOfTime('')}
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs px-1 font-bold"
+                                className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 text-xs px-1 font-bold"
                             >
                                 ✕
                             </button>
                         )}
-                        <button onClick={applyDate} className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-md shadow-indigo-500/10">
+                        <button onClick={applyDate} className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-md ">
                             Reconstruct
                         </button>
                     </div>
@@ -233,14 +233,14 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                 {/* KPI stats section */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
                     {stats.map((s, i) => {
-                        let colorClass = "text-indigo-500 bg-indigo-500/10";
+                        let colorClass = "text-brand-500 bg-brand-500/10";
                         if (s.label.includes('Value')) colorClass = "text-emerald-500 bg-emerald-500/10";
                         if (s.label.includes('Quantity')) colorClass = "text-blue-500 bg-blue-500/10";
                         return (
-                            <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-between">
+                            <div key={i} className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
-                                    <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-1">{s.value}</h3>
+                                    <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{s.label}</p>
+                                    <h3 className="text-xl font-bold text-ink tracking-tight mt-1">{s.value}</h3>
                                 </div>
                                 <div className={`p-2.5 rounded-xl ${colorClass} shrink-0`}>
                                     {statIcon(s.label)}
@@ -254,39 +254,39 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
                     
                     {/* LEFT COLUMN: Inventory Snapshot Table list */}
-                    <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden min-h-0">
+                    <div className="xl:col-span-2 bg-surface rounded-2xl border border-line shadow-sm flex flex-col overflow-hidden min-h-0">
                         
-                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 dark:bg-slate-800/30 gap-4 shrink-0">
-                            <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Inventory Snapshot</h2>
+                        <div className="p-4 border-b border-line flex flex-col sm:flex-row justify-between items-start sm:items-center bg-sunken/50 dark:bg-surface gap-4 shrink-0">
+                            <h2 className="text-sm font-bold text-ink uppercase tracking-wider">Inventory Snapshot</h2>
                             <div className="relative w-full sm:w-64">
-                                <Search className="absolute left-2.5 top-2.5 text-slate-400" size={14} />
+                                <Search className="absolute left-2.5 top-2.5 text-ink-muted" size={14} />
                                 <input
                                     type="text"
                                     placeholder="Search catalog snapshot..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="pl-8 pr-3 py-1.5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500"
+                                    className="pl-8 pr-3 py-1.5 w-full bg-surface border border-line rounded-lg text-xs focus:ring-1 focus:ring-brand-500"
                                 />
                             </div>
                         </div>
 
                         {/* Status Filter Pills */}
-                        <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/20 flex gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
+                        <div className="px-4 py-2 border-b border-line bg-sunken/20 flex gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
                             {[
-                                { id: 'all', label: 'All Products', styles: 'hover:bg-slate-100 dark:hover:bg-slate-800' },
+                                { id: 'all', label: 'All Products', styles: 'hover:bg-interactive-hover dark:hover:bg-interactive-hover' },
                                 { id: 'out', label: 'Out of Stock', styles: 'hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20' },
                                 { id: 'low', label: 'Low Stock (≤15)', styles: 'hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/20' },
                                 { id: 'healthy', label: 'Healthy (16-200)', styles: 'hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/20' },
                                 { id: 'over', label: 'Overstocked (>200)', styles: 'hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/20' }
                             ].map((opt) => {
                                 const isActive = statusFilter === opt.id;
-                                let activeStyles = 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 ' + opt.styles;
+                                let activeStyles = 'bg-surface border-line text-ink-muted ' + opt.styles;
                                 if (isActive) {
                                     if (opt.id === 'out') activeStyles = 'bg-rose-600 border-rose-600 text-white shadow-sm';
                                     else if (opt.id === 'low') activeStyles = 'bg-amber-500 border-amber-500 text-white shadow-sm';
                                     else if (opt.id === 'healthy') activeStyles = 'bg-emerald-600 border-emerald-600 text-white shadow-sm';
                                     else if (opt.id === 'over') activeStyles = 'bg-blue-600 border-blue-600 text-white shadow-sm';
-                                    else activeStyles = 'bg-slate-800 border-slate-800 dark:bg-slate-200 dark:border-slate-200 text-white dark:text-slate-900 shadow-sm';
+                                    else activeStyles = 'bg-neutral-800 border-neutral-800 dark:bg-neutral-200 dark:border-line text-white dark:text-ink shadow-sm';
                                 }
                                 return (
                                     <button
@@ -303,7 +303,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                         {/* Inventory Table */}
                         <div className="flex-1 overflow-y-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 sticky top-0 backdrop-blur-sm z-10 border-b border-slate-100 dark:border-slate-800">
+                                <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 backdrop-blur-sm z-10 border-b border-line">
                                     <tr>
                                         {[
                                             { key: 'name', label: 'Product' },
@@ -313,38 +313,38 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                             <th
                                                 key={col.key}
                                                 onClick={() => toggleSort(col.key)}
-                                                className={`px-6 py-3 font-bold cursor-pointer select-none hover:text-indigo-500 ${col.align === 'right' ? 'text-right' : ''}`}
+                                                className={`px-6 py-3 font-bold cursor-pointer select-none hover:text-brand-500 ${col.align === 'right' ? 'text-right' : ''}`}
                                             >
                                                 {col.label} {sortKey === col.key && (sortDir === 'asc' ? '↑' : '↓')}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-line">
                                     {filtered.length === 0 ? (
-                                        <tr><td colSpan={3} className="px-6 py-12 text-center text-slate-400 italic">No inventory matches search criteria.</td></tr>
+                                        <tr><td colSpan={3} className="px-6 py-12 text-center text-ink-muted italic">No inventory matches search criteria.</td></tr>
                                     ) : filtered.map((row, idx) => {
                                         const qty = row.quantity || 0;
                                         let statusBadge = null;
-                                        if (qty <= 0) statusBadge = <span className="text-3xs bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shrink-0 ml-1.5">Out</span>;
-                                        else if (qty <= 15) statusBadge = <span className="text-3xs bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shrink-0 ml-1.5">Low</span>;
+                                        if (qty <= 0) statusBadge = <span className="text-3xs bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ml-1.5">Out</span>;
+                                        else if (qty <= 15) statusBadge = <span className="text-3xs bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ml-1.5">Low</span>;
                                         return (
                                             <tr 
                                                 key={row.product_id || idx} 
-                                                className="hover:bg-indigo-50/50 dark:hover:bg-slate-850/40 transition-colors cursor-pointer group"
+                                                className="hover:bg-brand-50/50 dark:hover:bg-interactive-hover transition-colors cursor-pointer group"
                                                 onClick={() => handleSelectItem(row)}
                                             >
                                                 <td className="px-6 py-3">
                                                     <div className="flex items-center gap-1">
-                                                        <span className="font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{row.name}</span>
+                                                        <span className="font-bold text-ink-secondary dark:text-ink group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{row.name}</span>
                                                         {statusBadge}
                                                     </div>
-                                                    <div className="text-2xs text-slate-400 font-mono mt-0.5">{row.sku} &bull; <span className="font-sans font-medium text-slate-400/80">{row.category}</span></div>
+                                                    <div className="text-2xs text-ink-muted font-mono mt-0.5">{row.sku} &bull; <span className="font-sans font-medium text-ink-muted/80">{row.category}</span></div>
                                                 </td>
-                                                <td className="px-6 py-3 text-right font-mono font-semibold text-slate-600 dark:text-slate-300">{qty}</td>
+                                                <td className="px-6 py-3 text-right font-mono font-semibold text-ink-secondary">{qty}</td>
                                                 <td className="px-6 py-3 text-right">
-                                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-200 block">{formatCurrency(row.stock_value, store)}</span>
-                                                    <span className="text-3xs text-slate-400 font-mono">@{formatCurrency(row.unit_cost, store)}</span>
+                                                    <span className="font-mono font-bold text-ink-secondary dark:text-ink block">{formatCurrency(row.stock_value, store)}</span>
+                                                    <span className="text-3xs text-ink-muted font-mono">@{formatCurrency(row.unit_cost, store)}</span>
                                                 </td>
                                             </tr>
                                         );
@@ -358,8 +358,8 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                     <div className="xl:col-span-1 flex flex-col gap-4">
                         
                         {/* Category Value Distribution chart */}
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col min-h-[300px]">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                        <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm flex flex-col min-h-[300px]">
+                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-4 flex items-center gap-2">
                                 <PieIcon size={14} /> Value Distribution
                             </h3>
                             <div className="flex-1 relative">
@@ -376,7 +376,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                         </div>
 
                         {/* Strategy Tip */}
-                        <div className="bg-indigo-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
+                        <div className="bg-brand-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                             <div className="relative z-10">
                                 <h3 className="text-xs font-bold opacity-90 mb-2 flex items-center gap-2">
@@ -395,21 +395,21 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                     {/* RIGHT COLUMN: Inventory Intelligence Card */}
                     <div className="xl:col-span-1 flex flex-col gap-4 h-full">
                         
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg text-white h-full relative overflow-hidden flex flex-col justify-between">
+                        <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg text-white h-full relative overflow-hidden flex flex-col justify-between">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                             <div className="space-y-4">
-                                <h3 className="text-base font-black uppercase tracking-tight mb-2 flex items-center gap-2 text-emerald-400">
+                                <h3 className="text-base font-bold uppercase tracking-tight mb-2 flex items-center gap-2 text-emerald-400">
                                     <Zap size={18} fill="currentColor" /> Stock Intelligence
                                 </h3>
 
                                 {/* Dynamic Audit Result */}
                                 {auditResult ? (
-                                    <div className="space-y-3 animate-in fade-in duration-300">
+                                    <div className="space-y-3 animate-in fade-in duration-slow">
                                         <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
                                             <div>
-                                                <span className="text-2xs text-slate-400 font-bold block uppercase">Health Score</span>
-                                                <span className="text-2xl font-black text-emerald-400">{auditResult.score}/100</span>
+                                                <span className="text-2xs text-ink-muted font-bold block uppercase">Health Score</span>
+                                                <span className="text-2xl font-bold text-emerald-400">{auditResult.score}/100</span>
                                             </div>
                                             {auditResult.score >= 80 ? <ShieldCheck className="text-emerald-400" size={32} /> : <AlertTriangle className="text-amber-400" size={32} />}
                                         </div>
@@ -417,45 +417,45 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                         <div className="grid grid-cols-2 gap-2 text-2xs">
                                             <div className="bg-white/5 p-2 rounded-lg text-center">
                                                 <span className="text-rose-400 font-bold text-sm block">{auditResult.outOfStockCount}</span>
-                                                <span className="text-slate-400 uppercase tracking-wide">Out of stock</span>
+                                                <span className="text-ink-muted uppercase tracking-wide">Out of stock</span>
                                             </div>
                                             <div className="bg-white/5 p-2 rounded-lg text-center">
                                                 <span className="text-amber-400 font-bold text-sm block">{auditResult.lowStockCount}</span>
-                                                <span className="text-slate-400 uppercase tracking-wide">Low stock</span>
+                                                <span className="text-ink-muted uppercase tracking-wide">Low stock</span>
                                             </div>
                                         </div>
 
                                         <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
                                             <h4 className="text-2xs font-bold text-emerald-300 uppercase flex items-center gap-1.5"><DollarSign size={10} /> Capital Leaks</h4>
-                                            <p className="text-1xs text-slate-300 leading-relaxed">
+                                            <p className="text-1xs text-neutral-300 leading-relaxed">
                                                 Estimated carrying costs for overstocked assets: <strong className="text-white">{formatCurrency(auditResult.potentialBleed, store)} / yr</strong>.
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10 space-y-2">
-                                        <h4 className="text-xs font-bold text-indigo-300 mb-1 flex items-center gap-2"><Activity size={12} /> AI Auditor</h4>
-                                        <p className="text-1xs text-slate-300 leading-relaxed">Run the automated snapshot auditor to evaluate inventory turnover and capital leaks.</p>
+                                        <h4 className="text-xs font-bold text-brand-300 mb-1 flex items-center gap-2"><Activity size={12} /> AI Auditor</h4>
+                                        <p className="text-1xs text-neutral-300 leading-relaxed">Run the automated snapshot auditor to evaluate inventory turnover and capital leaks.</p>
                                     </div>
                                 )}
 
                                 {/* Critical warning list */}
                                 <div className="space-y-2 pt-2 border-t border-white/10">
-                                    <h4 className="text-2xs font-black uppercase text-slate-400 tracking-wider">Tied-Up Capital (Top Value)</h4>
+                                    <h4 className="text-2xs font-bold uppercase text-ink-muted tracking-wider">Tied-Up Capital (Top Value)</h4>
                                     {topTiedProducts.map((p, idx) => (
                                         <div 
                                             key={idx} 
                                             onClick={() => handleSelectItem(p)}
                                             className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-1xs transition-all cursor-pointer group"
                                         >
-                                            <span className="text-slate-300 font-medium truncate w-32 group-hover:text-indigo-400">{p.name}</span>
+                                            <span className="text-neutral-300 font-medium truncate w-32 group-hover:text-brand-400">{p.name}</span>
                                             <span className="font-mono text-emerald-400 font-bold">{formatCurrency(p.stock_value, store)}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <button onClick={runInventoryAudit} disabled={isAuditing} className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait shrink-0">
+                            <button onClick={runInventoryAudit} disabled={isAuditing} className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait shrink-0">
                                 {isAuditing ? <span className="animate-spin mr-1">⌛</span> : <Zap size={15} fill="currentColor" />}
                                 {isAuditing ? 'Auditing Snapshot...' : 'Run Snapshot Audit'}
                             </button>
@@ -467,19 +467,19 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                 {selectedItem && (() => {
                     const status = (selectedItem.quantity || 0) <= 0 ? 'Out of Stock' : (selectedItem.quantity || 0) <= 15 ? 'Low Stock' : 'Healthy';
                     return (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                            <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-normal">
+                            <div className="bg-surface w-full max-w-5xl rounded-2xl shadow-2xl border border-line overflow-hidden animate-in zoom-in-95 duration-normal flex flex-col max-h-[85vh]">
                                 
                                 {/* Modal Header */}
-                                <div className="bg-indigo-600 p-5 text-white relative overflow-hidden shrink-0">
+                                <div className="bg-brand-600 p-5 text-white relative overflow-hidden shrink-0">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                     <div className="relative z-10 flex justify-between items-center">
                                         <div className="space-y-1">
-                                            <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-2xs font-black uppercase tracking-wider">
+                                            <span className="bg-brand-500/50 text-white border border-brand-400/30 px-3 py-1 rounded-full text-2xs font-bold uppercase tracking-wider">
                                                 Reconstructed Snapshot: {asOfDate} {asOfTime || '23:59:59'}
                                             </span>
-                                            <h2 className="text-2xl font-black tracking-tight mt-1">{selectedItem.name}</h2>
-                                            <p className="text-indigo-100 text-xs font-semibold">
+                                            <h2 className="text-2xl font-bold tracking-tight mt-1">{selectedItem.name}</h2>
+                                            <p className="text-brand-100 text-xs font-semibold">
                                                 SKU: <span className="text-white font-bold">{selectedItem.sku || 'N/A'}</span> &bull; Category: <span className="text-white font-bold">{selectedItem.category || 'N/A'}</span>
                                             </p>
                                         </div>
@@ -493,44 +493,44 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                 <div className="p-6 space-y-6 overflow-y-auto flex-1 text-sm">
                                     {/* Financial Details KPIs */}
                                     <div className="grid grid-cols-4 gap-4">
-                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Stock Quantity</p>
-                                            <p className="text-2xl font-black text-slate-800 dark:text-white mt-1">{selectedItem.quantity}</p>
+                                        <div className="bg-app p-4 rounded-xl border border-line">
+                                            <p className="text-xs font-bold text-ink-muted uppercase">Stock Quantity</p>
+                                            <p className="text-2xl font-bold text-ink mt-1">{selectedItem.quantity}</p>
                                         </div>
-                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Unit Valuation Cost</p>
-                                            <p className="text-2xl font-black text-slate-800 dark:text-white mt-1">{formatCurrency(selectedItem.unit_cost, store)}</p>
+                                        <div className="bg-app p-4 rounded-xl border border-line">
+                                            <p className="text-xs font-bold text-ink-muted uppercase">Unit Valuation Cost</p>
+                                            <p className="text-2xl font-bold text-ink mt-1">{formatCurrency(selectedItem.unit_cost, store)}</p>
                                         </div>
-                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Valuation Basis</p>
-                                            <p className="text-2xl font-black text-indigo-500 dark:text-indigo-400 mt-1">FIFO cost</p>
+                                        <div className="bg-app p-4 rounded-xl border border-line">
+                                            <p className="text-xs font-bold text-ink-muted uppercase">Valuation Basis</p>
+                                            <p className="text-2xl font-bold text-brand-500 dark:text-brand-400 mt-1">FIFO cost</p>
                                         </div>
-                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Total Stock Value</p>
-                                            <p className="text-2xl font-black text-emerald-500 mt-1">{formatCurrency(selectedItem.stock_value, store)}</p>
+                                        <div className="bg-app p-4 rounded-xl border border-line">
+                                            <p className="text-xs font-bold text-ink-muted uppercase">Total Stock Value</p>
+                                            <p className="text-2xl font-bold text-emerald-500 mt-1">{formatCurrency(selectedItem.stock_value, store)}</p>
                                         </div>
                                     </div>
 
                                     {/* Modal Split Columns */}
                                     {isLoadingDetails ? (
-                                        <div className="flex flex-col items-center justify-center py-20 text-indigo-500 gap-3">
+                                        <div className="flex flex-col items-center justify-center py-20 text-brand-500 gap-3">
                                             <span className="animate-spin text-3xl">⌛</span>
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Querying Ledger...</span>
+                                            <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">Querying Ledger...</span>
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                                             
                                             {/* FIFO Valuation Batches */}
                                             <div className="md:col-span-6 flex flex-col">
-                                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Layers size={13} /> Active FIFO Cost Layers</h4>
+                                                <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Layers size={13} /> Active FIFO Cost Layers</h4>
                                                 {modalDetails.batches.length === 0 ? (
-                                                    <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-slate-400 italic">
+                                                    <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                         No cost layers—item is out of stock.
                                                     </div>
                                                 ) : (
-                                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+                                                    <div className="border border-line rounded-xl overflow-hidden bg-surface">
                                                         <table className="w-full text-xs text-left">
-                                                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
+                                                            <thead className="bg-app text-ink-muted uppercase border-b border-line">
                                                                 <tr>
                                                                     <th className="py-2.5 px-3">Batch ID</th>
                                                                     <th className="py-2.5 px-3 text-right">Cost Price</th>
@@ -538,16 +538,16 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                                                     <th className="py-2.5 px-3 text-right">Remaining Value</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                            <tbody className="divide-y divide-line">
                                                                 {modalDetails.batches.map((b, idx) => (
-                                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
-                                                                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
+                                                                    <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover">
+                                                                        <td className="py-2.5 px-3 font-semibold text-ink-secondary dark:text-ink">
                                                                             {b.id}
-                                                                            <span className="block text-3xs text-slate-400 font-mono">Inwarded {b.date}</span>
+                                                                            <span className="block text-3xs text-ink-muted font-mono">Inwarded {b.date}</span>
                                                                         </td>
-                                                                        <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-bold">{formatCurrency(b.cost, store)}</td>
-                                                                        <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-semibold">{b.qtyLeft} <span className="text-2xs text-slate-400">/ {b.receivedQty}</span></td>
-                                                                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(b.qtyLeft * b.cost, store)}</td>
+                                                                        <td className="py-2.5 px-3 text-right font-mono text-ink-muted font-bold">{formatCurrency(b.cost, store)}</td>
+                                                                        <td className="py-2.5 px-3 text-right font-mono text-ink-muted font-semibold">{b.qtyLeft} <span className="text-2xs text-ink-muted">/ {b.receivedQty}</span></td>
+                                                                        <td className="py-2.5 px-3 text-right font-mono font-bold text-ink-secondary">{formatCurrency(b.qtyLeft * b.cost, store)}</td>
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
@@ -558,15 +558,15 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
 
                                             {/* Recent Stock Audit Ledger */}
                                             <div className="md:col-span-6 flex flex-col">
-                                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Activity size={13} /> Reconstruction Audit Trail</h4>
+                                                <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Activity size={13} /> Reconstruction Audit Trail</h4>
                                                 {modalDetails.ledger.length === 0 ? (
-                                                    <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-slate-400 italic">
+                                                    <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                         No stock movement ledger transactions found.
                                                     </div>
                                                 ) : (
-                                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+                                                    <div className="border border-line rounded-xl overflow-hidden bg-surface">
                                                         <table className="w-full text-xs text-left">
-                                                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
+                                                            <thead className="bg-app text-ink-muted uppercase border-b border-line">
                                                                 <tr>
                                                                     <th className="py-2.5 px-3">Date</th>
                                                                     <th className="py-2.5 px-3">Transaction</th>
@@ -574,15 +574,15 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                                                     <th className="py-2.5 px-3 text-right">Delta Qty</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                            <tbody className="divide-y divide-line">
                                                                 {modalDetails.ledger.map((l, idx) => (
-                                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
-                                                                        <td className="py-2.5 px-3 text-slate-500 font-mono">{l.date}</td>
-                                                                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
+                                                                    <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover">
+                                                                        <td className="py-2.5 px-3 text-ink-muted font-mono">{l.date}</td>
+                                                                        <td className="py-2.5 px-3 font-semibold text-ink-secondary dark:text-ink">
                                                                             {l.type}
-                                                                            <span className="block text-3xs text-slate-400 font-sans">by {l.user}</span>
+                                                                            <span className="block text-3xs text-ink-muted font-sans">by {l.user}</span>
                                                                         </td>
-                                                                        <td className="py-2.5 px-3 font-mono text-slate-500">{l.ref}</td>
+                                                                        <td className="py-2.5 px-3 font-mono text-ink-muted">{l.ref}</td>
                                                                         <td className={`py-2.5 px-3 text-right font-mono font-bold ${l.qty.startsWith('+') ? 'text-emerald-600' : 'text-rose-500'}`}>{l.qty}</td>
                                                                     </tr>
                                                                 ))}
@@ -597,8 +597,8 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                 </div>
 
                                 {/* Modal Footer */}
-                                <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end shrink-0">
-                                    <button onClick={() => handleSelectItem(null)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
+                                <div className="p-4 border-t border-line bg-app flex justify-end shrink-0">
+                                    <button onClick={() => handleSelectItem(null)} className="px-5 py-2 bg-neutral-800 hover:bg-interactive-hover dark:hover:bg-interactive-hover text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
                                 </div>
 
                             </div>
@@ -612,11 +612,11 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
 }
 
 function RatioCard({ title, value, subtitle, color, icon }) {
-    const colors = { indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400', emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400', rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400', blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400', amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' };
+    const colors = { indigo: 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400', emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400', rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400', blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400', amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' };
     return (
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+        <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-start mb-2"><div className={`p-2 rounded-lg ${colors[color]} shrink-0`}>{React.cloneElement(icon, { size: 18 })}</div></div>
-            <div><p className="text-xs font-bold text-slate-500 uppercase">{title}</p><h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight my-1">{value}</h3><p className="text-xs font-medium text-slate-400">{subtitle}</p></div>
+            <div><p className="text-xs font-bold text-ink-muted uppercase">{title}</p><h3 className="text-2xl font-bold text-ink tracking-tight my-1">{value}</h3><p className="text-xs font-medium text-ink-muted">{subtitle}</p></div>
         </div>
     );
 }

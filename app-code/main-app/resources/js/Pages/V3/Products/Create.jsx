@@ -22,7 +22,7 @@ export default function ProductCreate() {
     return (
         <div className="p-6 max-w-2xl">
             <div className="flex items-center gap-4 mb-6">
-                <Link href={route('store.v3.products.index', { store_slug: store?.slug })} className="text-gray-500 hover:text-gray-700">
+                <Link href={route('store.v3.products.index', { store_slug: store?.slug })} className="text-ink-muted hover:text-ink">
                     ← Products
                 </Link>
                 <h1 className="text-2xl font-bold">New Product</h1>
@@ -127,7 +127,7 @@ export default function ProductCreate() {
                     </button>
                     <Link
                         href={route('store.v3.products.index', { store_slug: store?.slug })}
-                        className="border px-6 py-2 rounded hover:bg-gray-50"
+                        className="border px-6 py-2 rounded hover:bg-interactive-hover"
                     >
                         Cancel
                     </Link>

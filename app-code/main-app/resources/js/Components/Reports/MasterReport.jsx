@@ -131,28 +131,28 @@ const MasterReport = ({
             {/* 1. HEADER & ACTIONS */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
                 <div>
-                    <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+                    <h1 className="text-xl font-bold text-ink tracking-tight">
                         {title}
                     </h1>
-                    <p className="text-xs text-slate-500 font-medium">
+                    <p className="text-xs text-ink-muted font-medium">
                         Real-time analytics and data reporting
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4" />
                         <input
                             type="text"
                             placeholder="Search report..."
                             onChange={(e) => onSearch && onSearch(e.target.value)}
-                            className="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold focus:ring-2 ring-indigo-500/20 outline-none w-full md:w-64 transition-all hover:bg-slate-50 dark:hover:bg-slate-700"
+                            className="pl-9 pr-4 py-2 bg-surface border border-line rounded-xl text-sm font-bold focus:ring-2 ring-brand-500/20 outline-none w-full md:w-64 transition-all hover:bg-interactive-hover dark:hover:bg-interactive-hover"
                         />
                     </div>
 
                     {onFilterClick && (
                         <button
                             onClick={onFilterClick}
-                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all shadow-sm active:scale-95"
+                            className="p-2 bg-surface border border-line rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all shadow-sm active:scale-95"
                         >
                             <Filter size={20} />
                         </button>
@@ -160,7 +160,7 @@ const MasterReport = ({
 
                     <button
                         onClick={() => onExport && onExport('csv')}
-                        className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all active:scale-95 border border-indigo-100 dark:border-indigo-800"
+                        className="p-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-all active:scale-95 border border-brand-100 dark:border-brand-800"
                         title="Export CSV"
                     >
                         <Download size={20} />
@@ -168,7 +168,7 @@ const MasterReport = ({
 
                     <button
                         onClick={() => onExport && onExport('print')}
-                        className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
+                        className="p-2 bg-sunken text-ink-secondary rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 border border-line"
                         title="Print Report"
                     >
                         <Printer size={20} />
@@ -177,7 +177,7 @@ const MasterReport = ({
             </div>
 
             {/* 1.5 FILTERS (New Custom Layout) */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-3 flex flex-col md:flex-row items-center justify-between gap-3 shadow-md shadow-slate-200/5 dark:shadow-none shrink-0">
+            <div className="bg-surface border border-line rounded-2xl p-3 flex flex-col md:flex-row items-center justify-between gap-3 shadow-md shadow-neutral-200/5 dark:shadow-none shrink-0">
                 {/* Left: Universal Search (Customer) */}
                 <div className="w-full md:w-auto md:flex-1 md:max-w-md relative z-20">
                     {filters.find(f => f.type === 'universal_search') && (() => {
@@ -191,11 +191,11 @@ const MasterReport = ({
 
                         return (
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
                                 <input
                                     type="text"
                                     placeholder={f.label || "Search customer..."}
-                                    className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20"
+                                    className="w-full pl-10 pr-4 py-2 bg-app border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-500/20"
                                     value={filterValues[f.key] ? options.find(o => o.value == filterValues[f.key])?.label : query}
                                     onChange={(e) => {
                                         setQuery(e.target.value);
@@ -210,11 +210,11 @@ const MasterReport = ({
                                     onBlur={() => setTimeout(() => setIsOpen(false), 200)}
                                 />
                                 {isOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                                    <div className="absolute top-full left-0 w-full mt-2 bg-surface rounded-xl shadow-xl border border-line max-h-60 overflow-y-auto custom-scrollbar p-1">
                                         {filteredOptions.length > 0 ? filteredOptions.map(opt => (
                                             <button
                                                 key={opt.value}
-                                                className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                                                className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-brand-50 dark:hover:bg-interactive-hover text-ink-secondary"
                                                 onClick={() => {
                                                     onFilterChange({ ...filterValues, [f.key]: opt.value });
                                                     setQuery(opt.label);
@@ -224,7 +224,7 @@ const MasterReport = ({
                                                 {opt.label}
                                             </button>
                                         )) : (
-                                            <div className="p-3 text-xs text-slate-400 text-center">No results found</div>
+                                            <div className="p-3 text-xs text-ink-muted text-center">No results found</div>
                                         )}
                                     </div>
                                 )}
@@ -234,9 +234,9 @@ const MasterReport = ({
                                             onFilterChange({ ...filterValues, [f.key]: null });
                                             setQuery('');
                                         }}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-ink-muted hover:text-red-500"
                                     >
-                                        <div className="bg-slate-200 dark:bg-slate-700 rounded-full p-0.5">
+                                        <div className="bg-sunken rounded-full p-0.5">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                                         </div>
                                     </button>
@@ -247,7 +247,7 @@ const MasterReport = ({
                 </div>
 
                 {/* Right: Date Presets */}
-                <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl shrink-0 items-center transition-all duration-300">
+                <div className="flex bg-sunken p-1 rounded-xl shrink-0 items-center transition-all duration-slow">
                     {[
                         { label: 'Today', type: 'today' },
                         { label: 'This Month', type: 'month' },
@@ -311,8 +311,8 @@ const MasterReport = ({
                                     });
                                 }}
                                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${isActive
-                                    ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
-                                    : 'text-slate-500 hover:text-indigo-600'
+                                    ? 'bg-sunken text-brand-600 shadow-sm'
+                                    : 'text-ink-muted hover:text-brand-600'
                                     }`}
                             >
                                 {preset.label}
@@ -324,26 +324,26 @@ const MasterReport = ({
                     <div className="flex items-center">
                         <button
                             onClick={() => setIsCustomOpen(!isCustomOpen)}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${isCustomOpen ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-600'
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1 transition-colors ${isCustomOpen ? 'text-brand-600' : 'text-ink-muted hover:text-brand-600'
                                 }`}
                         >
                             Custom {isCustomOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
                         </button>
 
                         {isCustomOpen && (
-                            <div className="flex items-center gap-2 pl-2 overflow-hidden transition-all duration-300 animate-in slide-in-from-left-2 fade-in">
+                            <div className="flex items-center gap-2 pl-2 overflow-hidden transition-all duration-slow animate-in slide-in-from-left-2 fade-in">
                                 <input
                                     type="date"
                                     value={filterValues.start_date || ''}
                                     onChange={(e) => onFilterChange({ ...filterValues, start_date: e.target.value })}
-                                    className="w-28 px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none text-slate-600 dark:text-slate-200"
+                                    className="w-28 px-2 py-1 text-xs bg-sunken border border-line dark:border-line rounded-md focus:ring-1 focus:ring-brand-500 outline-none text-ink-secondary dark:text-ink"
                                 />
-                                <span className="text-slate-400 text-2xs font-bold">TO</span>
+                                <span className="text-ink-muted text-2xs font-bold">TO</span>
                                 <input
                                     type="date"
                                     value={filterValues.end_date || ''}
                                     onChange={(e) => onFilterChange({ ...filterValues, end_date: e.target.value })}
-                                    className="w-28 px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none text-slate-600 dark:text-slate-200"
+                                    className="w-28 px-2 py-1 text-xs bg-sunken border border-line dark:border-line rounded-md focus:ring-1 focus:ring-brand-500 outline-none text-ink-secondary dark:text-ink"
                                 />
                             </div>
                         )}
@@ -355,15 +355,15 @@ const MasterReport = ({
             {stats.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
                     {stats.map((stat, idx) => (
-                        <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                        <div key={idx} className="bg-surface border border-line rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
                             {/* Decorative Background */}
-                            <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-slate-50 to-transparent dark:from-slate-800/50 opacity-50 group-hover:w-24 transition-all duration-500" />
+                            <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-neutral-50 to-transparent dark:from-neutral-800/50 opacity-50 group-hover:w-24 transition-all duration-slower" />
 
                             {/* Left: Icon + Label */}
                             <div className="flex items-center gap-3 relative z-10">
                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${stat.type === 'up' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' :
                                     stat.type === 'down' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20' :
-                                        'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20'
+                                        'bg-brand-50 text-brand-600 dark:bg-brand-900/20'
                                     }`}>
                                     {/* Safely handle icon: Clone if Element, render Fallback if missing/invalid */}
                                     {React.isValidElement(stat.icon) ? (
@@ -373,13 +373,13 @@ const MasterReport = ({
                                         <ArrowUpRight size={16} />
                                     )}
                                 </div>
-                                <p className="text-1xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{stat.label}</p>
+                                <p className="text-1xs font-bold text-ink-muted uppercase tracking-wide">{stat.label}</p>
                             </div>
 
                             {/* Right: Value */}
                             <div className="relative z-10 text-right">
                                 <div className="flex items-center gap-2 justify-end">
-                                    <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">{stat.value}</h3>
+                                    <h3 className="text-lg font-bold text-ink tracking-tight">{stat.value}</h3>
                                     {stat.subValue && (
                                         <span className={`text-2xs font-bold ${stat.type === 'up' ? 'text-emerald-500' : 'text-amber-500'
                                             }`}>
@@ -395,8 +395,8 @@ const MasterReport = ({
 
             {/* 3. CHART SECTION (Conditional) */}
             {chartData.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-xl shadow-slate-200/20 dark:shadow-black/20 shrink-0 h-80 min-h-[320px] relative">
-                    <h3 className="text-sm font-bold text-slate-500 uppercase mb-4">Analytics Overview</h3>
+                <div className="bg-surface border border-line rounded-2xl p-5 shadow-xl shadow-neutral-200/20 dark:shadow-black/20 shrink-0 h-80 min-h-[320px] relative">
+                    <h3 className="text-sm font-bold text-ink-muted uppercase mb-4">Analytics Overview</h3>
                     <div className="w-full h-full pb-6">
                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             {chartConfig.type === 'bar' ? (
@@ -438,27 +438,27 @@ const MasterReport = ({
             )}
 
             {/* 4. DATA TABLE */}
-            <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xl shadow-slate-200/20 dark:shadow-black/20 flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 bg-surface border border-line rounded-2xl shadow-xl shadow-neutral-200/20 dark:shadow-black/20 flex flex-col min-h-0 overflow-hidden">
                 {/* Table Header / Toolbar optional */}
 
                 {/* Scrollable Table */}
                 <div className="flex-1 overflow-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10 backdrop-blur-sm">
+                        <thead className="bg-app sticky top-0 z-10 backdrop-blur-sm">
                             <tr>
                                 {columns.map((col, idx) => (
                                     <th
                                         key={idx}
                                         onClick={() => col.sortable && handleSort(col.key)}
-                                        className={`px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap ${col.sortable ? 'cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 select-none' : ''}`}
+                                        className={`px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap ${col.sortable ? 'cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 select-none' : ''}`}
                                         style={{ width: col.width, textAlign: col.align || 'left' }}
                                     >
                                         <div className={`flex items-center gap-2 ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'}`}>
                                             {col.label}
                                             {col.sortable && (
                                                 <div className="flex flex-col">
-                                                    <ChevronUp size={10} className={sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'text-indigo-600' : 'text-slate-300'} />
-                                                    <ChevronDown size={10} className={sortConfig.key === col.key && sortConfig.direction === 'desc' ? 'text-indigo-600' : 'text-slate-300'} />
+                                                    <ChevronUp size={10} className={sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'text-brand-600' : 'text-neutral-300'} />
+                                                    <ChevronDown size={10} className={sortConfig.key === col.key && sortConfig.direction === 'desc' ? 'text-brand-600' : 'text-neutral-300'} />
                                                 </div>
                                             )}
                                         </div>
@@ -466,14 +466,14 @@ const MasterReport = ({
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {isLoading ? (
                                 // Loading Skeleton
                                 [...Array(5)].map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         {columns.map((_, c) => (
                                             <td key={c} className="px-6 py-4">
-                                                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+                                                <div className="h-4 bg-sunken rounded w-3/4"></div>
                                             </td>
                                         ))}
                                     </tr>
@@ -481,8 +481,8 @@ const MasterReport = ({
                             ) : sortedData.length === 0 ? (
                                 // Empty State
                                 <tr>
-                                    <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400">
-                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                                    <td colSpan={columns.length} className="px-6 py-12 text-center text-ink-muted">
+                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sunken mb-4">
                                             <Search size={24} className="opacity-50" />
                                         </div>
                                         <p className="font-medium">No results found matching your criteria</p>
@@ -491,11 +491,11 @@ const MasterReport = ({
                             ) : (
                                 // Data Rows
                                 sortedData.map((row, rIdx) => (
-                                    <tr key={rIdx} className="hover:bg-indigo-50/30 dark:hover:bg-slate-800/30 transition-colors group">
+                                    <tr key={rIdx} className="hover:bg-brand-50/30 dark:hover:bg-interactive-hover transition-colors group">
                                         {columns.map((col, cIdx) => (
                                             <td
                                                 key={cIdx}
-                                                className={`px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap`}
+                                                className={`px-6 py-4 text-sm font-medium text-ink-secondary whitespace-nowrap`}
                                                 style={{ textAlign: col.align || 'left' }}
                                             >
                                                 {col.render ? col.render(row) : (
@@ -503,7 +503,7 @@ const MasterReport = ({
                                                     col.type === 'currency' ? formatCurrency(row[col.key], store || settings) :
                                                         col.type === 'number' ? formatNumber(row[col.key], null, store || settings) :
                                                             col.type === 'date' ? new Date(row[col.key]).toLocaleDateString() :
-                                                                row[col.key] || <span className="text-slate-300 italic">-</span>
+                                                                row[col.key] || <span className="text-neutral-300 italic">-</span>
                                                 )}
                                             </td>
                                         ))}
@@ -519,7 +519,7 @@ const MasterReport = ({
                                     {loadingMore && (
                                         <tr>
                                             <td colSpan={columns.length} className="p-4 text-center">
-                                                <div className="flex items-center justify-center gap-2 text-slate-400">
+                                                <div className="flex items-center justify-center gap-2 text-ink-muted">
                                                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                                                     <span className="text-xs font-bold uppercase">Loading more...</span>
                                                 </div>
@@ -534,22 +534,22 @@ const MasterReport = ({
 
                 {/* Pagination Footer */}
                 {!enableInfiniteScroll && totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between shrink-0">
-                        <span className="text-xs font-bold text-slate-400">
+                    <div className="px-6 py-4 border-t border-line bg-sunken/50 dark:bg-surface flex items-center justify-between shrink-0">
+                        <span className="text-xs font-bold text-ink-muted">
                             Page {currentPage} of {totalPages}
                         </span>
                         <div className="flex items-center gap-2">
                             <button
                                 disabled={currentPage <= 1}
                                 onClick={() => onPageChange && onPageChange(currentPage - 1)}
-                                className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                                className="p-2 rounded-lg bg-surface border border-line text-ink-muted disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sunken dark:hover:bg-interactive-hover transition-all"
                             >
                                 <ChevronLeft size={16} />
                             </button>
                             <button
                                 disabled={currentPage >= totalPages}
                                 onClick={() => onPageChange && onPageChange(currentPage + 1)}
-                                className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                                className="p-2 rounded-lg bg-surface border border-line text-ink-muted disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sunken dark:hover:bg-interactive-hover transition-all"
                             >
                                 <ChevronRight size={16} />
                             </button>

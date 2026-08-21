@@ -74,36 +74,36 @@ export default function Create({ warehouses, products, stocks }) {
                     <div className="flex items-center gap-4">
                         <Link
                             href={route('store.stock-takes.index', { store_slug: store.slug })}
-                            className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 transition-colors"
+                            className="p-2 rounded-xl bg-surface border border-line hover:bg-interactive-hover transition-colors"
                         >
-                            <ArrowLeft size={20} className="text-slate-500" />
+                            <ArrowLeft size={20} className="text-ink-muted" />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">New Stock Audit</h1>
-                            <p className="text-sm text-slate-500">Verify and adjust inventory levels</p>
+                            <h1 className="text-2xl font-bold text-ink">New Stock Audit</h1>
+                            <p className="text-sm text-ink-muted">Verify and adjust inventory levels</p>
                         </div>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* General Info Card */}
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <ClipboardList size={20} className="text-indigo-500" /> Audit Details
+                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
+                        <h2 className="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+                            <ClipboardList size={20} className="text-brand-500" /> Audit Details
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Warehouse */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Warehouse</label>
+                                <label className="text-sm font-semibold text-ink-secondary">Warehouse</label>
                                 <select
-                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
+                                    className="w-full text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500"
                                     value={data.warehouse_id}
                                     onChange={e => setData('warehouse_id', e.target.value)}
                                 >
-                                    <option value="" className="text-slate-800 dark:text-slate-100">Select Warehouse...</option>
+                                    <option value="" className="text-ink">Select Warehouse...</option>
                                     {warehouses.map(w => (
-                                        <option key={w.id} value={w.id} className="text-slate-800 dark:text-slate-100">{w.name}</option>
+                                        <option key={w.id} value={w.id} className="text-ink">{w.name}</option>
                                     ))}
                                 </select>
                                 {errors.warehouse_id && <p className="text-red-500 text-xs">{errors.warehouse_id}</p>}
@@ -111,12 +111,12 @@ export default function Create({ warehouses, products, stocks }) {
 
                             {/* Date */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Audit Date</label>
+                                <label className="text-sm font-semibold text-ink-secondary">Audit Date</label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
                                     <input
                                         type="date"
-                                        className="w-full pl-10 text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
+                                        className="w-full pl-10 text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500"
                                         value={data.date}
                                         onChange={e => setData('date', e.target.value)}
                                     />
@@ -126,14 +126,14 @@ export default function Create({ warehouses, products, stocks }) {
 
                             {/* Status */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Status</label>
+                                <label className="text-sm font-semibold text-ink-secondary">Status</label>
                                 <select
-                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
+                                    className="w-full text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500"
                                     value={data.status}
                                     onChange={e => setData('status', e.target.value)}
                                 >
-                                    <option value="draft" className="text-slate-800 dark:text-slate-100">Draft (Save & Continue later)</option>
-                                    <option value="completed" className="text-slate-800 dark:text-slate-100">Completed (Adjust Stock)</option>
+                                    <option value="draft" className="text-ink">Draft (Save & Continue later)</option>
+                                    <option value="completed" className="text-ink">Completed (Adjust Stock)</option>
                                 </select>
                                 {errors.status && <p className="text-red-500 text-xs">{errors.status}</p>}
                             </div>
@@ -141,9 +141,9 @@ export default function Create({ warehouses, products, stocks }) {
 
                         {/* Notes */}
                         <div className="mt-6 space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Notes / Remarks</label>
+                            <label className="text-sm font-semibold text-ink-secondary">Notes / Remarks</label>
                             <textarea
-                                className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500 min-h-[60px]"
+                                className="w-full text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500 min-h-[60px]"
                                 placeholder="Any additional details..."
                                 value={data.notes}
                                 onChange={e => setData('notes', e.target.value)}
@@ -152,15 +152,15 @@ export default function Create({ warehouses, products, stocks }) {
                     </div>
 
                     {/* Items Card */}
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <ClipboardList size={20} className="text-indigo-500" /> Counted Items
+                            <h2 className="text-lg font-bold text-ink flex items-center gap-2">
+                                <ClipboardList size={20} className="text-brand-500" /> Counted Items
                             </h2>
                             <button
                                 type="button"
                                 onClick={addItem}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-sm font-bold hover:bg-brand-100 transition-colors"
                             >
                                 <Plus size={16} /> Add Item
                             </button>
@@ -168,7 +168,7 @@ export default function Create({ warehouses, products, stocks }) {
 
                         <div>
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase text-xs">
+                                <thead className="bg-app text-ink-muted font-bold uppercase text-xs">
                                     <tr>
                                         <th className="px-4 py-3 rounded-l-xl">Product</th>
                                         <th className="px-4 py-3 text-right">Expected</th>
@@ -177,11 +177,11 @@ export default function Create({ warehouses, products, stocks }) {
                                         <th className="px-4 py-3 rounded-r-xl"></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
+                                <tbody className="divide-y divide-line">
                                     {data.items.map((item, index) => {
                                         const expected = getExpectedStock(data.warehouse_id, item.product_id);
                                         const diff = (item.counted_quantity || 0) - expected;
-                                        const diffColor = diff === 0 ? 'text-slate-400' : diff > 0 ? 'text-emerald-500' : 'text-red-500';
+                                        const diffColor = diff === 0 ? 'text-ink-muted' : diff > 0 ? 'text-emerald-500' : 'text-red-500';
 
                                         return (
                                             <tr key={index}>
@@ -194,14 +194,14 @@ export default function Create({ warehouses, products, stocks }) {
                                                         className="min-w-[200px]"
                                                     />
                                                 </td>
-                                                <td className="px-4 py-3 text-right font-medium text-slate-500">
+                                                <td className="px-4 py-3 text-right font-medium text-ink-muted">
                                                     {data.warehouse_id && item.product_id ? expected : '-'}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="number"
                                                         step="0.01"
-                                                        className="w-full text-sm text-right rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
+                                                        className="w-full text-sm text-right rounded-lg border-line bg-surface text-ink focus:ring-brand-500"
                                                         value={item.counted_quantity}
                                                         onChange={e => updateItem(index, 'counted_quantity', e.target.value)}
                                                     />
@@ -213,7 +213,7 @@ export default function Create({ warehouses, products, stocks }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => removeItem(index)}
-                                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                        className="p-2 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                         disabled={data.items.length === 1}
                                                     >
                                                         <Trash2 size={16} />
@@ -232,14 +232,14 @@ export default function Create({ warehouses, products, stocks }) {
                     <div className="flex items-center justify-end gap-4 pt-4">
                         <Link
                             href={route('store.stock-takes.index', { store_slug: store.slug })}
-                            className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-ink-muted hover:text-ink transition-colors"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/30 disabled:opacity-70 disabled:hover:scale-100"
+                            className="flex items-center gap-2 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-lg disabled:opacity-70 disabled:"
                         >
                             <Save size={18} />
                             {processing ? 'Processing...' : 'Save Audit'}

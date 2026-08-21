@@ -78,25 +78,25 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
 
             <div className="h-full flex gap-6 overflow-hidden">
                 {/* Clean settings form container */}
-                <div className="flex-[2] bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden relative">
+                <div className="flex-[2] bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative">
                     {/* Midnight Nebula glow elements */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
                     <form onSubmit={handleSubmit} className="flex flex-col h-full relative z-10">
                         {/* Header */}
-                        <div className="p-10 border-b border-slate-100 dark:border-slate-800 shrink-0 bg-white/85 dark:bg-slate-900/80 backdrop-blur-xl">
+                        <div className="p-10 border-b border-line shrink-0 bg-white/85 dark:bg-app backdrop-blur-xl">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-black uppercase tracking-[0.2em] rounded-full">
+                                        <span className="px-3 py-1 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-[0.2em] rounded-full">
                                             {isPlatform ? 'VenQore Support Bot' : 'Store Assistant Config'}
                                         </span>
-                                        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                        <h2 className="text-3xl font-bold text-ink tracking-tight">
                                             Chatbot Settings
                                         </h2>
                                     </div>
-                                    <p className="text-base text-slate-500 font-medium">
+                                    <p className="text-base text-ink-muted font-medium">
                                         {isPlatform
                                             ? "Configure Vena — VenQore's company-wide support assistant for platform visitors."
                                             : "Configure your store's AI assistant that talks to your customers."
@@ -107,14 +107,14 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="relative group px-10 py-4 rounded-2xl font-black text-sm transition-all duration-500 transform active:scale-95 overflow-hidden shadow-2xl hover:shadow-indigo-500/40"
+                                    className="relative group px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl hover:"
                                 >
                                     {/* Nebula Background for Button */}
-                                    <div className="absolute inset-0 bg-slate-900 z-0">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/60 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
-                                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/50 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 group-hover:scale-110 transition-transform duration-500"></div>
+                                    <div className="absolute inset-0 bg-neutral-900 z-0">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/60 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-transform duration-slower"></div>
+                                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/50 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 transition-transform duration-slower"></div>
                                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20"></div>
-                                        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-50"></div>
+                                        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-brand-400 to-transparent opacity-50"></div>
                                     </div>
 
                                     <div className="relative z-10 flex items-center gap-3 text-white">
@@ -125,12 +125,12 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                             </>
                                         ) : processing ? (
                                             <>
-                                                <RefreshCw size={20} className="animate-spin text-indigo-300" />
+                                                <RefreshCw size={20} className="animate-spin text-brand-300" />
                                                 <span>Saving...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <Save size={20} className="group-hover:scale-110 transition-transform" />
+                                                <Save size={20} className="transition-transform" />
                                                 <span>Save Settings</span>
                                             </>
                                         )}
@@ -143,7 +143,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                         <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
                             <div className="max-w-3xl mx-auto space-y-8">
                                 {/* API Key Settings Box */}
-                                <div className="bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/60 p-8 rounded-3xl">
+                                <div className="bg-surface/50 dark:bg-surface border border-line p-8 rounded-2xl">
                                     <SectionHeader 
                                         title="AI Integration" 
                                         description="Enter your API key to power the chatbot. We default to Google Gemini." 
@@ -151,11 +151,11 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                     
                                         <div className="mt-6 space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                                <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">
                                                     Gemini API Key
                                                 </label>
                                                 {(data.chatbot_api_key && data.chatbot_api_key === settings.chatbot_api_key) && (
-                                                    <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-500/20 shadow-sm animate-in fade-in duration-200">
+                                                    <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-500/20 shadow-sm animate-in fade-in duration-normal">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                                         Connected
                                                     </span>
@@ -167,14 +167,14 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                                     type={showKey ? 'text' : 'password'}
                                                     value={data.chatbot_api_key}
                                                     onChange={(e) => setData('chatbot_api_key', e.target.value)}
-                                                    className="w-full pl-11 pr-12 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all duration-200"
+                                                    className="w-full pl-11 pr-12 py-3 bg-surface border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all duration-normal"
                                                     placeholder="AI API Key (Google Cloud Console)"
                                                 />
-                                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowKey(!showKey)}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary transition-colors"
                                                 >
                                                     {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
                                                 </button>
@@ -184,10 +184,10 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                                 type="button"
                                                 onClick={handleTestConnection}
                                                 disabled={testing}
-                                                className="px-6 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 active:scale-95 transition-all flex items-center gap-2 border border-slate-800 shadow"
+                                                className="px-6 bg-sunken text-white rounded-xl text-xs font-bold hover:bg-interactive-hover active:scale-95 transition-all flex items-center gap-2 border border-neutral-800 shadow"
                                             >
                                                 {testing ? (
-                                                    <RefreshCw size={14} className="animate-spin text-slate-300" />
+                                                    <RefreshCw size={14} className="animate-spin text-neutral-300" />
                                                 ) : (
                                                     <span>Test Key</span>
                                                 )}
@@ -195,7 +195,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                         </div>
 
                                         {testResult && (
-                                            <div className={`p-4 rounded-xl border flex items-start gap-3 text-xs font-medium animate-in fade-in slide-in-from-top-1 duration-200 ${
+                                            <div className={`p-4 rounded-xl border flex items-start gap-3 text-xs font-medium animate-in fade-in slide-in-from-top-1 duration-normal ${
                                                 testResult.success 
                                                     ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
                                                     : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300'
@@ -212,7 +212,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                 </div>
 
                                 {/* Custom Prompts/Rules */}
-                                <div className="bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/60 p-8 rounded-3xl">
+                                <div className="bg-surface/50 dark:bg-surface border border-line p-8 rounded-2xl">
                                     <SectionHeader 
                                         title="Chatbot Personalization Rules" 
                                         description={isPlatform
@@ -222,17 +222,17 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                     />
                                     
                                     <div className="mt-6 space-y-4">
-                                        <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">
                                             Store Custom Rules & Context
                                         </label>
                                         <textarea
                                             value={data.chatbot_custom_rules}
                                             onChange={(e) => setData('chatbot_custom_rules', e.target.value)}
-                                            className="w-full p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none font-sans"
+                                            className="w-full p-4 bg-surface border border-line dark:border-line rounded-2xl text-sm focus:ring-2 focus:ring-brand-500 outline-none resize-none font-sans"
                                             rows={8}
                                             placeholder="Example:&#10;- Our return window is 7 days with receipt.&#10;- We are located in Lahore and ship nationwide.&#10;- For wholesale inquiries, contact sales@mybusiness.com.&#10;- Never offer discount matches manually."
                                         />
-                                        <p className="text-xs text-slate-400">
+                                        <p className="text-xs text-ink-muted">
                                             These rules are injected directly into the AI's core logic. Be clear and specific.
                                         </p>
                                     </div>
@@ -243,118 +243,118 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                 </div>
 
                 {/* Token Usage & Billing Dashboard Side Panel */}
-                <div className="w-96 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl p-8 flex flex-col overflow-hidden relative shrink-0">
+                <div className="w-96 bg-surface rounded-2xl border border-line shadow-2xl p-8 flex flex-col overflow-hidden relative shrink-0">
                     {/* Midnight Nebula glow elements */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Header */}
                         <div className="mb-8">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                                <div className="p-2.5 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-xl">
                                     <Wallet size={20} />
                                 </div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                <h3 className="text-xl font-bold text-ink tracking-tight">
                                     Usage & Billing
                                 </h3>
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
+                            <p className="text-xs text-ink-muted font-semibold uppercase tracking-wider">
                                 Cycle: {usageStats?.billing_cycle || 'Current Month'}
                             </p>
                         </div>
 
                         {/* Cost Highlight */}
-                        <div className="mb-8 p-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-100/50 dark:border-indigo-900/30 rounded-3xl shadow-sm relative overflow-hidden group hover:shadow-indigo-500/10 transition-all duration-300">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
-                            <span className="text-2xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                        <div className="mb-8 p-6 bg-gradient-to-br from-brand-50/50 to-purple-50/50 dark:from-brand-950/20 dark:to-purple-950/20 border border-brand-100/50 dark:border-brand-900/30 rounded-2xl shadow-sm relative overflow-hidden group hover: transition-all duration-slow">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/10 rounded-full blur-xl pointer-events-none transition-transform" />
+                            <span className="text-2xs font-bold uppercase tracking-widest text-ink-muted">
                                 Estimated Cost
                             </span>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1 select-all">
+                            <div className="text-3xl font-bold text-ink tracking-tight mt-1 select-all">
                                 {formatCost(usageStats?.estimated_cost)}
                             </div>
-                            <span className="text-2xs text-slate-400 dark:text-slate-500 font-medium block mt-2">
+                            <span className="text-2xs text-ink-muted font-medium block mt-2">
                                 Gemini Flash pay-as-you-go rate
                             </span>
                         </div>
 
                         {/* Token Breakdown Cards */}
                         <div className="space-y-4 mb-8 flex-1 overflow-y-auto custom-scrollbar">
-                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                                 Token Metrics
                             </h4>
 
                             {/* Input Tokens */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100/50 dark:border-slate-800/50 rounded-2xl hover:scale-[1.02] transition-transform duration-200">
+                            <div className="flex items-center justify-between p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                         <ArrowUpRight size={16} />
                                     </div>
                                     <div>
-                                        <span className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+                                        <span className="text-xs font-bold text-ink-secondary block">
                                             Input Tokens
                                         </span>
-                                        <span className="text-2xs text-slate-400">Prompts & Context</span>
+                                        <span className="text-2xs text-ink-muted">Prompts & Context</span>
                                     </div>
                                 </div>
-                                <span className="text-sm font-black text-slate-900 dark:text-white">
+                                <span className="text-sm font-bold text-ink">
                                     {usageStats?.input_tokens?.toLocaleString() || '0'}
                                 </span>
                             </div>
 
                             {/* Output Tokens */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100/50 dark:border-slate-800/50 rounded-2xl hover:scale-[1.02] transition-transform duration-200">
+                            <div className="flex items-center justify-between p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
                                         <ArrowDownLeft size={16} />
                                     </div>
                                     <div>
-                                        <span className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+                                        <span className="text-xs font-bold text-ink-secondary block">
                                             Output Tokens
                                         </span>
-                                        <span className="text-2xs text-slate-400">AI Responses</span>
+                                        <span className="text-2xs text-ink-muted">AI Responses</span>
                                     </div>
                                 </div>
-                                <span className="text-sm font-black text-slate-900 dark:text-white">
+                                <span className="text-sm font-bold text-ink">
                                     {usageStats?.output_tokens?.toLocaleString() || '0'}
                                 </span>
                             </div>
 
                             {/* Total Tokens */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100/50 dark:border-slate-800/50 rounded-2xl hover:scale-[1.02] transition-transform duration-200">
+                            <div className="flex items-center justify-between p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                                    <div className="p-2 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-lg">
                                         <Cpu size={16} />
                                     </div>
                                     <div>
-                                        <span className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+                                        <span className="text-xs font-bold text-ink-secondary block">
                                             Total Tokens
                                         </span>
-                                        <span className="text-2xs text-slate-400">Total Volume</span>
+                                        <span className="text-2xs text-ink-muted">Total Volume</span>
                                     </div>
                                 </div>
-                                <span className="text-sm font-black text-slate-900 dark:text-white">
+                                <span className="text-sm font-bold text-ink">
                                     {usageStats?.total_tokens?.toLocaleString() || '0'}
                                 </span>
                             </div>
                         </div>
 
                         {/* Model Breakdown */}
-                        <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
-                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">
+                        <div className="border-t border-line pt-6">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">
                                 Models Active
                             </h4>
                             {usageStats?.models && Object.keys(usageStats.models).length > 0 ? (
                                 <div className="space-y-3">
                                     {Object.entries(usageStats.models).map(([model, count]) => (
                                         <div key={model} className="space-y-1.5">
-                                            <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 font-mono">
+                                            <div className="flex justify-between text-xs font-bold text-ink-secondary font-mono">
                                                 <span className="text-2xs truncate max-w-[180px]">{model}</span>
-                                                <span className="text-2xs text-slate-400">{count.toLocaleString()} tkn</span>
+                                                <span className="text-2xs text-ink-muted">{count.toLocaleString()} tkn</span>
                                             </div>
-                                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                            <div className="w-full bg-sunken h-1.5 rounded-full overflow-hidden">
                                                 <div 
-                                                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full"
+                                                    className="bg-gradient-to-r from-brand-500 to-purple-500 h-full rounded-full"
                                                     style={{ 
                                                         width: `${usageStats.total_tokens > 0 
                                                             ? Math.min(100, Math.round((count / usageStats.total_tokens) * 100)) 
@@ -366,8 +366,8 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-6 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/10 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                                    <Coins size={24} className="text-slate-300 dark:text-slate-600 mb-2 animate-pulse" />
+                                <div className="flex flex-col items-center justify-center py-6 text-center text-ink-muted bg-surface/50 dark:bg-surface border border-dashed border-line rounded-2xl">
+                                    <Coins size={24} className="text-neutral-300 dark:text-ink-secondary mb-2 animate-pulse" />
                                     <span className="text-xs font-semibold">No usage logs found</span>
                                 </div>
                             )}
@@ -384,13 +384,13 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                     background: transparent;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #334155;
+                    background: rgb(var(--vq-slate-700));
                     border-radius: 10px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #475569;
+                    background: rgb(var(--vq-slate-600));
                 }
-            `}</style>
+`}</style>
         </OneGlanceLayout>
     );
 }

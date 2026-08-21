@@ -10,7 +10,7 @@ import MidnightNebula from '@/Components/MidnightNebula';
 export default function AccountingDashboard({ stats, recentTransactions }) {
     const { store } = usePage().props;
     const StatCard = ({ title, value, icon: Icon, color, subValue, subLabel }) => (
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group">
+        <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm hover:shadow-md transition-all group">
             <div className="flex justify-between items-start mb-4">
                 <div className={`p-3 rounded-xl ${color} bg-opacity-10 dark:bg-opacity-20`}>
                     <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
@@ -21,8 +21,8 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
                     </span>
                 )}
             </div>
-            <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{title}</h3>
-            <p className="text-2xl font-bold text-slate-800 dark:text-white group-hover:scale-105 transition-transform origin-left">
+            <h3 className="text-ink-muted text-sm font-medium mb-1">{title}</h3>
+            <p className="text-2xl font-bold text-ink transition-transform origin-left">
                 {formatCurrency(Number(value), store)}
             </p>
         </div>
@@ -68,7 +68,7 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
                         title="Net Profit"
                         value={stats.net_profit}
                         icon={TrendingUp}
-                        color="bg-indigo-500"
+                        color="bg-brand-500"
                         subValue={stats.total_income}
                         subLabel="Income"
                     />
@@ -76,19 +76,19 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Recent Transactions */}
-                    <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                            <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
-                                <Activity className="w-5 h-5 text-indigo-500" />
+                    <div className="lg:col-span-2 bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-line flex justify-between items-center">
+                            <h3 className="font-bold text-lg text-ink flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-brand-500" />
                                 Recent Transactions
                             </h3>
-                            <Link href={route('store.accounting.index', { store_slug: store.slug })} className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                            <Link href={route('store.accounting.index', { store_slug: store.slug })} className="text-sm text-brand-600 hover:text-brand-700 font-medium">
                                 View Chart of Accounts
                             </Link>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400">
+                                <thead className="bg-app text-ink-muted">
                                     <tr>
                                         <th className="px-6 py-4 font-medium">Date</th>
                                         <th className="px-6 py-4 font-medium">Description</th>
@@ -96,20 +96,20 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
                                         <th className="px-6 py-4 font-medium text-right">Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className="divide-y divide-line">
                                     {recentTransactions.length > 0 ? (
                                         recentTransactions.map((entry) => (
-                                            <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
+                                            <tr key={entry.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                                <td className="px-6 py-4 text-ink-secondary">
                                                     {new Date(entry.date).toLocaleDateString()}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">
+                                                <td className="px-6 py-4 font-medium text-ink">
                                                     {entry.description}
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                                                <td className="px-6 py-4 text-ink-muted">
                                                     {entry.reference || '-'}
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-bold text-slate-800 dark:text-white">
+                                                <td className="px-6 py-4 text-right font-bold text-ink">
                                                     {/* Display total debit as amount for simplicity */}
                                                     {formatCurrency(Number(entry.items.reduce((sum, item) => sum + Number(item.debit), 0)), store)}
                                                 </td>
@@ -117,7 +117,7 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-8 text-center text-slate-400">
+                                            <td colSpan="4" className="px-6 py-8 text-center text-ink-muted">
                                                 No recent transactions found.
                                             </td>
                                         </tr>

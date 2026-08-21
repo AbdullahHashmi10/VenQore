@@ -128,13 +128,13 @@ export default function PurchaseForm({
             <div className="flex items-center gap-4 mb-6">
                 <Link
                     href={route('store.v3.purchases.index', { store_slug: store.slug })}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-ink-muted hover:text-ink"
                 >
                     ← Purchases
                 </Link>
                 <h1 className="text-2xl font-bold">
                     {isEdit ? `Edit Purchase ${purchase.invoice_number}` : 'New Purchase'}
-                    <span className="ml-2 text-sm font-normal text-gray-500">
+                    <span className="ml-2 text-sm font-normal text-ink-muted">
                         ({data.payment_method === 'cash' ? 'Cash' : 'Credit'})
                     </span>
                 </h1>
@@ -243,7 +243,7 @@ export default function PurchaseForm({
                             <option value="pending">Not yet received</option>
                         </select>
                         {data.workflow_status === 'pending' && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-ink-muted mt-1">
                                 No stock or journal is posted until you receive the goods.
                             </p>
                         )}
@@ -252,17 +252,17 @@ export default function PurchaseForm({
 
                 {/* ── Line items ───────────────────────────────────────────── */}
                 <div>
-                    <table className="w-full border-collapse border border-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="w-full border-collapse border border-line">
+                        <thead className="bg-sunken">
                             <tr>
-                                <th className="border border-gray-200 px-3 py-2 text-left text-sm">Product</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm w-24">Qty</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm w-32">Unit Cost</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm w-28">Discount</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm w-20">Tax %</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm w-24">Business %</th>
-                                <th className="border border-gray-200 px-3 py-2 text-right text-sm w-32">Line Total</th>
-                                <th className="border border-gray-200 px-3 py-2 w-10"></th>
+                                <th className="border border-line px-3 py-2 text-left text-sm">Product</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm w-24">Qty</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm w-32">Unit Cost</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm w-28">Discount</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm w-20">Tax %</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm w-24">Business %</th>
+                                <th className="border border-line px-3 py-2 text-right text-sm w-32">Line Total</th>
+                                <th className="border border-line px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -270,7 +270,7 @@ export default function PurchaseForm({
                                 const totals = lineTotal(item);
                                 return (
                                     <tr key={index}>
-                                        <td className="border border-gray-200 px-2 py-1">
+                                        <td className="border border-line px-2 py-1">
                                             <AsyncProductCombobox
                                                 value={item.product_id}
                                                 onSelect={(p) => onProductSelect(index, p ? p.id : '')}
@@ -279,48 +279,48 @@ export default function PurchaseForm({
                                                 className="w-full"
                                             />
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1">
+                                        <td className="border border-line px-2 py-1">
                                             <input
                                                 type="number" step="0.0001" value={item.qty}
                                                 onChange={e => updateLine(index, 'qty', e.target.value)}
                                                 className="w-full text-right border-0 outline-none py-1" placeholder="0"
                                             />
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1">
+                                        <td className="border border-line px-2 py-1">
                                             <input
                                                 type="number" step="0.01" value={item.unit_cost}
                                                 onChange={e => updateLine(index, 'unit_cost', e.target.value)}
                                                 className="w-full text-right border-0 outline-none py-1" placeholder="0.00"
                                             />
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1">
+                                        <td className="border border-line px-2 py-1">
                                             <input
                                                 type="number" step="0.01" value={item.discount_amount}
                                                 onChange={e => updateLine(index, 'discount_amount', e.target.value)}
                                                 className="w-full text-right border-0 outline-none py-1" placeholder="0.00"
                                             />
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1">
+                                        <td className="border border-line px-2 py-1">
                                             <input
                                                 type="number" step="0.01" value={item.tax_rate}
                                                 onChange={e => updateLine(index, 'tax_rate', e.target.value)}
                                                 className="w-full text-right border-0 outline-none py-1"
                                             />
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1">
+                                        <td className="border border-line px-2 py-1">
                                             <input
                                                 type="number" step="0.01" value={item.business_pct}
                                                 onChange={e => updateLine(index, 'business_pct', e.target.value)}
                                                 className="w-full text-right border-0 outline-none py-1" placeholder="100"
                                             />
                                         </td>
-                                        <td className="border border-gray-200 px-3 py-2 text-right text-sm">
+                                        <td className="border border-line px-3 py-2 text-right text-sm">
                                             <div>{formatCurrency(totals.gross, store)}</div>
                                             {totals.tax > 0 && (
-                                                <div className="text-xs text-gray-400">tax: {totals.tax.toFixed(2)}</div>
+                                                <div className="text-xs text-ink-muted">tax: {totals.tax.toFixed(2)}</div>
                                             )}
                                         </td>
-                                        <td className="border border-gray-200 px-2 py-1 text-center">
+                                        <td className="border border-line px-2 py-1 text-center">
                                             {data.items.length > 1 && (
                                                 <button
                                                     type="button" onClick={() => removeLine(index)}
@@ -340,20 +340,20 @@ export default function PurchaseForm({
                 </div>
 
                 {/* ── Landed costs ─────────────────────────────────────────── */}
-                <div className="border rounded p-4 bg-gray-50">
+                <div className="border rounded p-4 bg-sunken">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="font-medium">Landed Costs</h2>
                         <button type="button" onClick={addExtra} className="text-blue-600 hover:underline text-sm">
                             + Add cost
                         </button>
                     </div>
-                    <p className="text-xs text-gray-500 mb-3">
+                    <p className="text-xs text-ink-muted mb-3">
                         Freight, duty, handling. These are capitalised into the unit cost of the goods,
                         so they reach COGS through FIFO — and are recorded as expenses for reporting.
                     </p>
 
                     {data.extras.length === 0 && (
-                        <p className="text-sm text-gray-400">None.</p>
+                        <p className="text-sm text-ink-muted">None.</p>
                     )}
 
                     {data.extras.map((extra, index) => (
@@ -443,7 +443,7 @@ export default function PurchaseForm({
                         </div>
 
                         {landedTotal > 0 && (
-                            <div className="flex justify-between text-gray-500">
+                            <div className="flex justify-between text-ink-muted">
                                 <span>Landed costs (capitalised)</span>
                                 <span>{formatCurrency(landedTotal, store)}</span>
                             </div>
@@ -477,7 +477,7 @@ export default function PurchaseForm({
                         href={isEdit
                             ? route('store.v3.purchases.show', { store_slug: store.slug, purchase: purchase.id })
                             : route('store.v3.purchases.index', { store_slug: store.slug })}
-                        className="border px-6 py-2 rounded hover:bg-gray-50"
+                        className="border px-6 py-2 rounded hover:bg-interactive-hover"
                     >
                         Cancel
                     </Link>
@@ -489,12 +489,12 @@ export default function PurchaseForm({
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded p-6 max-w-sm w-full shadow-xl">
                         <h3 className="font-bold text-lg text-red-600 mb-2">Zero Unit Cost Warning</h3>
-                        <p className="mb-6 text-sm text-gray-700">{errors.zero_cost_acknowledged}</p>
+                        <p className="mb-6 text-sm text-ink-secondary">{errors.zero_cost_acknowledged}</p>
                         <div className="flex justify-end gap-3">
                             <button
                                 type="button"
                                 onClick={() => clearErrors('zero_cost_acknowledged')}
-                                className="px-4 py-2 border rounded hover:bg-gray-50 text-sm"
+                                className="px-4 py-2 border rounded hover:bg-interactive-hover text-sm"
                             >Cancel</button>
                             <button
                                 type="button"

@@ -50,17 +50,17 @@ export default function AccountLedger({ account, transactions = [], openingBalan
             key: 'date',
             label: 'Date',
             type: 'date',
-            render: (row) => row.type === 'opening' ? <span className="italic text-slate-400">{filters.start_date || '-'}</span> : new Date(row.date).toLocaleDateString('en-PK')
+            render: (row) => row.type === 'opening' ? <span className="italic text-ink-muted">{filters.start_date || '-'}</span> : new Date(row.date).toLocaleDateString('en-PK')
         },
         {
             key: 'reference',
             label: 'Reference',
-            render: (row) => <span className="font-mono text-xs text-slate-500">{row.reference || '-'}</span>
+            render: (row) => <span className="font-mono text-xs text-ink-muted">{row.reference || '-'}</span>
         },
         {
             key: 'description',
             label: 'Description',
-            render: (row) => row.type === 'opening' ? <span className="italic font-medium text-slate-500">Opening Balance</span> : <span className="text-slate-700 dark:text-slate-300">{row.description}</span>
+            render: (row) => row.type === 'opening' ? <span className="italic font-medium text-ink-muted">Opening Balance</span> : <span className="text-ink-secondary">{row.description}</span>
         },
         {
             key: 'debit',
@@ -78,7 +78,7 @@ export default function AccountLedger({ account, transactions = [], openingBalan
             key: 'balance',
             label: 'Balance',
             align: 'right',
-            render: (row) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(row.balance, store)}</span>
+            render: (row) => <span className="font-bold text-ink-secondary">{formatCurrency(row.balance, store)}</span>
         }
     ];
 
@@ -119,17 +119,17 @@ export default function AccountLedger({ account, transactions = [], openingBalan
             <Head title="Account Ledger" />
 
             {!account ? (
-                <div className="flex flex-col items-center justify-center h-[60vh] bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full flex items-center justify-center mb-4">
+                <div className="flex flex-col items-center justify-center h-[60vh] bg-surface rounded-2xl border border-dashed border-line dark:border-line">
+                    <div className="w-16 h-16 bg-sunken text-ink-muted rounded-full flex items-center justify-center mb-4">
                         <BookOpen size={32} />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Select an Account</h3>
-                    <p className="text-slate-500 mb-6 text-center max-w-md">Please select an account from the filters above to view its detailed general ledger transactions.</p>
+                    <h3 className="text-xl font-bold text-ink mb-2">Select an Account</h3>
+                    <p className="text-ink-muted mb-6 text-center max-w-md">Please select an account from the filters above to view its detailed general ledger transactions.</p>
 
                     {/* Inline Filter */}
                     <div className="w-64">
                         <select
-                            className="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                            className="w-full rounded-xl border-line bg-app"
                             onChange={(e) => handleFilterChange({ ...filters, account_id: e.target.value })}
                         >
                             <option value="">Select Account...</option>

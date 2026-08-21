@@ -40,48 +40,48 @@ export default function SerialShow({ serial }) {
 
             <div className="p-6 max-w-4xl mx-auto space-y-6">
                 <div className="flex items-center gap-3">
-                    <Link href="#" onClick={(e) => { e.preventDefault(); window.history.back(); }} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <Link href="#" onClick={(e) => { e.preventDefault(); window.history.back(); }} className="p-2 text-ink-muted hover:text-ink-secondary rounded-lg">
                         <ArrowLeft size={20} />
                     </Link>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Serial: {serial?.serial_number || serial?.id}</h1>
+                    <h1 className="text-2xl font-bold text-ink">Serial: {serial?.serial_number || serial?.id}</h1>
                 </div>
 
                 {/* Summary */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                     <div className="flex items-start justify-between mb-6">
                         <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Product</p>
-                            <p className="text-lg font-bold text-slate-800 dark:text-white">{serial?.product?.name || 'N/A'}</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Product</p>
+                            <p className="text-lg font-bold text-ink">{serial?.product?.name || 'N/A'}</p>
                         </div>
                         <span className={`flex items-center gap-1.5 text-xs font-bold uppercase px-3 py-1.5 rounded-full ${status.color}`}>
                             <StatusIcon size={14} /> {status.label}
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100 dark:border-slate-700">
+                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-line">
                         <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1 flex items-center gap-1.5">
                                 <Warehouse size={12} /> Current Location
                             </p>
-                            <p className="text-sm font-medium text-slate-800 dark:text-white">{serial?.warehouse?.name || 'Unassigned'}</p>
+                            <p className="text-sm font-medium text-ink">{serial?.warehouse?.name || 'Unassigned'}</p>
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Origin Purchase</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Origin Purchase</p>
                             {/* TODO: ProductSerial.purchase_id references purchase_orders, but the
                                 model's purchase() relation targets the "purchases" table (mismatch) —
                                 showing the raw id only, no live link, to avoid pointing at the wrong record. */}
-                            <p className="text-sm font-medium text-slate-800 dark:text-white">
+                            <p className="text-sm font-medium text-ink">
                                 {serial?.purchase_id ? `PO #${serial.purchase_id}` : 'Not recorded'}
                             </p>
                         </div>
                     </div>
 
                     {serial?.sale && (
-                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Sold On Invoice</p>
+                        <div className="mt-4 pt-4 border-t border-line">
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Sold On Invoice</p>
                             <Link
                                 href={route('store.sales.show', { store_slug: store?.slug, sale: serial.sale_id })}
-                                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                className="text-sm font-medium text-brand-600 hover:text-brand-500"
                             >
                                 {serial.sale.reference_number || `Sale #${serial.sale_id}`}
                                 {serial.sale.customer?.name ? ` — ${serial.sale.customer.name}` : ''} →
@@ -90,16 +90,16 @@ export default function SerialShow({ serial }) {
                     )}
 
                     {serial?.notes && (
-                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Notes</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-300">{serial.notes}</p>
+                        <div className="mt-4 pt-4 border-t border-line">
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Notes</p>
+                            <p className="text-sm text-ink-secondary">{serial.notes}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Movement History */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
+                    <h3 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-4 flex items-center gap-2">
                         <History size={16} /> Movement History
                     </h3>
                     {/* TODO: no dedicated serial-movement ledger table exists yet — this timeline
@@ -109,13 +109,13 @@ export default function SerialShow({ serial }) {
                         {timeline.map((event, idx) => (
                             <div key={idx} className="flex gap-4">
                                 <div className="flex flex-col items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 mt-1.5" />
-                                    {idx < timeline.length - 1 && <div className="w-px flex-1 bg-slate-200 dark:bg-slate-700 mt-1" />}
+                                    <div className="w-2.5 h-2.5 rounded-full bg-brand-500 mt-1.5" />
+                                    {idx < timeline.length - 1 && <div className="w-px flex-1 bg-sunken mt-1" />}
                                 </div>
                                 <div className="pb-4">
-                                    <p className="text-sm font-bold text-slate-800 dark:text-white">{event.label}</p>
-                                    <p className="text-xs text-slate-500">{formatDate(event.date, store)}</p>
-                                    {event.detail && <p className="text-xs text-slate-500 mt-0.5">{event.detail}</p>}
+                                    <p className="text-sm font-bold text-ink">{event.label}</p>
+                                    <p className="text-xs text-ink-muted">{formatDate(event.date, store)}</p>
+                                    {event.detail && <p className="text-xs text-ink-muted mt-0.5">{event.detail}</p>}
                                 </div>
                             </div>
                         ))}

@@ -284,45 +284,45 @@ export default function WelcomeTourModal({ store }) {
     // Welcome Screen
     if (currentStep === 'welcome') {
         return renderPortal(
-            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+            <div className="fixed inset-0 z-modal flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
-                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-modal animate-in zoom-in-95 duration-slow">
+                    <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
-                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
                         <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <button
                             onClick={handleSkipAll}
                             disabled={isSubmitting}
-                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            className="absolute top-5 right-5 text-ink-muted hover:text-white bg-sunken/50 hover:bg-interactive-hover p-2 rounded-full transition-all duration-normal z-10"
                             title="Skip Tour"
                         >
                             <X size={16} />
                         </button>
 
                         <div className="p-8 flex flex-col items-center text-center relative z-10">
-                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6 animate-bounce">
+                            <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
                                 <Sparkles className="text-white w-8 h-8" />
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
-                                Welcome to <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{store?.name || 'Your Store'}</span>!
+                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
+                                Welcome to <span className="bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{store?.name || 'Your Store'}</span>!
                             </h2>
 
-                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                            <p className="text-ink-muted text-sm font-semibold mb-2">
                                 Your store setup is complete. Let's get you up and running!
                             </p>
 
-                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                            <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
                                 To help you get the most out of VenQore, we have prepared a quick, interactive tour of the platform. We will show you how to add your first product and manage stock.
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-3 w-full">
                                 <button
                                     onClick={() => setCurrentStep('stock_value')}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 hover:from-brand-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg transition-all duration-normal active:scale-[0.98]"
                                 >
                                     <Rocket size={18} />
                                     <span>Start the Tour</span>
@@ -332,7 +332,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleSkipAll}
                                     disabled={isSubmitting}
-                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                    className="py-3 px-5 bg-sunken/80 hover:bg-interactive-hover text-ink-faint hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal"
                                 >
                                     Skip Tour
                                 </button>
@@ -347,45 +347,45 @@ export default function WelcomeTourModal({ store }) {
     // Purchase Tour Start Modal
     if (currentStep === 'purchase_tour_start') {
         return renderPortal(
-            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+            <div className="fixed inset-0 z-modal flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
-                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-modal animate-in zoom-in-95 duration-slow">
+                    <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
-                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
                         <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <button
                             onClick={() => handleUpdateStep('skipped')}
                             disabled={isSubmitting}
-                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            className="absolute top-5 right-5 text-ink-muted hover:text-white bg-sunken/50 hover:bg-interactive-hover p-2 rounded-full transition-all duration-normal z-10"
                             title="Skip Tour"
                         >
                             <X size={16} />
                         </button>
 
                         <div className="p-8 flex flex-col items-center text-center relative z-10">
-                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6 animate-bounce">
+                            <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
                                 <Sparkles className="text-white w-8 h-8" />
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
                                 Next Step: Buy Stock! 📦
                             </h2>
 
-                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                            <p className="text-ink-muted text-sm font-semibold mb-2">
                                 Your first product is cataloged, but your stock is still 0.
                             </p>
 
-                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                            <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
                                 To sell products and print invoices, you must first add stock to your inventory. Let's record a purchase transaction to buy inventory from a supplier!
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-3 w-full">
                                 <button
                                     onClick={() => setCurrentStep('purchase_tour_sidebar')}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 hover:from-brand-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg transition-all duration-normal active:scale-[0.98]"
                                 >
                                     <Rocket size={18} />
                                     <span>Record a Purchase</span>
@@ -395,7 +395,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={() => handleUpdateStep('skipped')}
                                     disabled={isSubmitting}
-                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                    className="py-3 px-5 bg-sunken/80 hover:bg-interactive-hover text-ink-faint hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal"
                                 >
                                     Skip Tour
                                 </button>
@@ -410,38 +410,38 @@ export default function WelcomeTourModal({ store }) {
     // Invoice Tour Start Modal
     if (currentStep === 'invoice_tour_start') {
         return renderPortal(
-            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+            <div className="fixed inset-0 z-modal flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
-                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-modal animate-in zoom-in-95 duration-slow">
+                    <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
-                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
                         <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <button
                             onClick={handleSkipInvoiceOrPos}
                             disabled={isSubmitting}
-                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            className="absolute top-5 right-5 text-ink-muted hover:text-white bg-sunken/50 hover:bg-interactive-hover p-2 rounded-full transition-all duration-normal z-10"
                             title="Skip Step"
                         >
                             <X size={16} />
                         </button>
 
                         <div className="p-8 flex flex-col items-center text-center relative z-10">
-                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6 animate-bounce">
+                            <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
                                 <Sparkles className="text-white w-8 h-8" />
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
                                 Generate B2B Invoice! 🧾
                             </h2>
 
-                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                            <p className="text-ink-muted text-sm font-semibold mb-2">
                                 Stage 3: Make Your First Wholesale/B2B Sale
                             </p>
 
-                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                            <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
                                 To complete your onboarding, let's create a professional B2B sale invoice for a client purchase. We'll guide you step-by-step.
                             </p>
 
@@ -449,7 +449,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleStartInvoiceTour}
                                     disabled={isSubmitting}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 hover:from-brand-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg transition-all duration-normal active:scale-[0.98]"
                                 >
                                     <Rocket size={18} />
                                     <span>Start Invoice Tour</span>
@@ -459,7 +459,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleSkipInvoiceOrPos}
                                     disabled={isSubmitting}
-                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                    className="py-3 px-5 bg-sunken/80 hover:bg-interactive-hover text-ink-faint hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal"
                                 >
                                     Skip Step
                                 </button>
@@ -474,38 +474,38 @@ export default function WelcomeTourModal({ store }) {
     // POS Tour Start Modal
     if (currentStep === 'pos_tour_start') {
         return renderPortal(
-            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+            <div className="fixed inset-0 z-modal flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
-                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-modal animate-in zoom-in-95 duration-slow">
+                    <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
-                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
                         <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <button
                             onClick={handleSkipPos}
                             disabled={isSubmitting}
-                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            className="absolute top-5 right-5 text-ink-muted hover:text-white bg-sunken/50 hover:bg-interactive-hover p-2 rounded-full transition-all duration-normal z-10"
                             title="Skip Step"
                         >
                             <X size={16} />
                         </button>
 
                         <div className="p-8 flex flex-col items-center text-center relative z-10">
-                            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/30 mb-6 animate-bounce">
+                            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
                                 <Sparkles className="text-white w-8 h-8" />
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
                                 Open POS Register! 🛒
                             </h2>
 
-                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                            <p className="text-ink-muted text-sm font-semibold mb-2">
                                 Stage 3: Make Your First Retail POS Sale
                             </p>
 
-                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                            <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
                                 Let's test checking out a retail sale using our high-speed, beautiful Point of Sale interface. We'll guide you step-by-step.
                             </p>
 
@@ -513,7 +513,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleStartPosTour}
                                     disabled={isSubmitting}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold rounded-xl shadow-lg shadow-teal-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold rounded-xl shadow-lg transition-all duration-normal active:scale-[0.98]"
                                 >
                                     <Rocket size={18} />
                                     <span>Start POS Tour</span>
@@ -523,7 +523,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleSkipPos}
                                     disabled={isSubmitting}
-                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                    className="py-3 px-5 bg-sunken/80 hover:bg-interactive-hover text-ink-faint hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal"
                                 >
                                     Skip Step
                                 </button>
@@ -538,38 +538,38 @@ export default function WelcomeTourModal({ store }) {
     // Expense Tour Start Modal
     if (currentStep === 'expense_tour_start') {
         return renderPortal(
-            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+            <div className="fixed inset-0 z-modal flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
-                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-modal animate-in zoom-in-95 duration-slow">
+                    <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
-                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
                         <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <button
                             onClick={handleSkipExpense}
                             disabled={isSubmitting}
-                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            className="absolute top-5 right-5 text-ink-muted hover:text-white bg-sunken/50 hover:bg-interactive-hover p-2 rounded-full transition-all duration-normal z-10"
                             title="Skip Step"
                         >
                             <X size={16} />
                         </button>
 
                         <div className="p-8 flex flex-col items-center text-center relative z-10">
-                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6 animate-bounce">
+                            <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
                                 <Sparkles className="text-white w-8 h-8" />
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
                                 Record Store Expenses! 💸
                             </h2>
 
-                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                            <p className="text-ink-muted text-sm font-semibold mb-2">
                                 Stage 4: Add Store Operation Expense
                             </p>
 
-                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                            <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
                                 To get an accurate picture of your net profits, let's record a store operating expense (like rent or utilities) in the expenses log. We'll guide you step-by-step.
                             </p>
 
@@ -577,7 +577,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleStartExpenseTour}
                                     disabled={isSubmitting}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 hover:from-brand-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg transition-all duration-normal active:scale-[0.98]"
                                 >
                                     <Rocket size={18} />
                                     <span>Start Expense Tour</span>
@@ -587,7 +587,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleSkipExpense}
                                     disabled={isSubmitting}
-                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                    className="py-3 px-5 bg-sunken/80 hover:bg-interactive-hover text-ink-faint hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal"
                                 >
                                     Skip Step
                                 </button>
@@ -639,11 +639,11 @@ export default function WelcomeTourModal({ store }) {
     };
 
     return renderPortal(
-        <div className="fixed inset-0 z-[150] overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
             {/* Spotlight Highlighter Mask */}
             {coords && (
                 <div
-                    className="fixed pointer-events-none transition-all duration-100 ease-out"
+                    className="fixed pointer-events-none transition-all duration-fast ease-out"
                     style={{
                         top: coords.top - 6,
                         left: coords.left - 6,
@@ -658,32 +658,32 @@ export default function WelcomeTourModal({ store }) {
 
             {/* Backdrop placeholder if coordinates are loading */}
             {!coords && (
-                <div className="fixed inset-0 bg-slate-950/75 pointer-events-auto z-[150]"></div>
+                <div className="fixed inset-0 bg-neutral-950/75 pointer-events-auto z-modal"></div>
             )}
 
             {/* Floating Tooltip Box */}
             <div
                 style={getTooltipStyle()}
-                className="bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-[151] animate-in fade-in slide-in-from-bottom-4 duration-300"
+                className="bg-neutral-900/95 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-modal animate-in fade-in slide-in-from-bottom-4 duration-slow"
             >
                 {/* Arrow indicator (Desktop only) */}
                 {!isMobile && currentStep === 'stock_value' && (
-                    <div className="absolute right-0 top-[90px] -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-slate-900 border-t border-r border-indigo-500/30 rotate-45 z-10" />
+                    <div className="absolute right-0 top-[90px] -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-neutral-900 border-t border-r border-brand-500/30 rotate-45 z-10" />
                 )}
                 {!isMobile && (currentStep === 'sidebar_stock' || currentStep === 'purchase_tour_sidebar') && (
-                    <div className="absolute left-0 top-[80px] -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-slate-900 border-b border-l border-indigo-500/30 rotate-45 z-10" />
+                    <div className="absolute left-0 top-[80px] -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-neutral-900 border-b border-l border-brand-500/30 rotate-45 z-10" />
                 )}
 
                 {/* Content */}
                 <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
+                    <div className="p-2 bg-brand-500/10 rounded-lg text-brand-400 shrink-0">
                         <Box size={20} className="animate-pulse" />
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             {currentStep === 'stock_value' ? 'Inventory Status' : 'Add First Purchase'}
                         </h4>
-                        <span className="text-2xs font-semibold text-indigo-400">
+                        <span className="text-2xs font-semibold text-brand-400">
                             {currentStep === 'stock_value' ? 'Step 1 of 2' : 'Step 2 of 2'}
                         </span>
                     </div>
@@ -692,20 +692,20 @@ export default function WelcomeTourModal({ store }) {
                 <div className="space-y-4">
                     {currentStep === 'stock_value' && (
                         <>
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 Your <span className="text-white font-bold">Stock Value is Rs. 0</span>. We need to add stock in order to sell and generate invoices.
                             </p>
                             <div className="flex gap-2 justify-end">
                                 <button
                                     onClick={() => setCurrentStep('welcome')}
-                                    className="px-3 py-1.5 bg-slate-800 text-slate-400 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                                    className="px-3 py-1.5 bg-neutral-800 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
                                 >
                                     <ArrowLeft size={12} />
                                     <span>Back</span>
                                 </button>
                                 <button
                                     onClick={() => setCurrentStep('sidebar_stock')}
-                                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
+                                    className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
                                 >
                                     <span>Next Step</span>
                                     <ArrowRight size={12} />
@@ -716,12 +716,12 @@ export default function WelcomeTourModal({ store }) {
 
                     {currentStep === 'sidebar_stock' && (
                         <>
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 Let's add your first product. Click on the highlighted <span className="text-white font-bold">Products</span> menu link in the sidebar to open the catalog.
                             </p>
 
                             {!isMobile && (
-                                <div className="flex items-center gap-1 text-indigo-400 text-xs font-bold animate-bounce mt-1">
+                                <div className="flex items-center gap-1 text-brand-400 text-xs font-bold animate-bounce mt-1">
                                     <ArrowLeft size={14} className="animate-pulse" />
                                     <span>Click on the highlighted Products link</span>
                                 </div>
@@ -730,7 +730,7 @@ export default function WelcomeTourModal({ store }) {
                             <div className="flex gap-2 justify-between items-center">
                                 <button
                                     onClick={() => setCurrentStep('stock_value')}
-                                    className="px-3 py-1.5 bg-slate-800 text-slate-400 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                                    className="px-3 py-1.5 bg-neutral-800 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
                                 >
                                     <ArrowLeft size={12} />
                                     <span>Back</span>
@@ -739,7 +739,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleFinalizeTour}
                                     disabled={isSubmitting}
-                                    className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg shadow-indigo-500/25 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                                    className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     <span>Let's Add Product</span>
                                     <ArrowRight size={12} />
@@ -750,12 +750,12 @@ export default function WelcomeTourModal({ store }) {
 
                     {currentStep === 'purchase_tour_sidebar' && (
                         <>
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 Let's record your first purchase. Click on the highlighted <span className="text-white font-bold">Purchases</span> menu link in the sidebar to create a new purchase transaction.
                             </p>
 
                             {!isMobile && (
-                                <div className="flex items-center gap-1 text-indigo-400 text-xs font-bold animate-bounce mt-1">
+                                <div className="flex items-center gap-1 text-brand-400 text-xs font-bold animate-bounce mt-1">
                                     <ArrowLeft size={14} className="animate-pulse" />
                                     <span>Click on the highlighted Purchases link</span>
                                 </div>
@@ -764,7 +764,7 @@ export default function WelcomeTourModal({ store }) {
                             <div className="flex gap-2 justify-between items-center">
                                 <button
                                     onClick={() => setCurrentStep('purchase_tour_start')}
-                                    className="px-3 py-1.5 bg-slate-800 text-slate-400 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors animate-in duration-300"
+                                    className="px-3 py-1.5 bg-neutral-800 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors animate-in duration-slow"
                                 >
                                     <ArrowLeft size={12} />
                                     <span>Back</span>
@@ -773,7 +773,7 @@ export default function WelcomeTourModal({ store }) {
                                 <button
                                     onClick={handleFinalizePurchaseTourStart}
                                     disabled={isSubmitting}
-                                    className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg shadow-indigo-500/25 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                                    className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     <span>Go to Purchases</span>
                                     <ArrowRight size={12} />

@@ -335,7 +335,7 @@ export default function WorkspaceDashboard({ catalog, sizePresets, layout: initi
                 }
                 .vq-workspace.is-editing .react-resizable-handle { opacity: 0.55; }
                 .vq-workspace.is-editing .react-grid-item:hover .react-resizable-handle { opacity: 1; }
-            `}</style>
+`}</style>
 
             <div className="mx-auto w-full max-w-page px-4 py-5 sm:px-6 lg:py-7">
                 {/* ── Header ──────────────────────────────────────────────── */}
@@ -346,7 +346,7 @@ export default function WorkspaceDashboard({ catalog, sizePresets, layout: initi
                         </h1>
                         <p className="mt-0.5 text-sm text-ink-muted">
                             {props.store?.name}
-                            {' · '}
+                            {' ·'}
                             {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
                         </p>
                     </div>

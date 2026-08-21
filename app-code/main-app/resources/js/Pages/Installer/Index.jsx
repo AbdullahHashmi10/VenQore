@@ -130,7 +130,7 @@ const GlobalStyles = () => (
         .tech-input-group { position: relative; transition: all 0.3s ease; }
         .tech-input-group input:focus, .tech-input-group select:focus {
             background: rgba(99, 102, 241, 0.08);
-            border-color: #6366f1;
+            border-color: rgb(var(--vq-indigo-500));
         }
 
         /* --- TERMINAL --- */
@@ -146,13 +146,13 @@ const GlobalStyles = () => (
         }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--vq-slate-700)); border-radius: 2px; }
 
         /* --- STRENGTH METER --- */
-        .strength-seg { height: 4px; border-radius: 2px; transition: all 0.3s ease; background: #1e293b; }
-        .strength-weak .seg-1 { background: #f43f5e; }
-        .strength-medium .seg-1, .strength-medium .seg-2 { background: #fbbf24; }
-        .strength-strong .seg-1, .strength-strong .seg-2, .strength-strong .seg-3 { background: #10b981; }
+        .strength-seg { height: 4px; border-radius: 2px; transition: all 0.3s ease; background: rgb(var(--vq-slate-800)); }
+        .strength-weak .seg-1 { background: rgb(var(--vq-rose-500)); }
+        .strength-medium .seg-1, .strength-medium .seg-2 { background: rgb(var(--vq-amber-400)); }
+        .strength-strong .seg-1, .strength-strong .seg-2, .strength-strong .seg-3 { background: rgb(var(--vq-emerald-500)); }
 
         .hologram-line {
             position: absolute;
@@ -161,18 +161,18 @@ const GlobalStyles = () => (
             box-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
             animation: hologram-scan 2s linear infinite;
         }
-    `}</style>
+`}</style>
 );
 
 const Background = ({ isWarping }) => (
-    <div className={`fixed inset-0 overflow-hidden bg-zinc-950 z-0 transition-all duration-1000 ${isWarping ? 'warp-active' : ''}`}>
-        <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-950 to-slate-900" />
+    <div className={`fixed inset-0 overflow-hidden bg-neutral-950 z-0 transition-all duration-slower ${isWarping ? 'warp-active' : ''}`}>
+        <div className="absolute inset-0 bg-gradient-to-tr from-neutral-950 via-neutral-950 to-neutral-900" />
 
         {/* The Grid Floor */}
         <div className="absolute inset-0 tech-grid opacity-30 w-[200%] -ml-[50%] h-[200%] -mt-[20%]" />
 
         {/* Glow Spots */}
-        <div className={`absolute top-[-20%] left-[20%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] mix-blend-screen transition-all duration-1000 ${isWarping ? 'opacity-80 scale-150 bg-indigo-500/20' : 'animate-pulse'}`} />
+        <div className={`absolute top-[-20%] left-[20%] w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px] mix-blend-screen transition-all duration-slower ${isWarping ? 'opacity-80 scale-150 bg-brand-500/20' : 'animate-pulse'}`} />
 
         {/* Warp Streaks (Only visible during warping) */}
         {isWarping && (
@@ -658,36 +658,36 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
     // --- RENDER ---
     return (
-        <div className="min-h-screen w-full flex items-center justify-center font-sans text-slate-200 selection:bg-indigo-500/30 overflow-hidden relative">
+        <div className="min-h-screen w-full flex items-center justify-center font-sans text-neutral-200 selection:bg-brand-500/30 overflow-hidden relative">
             <Head title="System Installer | VenQore" />
             <GlobalStyles />
 
             {/* Backup Analysis Preview Modal */}
             {showPreview && backupAnalysis && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="glass-panel w-full max-w-2xl rounded-2xl border border-indigo-500/30 overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="bg-gradient-to-r from-indigo-900/40 to-black p-8 border-b border-indigo-500/20">
+                <div className="fixed inset-0 z-drawer flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-slow">
+                    <div className="glass-panel w-full max-w-2xl rounded-2xl border border-brand-500/30 overflow-hidden animate-in zoom-in-95 duration-slow">
+                        <div className="bg-gradient-to-r from-brand-900/40 to-black p-8 border-b border-brand-500/20">
                             <div className="flex items-center gap-4 mb-2">
-                                <div className="p-3 bg-indigo-500/20 rounded-lg text-indigo-400">
+                                <div className="p-3 bg-brand-500/20 rounded-lg text-brand-400">
                                     <Database size={24} />
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-white uppercase tracking-wider">{backupAnalysis.summary.title}</h2>
-                                    <p className="text-xs text-slate-400">{backupAnalysis.type === 'vyapar_backup' ? 'Vyapar Database Decoded' : 'VENQORE Backup Detected'}</p>
+                                    <p className="text-xs text-ink-muted">{backupAnalysis.type === 'vyapar_backup' ? 'Vyapar Database Decoded' : 'VENQORE Backup Detected'}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="p-8 space-y-8">
-                            <div className="bg-indigo-500/5 p-4 rounded-lg border border-indigo-500/10">
-                                <p className="text-sm text-slate-300 leading-relaxed italic">"{backupAnalysis.summary.description}"</p>
+                            <div className="bg-brand-500/5 p-4 rounded-lg border border-brand-500/10">
+                                <p className="text-sm text-neutral-300 leading-relaxed italic">"{backupAnalysis.summary.description}"</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {Object.entries(backupAnalysis.summary.counts).map(([label, count]) => (
-                                    <div key={label} className="p-4 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between group hover:border-indigo-500/30 transition-all">
-                                        <span className="text-xs text-slate-500 font-mono">{label}</span>
-                                        <span className="text-lg font-bold text-indigo-400 group-hover:text-indigo-300">{count}</span>
+                                    <div key={label} className="p-4 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between group hover:border-brand-500/30 transition-all">
+                                        <span className="text-xs text-ink-muted font-mono">{label}</span>
+                                        <span className="text-lg font-bold text-brand-400 group-hover:text-brand-300">{count}</span>
                                     </div>
                                 ))}
                             </div>
@@ -695,13 +695,13 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                             <div className="flex items-center gap-4 pt-4">
                                 <button
                                     onClick={() => { setShowPreview(false); setBackupFile(null); setBackupAnalysis(null); sound.click(); }}
-                                    className="flex-1 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold text-xs uppercase tracking-widest transition-all"
+                                    className="flex-1 py-4 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted font-bold text-xs uppercase tracking-widest transition-all"
                                 >
                                     Cancel Import
                                 </button>
                                 <button
                                     onClick={() => { setShowPreview(false); sound.warp(); }}
-                                    className="flex-[2] py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all"
+                                    className="flex-[2] py-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all"
                                 >
                                     Confirm & Integrate
                                 </button>
@@ -713,26 +713,26 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
             {/* Scanning/Analyzing Loader Overlay */}
             {isAnalyzing && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="fixed inset-0 z-drawer flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-4">
-                        <RefreshCw className="w-10 h-10 text-indigo-400 animate-spin" />
-                        <span className="text-xs font-mono text-indigo-400 uppercase tracking-widest animate-pulse">Scanning Transmission Data...</span>
+                        <RefreshCw className="w-10 h-10 text-brand-400 animate-spin" />
+                        <span className="text-xs font-mono text-brand-400 uppercase tracking-widest animate-pulse">Scanning Transmission Data...</span>
                     </div>
                 </div>
             )}
             {/* Optimization Overlay */}
             {serverInfo.optimizing && (
-                <div className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-500">
+                <div className="fixed inset-0 z-modal bg-black/90 flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-slower">
                     <div className="relative">
-                        <div className="absolute inset-0 bg-indigo-500 blur-3xl opacity-20 animate-pulse"></div>
-                        <Cpu className="text-indigo-400 relative z-10 w-24 h-24 animate-pulse" />
+                        <div className="absolute inset-0 bg-brand-500 blur-3xl opacity-20 animate-pulse"></div>
+                        <Cpu className="text-brand-400 relative z-10 w-24 h-24 animate-pulse" />
                     </div>
                     <div className="text-center space-y-2">
                         <h2 className="text-2xl font-bold text-white tracking-widest uppercase">Preparing High-Performance Installer</h2>
-                        <p className="text-slate-400 max-w-md">Optimizing server engine for unlimited backup restoration...</p>
+                        <p className="text-ink-muted max-w-md">Optimizing server engine for unlimited backup restoration...</p>
                     </div>
-                    <div className="w-64 h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 animate-pulse w-full"></div>
+                    <div className="w-64 h-1 bg-neutral-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-brand-500 animate-pulse w-full"></div>
                     </div>
                 </div>
             )}
@@ -741,28 +741,28 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
             {/* Top Bar Controls */}
             <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
-                <button onClick={() => { setMuted(!muted); sound.click(); }} className="p-3 rounded-full bg-black/40 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-md text-slate-400 hover:text-white">
+                <button onClick={() => { setMuted(!muted); sound.click(); }} className="p-3 rounded-full bg-black/40 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-md text-ink-muted hover:text-white">
                     {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 </button>
-                <button onClick={() => { setShowHelp(!showHelp); sound.click(); }} className="p-3 rounded-full bg-black/40 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-md text-slate-400 hover:text-white">
+                <button onClick={() => { setShowHelp(!showHelp); sound.click(); }} className="p-3 rounded-full bg-black/40 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-md text-ink-muted hover:text-white">
                     <HelpCircle size={18} />
                 </button>
             </div>
 
             {/* Help Drawer (Same as before) */}
-            <div className={`fixed inset-y-0 right-0 w-96 bg-zinc-950/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-transform duration-300 ease-out p-8 ${showHelp ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`fixed inset-y-0 right-0 w-96 bg-neutral-950/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-transform duration-slow ease-out p-8 ${showHelp ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="flex items-center justify-between mb-8 mt-12">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2"><HelpCircle size={20} className="text-indigo-400" /> Help</h3>
-                    <button onClick={() => setShowHelp(false)} className="text-slate-500 hover:text-white"><X size={20} /></button>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2"><HelpCircle size={20} className="text-brand-400" /> Help</h3>
+                    <button onClick={() => setShowHelp(false)} className="text-ink-muted hover:text-white"><X size={20} /></button>
                 </div>
                 <div className="space-y-4">
-                    <p className="text-xs text-slate-400">If you are stuck, verify your database credentials in cPanel.</p>
+                    <p className="text-xs text-ink-muted">If you are stuck, verify your database credentials in cPanel.</p>
                 </div>
             </div>
 
             <div className="relative z-10 w-full max-w-4xl px-6">
 
-                <div className="glass-panel rounded-xl relative overflow-hidden transition-all duration-500 min-h-[650px] flex flex-col border-t border-white/10">
+                <div className="glass-panel rounded-xl relative overflow-hidden transition-all duration-slower min-h-[650px] flex flex-col border-t border-white/10">
                     <div className="noise-bg" />
 
                     {/* Header */}
@@ -774,10 +774,10 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                             </div>
                             <div className="h-4 w-px bg-white/10" />
-                            <span className="text-xs font-mono text-slate-400 tracking-wider">INSTALLER_V2.5</span>
+                            <span className="text-xs font-mono text-ink-muted tracking-wider">INSTALLER_V2.5</span>
                         </div>
                         {step > 1 && step < 6 && (
-                            <div className="text-2xs font-mono text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded">
+                            <div className="text-2xs font-mono text-ink-muted uppercase tracking-widest bg-white/5 px-3 py-1 rounded">
                                 {step === 2 ? 'License Check' : step === 3 ? 'Config Protocol' : step === 4 ? 'Deploy Sequence' : 'Admin Init'}
                             </div>
                         )}
@@ -786,12 +786,12 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                     <div className="p-8 md:p-12 flex-1 relative flex flex-col">
                         {step < 6 && (
                             <div className="flex items-center justify-between mb-10 px-2 relative z-10">
-                                <div className="absolute top-1/2 left-0 w-full h-px bg-slate-800 -z-10" />
+                                <div className="absolute top-1/2 left-0 w-full h-px bg-neutral-800 -z-10" />
                                 {[1, 2, 3, 4, 5, 6].map((num) => {
                                     const isActive = step >= num;
                                     return (
                                         <div key={num} className="relative flex flex-col items-center gap-2">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-500 ${isActive ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-void-800 border-slate-700 text-slate-500'}`}>
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-slower ${isActive ? 'bg-brand-600 border-brand-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-void-800 border-neutral-700 text-ink-muted'}`}>
                                                 {isActive ? <Check size={14} /> : num}
                                             </div>
                                         </div>
@@ -804,31 +804,31 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                             {/* --- STEP 1: FINGERPRINT & CHECKS --- */}
                             {step === 1 && (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-slower">
                                     {/* Server Info Card */}
                                     <div className="mb-6 relative group">
-                                        <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-lg group-hover:bg-indigo-500/20 transition-all" />
-                                        <div className="relative bg-zinc-950/90 border border-indigo-500/30 rounded-lg p-5 overflow-hidden">
+                                        <div className="absolute inset-0 bg-brand-500/10 blur-xl rounded-lg group-hover:bg-brand-500/20 transition-all" />
+                                        <div className="relative bg-neutral-950/90 border border-brand-500/30 rounded-lg p-5 overflow-hidden">
                                             {!scanned && <div className="hologram-line" />}
                                             <div className="flex items-center justify-between mb-4">
-                                                <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm tracking-widest uppercase">
+                                                <div className="flex items-center gap-2 text-brand-400 font-bold text-sm tracking-widest uppercase">
                                                     <Server size={16} /> Server Environment
                                                 </div>
-                                                <div className="text-2xs font-mono text-slate-500">
+                                                <div className="text-2xs font-mono text-ink-muted">
                                                     {scanned ? "SCAN_COMPLETE" : "ANALYZING..."}
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-3 gap-4 text-xs font-mono">
                                                 <div className="p-3 bg-black/40 rounded border border-white/5">
-                                                    <div className="text-slate-500 mb-1">PHP Version</div>
+                                                    <div className="text-ink-muted mb-1">PHP Version</div>
                                                     <div className="text-white">{serverInfo.php_version || 'Scanning...'}</div>
                                                 </div>
                                                 <div className="p-3 bg-black/40 rounded border border-white/5">
-                                                    <div className="text-slate-500 mb-1">Memory Limit</div>
+                                                    <div className="text-ink-muted mb-1">Memory Limit</div>
                                                     <div className="text-white">{serverInfo.memory_limit || 'Scanning...'}</div>
                                                 </div>
                                                 <div className="p-3 bg-black/40 rounded border border-white/5">
-                                                    <div className="text-slate-500 mb-1">Max Upload</div>
+                                                    <div className="text-ink-muted mb-1">Max Upload</div>
                                                     <div className="text-white">{serverInfo.upload_max_filesize || 'Scanning...'}</div>
                                                 </div>
                                             </div>
@@ -844,7 +844,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                     <div className="text-sm font-bold text-white">
                                                         {allChecksPassed ? 'All Requirements Passed!' : `${failedChecks.length} Critical Issue${failedChecks.length > 1 ? 's' : ''} Found`}
                                                     </div>
-                                                    <div className="text-xs text-slate-400">
+                                                    <div className="text-xs text-ink-muted">
                                                         {summary.critical_passed}/{summary.critical_total} critical • {summary.optional_passed}/{summary.optional_total} optional
                                                     </div>
                                                 </div>
@@ -858,12 +858,12 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     )}
 
                                     {/* Requirements List */}
-                                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 transition-opacity duration-500 max-h-[300px] overflow-y-auto custom-scrollbar ${scanned ? 'opacity-100' : 'opacity-50 blur-sm pointer-events-none'}`}>
+                                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 transition-opacity duration-slower max-h-[300px] overflow-y-auto custom-scrollbar ${scanned ? 'opacity-100' : 'opacity-50 blur-sm pointer-events-none'}`}>
                                         {Object.entries(requirements).map(([key, req]) => (
                                             <div
                                                 key={key}
                                                 onClick={() => !req.passed && setSelectedFailedCheck([key, req])}
-                                                className={`p-3 rounded-lg border transition-all duration-300 relative overflow-hidden ${req.passed
+                                                className={`p-3 rounded-lg border transition-all duration-slow relative overflow-hidden ${req.passed
                                                     ? 'bg-emerald-500/5 border-emerald-500/30'
                                                     : req.critical
                                                         ? 'bg-rose-500/5 border-rose-500/30 cursor-pointer hover:bg-rose-500/10'
@@ -874,8 +874,8 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                     <div className="flex items-center gap-3">
                                                         <div className={`w-2 h-2 rounded-full ${req.passed ? 'bg-emerald-500' : req.critical ? 'bg-rose-500' : 'bg-amber-500'}`} />
                                                         <div>
-                                                            <div className="text-xs font-semibold text-slate-200">{req.label}</div>
-                                                            <div className="text-2xs text-slate-500">{req.value}</div>
+                                                            <div className="text-xs font-semibold text-neutral-200">{req.label}</div>
+                                                            <div className="text-2xs text-ink-muted">{req.value}</div>
                                                         </div>
                                                     </div>
                                                     {req.passed ? (
@@ -891,30 +891,30 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     {/* Fix Instructions Modal */}
                                     {selectedFailedCheck && (
                                         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFailedCheck(null)}>
-                                            <div className="bg-zinc-950 border border-indigo-500/30 rounded-xl p-6 max-w-2xl w-full animate-in zoom-in-95 max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+                                            <div className="bg-neutral-950 border border-brand-500/30 rounded-xl p-6 max-w-2xl w-full animate-in zoom-in-95 max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center">
-                                                            <HelpCircle size={20} className="text-indigo-400" />
+                                                        <div className="w-10 h-10 bg-brand-500/20 rounded-full flex items-center justify-center">
+                                                            <HelpCircle size={20} className="text-brand-400" />
                                                         </div>
                                                         <div>
                                                             <div className="text-white font-bold">{selectedFailedCheck[1]?.label || 'Setup Needed'}</div>
-                                                            <div className="text-xs text-slate-400">{selectedFailedCheck[1]?.description}</div>
+                                                            <div className="text-xs text-ink-muted">{selectedFailedCheck[1]?.description}</div>
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => setSelectedFailedCheck(null)} className="text-slate-500 hover:text-white">
+                                                    <button onClick={() => setSelectedFailedCheck(null)} className="text-ink-muted hover:text-white">
                                                         <X size={20} />
                                                     </button>
                                                 </div>
                                                 <div className="bg-black/40 rounded-lg p-4 mb-4 flex-1 overflow-y-auto custom-scrollbar">
                                                     <div className="text-2xs uppercase tracking-wider text-emerald-400 font-bold mb-3">📖 Step-by-Step Guide</div>
-                                                    <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{selectedFailedCheck[1]?.fix}</div>
+                                                    <div className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">{selectedFailedCheck[1]?.fix}</div>
                                                 </div>
                                                 <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5">
-                                                    <div className="text-slate-500">
+                                                    <div className="text-ink-muted">
                                                         Status: <span className="text-amber-400">{selectedFailedCheck[1]?.value}</span> • Goal: <span className="text-emerald-400">{selectedFailedCheck[1]?.required}</span>
                                                     </div>
-                                                    <button onClick={() => { setSelectedFailedCheck(null); window.location.reload(); }} className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold uppercase tracking-wider transition-colors">
+                                                    <button onClick={() => { setSelectedFailedCheck(null); window.location.reload(); }} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded font-bold uppercase tracking-wider transition-colors">
                                                         Re-check
                                                     </button>
                                                 </div>
@@ -922,7 +922,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                         </div>
                                     )}
 
-                                    <button onClick={() => { setStep(2); sound.click(); }} disabled={!allChecksPassed || !scanned} className={`w-full py-4 rounded-lg font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 border ${allChecksPassed && scanned ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]' : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'}`}>
+                                    <button onClick={() => { setStep(2); sound.click(); }} disabled={!allChecksPassed || !scanned} className={`w-full py-4 rounded-lg font-bold text-xs uppercase tracking-[0.2em] transition-all duration-slow flex items-center justify-center gap-2 border ${allChecksPassed && scanned ? 'bg-brand-600 border-brand-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]' : 'bg-sunken border-neutral-800 text-ink-secondary cursor-not-allowed'}`}>
                                         {allChecksPassed ? 'Proceed to License' : 'Fix Issues Above to Continue'}
                                     </button>
                                 </div>
@@ -930,24 +930,24 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                             {/* --- STEP 2: LICENSE VERIFICATION --- */}
                             {step === 2 && (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto w-full">
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-slower max-w-xl mx-auto w-full">
                                     <div className="mb-8 text-center">
-                                        <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/20 text-indigo-400">
+                                        <div className="w-16 h-16 bg-brand-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-brand-500/20 text-brand-400">
                                             <Key size={32} />
                                         </div>
                                         <h2 className="text-xl font-bold text-white mb-2">License Verification</h2>
-                                        <p className="text-sm text-slate-400">Please enter your purchase code to activate the system.</p>
+                                        <p className="text-sm text-ink-muted">Please enter your purchase code to activate the system.</p>
                                     </div>
 
                                     <div className="space-y-6">
                                         <div className="tech-input-group">
-                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">License Key / Purchase Code</label>
+                                            <label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">License Key / Purchase Code</label>
                                             <input
                                                 type="text"
                                                 placeholder="XXXX-XXXX-XXXX-XXXX"
                                                 value={licenseKey}
                                                 onChange={(e) => { setLicenseKey(e.target.value); setLicenseStatus('idle'); }}
-                                                className={`w-full bg-zinc-950 border rounded p-4 text-center text-lg font-mono tracking-widest outline-none transition-colors ${licenseStatus === 'error' ? 'border-rose-500 text-rose-400' : licenseStatus === 'success' ? 'border-emerald-500 text-emerald-400' : 'border-slate-700 text-white focus:border-indigo-500'}`}
+                                                className={`w-full bg-neutral-950 border rounded p-4 text-center text-lg font-mono tracking-widest outline-none transition-colors ${licenseStatus === 'error' ? 'border-rose-500 text-rose-400' : licenseStatus === 'success' ? 'border-emerald-500 text-emerald-400' : 'border-neutral-700 text-white focus:border-brand-500'}`}
                                             />
                                         </div>
 
@@ -959,14 +959,14 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                                         <button
                                             onClick={() => { if (licenseStatus === 'success') { setStep(3); sound.click(); } else { verifyLicense(); } }}
-                                            className={`w-full py-4 rounded-lg font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 border ${licenseStatus === 'success' ? 'bg-emerald-600 border-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]'}`}
+                                            className={`w-full py-4 rounded-lg font-bold text-xs uppercase tracking-[0.2em] transition-all duration-slow flex items-center justify-center gap-2 border ${licenseStatus === 'success' ? 'bg-emerald-600 border-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-brand-600 border-brand-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]'}`}
                                             disabled={!licenseKey || licenseStatus === 'verifying'}
                                         >
                                             {licenseStatus === 'verifying' ? <RefreshCw className="animate-spin" size={16} /> : licenseStatus === 'success' ? 'License Verified - Continue' : 'Verify License'}
                                         </button>
 
                                         <div className="text-center">
-                                            <a href="#" className="text-2xs text-slate-500 hover:text-white transition-colors">Where do I find my purchase code?</a>
+                                            <a href="#" className="text-2xs text-ink-muted hover:text-white transition-colors">Where do I find my purchase code?</a>
                                         </div>
                                     </div>
                                 </div>
@@ -974,17 +974,17 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                             {/* --- STEP 3: PROTOCOL SELECTOR & DB --- */}
                             {step === 3 && (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto w-full">
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-slower max-w-2xl mx-auto w-full">
 
                                     {/* Quick Tips Panel */}
                                     {dbRecommendations.length > 0 && (
-                                        <div className="mb-6 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-lg">
-                                            <div className="text-2xs uppercase tracking-wider text-indigo-400 font-bold mb-3 flex items-center gap-2">
+                                        <div className="mb-6 p-4 bg-brand-500/5 border border-brand-500/20 rounded-lg">
+                                            <div className="text-2xs uppercase tracking-wider text-brand-400 font-bold mb-3 flex items-center gap-2">
                                                 <HelpCircle size={12} /> Quick Setup Tips
                                             </div>
                                             <div className="grid grid-cols-3 gap-3">
                                                 {dbRecommendations.map((rec, i) => (
-                                                    <div key={i} className="text-xs text-slate-400">
+                                                    <div key={i} className="text-xs text-ink-muted">
                                                         <div className="text-white font-semibold mb-1">{rec.title}</div>
                                                         {rec.description}
                                                     </div>
@@ -994,41 +994,41 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     )}
 
                                     {/* Environment Protocol Selector */}
-                                    <div className="mb-6 p-1 bg-black/40 border border-slate-700 rounded-lg flex relative">
-                                        <div className={`absolute inset-y-1 w-1/2 bg-indigo-600/20 border border-indigo-500/50 rounded transition-all duration-300 ${envMode === 'production' ? 'left-1/2' : 'left-0'}`} />
+                                    <div className="mb-6 p-1 bg-black/40 border border-neutral-700 rounded-lg flex relative">
+                                        <div className={`absolute inset-y-1 w-1/2 bg-brand-600/20 border border-brand-500/50 rounded transition-all duration-slow ${envMode === 'production' ? 'left-1/2' : 'left-0'}`} />
 
-                                        <button onClick={() => setEnvMode('local')} className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors ${envMode === 'local' ? 'text-white' : 'text-slate-500'}`}>
+                                        <button onClick={() => setEnvMode('local')} className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors ${envMode === 'local' ? 'text-white' : 'text-ink-muted'}`}>
                                             <Bug size={14} /> Local / Testing
                                         </button>
-                                        <button onClick={() => setEnvMode('production')} className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors ${envMode === 'production' ? 'text-white' : 'text-slate-500'}`}>
+                                        <button onClick={() => setEnvMode('production')} className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors ${envMode === 'production' ? 'text-white' : 'text-ink-muted'}`}>
                                             <ShieldCheck size={14} /> Live / Production
                                         </button>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4 mb-6">
                                         <div className="tech-input-group">
-                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Host</label>
-                                            <input type="text" value={dbConfig.host} onChange={(e) => { setDbConfig({ ...dbConfig, host: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="127.0.0.1 or localhost" className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
-                                            <div className="text-3xs text-slate-600 mt-1">Usually 127.0.0.1 or localhost</div>
+                                            <label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Host</label>
+                                            <input type="text" value={dbConfig.host} onChange={(e) => { setDbConfig({ ...dbConfig, host: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="127.0.0.1 or localhost" className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500" />
+                                            <div className="text-3xs text-ink-secondary mt-1">Usually 127.0.0.1 or localhost</div>
                                         </div>
                                         <div className="tech-input-group">
-                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Port</label>
-                                            <input type="text" value={dbConfig.port} onChange={(e) => { setDbConfig({ ...dbConfig, port: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="3306" className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
-                                            <div className="text-3xs text-slate-600 mt-1">Default MySQL port is 3306</div>
+                                            <label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Port</label>
+                                            <input type="text" value={dbConfig.port} onChange={(e) => { setDbConfig({ ...dbConfig, port: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="3306" className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500" />
+                                            <div className="text-3xs text-ink-secondary mt-1">Default MySQL port is 3306</div>
                                         </div>
                                         <div className="col-span-2 tech-input-group">
-                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Database Name</label>
-                                            <input type="text" value={dbConfig.name} onChange={(e) => { setDbConfig({ ...dbConfig, name: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="venqore" className={`w-full bg-zinc-950 border rounded p-3 text-sm text-white font-mono outline-none transition-colors ${dbError ? 'border-rose-500' : 'border-slate-700 focus:border-indigo-500'}`} />
-                                            <div className="text-3xs text-slate-600 mt-1">On shared hosting: usually prefixed like username_dbname</div>
+                                            <label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Database Name</label>
+                                            <input type="text" value={dbConfig.name} onChange={(e) => { setDbConfig({ ...dbConfig, name: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="venqore" className={`w-full bg-neutral-950 border rounded p-3 text-sm text-white font-mono outline-none transition-colors ${dbError ? 'border-rose-500' : 'border-neutral-700 focus:border-brand-500'}`} />
+                                            <div className="text-3xs text-ink-secondary mt-1">On shared hosting: usually prefixed like username_dbname</div>
                                         </div>
                                         <div className="tech-input-group">
-                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Username</label>
-                                            <input type="text" value={dbConfig.user} onChange={(e) => { setDbConfig({ ...dbConfig, user: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="root" className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
-                                            <div className="text-3xs text-slate-600 mt-1">Same prefix as database name</div>
+                                            <label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Username</label>
+                                            <input type="text" value={dbConfig.user} onChange={(e) => { setDbConfig({ ...dbConfig, user: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="root" className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500" />
+                                            <div className="text-3xs text-ink-secondary mt-1">Same prefix as database name</div>
                                         </div>
                                         <div className="tech-input-group">
-                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Password</label>
-                                            <input type="password" placeholder="••••••••" onChange={(e) => { setDbConfig({ ...dbConfig, pass: e.target.value }); setDbStatus('idle'); setDbError(null); }} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
+                                            <label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Password</label>
+                                            <input type="password" placeholder="••••••••" onChange={(e) => { setDbConfig({ ...dbConfig, pass: e.target.value }); setDbStatus('idle'); setDbError(null); }} className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500" />
                                         </div>
                                     </div>
 
@@ -1039,9 +1039,9 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                 <AlertTriangle size={18} className="text-rose-500 mt-0.5 flex-shrink-0" />
                                                 <div>
                                                     <div className="text-sm text-rose-300 font-bold mb-1">Connection Failed</div>
-                                                    <div className="text-xs text-slate-400 mb-2">{dbError}</div>
-                                                    <div className="text-2xs text-slate-500">
-                                                        <strong className="text-indigo-400">How to fix:</strong> Double-check your credentials in cPanel {'>'} MySQL Databases. Make sure the user is added to the database with ALL PRIVILEGES.
+                                                    <div className="text-xs text-ink-muted mb-2">{dbError}</div>
+                                                    <div className="text-2xs text-ink-muted">
+                                                        <strong className="text-brand-400">How to fix:</strong> Double-check your credentials in cPanel {'>'} MySQL Databases. Make sure the user is added to the database with ALL PRIVILEGES.
                                                     </div>
                                                 </div>
                                             </div>
@@ -1049,18 +1049,18 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     )}
 
                                     <div className="flex gap-4">
-                                        <button onClick={testConnection} className={`flex-1 py-3 rounded-lg border font-mono text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${dbStatus === 'success' ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10' : dbStatus === 'error' ? 'border-rose-500 text-rose-400 bg-rose-500/10' : 'border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                                        <button onClick={testConnection} className={`flex-1 py-3 rounded-lg border font-mono text-xs uppercase tracking-wider transition-all duration-slow flex items-center justify-center gap-2 ${dbStatus === 'success' ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10' : dbStatus === 'error' ? 'border-rose-500 text-rose-400 bg-rose-500/10' : 'border-neutral-700 text-ink-muted hover:border-line-strong'}`}>
                                             {dbStatus === 'testing' ? <RefreshCw className="animate-spin" size={12} /> : dbStatus === 'success' ? <Check size={12} /> : <Wifi size={12} />}
                                             {dbStatus === 'testing' ? 'Testing...' : dbStatus === 'success' ? 'Connected!' : 'Test Connection'}
                                         </button>
-                                        <button onClick={() => { setStep(4); sound.click(); }} disabled={dbStatus !== 'success'} className={`flex-[2] py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all duration-300 ${dbStatus === 'success' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}>Save & Continue</button>
+                                        <button onClick={() => { setStep(4); sound.click(); }} disabled={dbStatus !== 'success'} className={`flex-[2] py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all duration-slow ${dbStatus === 'success' ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg' : 'bg-sunken text-ink-secondary cursor-not-allowed'}`}>Save & Continue</button>
                                     </div>
                                 </div>
                             )}
 
                             {/* --- STEP 4: WARP SPEED INSTALL & EDUCATION --- */}
                             {step === 4 && (
-                                <div className="animate-in fade-in zoom-in-95 duration-500 relative z-20">
+                                <div className="animate-in fade-in zoom-in-95 duration-slower relative z-20">
                                     {!loading && logs.length === 0 ? (
                                         <div className="space-y-8 max-w-2xl mx-auto">
                                             <div className="grid grid-cols-2 gap-4">
@@ -1071,7 +1071,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                         }
                                                         setInstallOptions({ ...installOptions, demo: !installOptions.demo, clean: false });
                                                     }}
-                                                    className={`cursor-pointer p-6 rounded-lg border transition-all duration-300 relative group overflow-hidden ${installOptions.demo ? 'bg-indigo-600/10 border-indigo-500/50' : 'bg-slate-900/40 border-slate-700 hover:border-slate-500'}`}
+                                                    className={`cursor-pointer p-6 rounded-lg border transition-all duration-slow relative group overflow-hidden ${installOptions.demo ? 'bg-brand-600/10 border-brand-500/50' : 'bg-neutral-900/40 border-neutral-700 hover:border-line-strong'}`}
                                                 >
                                                     <input
                                                         type="file"
@@ -1080,22 +1080,22 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                         onChange={(e) => setBackupFile(e.target.files[0])}
                                                         accept=".sql,.vyb"
                                                     />
-                                                    <div className={`mb-3 ${installOptions.demo ? 'text-indigo-400' : 'text-slate-500'}`}><Database size={24} /></div>
+                                                    <div className={`mb-3 ${installOptions.demo ? 'text-brand-400' : 'text-ink-muted'}`}><Database size={24} /></div>
                                                     <h3 className="text-sm font-bold text-white mb-1">Restore Backup / Vyapar</h3>
-                                                    <p className="text-2xs text-slate-400 leading-relaxed">
+                                                    <p className="text-2xs text-ink-muted leading-relaxed">
                                                         {backupFile ? `Selected: ${backupFile.name}` : 'Restore from VenQore (.sql) or Vyapar Backup (.vyb). Unlimited (2GB+)'}
                                                     </p>
                                                     {isAnalyzing && (
-                                                        <div className="mt-3 relative w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                                                        <div className="mt-3 relative w-full h-1 bg-neutral-800 rounded-full overflow-hidden">
                                                             <div
-                                                                className="absolute top-0 left-0 h-full bg-indigo-500 transition-all duration-300 ease-out"
+                                                                className="absolute top-0 left-0 h-full bg-brand-500 transition-all duration-slow ease-out"
                                                                 style={{ width: `${uploadProgress}%` }}
                                                             />
                                                         </div>
                                                     )}
-                                                    {isAnalyzing && <p className="text-3xs text-indigo-400 mt-1 text-right">{uploadProgress}% Uploaded</p>}
+                                                    {isAnalyzing && <p className="text-3xs text-brand-400 mt-1 text-right">{uploadProgress}% Uploaded</p>}
 
-                                                    <div className={`absolute top-3 right-3 w-3 h-3 rounded-full border ${installOptions.demo ? 'bg-indigo-500 border-indigo-400 shadow-[0_0_8px_#6366f1]' : 'border-slate-600'}`} />
+                                                    <div className={`absolute top-3 right-3 w-3 h-3 rounded-full border ${installOptions.demo ? 'bg-brand-500 border-brand-400 shadow-[0_0_8px_#6366f1]' : 'border-neutral-600'}`} />
                                                     {backupFile && installOptions.demo && !isAnalyzing && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setBackupFile(null); }}
@@ -1105,15 +1105,15 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                         </button>
                                                     )}
                                                 </div>
-                                                <div onClick={() => setInstallOptions({ ...installOptions, clean: !installOptions.clean })} className={`cursor-pointer p-6 rounded-lg border transition-all duration-300 relative group overflow-hidden ${installOptions.clean ? 'bg-rose-600/10 border-rose-500/50' : 'bg-slate-900/40 border-slate-700 hover:border-slate-500'}`}>
-                                                    <div className={`mb-3 ${installOptions.clean ? 'text-rose-400' : 'text-slate-500'}`}><Shield size={24} /></div>
+                                                <div onClick={() => setInstallOptions({ ...installOptions, clean: !installOptions.clean })} className={`cursor-pointer p-6 rounded-lg border transition-all duration-slow relative group overflow-hidden ${installOptions.clean ? 'bg-rose-600/10 border-rose-500/50' : 'bg-neutral-900/40 border-neutral-700 hover:border-line-strong'}`}>
+                                                    <div className={`mb-3 ${installOptions.clean ? 'text-rose-400' : 'text-ink-muted'}`}><Shield size={24} /></div>
                                                     <h3 className="text-sm font-bold text-white mb-1">Start Fresh</h3>
-                                                    <p className="text-2xs text-slate-400 leading-relaxed">Wipe existing data and start zero (Recommended).</p>
-                                                    <div className={`absolute top-3 right-3 w-3 h-3 rounded-full border ${installOptions.clean ? 'bg-rose-500 border-rose-400 shadow-[0_0_8px_#f43f5e]' : 'border-slate-600'}`} />
+                                                    <p className="text-2xs text-ink-muted leading-relaxed">Wipe existing data and start zero (Recommended).</p>
+                                                    <div className={`absolute top-3 right-3 w-3 h-3 rounded-full border ${installOptions.clean ? 'bg-rose-500 border-rose-400 shadow-[0_0_8px_#f43f5e]' : 'border-neutral-600'}`} />
                                                 </div>
                                             </div>
 
-                                            <button onClick={() => runInstallation(false)} className="w-full py-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(99,102,241,0.25)] hover:shadow-[0_0_40px_rgba(99,102,241,0.4)] transition-all duration-300 group relative overflow-hidden">
+                                            <button onClick={() => runInstallation(false)} className="w-full py-5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(99,102,241,0.25)] hover:shadow-[0_0_40px_rgba(99,102,241,0.4)] transition-all duration-slow group relative overflow-hidden">
                                                 <span className="relative z-10 flex items-center justify-center gap-3">
                                                     <Rocket size={16} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" />
                                                     Execute Launch Sequence
@@ -1123,9 +1123,9 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     ) : (
                                         <div className="max-w-3xl mx-auto">
                                             {/* Pro Tips Section */}
-                                            <div className="mb-6 text-center animate-in fade-in slide-in-from-top-4 duration-700 min-h-[60px]">
-                                                <div className="text-2xs uppercase tracking-widest text-indigo-400 font-bold mb-2">Pro Tip</div>
-                                                <p key={currentTip} className="text-sm text-white font-light animate-in fade-in duration-500">
+                                            <div className="mb-6 text-center animate-in fade-in slide-in-from-top-4 duration-slower min-h-[60px]">
+                                                <div className="text-2xs uppercase tracking-widest text-brand-400 font-bold mb-2">Pro Tip</div>
+                                                <p key={currentTip} className="text-sm text-white font-light animate-in fade-in duration-slower">
                                                     "{tips[currentTip]}"
                                                 </p>
                                             </div>
@@ -1133,19 +1133,19 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="relative w-10 h-10 flex items-center justify-center">
-                                                        <svg className="w-full h-full -rotate-90"><circle cx="20" cy="20" r="18" stroke={vq.slate[700]} strokeWidth="3" fill="none" /><circle cx="20" cy="20" r="18" stroke={installError ? vq.rose[500] : vq.indigo[500]} strokeWidth="3" fill="none" strokeDasharray="113" strokeDashoffset={113 - (113 * installProgress) / 100} className="transition-all duration-300 ease-out" /></svg>
+                                                        <svg className="w-full h-full -rotate-90"><circle cx="20" cy="20" r="18" stroke={vq.slate[700]} strokeWidth="3" fill="none" /><circle cx="20" cy="20" r="18" stroke={installError ? vq.rose[500] : vq.indigo[500]} strokeWidth="3" fill="none" strokeDasharray="113" strokeDashoffset={113 - (113 * installProgress) / 100} className="transition-all duration-slow ease-out" /></svg>
                                                         <span className="absolute text-2xs font-mono font-bold">{installProgress}%</span>
                                                     </div>
                                                     <div>
                                                         <div className="text-sm font-bold text-white">{installError ? "Installation Paused" : "Installing Core Systems..."}</div>
-                                                        <div className="text-xs text-slate-400 font-mono">Process ID: 8942</div>
+                                                        <div className="text-xs text-ink-muted font-mono">Process ID: 8942</div>
                                                     </div>
                                                 </div>
 
                                                 {installError && (
                                                     <div className="flex gap-3 animate-in fade-in">
                                                         <button
-                                                            className="px-3 py-1.5 rounded border border-slate-700 hover:bg-white/5 text-xs text-slate-300 flex items-center gap-2 transition-colors"
+                                                            className="px-3 py-1.5 rounded border border-neutral-700 hover:bg-white/5 text-xs text-neutral-300 flex items-center gap-2 transition-colors"
                                                             onClick={() => {
                                                                 const text = logs.map(l => `[${l.time}] ${l.text}`).join('\n');
                                                                 navigator.clipboard.writeText(text);
@@ -1154,26 +1154,26 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                         >
                                                             <Copy size={12} /> Copy Logs
                                                         </button>
-                                                        <button onClick={() => runInstallation(true)} className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-xs text-white flex items-center gap-2 transition-colors font-bold"><RotateCcw size={12} /> Retry Step</button>
+                                                        <button onClick={() => runInstallation(true)} className="px-3 py-1.5 rounded bg-brand-600 hover:bg-brand-500 text-xs text-white flex items-center gap-2 transition-colors font-bold"><RotateCcw size={12} /> Retry Step</button>
                                                     </div>
                                                 )}
                                             </div>
 
-                                            <div className="bg-zinc-950/80 backdrop-blur rounded-lg border border-slate-800 relative overflow-hidden font-mono text-xs">
-                                                <div className="h-8 bg-zinc-900 flex items-center px-4 border-b border-slate-800 justify-between">
-                                                    <span className="text-slate-500">root@venqore-installer:~$ ./install.sh --verbose</span>
-                                                    <div className="flex gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-700" /><div className="w-2 h-2 rounded-full bg-slate-700" /></div>
+                                            <div className="bg-neutral-950/80 backdrop-blur rounded-lg border border-neutral-800 relative overflow-hidden font-mono text-xs">
+                                                <div className="h-8 bg-neutral-900 flex items-center px-4 border-b border-neutral-800 justify-between">
+                                                    <span className="text-ink-muted">root@venqore-installer:~$ ./install.sh --verbose</span>
+                                                    <div className="flex gap-1.5"><div className="w-2 h-2 rounded-full bg-neutral-700" /><div className="w-2 h-2 rounded-full bg-neutral-700" /></div>
                                                 </div>
                                                 <div className="p-4 h-64 overflow-y-auto custom-scrollbar scanline-overlay relative">
                                                     {logs.map((log, i) => (
-                                                        <div key={i} className="mb-1.5 flex gap-3 animate-in fade-in duration-200">
-                                                            <span className="text-slate-600 select-none">{log.time}</span>
-                                                            <span className={i === logs.length - 1 ? 'text-indigo-400' : 'text-emerald-500'}>{i === logs.length - 1 ? '>>' : '✓'}</span>
-                                                            <span className={installError && i === logs.length - 1 ? "text-rose-400" : "text-slate-300"}>{log.text}</span>
+                                                        <div key={i} className="mb-1.5 flex gap-3 animate-in fade-in duration-normal">
+                                                            <span className="text-ink-secondary select-none">{log.time}</span>
+                                                            <span className={i === logs.length - 1 ? 'text-brand-400' : 'text-emerald-500'}>{i === logs.length - 1 ?'>>' : '✓'}</span>
+                                                            <span className={installError && i === logs.length - 1 ? "text-rose-400" : "text-neutral-300"}>{log.text}</span>
                                                         </div>
                                                     ))}
                                                     <div ref={terminalEndRef} />
-                                                    {loading && !installError && <div className="animate-pulse text-indigo-500 mt-2 ml-2">_</div>}
+                                                    {loading && !installError && <div className="animate-pulse text-brand-500 mt-2 ml-2">_</div>}
                                                 </div>
                                             </div>
                                         </div>
@@ -1183,24 +1183,24 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                             {/* --- STEP 5: ADMIN & BUSINESS --- */}
                             {step === 5 && (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto w-full">
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-slower max-w-xl mx-auto w-full">
                                     <div className="space-y-6">
-                                        <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-widest mb-6">Administrator Profile</h3>
-                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Full Name</label><input type="text" placeholder="Abdullah Hashmi" value={admin.name} onChange={e => setAdmin({ ...admin, name: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div>
-                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Email Address</label><input type="email" placeholder="admin@venqore.com" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div>
-                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Secure Password</label><div className="relative"><input type={admin.showPass ? "text" : "password"} value={admin.password} onChange={(e) => setAdmin({ ...admin, password: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500 pr-10" /><button onClick={() => setAdmin({ ...admin, showPass: !admin.showPass })} className="absolute right-3 top-3 text-slate-500 hover:text-white">{admin.showPass ? <EyeOff size={16} /> : <Eye size={16} />}</button></div>{admin.password && (<div className={`mt-2 grid grid-cols-3 gap-1 strength-${strength}`}><div className="strength-seg seg-1" /><div className="strength-seg seg-2" /><div className="strength-seg seg-3" /></div>)}</div>
-                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Quick PIN / Passcode (Optional)</label><div className="relative"><input type={admin.showPass ? "text" : "password"} maxLength={6} placeholder="1234" value={admin.passcode} onChange={(e) => setAdmin({ ...admin, passcode: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div></div>
+                                        <h3 className="text-sm font-bold text-brand-400 uppercase tracking-widest mb-6">Administrator Profile</h3>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Full Name</label><input type="text" placeholder="Abdullah Hashmi" value={admin.name} onChange={e => setAdmin({ ...admin, name: e.target.value })} className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500" /></div>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Email Address</label><input type="email" placeholder="admin@venqore.com" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500" /></div>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Secure Password</label><div className="relative"><input type={admin.showPass ? "text" : "password"} value={admin.password} onChange={(e) => setAdmin({ ...admin, password: e.target.value })} className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500 pr-10" /><button onClick={() => setAdmin({ ...admin, showPass: !admin.showPass })} className="absolute right-3 top-3 text-ink-muted hover:text-white">{admin.showPass ? <EyeOff size={16} /> : <Eye size={16} />}</button></div>{admin.password && (<div className={`mt-2 grid grid-cols-3 gap-1 strength-${strength}`}><div className="strength-seg seg-1" /><div className="strength-seg seg-2" /><div className="strength-seg seg-3" /></div>)}</div>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-ink-muted font-bold mb-2 block">Quick PIN / Passcode (Optional)</label><div className="relative"><input type={admin.showPass ? "text" : "password"} maxLength={6} placeholder="1234" value={admin.passcode} onChange={(e) => setAdmin({ ...admin, passcode: e.target.value })} className="w-full bg-neutral-950 border border-neutral-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-brand-500" /></div></div>
                                     </div>
-                                    <div className="mt-8"><button onClick={handleFinalize} className="w-full py-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all">Create Profile & Launch</button></div>
+                                    <div className="mt-8"><button onClick={handleFinalize} className="w-full py-4 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all">Create Profile & Launch</button></div>
                                 </div>
                             )}
 
                             {/* --- STEP 6: MISSION BRIEFING & AUTO-NUKE --- */}
                             {step === 6 && (
-                                <div className="text-center animate-in zoom-in-95 duration-700 flex flex-col items-center justify-center h-full">
+                                <div className="text-center animate-in zoom-in-95 duration-slower flex flex-col items-center justify-center h-full">
                                     <div className="relative mb-8 group cursor-pointer">
                                         <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-[50px] animate-pulse-glow" />
-                                        <div className="relative w-28 h-28 bg-zinc-950 border border-emerald-500/30 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                                        <div className="relative w-28 h-28 bg-neutral-950 border border-emerald-500/30 rounded-full flex items-center justify-center shadow-2xl transition-transform duration-slower">
                                             <div className="absolute inset-0 rounded-full border border-emerald-500/20 animate-[spin_10s_linear_infinite]" />
                                             <div className="absolute inset-2 rounded-full border border-emerald-500/20 animate-[spin_7s_linear_infinite_reverse]" />
                                             <Zap size={40} className="text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
@@ -1208,19 +1208,19 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     </div>
 
                                     <h2 className="text-5xl font-bold text-white mb-2 tracking-tighter">ONLINE</h2>
-                                    <p className="text-slate-400 mb-8 max-w-sm mx-auto leading-relaxed text-sm">
+                                    <p className="text-ink-muted mb-8 max-w-sm mx-auto leading-relaxed text-sm">
                                         Systems stable. Welcome to the future.
                                     </p>
 
                                     {/* Deployment Report */}
-                                    <div className="grid grid-cols-3 gap-px bg-slate-800/50 border border-slate-700/50 rounded-lg overflow-hidden mb-8 max-w-md w-full">
-                                        <div className="bg-zinc-950 p-4 flex flex-col gap-1"><span className="text-2xs text-slate-500 uppercase tracking-wider font-bold">Time</span><span className="text-emerald-400 font-mono text-sm">4.2s</span></div>
-                                        <div className="bg-zinc-950 p-4 flex flex-col gap-1"><span className="text-2xs text-slate-500 uppercase tracking-wider font-bold">Memory</span><span className="text-indigo-400 font-mono text-sm">12MB</span></div>
-                                        <div className="bg-zinc-950 p-4 flex flex-col gap-1"><span className="text-2xs text-slate-500 uppercase tracking-wider font-bold">Status</span><span className="text-white font-mono text-sm">OK</span></div>
+                                    <div className="grid grid-cols-3 gap-px bg-neutral-800/50 border border-neutral-700/50 rounded-lg overflow-hidden mb-8 max-w-md w-full">
+                                        <div className="bg-neutral-950 p-4 flex flex-col gap-1"><span className="text-2xs text-ink-muted uppercase tracking-wider font-bold">Time</span><span className="text-emerald-400 font-mono text-sm">4.2s</span></div>
+                                        <div className="bg-neutral-950 p-4 flex flex-col gap-1"><span className="text-2xs text-ink-muted uppercase tracking-wider font-bold">Memory</span><span className="text-brand-400 font-mono text-sm">12MB</span></div>
+                                        <div className="bg-neutral-950 p-4 flex flex-col gap-1"><span className="text-2xs text-ink-muted uppercase tracking-wider font-bold">Status</span><span className="text-white font-mono text-sm">OK</span></div>
                                     </div>
 
                                     {/* Mission Briefing Button */}
-                                    <button onClick={downloadCredentials} className="mb-8 flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider hover:text-white transition-colors">
+                                    <button onClick={downloadCredentials} className="mb-8 flex items-center gap-2 text-brand-400 text-xs font-bold uppercase tracking-wider hover:text-white transition-colors">
                                         <Download size={14} /> Download Mission Briefing (Credentials)
                                     </button>
 
@@ -1235,7 +1235,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                             console.log('Self-destruct optional, continuing...');
                                         }
                                         router.visit(route('store.create-or-join'));
-                                    }} className="px-12 py-4 rounded-full bg-white text-black font-bold text-sm uppercase tracking-widest hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] transition-all duration-300 flex items-center gap-3">
+                                    }} className="px-12 py-4 rounded-full bg-white text-black font-bold text-sm uppercase tracking-widest hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] transition-all duration-slow flex items-center gap-3">
                                         Enter Setup Wizard <ChevronRight size={16} />
                                     </button>
 
@@ -1246,7 +1246,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                     </div>
 
                     {/* Footer Status Bar */}
-                    <div className="absolute bottom-0 left-0 w-full h-10 border-t border-white/5 bg-black/40 flex items-center justify-between px-8 text-2xs font-mono text-slate-500 uppercase tracking-wider backdrop-blur-sm">
+                    <div className="absolute bottom-0 left-0 w-full h-10 border-t border-white/5 bg-black/40 flex items-center justify-between px-8 text-2xs font-mono text-ink-muted uppercase tracking-wider backdrop-blur-sm">
                         <div className="flex gap-6">
                             <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> System Active</span>
                             <span className="flex items-center gap-1.5"><Gauge size={10} /> CPU: 12%</span>

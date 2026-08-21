@@ -18,7 +18,7 @@ export default function FeedChart({ data }) {
                 {items.slice(0, 3).map((item, i) => (
                     <div 
                         key={item.id || i}
-                        className="flex items-center justify-between gap-3 p-1.5 rounded-xl border border-border dark:border-border bg-sunken dark:bg-sunken select-none text-[9px] font-bold"
+                        className="flex items-center justify-between gap-3 p-1.5 rounded-xl border border-line dark:border-line bg-sunken dark:bg-sunken select-none text-3xs font-bold"
                     >
                         <div className="flex items-center gap-2 min-w-0">
                             <div className="p-1 rounded-lg bg-brand-500/10 text-brand-500 shrink-0">
@@ -26,7 +26,7 @@ export default function FeedChart({ data }) {
                             </div>
                             <div className="min-w-0">
                                 <div className="text-ink truncate max-w-[120px]">{item.title}</div>
-                                <div className="text-ink-muted dark:text-ink-muted text-[8px] font-semibold">{item.subtitle}</div>
+                                <div className="text-ink-muted dark:text-ink-muted text-4xs font-semibold">{item.subtitle}</div>
                             </div>
                         </div>
                         <div className="text-right shrink-0">

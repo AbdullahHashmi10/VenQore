@@ -19,9 +19,9 @@ const paymentBadge = (status) => ({
 const workflowBadge = (status) => ({
     received: 'bg-blue-100 text-blue-700',
     partial: 'bg-amber-100 text-amber-700',
-    pending: 'bg-gray-100 text-gray-600',
-    cancelled: 'bg-gray-200 text-gray-500 line-through',
-}[status] ?? 'bg-gray-100 text-gray-600');
+    pending: 'bg-neutral-100 text-ink-secondary',
+    cancelled: 'bg-neutral-200 text-ink-muted line-through',
+}[status] ?? 'bg-neutral-100 text-ink-secondary');
 
 export default function PurchaseIndex({ purchases, filters = {} }) {
     const { store } = usePage().props;
@@ -59,7 +59,7 @@ export default function PurchaseIndex({ purchases, filters = {} }) {
                         placeholder="Invoice #, reference or supplier…"
                         className="border rounded px-3 py-2 text-sm w-72"
                     />
-                    <button type="submit" className="border px-4 py-2 rounded text-sm hover:bg-gray-50">
+                    <button type="submit" className="border px-4 py-2 rounded text-sm hover:bg-interactive-hover">
                         Search
                     </button>
                 </form>
@@ -88,55 +88,55 @@ export default function PurchaseIndex({ purchases, filters = {} }) {
                 </select>
             </div>
 
-            <table className="w-full border-collapse border border-gray-200">
-                <thead className="bg-gray-50">
+            <table className="w-full border-collapse border border-line">
+                <thead className="bg-sunken">
                     <tr>
-                        <th className="border border-gray-200 px-4 py-2 text-left">Invoice #</th>
-                        <th className="border border-gray-200 px-4 py-2 text-left">Supplier</th>
-                        <th className="border border-gray-200 px-4 py-2 text-left">Date</th>
-                        <th className="border border-gray-200 px-4 py-2 text-left">Due</th>
-                        <th className="border border-gray-200 px-4 py-2 text-right">Total</th>
-                        <th className="border border-gray-200 px-4 py-2 text-center">Goods</th>
-                        <th className="border border-gray-200 px-4 py-2 text-center">Payment</th>
-                        <th className="border border-gray-200 px-4 py-2"></th>
+                        <th className="border border-line px-4 py-2 text-left">Invoice #</th>
+                        <th className="border border-line px-4 py-2 text-left">Supplier</th>
+                        <th className="border border-line px-4 py-2 text-left">Date</th>
+                        <th className="border border-line px-4 py-2 text-left">Due</th>
+                        <th className="border border-line px-4 py-2 text-right">Total</th>
+                        <th className="border border-line px-4 py-2 text-center">Goods</th>
+                        <th className="border border-line px-4 py-2 text-center">Payment</th>
+                        <th className="border border-line px-4 py-2"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {purchases.data?.length === 0 && (
                         <tr>
-                            <td colSpan={8} className="border border-gray-200 px-4 py-8 text-center text-gray-400">
+                            <td colSpan={8} className="border border-line px-4 py-8 text-center text-ink-muted">
                                 No purchases match these filters.
                             </td>
                         </tr>
                     )}
 
                     {purchases.data?.map(p => (
-                        <tr key={p.id} className="hover:bg-gray-50">
-                            <td className="border border-gray-200 px-4 py-2 font-mono text-sm">
+                        <tr key={p.id} className="hover:bg-interactive-hover">
+                            <td className="border border-line px-4 py-2 font-mono text-sm">
                                 {p.invoice_number}
                                 {p.reference && (
-                                    <div className="text-xs text-gray-400 font-sans">{p.reference}</div>
+                                    <div className="text-xs text-ink-muted font-sans">{p.reference}</div>
                                 )}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2">{p.supplier_name}</td>
-                            <td className="border border-gray-200 px-4 py-2">{p.purchase_date}</td>
-                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-500">
+                            <td className="border border-line px-4 py-2">{p.supplier_name}</td>
+                            <td className="border border-line px-4 py-2">{p.purchase_date}</td>
+                            <td className="border border-line px-4 py-2 text-sm text-ink-muted">
                                 {p.due_date ?? '—'}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-right">
+                            <td className="border border-line px-4 py-2 text-right">
                                 {formatCurrency(p.total, store)}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-center">
+                            <td className="border border-line px-4 py-2 text-center">
                                 <span className={`text-xs px-2 py-1 rounded ${workflowBadge(p.workflow_status)}`}>
                                     {p.workflow_status}
                                 </span>
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-center">
+                            <td className="border border-line px-4 py-2 text-center">
                                 <span className={`text-xs px-2 py-1 rounded ${paymentBadge(p.payment_status)}`}>
                                     {p.payment_status}
                                 </span>
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-center whitespace-nowrap">
+                            <td className="border border-line px-4 py-2 text-center whitespace-nowrap">
                                 <Link
                                     href={route('store.v3.purchases.show', { store_slug: store.slug, purchase: p.id })}
                                     className="text-blue-600 hover:underline text-sm"
@@ -145,7 +145,7 @@ export default function PurchaseIndex({ purchases, filters = {} }) {
                                 </Link>
                                 {['pending', 'partial'].includes(p.workflow_status) && (
                                     <>
-                                        {' · '}
+                                        {' ·'}
                                         <Link
                                             href={route('store.v3.purchases.receive', { store_slug: store.slug, purchase: p.id })}
                                             className="text-green-600 hover:underline text-sm"
@@ -167,7 +167,7 @@ export default function PurchaseIndex({ purchases, filters = {} }) {
                             key={i}
                             href={link.url ?? '#'}
                             className={`px-3 py-1 border rounded text-sm ${
-                                link.active ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-50'
+                                link.active ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-interactive-hover'
                             } ${!link.url ? 'opacity-40 pointer-events-none' : ''}`}
                             dangerouslySetInnerHTML={{ __html: link.label }}
                         />

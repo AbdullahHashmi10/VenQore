@@ -20,8 +20,8 @@ import axios from 'axios';
 
 const PLAN_COLORS = {
     trial:    'text-amber-400',
-    starter:  'text-slate-400',
-    growth:   'text-indigo-400',
+    starter:  'text-ink-muted',
+    growth:   'text-brand-400',
     business: 'text-purple-400',
     ltd:      'text-emerald-400',
 };
@@ -86,24 +86,24 @@ export default function StoreSwitcher() {
 
     if (!store) return null;
 
-    const planColor = PLAN_COLORS[store.plan] ?? 'text-slate-400';
+    const planColor = PLAN_COLORS[store.plan] ?? 'text-ink-muted';
 
     return (
         <div ref={ref} className="relative">
             {/* Trigger */}
             <button
                 onClick={toggle}
-                className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl transition-all duration-300 border
+                className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl transition-all duration-slow border
                     ${open
-                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 border-indigo-200 dark:border-indigo-800'
-                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md'
+                        ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
+                        : 'bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'
                     }`}
                 aria-label="Switch store"
                 aria-expanded={open}
             >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     {/* Store avatar */}
-                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xs font-black text-white shrink-0 shadow-sm leading-none">
+                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-2xs font-bold text-white shrink-0 shadow-sm leading-none">
                         {store.name.charAt(0).toUpperCase()}
                     </div>
 
@@ -114,27 +114,27 @@ export default function StoreSwitcher() {
 
                 <ChevronDown
                     size={14}
-                    className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180 text-indigo-500' : 'text-slate-400'}`}
+                    className={`shrink-0 transition-transform duration-slow ${open ? 'rotate-180 text-brand-500' : 'text-ink-muted'}`}
                 />
             </button>
 
             {/* Dropdown */}
             {open && (
-                <div className="absolute left-0 right-0 mt-1 z-50 rounded-xl border border-white/12 bg-slate-900/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute left-0 right-0 mt-1 z-50 rounded-xl border border-white/12 bg-neutral-900/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-fast">
 
                     {/* Header */}
                     <div className="px-3 py-2 border-b border-white/8">
-                        <p className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Your Stores</p>
+                        <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Your Stores</p>
                     </div>
 
                     {/* Store list */}
                     <div className="p-1 max-h-64 overflow-y-auto">
                         {loading ? (
                             <div className="flex items-center justify-center py-6">
-                                <Loader2 size={16} className="animate-spin text-slate-500" />
+                                <Loader2 size={16} className="animate-spin text-ink-muted" />
                             </div>
                         ) : stores?.length === 0 ? (
-                            <p className="text-xs text-slate-500 text-center py-4">No other stores</p>
+                            <p className="text-xs text-ink-muted text-center py-4">No other stores</p>
                         ) : (
                             stores?.map(s => {
                                 const isCurrent = s.store_id === store.id;
@@ -145,30 +145,30 @@ export default function StoreSwitcher() {
                                         disabled={navigating === s.store_id}
                                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-left
                                             ${isCurrent
-                                                ? 'bg-indigo-500/10 text-white cursor-default'
-                                                : 'text-slate-300 hover:bg-white/6 hover:text-white active:scale-[0.98]'
+                                                ? 'bg-brand-500/10 text-white cursor-default'
+                                                : 'text-ink-faint hover:bg-white/6 hover:text-white active:scale-[0.98]'
                                             }`}
                                     >
                                         {/* Avatar */}
-                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
-                                            isCurrent ? 'bg-indigo-500/25 text-indigo-300' : 'bg-white/8 text-slate-300'
+                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+                                            isCurrent ? 'bg-brand-500/25 text-brand-300' : 'bg-white/8 text-neutral-300'
                                         }`}>
                                             {s.name.charAt(0).toUpperCase()}
                                         </div>
 
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-semibold truncate leading-tight">{s.name}</p>
-                                            <p className={`text-2xs capitalize leading-tight ${PLAN_COLORS[s.plan] ?? 'text-slate-500'}`}>
+                                            <p className={`text-2xs capitalize leading-tight ${PLAN_COLORS[s.plan] ?? 'text-ink-muted'}`}>
                                                 {s.plan} · {s.role}
                                             </p>
                                         </div>
 
                                         {isCurrent ? (
-                                            <Check size={13} className="text-indigo-400 shrink-0" />
+                                            <Check size={13} className="text-brand-400 shrink-0" />
                                         ) : navigating === s.store_id ? (
-                                            <Loader2 size={13} className="animate-spin text-slate-500 shrink-0" />
+                                            <Loader2 size={13} className="animate-spin text-ink-muted shrink-0" />
                                         ) : (
-                                            <ArrowRight size={13} className="text-slate-600 shrink-0" />
+                                            <ArrowRight size={13} className="text-ink-secondary shrink-0" />
                                         )}
                                     </button>
                                 );
@@ -180,7 +180,7 @@ export default function StoreSwitcher() {
                     <div className="p-1 border-t border-white/8">
                         <button
                             onClick={() => { setOpen(false); router.visit(route('store.create', { store_slug: store.slug })); }}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/8 transition-all text-sm"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-ink-muted hover:text-brand-400 hover:bg-brand-500/8 transition-all text-sm"
                         >
                             <Plus size={14} />
                             <span className="font-medium">Create new store</span>

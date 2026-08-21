@@ -464,5 +464,634 @@
   "accent": {
     "$comment": "Mechanism M1. Exactly one accent-filled card per board, and it must be the headline metric. Zero is a fail; two is a fail.",
     "maxPerBoard": 1
+  },
+  "terminal": {
+    "$comment": [
+      "VENQORE LAYOUT LAW v2.0 §10 — the terminal.",
+      "",
+      "A dashboard has unlimited height, so v1.0 only ever had to defend the horizontal",
+      "axis. A terminal is exactly one viewport tall and never scrolls the page, so here",
+      "HEIGHT is the scarcer resource — and the worst case is not a phone, it is a",
+      "1280x720 laptop, where a maximised browser leaves about 570 usable pixels.",
+      "",
+      "The per-viewport tables in VENQORE_LAYOUT_LAW.md are OUTPUTS of the rules below,",
+      "not the rules. Implement the waterfall; the tables are the acceptance criteria.",
+      "",
+      "Every floor here is computed from the type scale and real advance widths. For",
+      "example cart_line_full = name 132 + qty stepper 96 + rate 75 + total 130 +",
+      "delete 36 + gaps 48 + padding 40 = 559. There is no judgement in it."
+    ],
+    "floors": {
+      "cart_line_full": 559,
+      "cart_line_relay": 359,
+      "cart_line_min": 305,
+      "tender_full": 367,
+      "tender_mid": 264,
+      "tender_min": 201,
+      "catalog_grid3": 484,
+      "catalog_grid2": 328,
+      "catalog_list": 254,
+      "cart_min_h": 244,
+      "$cartMinComment": "A cart showing fewer than three lines is not a cart, it is a receipt preview. This is the one place in the law where the vertical axis overrules the horizontal."
+    },
+    "residency": {
+      "$comment": [
+        "A card that cannot get wider gets TALLER and relays its inside. A pane cannot —",
+        "a terminal has no vertical slack — so a pane DEMOTES instead.",
+        "",
+        "Ordered from most to least present. `route` exists because some panes are not a",
+        "simultaneous view, they are a STEP: a restaurant server on a phone picks a table,",
+        "then takes the order. Squeezing both onto 360x560 is the wrong answer to the",
+        "right question."
+      ],
+      "ladder": [
+        "resident",
+        "stacked",
+        "sheet",
+        "tab",
+        "route"
+      ],
+      "rank1Allowed": [
+        "resident",
+        "stacked"
+      ],
+      "rank1AllowedInSequence": [
+        "sheet",
+        "route"
+      ],
+      "rank1Forbidden": [
+        "tab"
+      ],
+      "$rank1Comment": "A rank-1 pane may be resident or stacked freely, and sheet or route ONLY where the variant declares an ordered sequence with a guaranteed return path. Never tab: a tab implies peers you switch between at will, and a rank-1 pane needs a guaranteed moment, not a competed-for one."
+    },
+    "panes": {
+      "cart": {
+        "rank": 1,
+        "weight": 3,
+        "hold": "fit",
+        "cap": 805,
+        "minHeight": 244,
+        "$capComment": "Its floor with the item column grown from a 12-char truncation to a full 40-char product name. Past that, extra width is pure margin — a cart shows the same five columns however wide it is.",
+        "fits": [
+          {
+            "key": "table",
+            "floor": 559,
+            "label": "Every control inline"
+          },
+          {
+            "key": "relay",
+            "floor": 359,
+            "label": "Name on line 1, controls on line 2"
+          },
+          {
+            "key": "minimal",
+            "floor": 305,
+            "label": "Name and total; tap a line to adjust"
+          }
+        ]
+      },
+      "tender": {
+        "rank": 1,
+        "weight": 2,
+        "hold": "fit",
+        "cap": 551,
+        "$capComment": "Its floor plus a 4x40 numeric keypad.",
+        "fits": [
+          {
+            "key": "full",
+            "floor": 367,
+            "label": "Grand total at 38px"
+          },
+          {
+            "key": "compact",
+            "floor": 264,
+            "label": "Grand total at 26px"
+          },
+          {
+            "key": "min",
+            "floor": 201,
+            "label": "Abbreviated total in a sticky bar"
+          }
+        ]
+      },
+      "catalog": {
+        "rank": 2,
+        "weight": 2,
+        "hold": "residency",
+        "cap": null,
+        "$holdComment": "Presence is the information. A catalog you can see beats a richer catalog you have to open a sheet for. It also genuinely shows MORE when given more, so it absorbs surplus width rather than capping.",
+        "fits": [
+          {
+            "key": "grid-3up",
+            "floor": 484,
+            "label": "3 image tiles per row"
+          },
+          {
+            "key": "grid-2up",
+            "floor": 328,
+            "label": "2 image tiles per row"
+          },
+          {
+            "key": "list",
+            "floor": 254,
+            "label": "Rows: name, price, stock"
+          }
+        ]
+      },
+      "floor": {
+        "rank": 1,
+        "weight": 2,
+        "hold": "residency",
+        "cap": null,
+        "$comment": "The floor plan. Rank 1 on the Table variant: the unit of work is the table, not the sale.",
+        "fits": [
+          {
+            "key": "grid",
+            "floor": 484,
+            "label": "Table tiles"
+          },
+          {
+            "key": "list",
+            "floor": 254,
+            "label": "Table rows"
+          }
+        ]
+      }
+    },
+    "variants": {
+      "scan": {
+        "name": "Scan",
+        "tagline": "No catalog. Scanner and keyboard only.",
+        "for": "Large inventory (>2,000 SKUs), barcode-driven. Pharmacy, hardware, grocery, distribution.",
+        "why": "A catalog nobody browses is 40% of the screen spent on nothing. Removing it is the single biggest calm-down available.",
+        "panes": [
+          "cart",
+          "tender"
+        ]
+      },
+      "column": {
+        "name": "Column",
+        "tagline": "Catalog as a left column.",
+        "for": "Mixed inventory (200-2,000 SKUs) where staff both scan and browse. General retail.",
+        "why": "The familiar shape, but ranked: the catalog is a column, not a competitor.",
+        "panes": [
+          "catalog",
+          "cart",
+          "tender"
+        ],
+        "degradesTo": "counter",
+        "$degradesComment": "On a phone the catalog column becomes a picker sheet — open, choose, close. That is a step, not a hidden pane, and it is exactly the Counter variant. Counter is a first-class choice rather than Column’s failure mode."
+      },
+      "row": {
+        "name": "Row",
+        "tagline": "Catalog as a top row of tiles.",
+        "for": "Small inventory (<200 SKUs), fast repeat items. Cafe, bakery, kiosk, pharmacy counter.",
+        "why": "On a wide screen a 2-row tile strip is reachable by thumb and leaves the full width for the cart underneath.",
+        "panes": [
+          "catalog",
+          "cart",
+          "tender"
+        ],
+        "catalogPlacement": "band",
+        "catalogBandRows": 2,
+        "$bandComment": "The catalog band is asymmetric. The FIRST row of tiles is worth squeezing the cart to its floor of 3 lines for — without it there is no touch picker at all. The SECOND is a convenience, so it may only take height the cart does not need to reach a comfortable 5 lines. That is why a short 1280x720 laptop gets one row and a tall iPad gets two."
+      },
+      "grid": {
+        "name": "Grid",
+        "tagline": "Catalog dominant, cart as a rail.",
+        "for": "Visual products, walk-up counters, staff who point rather than type. Cafe, QSR, boutique.",
+        "why": "When the product IS the interface, the cart only needs to confirm.",
+        "panes": [
+          "catalog",
+          "cart",
+          "tender"
+        ],
+        "paneOverrides": {
+          "catalog": {
+            "rank": 1,
+            "weight": 4
+          },
+          "tender": {
+            "residency": "sheet"
+          }
+        },
+        "sequence": [
+          "catalog",
+          "cart",
+          "tender"
+        ],
+        "$sequenceComment": "Grid demotes the rank-1 tender to a sheet at every width — when the product IS the interface, the cart only needs to confirm. That is legal only because this sequence exists: pick, review, pay, with a guaranteed way back."
+      },
+      "counter": {
+        "name": "Counter",
+        "tagline": "One column. Cart first.",
+        "for": "Phone and small tablet, market stalls, delivery riders, single-hand use.",
+        "why": "Below 600px nothing else survives; making it a first-class variant means it is designed, not degraded.",
+        "panes": [
+          "cart",
+          "tender"
+        ],
+        "catalogAs": "sheet",
+        "forceLayout": "bands"
+      },
+      "table": {
+        "name": "Table",
+        "tagline": "Floor plan first, then order.",
+        "for": "Restaurants, cafes with table service, salons, any seat/slot business.",
+        "why": "The unit of work is the table, not the sale. A sale is a property of a table.",
+        "panes": [
+          "floor",
+          "cart",
+          "tender"
+        ],
+        "sequence": [
+          "floor",
+          "cart",
+          "tender"
+        ],
+        "$sequenceComment": "The declared sequence is what lets the rank-1 floor pane become a `route` on a phone: an ordered set of steps with a guaranteed return path."
+      }
+    },
+    "aspect": {
+      "$comment": [
+        "Columns or bands is an ASPECT question, not a width question.",
+        "",
+        "Splitting a terminal into columns costs nothing vertically and stacking costs a lot.",
+        "So a 768x950 portrait iPad wants BANDS — there is height to spend and no width to",
+        "spare — and a 1024x695 landscape iPad wants COLUMNS, exactly the reverse.",
+        "",
+        "Computed once per composition, not scored per width, so the only shape change a",
+        "user ever sees on a terminal is the portrait/landscape one."
+      ],
+      "columnsAbove": 1.25,
+      "$ratioComment": "width / height. Above this, columns. At or below, bands."
+    }
+  },
+  "document": {
+    "$comment": [
+      "VENQORE LAYOUT LAW v2.0 §11 — the document.",
+      "",
+      "Eight of the thirteen document screens are the same file copy-pasted — same",
+      "imports, same patchInvoice, same drag-reorder, same scan modal, same profit peek",
+      "— with the labels swapped and a handful of fields silently dropped from the",
+      "payload. That is WHY `Terms` is decorative on every one of them, why a quotation",
+      "has no `Valid until`, and why a debit note never restores stock: a fix applied to",
+      "the sales invoice never reached the other seven.",
+      "",
+      "A TYPE IS NOT A SCREEN. It is a configuration — a set of capability switches and",
+      "label overrides on one editor. That is what this table is."
+    ],
+    "zones": {
+      "header": {
+        "hold": "fit",
+        "fits": [
+          {
+            "key": "2col",
+            "floor": 584,
+            "label": "Two field columns"
+          },
+          {
+            "key": "1col",
+            "floor": 300,
+            "label": "One field column"
+          }
+        ]
+      },
+      "lines": {
+        "hold": "fit",
+        "fits": [
+          {
+            "key": "full",
+            "floor": 933,
+            "label": "10 line columns"
+          },
+          {
+            "key": "std",
+            "floor": 693,
+            "label": "7 line columns"
+          },
+          {
+            "key": "lean",
+            "floor": 561,
+            "label": "5 line columns"
+          },
+          {
+            "key": "cards",
+            "floor": 305,
+            "label": "One card per line"
+          }
+        ]
+      },
+      "summary": {
+        "hold": "fit",
+        "fits": [
+          {
+            "key": "panel",
+            "floor": 384,
+            "label": "Resident summary panel"
+          },
+          {
+            "key": "tight",
+            "floor": 249,
+            "label": "Narrow summary panel"
+          }
+        ]
+      }
+    },
+    "densities": {
+      "$comment": [
+        "Density is a preference — an accountant wants ten line columns, a cashier wants",
+        "five — but it is a preference the width has to be able to honour. Below the floor",
+        "the law CAPS the density rather than letting the user pick something that will",
+        "silently mangle the screen."
+      ],
+      "simple": {
+        "for": "first-time users, cashiers, single-product shops",
+        "header": [
+          "party",
+          "date"
+        ],
+        "lines": [
+          "item",
+          "qty",
+          "rate",
+          "total",
+          "del"
+        ],
+        "requiresLineFit": "cards"
+      },
+      "standard": {
+        "for": "the default for every type",
+        "header": [
+          "party",
+          "docno",
+          "date",
+          "terms",
+          "due",
+          "method",
+          "account"
+        ],
+        "lines": [
+          "idx",
+          "item",
+          "qty",
+          "rate",
+          "disc",
+          "total",
+          "del"
+        ],
+        "requiresLineFit": "std"
+      },
+      "pro": {
+        "for": "accountants, wholesalers, multi-warehouse, tax-heavy",
+        "header": [
+          "party",
+          "docno",
+          "partyref",
+          "date",
+          "due",
+          "terms",
+          "method",
+          "account",
+          "location",
+          "project",
+          "currency",
+          "fx"
+        ],
+        "lines": [
+          "idx",
+          "item",
+          "qty",
+          "free",
+          "uom",
+          "rate",
+          "disc",
+          "tax",
+          "total",
+          "del"
+        ],
+        "requiresLineFit": "full"
+      }
+    },
+    "nav": {
+      "$comment": "1708 is where a document surface finally lets the nav expand — the first width at which a 264px sidebar still leaves room for the 10-column table AND the summary panel. Below 1024 the nav is hidden entirely; a document needs its width more than it needs a visible rail.",
+      "hiddenBelow": 1024,
+      "expandedAtOrAbove": 1708
+    },
+    "summaryFallback": {
+      "$comment": "When the summary cannot be a resident column it becomes a STICKY ACTION BAR, not the same panel pinned to the bottom — a 438px bar on a 570px laptop leaves nothing for the document it is summarising. Collapsed it is the total, the balance and the primary action; the breakdown is one tap.",
+      "mode": "sticky-bar",
+      "collapsedShows": [
+        "total",
+        "balance",
+        "primaryAction"
+      ]
+    },
+    "types": {
+      "INV": {
+        "name": "Sales invoice",
+        "side": "sell",
+        "density": "standard",
+        "party": "Customer",
+        "save": "Complete sale"
+      },
+      "BILL": {
+        "name": "Purchase invoice",
+        "side": "buy",
+        "density": "pro",
+        "party": "Supplier",
+        "save": "Post purchase"
+      },
+      "QT": {
+        "name": "Quotation",
+        "side": "sell",
+        "density": "standard",
+        "party": "Customer",
+        "save": "Save quote"
+      },
+      "SO": {
+        "name": "Sales order",
+        "side": "sell",
+        "density": "standard",
+        "party": "Customer",
+        "save": "Confirm order"
+      },
+      "PO": {
+        "name": "Purchase order",
+        "side": "buy",
+        "density": "standard",
+        "party": "Supplier",
+        "save": "Place order"
+      },
+      "SRET": {
+        "name": "Sale return",
+        "side": "sell",
+        "density": "standard",
+        "party": "Customer",
+        "save": "Confirm return"
+      },
+      "PRET": {
+        "name": "Purchase return",
+        "side": "buy",
+        "density": "standard",
+        "party": "Supplier",
+        "save": "Confirm return"
+      },
+      "DN": {
+        "name": "Debit note",
+        "side": "buy",
+        "density": "standard",
+        "party": "Supplier",
+        "save": "Create debit note"
+      },
+      "GRN": {
+        "name": "Goods receipt",
+        "side": "buy",
+        "density": "standard",
+        "party": "Supplier",
+        "save": "Receive goods"
+      },
+      "EXP": {
+        "name": "Expense",
+        "side": "buy",
+        "density": "simple",
+        "party": "Payee",
+        "save": "Save record",
+        "noLines": true
+      },
+      "TRF": {
+        "name": "Stock transfer",
+        "side": "stock",
+        "density": "simple",
+        "party": null,
+        "save": "Create transfer"
+      },
+      "AUD": {
+        "name": "Stock audit",
+        "side": "stock",
+        "density": "simple",
+        "party": null,
+        "save": "Save audit"
+      },
+      "REC": {
+        "name": "Recurring invoice",
+        "side": "sell",
+        "density": "standard",
+        "party": "Customer",
+        "save": "Save template"
+      }
+    },
+    "capabilities": {
+      "$comment": "Every distinct capability found across all thirteen screens. This is the definition of what the unified editor must support, and the answer to 'will we lose something': if a cell is filled today it is filled here.",
+      "lineItems": [
+        "INV",
+        "BILL",
+        "QT",
+        "SO",
+        "PO",
+        "SRET",
+        "PRET",
+        "DN",
+        "REC"
+      ],
+      "partyBalanceCard": [
+        "INV"
+      ],
+      "stockMovement": [
+        "INV",
+        "BILL",
+        "SRET",
+        "PRET",
+        "GRN",
+        "TRF",
+        "AUD"
+      ],
+      "payment": [
+        "INV",
+        "BILL",
+        "EXP"
+      ],
+      "dueDate": [
+        "INV",
+        "BILL",
+        "QT",
+        "SO",
+        "PO",
+        "REC"
+      ],
+      "validUntil": [
+        "QT"
+      ],
+      "recurrence": [
+        "REC"
+      ],
+      "location": [
+        "INV",
+        "BILL",
+        "GRN",
+        "TRF",
+        "AUD"
+      ],
+      "tax": [
+        "INV",
+        "BILL",
+        "QT",
+        "SO",
+        "PO",
+        "SRET",
+        "PRET",
+        "DN",
+        "REC"
+      ],
+      "profitPeek": [
+        "INV",
+        "QT",
+        "SO",
+        "SRET",
+        "REC"
+      ],
+      "scanToAdd": [
+        "INV",
+        "BILL",
+        "PO",
+        "GRN",
+        "TRF",
+        "AUD"
+      ]
+    }
+  },
+  "chartDefaultCategory": {
+    "$comment": [
+      "The category a chart gets when a card is first created.",
+      "",
+      "This was derived by taking index 1 of chartCategories, which is arithmetic, not a",
+      "decision — and it put a stat in a C2 Strip, a 4x1 band 64px tall with no room for",
+      "a delta pill under the value. The reference board's KPI row is four C3 Metric",
+      "cards at the standard 3x2 fit, which is 152px, and that is what a number with a",
+      "delta and a sparkline actually needs.",
+      "",
+      "chartCategories still governs what is LEGAL. This governs what you get by default."
+    ],
+    "stat": "C3",
+    "sparkline": "C3",
+    "gauge": "C3",
+    "status": "C2",
+    "ring": "C4",
+    "pie": "C4",
+    "funnel": "C4",
+    "feed": "C4",
+    "radar": "C4",
+    "bar": "C5",
+    "line": "C5",
+    "area": "C5",
+    "profit_loss_line": "C5",
+    "table": "C5",
+    "composed": "C5",
+    "live_line": "C5",
+    "heatmap": "C5",
+    "sunburst": "C5",
+    "scatter": "C5",
+    "sankey": "C6",
+    "choropleth": "C6"
   }
 }

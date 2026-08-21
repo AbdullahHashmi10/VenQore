@@ -1,4 +1,5 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import FeatureLockBadge from '@/Components/FeatureLockBadge';
@@ -26,18 +27,34 @@ export default function SidebarItem({
     const finalRoute = targetRoute || routeName;
     const hoverTimerRef = useRef(null);
 
-    // Handle hover start - start timer for 2 seconds
+    /*
+     * The collapsed tooltip is rendered into <body>, so it needs coordinates
+     * rather than a CSS anchor. `tipAt` holds them and doubles as the
+     * visible/hidden flag — null means no tooltip in the DOM at all, which is
+     * cheaper than mounting one per nav item and hiding it with opacity.
+     *
+     * Measured on enter rather than on mount: the rail slides between 264px and
+     * 72px, and a position captured at mount would be wrong the moment it did.
+     */
+    const rowRef = useRef(null);
+    const [tipAt, setTipAt] = useState(null);
+
     const handleMouseEnter = useCallback(() => {
-        // Only trigger if sidebar is collapsed and this item has subitems
+        if (!isExpanded && rowRef.current) {
+            const r = rowRef.current.getBoundingClientRect();
+            setTipAt({ top: r.top + r.height / 2, left: r.right + 8 });
+        }
+
+        // Hovering a collapsed parent for a beat opens the sidebar.
         if (!isExpanded && subItems.length > 0 && onHoverExpand) {
             hoverTimerRef.current = setTimeout(() => {
                 onHoverExpand(menuKey);
-            }, 1000); // 1 second hover time (was 2s)
+            }, 1000);
         }
     }, [isExpanded, subItems.length, onHoverExpand, menuKey]);
 
-    // Handle hover end - clear timer
     const handleMouseLeave = useCallback(() => {
+        setTipAt(null);
         if (hoverTimerRef.current) {
             clearTimeout(hoverTimerRef.current);
             hoverTimerRef.current = null;
@@ -51,22 +68,46 @@ export default function SidebarItem({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
+            {/*
+              * THE ROW.
+              *
+              * `overflow-hidden` used to live on this element and it was the
+              * cause of the reported bug. It clipped three things at once: the
+              * icon's hover ring, which sat 4px outside its own box; the icon
+              * itself, which scaled 25% on hover; and the collapsed-state
+              * tooltip, which is positioned at `left-full` — entirely outside
+              * this box, so it never rendered AT ALL, in any state, on any
+              * hover. `z-50` did not save it: clipping happens during paint,
+              * before stacking is considered, and no z-index escapes an
+              * `overflow-hidden` ancestor. That misunderstanding is why the app
+              * accumulated 31 hand-written z-index values.
+              *
+              * The clip now lives only on the thing that needs clipping, and
+              * the tooltip is portalled to <body>.
+              */}
             <div
+                ref={rowRef}
                 className={`
-          flex items-center justify-between p-0 rounded-2xl transition-all duration-300 group relative overflow-hidden
+          flex items-center justify-between p-0 rounded-md transition-colors duration-fast group relative
           ${isActive
-                        ? 'text-white shadow-xl shadow-indigo-500/20'
-                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-accent-quiet text-accent-text'
+                        : 'text-ink-muted hover:bg-interactive-hover'
                     }
-        `}
+`}
             >
+                {/*
+                  * Active state, per DESIGN-RULES v3.0 §13: a quiet accent wash
+                  * and a 3px accent rule down the left edge. What was here
+                  * before — two blurred 128px colour blobs, a noise texture and
+                  * a gradient hairline — was four decorative layers on the
+                  * single most-looked-at pixel in the product, in a colour that
+                  * was not the brand.
+                  */}
                 {isActive && (
-                    <div className={`absolute inset-0 z-0 pointer-events-none ${isPlatformHQ ? 'bg-indigo-600/10' : 'bg-slate-900'}`}>
-                        <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 ${isPlatformHQ ? 'bg-indigo-500/30' : 'bg-indigo-600/40'}`}></div>
-                        <div className={`absolute bottom-0 left-0 w-32 h-32 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 ${isPlatformHQ ? 'bg-violet-500/20' : 'bg-purple-600/30'}`}></div>
-                        <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20"></div>
-                        <div className={`absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50`}></div>
-                    </div>
+                    <span
+                        aria-hidden="true"
+                        className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-accent pointer-events-none"
+                    />
                 )}
 
                 {/* Main Click Zone - Navigation */}
@@ -82,15 +123,34 @@ export default function SidebarItem({
                         isExpanded ? 'gap-3 p-3 justify-start' : 'p-3 justify-center'
                     }`}
                 >
-                    <div className="relative group-hover:scale-125 transition-transform duration-300 origin-center">
-                        <Icon size={isPlatformHQ ? 22 : 20} className={`transition-all duration-300 ${isActive ? (isPlatformHQ ? 'text-white' : 'text-white') : (isPlatformHQ ? 'text-slate-500 group-hover:text-white' : 'group-hover:text-indigo-600')}`} />
-                        {/* Hover indicator ring for collapsed state */}
-                        {!isExpanded && subItems.length > 0 && (
-                            <div className="absolute -inset-1 rounded-full border-2 border-transparent group-hover:border-indigo-400/50 transition-all duration-300 group-hover:animate-pulse"></div>
-                        )}
+                    {/*
+                      * Icon: colour only, never a transform. A standalone icon
+                      * that scales under the pointer is the hover contract's
+                      * one absolute prohibition (§9).
+                      *
+                      * The `-inset-1` ring that used to sit here is gone. It
+                      * extended 4px past the icon on every side, so it was
+                      * clipped before the icon was — and it carried
+                      * `animate-pulse`, an ambient loop, which the product does
+                      * not do. A collapsed item with children is already marked
+                      * by its tooltip.
+                      */}
+                    <div className="relative">
+                        <Icon
+                            size={isPlatformHQ ? 22 : 20}
+                            className={`transition-colors duration-fast ${
+                                isActive ? 'text-accent-text' : 'group-hover:text-accent-text'
+                            }`}
+                        />
                     </div>
+                    {/* 700 on a nav label was doing hierarchy work that colour
+                        should do. §13: medium inactive, semibold active. */}
                     {isExpanded && (
-                        <span className={`font-bold text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${isActive ? 'text-white' : (isPlatformHQ ? 'text-slate-400 group-hover:text-white' : 'text-slate-500')}`}>
+                        <span className={`text-sm whitespace-nowrap overflow-hidden transition-colors duration-fast ${
+                            isActive
+                                ? 'font-semibold text-accent-text'
+                                : 'font-medium text-ink-muted group-hover:text-ink-secondary'
+                        }`}>
                             {displayName}
                         </span>
                     )}
@@ -104,28 +164,41 @@ export default function SidebarItem({
                             e.stopPropagation();
                             if (onToggle) onToggle();
                         }}
-                        className="p-3 relative z-10 hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-r-2xl"
+                        className="p-3 relative z-raised hover:bg-interactive-active transition-colors duration-fast rounded-r-md"
                     >
-                        <ChevronRight size={16} className={`transition-transform duration-300 ${isMenuExpanded ? 'rotate-90' : ''} ${isActive ? 'text-white' : 'group-hover:text-indigo-600'}`} />
+                        <ChevronRight size={16} className={`transition-transform duration-fast ${isMenuExpanded ? 'rotate-90' : ''} ${isActive ? 'text-accent-text' : 'text-ink-muted group-hover:text-ink-secondary'}`} />
                     </button>
                 )}
 
-                {/* Tooltip for collapsed state */}
-                {!isExpanded && (
-                    <div className="absolute left-full ml-2 px-3 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap pointer-events-none">
-                        {label}
+                {/*
+                  * Collapsed-state tooltip.
+                  *
+                  * Portalled to <body> and positioned from the row's bounding
+                  * rect, so it cannot be clipped by this or any future
+                  * ancestor. That is the rule: anything which must escape its
+                  * container is PORTALLED, not raised. Raising it is what
+                  * produced the four-and-five-digit z-index values this codebase
+              * accumulated in fourteen other places.
+                  */}
+                {!isExpanded && tipAt && createPortal(
+                    <div
+                        role="tooltip"
+                        className="fixed z-tooltip px-3 py-2 bg-overlay text-ink text-sm font-medium rounded-sm shadow-lg border border-line whitespace-nowrap pointer-events-none"
+                        style={{ top: tipAt.top, left: tipAt.left, transform: 'translateY(-50%)' }}
+                    >
+                        {displayName}
                         {subItems.length > 0 && (
-                            <span className="text-xs text-slate-400 ml-2">(Hold 2s to expand)</span>
+                            <span className="text-xs text-ink-muted ml-2">Hold to expand</span>
                         )}
-                        <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
-                    </div>
+                    </div>,
+                    document.body,
                 )}
             </div>
 
             <div className={`
-        overflow-hidden transition-all duration-300 flex flex-col gap-1 ml-4 border-l-2 border-slate-100 dark:border-slate-800
+        overflow-hidden transition-all duration-slow flex flex-col gap-1 ml-4 border-l-2 border-line
         ${isMenuExpanded && isExpanded && subItems.length > 0 ? 'max-h-[800px] mt-2 opacity-100' : 'max-h-0 opacity-0'}
-      `}>
+`}>
                 {subItems.map((item, idx) => {
                     const getRoute = (itemName) => {
                         const routeMap = {
@@ -235,7 +308,7 @@ export default function SidebarItem({
                     if (typeof item === 'object' && item.group) {
                         return (
                             <div key={idx} className="mt-2 mb-1">
-                                <p className="px-4 text-2xs uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-1">
+                                <p className="px-4 text-2xs uppercase font-medium text-ink-muted tracking-wider mb-1">
                                     {item.group}
                                 </p>
                                 {item.items.filter(Boolean).map((subItem, sIdx) => {
@@ -246,7 +319,7 @@ export default function SidebarItem({
                                     const baseRoute = getRoute(itemName);
                                     if (!baseRoute) {
                                         return (
-                                            <span key={sIdx} className="block pl-4 py-1.5 text-xs text-slate-400 cursor-not-allowed">
+                                            <span key={sIdx} className="block pl-4 py-1.5 text-xs text-ink-muted cursor-not-allowed">
                                                 {itemName}
                                             </span>
                                         );
@@ -261,7 +334,7 @@ export default function SidebarItem({
                                     return (
                                         <FeatureLockBadge key={sIdx} isLocked={locked || isComingSoon} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
                                             {isComingSoon ? (
-                                                <span className="block pl-4 py-1.5 text-xs font-medium text-slate-400 dark:text-slate-600 cursor-pointer">
+                                                <span className="block pl-4 py-1.5 text-xs font-medium text-ink-muted dark:text-ink-secondary cursor-pointer">
                                                     {itemName}
                                                 </span>
                                             ) : (
@@ -269,7 +342,7 @@ export default function SidebarItem({
                                                     <Link
                                                         id={itemName === 'Products' ? 'tour-sidebar-products' : (itemName === 'Purchases' ? 'tour-sidebar-purchases' : undefined)}
                                                         href={window.route(activeRouteName, routeParams || {})}
-                                                        className={`block pl-4 py-1.5 text-xs font-medium transition-colors ${locked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
+                                                        className={`block pl-4 py-1.5 text-xs font-medium transition-colors ${locked ? 'text-ink-muted dark:text-ink-secondary' : 'text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400'}`}
                                                     >
                                                         <span className="flex items-center gap-1.5">
                                                             {itemName}
@@ -295,7 +368,7 @@ export default function SidebarItem({
                         return (
                             <span
                                 key={idx}
-                                className="block pl-4 py-2 text-xs font-medium text-slate-400 dark:text-slate-600 cursor-not-allowed relative"
+                                className="block pl-4 py-2 text-xs font-medium text-ink-muted dark:text-ink-secondary cursor-not-allowed relative"
                             >
                                 {itemName}
                             </span>
@@ -311,7 +384,7 @@ export default function SidebarItem({
                             {window.route().has(routeName) && (
                                 <Link
                                     href={window.route(routeName, routeParams || {})}
-                                    className={`block pl-4 py-2 text-xs font-medium transition-colors relative ${locked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
+                                    className={`block pl-4 py-2 text-xs font-medium transition-colors relative ${locked ? 'text-ink-muted dark:text-ink-secondary' : 'text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400'}`}
                                 >
                                     <span className="flex items-center gap-1.5">
                                         {itemName}

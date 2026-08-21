@@ -120,3 +120,48 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
+
+  design-system:
+    name: Design conformance
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: app-code/main-app
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app-code/main-app/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # The token CSS is the single source for every design value. This proves
+      # the generated theme still matches it — a hand-edit to
+      # themes/venqore-v6.js or theme.generated.css shows up here as a diff.
+      - name: Theme is generated, not hand-edited
+        run: |
+          npm run theme:sync
+          if ! git diff --quiet -- resources/js/theme/themes/venqore-v6.js resources/css/theme.generated.css; then
+            echo "::error::The generated theme does not match resources/css/venqore-v6/tokens/."
+            echo "Someone edited a generated file by hand. Edit the token CSS and run 'npm run theme:sync'."
+            git diff --stat -- resources/js/theme/themes/venqore-v6.js resources/css/theme.generated.css
+            exit 1
+          fi
+
+      # DESIGN-RULES.md v3.1 §16. Blocking rules are at zero and must stay
+      # there; ratchet rules are held at their current count and may only fall.
+      - name: Design conformance
+        run: ./scripts/design-check.sh
+
+      # A class that does not exist in tailwind.config.js compiles to nothing
+      # and the element silently inherits. Building the CSS is what catches it.
+      - name: CSS compiles
+        run: npx tailwindcss -i resources/css/app.css -o /tmp/app.css --minify

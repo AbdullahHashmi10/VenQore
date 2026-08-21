@@ -32,17 +32,17 @@ const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
         { label: 'Transfer Stock', icon: RefreshCw, color: 'text-orange-500', bg: 'bg-orange-500/10', route: 'store.stock-transfers.create' },
         { label: 'Add Product', icon: Box, color: 'text-purple-500', bg: 'bg-purple-500/10', route: 'store.inventory.create' },
         { label: 'Add Category', icon: Tag, color: 'text-pink-500', bg: 'bg-pink-500/10', route: 'store.categories.index' },
-        { label: 'Add User', icon: UserPlus, color: 'text-indigo-500', bg: 'bg-indigo-500/10', route: 'store.admin.users' },
+        { label: 'Add User', icon: UserPlus, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.admin.users' },
         { label: 'Expense', icon: FileMinus, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.expenses.index' },
         { label: 'Refund', icon: LogOut, color: 'text-yellow-500', bg: 'bg-yellow-500/10', route: 'store.returns.create' },
         { label: 'Supplier', icon: Truck, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.parties.index' },
     ];
 
     return (
-        <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2 z-50 animate-in fade-in slide-in-from-top-4 duration-200">
-            <div className="flex justify-between items-center px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-2">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quick Actions</span>
-                <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={14} /></button>
+        <div className="absolute top-full mt-2 right-0 w-64 bg-surface rounded-2xl shadow-2xl border border-line p-2 z-50 animate-in fade-in slide-in-from-top-4 duration-normal">
+            <div className="flex justify-between items-center px-3 py-2 border-b border-line mb-2">
+                <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Quick Actions</span>
+                <button onClick={onClose} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200"><X size={14} /></button>
             </div>
             <div className="grid grid-cols-2 gap-1 max-h-64 overflow-y-auto custom-scrollbar">
                 {actions.map((action, i) => (
@@ -61,12 +61,12 @@ const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
                             }
                             onClose();
                         }}
-                        className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                        className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group"
                     >
-                        <div className={`p-2 rounded-lg mb-1 group-hover:scale-110 transition-transform ${action.bg} ${action.color}`}>
+                        <div className={`p-2 rounded-lg mb-1 transition-transform ${action.bg} ${action.color}`}>
                             <action.icon size={18} />
                         </div>
-                        <span className="text-2xs font-medium text-slate-600 dark:text-slate-300 text-center leading-tight">{action.label}</span>
+                        <span className="text-2xs font-medium text-ink-secondary text-center leading-tight">{action.label}</span>
                     </button>
                 ))}
             </div>
@@ -80,53 +80,53 @@ const CashDetailModal = ({ isOpen, onClose, transactions, onNavigate, store }) =
     const currencySymbol = getCurrencySymbol(store);
 
     return (
-        <div className="absolute inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden" onClick={e => e.stopPropagation()}>
-                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+        <div className="absolute inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">
+            <div className="bg-surface w-full max-w-sm rounded-2xl shadow-2xl border border-line overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="p-4 border-b border-line flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500">
                             <Wallet size={18} />
                         </div>
-                        <h3 className="font-bold text-slate-800 dark:text-white">Cash in Hand</h3>
+                        <h3 className="font-bold text-ink">Cash in Hand</h3>
                     </div>
-                    <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400"><X size={18} /></button>
+                    <button onClick={onClose} className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted"><X size={18} /></button>
                 </div>
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/50">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Cash Activity (Chronological)</h4>
+                <div className="p-4 bg-app">
+                    <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Cash Activity (Chronological)</h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
                         {transactions && transactions.length > 0 ? transactions.map((tx, i) => (
-                            <div key={tx.id || i} className="flex justify-between items-center text-sm p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                            <div key={tx.id || i} className="flex justify-between items-center text-sm p-2 bg-surface rounded-lg border border-line">
                                 <div>
-                                    <p className="font-medium text-slate-700 dark:text-slate-200 truncate max-w-[170px]">{tx.desc}</p>
-                                    <p className="text-2xs text-slate-400">{new Date(tx.date).toLocaleString('en-PK', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                    <p className="font-medium text-ink-secondary dark:text-ink truncate max-w-[170px]">{tx.desc}</p>
+                                    <p className="text-2xs text-ink-muted">{new Date(tx.date).toLocaleString('en-PK', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                                 <span className={`font-bold ${tx.type === 'in' ? 'text-emerald-500' : 'text-red-500'}`}>
                                     {tx.type === 'in' ? '+' : '-'} {currencySymbol} {Math.abs(parseFloat(tx.amount)).toLocaleString()}
                                 </span>
                             </div>
                         )) : (
-                            <p className="text-center text-xs text-slate-400 py-4">No recent history.</p>
+                            <p className="text-center text-xs text-ink-muted py-4">No recent history.</p>
                         )}
                     </div>
                 </div>
 
                 <div className="p-4 grid grid-cols-4 gap-2">
                     <button onClick={() => { onNavigate('store.funds.index'); onClose(); }} className="flex flex-col items-center gap-1 p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors group">
-                        <ArrowDownRight size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                        <ArrowDownRight size={18} className="text-emerald-500 transition-transform" />
                         <span className="text-3xs font-bold text-emerald-600 dark:text-emerald-400">Add</span>
                     </button>
                     <button onClick={() => { onNavigate('store.funds.index'); onClose(); }} className="flex flex-col items-center gap-1 p-3 bg-red-50 dark:bg-red-500/10 rounded-2xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors group">
-                        <ArrowUpRight size={18} className="text-red-500 group-hover:scale-110 transition-transform" />
+                        <ArrowUpRight size={18} className="text-red-500 transition-transform" />
                         <span className="text-3xs font-bold text-red-600 dark:text-red-400">Remove</span>
                     </button>
                     <button onClick={() => { onNavigate('store.funds.index'); onClose(); }} className="flex flex-col items-center gap-1 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-2xl hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors group">
-                        <RefreshCw size={18} className="text-blue-500 group-hover:scale-110 transition-transform" />
+                        <RefreshCw size={18} className="text-blue-500 transition-transform" />
                         <span className="text-3xs font-bold text-blue-600 dark:text-blue-400">Transfer</span>
                     </button>
-                    <button onClick={() => { onNavigate('store.funds.index', { view: 'history' }); onClose(); }} className="flex flex-col items-center gap-1 p-3 bg-slate-50 dark:bg-slate-500/10 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-500/20 transition-colors group">
-                        <FileText size={18} className="text-slate-500 group-hover:scale-110 transition-transform" />
-                        <span className="text-3xs font-bold text-slate-600 dark:text-slate-400">History</span>
+                    <button onClick={() => { onNavigate('store.funds.index', { view: 'history' }); onClose(); }} className="flex flex-col items-center gap-1 p-3 bg-sunken rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
+                        <FileText size={18} className="text-ink-muted transition-transform" />
+                        <span className="text-3xs font-bold text-ink-secondary">History</span>
                     </button>
                 </div>
             </div>
@@ -175,9 +175,9 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
     }, [menuRef, settingsRef]);
 
     return (
-        <div className="bg-slate-900 text-white rounded-[2rem] p-6 h-full min-h-full flex flex-col relative overflow-visible shadow-2xl ring-1 ring-white/10">
+        <div className="bg-neutral-900 text-white rounded-xl p-6 h-full min-h-full flex flex-col relative overflow-visible shadow-2xl ring-1 ring-white/10">
             {/* Mesh Gradient Background */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/30 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
             <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
 
@@ -204,7 +204,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                         <Wallet size={18} className="text-white" />
                     </div>
                     <div>
-                        <p className="text-xs text-slate-300 font-medium">Total Balance</p>
+                        <p className="text-xs text-neutral-300 font-medium">Total Balance</p>
                         <h3 className="text-xl font-bold tracking-tight">
                             {canViewBalances ? formatMoney(totalBalance) : 'Restricted'}
                         </h3>
@@ -215,14 +215,14 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                         onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                         className={`p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm ${isSettingsOpen ? 'bg-white/20' : ''}`}
                     >
-                        <MoreHorizontal size={20} className="text-slate-300" />
+                        <MoreHorizontal size={20} className="text-neutral-300" />
                     </button>
 
                     {isSettingsOpen && (
-                        <div className="absolute top-12 right-0 w-48 bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                            <button className="w-full text-left px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">View Profile</button>
-                            <button className="w-full text-left px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">Account Settings</button>
-                            <div className="h-px bg-slate-700 my-1"></div>
+                        <div className="absolute top-12 right-0 w-48 bg-neutral-800 rounded-xl shadow-xl border border-neutral-700 p-1 z-50 animate-in fade-in zoom-in-95 duration-normal">
+                            <button className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-interactive-hover hover:text-white rounded-lg transition-colors">View Profile</button>
+                            <button className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-interactive-hover hover:text-white rounded-lg transition-colors">Account Settings</button>
+                            <div className="h-px bg-neutral-700 my-1"></div>
                             <button className="w-full text-left px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">Sign Out</button>
                         </div>
                     )}
@@ -240,8 +240,8 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                         <div className="p-1.5 rounded-full bg-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-colors"><ArrowUpRight size={18} /></div>
                         <span className="text-2xs font-bold tracking-wider">PURCHASE</span>
                     </button>
-                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`col-span-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/50 text-indigo-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm ${isMenuOpen ? 'bg-indigo-500/20 ring-2 ring-indigo-500/30' : ''}`}>
-                        <div className="p-1.5 rounded-full bg-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-colors"><Plus size={18} /></div>
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`col-span-1 bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/50 text-brand-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm ${isMenuOpen ? 'bg-brand-500/20 ring-2 ring-brand-500/30' : ''}`}>
+                        <div className="p-1.5 rounded-full bg-brand-500/20 group-hover:bg-brand-500 group-hover:text-white transition-colors"><Plus size={18} /></div>
                         <span className="text-2xs font-bold tracking-wider">ACTIONS</span>
                     </button>
                 </div>
@@ -264,11 +264,11 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
 
                 {/* 1. Cash in Hand (Protected) */}
                 {canViewBalances && (
-                    <div onClick={() => setIsCashModalOpen(true)} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 hover:scale-[1.02] transition-all cursor-pointer group">
+                    <div onClick={() => setIsCashModalOpen(true)} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer group">
                         <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-2">
                                 <Wallet size={18} className="text-emerald-300" />
-                                <span className="text-[12px] font-bold text-slate-200">Cash in Hand</span>
+                                <span className="text-[12px] font-bold text-neutral-200">Cash in Hand</span>
                             </div>
                             <span className="text-3xs text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold uppercase">Main</span>
                         </div>
@@ -283,17 +283,17 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                 )}
 
                 {/* 1.5 Inventory Value */}
-                <div id="tour-stock-value" onClick={() => router.visit(route('store.inventory.index', { store_slug: store?.slug }))} className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-md rounded-2xl p-4 border border-indigo-500/20 hover:border-indigo-500/40 hover:scale-[1.02] transition-all cursor-pointer group">
+                <div id="tour-stock-value" onClick={() => router.visit(route('store.inventory.index', { store_slug: store?.slug }))} className="bg-gradient-to-br from-brand-500/10 to-purple-500/10 backdrop-blur-md rounded-2xl p-4 border border-brand-500/20 hover:border-brand-500/40 transition-all cursor-pointer group">
                     <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
-                            <Box size={18} className="text-indigo-300" />
-                            <span className="text-[12px] font-bold text-slate-200">Stock Value</span>
+                            <Box size={18} className="text-brand-300" />
+                            <span className="text-[12px] font-bold text-neutral-200">Stock Value</span>
                         </div>
                     </div>
                     <div>
                         <h4 className="text-2xl font-bold tracking-tight text-white mb-1">{formatMoney(inventoryValue)}</h4>
-                        <div className="flex items-center gap-2 text-2xs text-indigo-400">
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                        <div className="flex items-center gap-2 text-2xs text-brand-400">
+                            <div className="w-1.5 h-1.5 rounded-full bg-brand-400"></div>
                             Total Asset Cost
                         </div>
                     </div>
@@ -303,14 +303,14 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                 {canViewBalances && (
                     bankAccounts.length > 0 ? (
                         <div className="space-y-2">
-                            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider pl-1">Bank Accounts</p>
+                            <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider pl-1">Bank Accounts</p>
                             {bankAccounts.map((acc) => (
-                                <div key={acc.id} onClick={() => handleNavigate('store.bank-accounts.index')} className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-all flex justify-between items-center group cursor-pointer hover:scale-[1.01] active:scale-[0.99]">
+                                <div key={acc.id} onClick={() => handleNavigate('store.bank-accounts.index')} className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-all flex justify-between items-center group cursor-pointer active:scale-[0.99]">
                                     <div className="flex items-center gap-3">
                                         <Landmark size={18} className="text-blue-300" />
                                         <div>
-                                            <p className="text-sm font-bold text-slate-200">{acc.bank_name || acc.name}</p>
-                                            <p className="text-2xs text-slate-400">**** {acc.account_number ? acc.account_number.slice(-4) : '....'}</p>
+                                            <p className="text-sm font-bold text-neutral-200">{acc.bank_name || acc.name}</p>
+                                            <p className="text-2xs text-ink-muted">**** {acc.account_number ? acc.account_number.slice(-4) : '....'}</p>
                                         </div>
                                     </div>
                                     <span className="font-bold text-white text-sm">{formatMoney(acc.current_balance)}</span>
@@ -318,13 +318,13 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                             ))}
                         </div>
                     ) : (
-                        <div className="p-4 rounded-2xl border border-dashed border-slate-700 bg-white/5 flex flex-col items-center justify-center text-center gap-2 group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}>
-                            <div className="p-2 bg-slate-800 rounded-full text-slate-400 group-hover:text-indigo-400 group-hover:scale-110 transition-all">
+                        <div className="p-4 rounded-2xl border border-dashed border-neutral-700 bg-white/5 flex flex-col items-center justify-center text-center gap-2 group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}>
+                            <div className="p-2 bg-neutral-800 rounded-full text-ink-muted group-hover:text-brand-400 transition-all">
                                 <Plus size={16} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-300">Add Bank Account</p>
-                                <p className="text-2xs text-slate-500">Track your business banking</p>
+                                <p className="text-xs font-bold text-neutral-300">Add Bank Account</p>
+                                <p className="text-2xs text-ink-muted">Track your business banking</p>
                             </div>
                         </div>
                     )
@@ -334,8 +334,8 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
             {/* Recent Transactions (Bottom) */}
             <div className="relative z-10 mt-auto bg-black/20 rounded-2xl p-4 backdrop-blur-sm border border-white/5 max-h-48 flex flex-col">
                 <div className="flex justify-between items-center mb-3 shrink-0">
-                    <h3 className="font-bold text-xs text-slate-300 uppercase tracking-wider">Activity</h3>
-                    <div className="flex items-center gap-2 text-3xs text-slate-500">
+                    <h3 className="font-bold text-xs text-neutral-300 uppercase tracking-wider">Activity</h3>
+                    <div className="flex items-center gap-2 text-3xs text-ink-muted">
                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span>Sale</span>
                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span>Purchase</span>
                     </div>
@@ -352,7 +352,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                             payment_in: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-500', amountColor: 'text-emerald-400' },
                             payment_out: { bg: 'bg-purple-500/20', text: 'text-purple-400', dot: 'bg-purple-500', amountColor: 'text-purple-400' },
                             expense: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-500', amountColor: 'text-red-400' },
-                            other: { bg: 'bg-slate-500/20', text: 'text-slate-400', dot: 'bg-slate-500', amountColor: 'text-slate-300' }
+                            other: { bg: 'bg-neutral-500/20', text: 'text-ink-muted', dot: 'bg-neutral-500', amountColor: 'text-neutral-300' }
                         };
 
                         const colors = colorMap[activityType] || colorMap.other;
@@ -390,14 +390,14 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                                             <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`}></span>
                                             <span className="text-1xs font-semibold text-white/90">{tx.type}</span>
                                         </div>
-                                        <span className="text-3xs text-slate-500 leading-none">{tx.time}</span>
+                                        <span className="text-3xs text-ink-muted leading-none">{tx.time}</span>
                                     </div>
                                 </div>
                                 <span className={`text-1xs font-bold ${isIncoming ? 'text-emerald-400' : colors.amountColor}`}>{tx.amount}</span>
                             </div>
                         );
                     }) : (
-                        <div className="text-center py-4 text-slate-500 text-xs">
+                        <div className="text-center py-4 text-ink-muted text-xs">
                             No recent activity
                         </div>
                     )}

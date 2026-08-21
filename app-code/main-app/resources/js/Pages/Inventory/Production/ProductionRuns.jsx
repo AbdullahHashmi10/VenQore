@@ -165,74 +165,74 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
         <OneGlanceLayout title="Production Runs" activeMenu="Stock">
             <Head title="Production Runs" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <StockModuleTabs activeTab="production" />
 
 
                 {/* Stats Cards - Compact Single Line */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <Play size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Active Runs</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Active Runs</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{stats.in_progress || 0}</p>
+                        <p className="text-base font-bold text-ink">{stats.in_progress || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Completed Today</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Completed Today</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{stats.completed_today || 0}</p>
+                        <p className="text-base font-bold text-emerald-600">{stats.completed_today || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
                                 <Factory size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Runs</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Runs</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{stats.month_count || 0}</p>
+                        <p className="text-base font-bold text-ink">{stats.month_count || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Package size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Cost (Month)</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Cost (Month)</p>
                         </div>
-                        <p className="text-base font-black text-indigo-600">{formatCurrency(stats.month_cost)}</p>
+                        <p className="text-base font-bold text-brand-600">{formatCurrency(stats.month_cost)}</p>
                     </div>
                 </div>
 
                 {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0 flex items-center gap-2">
-                            <Factory size={20} className="text-indigo-600" />
-                            Production <span className="text-indigo-600">Runs</span>
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0 flex items-center gap-2">
+                            <Factory size={20} className="text-brand-600" />
+                            Production <span className="text-brand-600">Runs</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
                         <button
                             onClick={() => applyFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >All</button>
                         <button
                             onClick={() => applyFilter('today')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Today</button>
                         <button
                             onClick={() => applyFilter('active')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'active' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >In Progress</button>
                         <button
                             onClick={() => applyFilter('failed')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'failed' ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'failed' ? 'bg-red-500 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                         >Failed</button>
                     </div>
 
@@ -251,8 +251,8 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                 inputClassName="py-1.5 text-xs h-9"
                             />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
-                            <Link href={route('store.production.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
+                            <Link href={route('store.production.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
                                 <Plus size={14} /> New Run
                             </Link>
                         </div>
@@ -260,10 +260,10 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                 </div>
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
                                     <th
                                         key={col.key}
@@ -273,35 +273,35 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                                            cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
-                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
-                                        `}
+                                            p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
+                                            cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
+                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
+`}
                                         style={{ width: col.width }}
                                     >
                                         <div className="flex items-center gap-2">
                                             {col.label}
                                             {col.key !== 'actions' && sortConfig.key === col.key && (
-                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-indigo-500" /> : <ChevronDown size={14} className="text-indigo-500" />
+                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-brand-500" /> : <ChevronDown size={14} className="text-brand-500" />
                                             )}
                                         </div>
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line">
                             {sortedData.length === 0 ? (
                                 <tr>
                                     <td colSpan={tableColumns.length} className="p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
-                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                                <Factory size={32} className="text-slate-400" />
+                                            <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
+                                                <Factory size={32} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">No production runs found</p>
-                                            <p className="text-sm text-slate-500 mb-4">Start manufacturing by creating your first production run</p>
+                                            <p className="text-lg font-bold text-ink-secondary mb-1">No production runs found</p>
+                                            <p className="text-sm text-ink-muted mb-4">Start manufacturing by creating your first production run</p>
                                             <Link
                                                 href={route('store.production.create', { store_slug: store?.slug })}
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                                className="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition-colors flex items-center gap-2"
                                             >
                                                 <Plus size={16} /> New Production Run
                                             </Link>
@@ -314,27 +314,27 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                         key={row.id}
                                         onClick={() => router.visit(route('store.production.show', { store_slug: store?.slug, run: row.id }))}
                                         className={`
-                                            hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group cursor-pointer
+                                            hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all group cursor-pointer
                                             ${row.status === 'in_progress' ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''}
-                                        `}
+`}
                                     >
                                         {tableColumns.map((col) => (
-                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
+                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
                                                 {(() => {
                                                     switch (col.key) {
                                                         case 'run_number':
-                                                            return <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{row.run_number}</span>;
+                                                            return <span className="font-mono text-brand-600 dark:text-brand-400 font-semibold">{row.run_number}</span>;
                                                         case 'date':
                                                             return <span className="font-medium">{formatDate(row.created_at)}</span>;
                                                         case 'product':
                                                             return (
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                                                    <div className="w-8 h-8 rounded-lg bg-sunken flex items-center justify-center text-ink-muted">
                                                                         <Package size={16} />
                                                                     </div>
                                                                     <div>
-                                                                        <p className="font-semibold text-slate-800 dark:text-white">{row.product?.name || 'Unknown'}</p>
-                                                                        <p className="text-2xs text-slate-400 font-mono">{row.product?.sku}</p>
+                                                                        <p className="font-semibold text-ink">{row.product?.name || 'Unknown'}</p>
+                                                                        <p className="text-2xs text-ink-muted font-mono">{row.product?.sku}</p>
                                                                     </div>
                                                                 </div>
                                                             );
@@ -350,15 +350,15 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                                             const s = statuses[row.status] || statuses.pending;
                                                             return <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${s.color}`}>{s.label}</span>;
                                                         case 'ingredients':
-                                                            return <span className="text-slate-500">{row.ingredients_used || 0} items</span>;
+                                                            return <span className="text-ink-muted">{row.ingredients_used || 0} items</span>;
                                                         case 'cost':
-                                                            return <span className="font-bold text-slate-800 dark:text-white">{formatCurrency(row.cost)}</span>;
+                                                            return <span className="font-bold text-ink">{formatCurrency(row.cost)}</span>;
                                                         case 'actions':
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2">
                                                                     <Link
                                                                         href={route('store.production.edit', { store_slug: store?.slug, run: row.id })}
-                                                                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors"
+                                                                        className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                                                                         onClick={(e) => e.stopPropagation()}
                                                                     >
                                                                         <Edit size={16} />
@@ -376,7 +376,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                             {/* Infinite Scroll Trigger */}
                             <tr ref={observerTarget} className="h-4">
                                 <td colSpan={tableColumns.length} className="text-center p-2">
-                                    {isLoading.current && <span className="text-xs text-slate-400">Loading more...</span>}
+                                    {isLoading.current && <span className="text-xs text-ink-muted">Loading more...</span>}
                                 </td>
                             </tr>
                         </tbody>

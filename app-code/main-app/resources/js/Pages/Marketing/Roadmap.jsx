@@ -15,10 +15,10 @@ export default function Roadmap() {
             <section className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={Clock} text="PUBLIC PRODUCT ROADMAP" />
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6 mt-4">
+                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4">
                         Where VenQore is Headed
                     </h1>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
                         First we put everything in one place. Now we are teaching it to fill itself in. Eventually nobody types anything.
                     </p>
                 </RevealOnScroll>
@@ -29,14 +29,14 @@ export default function Roadmap() {
                 <div className="space-y-12">
                     {/* NOW: Shipped */}
                     <RevealOnScroll direction="up">
-                        <div className="bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-8 md:p-10 shadow-xl relative overflow-hidden">
-                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500 text-slate-950 text-xs font-black uppercase tracking-wider">
+                        <div className="bg-surface border-2 border-emerald-500/40 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
+                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500 text-ink text-xs font-bold uppercase tracking-wider">
                                 <CheckCircle2 className="w-4 h-4" /> SHIPPED &amp; LIVE
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-ink mb-3">
                                 1. Now — One System for the Whole Business
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-6">
+                            <p className="text-ink-secondary text-base leading-relaxed mb-6">
                                 Everything you need to run your retail or wholesale business in one place — point of sale, inventory, purchasing, invoicing, customer credit khata, expenses, staff, and auditor-grade double-entry accounting.
                             </p>
                             <div className="grid md:grid-cols-2 gap-4 text-sm">
@@ -50,7 +50,7 @@ export default function Roadmap() {
                                     "Serial & IMEI Tracking + Batch Expiry Controls",
                                     "1,500+ Automated Verification & Integrity Tests"
                                 ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200">
+                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-app text-ink">
                                         <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                                         <span className="font-semibold">{item}</span>
                                     </div>
@@ -61,14 +61,14 @@ export default function Roadmap() {
 
                     {/* NEXT: Rolling Out */}
                     <RevealOnScroll direction="up">
-                        <div className="bg-white dark:bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-8 md:p-10 shadow-xl relative overflow-hidden">
-                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-black uppercase tracking-wider">
+                        <div className="bg-surface border-2 border-brand-500/40 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
+                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-600 text-white text-xs font-bold uppercase tracking-wider">
                                 <Zap className="w-4 h-4" /> ROLLING OUT NOW
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-ink mb-3">
                                 2. Next — The System Fills Itself In
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-6">
+                            <p className="text-ink-secondary text-base leading-relaxed mb-6">
                                 Eliminating manual data entry. Information enters your business via paper, voice, WhatsApp, or marketplaces, and VenQore turns it into ready-made ledger entries automatically.
                             </p>
                             <div className="grid md:grid-cols-2 gap-4 text-sm">
@@ -80,8 +80,8 @@ export default function Roadmap() {
                                     "Automated Debt & Payment Reminders via WhatsApp",
                                     "AI Owner Insights: Restock recommendations & customer churn alerts"
                                 ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 text-slate-800 dark:text-slate-200 border border-indigo-100 dark:border-indigo-900/40">
-                                        <Sparkles className="w-5 h-5 text-indigo-500 shrink-0" />
+                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-brand-50/50 dark:bg-brand-950/30 text-ink border border-brand-100 dark:border-brand-900/40">
+                                        <Sparkles className="w-5 h-5 text-brand-500 shrink-0" />
                                         <span className="font-semibold">{item}</span>
                                     </div>
                                 ))}
@@ -91,14 +91,14 @@ export default function Roadmap() {
 
                     {/* LATER: Building Toward */}
                     <RevealOnScroll direction="up">
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 md:p-10 shadow-lg">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black uppercase tracking-wider mb-4">
+                        <div className="bg-surface border border-line rounded-2xl p-8 md:p-10 shadow-lg">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sunken dark:bg-surface text-ink-secondary text-xs font-bold uppercase tracking-wider mb-4">
                                 <Globe className="w-4 h-4" /> BUILDING TOWARD
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-3">
+                            <h2 className="text-2xl md:text-3xl font-bold text-ink mb-3">
                                 3. Later — Zero-Typing Business Management
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-6">
+                            <p className="text-ink-secondary text-base leading-relaxed mb-6">
                                 Businesses on VenQore stop typing entirely. One company's invoice lands as another company's bill automatically across our secure B2B network.
                             </p>
                             <div className="grid md:grid-cols-2 gap-4 text-sm">
@@ -108,8 +108,8 @@ export default function Roadmap() {
                                     "Vena Autonomous AI Business Advisor: Financial health & inventory tuning",
                                     "Cross-Border Automated Multi-Currency Tax Settlements"
                                 ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/30 text-slate-700 dark:text-slate-300">
-                                        <Bot className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" />
+                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-app text-ink-secondary">
+                                        <Bot className="w-5 h-5 text-ink-muted shrink-0" />
                                         <span className="font-semibold">{item}</span>
                                     </div>
                                 ))}
@@ -120,11 +120,11 @@ export default function Roadmap() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-24 px-6 text-center max-w-4xl mx-auto border-t border-slate-200 dark:border-slate-800">
-                <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6">
+            <section className="py-24 px-6 text-center max-w-4xl mx-auto border-t border-line">
+                <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6">
                     Be Part of the Future of Business Software
                 </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+                <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
                     Start your 14-day free trial today or explore our live demo without signing up.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">

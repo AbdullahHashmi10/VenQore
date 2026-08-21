@@ -20,7 +20,7 @@ import {
 
 function FieldLabel({ children, required }) {
     return (
-        <label className="block text-sm font-semibold text-slate-300 mb-2">
+        <label className="block text-sm font-semibold text-neutral-300 mb-2">
             {children} {required && <span className="text-red-400">*</span>}
         </label>
     );
@@ -36,7 +36,7 @@ function InputBase({ className = '', hasError, ...props }) {
         <input
             {...props}
             className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-500
-                focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors
+                focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors
                 ${hasError ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}
                 ${className}`}
         />
@@ -73,7 +73,7 @@ export default function CreateStore({ available_license = null, selected_plan = 
 
             {/* Ambient */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-indigo-900/15 rounded-full blur-[140px]" />
+                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-brand-900/15 rounded-full blur-[140px]" />
                 <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-[100px]" />
             </div>
 
@@ -81,11 +81,11 @@ export default function CreateStore({ available_license = null, selected_plan = 
             <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
                 <div className="flex items-center gap-2">
                     <img src="/images/logo.png" alt="VenQore" className="h-8 w-8 object-contain" />
-                    <span className="font-black text-lg text-white">VenQore<span className="text-indigo-400">.</span></span>
+                    <span className="font-bold text-lg text-white">VenQore<span className="text-brand-400">.</span></span>
                 </div>
                 <Link
                     href={backHref}
-                    className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-white transition-colors"
                 >
                     <ArrowLeft size={14} /> {available_license ? 'Back' : 'Change plan'}
                 </Link>
@@ -96,13 +96,13 @@ export default function CreateStore({ available_license = null, selected_plan = 
 
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 mb-5">
-                            <Store size={24} className="text-indigo-400" />
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-500/15 border border-brand-500/30 mb-5">
+                            <Store size={24} className="text-brand-400" />
                         </div>
-                        <h1 className="text-3xl font-black tracking-tight text-white mb-2">
+                        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
                             Name your store
                         </h1>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-ink-muted text-sm">
                             {available_license
                                 ? `Your ${available_license.plan} license will be activated for this store.`
                                 : `Last step — your ${trial_days}-day free trial starts as soon as your store is created.`}
@@ -111,18 +111,18 @@ export default function CreateStore({ available_license = null, selected_plan = 
 
                     {/* Plan summary (self-serve trial) */}
                     {selected_plan && (
-                        <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.06] p-4 mb-6">
+                        <div className="rounded-2xl border border-brand-500/20 bg-brand-500/[0.06] p-4 mb-6">
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
-                                        <Sparkles size={16} className="text-indigo-300" />
+                                    <div className="w-10 h-10 rounded-xl bg-brand-500/15 border border-brand-500/25 flex items-center justify-center">
+                                        <Sparkles size={16} className="text-brand-300" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-white">
                                             {selected_plan.name} plan
-                                            <span className="text-slate-400 font-medium"> · {selected_plan.interval === 'annual' ? 'Annual' : 'Monthly'}</span>
+                                            <span className="text-ink-muted font-medium"> · {selected_plan.interval === 'annual' ? 'Annual' : 'Monthly'}</span>
                                         </p>
-                                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                        <p className="text-xs text-ink-muted mt-0.5 flex items-center gap-1.5">
                                             <Clock size={11} className="text-emerald-400" />
                                             Free for {trial_days} days, then {fmtCharge()}
                                         </p>
@@ -130,7 +130,7 @@ export default function CreateStore({ available_license = null, selected_plan = 
                                 </div>
                                 <Link
                                     href={route('store.create')}
-                                    className="flex items-center gap-1 text-xs font-semibold text-indigo-300 hover:text-indigo-200 transition-colors"
+                                    className="flex items-center gap-1 text-xs font-semibold text-brand-300 hover:text-brand-200 transition-colors"
                                 >
                                     <Pencil size={11} /> Change
                                 </Link>
@@ -170,10 +170,10 @@ export default function CreateStore({ available_license = null, selected_plan = 
 
                         {/* Quick preview */}
                         {data.name && (
-                            <div className="px-4 py-3 rounded-xl bg-white/3 border border-white/8 text-sm text-slate-400">
-                                <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider block mb-1">Your store URL will be</span>
+                            <div className="px-4 py-3 rounded-xl bg-white/3 border border-white/8 text-sm text-ink-muted">
+                                <span className="text-ink-muted text-xs font-semibold uppercase tracking-wider block mb-1">Your store URL will be</span>
                                 <span className="text-white font-mono text-xs">
-                                    venqore.com/s/<span className="text-indigo-300">[ID]</span>/dashboard
+                                    venqore.com/s/<span className="text-brand-300">[ID]</span>/dashboard
                                 </span>
                             </div>
                         )}
@@ -186,10 +186,10 @@ export default function CreateStore({ available_license = null, selected_plan = 
                                     type="checkbox"
                                     checked={data.terms_consent}
                                     onChange={e => setData('terms_consent', e.target.checked)}
-                                    className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-white/20 bg-white/5 focus:ring-indigo-500 cursor-pointer shrink-0"
+                                    className="mt-0.5 w-4 h-4 text-brand-600 rounded border-white/20 bg-white/5 focus:ring-brand-500 cursor-pointer shrink-0"
                                 />
-                                <label htmlFor="terms_consent" className="text-xs text-slate-300 leading-relaxed cursor-pointer select-none">
-                                    I agree to the <Link href="/terms" target="_blank" className="text-indigo-400 font-semibold hover:underline">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="text-indigo-400 font-semibold hover:underline">Privacy Policy</Link>, including data handling & shared catalog terms described in Section 6.
+                                <label htmlFor="terms_consent" className="text-xs text-neutral-300 leading-relaxed cursor-pointer select-none">
+                                    I agree to the <Link href="/terms" target="_blank" className="text-brand-400 font-semibold hover:underline">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="text-brand-400 font-semibold hover:underline">Privacy Policy</Link>, including data handling & shared catalog terms described in Section 6.
                                 </label>
                             </div>
                             <FieldError message={errors.terms_consent} />
@@ -201,11 +201,11 @@ export default function CreateStore({ available_license = null, selected_plan = 
                             type="submit"
                             disabled={processing || !data.name || !data.terms_consent}
                             className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
-                                bg-gradient-to-r from-indigo-500 to-purple-600
-                                hover:from-indigo-400 hover:to-purple-500
-                                text-white font-bold text-base transition-all
-                                hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/25
-                                disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed mt-2"
+ bg-gradient-to-r from-brand-500 to-purple-600
+ hover:from-brand-400 hover:to-purple-500
+ text-white font-bold text-base transition-all
+ hover:shadow-xl hover:
+ disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed mt-2"
                         >
                             {processing ? (
                                 <><Loader2 size={18} className="animate-spin" /> Creating store…</>
@@ -214,7 +214,7 @@ export default function CreateStore({ available_license = null, selected_plan = 
                             )}
                         </button>
 
-                        <p className="text-center text-xs text-slate-500 flex items-center justify-center gap-1.5">
+                        <p className="text-center text-xs text-ink-muted flex items-center justify-center gap-1.5">
                             {available_license
                                 ? 'You can rename your store and change settings at any time.'
                                 : <><CreditCard size={11} /> No card charged today. You can cancel anytime before your trial ends.</>}

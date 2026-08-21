@@ -79,7 +79,7 @@ const Card3D = ({ report }) => {
     if (!isAllowed) {
         return (
             <div
-                className="relative bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800/60 overflow-hidden flex flex-col h-full select-none cursor-not-allowed group/locked"
+                className="relative bg-surface/50 dark:bg-app rounded-2xl border border-line overflow-hidden flex flex-col h-full select-none cursor-not-allowed group/locked"
             >
                 <div className="relative p-6 flex flex-col h-full z-10 opacity-50 filter blur-[0.5px]">
                     {/* Header Section */}
@@ -87,15 +87,15 @@ const Card3D = ({ report }) => {
                         <div className="flex items-center gap-4">
                             {/* Icon */}
                             <div className="flex items-center justify-center shrink-0">
-                                <Icon size={30} strokeWidth={1.5} className="text-slate-400" />
+                                <Icon size={30} strokeWidth={1.5} className="text-ink-muted" />
                             </div>
 
                             {/* Title & Short Desc */}
                             <div className="flex flex-col justify-center">
-                                <h3 className="text-base font-bold text-slate-400 dark:text-slate-500 leading-tight">
+                                <h3 className="text-base font-bold text-ink-muted leading-tight">
                                     {report.title}
                                 </h3>
-                                <p className="text-xs text-slate-400/80 font-medium line-clamp-1 mt-0.5">
+                                <p className="text-xs text-ink-muted/80 font-medium line-clamp-1 mt-0.5">
                                     {report.description}
                                 </p>
                             </div>
@@ -103,19 +103,19 @@ const Card3D = ({ report }) => {
                     </div>
 
                     {/* Long Description (Bottom Area) */}
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/30 flex-grow">
-                        <p className="text-[12px] text-slate-400/80 leading-relaxed font-medium">
+                    <div className="mt-4 pt-4 border-t border-line flex-grow">
+                        <p className="text-[12px] text-ink-muted/80 leading-relaxed font-medium">
                             {report.longDescription}
                         </p>
                     </div>
                 </div>
 
                 {/* Lock Overlay */}
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-slate-900/20 dark:bg-black/40 backdrop-blur-[2px]">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 group-hover/locked:scale-110 transition-transform duration-300">
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-sunken dark:bg-black/40 backdrop-blur-[2px]">
+                    <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center shadow-lg border border-line text-ink-muted group-hover/locked:scale-110 transition-transform duration-slow">
                         <Lock size={16} />
                     </div>
-                    <span className="text-1xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 px-2.5 py-1 bg-white/95 dark:bg-slate-800/95 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
+                    <span className="text-1xs font-bold uppercase tracking-wider text-ink-secondary px-2.5 py-1 bg-white/95 dark:bg-surface rounded-full shadow-sm border border-line">
                         Upgrade to {requiredTier === 'growth' ? 'Growth' : 'Business'}
                     </span>
                 </div>
@@ -131,31 +131,31 @@ const Card3D = ({ report }) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{ transform: transform, transition: 'transform 0.1s ease-out' }}
-            className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/80 overflow-hidden flex flex-col h-full transform-gpu"
+            className="group relative bg-surface rounded-2xl border border-line overflow-hidden flex flex-col h-full transform-gpu"
         >
             {/* Spotlight / Glow Effect - WIDER & BRIGHTER */}
             <div
-                className="pointer-events-none absolute -inset-px transition duration-300 opacity-0 group-hover:opacity-100"
+                className="pointer-events-none absolute -inset-px transition duration-slow opacity-0 group-hover:opacity-100"
                 style={{
                     background: `radial-gradient(800px circle at ${glowPos.x}px ${glowPos.y}px, ${glowColor}, transparent 55%)`
                 }}
             />
 
-            <div className="relative p-6 flex flex-col h-full z-10 bg-white/5 dark:bg-slate-900/90 backdrop-blur-3xl h-full">
+            <div className="relative p-6 flex flex-col h-full z-10 bg-white/5 dark:bg-app backdrop-blur-3xl h-full">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         {/* Icon - Perfectly Aligned & GLOWING */}
                         <div className="flex items-center justify-center shrink-0" style={{ filter: isHovered ? `drop-shadow(0 0 12px ${glowColor})` : 'none', transition: 'filter 0.3s ease' }}>
-                            <Icon size={30} strokeWidth={1.5} className={`${report.color} transition-transform duration-300 group-hover:scale-110`} />
+                            <Icon size={30} strokeWidth={1.5} className={`${report.color} transition-transform duration-slow`} />
                         </div>
 
                         {/* Title & Short Desc */}
                         <div className="flex flex-col justify-center">
-                            <h3 className="text-base font-bold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-tight">
+                            <h3 className="text-base font-bold text-ink group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-tight">
                                 {report.title}
                             </h3>
-                            <p className="text-xs text-slate-400 font-medium line-clamp-1 mt-0.5">
+                            <p className="text-xs text-ink-muted font-medium line-clamp-1 mt-0.5">
                                 {report.description}
                             </p>
                         </div>
@@ -163,14 +163,14 @@ const Card3D = ({ report }) => {
                 </div>
 
                 {/* Long Description (Bottom Area) */}
-                <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-800/50 flex-grow">
-                    <p className="text-[12px] text-slate-500 dark:text-slate-400/80 leading-relaxed font-medium">
+                <div className="mt-4 pt-4 border-t border-line flex-grow">
+                    <p className="text-[12px] text-ink-muted/80 leading-relaxed font-medium">
                         {report.longDescription}
                     </p>
                 </div>
 
                 {/* Floating Arrow (Bottom Right) */}
-                <div className="absolute bottom-4 right-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all duration-300 opacity-0 group-hover:opacity-100">
+                <div className="absolute bottom-4 right-4 text-neutral-300 dark:text-ink-secondary group-hover:text-brand-500 group-hover:translate-x-1 transition-all duration-slow opacity-0 group-hover:opacity-100">
                     <ArrowRight size={18} />
                 </div>
             </div>
@@ -218,7 +218,7 @@ export default function ReportsHub() {
                     description: 'Net profit analysis',
                     longDescription: 'The ultimate financial health check for your business. This statement summarizes all income minus expenses to clearly reveal your net profit or loss for any selected period, ensuring you stay profitable.',
                     icon: BarChart2,
-                    color: 'text-indigo-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.profit-loss", {
                         store_slug: store.slug
                     })
@@ -278,7 +278,7 @@ export default function ReportsHub() {
                     description: 'Item-level order details',
                     longDescription: 'See exactly what specific products are currently on order across all clients. This helps drastically with procurement planning and ensuring you have enough stock to fulfill pending commitments.',
                     icon: Package,
-                    color: 'text-indigo-400',
+                    color: 'text-brand-400',
                     href: route("store.reports.sale-order-items", {
                         store_slug: store.slug
                     })
@@ -354,7 +354,7 @@ export default function ReportsHub() {
                     description: 'Category valuation',
                     longDescription: 'See the distribution of your inventory value across different product categories. This high-level view helps you decide which categories warrant more investment and which are overstocked.',
                     icon: Layers,
-                    color: 'text-indigo-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.stock-summary-by-category", {
                         store_slug: store.slug
                     })
@@ -364,7 +364,7 @@ export default function ReportsHub() {
                     description: 'Master data view',
                     longDescription: 'View full specifications and configuration details for every item in your system. This master data view is essential for auditing product settings, prices, and tax configurations.',
                     icon: Box,
-                    color: 'text-slate-400',
+                    color: 'text-ink-muted',
                     href: route("store.reports.item-detail", {
                         store_slug: store.slug
                     })
@@ -384,7 +384,7 @@ export default function ReportsHub() {
                     description: 'Historical inventory valuation',
                     longDescription: 'Go back in time and view the exact quantity and asset value of your inventory as of any specific date. Crucial for matching past accounting balances and financial reconciliation.',
                     icon: History,
-                    color: 'text-indigo-400',
+                    color: 'text-brand-400',
                     href: route("store.reports.point-in-time-inventory", {
                         store_slug: store.slug
                     })
@@ -400,7 +400,7 @@ export default function ReportsHub() {
                     description: 'Assets vs Liabilities',
                     longDescription: 'Your primary financial position snapshot. View your assets, liabilities, and equity at a specific point in time to understand the overall financial stability and net worth of your business.',
                     icon: Scale,
-                    color: 'text-indigo-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.balance-sheet", {
                         store_slug: store.slug
                     })
@@ -496,7 +496,7 @@ export default function ReportsHub() {
                     description: 'Financial backbone',
                     longDescription: 'Manage all your ledger accounts (Assets, Liabilities, Income, Expenses). This is the structural backbone of your accounting system, defining how every transaction is categorized.',
                     icon: FileText,
-                    color: 'text-indigo-500',
+                    color: 'text-brand-500',
                     href: route('store.accounting.index', { store_slug: store.slug })
                 },
                 {
@@ -524,7 +524,7 @@ export default function ReportsHub() {
                     description: 'Global history',
                     longDescription: 'A complete master list of every financial event entered in the system. Use this when searching for a specific transaction across all modules, regardless of type or date.',
                     icon: Activity,
-                    color: 'text-slate-400',
+                    color: 'text-ink-muted',
                     href: route("store.reports.transactions", {
                         store_slug: store.slug
                     })
@@ -540,7 +540,7 @@ export default function ReportsHub() {
                     description: 'Contact directory',
                     longDescription: 'A complete directory list of all customers and suppliers with their contact info. Use this to manage your address book and quickly access details for any business partner.',
                     icon: Users,
-                    color: 'text-slate-400',
+                    color: 'text-ink-muted',
                     href: route("store.reports.all-parties", {
                         store_slug: store.slug
                     })
@@ -580,7 +580,7 @@ export default function ReportsHub() {
                     description: 'Buying habits',
                     longDescription: 'Analyze what specific items a particular customer buys frequently. This insight allows you to create targeted offers and anticipate their needs before they even ask.',
                     icon: UserPlus,
-                    color: 'text-indigo-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.item-report-by-party", {
                         store_slug: store.slug
                     })
@@ -656,13 +656,13 @@ export default function ReportsHub() {
                     breadcrumbs={[{ label: 'Reports' }]}
                     actions={
                         <div className="relative w-full md:w-auto">
-                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                             <input
                                 type="text"
                                 placeholder="Search reports..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 w-full md:w-64 shadow-sm outline-none transition-all placeholder:text-slate-500"
+                                className="pl-10 pr-4 py-2 bg-surface border border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 w-full md:w-64 shadow-sm outline-none transition-all placeholder:text-ink-muted"
                             />
                         </div>
                     }
@@ -671,10 +671,10 @@ export default function ReportsHub() {
                 <div className="grid gap-10 px-4 sm:px-6">
                     {filteredGroups.map((group, idx) => (
                         <div key={idx} className="space-y-4">
-                            <div className="flex items-end justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                            <div className="flex items-end justify-between border-b border-line pb-2">
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-widest">{group.title}</h2>
-                                    <p className="text-sm text-slate-500">{group.description}</p>
+                                    <h2 className="text-lg font-bold text-ink uppercase tracking-widest">{group.title}</h2>
+                                    <p className="text-sm text-ink-muted">{group.description}</p>
                                 </div>
                             </div>
 
@@ -688,11 +688,11 @@ export default function ReportsHub() {
 
                     {filteredGroups.length === 0 && (
                         <div className="text-center py-20">
-                            <div className="inline-flex p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-4">
+                            <div className="inline-flex p-4 rounded-full bg-sunken text-ink-muted mb-4">
                                 <FileText size={48} />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">No reports found</h3>
-                            <p className="text-slate-500">Try adjusting your search terms</p>
+                            <h3 className="text-lg font-bold text-ink-secondary">No reports found</h3>
+                            <p className="text-ink-muted">Try adjusting your search terms</p>
                         </div>
                     )}
                 </div>

@@ -36,8 +36,8 @@ const FAQS = [
     { q: 'PNG or SVG — which should I choose?', a: 'SVG is vector and scales to any size with no quality loss — best for print. PNG is a fixed-resolution image, simpler for quick sharing or embedding.' },
 ];
 
-const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-400/60 transition-colors';
-const labelBase = 'block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2';
+const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/60 transition-colors';
+const labelBase = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
 
 function Field({ label, ...props }) {
     return (
@@ -147,7 +147,7 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
             }}
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Price Tag Generator', href: '/tools/price-tag-generator' }]}
         >
-            <div className="rounded-3xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 p-5 sm:p-7">
+            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
                 <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
                     {/* Controls */}
                     <div className="space-y-5 min-w-0">
@@ -224,14 +224,14 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                             <div>
                                 <label className={labelBase}>Foreground</label>
                                 <div className="flex items-center gap-2">
-                                    <input type="color" value={foreground} onChange={(e) => setForeground(e.target.value)} className="w-11 h-11 rounded-lg border border-slate-900/10 dark:border-white/10 bg-transparent cursor-pointer" />
+                                    <input type="color" value={foreground} onChange={(e) => setForeground(e.target.value)} className="w-11 h-11 rounded-lg border border-line dark:border-white/10 bg-transparent cursor-pointer" />
                                     <input type="text" value={foreground} onChange={(e) => setForeground(e.target.value)} className={`${inputBase} font-mono text-xs`} />
                                 </div>
                             </div>
                             <div>
                                 <label className={labelBase}>Background</label>
                                 <div className="flex items-center gap-2">
-                                    <input type="color" value={background} onChange={(e) => setBackground(e.target.value)} className="w-11 h-11 rounded-lg border border-slate-900/10 dark:border-white/10 bg-transparent cursor-pointer" />
+                                    <input type="color" value={background} onChange={(e) => setBackground(e.target.value)} className="w-11 h-11 rounded-lg border border-line dark:border-white/10 bg-transparent cursor-pointer" />
                                     <input type="text" value={background} onChange={(e) => setBackground(e.target.value)} className={`${inputBase} font-mono text-xs`} />
                                 </div>
                             </div>
@@ -240,18 +240,18 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className={labelBase}>Size ({size}px)</label>
-                                <input type="range" min="100" max="1000" step="10" value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-full accent-indigo-500" />
+                                <input type="range" min="100" max="1000" step="10" value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-full accent-brand-500" />
                             </div>
                             <div>
                                 <label className={labelBase}>Margin ({margin}px)</label>
-                                <input type="range" min="0" max="60" value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="w-full accent-indigo-500" />
+                                <input type="range" min="0" max="60" value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="w-full accent-brand-500" />
                             </div>
                         </div>
 
                         <div>
                             <label className={labelBase}>Error correction</label>
                             <Select value={errorCorrection} onChange={setErrorCorrection} options={EC_OPTIONS} />
-                            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1.5 flex items-start gap-1.5">
+                            <p className="text-xs text-ink-muted mt-1.5 flex items-start gap-1.5">
                                 <Info size={13} className="shrink-0 mt-0.5" />
                                 Higher levels tolerate more damage or a logo overlay, at the cost of a slightly denser code.
                             </p>
@@ -267,10 +267,10 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                                             key={fmt}
                                             onClick={() => !disabled && setOutput(fmt)}
                                             disabled={disabled}
-                                            className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
+                                            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
                                                 output === fmt
-                                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-[#05030f]'
-                                                    : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                                    ? 'bg-sunken dark:bg-white text-white dark:text-[#05030f]'
+                                                    : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted hover:text-ink dark:hover:text-white'
                                             }`}
                                         >
                                             {fmt}
@@ -287,17 +287,17 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                                 onClick={() => { if (!logo) logoInputRef.current?.click(); else setLogo(null); }}
                                 disabled={!supportsLogo || output !== 'png'}
                                 title={!supportsLogo ? 'Logo overlay needs the GD extension' : output !== 'png' ? 'Logo overlay requires PNG output' : ''}
-                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors disabled:opacity-35 ${logo ? 'bg-indigo-500/15 border border-indigo-400/40 text-indigo-600 dark:text-indigo-300' : 'bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400'}`}
+                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors disabled:opacity-35 ${logo ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}
                             >
                                 <ImageIcon size={13} /> {logo ? 'Remove logo' : 'Add logo (center)'}
                             </button>
                             <input ref={logoInputRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleLogoUpload} />
 
                             {logo && (
-                                <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10">
+                                <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                                     <img src={logo} alt="" className="w-9 h-9 object-contain rounded bg-white" />
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 flex-1 leading-snug">Error correction was switched to High to keep the code scannable with a logo in the center.</span>
-                                    <button onClick={() => setLogo(null)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
+                                    <span className="text-xs text-ink-muted flex-1 leading-snug">Error correction was switched to High to keep the code scannable with a logo in the center.</span>
+                                    <button onClick={() => setLogo(null)} className="text-ink-muted hover:text-red-500 transition-colors"><X size={16} /></button>
                                 </div>
                             )}
                         </div>
@@ -315,10 +315,10 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                     {/* Preview */}
                     <div className="flex flex-col min-w-0">
                         <div
-                            className="w-full aspect-square rounded-2xl border border-slate-900/[0.08] flex items-center justify-center p-6 mb-3"
+                            className="w-full aspect-square rounded-2xl border border-line flex items-center justify-center p-6 mb-3"
                             style={{ background: background || '#ffffff' }}
                         >
-                            {loading && <Loader2 size={20} className="text-slate-500 dark:text-slate-400 animate-spin" />}
+                            {loading && <Loader2 size={20} className="text-ink-muted animate-spin" />}
                             {!loading && result && (
                                 <img
                                     src={`data:${result.mime_type};base64,${result.image_base64}`}
@@ -326,17 +326,17 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                                     className="max-w-full max-h-full"
                                 />
                             )}
-                            {!loading && !result && <span className="text-slate-500 dark:text-slate-400 text-sm text-center px-4">Fill in the fields to see your QR code</span>}
+                            {!loading && !result && <span className="text-ink-muted text-sm text-center px-4">Fill in the fields to see your QR code</span>}
                         </div>
 
                         <button
                             onClick={download}
                             disabled={!result}
-                            className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-black uppercase tracking-wide hover:scale-[1.01] transition-transform disabled:opacity-40 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                            className="w-full py-3.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-40 disabled: flex items-center justify-center gap-2"
                         >
                             <Download size={16} /> Download {result ? result.file_extension.toUpperCase() : output.toUpperCase()}
                         </button>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-600 text-center mt-2">Free — no email, no watermark.</p>
+                        <p className="text-1xs text-ink-muted text-center mt-2">Free — no email, no watermark.</p>
                     </div>
                 </div>
             </div>

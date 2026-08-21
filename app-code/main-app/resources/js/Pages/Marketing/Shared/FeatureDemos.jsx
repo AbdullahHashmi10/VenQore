@@ -74,12 +74,12 @@ export const Num = ({ end, prefix = '', suffix = '', d = 0, dur = 1600 }) => {
 
 /* ── App-window frame that wraps each simulated product screen ────────────── */
 const ACCENTS = {
-    indigo: 'text-indigo-300', emerald: 'text-emerald-300', violet: 'text-violet-300',
+    indigo: 'text-brand-300', emerald: 'text-emerald-300', violet: 'text-violet-300',
     blue: 'text-blue-300', amber: 'text-amber-300', cyan: 'text-cyan-300',
 };
 export function DemoFrame({ title, url, badge = 'LIVE DEMO', accent = 'indigo', children }) {
     return (
-        <div className="relative rounded-[1.5rem] border border-white/[0.08] bg-slate-950/85 backdrop-blur-2xl shadow-[0_40px_140px_-50px_rgba(99,102,241,0.55)] overflow-hidden">
+        <div className="relative rounded-lg border border-white/[0.08] bg-neutral-950/85 backdrop-blur-2xl shadow-[0_40px_140px_-50px_rgba(99,102,241,0.55)] overflow-hidden">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-1.5">
@@ -88,12 +88,12 @@ export function DemoFrame({ title, url, badge = 'LIVE DEMO', accent = 'indigo', 
                     <span className="w-3 h-3 rounded-full bg-emerald-400/70" />
                 </div>
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
-                    <Lock size={10} className="text-slate-500" />
-                    <span className="text-2xs font-mono text-slate-500 dark:text-slate-400">{url}</span>
+                    <Lock size={10} className="text-ink-muted" />
+                    <span className="text-2xs font-mono text-ink-muted">{url}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vqf-blink" />
-                    <span className={`text-3xs font-black uppercase tracking-[0.2em] ${ACCENTS[accent] || ACCENTS.indigo}`}>{badge}</span>
+                    <span className={`text-3xs font-bold uppercase tracking-[0.2em] ${ACCENTS[accent] || ACCENTS.indigo}`}>{badge}</span>
                 </div>
             </div>
             <div className="p-4 sm:p-6">{children}</div>
@@ -106,7 +106,7 @@ export const PillTabs = ({ tabs, value, onChange, size = 'sm' }) => (
     <div className="inline-flex bg-white/[0.04] p-0.5 rounded-lg">
         {tabs.map(t => (
             <button key={t} onClick={() => onChange(t)}
-                className={`${size === 'sm' ? 'px-2.5 py-0.5 text-2xs' : 'px-3 py-1 text-1xs'} font-bold rounded-md transition-all ${value === t ? 'bg-white/10 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>
+                className={`${size === 'sm' ? 'px-2.5 py-0.5 text-2xs' : 'px-3 py-1 text-1xs'} font-bold rounded-md transition-all ${value === t ? 'bg-white/10 text-brand-300' : 'text-ink-muted hover:text-neutral-300'}`}>
                 {t}
             </button>
         ))}
@@ -138,8 +138,8 @@ const Donut = ({ segments, size = 132 }) => {
                 })}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xs font-black uppercase tracking-widest text-slate-500">Net Margin</span>
-                <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{((segments[2].value / total) * 100).toFixed(0)}%</span>
+                <span className="text-3xs font-bold uppercase tracking-widest text-ink-muted">Net Margin</span>
+                <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{((segments[2].value / total) * 100).toFixed(0)}%</span>
             </div>
         </div>
     );
@@ -153,7 +153,7 @@ export const ProfitLossDemo = () => {
     const analyze = () => { setPhase('analyzing'); setTimeout(() => setPhase('done'), 1700); };
     useEffect(() => { setPhase('idle'); }, [range]);
     const kpis = [
-        { l: 'Revenue', v: s.rev, c: 'text-white', ic: TrendingUp, tone: 'text-indigo-300 bg-indigo-500/15' },
+        { l: 'Revenue', v: s.rev, c: 'text-white', ic: TrendingUp, tone: 'text-brand-300 bg-brand-500/15' },
         { l: 'COGS (FIFO)', v: s.cogs, c: 'text-amber-300', ic: Package, tone: 'text-amber-300 bg-amber-500/15' },
         { l: 'Expenses', v: s.exp, c: 'text-rose-300', ic: Receipt, tone: 'text-rose-300 bg-rose-500/15' },
         { l: 'Net Profit', v: net, c: 'text-emerald-300', ic: Wallet, tone: 'text-emerald-300 bg-emerald-500/15' },
@@ -164,8 +164,8 @@ export const ProfitLossDemo = () => {
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-emerald-500" />
                     <div>
-                        <div className="text-[15px] font-black text-slate-900 dark:text-white tracking-tight">Profit &amp; Loss Statement</div>
-                        <div className="text-2xs text-slate-500">Verified from the double-entry ledger</div>
+                        <div className="text-[15px] font-bold text-ink tracking-tight">Profit &amp; Loss Statement</div>
+                        <div className="text-2xs text-ink-muted">Verified from the double-entry ledger</div>
                     </div>
                 </div>
                 <PillTabs tabs={['This Month', 'Last Month', 'This Year']} value={range} onChange={setRange} size="md" />
@@ -176,9 +176,9 @@ export const ProfitLossDemo = () => {
                     <div key={k.l} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
                         <div className="flex items-center gap-2 mb-2">
                             <div className={`p-1.5 rounded-lg ${k.tone}`}><k.ic size={13} /></div>
-                            <span className="text-3xs font-black uppercase tracking-wide text-slate-500">{k.l}</span>
+                            <span className="text-3xs font-bold uppercase tracking-wide text-ink-muted">{k.l}</span>
                         </div>
-                        <div className={`text-base sm:text-lg font-black tabular-nums ${k.c}`}>$<Num end={k.v} /></div>
+                        <div className={`text-base sm:text-lg font-bold tabular-nums ${k.c}`}>$<Num end={k.v} /></div>
                     </div>
                 ))}
             </div>
@@ -191,16 +191,16 @@ export const ProfitLossDemo = () => {
                         { name: 'Net', value: Math.max(0, net), color: vq.emerald[500] },
                     ]} />
                     <div className="space-y-2 text-1xs">
-                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500" /><span className="text-slate-500 dark:text-slate-400">COGS</span><span className="ml-auto text-slate-600 dark:text-slate-300 font-bold">{((s.cogs / s.rev) * 100).toFixed(0)}%</span></div>
-                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-slate-500 dark:text-slate-400">Expenses</span><span className="ml-auto text-slate-600 dark:text-slate-300 font-bold">{((s.exp / s.rev) * 100).toFixed(0)}%</span></div>
-                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-slate-500 dark:text-slate-400">Net Profit</span><span className="ml-auto text-emerald-300 font-bold">{nm}%</span></div>
-                        <div className="pt-1 mt-1 border-t border-slate-900/[0.06] dark:border-white/5 flex items-center gap-2"><span className="text-slate-500">Gross margin</span><span className="ml-auto text-slate-900 dark:text-white font-bold">{gm}%</span></div>
+                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500" /><span className="text-ink-muted">COGS</span><span className="ml-auto text-ink-secondary font-bold">{((s.cogs / s.rev) * 100).toFixed(0)}%</span></div>
+                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-ink-muted">Expenses</span><span className="ml-auto text-ink-secondary font-bold">{((s.exp / s.rev) * 100).toFixed(0)}%</span></div>
+                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-ink-muted">Net Profit</span><span className="ml-auto text-emerald-300 font-bold">{nm}%</span></div>
+                        <div className="pt-1 mt-1 border-t border-line dark:border-white/5 flex items-center gap-2"><span className="text-ink-muted">Gross margin</span><span className="ml-auto text-ink font-bold">{gm}%</span></div>
                     </div>
                 </div>
 
                 <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2"><Sparkles size={14} className="text-violet-300" /><span className="text-[13px] font-bold text-slate-900 dark:text-white">AI Analysis</span></div>
+                        <div className="flex items-center gap-2"><Sparkles size={14} className="text-violet-300" /><span className="text-[13px] font-bold text-ink">AI Analysis</span></div>
                         {phase !== 'done' && (
                             <button onClick={analyze} disabled={phase === 'analyzing'}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-400/30 text-violet-200 text-1xs font-bold hover:bg-violet-500/25 transition-colors disabled:opacity-60">
@@ -208,26 +208,26 @@ export const ProfitLossDemo = () => {
                             </button>
                         )}
                     </div>
-                    {phase === 'idle' && <p className="text-slate-500 text-[12px] leading-relaxed">Click <span className="text-violet-300 font-semibold">Analyze with AI</span> — VenQore reads this statement and returns plain-English insights and a health score.</p>}
+                    {phase === 'idle' && <p className="text-ink-muted text-[12px] leading-relaxed">Click <span className="text-violet-300 font-semibold">Analyze with AI</span> — VenQore reads this statement and returns plain-English insights and a health score.</p>}
                     {phase === 'analyzing' && (
                         <div className="space-y-2 animate-pulse">
-                            <div className="h-3 w-3/4 bg-slate-900/[0.03] dark:bg-white/5 rounded" /><div className="h-3 w-2/3 bg-slate-900/[0.03] dark:bg-white/5 rounded" /><div className="h-3 w-1/2 bg-slate-900/[0.03] dark:bg-white/5 rounded" />
+                            <div className="h-3 w-3/4 bg-sunken dark:bg-white/5 rounded" /><div className="h-3 w-2/3 bg-sunken dark:bg-white/5 rounded" /><div className="h-3 w-1/2 bg-sunken dark:bg-white/5 rounded" />
                         </div>
                     )}
                     {phase === 'done' && (
                         <div className="vqf-in space-y-2.5">
                             <div className="flex items-center gap-3 mb-1">
-                                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{Math.round(parseFloat(nm) + 50)}<span className="text-sm text-slate-500">/100</span></div>
+                                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{Math.round(parseFloat(nm) + 50)}<span className="text-sm text-ink-muted">/100</span></div>
                                 <span className="text-1xs font-bold text-emerald-300 bg-emerald-500/10 px-2 py-1 rounded-full">Financially Healthy</span>
                             </div>
                             {[
                                 { ic: CheckCircle2, c: 'text-emerald-400', t: 'Strong gross margin', d: `At ${gm}%, your product pricing leaves healthy room for overheads.` },
                                 { ic: AlertTriangle, c: 'text-amber-400', t: 'Watch overheads', d: `Expenses are ${((s.exp / s.rev) * 100).toFixed(0)}% of revenue — trim toward the 30% benchmark.` },
-                                { ic: TrendingUp, c: 'text-indigo-400', t: 'Reinvest to grow', d: 'You are profitable — consider routing 20% of net profit into marketing.' },
+                                { ic: TrendingUp, c: 'text-brand-400', t: 'Reinvest to grow', d: 'You are profitable — consider routing 20% of net profit into marketing.' },
                             ].map((x, i) => (
-                                <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/[0.02] border border-slate-900/[0.06] dark:border-white/5">
+                                <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/[0.02] border border-line dark:border-white/5">
                                     <x.ic size={15} className={`${x.c} mt-0.5 shrink-0`} />
-                                    <div><div className="text-[12px] font-bold text-slate-200">{x.t}</div><div className="text-1xs text-slate-500 leading-snug">{x.d}</div></div>
+                                    <div><div className="text-[12px] font-bold text-neutral-200">{x.t}</div><div className="text-1xs text-ink-muted leading-snug">{x.d}</div></div>
                                 </div>
                             ))}
                         </div>
@@ -263,18 +263,18 @@ export const PosInvoiceDemo = () => {
                 <div className="lg:col-span-3">
                     <div className="flex items-center justify-between mb-3">
                         <div className="relative flex-1 max-w-xs">
-                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                            <div className="w-full pl-8 pr-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-1xs text-slate-500">Scan barcode or search…</div>
+                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                            <div className="w-full pl-8 pr-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-1xs text-ink-muted">Scan barcode or search…</div>
                         </div>
-                        <span className="text-3xs font-black uppercase tracking-widest text-slate-600 ml-3 hidden sm:block">F1 Search · F4 Pay</span>
+                        <span className="text-3xs font-bold uppercase tracking-widest text-ink-secondary ml-3 hidden sm:block">F1 Search · F4 Pay</span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {POS_PRODUCTS.map(p => (
                             <button key={p.id} onClick={() => add(p)}
-                                className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left hover:border-indigo-400/40 hover:bg-indigo-500/10 transition-all active:scale-95">
-                                <div className="text-xl mb-1.5 group-hover:scale-110 transition-transform">{p.e}</div>
-                                <div className="text-1xs font-bold text-slate-200 truncate">{p.n}</div>
-                                <div className="text-1xs font-black text-indigo-300">Rs {p.p}</div>
+                                className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left hover:border-brand-400/40 hover:bg-brand-500/10 transition-all active:scale-95">
+                                <div className="text-xl mb-1.5 transition-transform">{p.e}</div>
+                                <div className="text-1xs font-bold text-neutral-200 truncate">{p.n}</div>
+                                <div className="text-1xs font-bold text-brand-300">Rs {p.p}</div>
                             </button>
                         ))}
                     </div>
@@ -282,45 +282,45 @@ export const PosInvoiceDemo = () => {
                 {/* cart */}
                 <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-void-800 p-3 flex flex-col">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-1xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Cart</span>
-                        <span className="text-2xs text-slate-500">{cart.reduce((s, x) => s + x.q, 0)} items</span>
+                        <span className="text-1xs font-bold uppercase tracking-wider text-ink-muted">Cart</span>
+                        <span className="text-2xs text-ink-muted">{cart.reduce((s, x) => s + x.q, 0)} items</span>
                     </div>
                     {done ? (
                         <div className="flex-1 flex flex-col items-center justify-center py-8 vqf-in">
                             <div className="w-14 h-14 rounded-full bg-emerald-500/15 flex items-center justify-center mb-3"><Check size={28} className="text-emerald-600 dark:text-emerald-400" /></div>
-                            <div className="text-slate-900 dark:text-white font-black">Sale completed</div>
-                            <div className="text-1xs text-slate-500 mb-1">Journal posted · stock deducted (FIFO)</div>
+                            <div className="text-ink font-bold">Sale completed</div>
+                            <div className="text-1xs text-ink-muted mb-1">Journal posted · stock deducted (FIFO)</div>
                             <div className="text-1xs text-emerald-600 dark:text-emerald-400 font-mono">Rs {group(total)} · {pay}</div>
-                            <button onClick={() => { setDone(false); setCart([{ ...POS_PRODUCTS[0], q: 2 }]); }} className="mt-4 text-1xs font-bold text-indigo-300 hover:underline">New sale</button>
+                            <button onClick={() => { setDone(false); setCart([{ ...POS_PRODUCTS[0], q: 2 }]); }} className="mt-4 text-1xs font-bold text-brand-300 hover:underline">New sale</button>
                         </div>
                     ) : (
                         <>
                             <div className="flex-1 space-y-1.5 min-h-[120px] max-h-[180px] overflow-y-auto pr-1">
-                                {cart.length === 0 && <div className="text-center text-1xs text-slate-600 py-10">Tap a product to add</div>}
+                                {cart.length === 0 && <div className="text-center text-1xs text-ink-secondary py-10">Tap a product to add</div>}
                                 {cart.map(x => (
-                                    <div key={x.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/5">
+                                    <div key={x.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-line dark:border-white/5">
                                         <span className="text-base">{x.e}</span>
-                                        <div className="min-w-0 flex-1"><div className="text-1xs font-bold text-slate-200 truncate">{x.n}</div><div className="text-2xs text-slate-500">Rs {x.p}</div></div>
+                                        <div className="min-w-0 flex-1"><div className="text-1xs font-bold text-neutral-200 truncate">{x.n}</div><div className="text-2xs text-ink-muted">Rs {x.p}</div></div>
                                         <div className="flex items-center gap-1">
-                                            <button onClick={() => dec(x.id)} className="w-5 h-5 rounded bg-slate-900/[0.03] dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300"><Minus size={11} /></button>
-                                            <span className="w-5 text-center text-1xs font-bold text-slate-900 dark:text-white tabular-nums">{x.q}</span>
-                                            <button onClick={() => add(x)} className="w-5 h-5 rounded bg-slate-900/[0.03] dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300"><Plus size={11} /></button>
+                                            <button onClick={() => dec(x.id)} className="w-5 h-5 rounded bg-sunken dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-ink-secondary"><Minus size={11} /></button>
+                                            <span className="w-5 text-center text-1xs font-bold text-ink tabular-nums">{x.q}</span>
+                                            <button onClick={() => add(x)} className="w-5 h-5 rounded bg-sunken dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-ink-secondary"><Plus size={11} /></button>
                                             <button onClick={() => del(x.id)} className="w-5 h-5 rounded bg-rose-500/10 hover:bg-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 ml-0.5"><Trash2 size={11} /></button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-2 pt-2 border-t border-slate-900/[0.06] dark:border-white/5 space-y-1 text-1xs">
-                                <div className="flex justify-between text-slate-500 dark:text-slate-400"><span>Subtotal</span><span className="tabular-nums">Rs {group(sub)}</span></div>
-                                <div className="flex justify-between text-slate-500 dark:text-slate-400"><span>VAT 5%</span><span className="tabular-nums">Rs {group(tax)}</span></div>
-                                <div className="flex justify-between text-slate-900 dark:text-white font-black text-sm pt-0.5"><span>Total</span><span className="tabular-nums">Rs {group(total)}</span></div>
+                            <div className="mt-2 pt-2 border-t border-line dark:border-white/5 space-y-1 text-1xs">
+                                <div className="flex justify-between text-ink-muted"><span>Subtotal</span><span className="tabular-nums">Rs {group(sub)}</span></div>
+                                <div className="flex justify-between text-ink-muted"><span>VAT 5%</span><span className="tabular-nums">Rs {group(tax)}</span></div>
+                                <div className="flex justify-between text-ink font-bold text-sm pt-0.5"><span>Total</span><span className="tabular-nums">Rs {group(total)}</span></div>
                             </div>
                             <div className="grid grid-cols-3 gap-1.5 mt-2.5">
                                 {['Cash', 'Card', 'Split'].map(m => (
-                                    <button key={m} onClick={() => setPay(m)} className={`py-1.5 rounded-lg text-2xs font-black uppercase tracking-wide border transition-all ${pay === m ? 'bg-indigo-500/20 border-indigo-400/50 text-indigo-200' : 'bg-white/[0.03] border-slate-900/[0.08] dark:border-white/10 text-slate-500'}`}>{m}</button>
+                                    <button key={m} onClick={() => setPay(m)} className={`py-1.5 rounded-lg text-2xs font-bold uppercase tracking-wide border transition-all ${pay === m ? 'bg-brand-500/20 border-brand-400/50 text-brand-200' : 'bg-white/[0.03] border-line dark:border-white/10 text-ink-muted'}`}>{m}</button>
                                 ))}
                             </div>
-                            <button onClick={() => cart.length && setDone(true)} className="mt-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#05130c] font-black text-[12px] uppercase tracking-wide transition-colors flex items-center justify-center gap-2 disabled:opacity-50" disabled={!cart.length}>
+                            <button onClick={() => cart.length && setDone(true)} className="mt-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-ink font-bold text-[12px] uppercase tracking-wide transition-colors flex items-center justify-center gap-2 disabled:opacity-50" disabled={!cart.length}>
                                 <CheckCircle2 size={15} /> Complete Sale
                             </button>
                         </>
@@ -378,8 +378,8 @@ export const SmartCaptureDemo = () => {
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-violet-500" />
                     <div>
-                        <div className="text-[15px] font-black text-slate-900 dark:text-white tracking-tight">Smart Capture</div>
-                        <div className="text-2xs text-slate-500">Snap a bill or speak — AI turns it into a transaction</div>
+                        <div className="text-[15px] font-bold text-ink tracking-tight">Smart Capture</div>
+                        <div className="text-2xs text-ink-muted">Snap a bill or speak — AI turns it into a transaction</div>
                     </div>
                 </div>
                 <PillTabs tabs={['Image', 'Audio']} value={tab} onChange={setTab} size="md" />
@@ -392,20 +392,20 @@ export const SmartCaptureDemo = () => {
                         {tab === 'Image' ? (
                             <>
                                 <div className="w-28 rounded-md bg-white/90 p-2 shadow-xl rotate-[-3deg]">
-                                    <div className="h-1.5 w-10 bg-slate-800 rounded mb-1.5" />
-                                    {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-1 bg-slate-300 rounded mb-1" style={{ width: `${90 - i * 9}%` }} />)}
+                                    <div className="h-1.5 w-10 bg-neutral-800 rounded mb-1.5" />
+                                    {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-1 bg-sunken rounded mb-1" style={{ width: `${90 - i * 9}%` }} />)}
                                     <div className="h-1.5 w-12 bg-emerald-500 rounded mt-1.5 ml-auto" />
                                 </div>
                                 {phase === 'working' && !reduced && <div className="absolute left-0 right-0 h-0.5 bg-violet-400 shadow-[0_0_14px_2px_rgba(167,139,250,0.9)] vqf-scan" />}
-                                <div className="mt-3 text-2xs text-slate-500">Sample supplier invoice</div>
+                                <div className="mt-3 text-2xs text-ink-muted">Sample supplier invoice</div>
                             </>
                         ) : (
                             <>
                                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${phase === 'working' ? 'bg-violet-500/20 vqf-pulse' : 'bg-white/[0.04]'}`}>
-                                    <Mic size={26} className={phase === 'working' ? 'text-violet-300' : 'text-slate-400'} />
+                                    <Mic size={26} className={phase === 'working' ? 'text-violet-300' : 'text-ink-muted'} />
                                 </div>
                                 <Waveform active={phase === 'working'} />
-                                <div className="mt-2 text-1xs font-mono text-slate-500">{phase === 'working' ? `00:0${t}` : '00:00'}</div>
+                                <div className="mt-2 text-1xs font-mono text-ink-muted">{phase === 'working' ? `00:0${t}` : '00:00'}</div>
                             </>
                         )}
                     </div>
@@ -415,7 +415,7 @@ export const SmartCaptureDemo = () => {
                         </button>
                     )}
                     {phase === 'working' && (
-                        <div className="mt-3 w-full py-2.5 rounded-xl bg-white/[0.03] border border-slate-900/[0.08] dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold text-[12px] flex items-center justify-center gap-2">
+                        <div className="mt-3 w-full py-2.5 rounded-xl bg-white/[0.03] border border-line dark:border-white/10 text-ink-muted font-bold text-[12px] flex items-center justify-center gap-2">
                             <Loader2 size={14} className="animate-spin" /> {tab === 'Image' ? 'Reading invoice…' : 'Transcribing…'}
                         </div>
                     )}
@@ -426,36 +426,36 @@ export const SmartCaptureDemo = () => {
                     {phase === 'idle' || phase === 'working' ? (
                         <div className="h-full flex flex-col items-center justify-center text-center">
                             <Sparkles size={22} className="text-violet-300 mb-2" />
-                            <div className="text-[13px] font-bold text-slate-900 dark:text-white mb-1">AI extraction</div>
-                            <p className="text-1xs text-slate-500 max-w-xs">Your own AI key reads the {tab === 'Image' ? 'photo' : 'audio'}, detects whether it’s a sale, purchase or expense, and matches every line to a product in your catalog.</p>
+                            <div className="text-[13px] font-bold text-ink mb-1">AI extraction</div>
+                            <p className="text-1xs text-ink-muted max-w-xs">Your own AI key reads the {tab === 'Image' ? 'photo' : 'audio'}, detects whether it’s a sale, purchase or expense, and matches every line to a product in your catalog.</p>
                         </div>
                     ) : (
                         <div className="vqf-in">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-2xs font-black uppercase tracking-widest text-slate-500">Detected</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-2xs font-black ${data.action === 'Sale' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>{data.action}</span>
-                                    <span className="text-1xs text-slate-500 dark:text-slate-400">→ {data.supplier || data.party}</span>
+                                    <span className="text-2xs font-bold uppercase tracking-widest text-ink-muted">Detected</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-2xs font-bold ${data.action === 'Sale' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>{data.action}</span>
+                                    <span className="text-1xs text-ink-muted">→ {data.supplier || data.party}</span>
                                 </div>
                                 {phase === 'confirmed' && <span className="inline-flex items-center gap-1 text-2xs font-bold text-emerald-300"><Check size={12} /> Draft created</span>}
                             </div>
                             {data.transcript && <div className="mb-2 text-1xs italic text-violet-200/80">{data.transcript}</div>}
                             <div className="space-y-1.5 mb-3">
                                 {data.items.map((it, i) => (
-                                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-slate-900/[0.06] dark:border-white/5 vqf-in" style={{ animationDelay: `${i * 0.1}s` }}>
+                                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-line dark:border-white/5 vqf-in" style={{ animationDelay: `${i * 0.1}s` }}>
                                         <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                        <div className="min-w-0 flex-1"><div className="text-[12px] font-bold text-slate-200 truncate">{it.n}</div><div className="text-3xs font-mono text-slate-500">matched · {it.sku}</div></div>
-                                        <div className="text-1xs text-slate-500 dark:text-slate-400 tabular-nums">{it.qty} × {it.price}</div>
-                                        <div className="text-1xs font-bold text-slate-900 dark:text-white tabular-nums w-16 text-right">Rs {group(it.qty * it.price)}</div>
+                                        <div className="min-w-0 flex-1"><div className="text-[12px] font-bold text-neutral-200 truncate">{it.n}</div><div className="text-3xs font-mono text-ink-muted">matched · {it.sku}</div></div>
+                                        <div className="text-1xs text-ink-muted tabular-nums">{it.qty} × {it.price}</div>
+                                        <div className="text-1xs font-bold text-ink tabular-nums w-16 text-right">Rs {group(it.qty * it.price)}</div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="flex items-center justify-between pt-2 border-t border-slate-900/[0.06] dark:border-white/5">
-                                <span className="text-[12px] font-black text-slate-900 dark:text-white">Total <span className="text-slate-500 font-normal">({data.items.length} lines)</span></span>
+                            <div className="flex items-center justify-between pt-2 border-t border-line dark:border-white/5">
+                                <span className="text-[12px] font-bold text-ink">Total <span className="text-ink-muted font-normal">({data.items.length} lines)</span></span>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-[13px] font-black text-slate-900 dark:text-white tabular-nums">Rs {group(total)}</span>
-                                    {phase === 'extracted' && <button onClick={() => setPhase('confirmed')} className="px-3 py-1.5 rounded-lg bg-emerald-500 text-[#05130c] text-1xs font-black hover:bg-emerald-400 transition-colors flex items-center gap-1.5"><Check size={12} /> Confirm &amp; Record</button>}
-                                    {phase === 'confirmed' && <button onClick={() => setPhase('idle')} className="text-1xs font-bold text-indigo-300 hover:underline">Try again</button>}
+                                    <span className="text-[13px] font-bold text-ink tabular-nums">Rs {group(total)}</span>
+                                    {phase === 'extracted' && <button onClick={() => setPhase('confirmed')} className="px-3 py-1.5 rounded-lg bg-emerald-500 text-ink text-1xs font-bold hover:bg-emerald-400 transition-colors flex items-center gap-1.5"><Check size={12} /> Confirm &amp; Record</button>}
+                                    {phase === 'confirmed' && <button onClick={() => setPhase('idle')} className="text-1xs font-bold text-brand-300 hover:underline">Try again</button>}
                                 </div>
                             </div>
                         </div>
@@ -489,8 +489,8 @@ export const VenSynQDemo = () => {
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-blue-500" />
                     <div>
-                        <div className="text-[15px] font-black text-slate-900 dark:text-white tracking-tight">VenSynQ — Channel Command Center</div>
-                        <div className="text-2xs text-slate-500">One inventory, every marketplace, true net margin</div>
+                        <div className="text-[15px] font-bold text-ink tracking-tight">VenSynQ — Channel Command Center</div>
+                        <div className="text-2xs text-ink-muted">One inventory, every marketplace, true net margin</div>
                     </div>
                 </div>
                 <button onClick={() => { setSyncing(true); setTimeout(() => setSyncing(false), 1400); }}
@@ -500,26 +500,26 @@ export const VenSynQDemo = () => {
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-3xs font-black uppercase tracking-wide text-slate-500 mb-1">Gross Revenue</div><div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">Rs <Num end={totalRev} /></div></div>
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-3xs font-black uppercase tracking-wide text-slate-500 mb-1">Net Profit</div><div className="text-lg font-black text-emerald-300 tabular-nums">Rs <Num end={totalNet} /></div></div>
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-3xs font-black uppercase tracking-wide text-slate-500 mb-1">Channels</div><div className="text-lg font-black text-slate-900 dark:text-white">{VQ_CHANNELS.length} <span className="text-2xs text-slate-500 font-bold">connected</span></div></div>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-3"><div className="text-3xs font-black uppercase tracking-wide text-emerald-300/80 mb-1">Most profitable</div><div className="text-lg font-black text-emerald-300">{best.k}</div></div>
+                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-3xs font-bold uppercase tracking-wide text-ink-muted mb-1">Gross Revenue</div><div className="text-lg font-bold text-ink tabular-nums">Rs <Num end={totalRev} /></div></div>
+                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-3xs font-bold uppercase tracking-wide text-ink-muted mb-1">Net Profit</div><div className="text-lg font-bold text-emerald-300 tabular-nums">Rs <Num end={totalNet} /></div></div>
+                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-3xs font-bold uppercase tracking-wide text-ink-muted mb-1">Channels</div><div className="text-lg font-bold text-ink">{VQ_CHANNELS.length} <span className="text-2xs text-ink-muted font-bold">connected</span></div></div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-3"><div className="text-3xs font-bold uppercase tracking-wide text-emerald-300/80 mb-1">Most profitable</div><div className="text-lg font-bold text-emerald-300">{best.k}</div></div>
             </div>
 
             <div className="space-y-2">
                 {VQ_CHANNELS.map((c) => (
                     <div key={c.k} className="grid grid-cols-12 items-center gap-2 p-2.5 rounded-xl border border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.03] transition-colors">
                         <div className="col-span-4 sm:col-span-3 flex items-center gap-2.5 min-w-0">
-                            <span className="w-7 h-7 rounded-lg flex items-center justify-center text-1xs font-black shrink-0" style={{ background: c.c + '22', color: c.c }}>{c.k[0]}</span>
-                            <div className="min-w-0"><div className="text-[12px] font-bold text-slate-900 dark:text-white truncate">{c.k}</div><div className="text-3xs text-slate-500">{c.units} units · {c.fulfil}</div></div>
+                            <span className="w-7 h-7 rounded-lg flex items-center justify-center text-1xs font-bold shrink-0" style={{ background: c.c + '22', color: c.c }}>{c.k[0]}</span>
+                            <div className="min-w-0"><div className="text-[12px] font-bold text-ink truncate">{c.k}</div><div className="text-3xs text-ink-muted">{c.units} units · {c.fulfil}</div></div>
                         </div>
                         <div className="hidden sm:block col-span-3">
                             <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${(c.net / maxNet) * 100}%`, background: c.c }} /></div>
-                            <div className="text-3xs text-slate-500 mt-1">net margin {((c.net / c.rev) * 100).toFixed(0)}%</div>
+                            <div className="text-3xs text-ink-muted mt-1">net margin {((c.net / c.rev) * 100).toFixed(0)}%</div>
                         </div>
-                        <div className="col-span-4 sm:col-span-2 text-right"><div className="text-3xs text-slate-500">Revenue</div><div className="text-[12px] font-bold text-slate-900 dark:text-white tabular-nums">Rs {group(c.rev)}</div></div>
-                        <div className="col-span-4 sm:col-span-2 text-right"><div className="text-3xs text-slate-500">Net · {c.comm}% fee</div><div className="text-[12px] font-bold text-emerald-300 tabular-nums">Rs {group(c.net)}</div></div>
-                        <div className="col-span-12 sm:col-span-2 flex sm:justify-end"><span className={`px-2 py-1 rounded-full text-3xs font-black ${STOCK_TONE[c.tone]}`}>{c.stock}</span></div>
+                        <div className="col-span-4 sm:col-span-2 text-right"><div className="text-3xs text-ink-muted">Revenue</div><div className="text-[12px] font-bold text-ink tabular-nums">Rs {group(c.rev)}</div></div>
+                        <div className="col-span-4 sm:col-span-2 text-right"><div className="text-3xs text-ink-muted">Net · {c.comm}% fee</div><div className="text-[12px] font-bold text-emerald-300 tabular-nums">Rs {group(c.net)}</div></div>
+                        <div className="col-span-12 sm:col-span-2 flex sm:justify-end"><span className={`px-2 py-1 rounded-full text-3xs font-bold ${STOCK_TONE[c.tone]}`}>{c.stock}</span></div>
                     </div>
                 ))}
             </div>
@@ -703,7 +703,7 @@ const BRAINS = [
     },
 ];
 const GTONE = {
-    indigo:  { c: 'text-indigo-300',  b: 'bg-indigo-500/15',  bar: 'bg-indigo-400',  br: 'border-indigo-400/40' },
+    indigo:  { c: 'text-brand-300',  b: 'bg-brand-500/15',  bar: 'bg-brand-400',  br: 'border-brand-400/40' },
     amber:   { c: 'text-amber-300',   b: 'bg-amber-500/15',   bar: 'bg-amber-400',   br: 'border-amber-400/40' },
     emerald: { c: 'text-emerald-300', b: 'bg-emerald-500/15', bar: 'bg-emerald-400', br: 'border-emerald-400/40' },
     cyan:    { c: 'text-cyan-300',    b: 'bg-cyan-500/15',    bar: 'bg-cyan-400',    br: 'border-cyan-400/40' },
@@ -745,12 +745,12 @@ export const GrowthEngineDemo = () => {
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-violet-500" />
                     <div>
-                        <div className="text-[15px] font-black text-slate-900 dark:text-white tracking-tight">Intelligence Engine</div>
-                        <div className="text-2xs text-slate-500">Four brains reading your ledger — every insight tracked and scored afterwards</div>
+                        <div className="text-[15px] font-bold text-ink tracking-tight">Intelligence Engine</div>
+                        <div className="text-2xs text-ink-muted">Four brains reading your ledger — every insight tracked and scored afterwards</div>
                     </div>
                 </div>
                 <button onClick={() => setShowProof(p => !p)}
-                    className={`px-3 py-1.5 rounded-lg border text-2xs font-bold flex items-center gap-1.5 transition-all ${showProof ? 'bg-violet-500/15 text-violet-300 border-violet-400/40' : 'bg-white/[0.04] text-slate-500 dark:text-slate-400 border-slate-900/[0.08] dark:border-white/10 hover:text-slate-200'}`}>
+                    className={`px-3 py-1.5 rounded-lg border text-2xs font-bold flex items-center gap-1.5 transition-all ${showProof ? 'bg-violet-500/15 text-violet-300 border-violet-400/40' : 'bg-white/[0.04] text-ink-muted border-line dark:border-white/10 hover:text-neutral-200'}`}>
                     <ShieldCheck size={12} /> {overall}% accurate
                 </button>
             </div>
@@ -763,10 +763,10 @@ export const GrowthEngineDemo = () => {
                         <button key={b.key} onClick={() => pickBrain(i)}
                             className={`text-left p-2.5 rounded-xl border transition-all ${on ? `${bt.b} ${bt.br}` : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'}`}>
                             <div className="flex items-center gap-1.5 mb-1">
-                                <b.ic size={13} className={on ? bt.c : 'text-slate-500'} />
-                                <span className={`text-2xs font-black uppercase tracking-wide ${on ? bt.c : 'text-slate-400'}`}>{b.key}</span>
+                                <b.ic size={13} className={on ? bt.c : 'text-ink-muted'} />
+                                <span className={`text-2xs font-bold uppercase tracking-wide ${on ? bt.c : 'text-ink-muted'}`}>{b.key}</span>
                             </div>
-                            <div className="text-[11px] text-slate-500 leading-snug line-clamp-2">{b.signals.length} live insights</div>
+                            <div className="text-1xs text-ink-muted leading-snug line-clamp-2">{b.signals.length} live insights</div>
                         </button>
                     );
                 })}
@@ -777,9 +777,9 @@ export const GrowthEngineDemo = () => {
                 <div className="vqf-in rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                     <div className="flex items-center gap-2 mb-1">
                         <Target size={14} className="text-violet-300" />
-                        <span className="text-[13px] font-bold text-slate-900 dark:text-white">It scores itself</span>
+                        <span className="text-[13px] font-bold text-ink">It scores itself</span>
                     </div>
-                    <p className="text-1xs text-slate-500 leading-relaxed mb-4">
+                    <p className="text-1xs text-ink-muted leading-relaxed mb-4">
                         Every prediction is checked afterwards against what actually happened. Types that prove accurate
                         get more sensitive; types that keep missing get quieter, and eventually mute themselves.
                         Observations like “this stock hasn’t sold in 90 days” are facts, not forecasts — they’re excluded
@@ -792,9 +792,9 @@ export const GrowthEngineDemo = () => {
                             return (
                                 <div key={i}>
                                     <div className="flex items-center justify-between text-1xs mb-1">
-                                        <span className="text-slate-500 dark:text-slate-400">{r.l}</span>
-                                        <span className="text-slate-500">
-                                            <span className="text-slate-900 dark:text-white font-bold">{pct}%</span> · {r.hit}/{r.graded} checked
+                                        <span className="text-ink-muted">{r.l}</span>
+                                        <span className="text-ink-muted">
+                                            <span className="text-ink font-bold">{pct}%</span> · {r.hit}/{r.graded} checked
                                         </span>
                                     </div>
                                     <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
@@ -807,9 +807,9 @@ export const GrowthEngineDemo = () => {
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                         {[['Insights given', 412], ['Checked', totalGraded], ['Recovered', 'Rs 1.4M']].map(([l, val], i) => (
-                            <div key={i} className="rounded-lg bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/5 p-2.5 text-center">
-                                <div className="text-3xs font-black uppercase tracking-widest text-slate-600">{l}</div>
-                                <div className="text-[15px] font-black text-slate-900 dark:text-white mt-0.5 tabular-nums">{val}</div>
+                            <div key={i} className="rounded-lg bg-white/[0.03] border border-line dark:border-white/5 p-2.5 text-center">
+                                <div className="text-3xs font-bold uppercase tracking-widest text-ink-secondary">{l}</div>
+                                <div className="text-[15px] font-bold text-ink mt-0.5 tabular-nums">{val}</div>
                             </div>
                         ))}
                     </div>
@@ -818,16 +818,16 @@ export const GrowthEngineDemo = () => {
                 /* ── SIGNAL LIST + EVIDENCE ────────────────────────────── */
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
                     <div className="lg:col-span-2 space-y-2">
-                        <p className="text-1xs text-slate-500 leading-snug mb-2.5">{brain.blurb}</p>
+                        <p className="text-1xs text-ink-muted leading-snug mb-2.5">{brain.blurb}</p>
                         {brain.signals.map((s, i) => (
                             <button key={i} onClick={() => setSigIdx(i)}
                                 className={`w-full text-left p-3 rounded-xl border transition-all ${i === sigIdx ? `${t.b} ${t.br}` : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'}`}>
                                 <div className="flex items-center justify-between gap-2 mb-1.5">
-                                    <span className={`text-3xs font-black uppercase tracking-widest ${i === sigIdx ? t.c : 'text-slate-500'}`}>{s.tag}</span>
-                                    <span className={`px-1.5 py-0.5 rounded text-3xs font-black uppercase ${URG[s.urgency]}`}>{s.urgency}</span>
+                                    <span className={`text-3xs font-bold uppercase tracking-widest ${i === sigIdx ? t.c : 'text-ink-muted'}`}>{s.tag}</span>
+                                    <span className={`px-1.5 py-0.5 rounded text-3xs font-bold uppercase ${URG[s.urgency]}`}>{s.urgency}</span>
                                 </div>
-                                <div className="text-[13px] font-bold text-slate-900 dark:text-white mb-1">{s.title}</div>
-                                <div className="flex items-center gap-2 text-3xs text-slate-500">
+                                <div className="text-[13px] font-bold text-ink mb-1">{s.title}</div>
+                                <div className="flex items-center gap-2 text-3xs text-ink-muted">
                                     <span className="text-emerald-300 font-bold tabular-nums">Rs {group(s.worth)}</span>
                                     <span>·</span>
                                     <span>{s.conf}% confidence</span>
@@ -839,21 +839,21 @@ export const GrowthEngineDemo = () => {
                     <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 flex flex-col">
                         <div className="flex items-center gap-2 mb-2">
                             <div className={`p-1.5 rounded-lg ${t.b} ${t.c}`}><brain.ic size={14} /></div>
-                            <span className="text-[13px] font-bold text-slate-900 dark:text-white">{sig.title}</span>
+                            <span className="text-[13px] font-bold text-ink">{sig.title}</span>
                         </div>
-                        <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed mb-3">{sig.text}</p>
+                        <p className="text-[12px] text-ink-secondary leading-relaxed mb-3">{sig.text}</p>
 
-                        <div className="text-3xs font-black uppercase tracking-widest text-slate-600 mb-1.5">Why we’re telling you this</div>
+                        <div className="text-3xs font-bold uppercase tracking-widest text-ink-secondary mb-1.5">Why we’re telling you this</div>
                         <div className="rounded-lg border border-white/[0.06] divide-y divide-white/[0.05] mb-3">
                             {sig.why.map(([k, val], i) => (
                                 <div key={i} className="flex items-center justify-between gap-3 px-3 py-1.5">
-                                    <span className="text-1xs text-slate-500">{k}</span>
-                                    <span className="text-1xs font-bold text-slate-200 text-right tabular-nums">{val}</span>
+                                    <span className="text-1xs text-ink-muted">{k}</span>
+                                    <span className="text-1xs font-bold text-neutral-200 text-right tabular-nums">{val}</span>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="flex items-center justify-between text-3xs text-slate-500 mb-1">
+                        <div className="flex items-center justify-between text-3xs text-ink-muted mb-1">
                             <span>Confidence</span><span className="font-bold">{sig.conf}%</span>
                         </div>
                         <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden mb-3">
@@ -897,8 +897,8 @@ export const CookbookDemo = () => {
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-amber-500" />
                     <div>
-                        <div className="text-[15px] font-black text-slate-900 dark:text-white tracking-tight">Cookbook — Auto-Assembly</div>
-                        <div className="text-2xs text-slate-500">Build composite items from a recipe — raw stock deducts automatically</div>
+                        <div className="text-[15px] font-bold text-ink tracking-tight">Cookbook — Auto-Assembly</div>
+                        <div className="text-2xs text-ink-muted">Build composite items from a recipe — raw stock deducts automatically</div>
                     </div>
                 </div>
                 <PillTabs tabs={['Make now', 'Auto on sale']} value={mode} onChange={setMode} size="md" />
@@ -907,17 +907,17 @@ export const CookbookDemo = () => {
                 {/* recipe */}
                 <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-1xs font-black uppercase tracking-widest text-slate-500">Bill of Materials</span>
-                        <span className="text-2xs text-slate-500">per 1 unit</span>
+                        <span className="text-1xs font-bold uppercase tracking-widest text-ink-muted">Bill of Materials</span>
+                        <span className="text-2xs text-ink-muted">per 1 unit</span>
                     </div>
                     <div className="space-y-2">
                         {RECIPE.raw.map((r, i) => {
                             const used = r.per * qty;
                             return (
-                                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02] border border-slate-900/[0.06] dark:border-white/5">
+                                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02] border border-line dark:border-white/5">
                                     <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center"><Boxes size={14} className="text-amber-300" /></div>
-                                    <div className="min-w-0 flex-1"><div className="text-[12px] font-bold text-slate-200">{r.n}</div><div className="text-3xs text-slate-500">{r.per}{r.unit} / unit · stock {group(ran ? r.stock - used : r.stock)}{r.unit}</div></div>
-                                    <div className={`text-1xs font-bold tabular-nums ${ran ? 'text-rose-300 vqf-in' : 'text-slate-400'}`}>−{group(used)}{r.unit}</div>
+                                    <div className="min-w-0 flex-1"><div className="text-[12px] font-bold text-neutral-200">{r.n}</div><div className="text-3xs text-ink-muted">{r.per}{r.unit} / unit · stock {group(ran ? r.stock - used : r.stock)}{r.unit}</div></div>
+                                    <div className={`text-1xs font-bold tabular-nums ${ran ? 'text-rose-300 vqf-in' : 'text-ink-muted'}`}>−{group(used)}{r.unit}</div>
                                 </div>
                             );
                         })}
@@ -925,31 +925,31 @@ export const CookbookDemo = () => {
                 </div>
                 {/* produce */}
                 <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-void-800 p-4 flex flex-col">
-                    <div className="text-1xs font-black uppercase tracking-widest text-slate-500 mb-2">Output</div>
+                    <div className="text-1xs font-bold uppercase tracking-widest text-ink-muted mb-2">Output</div>
                     <div className="flex items-center gap-2.5 mb-4">
                         <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-lg">🧂</div>
-                        <div><div className="text-[13px] font-bold text-slate-900 dark:text-white">{RECIPE.out}</div><div className="text-2xs text-slate-500">finished good · stock {ran ? qty : RECIPE.outStock}</div></div>
+                        <div><div className="text-[13px] font-bold text-ink">{RECIPE.out}</div><div className="text-2xs text-ink-muted">finished good · stock {ran ? qty : RECIPE.outStock}</div></div>
                     </div>
                     <div className="flex items-center gap-2 mb-3">
-                        <span className="text-1xs text-slate-500 dark:text-slate-400">Quantity</span>
+                        <span className="text-1xs text-ink-muted">Quantity</span>
                         <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={() => setQty(q => Math.max(5, q - 5))} className="w-6 h-6 rounded bg-slate-900/[0.03] dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300"><Minus size={12} /></button>
-                            <span className="w-8 text-center text-[13px] font-black text-slate-900 dark:text-white tabular-nums">{qty}</span>
-                            <button onClick={() => setQty(q => q + 5)} className="w-6 h-6 rounded bg-slate-900/[0.03] dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300"><Plus size={12} /></button>
+                            <button onClick={() => setQty(q => Math.max(5, q - 5))} className="w-6 h-6 rounded bg-sunken dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-ink-secondary"><Minus size={12} /></button>
+                            <span className="w-8 text-center text-[13px] font-bold text-ink tabular-nums">{qty}</span>
+                            <button onClick={() => setQty(q => q + 5)} className="w-6 h-6 rounded bg-sunken dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-ink-secondary"><Plus size={12} /></button>
                         </div>
                     </div>
-                    <div className="rounded-lg bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/5 p-2.5 mb-3 text-1xs">
-                        <div className="flex justify-between text-slate-500 dark:text-slate-400"><span>Batch cost (FIFO)</span><span className="text-slate-900 dark:text-white font-bold tabular-nums">Rs {group(batchCost)}</span></div>
-                        <div className="flex justify-between text-slate-500 dark:text-slate-400 mt-1"><span>Cost / unit</span><span className="text-amber-300 font-bold tabular-nums">Rs {group(batchCost / qty, 1)}</span></div>
+                    <div className="rounded-lg bg-white/[0.03] border border-line dark:border-white/5 p-2.5 mb-3 text-1xs">
+                        <div className="flex justify-between text-ink-muted"><span>Batch cost (FIFO)</span><span className="text-ink font-bold tabular-nums">Rs {group(batchCost)}</span></div>
+                        <div className="flex justify-between text-ink-muted mt-1"><span>Cost / unit</span><span className="text-amber-300 font-bold tabular-nums">Rs {group(batchCost / qty, 1)}</span></div>
                     </div>
                     {ran ? (
                         <div className="mt-auto vqf-in rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2.5 text-center">
                             <Check size={18} className="text-emerald-600 dark:text-emerald-400 mx-auto mb-1" />
-                            <div className="text-[12px] font-bold text-slate-900 dark:text-white">{mode === 'Make now' ? `${qty} units produced` : 'Auto-assembled on sale'}</div>
-                            <div className="text-2xs text-slate-500">Raw stock deducted · journal posted</div>
+                            <div className="text-[12px] font-bold text-ink">{mode === 'Make now' ? `${qty} units produced` : 'Auto-assembled on sale'}</div>
+                            <div className="text-2xs text-ink-muted">Raw stock deducted · journal posted</div>
                         </div>
                     ) : (
-                        <button onClick={run} className="mt-auto w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#1a1200] font-black text-[12px] uppercase tracking-wide transition-colors flex items-center justify-center gap-2">
+                        <button onClick={run} className="mt-auto w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#1a1200] font-bold text-[12px] uppercase tracking-wide transition-colors flex items-center justify-center gap-2">
                             <Factory size={15} /> {mode === 'Make now' ? 'Produce batch' : 'Simulate a sale'}
                         </button>
                     )}
@@ -982,5 +982,5 @@ export const DemoStyles = () => (
         @keyframes vqf-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.08);opacity:.85;} }
         .vqf-pulse { animation: vqf-pulse 1.4s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce){ .vqf-blink,.vqf-scan,.vqf-wave,.vqf-pulse{animation:none!important;} }
-    `}</style>
+`}</style>
 );

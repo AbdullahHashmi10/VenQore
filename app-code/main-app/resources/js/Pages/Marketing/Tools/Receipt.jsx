@@ -202,7 +202,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
             )}
 
             {/* Slim control bar — everything that ISN'T part of the document itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
                 <div className="w-48">
                     <Select value={meta.paper_preset} onChange={(v) => setMeta((m) => ({ ...m, paper_preset: v }))} options={presetOptions} />
                 </div>
@@ -212,33 +212,33 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                 <div className="w-36">
                     <Select value={meta.payment_method} onChange={(v) => setMeta((m) => ({ ...m, payment_method: v }))} options={paymentOptions} />
                 </div>
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10">
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                     <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'portrait' }))}
-                        className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-slate-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}>
+                        className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>
                         Portrait
                     </button>
                     <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'landscape' }))}
-                        className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-slate-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-slate-500 dark:text-slate-400'}`}>
+                        className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>
                         Landscape
                     </button>
                 </div>
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-300 hover:border-indigo-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
-                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-ink-muted hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={onLogoChange} />
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-1xs text-ink-muted hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -247,15 +247,15 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
             </div>
 
             {meta.orientation === 'landscape' && (
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 mb-3 -mt-2 text-center">
+                <p className="text-1xs text-amber-600 dark:text-amber-400 mb-3 -mt-2 text-center">
                     Landscape printing is not yet supported for downloads — this previews the layout only. Your PDF will download in portrait.
                 </p>
             )}
 
             {/* THE DOCUMENT — this is the editor */}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 dark:shadow-black/40 border border-slate-900/10 dark:border-white/10 bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? (isThermal ? 'max-w-md' : 'max-w-2xl') : (isThermal ? 'max-w-xs' : 'max-w-md')}`}>
+            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? (isThermal ? 'max-w-md' : 'max-w-2xl') : (isThermal ? 'max-w-xs' : 'max-w-md')}`}>
                 <div
-                    className={`text-slate-900 ${isThermal ? 'p-5 text-[11px] font-mono' : 'p-8 text-xs'}`}
+                    className={`text-ink ${isThermal ? 'p-5 text-1xs font-mono' : 'p-8 text-xs'}`}
                     style={{ fontFamily: isThermal ? "'Courier New', Courier, monospace" : 'Helvetica, Arial, sans-serif' }}
                 >
                     {store.logo_base64 && <img src={store.logo_base64} alt="Logo" className="h-12 max-w-[140px] object-contain mx-auto mb-2 block" />}
@@ -273,38 +273,38 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                         placeholder="Store address"
                         as="textarea" rows={1}
                         inline={false}
-                        className="text-center text-slate-500 text-[10px] mt-0.5 mb-0.5"
+                        className="text-center text-ink-muted text-2xs mt-0.5 mb-0.5"
                     />
-                    <div className="text-center text-slate-500 text-[10px] mt-0.5">
+                    <div className="text-center text-ink-muted text-2xs mt-0.5">
                         Tel: <EditableText value={store.phone} onChange={(v) => setStore((s) => ({ ...s, phone: v }))} placeholder="Phone number" />
                     </div>
 
-                    <div className="border-t border-dashed border-slate-300 my-2.5" />
+                    <div className="border-t border-dashed border-line my-2.5" />
 
-                    <div className="flex justify-between text-[10px]">
+                    <div className="flex justify-between text-2xs">
                         <span>
                             Receipt #: <EditableText value={meta.receipt_number} onChange={(v) => setMeta((m) => ({ ...m, receipt_number: v }))} className="font-bold" />
                         </span>
                         <EditableText value={meta.date_time} onChange={(v) => setMeta((m) => ({ ...m, date_time: v }))} className="text-right" />
                     </div>
-                    <div className="text-[10px] mt-0.5">
+                    <div className="text-2xs mt-0.5">
                         Cashier: <EditableText value={meta.cashier} onChange={(v) => setMeta((m) => ({ ...m, cashier: v }))} placeholder="optional" emptyLabel="—" />
                     </div>
 
-                    <div className="border-t border-dashed border-slate-300 my-2.5" />
+                    <div className="border-t border-dashed border-line my-2.5" />
 
                     {/* Line items */}
                     <table className="w-full mb-1">
                         <thead>
-                            <tr className="text-left text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-900">
+                            <tr className="text-left text-3xs font-bold uppercase tracking-wide text-ink-muted border-b border-neutral-900">
                                 <th className="pb-1 pr-1">
-                                    <EditableText value={headers.item} onChange={(v) => setHeaders((h) => ({ ...h, item: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400" />
+                                    <EditableText value={headers.item} onChange={(v) => setHeaders((h) => ({ ...h, item: v }))} pulse={false} className="text-3xs font-bold uppercase tracking-wide text-ink-muted" />
                                 </th>
                                 <th className="pb-1 px-1 text-right w-10">
-                                    <EditableText value={headers.quantity} onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" />
+                                    <EditableText value={headers.quantity} onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))} pulse={false} className="text-3xs font-bold uppercase tracking-wide text-ink-muted text-right" />
                                 </th>
                                 <th className="pb-1 pl-1 text-right w-16">
-                                    <EditableText value={headers.total} onChange={(v) => setHeaders((h) => ({ ...h, total: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" />
+                                    <EditableText value={headers.total} onChange={(v) => setHeaders((h) => ({ ...h, total: v }))} pulse={false} className="text-3xs font-bold uppercase tracking-wide text-ink-muted text-right" />
                                 </th>
                                 <th className="w-4"></th>
                             </tr>
@@ -315,10 +315,10 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                                 const price = parseFloat(item.unit_price) || 0;
                                 const lineTotal = qty * price;
                                 return (
-                                    <tr key={idx} className="border-b border-slate-100 group align-top">
+                                    <tr key={idx} className="border-b border-line group align-top">
                                         <td className="py-1.5 pr-1">
                                             <EditableText value={item.name} onChange={(v) => updateItem(idx, 'name', v)} placeholder="Product name" className="block" />
-                                            <div className="flex items-center gap-1 text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <div className="flex items-center gap-1 text-3xs text-ink-muted mt-0.5">
                                                 <EditableText as="number" min="0" value={item.quantity} onChange={(v) => updateItem(idx, 'quantity', v)} className="w-8" />
                                                 <span>@</span>
                                                 <EditableText as="number" min="0" value={item.unit_price} onChange={(v) => updateItem(idx, 'unit_price', v)} formatDisplay={fmtMoney} className="w-12" />
@@ -327,7 +327,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                                         <td className="py-1.5 px-1 text-right">{qty}</td>
                                         <td className="py-1.5 pl-1 text-right font-bold">{fmtMoney(lineTotal)}</td>
                                         <td className="py-1.5 text-right">
-                                            <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-600 dark:text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
+                                            <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-ink-secondary hover:text-red-500 disabled:opacity-0 transition-opacity">
                                                 <Trash2 size={11} />
                                             </button>
                                         </td>
@@ -336,14 +336,14 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                             })}
                         </tbody>
                     </table>
-                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-2.5">
+                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-2xs font-bold text-ink-muted hover:text-brand-500 disabled:opacity-40 transition-colors mb-2.5">
                         <Plus size={11} /> Add product
                     </button>
 
-                    <div className="border-t border-dashed border-slate-300 my-2.5" />
+                    <div className="border-t border-dashed border-line my-2.5" />
 
                     {/* Totals */}
-                    <div className="space-y-1 text-[10px]">
+                    <div className="space-y-1 text-2xs">
                         <div className="flex justify-between">
                             <span>Subtotal</span><span>{fmtMoney(totals.subtotal)}</span>
                         </div>
@@ -363,7 +363,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                             </span>
                             <span>{fmtMoney(totals.tax)}</span>
                         </div>
-                        <div className="flex justify-between font-black text-xs pt-1.5 border-t border-slate-900 border-b-2 border-double pb-1.5">
+                        <div className="flex justify-between font-bold text-xs pt-1.5 border-t border-neutral-900 border-b-2 border-double pb-1.5">
                             <span>TOTAL</span><span>{fmtMoney(totals.total)}</span>
                         </div>
                         <div className="flex justify-between pt-1">
@@ -382,13 +382,13 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                         )}
                     </div>
 
-                    <div className="border-t border-dashed border-slate-300 my-2.5" />
+                    <div className="border-t border-dashed border-line my-2.5" />
 
-                    <div className="text-center text-[9px] text-slate-500 space-y-1">
+                    <div className="text-center text-3xs text-ink-muted space-y-1">
                         <div>
-                            Returns accepted within{' '}
+                            Returns accepted within{''}
                             <EditableText as="number" min="0" max="365" value={meta.returns_policy_days} onChange={(v) => setMeta((m) => ({ ...m, returns_policy_days: v }))} className="inline-block" />
-                            {' '}days with receipt.
+                            {''}days with receipt.
                         </div>
                         <EditableText
                             value={store.footer_message}
@@ -396,18 +396,18 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                             placeholder="Thank you for shopping with us!"
                             className="block"
                         />
-                        <div className="text-[8px] text-slate-600 dark:text-slate-300">Generated free at venqore.com/tools</div>
+                        <div className="text-4xs text-ink-secondary">Generated free at venqore.com/tools</div>
                     </div>
 
-                    <div className="flex justify-between text-[9px] text-slate-500 dark:text-slate-400 mt-3 gap-2">
-                        <button type="button" onClick={() => logoInputRef.current?.click()} className="hover:text-indigo-500 transition-colors">
+                    <div className="flex justify-between text-3xs text-ink-muted mt-3 gap-2">
+                        <button type="button" onClick={() => logoInputRef.current?.click()} className="hover:text-brand-500 transition-colors">
                             {isThermal ? '80mm Thermal Roll' : 'Standard Letter / A4'}
                         </button>
                     </div>
                 </div>
             </div>
 
-            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-ink-muted mt-4">
                 This preview matches your downloaded PDF exactly — click anything above to edit it.
             </p>
         </ToolShell>

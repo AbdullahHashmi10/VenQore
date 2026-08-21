@@ -164,10 +164,10 @@ export default function DashboardTourGuide({ store }) {
     };
 
     return renderPortal(
-        <div className="fixed inset-0 z-[150] overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
             {coords && (
                 <div
-                    className="fixed pointer-events-none transition-all duration-300 ease-out"
+                    className="fixed pointer-events-none transition-all duration-slow ease-out"
                     style={{
                         top: coords.top - 6,
                         left: coords.left - 6,
@@ -181,21 +181,21 @@ export default function DashboardTourGuide({ store }) {
             )}
 
             <div
-                className="pointer-events-auto transition-all duration-300 ease-out"
+                className="pointer-events-auto transition-all duration-slow ease-out"
                 style={getTooltipStyle()}
             >
-                <div className="bg-slate-900/90 dark:bg-slate-950/95 backdrop-blur-xl border border-indigo-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.2)] p-6 relative overflow-hidden animate-in zoom-in-95 duration-200">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                <div className="bg-neutral-900/90 dark:bg-app backdrop-blur-xl border border-brand-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.2)] p-6 relative overflow-hidden animate-in zoom-in-95 duration-normal">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                     
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                        <div className="p-2 rounded-lg bg-brand-500/20 text-brand-400">
                             <CheckCircle2 size={18} />
                         </div>
                         <div>
                             <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                                 Dashboard Overview
                             </h4>
-                            <span className="text-2xs font-semibold text-indigo-400">
+                            <span className="text-2xs font-semibold text-brand-400">
                                 Step {currentStep + 1} of 6
                             </span>
                         </div>
@@ -203,33 +203,33 @@ export default function DashboardTourGuide({ store }) {
 
                     <div className="min-h-[60px] mb-6">
                         {currentStep === 0 && (
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 Here you can view your overall <span className="text-white font-bold">Sales Performance</span> and <span className="text-white font-bold">Gross Profit</span>. Use the dropdown to filter by different time periods to see how you are doing.
                             </p>
                         )}
                         {currentStep === 1 && (
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 This section shows your pending <span className="text-white font-bold">Outstanding</span> receivables and payables. Keep an eye here to maintain healthy cash flow!
                             </p>
                         )}
                         {currentStep === 2 && (
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 Your <span className="text-white font-bold">Net Profit</span> summary. It instantly calculates your true bottom line based on your income and expenses.
                             </p>
                         )}
                         {currentStep === 3 && (
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 The <span className="text-white font-bold">Sales Chart</span> gives you a visual representation of your sales trends over time, making it easy to spot peaks and valleys.
                             </p>
                         )}
                         {currentStep === 4 && (
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 The <span className="text-white font-bold">Admin Panel</span>. You can configure advanced settings, manage users, and more! <br/><br/>
-                                <span className="text-indigo-400">Need a training session for you or your staff?</span> Check the <span className="text-white font-bold">Billing Page &gt; Services</span> to arrange a meeting!
+                                <span className="text-brand-400">Need a training session for you or your staff?</span> Check the <span className="text-white font-bold">Billing Page &gt; Services</span> to arrange a meeting!
                             </p>
                         )}
                         {currentStep === 5 && (
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 And finally, the <span className="text-white font-bold">Chat Widget</span>! If you want to know how to do anything extra, you can ask us here and we will guide you through every single thing. We're always here to help!
                             </p>
                         )}
@@ -239,7 +239,7 @@ export default function DashboardTourGuide({ store }) {
                         {currentStep > 0 ? (
                             <button
                                 onClick={() => setCurrentStep(currentStep - 1)}
-                                className="px-3 py-1.5 text-slate-400 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             >
                                 <ArrowLeft size={12} />
                                 <span>Back</span>
@@ -251,7 +251,7 @@ export default function DashboardTourGuide({ store }) {
                         {currentStep < 5 ? (
                             <button
                                 onClick={() => setCurrentStep(currentStep + 1)}
-                                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                                className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
                             >
                                 <span>Next</span>
                                 <ArrowRight size={12} />
@@ -259,7 +259,7 @@ export default function DashboardTourGuide({ store }) {
                         ) : (
                             <button
                                 onClick={handleCompleteTour}
-                                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-emerald-900/20 cursor-pointer animate-pulse"
+                                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer animate-pulse"
                             >
                                 Finish Setup
                             </button>

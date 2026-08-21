@@ -305,14 +305,14 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             <div className="relative">
                                 <button
                                     onClick={() => setShowSettings(!showSettings)}
-                                    className={`p-2.5 rounded-xl border transition-all ${showSettings ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-500 hover:text-indigo-600'}`}
+                                    className={`p-2.5 rounded-xl border transition-all ${showSettings ? 'bg-brand-50 border-brand-200 text-brand-600' : 'bg-white border-line text-ink-muted hover:text-brand-600'}`}
                                 >
                                     <Settings size={18} />
                                 </button>
 
                                 {showSettings && (
-                                    <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 z-50 p-2 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
-                                        <div className="text-xs font-bold text-slate-400 px-2 py-1 uppercase tracking-wider mb-1">View Options</div>
+                                    <div className="absolute top-full right-0 mt-2 w-56 bg-surface rounded-xl shadow-xl border border-line z-50 p-2 animate-in fade-in zoom-in-95 duration-fast origin-top-right">
+                                        <div className="text-xs font-bold text-ink-muted px-2 py-1 uppercase tracking-wider mb-1">View Options</div>
                                         {[
                                             { key: 'showPrepTime', label: 'Prep Time' },
                                             { key: 'showInstructions', label: 'Instructions' },
@@ -323,10 +323,10 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                             <button
                                                 key={opt.key}
                                                 onClick={() => toggleView(opt.key)}
-                                                className="w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+                                                className="w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-colors"
                                             >
                                                 <span>{opt.label}</span>
-                                                {viewOptions[opt.key] ? <Eye size={14} className="text-indigo-500" /> : <EyeOff size={14} className="text-slate-400" />}
+                                                {viewOptions[opt.key] ? <Eye size={14} className="text-brand-500" /> : <EyeOff size={14} className="text-ink-muted" />}
                                             </button>
                                         ))}
                                     </div>
@@ -336,7 +336,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             <button
                                 onClick={handleSubmit}
                                 disabled={processing}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm hover:shadow-md disabled:opacity-50"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors shadow-sm hover:shadow-md disabled:opacity-50"
                             >
                                 <Save size={18} />
                                 <span>Save Recipe</span>
@@ -349,26 +349,26 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                     {/* LEFT COLUMN: Details & Labor (3/12) */}
                     <div className="xl:col-span-3 space-y-4 h-full overflow-y-auto pr-2 custom-scrollbar">
                         {/* Basic Info Card */}
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-                            <h3 className="text-base font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                <Package size={18} className="text-indigo-500" />
+                        <div className="bg-surface rounded-2xl border border-line p-5 shadow-sm">
+                            <h3 className="text-base font-bold text-ink mb-4 flex items-center gap-2">
+                                <Package size={18} className="text-brand-500" />
                                 Recipe Details
                             </h3>
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Recipe Name</label>
+                                    <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide">Recipe Name</label>
                                     <input
                                         type="text"
                                         value={data.name}
                                         onChange={e => setData('name', e.target.value)}
-                                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium"
+                                        className="w-full px-3 py-2.5 rounded-xl border border-line bg-app focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-sm font-medium"
                                         placeholder="e.g., Garam Masala Mix"
                                     />
                                     {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Output Product</label>
+                                    <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide">Output Product</label>
                                     <AsyncProductCombobox
                                         selectedItem={localProducts.find(p => p.id == data.product_id)}
                                         onSelect={(item) => {
@@ -396,18 +396,18 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Yield Qty</label>
+                                        <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide">Yield Qty</label>
                                         <div className="relative">
                                             <input
                                                 type="number"
                                                 value={data.yield_quantity}
                                                 onChange={e => setData('yield_quantity', e.target.value)}
-                                                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm font-bold text-center"
+                                                className="w-full px-3 py-2.5 rounded-xl border border-line bg-app focus:ring-2 focus:ring-brand-500 outline-none transition-all text-sm font-bold text-center"
                                                 min="0.01"
                                                 step="0.01"
                                             />
                                             {selectedProduct && (
-                                                <span className="absolute right-8 top-1/2 -translate-y-1/2 text-2xs text-slate-400 font-medium pointer-events-none">
+                                                <span className="absolute right-8 top-1/2 -translate-y-1/2 text-2xs text-ink-muted font-medium pointer-events-none">
                                                     {selectedProduct.base_unit}
                                                 </span>
                                             )}
@@ -416,17 +416,17 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                     {viewOptions.showPrepTime && (
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Prep (Min)</label>
+                                            <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide">Prep (Min)</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
                                                     value={data.prep_time_minutes}
                                                     onChange={e => setData('prep_time_minutes', e.target.value)}
-                                                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm font-bold text-center pl-8"
+                                                    className="w-full px-3 py-2.5 rounded-xl border border-line bg-app focus:ring-2 focus:ring-brand-500 outline-none transition-all text-sm font-bold text-center pl-8"
                                                     min="0"
                                                     placeholder="0"
                                                 />
-                                                <Clock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                <Clock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                             </div>
                                         </div>
                                     )}
@@ -434,11 +434,11 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                 {viewOptions.showInstructions && (
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Instructions</label>
+                                        <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide">Instructions</label>
                                         <textarea
                                             value={data.description}
                                             onChange={e => setData('description', e.target.value)}
-                                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none text-sm"
+                                            className="w-full px-3 py-2.5 rounded-xl border border-line bg-app focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-none text-sm"
                                             rows={4}
                                             placeholder="Brief steps..."
                                         />
@@ -449,24 +449,24 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                         {/* Labor & Overhead Card */}
                         {(viewOptions.showLabor || viewOptions.showUtilities) && (
-                            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl border border-purple-200 dark:border-purple-800 p-5 shadow-sm">
-                                <h3 className="text-base font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+                            <div className="bg-gradient-to-r from-purple-50 to-brand-50 dark:from-purple-900/20 dark:to-brand-900/20 rounded-2xl border border-purple-200 dark:border-purple-800 p-5 shadow-sm">
+                                <h3 className="text-base font-bold text-ink mb-3 flex items-center gap-2">
                                     <Zap size={18} className="text-purple-500" />
                                     Overhead Costs
                                 </h3>
                                 <div className="space-y-3">
                                     {viewOptions.showLabor && (
                                         <div className="space-y-1">
-                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                                            <label className="text-xs font-medium text-ink-secondary flex items-center justify-between">
                                                 <span className="flex items-center gap-1.5"><Clock size={14} /> Labor Cost</span>
                                             </label>
                                             <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs font-bold">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={data.labor_cost}
                                                     onChange={e => setData('labor_cost', e.target.value)}
-                                                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none text-right"
+                                                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-surface border border-purple-200 dark:border-purple-700 text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none text-right"
                                                     min="0"
                                                 />
                                             </div>
@@ -474,16 +474,16 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                     )}
                                     {viewOptions.showUtilities && (
                                         <div className="space-y-1">
-                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                                            <label className="text-xs font-medium text-ink-secondary flex items-center justify-between">
                                                 <span className="flex items-center gap-1.5"><Flame size={14} /> Utilities</span>
                                             </label>
                                             <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs font-bold">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={data.overhead_cost}
                                                     onChange={e => setData('overhead_cost', e.target.value)}
-                                                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none text-right"
+                                                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-surface border border-purple-200 dark:border-purple-700 text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none text-right"
                                                     min="0"
                                                 />
                                             </div>
@@ -496,9 +496,9 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                     {/* CENTER COLUMN: Ingredients (6/12) */}
                     <div className="xl:col-span-6 h-full overflow-hidden flex flex-col">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full">
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <div className="bg-surface rounded-2xl border border-line shadow-sm flex flex-col h-full">
+                            <div className="p-4 border-b border-line flex items-center justify-between shrink-0">
+                                <h3 className="text-lg font-bold text-ink flex items-center gap-2">
                                     <Scale size={20} className="text-emerald-500" />
                                     Ingredients List
                                     Ingredients List
@@ -514,7 +514,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             </div>
 
                             {/* Table Header */}
-                            <div className="hidden lg:flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 text-2xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 shrink-0">
+                            <div className="hidden lg:flex items-center gap-2 px-4 py-3 bg-app text-2xs font-bold text-ink-muted uppercase tracking-wider border-b border-line shrink-0">
                                 <div className="flex-1 pl-1">Item</div>
                                 <div className="w-16 text-center">Gross</div>
                                 <div className="w-14 text-center">Waste %</div>
@@ -529,7 +529,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                     const detail = calculations.ingredientDetails.find(i => i.name === product?.name);
 
                                     return (
-                                        <div key={index} className="flex flex-col lg:flex-row items-center gap-2 p-2 bg-white dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-indigo-300 hover:shadow-sm transition-all group">
+                                        <div key={index} className="flex flex-col lg:flex-row items-center gap-2 p-2 bg-surface rounded-xl border border-line hover:border-brand-300 hover:shadow-sm transition-all group">
                                             {/* Ingredient Select */}
                                             <div className="w-full lg:flex-1 relative">
                                                 <AsyncProductCombobox
@@ -552,13 +552,13 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                         setIsProductModalOpen(true);
                                                     }}
                                                     placeholder="Search Ingredient..."
-                                                    inputClassName="py-1.5 text-sm bg-white dark:bg-slate-800 pr-24"
+                                                    inputClassName="py-1.5 text-sm bg-surface pr-24"
                                                     className="w-full"
                                                 />
                                                 {product && (
                                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                                                        <span className="text-2xs bg-slate-100 dark:bg-slate-700 px-1.5 rounded text-slate-500 dark:text-slate-400 font-medium">{product.base_unit}</span>
-                                                        <span className="text-2xs text-slate-400 font-bold">{getCurrencySymbol()} {parseFloat(product.cost_price).toLocaleString()}</span>
+                                                        <span className="text-2xs bg-sunken px-1.5 rounded text-ink-muted font-medium">{product.base_unit}</span>
+                                                        <span className="text-2xs text-ink-muted font-bold">{getCurrencySymbol()} {parseFloat(product.cost_price).toLocaleString()}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -567,12 +567,12 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                             <div className="w-full lg:w-auto grid grid-cols-4 lg:flex lg:items-center gap-2">
                                                 {/* Gross Quantity */}
                                                 <div className="col-span-2 lg:w-16">
-                                                    <label className="lg:hidden text-2xs text-slate-400 font-bold uppercase mb-1 block">Gross</label>
+                                                    <label className="lg:hidden text-2xs text-ink-muted font-bold uppercase mb-1 block">Gross</label>
                                                     <input
                                                         type="number"
                                                         value={ingredient.quantity}
                                                         onChange={e => updateIngredient(index, 'quantity', e.target.value)}
-                                                        className="w-full px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-center font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                        className="w-full px-2 py-2 rounded-lg border border-line bg-app text-sm text-center font-bold focus:ring-2 focus:ring-brand-500 outline-none"
                                                         min="0.01"
                                                         step="0.01"
                                                     />
@@ -580,7 +580,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                                 {/* Wastage % */}
                                                 <div className="col-span-2 lg:w-14 px-0.5">
-                                                    <label className="lg:hidden text-2xs text-slate-400 font-bold uppercase mb-1 block">Waste</label>
+                                                    <label className="lg:hidden text-2xs text-ink-muted font-bold uppercase mb-1 block">Waste</label>
                                                     <div className="relative">
                                                         <input
                                                             type="number"
@@ -595,7 +595,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                                 {/* Net Quantity */}
                                                 <div className="col-span-2 lg:w-14 text-right flex flex-col justify-center pr-1">
-                                                    <label className="lg:hidden text-2xs text-slate-400 font-bold uppercase mb-1 block">Net</label>
+                                                    <label className="lg:hidden text-2xs text-ink-muted font-bold uppercase mb-1 block">Net</label>
                                                     <div className="flex flex-col items-end justify-center w-full">
                                                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1 py-1 rounded-md min-w-[50px] text-center">
                                                             {detail ? detail.formattedNet : '-'}
@@ -605,13 +605,13 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                                 {/* Total Cost & Delete */}
                                                 <div className="col-span-2 lg:w-20 flex items-center justify-end gap-1">
-                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 text-right w-full">
+                                                    <span className="text-sm font-bold text-ink-secondary dark:text-ink text-right w-full">
                                                         {detail ? Math.round(detail.totalCost).toLocaleString() : '0'}
                                                     </span>
                                                     <button
                                                         type="button"
                                                         onClick={() => removeIngredient(index)}
-                                                        className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                                        className="p-1.5 text-neutral-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -623,7 +623,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             </div>
 
                             {/* Footer/Warnings */}
-                            <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                            <div className="p-3 border-t border-line bg-app shrink-0">
                                 {parseFloat(calculations.wastagePercent) > 15 ? (
                                     <div className="flex items-center gap-2 text-amber-600 text-xs justify-center">
                                         <AlertTriangle size={14} />
@@ -631,7 +631,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                         <span>Check ingredient quality.</span>
                                     </div>
                                 ) : (
-                                    <div className="flex justify-between text-2xs text-slate-400 px-2">
+                                    <div className="flex justify-between text-2xs text-ink-muted px-2">
                                         <span>Total Items: {data.ingredients.length}</span>
                                         <span>Gross Weight: {calculations.yieldSummaryGross}</span>
                                     </div>
@@ -643,7 +643,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                     {/* RIGHT COLUMN: Summary & SOPs (3/12) */}
                     <div className="xl:col-span-3 space-y-4 h-full overflow-y-auto pl-1 custom-scrollbar">
                         {/* Cost Summary Card */}
-                        <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-xl sticky top-0">
+                        <div className="bg-gradient-to-br from-brand-600 to-purple-600 rounded-2xl p-6 text-white shadow-xl sticky top-0">
                             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                                 <Calculator size={20} />
                                 Cost of Goods Manufactured
@@ -655,7 +655,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             {calculations.ingredientDetails.length > 0 && (
                                 <div className="mb-4 p-3 bg-white/10 rounded-xl backdrop-blur-sm space-y-2">
                                     <div className="flex justify-between">
-                                        <span className="text-xs text-indigo-200">Gross Input:</span>
+                                        <span className="text-xs text-brand-200">Gross Input:</span>
                                         <span className="text-sm font-medium">{calculations.yieldSummaryGross}</span>
                                     </div>
                                     <div className="flex justify-between">
@@ -673,18 +673,18 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                             {/* Cost Breakdown */}
                             <div className="space-y-2 mb-4">
-                                <div className="flex justify-between text-indigo-100">
+                                <div className="flex justify-between text-brand-100">
                                     <span className="text-sm">Ingredients:</span>
                                     <span className="font-medium">{getCurrencySymbol()} {calculations.totalIngredientCost.toLocaleString()}</span>
                                 </div>
                                 {calculations.laborCost > 0 && (
-                                    <div className="flex justify-between text-indigo-100">
+                                    <div className="flex justify-between text-brand-100">
                                         <span className="text-sm">Labor:</span>
                                         <span className="font-medium">{getCurrencySymbol()} {calculations.laborCost.toLocaleString()}</span>
                                     </div>
                                 )}
                                 {calculations.overheadCost > 0 && (
-                                    <div className="flex justify-between text-indigo-100">
+                                    <div className="flex justify-between text-brand-100">
                                         <span className="text-sm">Overhead:</span>
                                         <span className="font-medium">{getCurrencySymbol()} {calculations.overheadCost.toLocaleString()}</span>
                                     </div>
@@ -696,7 +696,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                             {getCurrencySymbol()} {calculations.totalCOGM.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-indigo-200 mt-1">
+                                    <p className="text-xs text-brand-200 mt-1">
                                         Cost per unit: {getCurrencySymbol()} {calculations.costPerUnit.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -704,7 +704,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                             {/* Profit Margin Input */}
                             <div className="mb-4">
-                                <label className="text-sm text-indigo-200 mb-2 block">Desired Profit Margin</label>
+                                <label className="text-sm text-brand-200 mb-2 block">Desired Profit Margin</label>
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="number"
@@ -720,14 +720,14 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                             {/* Suggested Selling Price */}
                             <div className="p-4 bg-white/20 rounded-xl backdrop-blur-sm border border-white/20">
-                                <p className="text-sm text-indigo-200 mb-1 flex items-center gap-1">
+                                <p className="text-sm text-brand-200 mb-1 flex items-center gap-1">
                                     <DollarSign size={14} />
                                     Suggested Selling Price
                                 </p>
                                 <p className="text-2xl font-bold">
                                     {getCurrencySymbol()} {calculations.suggestedPrice.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </p>
-                                <p className="text-xs text-indigo-200 mt-1">
+                                <p className="text-xs text-brand-200 mt-1">
                                     Profit: {getCurrencySymbol()} {(calculations.suggestedPrice - calculations.totalCOGM).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </p>
                             </div>
@@ -735,7 +735,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             {/* Current Product Price Comparison */}
                             {selectedProduct && (
                                 <div className="mt-4 p-3 bg-white/10 rounded-xl">
-                                    <p className="text-xs text-indigo-200">Current Product Price</p>
+                                    <p className="text-xs text-brand-200">Current Product Price</p>
                                     <div className="flex items-center justify-between">
                                         <p className="text-lg font-bold">{getCurrencySymbol()} {parseFloat(selectedProduct.price).toLocaleString()}</p>
                                         {parseFloat(selectedProduct.price) < calculations.suggestedPrice && (
@@ -755,7 +755,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                         {/* SOP Media Mini-Card */}
                         {viewOptions.showTraining && (
-                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+                            <div className="bg-surface rounded-2xl border border-line p-4 shadow-sm">
                                 <div className="flex items-center justify-between mb-3">
                                     <h3 className="text-sm font-bold flex items-center gap-2 dark:text-white">
                                         <BookOpen size={16} className="text-blue-500" />
@@ -772,12 +772,12 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                 <div className="space-y-2 overflow-y-auto max-h-48 pr-1 custom-scrollbar">
                                     {(data.media || []).length === 0 && (
-                                        <div className="text-center py-4 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-xl">
-                                            <p className="text-xs text-slate-400">No media attached</p>
+                                        <div className="text-center py-4 border-2 border-dashed border-line rounded-xl">
+                                            <p className="text-xs text-ink-muted">No media attached</p>
                                         </div>
                                     )}
                                     {(data.media || []).map((item, index) => (
-                                        <div key={index} className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs space-y-1 group relative">
+                                        <div key={index} className="p-2 bg-app rounded-lg text-xs space-y-1 group relative">
                                             <input
                                                 placeholder="Title e.g. How-to Video"
                                                 value={item.title}
@@ -805,7 +805,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                     newMedia.splice(index, 1);
                                                     setData('media', newMedia);
                                                 }}
-                                                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500"
+                                                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-ink-muted hover:text-red-500"
                                             >
                                                 <Trash2 size={12} />
                                             </button>
