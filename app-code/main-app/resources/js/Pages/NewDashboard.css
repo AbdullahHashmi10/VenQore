@@ -2316,6 +2316,55 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   pointer-events: auto !important;
 }
 
+/* ── Card typography & host layout safety ────────────────────────────── */
+.vqc-hd {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: var(--vq-space-2) !important;
+  flex-shrink: 0 !important;
+  min-height: 24px !important;
+}
+
+.vqc-head {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: var(--vq-space-2) !important;
+  flex-shrink: 0 !important;
+  margin-top: 4px !important;
+}
+
+.vqc-head-when {
+  font-size: 11px !important;
+  color: var(--vq-text-2, #536159) !important;
+  margin: 2px 0 6px 0 !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+}
+
+[data-theme="dark"] .vqc-head-when {
+  color: #8b9a93 !important;
+}
+
+.vqc-host {
+  position: relative !important;
+  flex: 1 1 0% !important;
+  min-height: 50px !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  margin-top: 2px !important;
+}
+
+.vqc-host svg.ck {
+  display: block !important;
+  overflow: visible !important;
+}
+
 /* ── Period Picker Dropdown ──────────────────────────────────────────── */
 .vqc-per {
   position: relative !important;
@@ -2968,7 +3017,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   STEP 2 PREVIEW - ACCURATE PROPORTIONAL SIZING
+   STEP 2 PREVIEW - ACCURATE PROPORTIONAL SIZING & NO CLIPPING
    ══════════════════════════════════════════════════════════════════════════ */
 .vq-step2-layout {
   display: grid;
@@ -3015,44 +3064,45 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08) !important;
   margin: auto !important;
+  box-sizing: border-box !important;
 }
 
-/* Explicit preview card widths & heights so 3x3, 2x1, 6x4, 8x4, 12x4 scale accurately */
+/* Explicit preview card widths & heights */
 .vq-preview-stage .vqc.preview-size-compact {
-  width: 250px !important;
-  height: 76px !important;
-  min-width: 250px !important;
-  min-height: 76px !important;
+  width: 280px !important;
+  height: 96px !important;
+  min-width: 280px !important;
+  min-height: 96px !important;
 }
 
 .vq-preview-stage .vqc.preview-size-square {
-  width: 320px !important;
-  height: 260px !important;
-  min-width: 320px !important;
-  min-height: 260px !important;
+  width: 330px !important;
+  height: 290px !important;
+  min-width: 330px !important;
+  min-height: 290px !important;
 }
 
 .vq-preview-stage .vqc.preview-size-standard {
-  width: 520px !important;
-  height: 310px !important;
-  min-width: 520px !important;
-  min-height: 310px !important;
+  width: 530px !important;
+  height: 330px !important;
+  min-width: 530px !important;
+  min-height: 330px !important;
   max-width: 100% !important;
 }
 
 .vq-preview-stage .vqc.preview-size-wide {
-  width: 640px !important;
-  height: 310px !important;
+  width: 650px !important;
+  height: 330px !important;
   min-width: 600px !important;
-  min-height: 310px !important;
+  min-height: 330px !important;
   max-width: 100% !important;
 }
 
 .vq-preview-stage .vqc.preview-size-full {
   width: 100% !important;
   max-width: 720px !important;
-  height: 330px !important;
-  min-height: 330px !important;
+  height: 340px !important;
+  min-height: 340px !important;
 }
 
 .vq-size-grid {

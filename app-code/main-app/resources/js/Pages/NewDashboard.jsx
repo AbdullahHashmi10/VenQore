@@ -1287,6 +1287,18 @@ function sizeOf(c){
 }
 
 function hostDimensions(host, card) {
+  const cardEl = host ? host.closest(".vqc") : null;
+  const isPreview = host && host.closest(".vq-preview-stage");
+  
+  // Measure direct client dimensions if already rendered in DOM
+  const clientW = host ? host.clientWidth : 0;
+  const clientH = host ? host.clientHeight : 0;
+
+  if (clientW > 40 && clientH > 40) {
+    return { W: Math.round(clientW), H: Math.round(clientH) };
+  }
+
+  // Calculate from card / grid bounds
   let [wCols, hRows] = sizeOf(card);
   const board = (host && host.closest(".vq-preview-stage")) || (host && host.closest(".vq-grid")) || document.getElementById("board") || document.body;
   let colW = 140;
@@ -1295,19 +1307,26 @@ function hostDimensions(host, card) {
     const cols = parseInt(computedCols, 10) || 12;
     colW = Math.max(36, (board.clientWidth - 24 * (cols - 1)) / cols);
   }
-  const calcW = Math.max(100, Math.round(wCols * colW + (wCols - 1) * 24) - 32);
-  const totalH = Math.round(hRows * 64 + (hRows - 1) * 24);
-  const isInline = card.fit === 0 && !card.h;
+  
+  let cardW = Math.round(wCols * colW + (wCols - 1) * 24);
+  let cardH = Math.round(hRows * 64 + (hRows - 1) * 24);
+
+  if (isPreview && cardEl) {
+    const cardRect = cardEl.getBoundingClientRect();
+    if (cardRect.width > 30) cardW = cardRect.width;
+    if (cardRect.height > 30) cardH = cardRect.height;
+  }
+
   const selfLabelled = card.chart === "gauge" || card.chart === "ring" || card.chart === "sunburst";
   const showHead = card.chart !== "status" && !selfLabelled;
-  const calcH = Math.max(60, totalH - (showHead ? 76 : 28) - ((card.extraKeys && card.extraKeys.length > 0) ? 36 : 0) - 32);
+  const headerDeduction = showHead ? 134 : 48;
+  const extraKeysDeduction = (card.extraKeys && card.extraKeys.length > 0) ? 36 : 0;
+  
+  const calcW = Math.max(80, Math.round(cardW - 40));
+  const calcH = Math.max(50, Math.round(cardH - 40 - headerDeduction - extraKeysDeduction));
 
-  const rect = host ? host.getBoundingClientRect() : null;
-  const clientW = host ? host.clientWidth : 0;
-  const clientH = host ? host.clientHeight : 0;
-
-  const W = Math.max(100, clientW > 30 ? clientW : (rect && rect.width > 30 ? rect.width : calcW));
-  const H = Math.max(50, clientH > 30 ? clientH : (rect && rect.height > 30 ? rect.height : calcH));
+  const W = Math.max(80, clientW > 40 ? clientW : calcW);
+  const H = Math.max(50, clientH > 40 ? clientH : calcH);
   return { W: Math.round(W), H: Math.round(H) };
 }
 
@@ -1849,10 +1868,13 @@ export default function NewDashboard(props) {
         cardEl.classList.add(targetSize.previewClass);
       }
       
-      const host = previewRef.current.querySelector(".vqc-host");
-      if (host) {
-        window.VenQoreCards.mountChart(host, cardDraft);
-      }
+      // Delay mounting chart by one animation frame so preview card DOM is laid out accurately
+      requestAnimationFrame(() => {
+        const host = previewRef.current?.querySelector(".vqc-host");
+        if (host) {
+          window.VenQoreCards.mountChart(host, cardDraft);
+        }
+      });
     }
   }, [modalOpen, step, selectedReading, selectedSizeId, draftChart, draftVariant, draftPeriod, draftAccent, draftTitle]);
 
