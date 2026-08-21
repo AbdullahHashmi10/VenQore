@@ -21,6 +21,9 @@ import { n0, n2, r2 } from './zones';
 export function PartySheet({ open, onClose, type, current, onPick, narrow }) {
     const [q, setQ] = useState('');
     const [creating, setCreating] = useState(null);
+    // Without this the sheet reopens on the half-filled create form it was left
+    // on, and the focus target never gets the caret.
+    useEffect(() => { if (open) { setQ(''); setCreating(null); } }, [open]);
     const list = partiesFor(type.side).filter(
         (p) => p.name.toLowerCase().includes(q.toLowerCase()) || (p.phone || '').includes(q),
     );
@@ -90,12 +93,14 @@ export function PartySheet({ open, onClose, type, current, onPick, narrow }) {
 }
 
 /* ── The product picker, also used by "Add a line" ─────────────────────────── */
-export function ProductSheet({ open, onClose, onPick, onCreate, narrow }) {
+export function ProductSheet({ open, onClose, onPick, onCreate, narrow, products = PRODUCTS }) {
     const [q, setQ] = useState('');
     const [creating, setCreating] = useState(null);
     useEffect(() => { if (open) { setQ(''); setCreating(null); } }, [open]);
-    const { matches } = searchProducts(q, PRODUCTS);
-    const list = q.trim() ? matches : PRODUCTS;
+    // The LIVE list. Closing over the module constant meant a product created
+    // here was added to the line and then vanished from the catalogue for ever.
+    const { matches } = searchProducts(q, products);
+    const list = q.trim() ? matches : products;
 
     if (creating) {
         return (
@@ -194,7 +199,7 @@ export function SourceSheet({ open, onClose, onPick, narrow }) {
 }
 
 /* ── The breakdown. Ctrl+F, and a tap on the total ─────────────────────────── */
-export function BreakdownSheet({ open, onClose, type, doc, computed, narrow }) {
+export function BreakdownSheet({ open, onClose, type, doc, computed, narrow, showMargin }) {
     const taxRate = TAX_RATES.find((t) => t.id === doc.taxRate) || TAX_RATES[1];
     /* The same rows as the summary, in the same order, with the ones the
        density hides added back. ONE meaning of the word "subtotal" on the
@@ -224,6 +229,17 @@ export function BreakdownSheet({ open, onClose, type, doc, computed, narrow }) {
             </div>
             <div className="nqd-sumrow"><span className="k">Lines</span><span className="v num">{doc.lines.length}</span></div>
             <div className="nqd-sumrow"><span className="k">Units</span><span className="v num">{computed.units}</span></div>
+            {/* Margin is behind the Settings switch, on the sell side only, and
+                it is stated here in full rather than as the header's badge. */}
+            {showMargin && type.side === 'sell' ? (
+                <>
+                    <div className="nqd-sumrow"><span className="k">Cost of goods</span><Money value={computed.cost} font={13} avail={150} className="v" /></div>
+                    <div className="nqd-sumrow">
+                        <span className="k">Margin · {computed.marginPct}%</span>
+                        <Money value={computed.margin} font={13} avail={150} className="v" />
+                    </div>
+                </>
+            ) : null}
             <div className="nqd-note" style={{ margin: '10px 16px 20px' }}>
                 Round-off is a <b>document</b> property, applied once, here. Only the sales invoice
                 and the recurring invoice ever called <code>roundTotal()</code>, so the same cart

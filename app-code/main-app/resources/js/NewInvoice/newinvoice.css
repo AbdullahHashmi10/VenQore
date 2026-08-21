@@ -96,6 +96,20 @@
 .nqd-docno { font-family: var(--vq-font-numeric); font-size: 12px; color: var(--vq-text-3); }
 .nqd-sp { flex: 1; min-width: var(--vq-space-2); }
 
+/* Open documents. Labelled by document number, or by party until one exists. */
+.nqd-tabs { display: flex; gap: var(--vq-space-1); align-items: center; min-width: 0; flex: 0 1 auto; overflow-x: auto; scrollbar-width: none; }
+.nqd-tabs::-webkit-scrollbar { display: none; }
+.nqd-tab {
+    display: inline-flex; align-items: center; gap: var(--vq-space-2); height: 34px;
+    padding: 0 var(--vq-space-2) 0 var(--vq-space-3); border-radius: var(--vq-r-xs);
+    background: var(--vq-sunken); font-size: 12px; font-weight: 600; white-space: nowrap;
+    max-width: 200px; color: var(--vq-text-2);
+}
+.nqd-tab[data-current='true'] { background: var(--vq-accent-quiet); color: var(--vq-accent-text); }
+.nqd-tab-lab { overflow: hidden; text-overflow: ellipsis; min-width: 32px; }
+.nqd-tab-x { opacity: 0.55; font-size: 13px; }
+.nqd-tab-x:hover { opacity: 1; }
+
 .nqd-iconbtn {
     width: 38px; height: 38px; min-height: 38px; border-radius: var(--vq-r-xs);
     display: inline-flex; align-items: center; justify-content: center;
@@ -155,12 +169,39 @@
 /* ── Header fields ────────────────────────────────────────────────────────── */
 .nqd-hdr { display: grid; gap: 12px 16px; padding: var(--vq-space-4); }
 .nqd-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.nqd-f > label {
+.nqd-f > label, .nqd-flbl {
     font-size: 10px; font-weight: var(--vq-fw-bold); letter-spacing: 0.07em;
     text-transform: uppercase; color: var(--vq-text-3);
     display: flex; align-items: center; gap: 5px;
 }
 .nqd-req { color: var(--vq-danger); }
+
+/* Margin, in the zone header. Rank 2 — it informs, it does not act. */
+.nqd-margin {
+    font-family: var(--vq-font-numeric); font-size: 11px; font-weight: 600;
+    letter-spacing: 0; text-transform: none; color: var(--vq-success);
+    background: var(--vq-success-bg); border-radius: var(--vq-r-full);
+    padding: 3px var(--vq-space-2); white-space: nowrap;
+}
+.nqd-margin[data-tone='bad'] { color: var(--vq-danger); background: var(--vq-danger-bg); }
+
+/* The attachment control. The real <input type="file"> is present and focusable
+   — it is only invisible — so the picker, the keyboard and the focus ring are
+   the platform's. `display: none` would have taken it out of the tab order and
+   made this a mouse-only field. */
+.nqd-file { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; pointer-events: none; }
+.nqd-ctl[data-file='true'] { gap: var(--vq-space-2); padding-left: 5px; }
+.nqd-filebtn {
+    display: inline-flex; align-items: center; height: 30px; padding: 0 var(--vq-space-3);
+    border-radius: var(--vq-r-xs); background: var(--vq-sunken); border: 1px solid var(--vq-line);
+    font-size: 11px; font-weight: 600; cursor: pointer; flex: 0 0 auto; white-space: nowrap;
+    text-transform: none; letter-spacing: 0; color: var(--vq-text-2);
+}
+.nqd-filebtn:hover { background: var(--vq-line-soft); }
+.nqd-file:focus-visible + .nqd-ctl { outline: 2px solid var(--vq-focus); outline-offset: 2px; }
+.nqd-ctl[data-file='true'] .fname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.nqd-filex { width: 26px; height: 26px; min-height: 26px; flex: 0 0 auto; color: var(--vq-text-3); border-radius: var(--vq-r-xs); }
+.nqd-filex:hover { background: var(--vq-danger-bg); color: var(--vq-danger); }
 .nqd-ctl {
     height: 42px; min-height: 42px; border: 1px solid var(--vq-line-strong);
     border-radius: var(--vq-r-xs); padding: 0 11px; display: flex; align-items: center;
@@ -373,9 +414,16 @@
     max-width: 100%; min-width: 0; background: var(--vq-ink-950); color: var(--vq-ink-0);
     border-radius: var(--vq-r-md); box-shadow: var(--vq-elev-3);
     opacity: 0; transform: translateY(8px); pointer-events: none;
-    transition: opacity var(--vq-dur-2) var(--vq-ease-out), transform var(--vq-dur-2) var(--vq-ease-out);
+    /* `visibility`, not only `opacity`. A dock at opacity 0 is invisible and
+       still focusable: two tab stops that land on a button nobody can see, and
+       a Save the screen reader announces from a bar that is not there. As a
+       discrete transition it holds `visible` for the length of the fade out and
+       flips to `visible` immediately on the way in, so nothing is cut short. */
+    visibility: hidden;
+    transition: opacity var(--vq-dur-2) var(--vq-ease-out), transform var(--vq-dur-2) var(--vq-ease-out),
+        visibility var(--vq-dur-2) var(--vq-ease-out);
 }
-.nqd-dock[data-on='true'] { opacity: 1; transform: none; pointer-events: auto; }
+.nqd-dock[data-on='true'] { opacity: 1; transform: none; pointer-events: auto; visibility: visible; }
 .nqd-dock > div { min-width: 0; flex: 0 1 auto; }
 .nqd-dock .k { font-size: 9px; font-weight: var(--vq-fw-bold); letter-spacing: 0.1em; text-transform: uppercase; color: var(--vq-teal-300); }
 .nqd-dock .v {

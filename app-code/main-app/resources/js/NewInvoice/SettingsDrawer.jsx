@@ -20,7 +20,7 @@ import React from 'react';
 import { Sheet, Slider, Switch } from '@/LayoutLaw/ui';
 import { docPresets, docDensities, docTableWidth } from '@/LayoutLaw/engine';
 import { PROFILES, screenBand } from './settings';
-import { typeById } from './fields';
+import { columnsFor, typeById } from './fields';
 import { ACCOUNTS, LOCATIONS, TAX_RATES, TERMS } from './mock';
 
 const PCT = (v) => `${Math.round(v * 100)}%`;
@@ -69,6 +69,13 @@ export default function SettingsDrawer({
     const densities = docDensities();
     const order = densities.map((d) => d.id);
     const wanted = typeById(prefs.type);
+    // A composition read back from localStorage can name a density this build of
+    // the law no longer has. Fall back rather than throw: the settings drawer is
+    // the one screen that has to survive a bad preference, because it is where
+    // the bad preference gets fixed.
+    const current = densities.find((d) => d.id === c.density) || densities[0];
+    const shownCols = columnsFor(wanted, D.columns);
+    const dropped = D.columns.filter((k) => !shownCols.includes(k));
 
     return (
         <Sheet
@@ -188,11 +195,17 @@ export default function SettingsDrawer({
                             onPick={(v) => set({ density: v })}
                             hintFor={(v) => {
                                 const d = densities.find((x) => x.id === v);
+                                if (!d) return '';
                                 return `${d.line_cols.length} line columns · ${d.header.length} header fields · ${d.summary.length} summary rows · needs ${docTableWidth(d.line_cols)}px`;
                             }}
+                            /* `.find()` on a saved density id: a preference read
+                               back from a previous version of the law returns
+                               undefined here, and reading `.line_cols` off it
+                               threw inside the SETTINGS drawer — the one place
+                               someone goes to fix a bad preference. */
                             note={D.capped
                                 ? `You asked for ${D.wantedDensity}; this width supports ${D.density}. The width can veto a density — it can never veto a capability.`
-                                : `${wanted.name} wants ${wanted.density}. A ${densities.find((d) => d.id === c.density).line_cols.length}-column table needs ${docTableWidth(densities.find((d) => d.id === c.density).line_cols)}px and the lines have ${Math.round(D.lines.px)}px.`}
+                                : `${wanted.name} wants ${wanted.density}. A ${current.line_cols.length}-column table needs ${docTableWidth(current.line_cols)}px and the lines have ${Math.round(D.lines.px)}px.`}
                         />
                     </div>
 
@@ -221,7 +234,14 @@ export default function SettingsDrawer({
                             <br />
                             density <b>{D.density}</b>{D.capped ? ` (you asked for ${D.wantedDensity})` : ''}
                             <br />
-                            columns <b>{D.columns.join(' · ')}</b>
+                            {/* The EFFECTIVE columns, not the density's wish list.
+                                Printing the law's list here claimed a Tax %
+                                column on a quotation, which switches per-line
+                                tax off — a read-out that describes a different
+                                screen from the one behind it is worse than no
+                                read-out. */}
+                            columns <b>{shownCols.join(' · ')}</b>
+                            {dropped.length ? <> · <span title={`${type.name} switches these off. A width may veto a density; a TYPE vetoes a capability.`}>dropped by this type: <b>{dropped.join(' · ')}</b></span></> : null}
                         </div>
                         {D.demoted ? <div className="nqd-note"><b>Why it looks like this here:</b> {D.demoted}.</div> : null}
                         {D.navHeld ? (
@@ -262,7 +282,7 @@ export default function SettingsDrawer({
                     <div className="nqd-setgroup">
                         <h3>Money</h3>
                         <Switch ns="nqd" label="Round off the total" note="A document property, applied once — not something only two of thirteen types do." value={prefs.ops.roundOff} onChange={(v) => setOps({ roundOff: v })} />
-                        <Switch ns="nqd" label="Show margin" note="Cost travels with the line, so this is a real number." value={prefs.ops.showMargin} onChange={(v) => setOps({ showMargin: v })} />
+                        <Switch ns="nqd" label="Show margin" note="In the Items header and the breakdown, on the sell side, for roles that may see a cost price. Free quantity counts as cost." value={prefs.ops.showMargin} onChange={(v) => setOps({ showMargin: v })} />
                         <Switch ns="nqd" label="Confirm a zero-cost line" note="A purchase line with no cost is almost always a mistake." value={prefs.ops.confirmZeroCost} onChange={(v) => setOps({ confirmZeroCost: v })} />
                     </div>
 

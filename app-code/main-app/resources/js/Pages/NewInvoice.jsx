@@ -58,8 +58,12 @@ import SettingsDrawer from '@/NewInvoice/SettingsDrawer';
    A DOCUMENT
    ════════════════════════════════════════════════════════════════════════════ */
 
+/* A line id must be unique across a RESTORED draft too. `uidSeq` resets on every
+   page load, so a document restored from localStorage already holding `l12`
+   collided with the next line created — two <tr> with the same key, and
+   patchLine/removeLine hitting both. The random suffix removes the whole class. */
 let uidSeq = 1;
-const uid = () => `l${uidSeq += 1}`;
+const uid = () => `l${uidSeq += 1}-${Math.random().toString(36).slice(2, 7)}`;
 const idemKey = () => `idem-${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
 
 function newLine(product, qty = 1, disc = 0) {
@@ -112,6 +116,7 @@ function newDoc(type, ops, seq = 148) {
         settled: 0,
         validUntil: '',
         expectedDate: '',
+        frequency: 'Monthly',
         nextRun: '',
         activePaused: 'active',
         goodsStatus: 'Not received',
@@ -163,12 +168,34 @@ export default function NewInvoice({ auth }) {
     const narrow = vp.w < 620;
     const M = docMetrics();
 
-    /* ── the document ────────────────────────────────────────────────────── */
-    const [doc, setDoc] = useState(() => {
+    /* ── the documents ───────────────────────────────────────────────────────
+       Plural, because `tabs` is a capability the sales invoice switches on and
+       Ctrl+T / Ctrl+W / Ctrl+Tab are on the document half of the keymap. A
+       capability that exists only in the law is a capability that does not
+       exist.
+
+       `setDoc` keeps the single-document signature so every call site reads the
+       same as it did — the tab index is resolved here and nowhere else. */
+    const [docs, setDocs] = useState(() => {
         const d = newDoc(typeById(DEFAULTS.type), DEFAULTS.ops);
         d.lines = OPENING_LINES.map(({ pid, qty, disc }) => newLine(productById(pid), qty, disc));
-        return d;
+        return [d];
     });
+    const [active, setActive] = useState(0);
+    const doc = docs[Math.min(active, docs.length - 1)];
+    /* Keyed by the document's own id, NOT by the tab index, and held in a ref
+       so every callback below reads the current one. Closing over `active` and
+       then forgetting to list `setDoc` in one dependency array is enough to send
+       every edit to whichever tab was open on first render — which is exactly
+       what happened, invisibly, because the fields are controlled by the tab you
+       are looking at. */
+    const activeIdRef = useRef(null);
+    activeIdRef.current = docs[Math.min(active, docs.length - 1)]?.idem;
+    const setDoc = useCallback((next) => {
+        setDocs((ds) => ds.map((d) => (d.idem === activeIdRef.current
+            ? (typeof next === 'function' ? next(d) : { ...d, ...next })
+            : d)));
+    }, []);
     const [selected, setSelected] = useState(null);
     const [openCard, setOpenCard] = useState(null);
     const [sheet, setSheet] = useState(null);
@@ -181,12 +208,21 @@ export default function NewInvoice({ auth }) {
     const [saving, setSaving] = useState(false);
     const [products, setProducts] = useState(PRODUCTS);
     const [touched, setTouched] = useState(false);
+
     const scrollRef = useRef(null);
     const undoRef = useRef({});
 
     const anyOverlay = !!sheet || navOpen || settingsOpen || paletteOpen;
 
-    const set = useCallback((patch) => { setTouched(true); setDoc((d) => ({ ...d, ...patch })); }, []);
+    const set = useCallback((patch) => { setTouched(true); setDoc((d) => ({ ...d, ...patch })); }, [setDoc]);
+
+    /* Only ONE of the thirteen has no lines. `has(type,'lines')` looked like the
+       test and is not: goods receipt, stock transfer and stock audit never list
+       `lines` in their `on` set — they list what is SPECIAL about their lines
+       (ordered/received/remaining, qty-only, expected/counted/difference). Using
+       the positive test silently emptied all three and replaced their tables
+       with an expense's money form. */
+    const hasLines = !has(type, 'no_lines');
 
     const toast = useCallback((text, opts = {}) => {
         const t = { id: `${Date.now()}-${Math.random()}`, text, ...opts };
@@ -197,18 +233,31 @@ export default function NewInvoice({ auth }) {
 
     /* Terms writes the due date — one control, not two — and the date stays
        editable, because a term is a default and not a cage. */
+    /* A term is a DEFAULT, not a cage: it writes the due date until you write
+       one yourself. The effect also re-fires on a tab switch (the deps change
+       identity), which is how a hand-typed due date used to be silently reset
+       by simply looking at another document and coming back. */
     useEffect(() => {
-        if (!doc.terms) return;
+        if (!doc.terms || doc.dueTouched) return;
         const next = dueFromTerms(doc.date, doc.terms);
         if (next !== doc.due) setDoc((d) => ({ ...d, due: next }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [doc.terms, doc.date]);
+    }, [doc.idem, doc.terms, doc.date, doc.dueTouched]);
 
     /* ── the money, in one place ─────────────────────────────────────────── */
     const computed = useMemo(() => {
+        /* A `no_lines` type does not READ the lines. It used to not HAVE them:
+           switching to Expense deleted every line on the document, so a mis-tap
+           in a thirteen-item list threw away ten minutes of typing and switching
+           back gave you an empty invoice. The lines stay in state and this is
+           the one place that decides whether they count. `buildPayload` omits
+           `items` for the same reason, from the same test. */
+        const t = typeById(doc.type);
+        const noLines = has(t, 'no_lines');
+        const src = noLines ? [] : doc.lines;
         const lineNet = (l) => r2(l.qty * l.rate * (1 - Math.min(100, Math.max(0, l.disc || 0)) / 100));
-        const gross = r2(doc.lines.reduce((a, l) => a + l.qty * l.rate, 0));
-        const sub = r2(doc.lines.reduce((a, l) => a + lineNet(l), 0));
+        const gross = r2(src.reduce((a, l) => a + l.qty * l.rate, 0));
+        const sub = r2(src.reduce((a, l) => a + lineNet(l), 0));
         const lineDisc = r2(gross - sub);
         const docDisc = r2((sub * Math.min(100, Math.max(0, doc.discount || 0))) / 100);
         const taxable = Math.max(0, sub - docDisc);
@@ -217,24 +266,52 @@ export default function NewInvoice({ auth }) {
         // Otherwise 0.18 × a subtotal arrives carrying three binary-float
         // decimals and the ladder faithfully prints its richest rung —
         // PKR 193,746.5380 — which is not wrong, it is just not money.
-        const tax = doc.taxInclusive ? 0 : r2((taxable * rate) / 100);
+        //
+        // A type with per-line tax is taxed PER LINE. Reading only the document
+        // rate made the Tax % column an input that moved no number on the
+        // screen and then posted a percentage the total disagreed with — the
+        // same shape as F8's phantom charges, one document over.
+        const perLine = has(t, 'per_line_tax');
+        const docDiscFactor = sub > 0 ? 1 - docDisc / sub : 1;
+        // An expense has no lines, so its tax is the AMOUNT that was typed, not
+        // a percentage of nothing. The Tax amount box moved no number on the
+        // screen and then posted a figure the total disagreed with.
+        const tax = noLines ? r2(Number(doc.taxAmount) || 0)
+            : doc.taxInclusive ? 0
+                : perLine
+                    ? r2(src.reduce((a, l) => a + (lineNet(l) * docDiscFactor * (l.tax || 0)) / 100, 0))
+                    : r2((taxable * rate) / 100);
         const charges = r2((Number(doc.shipping) || 0) + (Number(doc.extra) || 0));
         const before = r2(taxable + tax + charges);
         // FIX · round-off is a DOCUMENT property, applied once. Only the sales
         // invoice and the recurring invoice ever called roundTotal(), so the
         // same cart totalled differently per type.
         const total = prefs.ops.roundOff ? Math.round(before) : before;
+        /* MARGIN. Cost travels with the line — `cost` is copied off the product
+           when the line is created and posted as `cost_price` — so this is a
+           real number rather than a guess, and free quantity is IN it: a
+           buy-two-get-one costs three and sells two, which is precisely the
+           case a margin read-out exists to catch. Net of both discounts and
+           always ex-tax, because tax is not yours. */
+        const cost = r2(src.reduce((a, l) => a + (l.qty + (l.free || 0)) * (l.cost || 0), 0));
+        const net = r2(sub - docDisc);
+        const margin = r2(net - cost);
         return {
             lineNet,
+            perLineTax: perLine,
+            taxRate: rate,
             gross,
             sub,
             lineDisc,
             docDisc,
             tax,
             charges,
+            cost,
+            margin,
+            marginPct: net > 0 ? r2((margin / net) * 100) : 0,
             round: r2(total - before),
             total,
-            units: doc.lines.reduce((a, l) => a + l.qty + (l.free || 0), 0),
+            units: src.reduce((a, l) => a + l.qty + (l.free || 0), 0),
         };
     }, [doc, prefs.ops.roundOff]);
 
@@ -250,7 +327,7 @@ export default function NewInvoice({ auth }) {
         if (has(type, 'category') && !doc.category) e.category = 'An expense needs a category.';
         if (has(type, 'reason') && !doc.reason) e.reason = 'A reason is required.';
         if (has(type, 'source_doc') && !doc.sourceDoc) e.sourceDoc = 'Pick the document this is against.';
-        if (has(type, 'location_pair') && doc.location === doc.locationTo) e.locationTo = 'From and To cannot be the same location.';
+        if (has(type, 'location_pair') && doc.location != null && String(doc.location) === String(doc.locationTo)) e.locationTo = 'From and To cannot be the same location.';
         return e;
     }, [doc, type, prefs.ops.requireLocation]);
 
@@ -258,7 +335,7 @@ export default function NewInvoice({ auth }) {
     const patchLine = useCallback((u, patch) => {
         setTouched(true);
         setDoc((d) => ({ ...d, lines: d.lines.map((l) => (l.u === u ? { ...l, ...patch } : l)) }));
-    }, []);
+    }, [setDoc]);
 
     const removeLine = useCallback((line) => {
         if (!prefs.perms['documents.delete_line']) { toast('Your role may not delete a line.', { tone: 'bad' }); return; }
@@ -266,13 +343,17 @@ export default function NewInvoice({ auth }) {
         setDoc((d) => ({ ...d, lines: d.lines.filter((l) => l.u !== line.u) }));
         setOpenCard(null);
         const t = toast(`${line.name} removed.`, { action: 'Undo', ms: 8000 });
-        undoRef.current = { ...undoRef.current, [t.id]: line };
-    }, [prefs.perms, toast]);
+        undoRef.current = { ...undoRef.current, [t.id]: { line, docId: activeIdRef.current } };
+    }, [prefs.perms, setDoc, toast]);
 
     const onToastAction = useCallback((t) => {
-        const line = (undoRef.current || {})[t.id];
-        if (line) {
-            setDoc((d) => (d.lines.some((l) => l.u === line.u) ? d : { ...d, lines: [...d.lines, line] }));
+        const entry = (undoRef.current || {})[t.id];
+        if (entry) {
+            // Restored into the document it came OUT of, even if you have since
+            // switched tabs.
+            setDocs((ds) => ds.map((d) => (d.idem === entry.docId && !d.lines.some((l) => l.u === entry.line.u)
+                ? { ...d, lines: [...d.lines, entry.line] }
+                : d)));
             const next = { ...undoRef.current };
             delete next[t.id];
             undoRef.current = next;
@@ -284,13 +365,22 @@ export default function NewInvoice({ auth }) {
         const p = product || products[0];
         setTouched(true);
         setDoc((d) => ({ ...d, lines: [...d.lines, newLine(p)] }));
-    }, [products]);
+    }, [products, setDoc]);
 
     /* ── the primary action ──────────────────────────────────────────────── */
     const save = useCallback(() => {
         if (!prefs.perms['documents.post']) { toast('Your role may not post a document.', { tone: 'bad' }); return false; }
         const keys = Object.keys(errors);
         if (keys.length) {
+            /* A document you have just opened must not be red. Every required
+               field is empty the moment a type is chosen, and flagging all of
+               them before the user has done anything is a form shouting at
+               somebody for not having finished typing. The rules run
+               continuously — they gate this button from the first keystroke —
+               and they become VISIBLE here, on the attempt. The flag lives on
+               the document, so it survives a tab switch and a new tab starts
+               clean. */
+            setDoc((d) => ({ ...d, submitted: true }));
             // A validation failure is an error ON THE FIELD THAT CAUSED IT, and
             // the details block opens so the field is visible rather than
             // hidden behind a collapsed strip.
@@ -298,7 +388,7 @@ export default function NewInvoice({ auth }) {
             toast(errors[keys[0]], { tone: 'bad', ms: 5000 });
             return false;
         }
-        if (has(type, 'lines') && !doc.lines.length) { toast('Add at least one line.', { tone: 'bad' }); return false; }
+        if (hasLines && !doc.lines.length) { toast('Add at least one line.', { tone: 'bad' }); return false; }
         if (prefs.ops.confirmZeroCost && type.side === 'buy' && doc.lines.some((l) => !l.rate)) {
             toast('A purchase line has no cost. Set it, or turn the check off in Settings → Operate.', { tone: 'bad', ms: 5000 });
             return false;
@@ -310,28 +400,57 @@ export default function NewInvoice({ auth }) {
             toast(
                 `${type.name} ${doc.docno} posted${prefs.ops.printOnSave ? ' · printing' : ''} — `
                 + `${Object.keys(payload).filter((k) => payload[k] !== undefined).length} fields, `
-                + `${payload.items.length} lines.`,
+                + `${(payload.items || []).length} lines.`,
                 { tone: 'good', ms: 5000 },
             );
             clearDraft(userId);
         }, 320);
         return true;
-    }, [D.details.mode, computed, doc, errors, prefs.ops, prefs.perms, toast, type, userId]);
+    }, [D.details.mode, computed, doc, errors, hasLines, prefs.ops, prefs.perms, setDoc, toast, type, userId]);
 
     /* ── draft rescue ────────────────────────────────────────────────────── */
     useEffect(() => {
         const saved = loadDraft(userId);
-        if (saved && saved.lines?.length) {
-            setDoc(saved);
-            toast('Your draft was restored from before the page closed.', { tone: 'good', ms: 5000 });
+        const list = Array.isArray(saved) ? saved : (saved && saved.lines ? [saved] : null);
+        if (list && list.some((d) => d.lines?.length)) {
+            setDocs(list);
+            toast(
+                list.length > 1
+                    ? `Your ${list.length} open drafts were restored from before the page closed.`
+                    : 'Your draft was restored from before the page closed.',
+                { tone: 'good', ms: 5000 },
+            );
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     useEffect(() => {
         if (!touched) return undefined;
-        const id = setTimeout(() => saveDraft(userId, doc), 500);
+        const id = setTimeout(() => saveDraft(userId, docs), 500);
         return () => clearTimeout(id);
-    }, [doc, touched, userId]);
+    }, [docs, touched, userId]);
+
+    /* ── tabs ────────────────────────────────────────────────────────────────
+       Labelled by the document number, or by the party until one exists — never
+       by a raw timestamp, which is what the register's tabs shipped with. */
+    const tabLabel = (d) => d.docno || d.party?.name || `${typeById(d.type).prefix} draft`;
+    const addTab = useCallback(() => {
+        setDocs((ds) => {
+            // Counted from the highest number already open, not from the count,
+            // so closing one and opening another cannot mint a duplicate.
+            const highest = ds.reduce((a, d) => Math.max(a, Number((d.docno || '').split('-')[1]) || 0), 148);
+            return [...ds, newDoc(type, prefs.ops, highest + 1)];
+        });
+        setActive(docs.length);
+        setSelected(null);
+        setOpenCard(null);
+    }, [docs.length, prefs.ops, type]);
+    const closeTab = useCallback((i) => {
+        if (docs.length === 1) { toast('This is the only document open.'); return; }
+        setDocs((ds) => ds.filter((_, j) => j !== i));
+        setActive((a) => Math.max(0, a >= i ? a - 1 : a));
+        setSelected(null);
+        setOpenCard(null);
+    }, [docs.length, toast]);
 
     /* ── switching type keeps the work ───────────────────────────────────── */
     const switchType = useCallback((id) => {
@@ -345,10 +464,15 @@ export default function NewInvoice({ auth }) {
             // side cannot survive the switch.
             party: off(next, 'party') ? null
                 : (d.party && d.party.side === next.side ? d.party : partiesFor(next.side)[0]),
-            lines: has(next, 'lines') ? d.lines : [],
+            // The lines SURVIVE a switch to a type that has none. `computed`
+            // and `buildPayload` both ignore them for a `no_lines` type, so
+            // nothing they hold reaches the total or the server — and switching
+            // back gives the document back instead of an empty one.
+            lines: d.lines,
         }));
-        toast(`Now a ${next.name.toLowerCase()}. Same editor — the labels, the fields and the columns follow the type.`);
-    }, [prefs.ops.autoNumber, toast]);
+        const noun = next.name.toLowerCase();
+        toast(`Now ${/^[aeiou]/.test(noun) ? 'an' : 'a'} ${noun}. Same editor — the labels, the fields and the columns follow the type.`);
+    }, [prefs.ops.autoNumber, setDoc, toast]);
 
     /* ── the keymap ──────────────────────────────────────────────────────────
        Scoped to the surface and suspended inside a field or a sheet — with the
@@ -391,12 +515,17 @@ export default function NewInvoice({ auth }) {
             }
             if (anyOverlay) return;
 
-            if (e.ctrlKey || e.metaKey) {
+            // AltGr reports ctrlKey AND altKey, so a Polish layout typing 'ś'
+            // in a note would otherwise post the document.
+            if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+                if (e.key === 'Tab') { e.preventDefault(); setActive((a) => (a + 1) % docs.length); return; }
                 const k = e.key.toLowerCase();
                 if (k === 's' || k === 'p') { e.preventDefault(); save(); }
-                else if (k === 'n') { e.preventDefault(); if (save()) setDoc(newDoc(type, prefs.ops, 149)); }
+                else if (k === 'n') { e.preventDefault(); if (save()) addTab(); }
                 else if (k === 'd') { e.preventDefault(); setSheet('party'); }
                 else if (k === 'f') { e.preventDefault(); setSheet('breakdown'); }
+                else if (k === 't') { e.preventDefault(); addTab(); }
+                else if (k === 'w') { e.preventDefault(); closeTab(active); }
                 else if (/^[1-9]$/.test(e.key)) {
                     e.preventDefault();
                     const l = doc.lines[Number(e.key) - 1];
@@ -409,10 +538,15 @@ export default function NewInvoice({ auth }) {
                 case 'F1': e.preventDefault(); setSheet('product'); setPickerFor(null); break;
                 // F2–F6 act on the ACTIVE LINE, so they open that line's controls
                 // in place — the same tap-to-adjust the register uses.
+                // The line's own controls, in place — in the card fit AND in the
+                // table fit, where they open as a row beneath the line. A key
+                // that works at one width and silently does nothing at another
+                // is a key that is not on the map.
                 case 'F2': case 'F3': case 'F5': case 'F6':
                     e.preventDefault();
                     if (selected) setOpenCard(selected);
-                    else toast('Select a line first — Ctrl+1…9, or tap it.');
+                    else if (doc.lines.length) { setSelected(doc.lines[0].u); setOpenCard(doc.lines[0].u); }
+                    else toast('Nothing to edit — add a line first.');
                     break;
                 case 'F4':
                     e.preventDefault();
@@ -447,6 +581,7 @@ export default function NewInvoice({ auth }) {
 
     const commands = [
         { label: 'Add a line', key: 'Alt+Q', run: () => { setPickerFor(null); setSheet('product'); } },
+        { label: 'New document', key: 'Ctrl+T', run: addTab },
         { label: 'Change the document type', run: () => setSheet('type') },
         { label: `Choose a ${label(type, 'party', 'party').toLowerCase()}`, key: 'F11', run: () => setSheet('party') },
         { label: 'Document totals — tax, discount, delivery', key: 'F9', run: () => setSheet('money') },
@@ -529,6 +664,28 @@ export default function NewInvoice({ auth }) {
                             <span className="nqd-docno">{doc.docno} · {doc.status || 'Draft'}</span>
                         </button>
 
+                        {/* One editor can hold more than one document open. The
+                            strip scrolls; the New button sits outside it so a
+                            phone can always reach it. */}
+                        {vp.w >= 720 || docs.length > 1 ? (
+                            <div className="nqd-tabs" role="group" aria-label="Open documents">
+                                {docs.map((d, i) => (
+                                    <span key={d.idem} className="nqd-tab" data-current={i === active ? 'true' : undefined}>
+                                        <button
+                                            type="button"
+                                            className="nqd-tab-lab nqd-tight"
+                                            aria-current={i === active ? 'true' : undefined}
+                                            onClick={() => { setActive(i); setSelected(null); setOpenCard(null); }}
+                                        >
+                                            {tabLabel(d)}
+                                        </button>
+                                        <button type="button" className="nqd-tab-x nqd-tight" aria-label={`Close ${tabLabel(d)}`} onClick={() => closeTab(i)}>✕</button>
+                                    </span>
+                                ))}
+                            </div>
+                        ) : null}
+                        <Icon ns="nqd" label="New document" rank="2" title="New document (Ctrl+T)" onClick={addTab}>＋</Icon>
+
                         {D.navHeld && vp.w > 700 ? (
                             <span className="nqd-held" title="Expanding the nav would cost this composition a line column, so it is holding the rail. Buying a bigger screen should never make the invoice worse.">
                                 ▤ rail held
@@ -556,7 +713,7 @@ export default function NewInvoice({ auth }) {
                                 type={type}
                                 doc={doc}
                                 set={set}
-                                errors={errors}
+                                errors={doc.submitted ? errors : {}}
                                 total={computed.total}
                                 onOpenParty={() => setSheet('party')}
                                 onOpenSource={() => setSheet('source')}
@@ -571,7 +728,7 @@ export default function NewInvoice({ auth }) {
                                         : 'minmax(0,1fr)',
                                 }}
                             >
-                                {has(type, 'lines') ? (
+                                {hasLines ? (
                                     <LinesZone
                                         D={D}
                                         type={type}
@@ -587,6 +744,7 @@ export default function NewInvoice({ auth }) {
                                         onRemoveLine={removeLine}
                                         onAddLine={() => { setPickerFor(null); setSheet('product'); }}
                                         onOpenPicker={(u) => { setPickerFor(u); setSheet('product'); }}
+                                        showMargin={prefs.ops.showMargin}
                                     />
                                 ) : (
                                     /* `no_lines` types — an expense is an amount,
@@ -599,10 +757,17 @@ export default function NewInvoice({ auth }) {
                                                 <label htmlFor="nqd-amt">Amount excluding tax<span className="nqd-req">*</span></label>
                                                 <input id="nqd-amt" className="nqd-ctl num" inputMode="decimal" data-rank="1" value={doc.extra} onChange={(e) => set({ extra: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
                                             </div>
-                                            <div className="nqd-f">
-                                                <label htmlFor="nqd-taxamt">Tax amount</label>
-                                                <input id="nqd-taxamt" className="nqd-ctl num" inputMode="decimal" value={doc.taxAmount} onChange={(e) => set({ taxAmount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
-                                            </div>
+                                            {/* Only when the type has not already
+                                                given it a capability field of its
+                                                own — two inputs bound to one value,
+                                                on screen together, is the thing
+                                                this page argues against. */}
+                                            {!has(type, 'tax_amount') ? (
+                                                <div className="nqd-f">
+                                                    <label htmlFor="nqd-taxamt">Tax amount</label>
+                                                    <input id="nqd-taxamt" className="nqd-ctl num" inputMode="decimal" value={doc.taxAmount} onChange={(e) => set({ taxAmount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                                                </div>
+                                            ) : null}
                                         </div>
                                     </section>
                                 )}
@@ -678,14 +843,24 @@ export default function NewInvoice({ auth }) {
                 <PartySheet
                     open={sheet === 'party'} onClose={() => setSheet(null)} type={type} current={doc.party} narrow={narrow}
                     onPick={(p) => {
-                        set({ party: p, terms: (TERMS.find((t) => t.label === p.terms) || {}).id || doc.terms });
-                        if (p.discount) toast(`${p.name} has a ${p.discount}% default discount — applied to the document.`, { tone: 'good' });
-                        if (p.discount) set({ party: p, discount: p.discount });
+                        const terms = (TERMS.find((t) => t.label === p.terms) || {}).id || doc.terms;
+                        // A party's default discount is a DISCOUNT, so the same
+                        // permission gates it. Applying it around the check was
+                        // a way for a role that may not discount to discount.
+                        const mayDiscount = prefs.perms['documents.discount'];
+                        if (p.discount && mayDiscount) {
+                            set({ party: p, terms, discount: p.discount });
+                            toast(`${p.name} has a ${p.discount}% default discount — applied to the document.`, { tone: 'good' });
+                        } else {
+                            set({ party: p, terms });
+                            if (p.discount) toast(`${p.name} has a ${p.discount}% default discount, but your role may not give one.`, { tone: 'bad' });
+                        }
                     }}
                 />
 
                 <ProductSheet
                     open={sheet === 'product'} onClose={() => { setSheet(null); setPickerFor(null); }} narrow={narrow}
+                    products={products}
                     onPick={(p) => {
                         if (pickerFor) {
                             patchLine(pickerFor, { pid: p.id, name: p.name, sku: p.sku, hsn: p.hsn, uom: p.uom, rate: p.rate, cost: p.cost, tax: p.tax });
@@ -707,7 +882,7 @@ export default function NewInvoice({ auth }) {
 
                 <TypeSheet open={sheet === 'type'} onClose={() => setSheet(null)} current={prefs.type} onPick={switchType} narrow={narrow} />
                 <SourceSheet open={sheet === 'source'} onClose={() => setSheet(null)} narrow={narrow} onPick={(d) => set({ sourceDoc: d.id })} />
-                <BreakdownSheet open={sheet === 'breakdown'} onClose={() => setSheet(null)} type={type} doc={doc} computed={computed} narrow={narrow} />
+                <BreakdownSheet open={sheet === 'breakdown'} onClose={() => setSheet(null)} type={type} doc={doc} computed={computed} narrow={narrow} showMargin={prefs.ops.showMargin && prefs.perms['documents.price_override']} />
                 <PayloadSheet open={sheet === 'payload'} onClose={() => setSheet(null)} type={type} doc={doc} computed={computed} narrow={narrow} />
                 <MoneySheet open={sheet === 'money'} onClose={() => setSheet(null)} doc={doc} set={set} perms={prefs.perms} narrow={narrow} />
                 <KeysSheet open={sheet === 'keys'} onClose={() => setSheet(null)} narrow={narrow} />

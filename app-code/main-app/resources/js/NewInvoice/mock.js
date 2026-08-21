@@ -170,12 +170,54 @@ export function searchProducts(term, list = PRODUCTS) {
 
 /* Dates are plain strings here so nothing in this file depends on a clock. */
 export const TODAY = '20 Aug 2026';
+export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * DATES ARE A TYPE, not a string that happens to look like one.
+ *
+ * A date is stored here in the form a human reads — `20 Aug 2026` — and these
+ * two turn it into and out of the `YYYY-MM-DD` a `<input type="date">` and a
+ * server both speak. `parseDate` returning null rather than an Invalid Date is
+ * the point: every caller has to decide what an unparseable date means, instead
+ * of quietly propagating NaN into the arithmetic. That is exactly how the due
+ * date could read "NaN undefined NaN" — `addDays` did the sum first and asked
+ * questions never.
+ */
+export const parseDate = (label) => {
+    if (!label) return null;
+    const m = String(label).trim().match(/^(\d{1,2})\s+([A-Za-z]{3})[a-z]*\s+(\d{4})$/);
+    if (!m) return null;
+    const mi = MONTHS.indexOf(m[2][0].toUpperCase() + m[2].slice(1, 3).toLowerCase());
+    if (mi < 0) return null;
+    const dt = new Date(Number(m[3]), mi, Number(m[1]));
+    // 31 Feb parses and then silently becomes 3 March. A date that changed
+    // itself is not the date that was typed.
+    if (dt.getDate() !== Number(m[1]) || dt.getMonth() !== mi) return null;
+    return dt;
+};
+
+export const fmtDate = (dt) => `${String(dt.getDate()).padStart(2, '0')} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
+
+/** `20 Aug 2026` → `2026-08-20`. Empty when the label is not a date. */
+export const toISO = (label) => {
+    const dt = parseDate(label);
+    if (!dt) return '';
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+};
+
+/** `2026-08-20` → `20 Aug 2026`. Empty in, empty out — a cleared field is a
+ *  cleared field, not today. */
+export const fromISO = (iso) => {
+    const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '';
+    return fmtDate(new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+};
+
 export const addDays = (label, days) => {
-    // Deliberately naive: the real editor formats from a Date. This exists only
-    // so "Terms writes the due date" is demonstrably true on screen.
-    const [d, m, y] = label.split(' ');
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const dt = new Date(Number(y), months.indexOf(m), Number(d));
+    const dt = parseDate(label);
+    // An unparseable date plus thirty days is not a date. It used to be
+    // "NaN undefined NaN", printed into the Due field and posted as due_date.
+    if (!dt) return label || '';
     dt.setDate(dt.getDate() + days);
-    return `${String(dt.getDate()).padStart(2, '0')} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+    return fmtDate(dt);
 };

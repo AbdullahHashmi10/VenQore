@@ -160,6 +160,26 @@ export function Sheet({
         return () => clearTimeout(id);
     }, [open]);
 
+    /* `aria-modal="true"` is a PROMISE that focus cannot leave. A closed sheet
+       is already out of the tab order (visibility: hidden), but an OPEN one had
+       nothing holding the caret in: Tab walked straight out of the back of it
+       and onto the page behind, where a screen reader had just been told
+       nothing exists. Tab wraps inside the sheet; Shift+Tab wraps the other way. */
+    const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),'
+        + 'select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    const trap = (e) => {
+        if (e.key !== 'Tab' || !ref.current) return;
+        const items = [...ref.current.querySelectorAll(FOCUSABLE)]
+            .filter((el) => el.offsetParent !== null || el === document.activeElement);
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const here = document.activeElement;
+        if (!ref.current.contains(here)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+        if (e.shiftKey && here === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && here === last) { e.preventDefault(); first.focus(); }
+    };
+
     return (
         <aside
             ref={ref}
@@ -171,6 +191,7 @@ export function Sheet({
             aria-modal="true"
             aria-label={title}
             aria-hidden={!open}
+            onKeyDown={open ? trap : undefined}
         >
             <header className={`${ns}-sh`}>
                 <span>{title}</span>

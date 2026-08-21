@@ -19,7 +19,7 @@ import { DOC_COLW, formatToFit } from '@/LayoutLaw/engine';
 import { CAP_FIELDS, HEADER_FIELDS, capKeysFor, headerKeysFor, label, has, off, secondaryActions } from './fields';
 import {
     ACCOUNTS, CURRENCIES, DOC_STATUS, EXPENSE_CATEGORIES, FREQUENCIES, GOODS_STATUS,
-    LOCATIONS, METHODS, PROJECTS, TAX_RATES, TERMS,
+    LOCATIONS, METHODS, PROJECTS, TAX_RATES, TERMS, fromISO, toISO,
 } from './mock';
 
 export const n2 = (v) => (Number.isFinite(v) ? v : 0)
@@ -91,11 +91,34 @@ export function Field({
         // first option while the field is flagged red is a form telling the user
         // two different things about the same field.
         const unchosen = required && (value === undefined || value === null || value === '');
+        // A `<select>` always hands back a STRING, so a numeric id chosen from a
+        // list stopped being a number the moment it was chosen. Two things broke
+        // quietly: `doc.location === doc.locationTo` could never be true once
+        // either had been touched, so a stock transfer from Main to Main passed
+        // validation; and `warehouse_id` posted "2" where the server wants 2.
+        // The option carries its own type — hand that back, not the DOM's copy.
+        const back = (raw) => {
+            const hit = (options || []).find(([v]) => String(v) === raw);
+            onChange(hit ? hit[0] : raw);
+        };
         control = (
-            <select className="nqd-ctl" data-rank={rank} value={unchosen ? '' : (value ?? '')} onChange={(e) => onChange(e.target.value)} {...common}>
+            <select className="nqd-ctl" data-rank={rank} value={unchosen ? '' : (value ?? '')} onChange={(e) => back(e.target.value)} {...common}>
                 {unchosen ? <option value="">Choose one…</option> : null}
                 {(options || []).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
             </select>
+        );
+    } else if (kind === 'date') {
+        // A date field was a plain text box: `kind: 'date'` fell through to the
+        // default branch, so eight of them accepted "next tuesday" and the terms
+        // effect fed that straight to addDays. A native date control cannot
+        // produce a date that is not one, and it brings the platform's picker,
+        // keyboard stepping and locale with it.
+        control = (
+            <input
+                type="date" className="nqd-ctl num" data-rank={rank}
+                value={toISO(value)} onChange={(e) => onChange(fromISO(e.target.value))}
+                {...common}
+            />
         );
     } else if (kind === 'toggle') {
         control = (
@@ -105,11 +128,38 @@ export function Field({
             </button>
         );
     } else if (kind === 'file') {
+        // The attachment control opened nothing. It was a button wired to an
+        // `onOpen` that only the source-document field was ever given, so an
+        // expense receipt — the one type whose whole point is the receipt —
+        // had a control that did not respond to being pressed. A real file
+        // input, hidden behind the label the way the platform intends, so the
+        // picker, drag-and-drop target and keyboard behaviour are the OS's.
         control = (
-            <button type="button" className="nqd-ctl" data-rank={rank} onClick={onOpen} {...common}>
-                <span className={value ? undefined : 'ph'}>{value || 'Attach a file'}</span>
-                <span className="chev" aria-hidden>▤</span>
-            </button>
+            <>
+                <input
+                    type="file" id={id} className="nqd-file" aria-label={lbl}
+                    aria-invalid={error ? 'true' : undefined}
+                    onChange={(e) => {
+                        const f = e.target.files && e.target.files[0];
+                        onChange(f ? f.name : '');
+                        // Clearing the input is what lets the SAME file be
+                        // chosen again after it has been removed.
+                        e.target.value = '';
+                    }}
+                />
+                <div className="nqd-ctl" data-rank={rank} data-file="true">
+                    <label htmlFor={id} className="nqd-filebtn nqd-tight">{value ? 'Replace' : 'Choose a file'}</label>
+                    <span className={value ? 'fname' : 'ph'}>{value || 'Nothing attached'}</span>
+                    {value ? (
+                        <button
+                            type="button" className="nqd-tight nqd-filex" aria-label={`Remove ${value}`}
+                            title="Remove" onClick={() => onChange('')}
+                        >
+                            ✕
+                        </button>
+                    ) : null}
+                </div>
+            </>
         );
     } else if (kind === 'textarea') {
         control = <textarea data-rank={rank} value={value ?? ''} onChange={(e) => onChange(e.target.value)} {...common} />;
@@ -120,14 +170,25 @@ export function Field({
                 data-rank={rank}
                 inputMode={kind === 'num' ? 'decimal' : undefined}
                 value={value ?? ''}
-                onChange={(e) => onChange(e.target.value)}
+                // A numeric field keeps its STRING while it is being typed —
+                // coercing on every keystroke eats the "." in "12." and makes
+                // the field impossible to type a decimal into. It is sanitised
+                // here and turned into a number once, by buildPayload.
+                onChange={(e) => onChange(kind === 'num'
+                    ? e.target.value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+                    : e.target.value)}
                 {...common}
             />
         );
     }
     return (
         <div className="nqd-f">
-            <label htmlFor={id}>{lbl}{required ? <span className="nqd-req" aria-hidden>*</span> : null}</label>
+            {/* A file field's caption is NOT a <label for>: the visible
+                "Choose a file" already is one, and two labels pointing at one
+                input opens the picker twice on a single click. */}
+            {kind === 'file'
+                ? <span className="nqd-flbl">{lbl}{required ? <span className="nqd-req" aria-hidden>*</span> : null}</span>
+                : <label htmlFor={id}>{lbl}{required ? <span className="nqd-req" aria-hidden>*</span> : null}</label>}
             {control}
             {error ? <span className="err">{error}</span> : hint ? <span className="hint">{hint}</span> : null}
         </div>
@@ -201,7 +262,15 @@ export function DetailsZone({ D, type, doc, set, errors, onOpenParty, onOpenSour
                             value={VAL[k]}
                             options={SELECT_OPTIONS[k] ? SELECT_OPTIONS[k]() : undefined}
                             onOpen={k === 'party' ? onOpenParty : undefined}
-                            onChange={(v) => set({ [k]: v })}
+                            /* Typing a due date MARKS it. The guard in the terms
+                               effect was there and nothing ever set its flag, so
+                               a hand-typed due date was still overwritten the
+                               next time the document date changed. Picking a
+                               term clears the mark — choosing Net 30 is asking
+                               to be given the date it implies. */
+                            onChange={(v) => set(k === 'due' ? { due: v, dueTouched: true }
+                                : k === 'terms' ? { terms: v, dueTouched: false }
+                                    : { [k]: v })}
                             rank={k === 'party' ? 1 : 2}
                         />
                     );
@@ -303,16 +372,35 @@ function EditableCell({ value, numeric, suffix, disabled, onCommit, ariaLabel })
 
 export function LinesZone({
     D, type, doc, columns, perms, computed, selected, onSelect,
-    onPatchLine, onRemoveLine, onAddLine, onOpenPicker, openCard, setOpenCard,
+    onPatchLine, onRemoveLine, onAddLine, onOpenPicker, openCard, setOpenCard, showMargin,
 }) {
     const rateLabel = label(type, 'rate', 'Rate');
     const canPrice = perms['documents.price_override'];
     const canDisc = perms['documents.discount'];
     const canDel = perms['documents.delete_line'];
 
+    /* "Show margin" was a switch in Settings → Operate that nothing read. It
+       belongs in the ZONE HEADER, not in the summary: the summary's rows are
+       what the law measures the column's height from, so a row painted there
+       that the density did not ask for is a column the law thinks fits and does
+       not. The header is a fixed 44px whatever is written across it.
+
+       Sell side only — "margin" on a purchase bill is the supplier's, and it is
+       hidden behind a permission, because a cost price is not everyone's to see. */
+    const marginable = showMargin && type.side === 'sell' && perms['documents.price_override'] && doc.lines.length > 0;
+
     const head = (
         <header className="nqd-zh">
             <span>Items</span>
+            {marginable ? (
+                <span
+                    className="nqd-margin" data-rank="2" data-tone={computed.margin < 0 ? 'bad' : undefined}
+                    title={`Sold ${n2(computed.sub - computed.docDisc)} against a cost of ${n2(computed.cost)}, `
+                        + 'net of both discounts and before tax. Free quantity is counted as cost.'}
+                >
+                    Margin {computed.marginPct}% · {n2(computed.margin)}
+                </span>
+            ) : null}
             <span style={{ flex: 1 }} />
             <span className="mono">{doc.lines.length} lines · {D.lines.fit}</span>
         </header>
@@ -513,15 +601,27 @@ export function SummaryZone({ D, type, doc, computed, width, onBreakdown, onPrim
     const taxRate = TAX_RATES.find((t) => t.id === doc.taxRate) || TAX_RATES[1];
 
     /* A density decides WHICH summary rows exist, and Standard has no line for
-       delivery or other charges. A total that silently includes a number no row
-       on screen accounts for is exactly the defect this page exists to answer —
-       so when the density does not itemise charges, the subtotal carries them
-       and says so. The rows then sum to the total at every density. */
-    const itemised = D.summaryRows.includes('shipping') || D.summaryRows.includes('extra');
-    const charges = itemised ? 0 : computed.charges;
+       delivery, other charges or round-off. A total that silently includes a
+       number no row on screen accounts for is exactly the defect this page
+       exists to answer — so whatever the density does not itemise, the subtotal
+       carries, and SAYS it carries. The rows sum to the total at every density.
+
+       Round-off is the same defect in miniature: the total is Math.round(before)
+       whenever the setting is on, so at Standard the seven rows summed to
+       142,753.10 under a total that printed 142,753.00, with the missing ten
+       paisa explained nowhere on the screen. */
+    const carried = [];
+    const charges = D.summaryRows.includes('shipping') || D.summaryRows.includes('extra')
+        ? 0 : computed.charges;
+    const round = D.summaryRows.includes('roundoff') ? 0 : computed.round;
+    if (charges) carried.push('charges');
+    if (round) carried.push('rounding');
 
     const ROWS = {
-        subtotal: () => [charges ? 'Subtotal incl. charges' : 'Subtotal', computed.gross + charges],
+        subtotal: () => [
+            carried.length ? `Subtotal incl. ${carried.join(' & ')}` : 'Subtotal',
+            r2(computed.gross + charges + round),
+        ],
         item_disc: () => ['Item discounts', -computed.lineDisc],
         doc_disc: () => ['Document discount', -computed.docDisc],
         tax: () => [`Tax ${taxRate.rate}%${doc.taxInclusive ? ' (included)' : ''}`, computed.tax],
@@ -563,8 +663,13 @@ export function SummaryZone({ D, type, doc, computed, width, onBreakdown, onPrim
             {D.summaryRows.map((k) => {
                 const [lbl, val, kind] = (ROWS[k] || (() => [k, 0]))();
                 const tot = kind === 'tot';
+                const why = k === 'subtotal' && carried.length
+                    ? `This density has no ${carried.join(' or ')} row, so the subtotal carries `
+                        + `${[charges ? `${n2(charges)} of charges` : null, round ? `${n2(round)} of rounding` : null]
+                            .filter(Boolean).join(' and ')}. The rows sum to the total.`
+                    : undefined;
                 return (
-                    <div className="nqd-sumrow" data-kind={kind} key={k}>
+                    <div className="nqd-sumrow" data-kind={kind} key={k} title={why}>
                         <span className="k">{lbl}</span>
                         {tot ? (
                             <button type="button" data-rank="2" title="Tap for the breakdown (Ctrl+F)" onClick={onBreakdown} style={{ minWidth: 0 }}>
@@ -614,8 +719,22 @@ export function DockBar({ D, type, doc, computed, on, onBreakdown, onPrimary, sa
     const f = formatToFit(computed.total, numW * 0.88, 20, 'PKR');
     const balance = r2(computed.total - doc.settled);
 
+    /* `inert` backs up the CSS `visibility: hidden` on the browsers that have it:
+       the faded dock is out of the tab order AND out of the accessibility tree,
+       so Save is not announced from a bar nobody can see. It is set as a DOM
+       PROPERTY rather than a JSX attribute because the two React majors disagree
+       about how a boolean attribute is spelled in JSX — `inert=""` warns on 19,
+       `inert={true}` renders `inert="true"` on 18 — and the property means the
+       same thing to both. */
+    const dockRef = useRef(null);
+    useEffect(() => { if (dockRef.current) dockRef.current.inert = !on; }, [on]);
+
     return (
-        <div className="nqd-dock" data-on={on ? 'true' : 'false'} data-rank="1">
+        <div
+            ref={dockRef}
+            className="nqd-dock" data-on={on ? 'true' : 'false'} data-rank="1"
+            aria-hidden={on ? undefined : 'true'}
+        >
             <div>
                 <div className="k">{label(type, 'total', 'Total')}</div>
                 <div className="v" title={f.exact}>{f.text}</div>

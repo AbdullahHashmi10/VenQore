@@ -24,7 +24,7 @@
  */
 
 import { LAW } from '@/LayoutLaw/law';
-import { TERMS, addDays } from './mock';
+import { TERMS, addDays, toISO } from './mock';
 
 export const TYPES = LAW.document.types;
 export const CAPS = LAW.document.capabilities;
@@ -109,7 +109,10 @@ export function columnsFor(type, densityCols) {
     return densityCols.filter((c) => {
         if (c === 'free' && (off(type, 'free_qty') || !has(type, 'free_qty'))) return false;
         if (c === 'disc' && off(type, 'disc')) return false;
-        if (c === 'tax' && !has(type, 'per_line_tax') && !has(type, 'tax_dropdown')) return false;
+        // `tax_dropdown` is a DOCUMENT-level tax control. Letting it open a
+        // per-line Tax % column produced an editable column whose value no total
+        // read and whose percentage the payload posted anyway.
+        if (c === 'tax' && !has(type, 'per_line_tax')) return false;
         if (c === 'rate' && has(type, 'qty_only')) return false;
         if (c === 'total' && has(type, 'qty_only')) return false;
         return true;
@@ -140,6 +143,18 @@ export function overflowActions(type) {
     return out;
 }
 
+/**
+ * A field that a human typed into holds a STRING. The payload is a contract
+ * with a server that types its columns, so every number is a number by the time
+ * it leaves here — once, in the builder, rather than on every keystroke in
+ * thirteen inputs.
+ */
+const num = (v) => {
+    if (v === '' || v === null || v === undefined) return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+};
+
 export const termDays = (id) => (TERMS.find((t) => t.id === id) || TERMS[0]).days;
 export const dueFromTerms = (date, termId) => addDays(date, termDays(termId));
 
@@ -156,7 +171,9 @@ export const dueFromTerms = (date, termId) => addDays(date, termDays(termId));
  * payload preview sheet, so that the contract is settled before the wiring is.
  */
 export function buildPayload(doc, type, computed) {
-    const lines = doc.lines.map((l, i) => ({
+    // A type with no lines does not POST lines. They stay in the document so a
+    // switch to Expense and back is not a deletion, and they stop here.
+    const lines = (has(type, 'no_lines') ? [] : doc.lines).map((l, i) => ({
         line_no: i + 1,
         product_id: l.pid,
         description: l.name,
@@ -167,6 +184,7 @@ export function buildPayload(doc, type, computed) {
         unit_price: l.rate,
         discount_percent: l.disc,
         tax_percent: has(type, 'per_line_tax') ? l.tax : undefined,
+        cost_price: l.cost,
         batch: l.batch || undefined,
         note: l.note || undefined,
         line_total: computed.lineNet(l),
@@ -177,8 +195,10 @@ export function buildPayload(doc, type, computed) {
         document_no: doc.docno,
         party_id: off(type, 'party') ? undefined : doc.party?.id,
         party_reference: doc.partyref || undefined,
-        document_date: doc.date,
-        due_date: doc.due || undefined,
+        // A date leaves here as `YYYY-MM-DD`, because that is what the server
+        // stores. `20 Aug 2026` is a way of SHOWING a date, not of sending one.
+        document_date: toISO(doc.date),
+        due_date: toISO(doc.due) || undefined,
         payment_terms: doc.terms || undefined,
         settlement_method: doc.method || undefined,
         account_id: doc.account || undefined,
@@ -186,32 +206,44 @@ export function buildPayload(doc, type, computed) {
         to_warehouse_id: has(type, 'location_pair') ? doc.locationTo : undefined,
         project_id: doc.project || undefined,
         currency: doc.currency,
-        exchange_rate: doc.fx,
+        exchange_rate: num(doc.fx),
         // FIX · notes was in six payloads with no input anywhere. It is resident
         // on every type now, and it travels on the one path.
         notes: doc.notes,
-        valid_until: has(type, 'valid_until') ? doc.validUntil : undefined,
-        expected_date: has(type, 'expected_date') ? doc.expectedDate : undefined,
+        valid_until: has(type, 'valid_until') ? toISO(doc.validUntil) : undefined,
+        expected_date: has(type, 'expected_date') ? toISO(doc.expectedDate) : undefined,
         goods_status: has(type, 'goods_status') ? doc.goodsStatus : undefined,
         status: has(type, 'doc_status') ? doc.status : undefined,
         category: has(type, 'category') ? doc.category : undefined,
         reason: has(type, 'reason') ? doc.reason : undefined,
+        description: has(type, 'description') ? doc.description : undefined,
+        attachment: has(type, 'attachment') ? doc.attachment : undefined,
         source_document: has(type, 'source_doc') ? doc.sourceDoc : undefined,
         tax_inclusive: has(type, 'tax_inclusive_flag') ? doc.taxInclusive : undefined,
-        business_use_percent: has(type, 'business_pct') ? doc.businessPct : undefined,
+        business_use_percent: has(type, 'business_pct') ? num(doc.businessPct) : undefined,
+        landed_costs: has(type, 'landed_costs') ? num(doc.landedCosts) : undefined,
+        refund_account_id: has(type, 'refund_account') ? doc.refundAccount : undefined,
+        // A recurring invoice is defined by these three. All three rendered and
+        // none of them posted.
+        frequency: has(type, 'frequency') ? doc.frequency : undefined,
+        next_run_date: has(type, 'next_run') ? toISO(doc.nextRun) : undefined,
+        schedule_state: has(type, 'active_paused') ? doc.activePaused : undefined,
         // FIX · only sales invoice and recurring invoice applied roundTotal(), so
         // the same cart totalled differently per type. Round-off is a document
         // property, applied once, by this builder.
         round_off: computed.round,
         tax_rate: doc.taxRate,
-        header_discount: doc.discount,
-        shipping: doc.shipping,
-        other_charges: doc.extra,
+        // An expense has no lines, so its tax is the figure that was typed —
+        // deriving it from `computed` posted zero, every time.
+        tax_amount_entered: has(type, 'tax_amount') ? num(doc.taxAmount) : undefined,
+        header_discount: num(doc.discount) ?? 0,
+        shipping: num(doc.shipping) ?? 0,
+        other_charges: num(doc.extra) ?? 0,
         subtotal: computed.sub,
         tax_amount: computed.tax,
         total: computed.total,
         amount_settled: has(type, 'overpayment') || type.side !== 'stock' ? doc.settled : undefined,
-        items: lines,
+        items: has(type, 'no_lines') ? undefined : lines,
         idempotency_key: doc.idem,
     };
 }

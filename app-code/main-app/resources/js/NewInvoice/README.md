@@ -90,16 +90,40 @@ Auto decides **geometry only**. The density comes from the DOCUMENT — a purcha
 bill asks for Pro, an expense for Simple — because a screen size should not
 decide what a document is. Only the Accounting profile raises it.
 
-## Two departures from the reference
+## Departures from the reference
 
 - **"Subtotal" means one thing on the screen.** The reference's summary called
   the gross "Subtotal" while its breakdown called the net-of-item-discounts
   figure "Subtotal" too — two definitions of one word two inches apart. Here it
   is the gross, in both.
-- **Charges the density does not itemise are folded into the subtotal, visibly.**
-  Standard has no Delivery row, so a delivery charge used to sit in the total
-  with nothing on screen accounting for it. The row now reads "Subtotal incl.
-  charges" and the rows sum to the total at every density.
+- **Anything the density does not itemise is folded into the subtotal, visibly.**
+  Standard has no Delivery row and no Round off row, so a delivery charge and a
+  rounded total both used to sit in the total with nothing on screen accounting
+  for them — the seven rows summed to 142,753.10 under a total that printed
+  142,753.00. The row now names what it is carrying ("Subtotal incl. charges",
+  "incl. rounding", "incl. charges & rounding") and hovering it says how much.
+  **The rows sum to the total, to the paisa, at every density.**
+- **A `no_lines` type does not delete the lines.** Switching a ten-line invoice
+  to Expense used to empty it, so a mis-tap in a thirteen-item list threw the
+  document away and switching back gave you a blank one. The lines stay in
+  state; `computed` and `buildPayload` are the two places that decide whether
+  they count, and for a `no_lines` type neither does. An expense's tax is now
+  the amount that was typed, which is the only number it could be — deriving it
+  from a percentage of no lines meant the Tax amount box moved nothing.
+- **A rule is shown on the attempt, not on arrival.** Every required field is
+  empty the moment a type is chosen. The rules run continuously — they gate the
+  primary from the first keystroke — and they turn red when you press it. The
+  flag lives on the document, so it survives a tab switch and a new tab is clean.
+- **Dates are a type.** `kind: 'date'` fell through to a plain text box, so
+  eight fields accepted "next tuesday" and the terms effect handed that to
+  `addDays`, which printed `NaN undefined NaN` into Due and posted it. They are
+  `<input type="date">` now, `parseDate` refuses a date that is not one (31 Feb
+  included), and the payload leaves as `YYYY-MM-DD`.
+- **A `<select>` hands back the option's own type.** The DOM always returns a
+  string, so a numeric id stopped being a number the moment it was chosen:
+  `doc.location === doc.locationTo` could never be true once either was touched
+  — a stock transfer from Main to Main passed validation — and `warehouse_id`
+  posted `"2"` where the server wants `2`.
 
 Also: **the keymap guard is narrower than "inside a field".** On a document the
 caret lives in a field almost all of the time, so suspending the map whenever
@@ -132,6 +156,32 @@ and marked `FIX:` in the code:
 | No UoM, batch, HSN, per-line note anywhere on the sell side | Pro density exposes them; `sale_uom` is in the payload |
 | No currency, FX, project or cost centre on any screen | Pro density carries them |
 | `Sales/CreatePreSale.jsx` is a live stale duplicate | One editor. There is nothing left to duplicate |
+
+## Two things the settings switch that used to switch nothing
+
+- **Show margin.** Cost travels with the line (`cost` is copied off the product
+  and posted as `cost_price`), so this is a real number. It sits in the **Items
+  zone header** — never in the summary, whose row list is what the law measures
+  the column's height from — and in the breakdown. Sell side only, behind
+  `documents.price_override`, and **free quantity counts as cost**, which is
+  precisely the case a margin read-out exists to catch.
+- **The attachment control.** It was a button wired to an `onOpen` only the
+  source-document field was ever given, so the one type whose whole point is the
+  receipt had a control that did not respond to being pressed. It is a real
+  `<input type="file">` behind its label — the picker, the keyboard and the
+  focus ring are the platform's.
+
+## Accessibility that the markup was promising and not keeping
+
+- `aria-modal="true"` is a promise that focus cannot leave. Tab used to walk
+  straight out of the back of an open sheet onto the page behind it, which the
+  same attribute had just told a screen reader was not there. `Sheet` traps it
+  now — shared, so the register got the fix too.
+- The faded dock kept two focusable buttons at `opacity: 0`: two tab stops onto
+  a button nobody can see, and a Save announced from a bar that is not there.
+  `visibility: hidden` (transitioned discretely so neither direction is cut
+  short) plus `inert`, set as a DOM property because the two React majors
+  disagree about how to spell a boolean attribute in JSX.
 
 ## Wiring it to real data
 
