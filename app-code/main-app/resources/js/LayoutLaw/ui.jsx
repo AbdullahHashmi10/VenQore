@@ -41,7 +41,13 @@ export const n2 = (v) => v.toLocaleString('en-US', { minimumFractionDigits: 2, m
  * exact value stays on the title attribute.
  */
 export function Money({ value, font = 15, avail = 160, ccy = '', className = '', style }) {
-    const f = formatToFit(value || 0, avail, font, ccy);
+    // A field that is being typed into holds a STRING, and `formatToFit` does
+    // arithmetic — `"2500".toExponential` is not a function, and the whole page
+    // went white. Money coerces once, here, so no caller has to remember.
+    // `n === 0` also catches NEGATIVE zero, which `-computed.docDisc` produces
+    // whenever the discount is nought and which prints as "-0.00".
+    const n = Number(value);
+    const f = formatToFit(Number.isFinite(n) && n !== 0 ? n : 0, avail, font, ccy);
     return (
         <span
             className={`num ${className}`}
@@ -133,8 +139,37 @@ export function Kbd({ children, ns = 'nqp' }) { return <kbd className={`${ns}-kb
    Every non-resident capability lands in one of these, and a sheet always has
    the SAME controls as the resident version of the thing it replaces. Nothing a
    cashier learned in one composition is missing from another. */
+/**
+ * `aria-modal="true"` is a PROMISE that focus cannot leave. A closed sheet is
+ * already out of the tab order (visibility: hidden), but an OPEN one had nothing
+ * holding the caret in: Tab walked straight out of the back of it and onto the
+ * page behind, which the same attribute had just told a screen reader was not
+ * there. Every dialog on either surface uses this — including the ones that are
+ * not built on `Sheet`, which is exactly where the first fix missed.
+ */
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),'
+    + 'select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+// Not a hook — it calls none, and naming it `use…` would only invite the lint
+// rule to have an opinion about where it may be called.
+export function focusTrap(ref, open) {
+    if (!open) return undefined;
+    return (e) => {
+        if (e.key !== 'Tab' || !ref.current) return;
+        const items = [...ref.current.querySelectorAll(FOCUSABLE)]
+            .filter((el) => el.offsetParent !== null || el === document.activeElement);
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const here = document.activeElement;
+        if (!ref.current.contains(here)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+        if (e.shiftKey && here === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && here === last) { e.preventDefault(); first.focus(); }
+    };
+}
+
 export function Sheet({
-    open, onClose, title, subtitle, size = 'side', side, children, footer, labelExtra, ns = 'nqp',
+    open, onClose, title, subtitle, size = 'side', side, width, children, footer, labelExtra, ns = 'nqp',
 }) {
     const ref = useRef(null);
     const returnTo = useRef(null);
@@ -160,25 +195,7 @@ export function Sheet({
         return () => clearTimeout(id);
     }, [open]);
 
-    /* `aria-modal="true"` is a PROMISE that focus cannot leave. A closed sheet
-       is already out of the tab order (visibility: hidden), but an OPEN one had
-       nothing holding the caret in: Tab walked straight out of the back of it
-       and onto the page behind, where a screen reader had just been told
-       nothing exists. Tab wraps inside the sheet; Shift+Tab wraps the other way. */
-    const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),'
-        + 'select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
-    const trap = (e) => {
-        if (e.key !== 'Tab' || !ref.current) return;
-        const items = [...ref.current.querySelectorAll(FOCUSABLE)]
-            .filter((el) => el.offsetParent !== null || el === document.activeElement);
-        if (!items.length) return;
-        const first = items[0];
-        const last = items[items.length - 1];
-        const here = document.activeElement;
-        if (!ref.current.contains(here)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
-        if (e.shiftKey && here === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && here === last) { e.preventDefault(); first.focus(); }
-    };
+    const trap = focusTrap(ref, open);
 
     return (
         <aside
@@ -187,11 +204,12 @@ export function Sheet({
             data-open={open ? 'true' : 'false'}
             data-size={size === 'side' ? undefined : size}
             data-side={side}
+            style={width ? { width: `${width}px` } : undefined}
             role="dialog"
             aria-modal="true"
             aria-label={title}
             aria-hidden={!open}
-            onKeyDown={open ? trap : undefined}
+            onKeyDown={trap}
         >
             <header className={`${ns}-sh`}>
                 <span>{title}</span>

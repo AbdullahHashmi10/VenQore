@@ -27,6 +27,16 @@ export const n2 = (v) => (Number.isFinite(v) ? v : 0)
 export const n0 = (v) => Math.round(Number.isFinite(v) ? v : 0).toLocaleString('en-US');
 export const r2 = (v) => Math.round(v * 100) / 100;
 
+/* A number that a human is typing is a STRING until something reads it.
+   Coercing on every keystroke eats the decimal point: after "1234." the handler
+   stores Number("1234.") = 1234, the controlled input re-renders as "1234", and
+   the two keys that follow append — so 1234.55 silently became 123,455 and
+   posted. `keep` sanitises and leaves the string alone; `nz` is the only way a
+   number is read back out. */
+export const keep = (raw) => String(raw).replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1');
+export const nz = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+export const pct = (v) => Math.min(100, Math.max(0, nz(v)));
+
 /* Grid widths mirror the engine's DOC_COLW, which is what the density veto is
    measured against. `item` is the only flexible one. */
 const COLW = {
@@ -74,12 +84,19 @@ export function Field({
         'aria-invalid': error ? 'true' : undefined,
         'aria-label': lbl,
     };
+    // A control whose CONTENT is its value cannot be named by its caption alone
+    // — the name replaces the content, so "Customer, button" was everything a
+    // screen reader was ever told about a field reading "Ahsan Traders". These
+    // three are buttons, so they also cannot be the target of a <label for>,
+    // which is why their caption is a plain span.
+    const shownValue = kind === 'toggle' ? (value ? 'Yes' : 'No') : (value || 'not set');
+    const named = { ...common, 'aria-label': `${lbl}: ${shownValue}` };
     let control;
     if (kind === 'party' || kind === 'doc') {
         control = (
             <button
                 type="button" className="nqd-ctl" data-party={value ? 'true' : undefined}
-                data-rank={rank} onClick={onOpen} {...common}
+                data-rank={rank} onClick={onOpen} {...named}
             >
                 {value ? <span className="nqd-avatar">{String(value)[0]}</span> : null}
                 <span className={value ? undefined : 'ph'}>{value || `Choose a ${lbl.toLowerCase()}`}</span>
@@ -122,7 +139,10 @@ export function Field({
         );
     } else if (kind === 'toggle') {
         control = (
-            <button type="button" className="nqd-ctl" data-rank={rank} onClick={() => onChange(!value)} {...common}>
+            <button
+                type="button" className="nqd-ctl" data-rank={rank} aria-pressed={!!value}
+                onClick={() => onChange(!value)} {...named}
+            >
                 <span>{value ? 'Yes' : 'No'}</span>
                 <span className="chev" aria-hidden>⇄</span>
             </button>
@@ -174,9 +194,7 @@ export function Field({
                 // coercing on every keystroke eats the "." in "12." and makes
                 // the field impossible to type a decimal into. It is sanitised
                 // here and turned into a number once, by buildPayload.
-                onChange={(e) => onChange(kind === 'num'
-                    ? e.target.value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
-                    : e.target.value)}
+                onChange={(e) => onChange(kind === 'num' ? keep(e.target.value) : e.target.value)}
                 {...common}
             />
         );
@@ -186,7 +204,11 @@ export function Field({
             {/* A file field's caption is NOT a <label for>: the visible
                 "Choose a file" already is one, and two labels pointing at one
                 input opens the picker twice on a single click. */}
-            {kind === 'file'
+            {/* A <label for> whose target is a <button> does nothing at all —
+                clicking the caption is inert and the name comes from the
+                button's own aria-label. Those kinds get a plain caption; the
+                real form controls keep a real label. */}
+            {['file', 'party', 'doc', 'toggle'].includes(kind)
                 ? <span className="nqd-flbl">{lbl}{required ? <span className="nqd-req" aria-hidden>*</span> : null}</span>
                 : <label htmlFor={id}>{lbl}{required ? <span className="nqd-req" aria-hidden>*</span> : null}</label>}
             {control}
@@ -199,7 +221,7 @@ export function Field({
    DETAILS
    ══════════════════════════════════════════════════════════════════════════ */
 
-export function DetailsZone({ D, type, doc, set, errors, onOpenParty, onOpenSource, total, onToggle }) {
+export function DetailsZone({ D, type, doc, set, errors, onOpenParty, onOpenSource, total, onToggle, forced, inSheet }) {
     if (D.details.mode === 'collapsed') {
         // One line — party, number, date, terms and the running total. It is
         // worth five to ten more visible item rows on a laptop, and the
@@ -208,9 +230,12 @@ export function DetailsZone({ D, type, doc, set, errors, onOpenParty, onOpenSour
         return (
             <button
                 type="button" className="nqd-strip" data-rank="2" onClick={onToggle}
-                title="Open the customer and details block"
+                title={forced
+                    ? 'This screen is too short to hold the block open, so it opens as a sheet. Every field is in it.'
+                    : 'Open the customer and details block'}
+                aria-label={`Customer and details: ${off(type, 'party') ? type.name : (doc.party?.name || 'no party yet')}, ${doc.docno}, ${doc.date}. Open.`}
             >
-                <span className="chev" aria-hidden>▸</span>
+                <span className="chev" aria-hidden>{forced ? '⤢' : '▸'}</span>
                 <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span className="who">{off(type, 'party') ? type.name : (doc.party?.name || `No ${label(type, 'party', 'party').toLowerCase()} yet`)}</span>
                     <span className="meta">{doc.docno} · {doc.date}{doc.terms ? ` · ${(TERMS.find((t) => t.id === doc.terms) || {}).label}` : ''}</span>
@@ -221,7 +246,7 @@ export function DetailsZone({ D, type, doc, set, errors, onOpenParty, onOpenSour
     }
 
     const keys = headerKeysFor(type, D.headerFields);
-    const capKeys = capKeysFor(type);
+    const capKeys = capKeysFor(type, keys);
     const cols = D.details.twoCol ? (D.avail > 1100 ? 4 : 2) : 1;
 
     const VAL = {
@@ -240,13 +265,18 @@ export function DetailsZone({ D, type, doc, set, errors, onOpenParty, onOpenSour
     };
 
     return (
-        <section className="nqd-zone" data-rank="2">
-            <header className="nqd-zh">
-                <span>Details</span>
-                <button type="button" className="nqd-togg" onClick={onToggle} title="Collapse to one line and give the height to the items">
-                    Collapse ▴
-                </button>
-            </header>
+        <section className="nqd-zone" data-rank="2" style={inSheet ? { border: 0, background: 'transparent' } : undefined}>
+            {/* Inside the sheet the block is the whole of what is on screen,
+                and the sheet already has a title and a close. A second header
+                is a second title for one thing. */}
+            {inSheet ? null : (
+                <header className="nqd-zh">
+                    <span>Details</span>
+                    <button type="button" className="nqd-togg" onClick={onToggle} title="Collapse to one line and give the height to the items">
+                        Collapse ▴
+                    </button>
+                </header>
+            )}
             <div className="nqd-hdr" style={{ gridTemplateColumns: `repeat(${cols},minmax(0,1fr))` }}>
                 {keys.map((k) => {
                     const def = HEADER_FIELDS[k](type);
@@ -295,15 +325,18 @@ export function DetailsZone({ D, type, doc, set, errors, onOpenParty, onOpenSour
                         refund_account: 'refundAccount',
                         landed_costs: 'landedCosts',
                     }[k] || k;
+                    const capDef = k === 'location' && has(type, 'location_pair')
+                        ? { ...def, label: 'From location', required: true }
+                        : def;
                     const optKey = { location_pair: 'locationTo', doc_status: 'status', goods_status: 'goodsStatus', active_paused: 'activePaused', refund_account: 'account' }[k] || k;
                     return (
                         <Field
                             key={k}
                             id={`nqd-c-${k}`}
-                            label={k === 'location_pair' ? `To location (from ${(LOCATIONS.find((l) => l.id === doc.location) || {}).name || '—'})` : def.label}
-                            kind={def.kind}
-                            required={def.required}
-                            hint={def.hint}
+                            label={k === 'location_pair' ? 'To location' : capDef.label}
+                            kind={capDef.kind}
+                            required={capDef.required}
+                            hint={capDef.hint}
                             error={errors[stateKey]}
                             value={doc[stateKey]}
                             options={SELECT_OPTIONS[optKey] ? SELECT_OPTIONS[optKey]() : undefined}
@@ -357,26 +390,33 @@ function EditableCell({ value, numeric, suffix, disabled, onCommit, ariaLabel })
             />
         );
     }
+    const shown = `${numeric ? n2(nz(value)) : value}${suffix || ''}`;
     return (
         <button
             type="button"
             className={`nqd-cell${numeric ? ' n' : ''}`}
             disabled={disabled}
-            aria-label={ariaLabel}
+            /* An aria-label REPLACES the content it is on. "Qty for Panadol
+               Extra 500mg" was therefore the whole of what a screen reader
+               heard about this cell — the number in it never reached anybody
+               using one. The name has to carry the value. */
+            aria-label={`${ariaLabel}: ${shown}${disabled ? '' : '. Press to edit.'}`}
             onClick={() => { setDraft(String(value)); setEditing(true); }}
         >
-            {numeric ? n2(Number(value)) : value}{suffix || ''}
+            {shown}
         </button>
     );
 }
 
 export function LinesZone({
     D, type, doc, columns, perms, computed, selected, onSelect,
-    onPatchLine, onRemoveLine, onAddLine, onOpenPicker, openCard, setOpenCard, showMargin,
+    onPatchLine, onRemoveLine, onAddLine, onOpenPicker, onOpenLine, openCard, setOpenCard, showMargin,
 }) {
     const rateLabel = label(type, 'rate', 'Rate');
-    const canPrice = perms['documents.price_override'];
-    const canDisc = perms['documents.discount'];
+    // `rate_edit` is in goods receipt's `off` set and nothing read it, so the
+    // unit cost stayed editable on a document that is not allowed to price.
+    const canPrice = perms['documents.price_override'] && !off(type, 'rate_edit');
+    const canDisc = perms['documents.discount'] && !off(type, 'disc');
     const canDel = perms['documents.delete_line'];
 
     /* "Show margin" was a switch in Settings → Operate that nothing read. It
@@ -443,7 +483,7 @@ export function LinesZone({
                             </span>
                             <span className="grid">
                                 <span className="nqd-mini"><span className="k">Qty</span><span className="v">{l.qty}</span></span>
-                                {columns.includes('rate') ? <span className="nqd-mini"><span className="k">{rateLabel}</span><span className="v">{n2(l.rate)}</span></span> : null}
+                                {columns.includes('rate') ? <span className="nqd-mini"><span className="k">{rateLabel}</span><span className="v">{n2(nz(l.rate))}</span></span> : null}
                                 {columns.includes('disc') ? <span className="nqd-mini"><span className="k">Disc</span><span className="v">{l.disc}%</span></span> : null}
                                 {columns.includes('uom') ? <span className="nqd-mini"><span className="k">Unit</span><span className="v">{l.uom}</span></span> : null}
                             </span>
@@ -456,43 +496,57 @@ export function LinesZone({
                                 <div className="nqd-adjf">
                                     <span className="k">Quantity</span>
                                     <div className="nqd-step">
-                                        <button type="button" aria-label="One fewer" onClick={(e) => { e.stopPropagation(); onPatchLine(l.u, { qty: Math.max(0, l.qty - 1) }); }}>−</button>
+                                        <button type="button" aria-label="One fewer" onClick={(e) => { e.stopPropagation(); onPatchLine(l.u, { qty: Math.max(0, nz(l.qty) - 1) }); }}>−</button>
                                         <span className="n">{l.qty}</span>
-                                        <button type="button" aria-label="One more" onClick={(e) => { e.stopPropagation(); onPatchLine(l.u, { qty: l.qty + 1 }); }}>+</button>
+                                        <button type="button" aria-label="One more" onClick={(e) => { e.stopPropagation(); onPatchLine(l.u, { qty: nz(l.qty) + 1 }); }}>+</button>
                                     </div>
                                 </div>
-                                {columns.includes('rate') ? (
+                                {/* Gated by the TYPE, never by the density's
+                                    column list. The column list is a width
+                                    budget; it does not decide what a line can
+                                    carry. Gating these on `columns` is how free
+                                    quantity became unreachable on a sales
+                                    invoice that declares it. */}
+                                {has(type, 'qty_only') ? null : (
                                     <div className="nqd-adjf">
                                         <span className="k">{rateLabel}</span>
-                                        <input className="num" inputMode="decimal" disabled={!canPrice} value={l.rate} aria-label={rateLabel} onChange={(e) => onPatchLine(l.u, { rate: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                                        <input className="num" inputMode="decimal" disabled={!canPrice} value={l.rate} aria-label={`${rateLabel} for ${l.name}`} onChange={(e) => onPatchLine(l.u, { rate: keep(e.target.value) })} />
                                     </div>
-                                ) : null}
-                                {columns.includes('disc') ? (
+                                )}
+                                {off(type, 'disc') || has(type, 'qty_only') ? null : (
                                     <div className="nqd-adjf">
                                         <span className="k">Discount %</span>
-                                        <input className="num" inputMode="decimal" disabled={!canDisc} value={l.disc} aria-label="Discount percent" onChange={(e) => onPatchLine(l.u, { disc: Math.min(100, Number(e.target.value.replace(/[^\d.]/g, '')) || 0) })} />
+                                        <input className="num" inputMode="decimal" disabled={!canDisc} value={l.disc} aria-label={`Discount percent for ${l.name}`} onChange={(e) => onPatchLine(l.u, { disc: keep(e.target.value) })} />
                                     </div>
-                                ) : null}
-                                {columns.includes('uom') ? (
-                                    <div className="nqd-adjf">
-                                        <span className="k">Unit</span>
-                                        <select value={l.uom} aria-label="Unit" onChange={(e) => onPatchLine(l.u, { uom: e.target.value })}>
-                                            {['pc', 'strip', 'pack', 'box', 'can', 'bottle', 'kg', 'dozen'].map((u) => <option key={u} value={u}>{u}</option>)}
-                                        </select>
-                                    </div>
-                                ) : null}
-                                {columns.includes('tax') ? (
+                                )}
+                                <div className="nqd-adjf">
+                                    <span className="k">Unit</span>
+                                    <select value={l.uom} aria-label={`Unit for ${l.name}`} onChange={(e) => onPatchLine(l.u, { uom: e.target.value })}>
+                                        {['pc', 'strip', 'pack', 'box', 'can', 'bottle', 'kg', 'dozen'].map((u) => <option key={u} value={u}>{u}</option>)}
+                                    </select>
+                                </div>
+                                {has(type, 'per_line_tax') ? (
                                     <div className="nqd-adjf">
                                         <span className="k">Tax %</span>
-                                        <input className="num" inputMode="decimal" value={l.tax} aria-label="Tax percent" onChange={(e) => onPatchLine(l.u, { tax: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                                        <input className="num" inputMode="decimal" value={l.tax} aria-label={`Tax percent for ${l.name}`} onChange={(e) => onPatchLine(l.u, { tax: keep(e.target.value) })} />
                                     </div>
                                 ) : null}
-                                {columns.includes('free') ? (
+                                {has(type, 'free_qty') ? (
                                     <div className="nqd-adjf">
                                         <span className="k">Free</span>
-                                        <input className="num" inputMode="decimal" value={l.free} aria-label="Free quantity" onChange={(e) => onPatchLine(l.u, { free: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                                        <input className="num" inputMode="decimal" value={l.free} aria-label={`Free quantity for ${l.name}`} onChange={(e) => onPatchLine(l.u, { free: keep(e.target.value) })} />
                                     </div>
                                 ) : null}
+                                {has(type, 'batch_entry') || has(type, 'batch_pick') ? (
+                                    <div className="nqd-adjf">
+                                        <span className="k">{has(type, 'expiry_entry') ? 'Batch / expiry' : 'Batch'}</span>
+                                        <input value={l.batch || ''} aria-label={`Batch for ${l.name}`} onChange={(e) => onPatchLine(l.u, { batch: e.target.value })} />
+                                    </div>
+                                ) : null}
+                                <div className="nqd-adjf">
+                                    <span className="k">Note</span>
+                                    <input value={l.note || ''} aria-label={`Note on ${l.name}`} onChange={(e) => onPatchLine(l.u, { note: e.target.value })} />
+                                </div>
                                 <div className="nqd-adjf">
                                     <span className="k">&nbsp;</span>
                                     <button type="button" className="nqd-rm" disabled={!canDel} onClick={(e) => { e.stopPropagation(); onRemoveLine(l); }}>Remove line</button>
@@ -528,7 +582,19 @@ export function LinesZone({
                                     if (c === 'item') {
                                         return (
                                             <td key={c}>
-                                                <button type="button" className="nqd-cell name" title={`${l.name} · ${l.sku}`} onClick={() => onOpenPicker(l.u)}>
+                                                {/* Opens the LINE, not just the
+                                                    picker: at Standard this is
+                                                    the only way to reach free
+                                                    quantity, unit, tax, batch
+                                                    and the line note, and a
+                                                    capability that a width can
+                                                    hide is not a capability. */}
+                                                <button
+                                                    type="button" className="nqd-cell name" data-rank="2"
+                                                    title={`${l.name} · ${l.sku} — open this line`}
+                                                    aria-label={`Line ${i + 1}: ${l.name}. Open its fields.`}
+                                                    onClick={() => onOpenLine(l.u)}
+                                                >
                                                     {l.name}
                                                 </button>
                                             </td>
@@ -617,6 +683,22 @@ export function SummaryZone({ D, type, doc, computed, width, onBreakdown, onPrim
     if (charges) carried.push('charges');
     if (round) carried.push('rounding');
 
+    /* The tax row's LABEL must describe the number beside it. Building it from
+       the document rate on a per-line-tax purchase bill printed 14,568.28 under
+       "GST 17% + further 1%" — a rate that contributed nothing to it — and on an
+       expense it printed the amount somebody typed under "Tax 18%", although
+       nothing had been multiplied by 18. */
+    const taxLabel = () => {
+        if (has(type, 'no_lines')) return 'Tax (as entered)';
+        if (computed.perLineTax) return 'Tax (per line)';
+        if (computed.inclusive) return `Tax ${taxRate.rate}% (included in the prices)`;
+        return `Tax ${taxRate.rate}%`;
+    };
+    const taxLabelLong = () => {
+        if (has(type, 'no_lines') || computed.perLineTax) return taxLabel();
+        return `Tax · ${taxRate.breakdown || `${taxRate.rate}%`}${computed.inclusive ? ' (included)' : ''}`;
+    };
+
     const ROWS = {
         subtotal: () => [
             carried.length ? `Subtotal incl. ${carried.join(' & ')}` : 'Subtotal',
@@ -624,15 +706,33 @@ export function SummaryZone({ D, type, doc, computed, width, onBreakdown, onPrim
         ],
         item_disc: () => ['Item discounts', -computed.lineDisc],
         doc_disc: () => ['Document discount', -computed.docDisc],
-        tax: () => [`Tax ${taxRate.rate}%${doc.taxInclusive ? ' (included)' : ''}`, computed.tax],
-        tax_breakdown: () => [`Tax · ${taxRate.breakdown || `${taxRate.rate}%`}`, computed.tax],
-        shipping: () => ['Delivery', doc.shipping],
-        extra: () => ['Other charges', doc.extra],
+        tax: () => [taxLabel(), computed.tax],
+        tax_breakdown: () => [taxLabelLong(), computed.tax],
+        shipping: () => ['Delivery', nz(doc.shipping)],
+        extra: () => ['Other charges', nz(doc.extra)],
         roundoff: () => ['Round off', computed.round],
         total: () => [label(type, 'total', 'Total'), computed.total, 'tot'],
-        settled: () => [label(type, 'settled', 'Amount settled'), doc.settled],
-        balance: () => ['Balance', r2(computed.total - doc.settled), 'bal'],
+        settled: () => [label(type, 'settled', 'Amount settled'), nz(doc.settled)],
+        balance: () => ['Balance', r2(computed.total - nz(doc.settled)), 'bal'],
     };
+
+    /* A STOCK DOCUMENT HAS NOTHING TO TOTAL IN MONEY. Three of the thirteen
+       declare `summary_money` in their `off` set and the summary showed them a
+       Total, an Amount settled and a Balance anyway — and `buildPayload` drops
+       `amount_settled` for the stock side, so the Balance row moved on screen
+       and never travelled. What it counts instead is what a warehouse counts.
+
+       Fewer rows than the density asked for is SAFE: the law measures this
+       column's height from its own list, so a shorter column fits inside a
+       height that was reserved for a taller one. More rows would not be. */
+    const moneyOff = off(type, 'summary_money');
+    const STOCK = [
+        () => ['Lines', doc.lines.length, 'count'],
+        () => ['Units', computed.units, 'count'],
+        () => [has(type, 'expected_counted_difference') ? 'Counted' : 'Moving', computed.units, 'tot'],
+    ];
+    const keys = moneyOff ? STOCK.map((_, i) => `stock${i}`) : D.summaryRows;
+    const rowAt = (k, i) => (moneyOff ? STOCK[i]() : (ROWS[k] || (() => [k, 0]))());
 
     const secondary = secondaryActions(type);
     const primaryLabel = label(type, 'save', 'Save');
@@ -660,9 +760,10 @@ export function SummaryZone({ D, type, doc, computed, width, onBreakdown, onPrim
                 extra. The law measures this column's height from that list, so
                 an extra row painted here is a column the law thinks fits and
                 does not. */}
-            {D.summaryRows.map((k) => {
-                const [lbl, val, kind] = (ROWS[k] || (() => [k, 0]))();
+            {keys.map((k, i) => {
+                const [lbl, val, kind] = rowAt(k, i);
                 const tot = kind === 'tot';
+                const count = kind === 'count' || (moneyOff && tot);
                 const why = k === 'subtotal' && carried.length
                     ? `This density has no ${carried.join(' or ')} row, so the subtotal carries `
                         + `${[charges ? `${n2(charges)} of charges` : null, round ? `${n2(round)} of rounding` : null]
@@ -671,7 +772,9 @@ export function SummaryZone({ D, type, doc, computed, width, onBreakdown, onPrim
                 return (
                     <div className="nqd-sumrow" data-kind={kind} key={k} title={why}>
                         <span className="k">{lbl}</span>
-                        {tot ? (
+                        {count ? (
+                            <span className="v num" style={tot ? { fontSize: 22 } : undefined}>{n0(val)}</span>
+                        ) : tot ? (
                             <button type="button" data-rank="2" title="Tap for the breakdown (Ctrl+F)" onClick={onBreakdown} style={{ minWidth: 0 }}>
                                 <Money value={val} font={22} avail={Math.max(80, wpx - 150)} ccy="PKR" className="v" />
                             </button>
@@ -716,8 +819,12 @@ export function DockBar({ D, type, doc, computed, on, onBreakdown, onPrimary, sa
     // Grotesk's; if the webfont has not arrived the fallback is wider, and a
     // total that ellipsises is never acceptable — better one rung leaner for a
     // moment than "PKR 193,746…" on a document someone is about to post.
-    const f = formatToFit(computed.total, numW * 0.88, 20, 'PKR');
-    const balance = r2(computed.total - doc.settled);
+    // A stock document has nothing to total in money here either.
+    const moneyOff = off(type, 'summary_money');
+    const f = moneyOff
+        ? { text: `${n0(computed.units)} units`, exact: `${computed.units} units across ${doc.lines.length} lines` }
+        : formatToFit(computed.total, numW * 0.88, 20, 'PKR');
+    const balance = r2(computed.total - nz(doc.settled));
 
     /* `inert` backs up the CSS `visibility: hidden` on the browsers that have it:
        the faded dock is out of the tab order AND out of the accessibility tree,
@@ -736,13 +843,13 @@ export function DockBar({ D, type, doc, computed, on, onBreakdown, onPrimary, sa
             aria-hidden={on ? undefined : 'true'}
         >
             <div>
-                <div className="k">{label(type, 'total', 'Total')}</div>
+                <div className="k">{moneyOff ? 'Moving' : label(type, 'total', 'Total')}</div>
                 <div className="v" title={f.exact}>{f.text}</div>
-                {doc.settled ? (
+                {!moneyOff && nz(doc.settled) ? (
                     <div className="bal">Balance {formatToFit(balance, (numW - 52) * 0.88, 11, '').text}</div>
                 ) : null}
             </div>
-            {showBd ? <button type="button" className="nqd-btn" data-ghost="true" data-rank="2" onClick={onBreakdown}>Breakdown</button> : null}
+            {showBd && !moneyOff ? <button type="button" className="nqd-btn" data-ghost="true" data-rank="2" onClick={onBreakdown}>Breakdown</button> : null}
             <button type="button" className="nqd-btn" data-rank="1" disabled={saving} onClick={onPrimary}>{primaryLabel}</button>
         </div>
     );

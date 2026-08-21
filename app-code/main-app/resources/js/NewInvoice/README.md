@@ -183,6 +183,32 @@ and marked `FIX:` in the code:
   short) plus `inert`, set as a DOM property because the two React majors
   disagree about how to spell a boolean attribute in JSX.
 
+## What a second review found, and what it changed
+
+An independent review of the finished page found sixteen live defects. Six of
+them were the same defect this whole page exists to argue against — **a control
+that renders and does not reach the number, or a switch in the law that nothing
+reads** — so they are worth naming.
+
+| Found | Answered |
+|---|---|
+| The editor's type came from `prefs.type` while the money came from `doc.type`. Tab 1 could read "Expense" over a sales invoice's ten lines and post `type: expense` with a 142,753 total and no items. | **A type belongs to a document.** `prefs.type` is now only what a NEW tab opens as. |
+| Twelve money inputs coerced to `Number` on every keystroke, so `1234.` became `1234`, the controlled input re-rendered, and `1234.55` silently settled on **123,455**. | `keep()` sanitises and leaves the string; `nz()` is the only way a number is read back out. |
+| `location` is a capability on eight types and lives only in the **Pro** header, so seven of them rendered no control and posted the default warehouse. A stock transfer could not change where it was moving FROM. | Whatever the density's header does not carry, `capKeysFor` does. **A width may veto a density; it may never veto a capability.** |
+| Free quantity, unit, per-line tax, batch, expiry and the line note had no control at all in the table fit — the density's column list was gating the editors as well as the columns. | **The line sheet.** Tap the item: every field the TYPE gives a line, at every width, whatever the density made a column. |
+| The Settings default "prices include tax" applied to all thirteen types although only the purchase order renders the toggle — the same ten lines totalled 120,977 with `tax_amount: 0`. | Gated on the capability, and **extracted** rather than zeroed: the document is presented ex-tax with the contained tax on its own row, which is both how it reads and the only presentation in which the rows still sum. |
+| Below ~690px of height the law force-collapses the details block, and the strip wrote the wish the law was already overriding — so the date, terms, due date, method and account had no control anywhere on the page. | The strip asks the law whether `open` is even available; when it is not, the block opens as a **sheet**. A height may veto a layout; it may not veto a field. |
+| A filled-in expense was discarded by the draft rescue, whose test was "has lines". | Anything typed counts. An expense has no lines by definition. |
+| `summary_money` is in three types' `off` set and the summary showed them a Total, an Amount settled and a Balance anyway — and `buildPayload` drops `amount_settled` for the stock side, so the Balance moved on screen and never travelled. | A stock document's summary counts **lines and units**. Its dock says "Moving 534", not a price. |
+| `rate_edit` off (goods receipt), `rate`/`tax` off (stock types), `posted_lock` off (quotation), `description` required — four switches and one rule that nothing read. | All four read. Saving a quotation no longer needs the posting permission, because a quotation is not a posting. |
+| `aria-label` on a button REPLACES its content, so every editable cell announced "Qty for Panadol Extra 500mg" and never the number; `<label for>` pointed at buttons, where it does nothing. | Value-bearing controls name themselves **with** their value; button-kinds get a caption, not a label. |
+| The notes sheet, the nav drawer and the palette were hand-rolled `aria-modal` dialogs with no focus move and no trap. | `focusTrap()` is shared, and the first two are built on `Sheet` like everything else. |
+| Round-off, landed costs, and `computed.units` — three numbers that printed wrong or printed nothing. | Round-off folds into the subtotal; landed costs are stated in the breakdown as what they are (item cost, not payable); units are rounded. |
+
+The audit script grew a section for it: **`SWITCHED OFF — 14/14 switched-off
+capabilities honoured`**. An `off` switch nothing tests is the same defect as an
+`on` capability nothing renders, and it is the quieter of the two.
+
 ## Wiring it to real data
 
 1. Take the props the existing editors assemble — parties typed by SIDE,

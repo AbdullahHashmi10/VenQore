@@ -8,14 +8,14 @@
  * per object.
  */
 
-import React, { useEffect, useState } from 'react';
-import { Kbd, Money, Sheet } from '@/LayoutLaw/ui';
+import React, { useEffect, useRef, useState } from 'react';
+import { Kbd, Money, Sheet, focusTrap } from '@/LayoutLaw/ui';
 import { LAW } from '@/LayoutLaw/law';
-import { TYPES, buildPayload, label, overflowActions } from './fields';
+import { TYPES, buildPayload, has, label, off, overflowActions } from './fields';
 import {
     PRODUCTS, RECENT_DOCS, SOURCE_DOCS, TAX_RATES, partiesFor, searchProducts,
 } from './mock';
-import { n0, n2, r2 } from './zones';
+import { keep, n0, n2, nz, r2 } from './zones';
 
 /* ── The party picker. Its LIST is derived from the document's side ────────── */
 export function PartySheet({ open, onClose, type, current, onPick, narrow }) {
@@ -50,7 +50,7 @@ export function PartySheet({ open, onClose, type, current, onPick, narrow }) {
                 <div className="nqd-hdr" style={{ gridTemplateColumns: '1fr' }}>
                     <div className="nqd-f"><label htmlFor="nqd-np-n">Name</label><input id="nqd-np-n" className="nqd-ctl" data-sheet-focus value={creating.name} onChange={(e) => setCreating({ ...creating, name: e.target.value })} /></div>
                     <div className="nqd-f"><label htmlFor="nqd-np-p">Phone</label><input id="nqd-np-p" className="nqd-ctl" inputMode="tel" value={creating.phone} onChange={(e) => setCreating({ ...creating, phone: e.target.value })} /></div>
-                    <div className="nqd-f"><label htmlFor="nqd-np-d">Default discount %</label><input id="nqd-np-d" className="nqd-ctl num" inputMode="decimal" value={creating.discount} onChange={(e) => setCreating({ ...creating, discount: Math.min(100, Number(e.target.value.replace(/[^\d.]/g, '')) || 0) })} /></div>
+                    <div className="nqd-f"><label htmlFor="nqd-np-d">Default discount %</label><input id="nqd-np-d" className="nqd-ctl num" inputMode="decimal" value={creating.discount} onChange={(e) => setCreating({ ...creating, discount: keep(e.target.value) })} /></div>
                 </div>
             </Sheet>
         );
@@ -123,7 +123,7 @@ export function ProductSheet({ open, onClose, onPick, onCreate, narrow, products
                 <div className="nqd-hdr" style={{ gridTemplateColumns: '1fr' }}>
                     <div className="nqd-f"><label htmlFor="nqd-npr-n">Name</label><input id="nqd-npr-n" className="nqd-ctl" data-sheet-focus value={creating.name} onChange={(e) => setCreating({ ...creating, name: e.target.value })} /></div>
                     <div className="nqd-f"><label htmlFor="nqd-npr-s">SKU</label><input id="nqd-npr-s" className="nqd-ctl" value={creating.sku} onChange={(e) => setCreating({ ...creating, sku: e.target.value })} /></div>
-                    <div className="nqd-f"><label htmlFor="nqd-npr-r">Rate</label><input id="nqd-npr-r" className="nqd-ctl num" inputMode="decimal" value={creating.rate} onChange={(e) => setCreating({ ...creating, rate: e.target.value.replace(/[^\d.]/g, '') })} /></div>
+                    <div className="nqd-f"><label htmlFor="nqd-npr-r">Rate</label><input id="nqd-npr-r" className="nqd-ctl num" inputMode="decimal" value={creating.rate} onChange={(e) => setCreating({ ...creating, rate: keep(e.target.value) })} /></div>
                     <div className="nqd-f"><label htmlFor="nqd-npr-u">Unit</label><input id="nqd-npr-u" className="nqd-ctl" value={creating.uom} onChange={(e) => setCreating({ ...creating, uom: e.target.value })} /></div>
                 </div>
             </Sheet>
@@ -198,6 +198,81 @@ export function SourceSheet({ open, onClose, onPick, narrow }) {
     );
 }
 
+/* ── ONE LINE, ALL OF IT ─────────────────────────────────────────────────────
+   The density decides which columns are INLINE. It does not decide what exists.
+   Free quantity is switched on for four sell-side types and its column lives
+   only at Pro; unit, per-line tax, batch, expiry and the line note had no
+   control at all in the table fit. A width may veto a density; it may never
+   veto a capability — so every field a line can carry is here, at every width,
+   one tap from the line itself. */
+export function LineSheet({ open, onClose, line, type, perms, onPatch, onRemove, onChangeItem, narrow }) {
+    if (!line) return <Sheet open={false} onClose={onClose} title="Line" ns="nqd" />;
+    const canPrice = perms['documents.price_override'] && !off(type, 'rate_edit') && !has(type, 'qty_only');
+    const canDisc = perms['documents.discount'] && !off(type, 'disc');
+    const batch = has(type, 'batch_entry') || has(type, 'batch_pick');
+    const num = (k, lbl, opts = {}) => (
+        <div className="nqd-f" key={k}>
+            <label htmlFor={`nqd-l-${k}`}>{lbl}</label>
+            <input
+                id={`nqd-l-${k}`} className="nqd-ctl num" inputMode="decimal" disabled={opts.disabled}
+                value={line[k] ?? ''} onChange={(e) => onPatch(line.u, { [k]: keep(e.target.value) })}
+            />
+            {opts.hint ? <span className="hint">{opts.hint}</span> : null}
+        </div>
+    );
+    return (
+        <Sheet
+            open={open} onClose={onClose} title={line.name} subtitle={line.sku}
+            size={narrow ? 'bottom' : 'side'} ns="nqd"
+            footer={(
+                <button
+                    type="button" className="nqd-btn" data-rank="2" disabled={!perms['documents.delete_line']}
+                    onClick={() => { onRemove(line); onClose(); }}
+                >
+                    Remove this line
+                </button>
+            )}
+        >
+            <div className="nqd-hdr" style={{ gridTemplateColumns: 'repeat(2,minmax(0,1fr))', padding: '12px 16px' }}>
+                <div className="nqd-f" style={{ gridColumn: 'span 2' }}>
+                    <label htmlFor="nqd-l-item">Item</label>
+                    <button type="button" id="nqd-l-item" className="nqd-ctl" data-sheet-focus aria-label={`Item: ${line.name}. Change it.`} onClick={() => onChangeItem(line.u)}>
+                        <span>{line.name}</span>
+                        <span className="chev" aria-hidden>⌄</span>
+                    </button>
+                </div>
+                {num('qty', has(type, 'expected_counted_difference') ? 'Counted quantity' : 'Quantity')}
+                {has(type, 'free_qty') ? num('free', 'Free quantity', { hint: 'reached the database from 2 of 7 sell-side types' }) : null}
+                <div className="nqd-f">
+                    <label htmlFor="nqd-l-uom">Unit</label>
+                    <select id="nqd-l-uom" className="nqd-ctl" value={line.uom} onChange={(e) => onPatch(line.u, { uom: e.target.value })}>
+                        {['pc', 'strip', 'pack', 'box', 'can', 'bottle', 'kg', 'dozen'].map((u) => <option key={u} value={u}>{u}</option>)}
+                    </select>
+                    <span className="hint">StoreSaleRequest requires it; no shipped screen collects it</span>
+                </div>
+                {has(type, 'qty_only') ? null : num('rate', label(type, 'rate', 'Rate'), { disabled: !canPrice })}
+                {off(type, 'disc') || has(type, 'qty_only') ? null : num('disc', 'Discount %', { disabled: !canDisc })}
+                {has(type, 'per_line_tax') ? num('tax', 'Tax %') : null}
+                {batch ? (
+                    <div className="nqd-f">
+                        <label htmlFor="nqd-l-batch">{has(type, 'expiry_entry') ? 'Batch / expiry' : 'Batch'}</label>
+                        <input id="nqd-l-batch" className="nqd-ctl" value={line.batch || ''} onChange={(e) => onPatch(line.u, { batch: e.target.value })} />
+                    </div>
+                ) : null}
+                <div className="nqd-f" style={{ gridColumn: 'span 2' }}>
+                    <label htmlFor="nqd-l-note">Line note</label>
+                    <input id="nqd-l-note" className="nqd-ctl" value={line.note || ''} onChange={(e) => onPatch(line.u, { note: e.target.value })} />
+                    <span className="hint">the payload has always carried it; nothing ever wrote it</span>
+                </div>
+            </div>
+            <div className="nqd-note" style={{ margin: '4px 16px 20px' }}>
+                A density decides which of these are <b>columns</b>. It never decides which
+                <b> exist</b> — that is the type&rsquo;s to decide, and it decides it at every width.
+            </div>
+        </Sheet>
+    );
+}
+
 /* ── The breakdown. Ctrl+F, and a tap on the total ─────────────────────────── */
 export function BreakdownSheet({ open, onClose, type, doc, computed, narrow, showMargin }) {
     const taxRate = TAX_RATES.find((t) => t.id === doc.taxRate) || TAX_RATES[1];
@@ -206,13 +281,16 @@ export function BreakdownSheet({ open, onClose, type, doc, computed, narrow, sho
        screen: it is the gross, before discounts, everywhere. The breakdown
        used to call the net-of-item-discounts figure "Subtotal" too, which is
        two definitions of one word two inches apart. */
+    const taxLbl = has(type, 'no_lines') ? 'Tax (as entered)'
+        : computed.perLineTax ? 'Tax (per line)'
+            : `Tax · ${taxRate.breakdown || `${taxRate.rate}%`}${computed.inclusive ? ' — included in the prices' : ''}`;
     const rows = [
-        ['Subtotal', computed.gross],
+        [computed.inclusive ? 'Subtotal (ex tax)' : 'Subtotal', computed.gross],
         ['Item discounts', -computed.lineDisc],
         ['Document discount', -computed.docDisc],
-        ['Delivery', doc.shipping],
-        ['Other charges', doc.extra],
-        [`Tax ${taxRate.breakdown || `${taxRate.rate}%`}${doc.taxInclusive ? ' (included)' : ''}`, computed.tax],
+        ['Delivery', nz(doc.shipping)],
+        ['Other charges', nz(doc.extra)],
+        [taxLbl, computed.tax],
         computed.round ? ['Round off', computed.round] : null,
     ].filter(Boolean);
     return (
@@ -228,7 +306,17 @@ export function BreakdownSheet({ open, onClose, type, doc, computed, narrow, sho
                 <Money value={computed.total} font={26} avail={210} ccy="PKR" className="v" />
             </div>
             <div className="nqd-sumrow"><span className="k">Lines</span><span className="v num">{doc.lines.length}</span></div>
-            <div className="nqd-sumrow"><span className="k">Units</span><span className="v num">{computed.units}</span></div>
+            <div className="nqd-sumrow"><span className="k">Units</span><span className="v num">{n2(computed.units)}</span></div>
+            {/* FIX · landed costs rendered on a purchase bill, posted, and moved
+                no number on the screen. It does not belong IN the total — a
+                freight bill is not owed to this supplier — so it is stated here,
+                where the thing it does change is named. */}
+            {has(type, 'landed_costs') && nz(doc.landedCosts) ? (
+                <div className="nqd-sumrow" title="Allocated to the cost of the items received. It is not part of what is owed to this supplier, so it is not in the total.">
+                    <span className="k">Landed costs (to item cost)</span>
+                    <Money value={nz(doc.landedCosts)} font={13} avail={150} className="v" />
+                </div>
+            ) : null}
             {/* Margin is behind the Settings switch, on the sell side only, and
                 it is stated here in full rather than as the header's badge. */}
             {showMargin && type.side === 'sell' ? (
@@ -286,21 +374,21 @@ export function MoneySheet({ open, onClose, doc, set, perms, narrow }) {
                     <input
                         id="nqd-m-disc" className="nqd-ctl num" inputMode="decimal" disabled={!perms['documents.discount']}
                         value={doc.discount}
-                        onChange={(e) => set({ discount: Math.min(100, Number(e.target.value.replace(/[^\d.]/g, '')) || 0) })}
+                        onChange={(e) => set({ discount: keep(e.target.value) })}
                     />
                     <span className="hint">a percentage of the subtotal, clamped at 100</span>
                 </div>
                 <div className="nqd-f">
                     <label htmlFor="nqd-m-ship">Delivery <Kbd ns="nqd">F8</Kbd></label>
-                    <input id="nqd-m-ship" className="nqd-ctl num" inputMode="decimal" value={doc.shipping} onChange={(e) => set({ shipping: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                    <input id="nqd-m-ship" className="nqd-ctl num" inputMode="decimal" value={doc.shipping} onChange={(e) => set({ shipping: keep(e.target.value) })} />
                 </div>
                 <div className="nqd-f">
                     <label htmlFor="nqd-m-extra">Other charges</label>
-                    <input id="nqd-m-extra" className="nqd-ctl num" inputMode="decimal" value={doc.extra} onChange={(e) => set({ extra: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                    <input id="nqd-m-extra" className="nqd-ctl num" inputMode="decimal" value={doc.extra} onChange={(e) => set({ extra: keep(e.target.value) })} />
                 </div>
                 <div className="nqd-f">
                     <label htmlFor="nqd-m-settled">Amount settled</label>
-                    <input id="nqd-m-settled" className="nqd-ctl num" inputMode="decimal" value={doc.settled} onChange={(e) => set({ settled: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                    <input id="nqd-m-settled" className="nqd-ctl num" inputMode="decimal" value={doc.settled} onChange={(e) => set({ settled: keep(e.target.value) })} />
                 </div>
             </div>
         </Sheet>
@@ -367,11 +455,15 @@ export function RecentSheet({ open, onClose, onOpenDoc, narrow }) {
 /* ── Command palette ───────────────────────────────────────────────────────── */
 export function Palette({ open, onClose, commands }) {
     const [q, setQ] = useState('');
+    const ref = useRef(null);
     useEffect(() => { if (open) setQ(''); }, [open]);
+    const trap = focusTrap(ref, open);
     if (!open) return null;
     const list = commands.filter((c) => c.label.toLowerCase().includes(q.toLowerCase()));
     return (
-        <div className="nqd-palette" role="dialog" aria-modal="true" aria-label="Commands">
+        // The palette is its own dialog rather than a Sheet, so it needs the
+        // same promise kept by hand.
+        <div ref={ref} className="nqd-palette" role="dialog" aria-modal="true" aria-label="Commands" onKeyDown={trap}>
             <input autoFocus placeholder="Type a command…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && list[0]) { list[0].run(); onClose(); } }} />
             <div className="nqd-sb">
                 {list.map((c) => (
@@ -388,26 +480,17 @@ export function Palette({ open, onClose, commands }) {
 
 /* ── Nav drawer ────────────────────────────────────────────────────────────── */
 export function NavDrawer({ open, onClose, items, current, width }) {
+    // Built on Sheet, so it gets the focus move, the focus restore and the trap
+    // — hand-rolling the same markup is how it had none of the three.
     return (
-        <aside
-            className="nqd-sheet" data-side="left" data-open={open ? 'true' : 'false'}
-            style={{ width: width ? `${width}px` : undefined }}
-            role="dialog" aria-modal="true" aria-label="Navigation" aria-hidden={!open}
-        >
-            <header className="nqd-sh">
-                <span style={{ fontFamily: 'var(--vq-font-display)', fontWeight: 700, fontSize: 16 }}>VenQore</span>
-                <span style={{ flex: 1 }} />
-                <button type="button" className="nqd-iconbtn" aria-label="Close" onClick={onClose}>✕</button>
-            </header>
-            <div className="nqd-sb">
-                {items.map((n) => (
-                    <button key={n.id} type="button" className="nqd-navitem" aria-current={n.id === current ? 'true' : undefined}>
-                        <span aria-hidden style={{ width: 20, textAlign: 'center' }}>{n.glyph}</span>
-                        {n.label}
-                    </button>
-                ))}
-            </div>
-        </aside>
+        <Sheet open={open} onClose={onClose} title="VenQore" side="left" width={width} ns="nqd">
+            {items.map((n) => (
+                <button key={n.id} type="button" className="nqd-navitem" aria-current={n.id === current ? 'true' : undefined}>
+                    <span aria-hidden style={{ width: 20, textAlign: 'center' }}>{n.glyph}</span>
+                    {n.label}
+                </button>
+            ))}
+        </Sheet>
     );
 }
 

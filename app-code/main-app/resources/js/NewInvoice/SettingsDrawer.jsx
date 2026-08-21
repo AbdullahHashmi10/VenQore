@@ -20,7 +20,7 @@ import React from 'react';
 import { Sheet, Slider, Switch } from '@/LayoutLaw/ui';
 import { docPresets, docDensities, docTableWidth } from '@/LayoutLaw/engine';
 import { PROFILES, screenBand } from './settings';
-import { columnsFor, typeById } from './fields';
+import { columnsFor } from './fields';
 import { ACCOUNTS, LOCATIONS, TAX_RATES, TERMS } from './mock';
 
 const PCT = (v) => `${Math.round(v * 100)}%`;
@@ -68,7 +68,10 @@ export default function SettingsDrawer({
 
     const densities = docDensities();
     const order = densities.map((d) => d.id);
-    const wanted = typeById(prefs.type);
+    // The type of the document IN FRONT OF YOU, handed in by the page. Reading
+    // `prefs.type` here described whatever type a NEW tab would open as, which
+    // is not necessarily this one.
+    const wanted = type;
     // A composition read back from localStorage can name a density this build of
     // the law no longer has. Fall back rather than throw: the settings drawer is
     // the one screen that has to survive a bad preference, because it is where
@@ -156,7 +159,9 @@ export default function SettingsDrawer({
                             value={c.details}
                             options={[['open', 'Open'], ['collapsed', 'Collapsed']]}
                             onPick={(v) => set({ details: v })}
-                            note={`Collapsed is one line — party, number, date, running total. Here it is worth ${Math.max(0, Math.round((D.details.mode === 'open' ? D.details.h - 60 : 0) / 49))} more item rows.`}
+                            note={D.details.mode === 'collapsed' && c.details === 'open'
+                                ? 'This screen is too short to hold the block open, so the law is holding it collapsed. Tapping the strip opens it as a sheet — every field is in it.'
+                                : `Collapsed is one line — party, number, date, running total. Here it is worth ${Math.max(0, Math.round((D.details.mode === 'open' ? D.details.h - 60 : 0) / 49))} more item rows.`}
                         />
                         <Seg
                             label="Summary"

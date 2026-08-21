@@ -1954,7 +1954,7 @@ const OPERATIONAL_TEMPLATES = [
   {
     type: 'action_hub',
     title: 'Quick Operations Hub',
-    desc: '3-button fast lane: Point of Sale, Purchase Orders, and Quick Actions.',
+    desc: '3-button fast lane: Point of Sale (Green), Purchase Orders (Red), and Quick Actions (+).',
     category: 'Operations',
     defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Wide Hub (6 × 2)' },
     tone: 'ink'
@@ -1962,7 +1962,7 @@ const OPERATIONAL_TEMPLATES = [
   {
     type: 'bank_liquidity',
     title: 'Bank & Liquid Net Balances',
-    desc: 'Breakdown of active bank accounts, cash drawer holdings, and total liquid net.',
+    desc: 'Live breakdown of active bank accounts, cash drawer holdings, and total liquid net balance.',
     category: 'Finance',
     defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Wide Tile (6 × 2)' },
     tone: 'surface'
@@ -1970,9 +1970,9 @@ const OPERATIONAL_TEMPLATES = [
   {
     type: 'alerts_hub',
     title: 'Actions Required & Alerts',
-    desc: 'Live operational alerts: low stock reorders, overdue receivables, and warehouse dispatches.',
+    desc: 'Live operational alerts: low stock reorders, overdue receivables, and warehouse shipments.',
     category: 'Operations',
-    defaultSize: { w: 6, h: 3, cat: 'C4', label: 'Standard Alert Box (6 × 3)' },
+    defaultSize: { w: 6, h: 3, cat: 'C4', label: 'Alert Box (6 × 3)' },
     tone: 'surface'
   },
   {
@@ -2005,7 +2005,17 @@ export default function NewDashboard(props) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   
-  // Quick Actions GlassIcons Popup State
+  // 1. Center 3D Folder Launcher Stage State
+  const [folderLauncherOpen, setFolderLauncherOpen] = useState(false);
+
+  // 2. Stepper Modal Dialog State
+  const [stepperModalOpen, setStepperModalOpen] = useState(false);
+  const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0: Metric Readings, 1: Operations Hubs, 2: Custom Shortcuts
+  const [step, setStep] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedArea, setSelectedArea] = useState('All');
+  
+  // 3. Quick Actions GlassIcons Popup State
   const [glassModalOpen, setGlassModalOpen] = useState(false);
 
   // Expose global opener for GlassIcons popup
@@ -2014,13 +2024,6 @@ export default function NewDashboard(props) {
     return () => { window._vqOpenGlassActions = null; };
   }, []);
 
-  // 3-Step Add Card Modal State
-  const [modalOpen, setModalOpen] = useState(false);
-  const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0: Analytics Readings, 1: Operations Cards, 2: Custom Shortcut Buttons
-  const [step, setStep] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedArea, setSelectedArea] = useState('All');
-  
   // Selected Card Draft
   const [selectedReading, setSelectedReading] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -2043,9 +2046,19 @@ export default function NewDashboard(props) {
     runCardBuilder();
   }, []);
 
+  // Launch Category Choice from 3D Folder
+  const launchCategoryModal = (catIndex) => {
+    setCategoryFolderIndex(catIndex);
+    setFolderLauncherOpen(false);
+    setStep(1);
+    setSelectedReading(null);
+    setSelectedTemplate(null);
+    setStepperModalOpen(true);
+  };
+
   // Update preview in Step 2 whenever configuration changes
   useEffect(() => {
-    if (modalOpen && step === 2 && previewRef.current && window.VenQoreCards) {
+    if (stepperModalOpen && step === 2 && previewRef.current && window.VenQoreCards) {
       const targetSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
       
       let cardDraft = null;
@@ -2108,7 +2121,7 @@ export default function NewDashboard(props) {
         });
       }
     }
-  }, [modalOpen, step, categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftAccent, draftStarBorder, draftTitle]);
+  }, [stepperModalOpen, step, categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftAccent, draftStarBorder, draftTitle]);
 
   // Open Step 2 for a selected reading
   const selectMetricForStep2 = (rd) => {
@@ -2282,7 +2295,7 @@ export default function NewDashboard(props) {
     if (newCard) {
       const current = window.VenQoreCards.getCards();
       window.VenQoreCards.setCards([...current, newCard]);
-      setModalOpen(false);
+      setStepperModalOpen(false);
       setStep(1);
     }
   };
@@ -2523,13 +2536,11 @@ export default function NewDashboard(props) {
               <span>Quick Actions</span>
             </button>
 
+            {/* Main Add New Card Trigger */}
             <button
-              onClick={() => {
-                setModalOpen(true);
-                setStep(1);
-              }}
+              onClick={() => setFolderLauncherOpen(true)}
               className="vqb vqb--primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: 'var(--vq-r-full)', fontSize: '13px', fontWeight: 600 }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', borderRadius: 'var(--vq-r-full)', fontSize: '13px', fontWeight: 700 }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>Add New Card</span>
@@ -2570,8 +2581,7 @@ export default function NewDashboard(props) {
                   <button
                     className="vq-dropdown-item"
                     onClick={() => {
-                      setModalOpen(true);
-                      setStep(1);
+                      setFolderLauncherOpen(true);
                       setMenuOpen(false);
                     }}
                   >
@@ -2620,10 +2630,7 @@ export default function NewDashboard(props) {
               <div className="board-actions">
                 <button
                   className="vqb vqb--primary"
-                  onClick={() => {
-                    setModalOpen(true);
-                    setStep(1);
-                  }}
+                  onClick={() => setFolderLauncherOpen(true)}
                 >
                   Add New Card
                 </button>
@@ -2635,69 +2642,105 @@ export default function NewDashboard(props) {
         </main>
       </div>
 
-      {/* ── React Bits GlassIcons Quick Actions Center Popup ── */}
-      {glassModalOpen && (
-        <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)}>
-          <div className="vq-glass-modal-card" onClick={e => e.stopPropagation()}>
-            <div className="vq-glass-modal-header">
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--vq-teal-600)' }}>
-                  COMMAND CENTER FAST LANE
-                </div>
-                <div className="vq-glass-modal-title">Quick Actions</div>
-              </div>
-              <button
-                className="vq-modal-close-x"
-                onClick={() => setGlassModalOpen(false)}
-                aria-label="Close Quick Actions"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
+      {/* ── 1. CENTER 3D ANIMATED FOLDER CATEGORY LAUNCHER MODAL ── */}
+      {folderLauncherOpen && (
+        <div className="vq-folder-portal-overlay" onClick={() => setFolderLauncherOpen(false)}>
+          <div className="vq-folder-portal-card" onClick={e => e.stopPropagation()}>
+            <button
+              className="vq-folder-portal-close"
+              onClick={() => setFolderLauncherOpen(false)}
+              aria-label="Close"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+
+            <div className="vq-folder-stage-container">
+              <Folder
+                size={1.15}
+                color="#0baa8f"
+                selectedIndex={categoryFolderIndex}
+                onSelectCategory={(i) => launchCategoryModal(i)}
+                items={[
+                  <span>📊 Readings</span>,
+                  <span>⚡ Operations</span>,
+                  <span>🚀 Shortcuts</span>
+                ]}
+              />
+              <div className="vq-folder-portal-heading">What would you like to add?</div>
+              <div className="vq-folder-portal-sub">Choose a category to launch the card customizer wizard</div>
             </div>
 
-            <GlassIcons
-              items={glassActionItems}
-              onActionClick={(item) => {
-                setGlassModalOpen(false);
-                if (item.href) window.location.href = item.href;
-              }}
-            />
+            <div className="vq-portal-options-grid">
+              {/* Option 1: Metric Readings */}
+              <div
+                className="vq-portal-option-tile"
+                onClick={() => launchCategoryModal(0)}
+              >
+                <div className="vq-portal-option-icon">📊</div>
+                <div className="vq-portal-option-title">Metric & Analytics Readings</div>
+                <div className="vq-portal-option-desc">
+                  Browse {readings.length} real-time business readings across Sales, Finance, Inventory, Purchasing, and Operations.
+                </div>
+              </div>
+
+              {/* Option 2: Operations & Command Cards */}
+              <div
+                className="vq-portal-option-tile"
+                onClick={() => launchCategoryModal(1)}
+              >
+                <div className="vq-portal-option-icon" style={{ background: '#e6f7ff', color: '#0050b3' }}>⚡</div>
+                <div className="vq-portal-option-title">Operations & Hub Cards</div>
+                <div className="vq-portal-option-desc">
+                  Fast-lane 3-button operations hub, bank liquidity monitor, actions required alerts, and growth velocity cards.
+                </div>
+              </div>
+
+              {/* Option 3: Custom Action Shortcuts */}
+              <div
+                className="vq-portal-option-tile"
+                onClick={() => launchCategoryModal(2)}
+              >
+                <div className="vq-portal-option-icon" style={{ background: '#f6ffed', color: '#389e0d' }}>🚀</div>
+                <div className="vq-portal-option-title">Custom 1-Click Shortcuts</div>
+                <div className="vq-portal-option-desc">
+                  Create your own one-click shortcut launcher card to instantly jump to POS, invoices, inventory, or reports.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── Add Cards Multi-Step Wizard Modal ── */}
-      {modalOpen && (
-        <div className="vq-modal-overlay" onClick={() => setModalOpen(false)}>
+      {/* ── 2. STEPPER MODAL DIALOG (STRICT V6 DESIGN SYSTEM) ── */}
+      {stepperModalOpen && (
+        <div className="vq-modal-overlay" onClick={() => setStepperModalOpen(false)}>
           <div className="vq-modal-card" onClick={e => e.stopPropagation()}>
             {/* Top Bar with Stepper */}
             <div className="vq-modal-top-bar">
               <div>
                 <div className="vq-modal-step-sub">
-                  ADD CARDS · STEP {step} OF 3
+                  {categoryFolderIndex === 0 ? 'ANALYTICS READINGS' : categoryFolderIndex === 1 ? 'OPERATIONS & HUBS' : 'CUSTOM SHORTCUT'} · STEP {step} OF 3
                 </div>
                 <div className="vq-modal-heading">
-                  {step === 1 ? 'Choose Card Type' : step === 2 ? 'Configure Layout & Visuals' : 'Confirm & Place Card'}
+                  {step === 1 ? 'Select Card' : step === 2 ? 'Visual Styling & Theme' : 'Preview & Add'}
                 </div>
               </div>
-              <div className="vq-modal-top-right">
-                <button
-                  className="vq-modal-close-x"
-                  onClick={() => setModalOpen(false)}
-                  aria-label="Close modal"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                </button>
-              </div>
+              <button
+                className="vq-modal-close-x"
+                onClick={() => setStepperModalOpen(false)}
+                aria-label="Close modal"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
             </div>
 
-            {/* Stepper Navigation */}
-            <div style={{ padding: '0 32px' }}>
+            {/* Stepper Navigation Bar */}
+            <div style={{ padding: '0 32px 12px' }}>
               <Stepper
                 steps={[
                   { label: 'Select Card' },
                   { label: 'Visual Styling' },
-                  { label: 'Preview & Confirm' }
+                  { label: 'Preview & Place' }
                 ]}
                 currentStep={step}
                 onStepClick={(s) => {
@@ -2708,47 +2751,9 @@ export default function NewDashboard(props) {
               />
             </div>
 
-            {/* Step 1: Category Switcher using React Bits Folder */}
-            {step === 1 && (
-              <div className="vq-folder-tabs-header">
-                <div className="vq-category-folder-pill-group">
-                  <button
-                    className={`vq-category-folder-pill ${categoryFolderIndex === 0 ? 'is-active' : ''}`}
-                    onClick={() => setCategoryFolderIndex(0)}
-                  >
-                    📊 Metric Readings ({readings.length})
-                  </button>
-                  <button
-                    className={`vq-category-folder-pill ${categoryFolderIndex === 1 ? 'is-active' : ''}`}
-                    onClick={() => setCategoryFolderIndex(1)}
-                  >
-                    ⚡ Operations & Hubs ({OPERATIONAL_TEMPLATES.length})
-                  </button>
-                  <button
-                    className={`vq-category-folder-pill ${categoryFolderIndex === 2 ? 'is-active' : ''}`}
-                    onClick={() => setCategoryFolderIndex(2)}
-                  >
-                    🚀 Custom Action Shortcuts
-                  </button>
-                </div>
-
-                <Folder
-                  size={0.65}
-                  color="#0baa8f"
-                  selectedIndex={categoryFolderIndex}
-                  onSelectCategory={(i) => setCategoryFolderIndex(i)}
-                  items={[
-                    <span>Readings</span>,
-                    <span>Operations</span>,
-                    <span>Shortcuts</span>
-                  ]}
-                />
-              </div>
-            )}
-
             {/* Step 1 Filters for Metrics */}
             {step === 1 && categoryFolderIndex === 0 && (
-              <div className="vq-modal-filter-zone" style={{ marginTop: '12px' }}>
+              <div className="vq-modal-filter-zone">
                 <div className="vq-modal-search-wrapper">
                   <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                   <input
@@ -2798,7 +2803,7 @@ export default function NewDashboard(props) {
                             </div>
                             
                             <p className="vq-item-card-desc">
-                              {r.label} overview reading
+                              Real-time metric monitoring for {r.label.toLowerCase()}.
                             </p>
 
                             <div className="vq-item-card-foot">
@@ -2869,7 +2874,7 @@ export default function NewDashboard(props) {
                   </div>
                 )
               ) : (
-                /* Step 2 & 3: Controls & Live Preview */
+                /* Step 2: Visual Styling & Controls Pane with Live Preview */
                 <div className="vq-step2-layout">
                   {/* Left Controls Pane */}
                   <div className="vq-controls-pane">
@@ -3036,9 +3041,17 @@ export default function NewDashboard(props) {
             {/* Bottom Bar */}
             <div className="vq-modal-bottom-bar">
               {step === 1 ? (
-                <div className="vq-modal-bottom-desc">
-                  Pick a card from Metric Readings, Operations Hubs, or Action Shortcuts to configure layout, background tones, and interactive options.
-                </div>
+                <button
+                  className="vq-choice-btn"
+                  onClick={() => {
+                    setStepperModalOpen(false);
+                    setFolderLauncherOpen(true);
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                  <span>Change Category</span>
+                </button>
               ) : (
                 <button
                   className="vq-choice-btn"
@@ -3046,14 +3059,14 @@ export default function NewDashboard(props) {
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                  <span>Change Selection</span>
+                  <span>Change Card</span>
                 </button>
               )}
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   className="vq-modal-close-btn"
-                  onClick={() => setModalOpen(false)}
+                  onClick={() => setStepperModalOpen(false)}
                 >
                   Close
                 </button>
@@ -3068,6 +3081,37 @@ export default function NewDashboard(props) {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 3. REACT BITS GLASS ICONS CENTER POPUP ── */}
+      {glassModalOpen && (
+        <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)}>
+          <div className="vq-glass-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="vq-glass-modal-header">
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--vq-teal-600)' }}>
+                  COMMAND CENTER FAST LANE
+                </div>
+                <div className="vq-glass-modal-title">Quick Actions</div>
+              </div>
+              <button
+                className="vq-modal-close-x"
+                onClick={() => setGlassModalOpen(false)}
+                aria-label="Close Quick Actions"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+
+            <GlassIcons
+              items={glassActionItems}
+              onActionClick={(item) => {
+                setGlassModalOpen(false);
+                if (item.href) window.location.href = item.href;
+              }}
+            />
           </div>
         </div>
       )}

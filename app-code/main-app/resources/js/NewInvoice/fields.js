@@ -68,6 +68,7 @@ export const HEADER_FIELDS = {
  * width may veto a density and may never veto a capability.
  */
 export const CAP_FIELDS = {
+    location: { label: 'Location', kind: 'select', required: false, hint: 'the server needs it — so it is here at every density' },
     valid_until: { label: 'Valid until', kind: 'date', required: true, hint: 'the defining field of a quote — it had no input at all before' },
     expected_date: { label: 'Expected delivery', kind: 'date', required: false, hint: 'accepted by the server, never rendered before' },
     frequency: { label: 'Billing frequency', kind: 'select', required: false },
@@ -99,9 +100,26 @@ export function headerKeysFor(type, densityHeader) {
     });
 }
 
-/** Capability fields this type switches on, in a stable order. */
-export function capKeysFor(type) {
-    return Object.keys(CAP_FIELDS).filter((k) => has(type, k));
+/**
+ * Capability fields this type switches on, in a stable order.
+ *
+ * A WIDTH MAY VETO A DENSITY; IT MAY NEVER VETO A CAPABILITY — and `location`
+ * was the proof that the rule was being broken. It lives in HEADER_FIELDS, and
+ * only the Pro density's header lists it, so eight of the thirteen types
+ * declared `location` as a capability and rendered no control for it at
+ * Standard or Simple: a purchase order silently posted the default warehouse,
+ * and a stock transfer could never change the location it was moving FROM.
+ * Whatever the density's header does not carry, the capability list does.
+ */
+export function capKeysFor(type, headerKeys = []) {
+    // `location` is handled explicitly below, so it is not taken from the
+    // generic filter as well — listing it twice is two fields with one id and
+    // one React key.
+    const out = Object.keys(CAP_FIELDS).filter((k) => k !== 'location' && has(type, k));
+    if ((has(type, 'location') || has(type, 'location_pair')) && !headerKeys.includes('location')) {
+        out.unshift('location');
+    }
+    return out;
 }
 
 /** The line columns this type allows, out of the ones the density offers. */
@@ -109,6 +127,10 @@ export function columnsFor(type, densityCols) {
     return densityCols.filter((c) => {
         if (c === 'free' && (off(type, 'free_qty') || !has(type, 'free_qty'))) return false;
         if (c === 'disc' && off(type, 'disc')) return false;
+        // A type that switches a column off says so by name. Inferring it from
+        // `qty_only` alone left `off: ['rate','tax']` on the stock types as two
+        // switches nothing read.
+        if (off(type, c)) return false;
         // `tax_dropdown` is a DOCUMENT-level tax control. Letting it open a
         // per-line Tax % column produced an editable column whose value no total
         // read and whose percentage the payload posted anyway.

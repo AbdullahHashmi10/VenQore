@@ -38,7 +38,7 @@ import { Head } from '@inertiajs/react';
 
 import '@/NewInvoice/newinvoice.css';
 import { LAW, composeDocument, marginAt, presetDocument, docMetrics } from '@/LayoutLaw/engine';
-import { Icon, Kbd, Money, Toasts, useViewport } from '@/LayoutLaw/ui';
+import { Icon, Kbd, Money, Sheet, Toasts, useViewport } from '@/LayoutLaw/ui';
 import {
     ACCOUNTS, LOCATIONS, NAV, OPENING_LINES, PRODUCTS, TAX_RATES, TERMS, TODAY,
     partiesFor, productById, searchProducts,
@@ -47,10 +47,10 @@ import {
     DEFAULTS, autoComposition, clearDraft, loadDraft, loadPrefs, savePrefs, saveDraft,
 } from '@/NewInvoice/settings';
 import { buildPayload, columnsFor, dueFromTerms, has, label, off, typeById } from '@/NewInvoice/fields';
-import { DetailsZone, DockBar, LinesZone, SummaryZone, VSplit, n0, r2 } from '@/NewInvoice/zones';
+import { DetailsZone, DockBar, LinesZone, SummaryZone, VSplit, keep, n0, nz, pct, r2 } from '@/NewInvoice/zones';
 import {
-    ActionsSheet, BreakdownSheet, KeysSheet, MoneySheet, NavDrawer, Palette, PartySheet,
-    PayloadSheet, ProductSheet, RecentSheet, SourceSheet, TypeSheet,
+    ActionsSheet, BreakdownSheet, KeysSheet, LineSheet, MoneySheet, NavDrawer, Palette,
+    PartySheet, PayloadSheet, ProductSheet, RecentSheet, SourceSheet, TypeSheet,
 } from '@/NewInvoice/sheets';
 import SettingsDrawer from '@/NewInvoice/SettingsDrawer';
 
@@ -109,7 +109,8 @@ function newDoc(type, ops, seq = 148) {
         notes: '',
         lines: [],
         taxRate: ops.defaultTax,
-        taxInclusive: ops.taxInclusive,
+        // Only a type that RENDERS the toggle carries the flag.
+        taxInclusive: has(type, 'tax_inclusive_flag') ? ops.taxInclusive : false,
         discount: 0,
         shipping: 0,
         extra: 0,
@@ -150,19 +151,24 @@ export default function NewInvoice({ auth }) {
         return () => clearTimeout(id);
     }, [userId, prefs]);
 
-    const type = typeById(prefs.type);
-
-    /* AUTO — the arrangement for this screen AND this document type. */
-    useEffect(() => {
-        if (!prefs.auto) return;
-        const { preset, comp } = autoComposition(prefs.profile, prefs.type, vp.w, vp.h);
-        if (preset !== prefs.preset || JSON.stringify(comp) !== JSON.stringify(prefs.comp)) {
-            setPrefs((p) => (p.auto ? { ...p, preset, comp } : p));
-        }
-    }, [prefs.auto, prefs.profile, prefs.type, prefs.preset, prefs.comp, vp.w, vp.h]);
+    /* The type is declared BELOW, off the active document, because a type
+       belongs to a document and not to the preferences. `prefs.type` is only
+       what a NEW tab starts as. Reading the editor's labels, fields, columns,
+       validation and payload off one global while `computed` read them off the
+       document meant tab 1 could be a sales invoice with ten lines while every
+       label on it said Expense — and posting it sent `type: "expense"` with a
+       142,753 total and no items. */
 
     const D = useMemo(
         () => composeDocument(prefs.comp, vp.w, vp.h, prefs.rail ? {} : { navW: 0 }),
+        [prefs.comp, vp.w, vp.h, prefs.rail],
+    );
+    /* CAN this screen hold the block open at all? Not "does the wish say open"
+       — the law overrides the wish below about 690px of height, and a toggle
+       that writes a wish the law is going to ignore is a toggle that does
+       nothing. Ask the law directly. */
+    const canOpenDetails = useMemo(
+        () => composeDocument({ ...prefs.comp, details: 'open' }, vp.w, vp.h, prefs.rail ? {} : { navW: 0 }).details.mode === 'open',
         [prefs.comp, vp.w, vp.h, prefs.rail],
     );
     const narrow = vp.w < 620;
@@ -183,6 +189,18 @@ export default function NewInvoice({ auth }) {
     });
     const [active, setActive] = useState(0);
     const doc = docs[Math.min(active, docs.length - 1)];
+    const type = typeById(doc.type);
+
+    /* AUTO — the arrangement for this screen AND for the type of the document
+       IN FRONT OF YOU. It reads `doc.type` for the same reason everything else
+       now does. */
+    useEffect(() => {
+        if (!prefs.auto) return;
+        const { preset, comp } = autoComposition(prefs.profile, doc.type, vp.w, vp.h);
+        if (preset !== prefs.preset || JSON.stringify(comp) !== JSON.stringify(prefs.comp)) {
+            setPrefs((p) => (p.auto ? { ...p, preset, comp } : p));
+        }
+    }, [prefs.auto, prefs.profile, doc.type, prefs.preset, prefs.comp, vp.w, vp.h]);
     /* Keyed by the document's own id, NOT by the tab index, and held in a ref
        so every callback below reads the current one. Closing over `active` and
        then forgetting to list `setDoc` in one dependency array is enough to send
@@ -200,6 +218,7 @@ export default function NewInvoice({ auth }) {
     const [openCard, setOpenCard] = useState(null);
     const [sheet, setSheet] = useState(null);
     const [pickerFor, setPickerFor] = useState(null);
+    const [lineFor, setLineFor] = useState(null);
     const [navOpen, setNavOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [paletteOpen, setPaletteOpen] = useState(false);
@@ -211,8 +230,11 @@ export default function NewInvoice({ auth }) {
 
     const scrollRef = useRef(null);
     const undoRef = useRef({});
+    const docsRef = useRef(docs);
+    docsRef.current = docs;
 
     const anyOverlay = !!sheet || navOpen || settingsOpen || paletteOpen;
+    const openLine = useCallback((u) => { setSelected(u); setLineFor(u); setSheet('line'); }, []);
 
     const set = useCallback((patch) => { setTouched(true); setDoc((d) => ({ ...d, ...patch })); }, [setDoc]);
 
@@ -255,13 +277,15 @@ export default function NewInvoice({ auth }) {
         const t = typeById(doc.type);
         const noLines = has(t, 'no_lines');
         const src = noLines ? [] : doc.lines;
-        const lineNet = (l) => r2(l.qty * l.rate * (1 - Math.min(100, Math.max(0, l.disc || 0)) / 100));
-        const gross = r2(src.reduce((a, l) => a + l.qty * l.rate, 0));
+        // Every line value goes through `nz`, because a cell that is being typed
+        // into holds a string.
+        const lineNet = (l) => r2(nz(l.qty) * nz(l.rate) * (1 - pct(l.disc) / 100));
+        const gross = r2(src.reduce((a, l) => a + nz(l.qty) * nz(l.rate), 0));
         const sub = r2(src.reduce((a, l) => a + lineNet(l), 0));
         const lineDisc = r2(gross - sub);
-        const docDisc = r2((sub * Math.min(100, Math.max(0, doc.discount || 0))) / 100);
+        const docDisc = r2((sub * pct(doc.discount)) / 100);
         const taxable = Math.max(0, sub - docDisc);
-        const rate = (TAX_RATES.find((t) => t.id === doc.taxRate) || TAX_RATES[0]).rate;
+        const rate = (TAX_RATES.find((x) => x.id === doc.taxRate) || TAX_RATES[0]).rate;
         // Money is rounded to the paisa BEFORE the number ladder sees it.
         // Otherwise 0.18 × a subtotal arrives carrying three binary-float
         // decimals and the ladder faithfully prints its richest rung —
@@ -273,16 +297,28 @@ export default function NewInvoice({ auth }) {
         // same shape as F8's phantom charges, one document over.
         const perLine = has(t, 'per_line_tax');
         const docDiscFactor = sub > 0 ? 1 - docDisc / sub : 1;
-        // An expense has no lines, so its tax is the AMOUNT that was typed, not
-        // a percentage of nothing. The Tax amount box moved no number on the
-        // screen and then posted a figure the total disagreed with.
-        const tax = noLines ? r2(Number(doc.taxAmount) || 0)
-            : doc.taxInclusive ? 0
+
+        /* TAX-INCLUSIVE IS A CAPABILITY, and only the purchase order declares
+           it. Honouring `doc.taxInclusive` on every type meant the Settings
+           default silently forced tax to zero on a sales invoice that had no
+           control to see or clear the flag: the same ten lines totalled 120,977
+           instead of 142,753 and posted `tax_amount: 0`.
+
+           And "inclusive" does not mean "no tax" — it means the tax is ALREADY
+           IN the price. So it is EXTRACTED: the document is presented ex-tax,
+           with the contained tax on its own row, which is both how an accountant
+           reads it and the only presentation in which the rows still sum. The
+           document discount row is derived last so the arithmetic is exact to
+           the paisa rather than three independently-rounded fractions. */
+        const inclusive = has(t, 'tax_inclusive_flag') && !!doc.taxInclusive;
+        const tax = noLines ? r2(nz(doc.taxAmount))
+            : inclusive ? r2(taxable - r2((taxable * 100) / (100 + rate)))
                 : perLine
-                    ? r2(src.reduce((a, l) => a + (lineNet(l) * docDiscFactor * (l.tax || 0)) / 100, 0))
+                    ? r2(src.reduce((a, l) => a + (lineNet(l) * docDiscFactor * nz(l.tax)) / 100, 0))
                     : r2((taxable * rate) / 100);
-        const charges = r2((Number(doc.shipping) || 0) + (Number(doc.extra) || 0));
-        const before = r2(taxable + tax + charges);
+        const charges = r2(nz(doc.shipping) + nz(doc.extra));
+        // Inclusive: the tax is inside `taxable`, so it is not added again.
+        const before = r2(taxable + (inclusive ? 0 : tax) + charges);
         // FIX · round-off is a DOCUMENT property, applied once. Only the sales
         // invoice and the recurring invoice ever called roundTotal(), so the
         // same cart totalled differently per type.
@@ -293,25 +329,34 @@ export default function NewInvoice({ auth }) {
            buy-two-get-one costs three and sells two, which is precisely the
            case a margin read-out exists to catch. Net of both discounts and
            always ex-tax, because tax is not yours. */
-        const cost = r2(src.reduce((a, l) => a + (l.qty + (l.free || 0)) * (l.cost || 0), 0));
+        const cost = r2(src.reduce((a, l) => a + (nz(l.qty) + nz(l.free)) * nz(l.cost), 0));
         const net = r2(sub - docDisc);
         const margin = r2(net - cost);
+
+        /* What the SUMMARY prints. Ex-tax when the tax was in the price, and the
+           document discount balances so that gross − item − doc + tax === the
+           total, exactly, at every density. */
+        const f = inclusive ? 100 / (100 + rate) : 1;
+        const grossD = inclusive ? r2(gross * f) : gross;
+        const lineDiscD = inclusive ? r2(lineDisc * f) : lineDisc;
+        const docDiscD = inclusive ? r2(grossD - lineDiscD - r2(taxable - tax)) : docDisc;
         return {
             lineNet,
             perLineTax: perLine,
             taxRate: rate,
-            gross,
-            sub,
-            lineDisc,
-            docDisc,
+            gross: grossD,
+            sub: inclusive ? r2(sub * f) : sub,
+            lineDisc: lineDiscD,
+            docDisc: docDiscD,
             tax,
+            inclusive,
             charges,
             cost,
             margin,
             marginPct: net > 0 ? r2((margin / net) * 100) : 0,
             round: r2(total - before),
             total,
-            units: src.reduce((a, l) => a + l.qty + (l.free || 0), 0),
+            units: r2(src.reduce((a, l) => a + nz(l.qty) + nz(l.free), 0)),
         };
     }, [doc, prefs.ops.roundOff]);
 
@@ -327,6 +372,10 @@ export default function NewInvoice({ auth }) {
         if (has(type, 'category') && !doc.category) e.category = 'An expense needs a category.';
         if (has(type, 'reason') && !doc.reason) e.reason = 'A reason is required.';
         if (has(type, 'source_doc') && !doc.sourceDoc) e.sourceDoc = 'Pick the document this is against.';
+        // `description` renders its asterisk on the expense and had no rule
+        // behind it, so Save posted an empty one while the field still claimed
+        // to be required.
+        if (has(type, 'description') && !String(doc.description || '').trim()) e.description = 'A description is required.';
         if (has(type, 'location_pair') && doc.location != null && String(doc.location) === String(doc.locationTo)) e.locationTo = 'From and To cannot be the same location.';
         return e;
     }, [doc, type, prefs.ops.requireLocation]);
@@ -369,7 +418,15 @@ export default function NewInvoice({ auth }) {
 
     /* ── the primary action ──────────────────────────────────────────────── */
     const save = useCallback(() => {
-        if (!prefs.perms['documents.post']) { toast('Your role may not post a document.', { tone: 'bad' }); return false; }
+        /* `posted_lock` is what makes saving a POSTING — the document becomes a
+           locked record. A quotation switches it off, so saving one is not a
+           posting and does not need the posting permission: a salesperson who
+           may not post an invoice may still quote for one. The switch was in
+           the law and nothing read it. */
+        if (has(type, 'posted_lock') && !prefs.perms['documents.post']) {
+            toast(`Your role may not post a ${type.name.toLowerCase()}.`, { tone: 'bad' });
+            return false;
+        }
         const keys = Object.keys(errors);
         if (keys.length) {
             /* A document you have just opened must not be red. Every required
@@ -384,7 +441,13 @@ export default function NewInvoice({ auth }) {
             // A validation failure is an error ON THE FIELD THAT CAUSED IT, and
             // the details block opens so the field is visible rather than
             // hidden behind a collapsed strip.
-            if (D.details.mode === 'collapsed') setPrefs((p) => ({ ...p, auto: false, comp: { ...p.comp, details: 'open' } }));
+            if (D.details.mode === 'collapsed') {
+                // …and if this screen cannot hold the block open, the field is
+                // shown in the sheet instead. Writing a wish the law overrides
+                // pointed the user at a red field they could not see.
+                if (canOpenDetails) setPrefs((p) => ({ ...p, auto: false, comp: { ...p.comp, details: 'open' } }));
+                else setSheet('details');
+            }
             toast(errors[keys[0]], { tone: 'bad', ms: 5000 });
             return false;
         }
@@ -403,17 +466,30 @@ export default function NewInvoice({ auth }) {
                 + `${(payload.items || []).length} lines.`,
                 { tone: 'good', ms: 5000 },
             );
-            clearDraft(userId);
+            /* The draft holds EVERY open tab, so clearing it after posting one
+               of them threw the other two away. What is left is re-saved; only
+               an empty set clears. */
+            const rest = docsRef.current.filter((d) => d.idem !== doc.idem);
+            if (rest.length) saveDraft(userId, rest); else clearDraft(userId);
         }, 320);
         return true;
-    }, [D.details.mode, computed, doc, errors, hasLines, prefs.ops, prefs.perms, setDoc, toast, type, userId]);
+    }, [D.details.mode, canOpenDetails, computed, doc, errors, hasLines, prefs.ops, prefs.perms, setDoc, toast, type, userId]);
 
     /* ── draft rescue ────────────────────────────────────────────────────── */
     useEffect(() => {
         const saved = loadDraft(userId);
         const list = Array.isArray(saved) ? saved : (saved && saved.lines ? [saved] : null);
-        if (list && list.some((d) => d.lines?.length)) {
-            setDocs(list);
+        /* "Has lines" is not the test for "is worth restoring". An expense has
+           no lines BY DEFINITION, so a filled-in expense — amount, category,
+           description, attachment, notes — was silently discarded on reload and
+           overwritten by the next keystroke. Anything typed counts. */
+        const worth = (d) => !!(d.lines?.length || d.notes || d.partyref || d.description
+            || d.category || d.reason || nz(d.extra) || nz(d.shipping) || nz(d.settled) || d.attachment);
+        if (list && list.some(worth)) {
+            // `submitted` is a view state, not part of the document. Restoring
+            // it painted every required field red on arrival, which is exactly
+            // what the flag exists to prevent.
+            setDocs(list.map((d) => ({ ...d, submitted: false })));
             toast(
                 list.length > 1
                     ? `Your ${list.length} open drafts were restored from before the page closed.`
@@ -469,6 +545,11 @@ export default function NewInvoice({ auth }) {
             // nothing they hold reaches the total or the server — and switching
             // back gives the document back instead of an empty one.
             lines: d.lines,
+            // A different type has a different set of rules. Carrying the flag
+            // across painted a document you had only just configured red.
+            submitted: false,
+            // Only a type that renders the toggle carries the flag.
+            taxInclusive: has(next, 'tax_inclusive_flag') ? d.taxInclusive : false,
         }));
         const noun = next.name.toLowerCase();
         toast(`Now ${/^[aeiou]/.test(noun) ? 'an' : 'a'} ${noun}. Same editor — the labels, the fields and the columns follow the type.`);
@@ -518,7 +599,15 @@ export default function NewInvoice({ auth }) {
             // AltGr reports ctrlKey AND altKey, so a Polish layout typing 'ś'
             // in a note would otherwise post the document.
             if ((e.ctrlKey || e.metaKey) && !e.altKey) {
-                if (e.key === 'Tab') { e.preventDefault(); setActive((a) => (a + 1) % docs.length); return; }
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    // The selection belongs to a document. Carrying it across
+                    // left F2/F3/F5/F6 pointing at a line id no row on this tab
+                    // has: five keys that did nothing and said nothing.
+                    setActive((a) => (a + 1) % docs.length);
+                    setSelected(null); setOpenCard(null);
+                    return;
+                }
                 const k = e.key.toLowerCase();
                 if (k === 's' || k === 'p') { e.preventDefault(); save(); }
                 else if (k === 'n') { e.preventDefault(); if (save()) addTab(); }
@@ -542,12 +631,19 @@ export default function NewInvoice({ auth }) {
                 // table fit, where they open as a row beneath the line. A key
                 // that works at one width and silently does nothing at another
                 // is a key that is not on the map.
-                case 'F2': case 'F3': case 'F5': case 'F6':
+                case 'F2': case 'F3': case 'F5': case 'F6': {
                     e.preventDefault();
-                    if (selected) setOpenCard(selected);
-                    else if (doc.lines.length) { setSelected(doc.lines[0].u); setOpenCard(doc.lines[0].u); }
-                    else toast('Nothing to edit — add a line first.');
+                    const u = selected || doc.lines[0]?.u;
+                    if (!u) { toast('Nothing to edit — add a line first.'); break; }
+                    setSelected(u);
+                    // In the card fit the line's controls open IN PLACE; in the
+                    // table fit there is no in-place row, so they open as the
+                    // line's own sheet. Either way the same fields, at any
+                    // width — a key that works at one size and silently does
+                    // nothing at another is a key that is not on the map.
+                    if (D.lines.fit === 'cards') setOpenCard(u); else openLine(u);
                     break;
+                }
                 case 'F4':
                     e.preventDefault();
                     if (selected) { const l = doc.lines.find((x) => x.u === selected); if (l) removeLine(l); }
@@ -717,7 +813,22 @@ export default function NewInvoice({ auth }) {
                                 total={computed.total}
                                 onOpenParty={() => setSheet('party')}
                                 onOpenSource={() => setSheet('source')}
-                                onToggle={() => setComp({ details: D.details.mode === 'open' ? 'collapsed' : 'open' })}
+                                /* The toggle wrote the value the WISH already
+                                   held whenever the law had overridden it, so
+                                   below about 690px of height — where the law
+                                   force-collapses — the strip was inert and the
+                                   document date, terms, due date, settlement
+                                   method and money account had no control
+                                   anywhere on the page. If the law is the one
+                                   holding it shut, the strip opens the block as
+                                   a SHEET instead. A height may veto a layout;
+                                   it may not veto a field. */
+                                onToggle={() => {
+                                    if (D.details.mode === 'open') { setComp({ details: 'collapsed' }); return; }
+                                    if (canOpenDetails) { setComp({ details: 'open' }); return; }
+                                    setSheet('details');
+                                }}
+                                forced={!canOpenDetails}
                             />
 
                             <div
@@ -744,6 +855,7 @@ export default function NewInvoice({ auth }) {
                                         onRemoveLine={removeLine}
                                         onAddLine={() => { setPickerFor(null); setSheet('product'); }}
                                         onOpenPicker={(u) => { setPickerFor(u); setSheet('product'); }}
+                                        onOpenLine={openLine}
                                         showMargin={prefs.ops.showMargin}
                                     />
                                 ) : (
@@ -755,7 +867,7 @@ export default function NewInvoice({ auth }) {
                                         <div className="nqd-hdr" style={{ gridTemplateColumns: D.details.twoCol ? 'repeat(2,minmax(0,1fr))' : '1fr' }}>
                                             <div className="nqd-f">
                                                 <label htmlFor="nqd-amt">Amount excluding tax<span className="nqd-req">*</span></label>
-                                                <input id="nqd-amt" className="nqd-ctl num" inputMode="decimal" data-rank="1" value={doc.extra} onChange={(e) => set({ extra: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                                                <input id="nqd-amt" className="nqd-ctl num" inputMode="decimal" data-rank="1" value={doc.extra} onChange={(e) => set({ extra: keep(e.target.value) })} />
                                             </div>
                                             {/* Only when the type has not already
                                                 given it a capability field of its
@@ -765,7 +877,7 @@ export default function NewInvoice({ auth }) {
                                             {!has(type, 'tax_amount') ? (
                                                 <div className="nqd-f">
                                                     <label htmlFor="nqd-taxamt">Tax amount</label>
-                                                    <input id="nqd-taxamt" className="nqd-ctl num" inputMode="decimal" value={doc.taxAmount} onChange={(e) => set({ taxAmount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
+                                                    <input id="nqd-taxamt" className="nqd-ctl num" inputMode="decimal" value={doc.taxAmount} onChange={(e) => set({ taxAmount: keep(e.target.value) })} />
                                                 </div>
                                             ) : null}
                                         </div>
@@ -848,11 +960,17 @@ export default function NewInvoice({ auth }) {
                         // permission gates it. Applying it around the check was
                         // a way for a role that may not discount to discount.
                         const mayDiscount = prefs.perms['documents.discount'];
+                        /* The party's terms are terms, so they write the due
+                           date the same way the select does. Setting `terms`
+                           and leaving `dueTouched` alone left the two
+                           disagreeing in the payload: `payment_terms: net7`
+                           beside a due date thirty days out. */
+                        const fromParty = { party: p, terms, dueTouched: false };
                         if (p.discount && mayDiscount) {
-                            set({ party: p, terms, discount: p.discount });
+                            set({ ...fromParty, discount: p.discount });
                             toast(`${p.name} has a ${p.discount}% default discount — applied to the document.`, { tone: 'good' });
                         } else {
-                            set({ party: p, terms });
+                            set(fromParty);
                             if (p.discount) toast(`${p.name} has a ${p.discount}% default discount, but your role may not give one.`, { tone: 'bad' });
                         }
                     }}
@@ -880,7 +998,39 @@ export default function NewInvoice({ auth }) {
                     }}
                 />
 
-                <TypeSheet open={sheet === 'type'} onClose={() => setSheet(null)} current={prefs.type} onPick={switchType} narrow={narrow} />
+                {/* ONE LINE, ALL OF IT — every field the TYPE gives a line,
+                    at every width, whatever the density made a column. */}
+                <LineSheet
+                    open={sheet === 'line'} onClose={() => { setSheet(null); setLineFor(null); }}
+                    line={doc.lines.find((l) => l.u === lineFor) || null}
+                    type={type} perms={prefs.perms} narrow={narrow}
+                    onPatch={patchLine} onRemove={removeLine}
+                    onChangeItem={(u) => { setPickerFor(u); setSheet('product'); }}
+                />
+
+                {/* Rendered ONLY while the block is collapsed. Two copies of
+                    the same zone on the page at once is two elements with one
+                    id — every `htmlFor`, every `#nqd-h-…` and every screen
+                    reader then has a choice to make about which one is meant. */}
+                <Sheet
+                    open={sheet === 'details'} onClose={() => setSheet(null)} title="Customer &amp; details"
+                    size={narrow ? 'bottom' : 'wide'} ns="nqd"
+                    footer={<button type="button" className="nqd-btn" data-pri="true" onClick={() => setSheet(null)}>Done</button>}
+                >
+                    {D.details.mode !== 'collapsed' ? null : (
+                    <DetailsZone
+                        D={{ ...D, details: { ...D.details, mode: 'open', twoCol: !narrow }, avail: narrow ? 380 : 560 }}
+                        type={type} doc={doc} set={set} errors={doc.submitted ? errors : {}}
+                        total={computed.total}
+                        onOpenParty={() => setSheet('party')}
+                        onOpenSource={() => setSheet('source')}
+                        onToggle={() => setSheet(null)}
+                        inSheet
+                    />
+                    )}
+                </Sheet>
+
+                <TypeSheet open={sheet === 'type'} onClose={() => setSheet(null)} current={doc.type} onPick={switchType} narrow={narrow} />
                 <SourceSheet open={sheet === 'source'} onClose={() => setSheet(null)} narrow={narrow} onPick={(d) => set({ sourceDoc: d.id })} />
                 <BreakdownSheet open={sheet === 'breakdown'} onClose={() => setSheet(null)} type={type} doc={doc} computed={computed} narrow={narrow} showMargin={prefs.ops.showMargin && prefs.perms['documents.price_override']} />
                 <PayloadSheet open={sheet === 'payload'} onClose={() => setSheet(null)} type={type} doc={doc} computed={computed} narrow={narrow} />
@@ -929,38 +1079,24 @@ export default function NewInvoice({ auth }) {
 /* A tiny sheet, kept beside the page because it is the page's own field brought
    forward — not a second editor for it. */
 function MoneyNotesSheet({ open, onClose, doc, set, narrow }) {
+    // Built on Sheet, not hand-rolled: `aria-modal` is a promise, and the
+    // hand-rolled copy of this markup kept none of it — F12 opened a dialog
+    // that never took the caret and that Tab walked straight out of.
     return (
-        <div
-            className="nqd-sheet"
-            data-open={open ? 'true' : 'false'}
-            data-size={narrow ? 'bottom' : undefined}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Notes"
-            aria-hidden={!open}
-        >
-            <header className="nqd-sh">
-                <span>Notes</span>
-                <span style={{ flex: 1 }} />
-                <button type="button" className="nqd-iconbtn" aria-label="Close" onClick={onClose}>✕</button>
-            </header>
-            <div className="nqd-sb">
-                <div className="nqd-hdr" style={{ gridTemplateColumns: '1fr' }}>
-                    <div className="nqd-f">
-                        <label htmlFor="nqd-notes-sheet">Notes on this document</label>
-                        <textarea id="nqd-notes-sheet" value={doc.notes} onChange={(e) => set({ notes: e.target.value })} style={{ minHeight: 140 }} />
-                        <span className="hint">
-                            The same field as the one in the details block, and the same payload key.
-                            Notes was in six payloads with no input on any of the eight clone screens.
-                        </span>
-                    </div>
+        <Sheet open={open} onClose={onClose} title="Notes" size={narrow ? 'bottom' : 'side'} ns="nqd">
+            <div className="nqd-hdr" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="nqd-f">
+                    <label htmlFor="nqd-notes-sheet">Notes on this document</label>
+                    <textarea id="nqd-notes-sheet" data-sheet-focus value={doc.notes} onChange={(e) => set({ notes: e.target.value })} style={{ minHeight: 140 }} />
+                    <span className="hint">
+                        The same field as the one in the details block, and the same payload key.
+                        Notes was in six payloads with no input on any of the eight clone screens.
+                    </span>
                 </div>
             </div>
-            <div className="nqd-sf">
-                <div className="nqd-actions">
-                    <button type="button" className="nqd-btn" data-pri="true" onClick={onClose}>Done</button>
-                </div>
+            <div className="nqd-actions">
+                <button type="button" className="nqd-btn" data-pri="true" onClick={onClose}>Done</button>
             </div>
-        </div>
+        </Sheet>
     );
 }
