@@ -1101,6 +1101,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     Route::get('/pos', [\App\Http\Controllers\PosController::class, 'index'])->middleware('permission:pos.checkout')->name('pos');
 
+    // New POS — the composed register. Layout Law v2.0 geometry, V6 tokens, and a
+    // settings drawer that composes the terminal per user and per device.
+    // STRUCTURE ONLY for now: it runs on resources/js/NewPos/mock.js and posts
+    // nothing. Wiring notes are at the top of NewPosController.
+    Route::get('/new-pos', [\App\Http\Controllers\NewPosController::class, 'index'])->middleware('permission:pos.checkout')->name('new-pos');
+
     // Inventory
     Route::get('/inventory', [InventoryController::class, 'dashboard'])->middleware('permission:inventory.view')->name('inventory.dashboard');
     Route::get('/inventory/list', [InventoryController::class, 'index'])->name('inventory.index');

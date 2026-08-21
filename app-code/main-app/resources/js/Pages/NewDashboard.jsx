@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { Head } from '@inertiajs/react';
 import './NewDashboard.css';
 
 function runCardBuilder() {
@@ -1288,7 +1288,7 @@ function sizeOf(c){
 
 function hostDimensions(host, card) {
   let [wCols, hRows] = sizeOf(card);
-  const board = (host && host.closest(".vq-grid")) || document.getElementById("board") || document.body;
+  const board = (host && host.closest(".vq-preview-stage")) || (host && host.closest(".vq-grid")) || document.getElementById("board") || document.body;
   let colW = 140;
   if (board && board.clientWidth > 0) {
     const computedCols = getComputedStyle(board).getPropertyValue("--vq-cols") || 12;
@@ -1300,14 +1300,14 @@ function hostDimensions(host, card) {
   const isInline = card.fit === 0 && !card.h;
   const selfLabelled = card.chart === "gauge" || card.chart === "ring" || card.chart === "sunburst";
   const showHead = card.chart !== "status" && !selfLabelled;
-  const calcH = Math.max(70, totalH - (showHead ? 76 : 28) - ((card.extraKeys && card.extraKeys.length > 0) ? 36 : 0) - 36);
+  const calcH = Math.max(60, totalH - (showHead ? 76 : 28) - ((card.extraKeys && card.extraKeys.length > 0) ? 36 : 0) - 32);
 
   const rect = host ? host.getBoundingClientRect() : null;
   const clientW = host ? host.clientWidth : 0;
   const clientH = host ? host.clientHeight : 0;
 
   const W = Math.max(100, clientW > 30 ? clientW : (rect && rect.width > 30 ? rect.width : calcW));
-  const H = Math.max(60, clientH > 30 ? clientH : (rect && rect.height > 30 ? rect.height : calcH));
+  const H = Math.max(50, clientH > 30 ? clientH : (rect && rect.height > 30 ? rect.height : calcH));
   return { W: Math.round(W), H: Math.round(H) };
 }
 
@@ -1655,29 +1655,20 @@ function boot(){
      page ground, so contrast rules carry over untouched. */
   const THEMES = [["light",null], ["dark",null], ["dark","mesh"]];
   let themeAt = 0;
-  const themeBtn = document.getElementById("vq-theme");
-  if (themeBtn) {
-    themeBtn.onclick = () => {
-      themeAt = (themeAt + 1) % THEMES.length;
-      const [t, bg] = THEMES[themeAt];
-      const r = document.documentElement;
-      r.setAttribute("data-theme", t);
-      if (bg) r.setAttribute("data-bg", bg); else r.removeAttribute("data-bg");
-      themeBtn.setAttribute("data-mode", bg || t);
-      draw();
-    };
-  }
-  const libOpenBtn = document.getElementById("lib-open");
-  if (libOpenBtn) {
-    libOpenBtn.onclick = () => {
-      document.getElementById("lib")?.classList.add("is-on");
-      document.getElementById("lib-q")?.focus();
-    };
-  }
-  const libCloseBtn = document.getElementById("lib-close");
-  if (libCloseBtn) {
-    libCloseBtn.onclick = () => document.getElementById("lib")?.classList.remove("is-on");
-  }
+  document.getElementById("vq-theme").onclick = () => {
+    themeAt = (themeAt + 1) % THEMES.length;
+    const [t, bg] = THEMES[themeAt];
+    const r = document.documentElement;
+    r.setAttribute("data-theme", t);
+    if (bg) r.setAttribute("data-bg", bg); else r.removeAttribute("data-bg");
+    document.getElementById("vq-theme").setAttribute("data-mode", bg || t);
+    draw();
+  };
+  document.getElementById("lib-open").onclick = () => {
+    document.getElementById("lib").classList.add("is-on");
+    document.getElementById("lib-q")?.focus();
+  };
+  document.getElementById("lib-close").onclick = () => document.getElementById("lib").classList.remove("is-on");
   draw();
 }
 
@@ -1713,7 +1704,7 @@ window.VenQoreCards = {
     boot();
   }
 
-  // Set up resize observer to keep charts responsive to viewport/sidebar changes
+  // Set up resize observer to keep charts responsive
   const board = document.getElementById("board");
   if (board && typeof ResizeObserver !== "undefined") {
     let timer = null;
@@ -1733,12 +1724,62 @@ window.VenQoreCards = {
 
 // User-friendly card sizes mapped to Layout Law specs
 const CARD_SIZES = [
-  { id: 'compact', label: 'Compact Stat', sub: '2 × 1 cols', cat: 'C2', fit: 0, w: 2, h: 1 },
-  { id: 'square', label: 'Medium Box', sub: '3 × 3 cols', cat: 'C3', fit: 0, w: 3, h: 3 },
-  { id: 'standard', label: 'Standard Chart', sub: '6 × 4 cols', cat: 'C5', fit: 0, w: 6, h: 4 },
-  { id: 'wide', label: 'Wide Trend', sub: '8 × 4 cols', cat: 'C5', fit: 1, w: 8, h: 4 },
-  { id: 'full', label: 'Full Width Hub', sub: '12 × 4 cols', cat: 'C6', fit: 0, w: 12, h: 4 }
+  { id: 'compact', label: 'Compact Stat', sub: '2 × 1 cols', cat: 'C2', fit: 0, w: 2, h: 1, previewClass: 'preview-size-compact' },
+  { id: 'square', label: 'Medium Box', sub: '3 × 3 cols', cat: 'C3', fit: 0, w: 3, h: 3, previewClass: 'preview-size-square' },
+  { id: 'standard', label: 'Standard Chart', sub: '6 × 4 cols', cat: 'C5', fit: 0, w: 6, h: 4, previewClass: 'preview-size-standard' },
+  { id: 'wide', label: 'Wide Trend', sub: '8 × 4 cols', cat: 'C5', fit: 1, w: 8, h: 4, previewClass: 'preview-size-wide' },
+  { id: 'full', label: 'Full Width Hub', sub: '12 × 4 cols', cat: 'C6', fit: 0, w: 12, h: 4, previewClass: 'preview-size-full' }
 ];
+
+// Rich description lookup dictionary matching the screenshot
+const DESCRIPTIONS = {
+  'sales.revenue': 'Money earned from posted sales, net of returns and excluding tax.',
+  'sales.max_sale': 'The largest individual sale amount, excluding tax, within the period.',
+  'sales.gross_margin_pct': 'Gross profit as a percentage of revenue.',
+  'sales.revenue_trend': 'Monthly sales revenue trend.',
+  'sales.payment_breakdown': 'Sales breakdown by payment method.',
+  'sales.top_products': 'Highest selling products this period.',
+  'sales.top_customers': 'Highest value customers this period.',
+  'sales.hourly_heatmap': 'Sales count by hour of day and day of week.',
+  'sales.live_feed': 'Real-time activity log of orders and payments.',
+  'sales.avg_order_value': 'Average spend per registered transaction.',
+  'sales.basket_size': 'Average items purchased per customer order.',
+  'sales.discount_given': 'Total price discounts and promotional markdowns.',
+  'sales.return_rate': 'Percentage of sales returned or refunded.',
+  'accounting.assets': 'Total tangible and current asset holdings recorded.',
+  'accounting.liabilities': 'Short-term and long-term financial obligations.',
+  'accounting.income_ytd': 'Total accumulated fiscal year revenue to date.',
+  'accounting.expense_ytd': 'Total accumulated fiscal year expenditures to date.',
+  'inventory.total_items': 'Total unique stock keeping units in warehouse.',
+  'inventory.low_stock': 'Items below designated safety reorder thresholds.',
+  'inventory.out_of_stock': 'Products completely depleted from stock shelves.',
+  'inventory.valuation': 'Total monetary valuation of existing on-hand stock.',
+  'purchase.pending_pos': 'Submitted purchase orders awaiting supplier dispatch.',
+  'purchase.received_today': 'Stock delivery consignments received at dock today.',
+  'parties.total_customers': 'Active registered retail and wholesale customers.',
+  'parties.outstanding_dues': 'Receivable dues currently owed by customer accounts.'
+};
+
+function shapeBadgeText(shape) {
+  if (shape === 'SCALAR') return 'NUMBER';
+  if (shape === 'SERIES') return 'TREND';
+  if (shape === 'BREAKDOWN') return 'BREAKDOWN';
+  if (shape === 'RANKING') return 'RANKING';
+  if (shape === 'TABLE') return 'TABLE';
+  if (shape === 'FEED') return 'FEED';
+  if (shape === 'GAUGE') return 'GAUGE';
+  return shape || 'NUMBER';
+}
+
+function readingDescription(r) {
+  if (DESCRIPTIONS[r.key]) return DESCRIPTIONS[r.key];
+  if (r.shape === 'SCALAR') return `Current metric reading for ${r.label.toLowerCase()} across registered period.`;
+  if (r.shape === 'SERIES') return `Historical periodic trend overview for ${r.label.toLowerCase()}.`;
+  if (r.shape === 'BREAKDOWN') return `Categorical distribution analysis for ${r.label.toLowerCase()}.`;
+  if (r.shape === 'TABLE') return `Tabular breakdown and matrix log for ${r.label.toLowerCase()}.`;
+  if (r.shape === 'FEED') return `Real-time activity stream and event logging for ${r.label.toLowerCase()}.`;
+  return `Comprehensive analysis and monitoring reading for ${r.label.toLowerCase()}.`;
+}
 
 export default function NewDashboard(props) {
   const containerRef = useRef(null);
@@ -1777,7 +1818,7 @@ export default function NewDashboard(props) {
       const targetSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
       
       const cardDraft = {
-        id: 'preview-' + Date.now(),
+        id: 'preview-card',
         key: selectedReading.key,
         cat: targetSize.cat,
         chart: draftChart,
@@ -1786,15 +1827,18 @@ export default function NewDashboard(props) {
         fit: targetSize.fit,
         accent: draftAccent,
         title: draftTitle || selectedReading.label,
+        w: targetSize.w,
+        h: targetSize.h,
         extraKeys: []
       };
 
       const cardHtml = window.VenQoreCards.renderCard(cardDraft);
-      previewRef.current.innerHTML = `
-        <div class="vq-preview-grid-wrapper">
-          ${cardHtml}
-        </div>
-      `;
+      previewRef.current.innerHTML = cardHtml;
+      
+      const cardEl = previewRef.current.querySelector(".vqc");
+      if (cardEl) {
+        cardEl.classList.add(targetSize.previewClass);
+      }
       
       const host = previewRef.current.querySelector(".vqc-host");
       if (host) {
@@ -1803,7 +1847,7 @@ export default function NewDashboard(props) {
     }
   }, [modalOpen, step, selectedReading, selectedSizeId, draftChart, draftVariant, draftPeriod, draftAccent, draftTitle]);
 
-  // Open Step 2 for a selected reading with smart initial chart & auto-sizing
+  // Open Step 2 for a selected reading
   const selectMetricForStep2 = (rd) => {
     setSelectedReading(rd);
     const shape = rd.shape;
@@ -1855,7 +1899,6 @@ export default function NewDashboard(props) {
   const handleChartSelect = (chartType) => {
     setDraftChart(chartType);
     
-    // Check minimum size needed by this chart
     const engine = window.VenQoreCards;
     if (engine && typeof engine.minSizeFor === 'function') {
       const mockCard = { chart: chartType, key: selectedReading?.key || 'sales.revenue', extraKeys: [], period: draftPeriod };
@@ -1863,14 +1906,12 @@ export default function NewDashboard(props) {
       
       const currentSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
       
-      // If current size is smaller than required, auto-upgrade to smallest size that fits
       if (currentSize.w < minW || currentSize.h < minH) {
         const fittingSize = CARD_SIZES.find(s => s.w >= minW && s.h >= minH) || CARD_SIZES[4];
         setSelectedSizeId(fittingSize.id);
       }
     }
 
-    // Set first valid variant for this chart
     const variants = window.VenQoreCards?.getVariants?.() || {};
     const chartVars = variants[chartType];
     if (chartVars && chartVars.length > 0) {
@@ -1883,14 +1924,12 @@ export default function NewDashboard(props) {
     const s = CARD_SIZES.find(x => x.id === sizeId);
     if (!s) return;
     
-    // Check if current chart fits in this size
     const engine = window.VenQoreCards;
     if (engine && typeof engine.minSizeFor === 'function') {
       const mockCard = { chart: draftChart, key: selectedReading?.key || 'sales.revenue', extraKeys: [], period: draftPeriod };
       const [minW, minH] = engine.minSizeFor(mockCard);
       
       if (s.w < minW || s.h < minH) {
-        // If chart doesn't fit in selected size, switch to compatible chart
         if (sizeId === 'compact') {
           setDraftChart('stat');
           setDraftVariant('spark');
@@ -1923,6 +1962,8 @@ export default function NewDashboard(props) {
       fit: targetSize.fit,
       accent: draftAccent,
       title: draftTitle || selectedReading.label,
+      w: targetSize.w,
+      h: targetSize.h,
       extraKeys: []
     };
 
@@ -1940,25 +1981,38 @@ export default function NewDashboard(props) {
     setMenuOpen(false);
   };
 
-  // Filter metrics for step 1
+  // Catalog data
   const readings = window.VenQoreCards?.getReadings() || [];
-  const areas = ['All', 'Sales', 'Finance', 'Inventory', 'Purchasing', 'Operations'];
+  const areas = ['All', 'Sales', 'Finance', 'Inventory', 'Purchasing', 'Contacts', 'Production', 'Operations', 'Tax'];
   
-  const filteredReadings = readings.filter(r => {
-    const matchesArea = selectedArea === 'All' || r.area === selectedArea;
-    const matchesQuery = !searchQuery || 
-      r.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.module.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.key.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesArea && matchesQuery;
-  });
+  const filteredReadings = useMemo(() => {
+    return readings.filter(r => {
+      const matchesArea = selectedArea === 'All' || r.area === selectedArea;
+      const matchesQuery = !searchQuery || 
+        r.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.module.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.key.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesArea && matchesQuery;
+    });
+  }, [readings, selectedArea, searchQuery]);
 
-  // Get legal chart types for current reading
+  // Group filtered readings by area
+  const groupedSections = useMemo(() => {
+    const groups = {};
+    filteredReadings.forEach(r => {
+      const area = r.area || 'Other';
+      if (!groups[area]) groups[area] = [];
+      groups[area].push(r);
+    });
+    return groups;
+  }, [filteredReadings]);
+
+  // Legal chart types for current reading
   const legalMap = window.VenQoreCards?.getLegalCharts?.() || {};
   const legalCharts = (selectedReading ? legalMap[selectedReading.shape] : null) || ['area', 'bar', 'line', 'stat', 'gauge', 'funnel', 'table', 'feed', 'heatmap'];
   const chartNames = window.VenQoreCards?.getChartNames?.() || {};
 
-  // Get variants for current chart
+  // Variants for current chart
   const variantsMap = window.VenQoreCards?.getVariants?.() || {};
   const currentVariants = variantsMap[draftChart] || [['standard', 'Standard']];
 
@@ -1966,16 +2020,15 @@ export default function NewDashboard(props) {
     <div ref={containerRef} className={`vq-shell ${isEditMode ? 'is-editing' : ''}`} style={{ minHeight: '100vh', background: 'var(--vq-bg)' }}>
       <Head title="Command Center — New Dashboard" />
 
-      {/* ── Slide-over scrim overlay ────────────────────────────────────── */}
+      {/* Slide-over scrim */}
       <div id="vq-scrim" className="vq-scrim" onClick={() => {
         document.getElementById("lib")?.classList.remove("is-on");
         document.getElementById("edit")?.classList.remove("is-on");
         document.getElementById("vq-scrim")?.classList.remove("is-on");
       }}></div>
 
-      {/* ── Enterprise Real Dashboard Sidebar ────────────────────────────── */}
+      {/* Enterprise Sidebar */}
       <aside className={`vq-sidebar ${sidebarCollapsed ? 'is-collapsed' : ''}`} style={sidebarCollapsed ? { width: '72px' } : {}}>
-        {/* Brand */}
         <div className="vq-sidebar-top">
           <div className="vq-brand-badge">V</div>
           {!sidebarCollapsed && (
@@ -1988,7 +2041,6 @@ export default function NewDashboard(props) {
           )}
         </div>
 
-        {/* Store Switcher */}
         {!sidebarCollapsed && (
           <div className="vq-store-switcher" title="Switch Store Location">
             <div className="vq-store-details">
@@ -1999,7 +2051,6 @@ export default function NewDashboard(props) {
           </div>
         )}
 
-        {/* Navigation List */}
         <div className="vq-nav-scroll">
           <div className="vq-nav-group">
             {!sidebarCollapsed && <div className="vq-nav-group-title">Main</div>}
@@ -2068,7 +2119,6 @@ export default function NewDashboard(props) {
           </div>
         </div>
 
-        {/* User Profile in Sidebar Footer */}
         <div className="vq-sidebar-footer">
           <div className="vq-user-avatar">
             {user?.name ? user.name.slice(0, 2).toUpperCase() : 'SO'}
@@ -2082,9 +2132,8 @@ export default function NewDashboard(props) {
         </div>
       </aside>
 
-      {/* ── Main Stage Area (100% Space) ────────────────────────────────── */}
+      {/* Main Content Area */}
       <div className="vq-main-stage">
-        {/* Top Header */}
         <header className="vq-main-header">
           <div className="vq-header-left">
             <button
@@ -2112,7 +2161,6 @@ export default function NewDashboard(props) {
               <span className="vq-search-kbd">⌘K</span>
             </div>
 
-            {/* Primary Add New Card Button */}
             <button
               onClick={() => {
                 setModalOpen(true);
@@ -2125,7 +2173,6 @@ export default function NewDashboard(props) {
               <span>Add New Card</span>
             </button>
 
-            {/* Theme Switcher */}
             <button id="vq-theme" className="pg-theme" aria-label="Toggle light and dark theme">
               <span className="pg-theme-l">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
@@ -2135,7 +2182,6 @@ export default function NewDashboard(props) {
               </span>
             </button>
 
-            {/* ── 3-Dots Action Menu ───────────────────────────────────── */}
             <div className="vq-menu-container">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -2180,24 +2226,12 @@ export default function NewDashboard(props) {
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                     <span>Reset Layout</span>
                   </button>
-
-                  <button
-                    className="vq-dropdown-item"
-                    onClick={() => {
-                      alert('Dashboard layout saved successfully!');
-                      setMenuOpen(false);
-                    }}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    <span>Save Layout</span>
-                  </button>
                 </div>
               )}
             </div>
           </div>
         </header>
 
-        {/* ── Active Edit Mode Banner ──────────────────────────────────── */}
         {isEditMode && (
           <div className="vq-edit-banner">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2210,7 +2244,6 @@ export default function NewDashboard(props) {
           </div>
         )}
 
-        {/* ── 100% Fluid Main Canvas ──────────────────────────────────── */}
         <main className="app">
           <div className="vq-canvas">
             <div className="board-h">
@@ -2235,105 +2268,115 @@ export default function NewDashboard(props) {
               </div>
             </div>
 
-            {/* The 100% Width Layout Law Grid */}
             <div className="vq-grid" id="board"></div>
           </div>
         </main>
       </div>
 
-      {/* ── 2-Step Card Builder Modal with Live Preview ─────────────── */}
+      {/* ── Exact Step 1 & Step 2 Add Cards Modal (Matching Screenshot) ── */}
       {modalOpen && (
         <div className="vq-modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="vq-modal-card" onClick={e => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="vq-modal-header">
-              <div className="vq-modal-title">
-                {step === 1 ? (
-                  <>
-                    <span className="vq-step-badge">Step 1 of 2</span>
-                    <span>Choose a Metric</span>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => setStep(1)}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--vq-teal-600)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 6px 0 0' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                      Back
-                    </button>
-                    <span className="vq-step-badge">Step 2 of 2</span>
-                    <span>Configure & Preview: {selectedReading?.label}</span>
-                  </>
-                )}
+            {/* Top Bar */}
+            <div className="vq-modal-top-bar">
+              <div>
+                <div className="vq-modal-step-sub">
+                  {step === 1 ? 'ADD CARDS · STEP 1 OF 2' : 'ADD CARDS · STEP 2 OF 2'}
+                </div>
+                <div className="vq-modal-heading">
+                  {step === 1 ? 'Choose a reading' : `Configure: ${selectedReading?.label}`}
+                </div>
               </div>
-              <button
-                onClick={() => setModalOpen(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vq-text-2)', padding: '6px' }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
+              <div className="vq-modal-top-right">
+                {step === 1 && (
+                  <span className="vq-modal-count">
+                    {filteredReadings.length} of {readings.length}
+                  </span>
+                )}
+                <button
+                  className="vq-modal-close-x"
+                  onClick={() => setModalOpen(false)}
+                  aria-label="Close modal"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="vq-modal-body">
-              {step === 1 ? (
-                <>
-                  {/* Search and Filters */}
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                    <div style={{ position: 'relative', flex: '1 1 280px' }}>
-                      <input
-                        type="text"
-                        placeholder="Search 85+ live metrics..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: '10px', border: '1px solid var(--vq-line)', background: 'var(--vq-sunken)', color: 'var(--vq-text)', fontSize: '13px' }}
-                      />
-                      <svg style={{ position: 'absolute', left: '12px', top: '12px', opacity: 0.5 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    </div>
+            {/* Filter Zone */}
+            {step === 1 && (
+              <div className="vq-modal-filter-zone">
+                <div className="vq-modal-search-wrapper">
+                  <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input
+                    type="text"
+                    className="vq-modal-search-input"
+                    placeholder={`Search ${readings.length} readings...`}
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    autoFocus
+                  />
+                </div>
 
-                    <div className="vq-filter-bar" style={{ margin: 0 }}>
-                      {areas.map(a => (
-                        <button
-                          key={a}
-                          className={`vq-filter-chip ${selectedArea === a ? 'is-active' : ''}`}
-                          onClick={() => setSelectedArea(a)}
+                <div className="vq-modal-chips-row">
+                  {areas.map(a => (
+                    <button
+                      key={a}
+                      className={`vq-modal-chip ${selectedArea === a ? 'is-active' : ''}`}
+                      onClick={() => setSelectedArea(a)}
+                    >
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Scrollable Content Body */}
+            <div className="vq-modal-scroll-area">
+              {step === 1 ? (
+                Object.keys(groupedSections).map(area => (
+                  <div key={area} className="vq-modal-section-group">
+                    <div className="vq-modal-section-title">{area}</div>
+                    <div className="vq-modal-cards-grid">
+                      {groupedSections[area].map(r => (
+                        <div
+                          key={r.key}
+                          className="vq-item-card"
+                          onClick={() => selectMetricForStep2(r)}
                         >
-                          {a}
-                        </button>
+                          <div className="vq-item-card-top">
+                            <span className="vq-item-card-title">{r.label}</span>
+                            {r.extra && (
+                              <span className="vq-item-new-badge">✨ NEW</span>
+                            )}
+                          </div>
+                          
+                          <p className="vq-item-card-desc">
+                            {readingDescription(r)}
+                          </p>
+
+                          <div className="vq-item-card-foot">
+                            <span className="vq-item-shape-tag">
+                              {shapeBadgeText(r.shape)}
+                            </span>
+                            <span className="vq-item-card-key">{r.key}</span>
+                            <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
-
-                  {/* Metrics Grid */}
-                  <div className="vq-metric-grid">
-                    {filteredReadings.map(r => (
-                      <div
-                        key={r.key}
-                        className="vq-metric-tile"
-                        onClick={() => selectMetricForStep2(r)}
-                      >
-                        <div className="vq-metric-tile-head">
-                          <span className="vq-metric-area-badge">{r.area} • {r.module}</span>
-                          <span className="vq-metric-shape-pill">{r.shape}</span>
-                        </div>
-                        <div className="vq-metric-name">{r.label}</div>
-                        <div className="vq-metric-preview-val">
-                          {r.unit === 'currency' ? 'Rs 248,500' : r.unit === 'percent' ? '88.4%' : '1,420'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
+                ))
               ) : (
-                /* Step 2: Controls & Live Interactive Preview */
+                /* Step 2: Controls & Accurate Proportional Preview */
                 <div className="vq-step2-layout">
-                  {/* Left Controls */}
+                  {/* Left Controls Pane */}
                   <div className="vq-controls-pane">
-                    {/* User-Friendly Card Size Selector */}
+                    {/* Card Size Selector */}
                     <div className="vq-form-group">
                       <label className="vq-form-label">
-                        <span>Card Size</span>
+                        <span>CARD SIZE</span>
                         <span className="vq-form-sublabel">Auto-scales layout</span>
                       </label>
                       <div className="vq-size-grid">
@@ -2353,7 +2396,7 @@ export default function NewDashboard(props) {
                     {/* Chart Type Selector */}
                     <div className="vq-form-group">
                       <label className="vq-form-label">
-                        <span>Chart Type</span>
+                        <span>CHART TYPE</span>
                         <span className="vq-form-sublabel">Auto-resizes card if needed</span>
                       </label>
                       <div className="vq-select-btn-group">
@@ -2369,9 +2412,9 @@ export default function NewDashboard(props) {
                       </div>
                     </div>
 
-                    {/* Variant Selector */}
+                    {/* Visual Variant Selector */}
                     <div className="vq-form-group">
-                      <label className="vq-form-label">Visual Variant</label>
+                      <label className="vq-form-label">VISUAL VARIANT</label>
                       <div className="vq-select-btn-group">
                         {currentVariants.map(([v, n]) => (
                           <button
@@ -2385,9 +2428,9 @@ export default function NewDashboard(props) {
                       </div>
                     </div>
 
-                    {/* Timeframe Selector */}
+                    {/* Default Timeframe */}
                     <div className="vq-form-group">
-                      <label className="vq-form-label">Default Timeframe</label>
+                      <label className="vq-form-label">DEFAULT TIMEFRAME</label>
                       <div className="vq-select-btn-group">
                         {['Today', 'Week', 'Month', 'Quarter', 'Year'].map(p => (
                           <button
@@ -2401,7 +2444,7 @@ export default function NewDashboard(props) {
                       </div>
                     </div>
 
-                    {/* Accent Card Checkbox */}
+                    {/* Accent Card */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                       <input
                         type="checkbox"
@@ -2416,42 +2459,46 @@ export default function NewDashboard(props) {
                     </div>
                   </div>
 
-                  {/* Right Live Interactive Preview */}
-                  <div className="vq-preview-pane">
-                    <div style={{ position: 'absolute', top: '12px', left: '16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--vq-text-3)', letterSpacing: '0.05em' }}>
-                      Live Dashboard Preview
+                  {/* Right Live Dashboard Preview */}
+                  <div className="vq-preview-stage">
+                    <div style={{ position: 'absolute', top: '14px', left: '18px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#8b9a93', letterSpacing: '0.06em' }}>
+                      LIVE DASHBOARD PREVIEW
                     </div>
-                    <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}></div>
+                    <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}></div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="vq-modal-footer">
+            {/* Bottom Bar */}
+            <div className="vq-modal-bottom-bar">
               {step === 1 ? (
-                <div></div>
+                <div className="vq-modal-bottom-desc">
+                  Pick a reading to shape its card — size, chart and period come next, with a live preview before anything lands on your board.
+                </div>
               ) : (
                 <button
                   className="vq-choice-btn"
                   onClick={() => setStep(1)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  ← Change Metric
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                  <span>Change Reading</span>
                 </button>
               )}
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
-                  className="vq-choice-btn"
+                  className="vq-modal-close-btn"
                   onClick={() => setModalOpen(false)}
                 >
-                  Cancel
+                  Close
                 </button>
                 {step === 2 && (
                   <button
                     className="vqb vqb--primary"
                     onClick={handleAddCardConfirm}
-                    style={{ padding: '8px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 700 }}
+                    style={{ padding: '8px 20px', borderRadius: '999px', fontSize: '13px', fontWeight: 700 }}
                   >
                     Add to Dashboard
                   </button>
@@ -2462,7 +2509,7 @@ export default function NewDashboard(props) {
         </div>
       )}
 
-      {/* ── Fixed Slide-over Edit Drawer Layer ───────────────────────── */}
+      {/* Slide-over Drawer Layer */}
       <aside className="side">
         <div id="edit"></div>
         <div className="panel" id="lib">
