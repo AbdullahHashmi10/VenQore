@@ -2536,13 +2536,16 @@ export default function NewDashboard(props) {
               <span>Quick Actions</span>
             </button>
 
-            {/* Main Add New Card Trigger */}
+            {/* Main Add New Card Trigger (Closed 3D Folder Button) */}
             <button
               onClick={() => setFolderLauncherOpen(true)}
-              className="vqb vqb--primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', borderRadius: 'var(--vq-r-full)', fontSize: '13px', fontWeight: 700 }}
+              className="vq-folder-trigger-btn"
+              title="Open Card Catalog Folder"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <div className="vq-mini-folder-icon">
+                <div className="vq-mini-folder-papers"></div>
+                <div className="vq-mini-folder-front"></div>
+              </div>
               <span>Add New Card</span>
             </button>
 
@@ -2629,10 +2632,15 @@ export default function NewDashboard(props) {
               </div>
               <div className="board-actions">
                 <button
-                  className="vqb vqb--primary"
+                  className="vq-folder-trigger-btn"
                   onClick={() => setFolderLauncherOpen(true)}
+                  title="Open Card Catalog Folder"
                 >
-                  Add New Card
+                  <div className="vq-mini-folder-icon">
+                    <div className="vq-mini-folder-papers"></div>
+                    <div className="vq-mini-folder-front"></div>
+                  </div>
+                  <span>Add New Card</span>
                 </button>
               </div>
             </div>
@@ -2656,9 +2664,10 @@ export default function NewDashboard(props) {
 
             <div className="vq-folder-stage-container">
               <Folder
-                size={1.15}
+                size={1.3}
                 color="#0baa8f"
                 selectedIndex={categoryFolderIndex}
+                autoAnimateOpen={true}
                 onSelectCategory={(i) => launchCategoryModal(i)}
                 items={[
                   <span>📊 Readings</span>,
@@ -2667,7 +2676,7 @@ export default function NewDashboard(props) {
                 ]}
               />
               <div className="vq-folder-portal-heading">What would you like to add?</div>
-              <div className="vq-folder-portal-sub">Choose a category to launch the card customizer wizard</div>
+              <div className="vq-folder-portal-sub">Click a category card below or click any paper in the folder</div>
             </div>
 
             <div className="vq-portal-options-grid">

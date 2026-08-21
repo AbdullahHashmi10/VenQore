@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Folder.css';
 
 const darkenColor = (hex, percent) => {
@@ -19,15 +19,40 @@ const darkenColor = (hex, percent) => {
   return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 };
 
-const Folder = ({ color = '#0baa8f', size = 1, items = [], className = '', onSelectCategory, selectedIndex = 0 }) => {
+const Folder = ({
+  color = '#0baa8f',
+  size = 1,
+  items = [],
+  className = '',
+  onSelectCategory,
+  selectedIndex = 0,
+  isOpen = null,
+  autoAnimateOpen = false
+}) => {
   const maxItems = 3;
   const papers = items.slice(0, maxItems);
   while (papers.length < maxItems) {
     papers.push(null);
   }
 
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(isOpen !== null ? isOpen : !autoAnimateOpen);
   const [paperOffsets, setPaperOffsets] = useState(Array.from({ length: maxItems }, () => ({ x: 0, y: 0 })));
+
+  useEffect(() => {
+    if (isOpen !== null) {
+      setOpen(isOpen);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (autoAnimateOpen) {
+      setOpen(false);
+      const timer = setTimeout(() => {
+        setOpen(true);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [autoAnimateOpen]);
 
   const folderBackColor = darkenColor(color, 0.12);
   const paper1 = darkenColor('#ffffff', 0.1);
@@ -35,9 +60,8 @@ const Folder = ({ color = '#0baa8f', size = 1, items = [], className = '', onSel
   const paper3 = '#ffffff';
 
   const handleClick = () => {
-    setOpen(prev => !prev);
-    if (open) {
-      setPaperOffsets(Array.from({ length: maxItems }, () => ({ x: 0, y: 0 })));
+    if (isOpen === null) {
+      setOpen(prev => !prev);
     }
   };
 
@@ -71,25 +95,25 @@ const Folder = ({ color = '#0baa8f', size = 1, items = [], className = '', onSel
     '--paper-3': paper3
   };
 
-  const folderClassName = `folder ${open ? 'open' : ''}`.trim();
-  const scaleStyle = { transform: `scale(${size})`, transformOrigin: 'center center' };
+  const folderClassName = ('folder ' + (open ? 'open' : 'closed')).trim();
+  const scaleStyle = { transform: 'scale(' + size + ')', transformOrigin: 'center center' };
 
   return (
-    <div style={scaleStyle} className={`vq-folder-wrapper ${className}`}>
+    <div style={scaleStyle} className={'vq-folder-wrapper ' + className}>
       <div
         className={folderClassName}
         style={folderStyle}
         onClick={handleClick}
         tabIndex={0}
-        role="button"
+        role='button'
         aria-expanded={open}
         aria-label={open ? 'Close folder' : 'Open folder'}
       >
-        <div className="folder__back">
+        <div className='folder__back'>
           {papers.map((item, i) => (
             <div
               key={i}
-              className={`paper paper-${i + 1} ${selectedIndex === i ? 'is-selected-paper' : ''}`}
+              className={'paper paper-' + (i + 1) + ' ' + (selectedIndex === i ? 'is-selected-paper' : '')}
               onClick={(e) => {
                 e.stopPropagation();
                 if (onSelectCategory) onSelectCategory(i);
@@ -99,8 +123,8 @@ const Folder = ({ color = '#0baa8f', size = 1, items = [], className = '', onSel
               style={
                 open
                   ? {
-                      '--magnet-x': `${paperOffsets[i]?.x || 0}px`,
-                      '--magnet-y': `${paperOffsets[i]?.y || 0}px`
+                      '--magnet-x': (paperOffsets[i]?.x || 0) + 'px',
+                      '--magnet-y': (paperOffsets[i]?.y || 0) + 'px'
                     }
                   : {}
               }
@@ -108,8 +132,8 @@ const Folder = ({ color = '#0baa8f', size = 1, items = [], className = '', onSel
               {item}
             </div>
           ))}
-          <div className="folder__front"></div>
-          <div className="folder__front right"></div>
+          <div className='folder__front'></div>
+          <div className='folder__front right'></div>
         </div>
       </div>
     </div>
