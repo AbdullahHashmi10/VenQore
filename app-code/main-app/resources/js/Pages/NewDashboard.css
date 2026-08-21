@@ -1718,7 +1718,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   --vq-margin: 24px;
   --vq-cols: 12;
 
-  /* V6 Tokens */
+  /* V6 Color Tokens */
   --vq-teal-50: #E6FBF5;
   --vq-teal-100: #C6F5E9;
   --vq-teal-200: #93EBD6;
@@ -1746,7 +1746,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   --vq-ink-950: #0D1412;
   --vq-ink-1000: #060A09;
 
-  --vq-r-xs: 4px;
+  --vq-r-xs: 6px;
   --vq-r-sm: 8px;
   --vq-r-md: 12px;
   --vq-r-lg: 16px;
@@ -2425,6 +2425,73 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   CARD BACKGROUND TONE VARIANTS (V6 DESIGN SYSTEM)
+   ══════════════════════════════════════════════════════════════════════════ */
+.vqc--tone-surface {
+  background: var(--vq-surface, #ffffff) !important;
+  color: var(--vq-text, var(--vq-ink-900)) !important;
+  border-color: var(--vq-line, var(--vq-ink-200)) !important;
+}
+
+[data-theme="dark"] .vqc--tone-surface {
+  background: #151d18 !important;
+  border-color: #24332c !important;
+  color: #ffffff !important;
+}
+
+.vqc--tone-accent, .vqc--accent {
+  background: linear-gradient(135deg, var(--vq-teal-600, #088975) 0%, var(--vq-teal-800, #0a5049) 100%) !important;
+  border-color: transparent !important;
+  color: #FFFFFF !important;
+  box-shadow: var(--vq-glow-accent, 0 8px 24px rgba(11, 170, 143, 0.35)) !important;
+}
+
+.vqc--tone-accent .vqc-eyebrow,
+.vqc--tone-accent .vqc-when,
+.vqc--tone-accent .vqc-unit,
+.vqc--tone-accent .vqc-ctx {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.vqc--tone-accent .vqc-value,
+.vqc--tone-accent .vqc-head-val {
+  color: #FFFFFF !important;
+}
+
+.vqc--tone-ink {
+  background: #0D1412 !important;
+  border-color: #1F2B25 !important;
+  color: #EDF2EF !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.vqc--tone-ink .vqc-eyebrow,
+.vqc--tone-ink .vqc-when {
+  color: #8B9A93 !important;
+}
+
+.vqc--tone-ink .vqc-value,
+.vqc--tone-ink .vqc-head-val {
+  color: #FFFFFF !important;
+}
+
+.vqc--tone-mesh {
+  background: radial-gradient(at 100% 0%, rgba(11, 170, 143, 0.20) 0px, transparent 65%),
+              radial-gradient(at 0% 100%, rgba(43, 165, 209, 0.18) 0px, transparent 65%),
+              var(--vq-surface, #ffffff) !important;
+  border-color: var(--vq-teal-200, #93ebd6) !important;
+  color: var(--vq-text, var(--vq-ink-900)) !important;
+  box-shadow: 0 8px 24px rgba(11, 170, 143, 0.12) !important;
+}
+
+[data-theme="dark"] .vqc--tone-mesh {
+  background: radial-gradient(at 100% 0%, rgba(11, 170, 143, 0.28) 0px, transparent 65%),
+              radial-gradient(at 0% 100%, rgba(43, 165, 209, 0.22) 0px, transparent 65%),
+              #111815 !important;
+  border-color: #1a5044 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    VENQORE V6 STANDALONE MODAL (STRICT V6 DESIGN SYSTEM ALIGNMENT)
    ══════════════════════════════════════════════════════════════════════════ */
 .vq-modal-overlay {
@@ -2867,11 +2934,11 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   STEP 2 PREVIEW - ACCURATE PROPORTIONAL SIZING & NO CLIPPING
+   STEP 2 PREVIEW & CONTROLS (UNCLIPPED WITH PADDING)
    ══════════════════════════════════════════════════════════════════════════ */
 .vq-step2-layout {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 390px 1fr;
   gap: 24px;
   height: 100%;
   min-height: 0;
@@ -2886,9 +2953,10 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vq-controls-pane {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding: 6px 12px 24px 6px;
+  box-sizing: border-box;
 }
 
 .vq-preview-stage {
@@ -2959,6 +3027,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  padding: 2px;
 }
 
 .vq-size-card {
@@ -2972,6 +3041,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   flex-direction: column;
   gap: 3px;
   text-align: left;
+  box-sizing: border-box;
 }
 
 [data-theme="dark"] .vq-size-card {
@@ -2986,13 +3056,13 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vq-size-card.is-active {
   background: var(--vq-teal-50);
   border-color: var(--vq-teal-500);
-  box-shadow: 0 0 0 1px var(--vq-teal-500);
+  box-shadow: 0 0 0 1.5px var(--vq-teal-500);
 }
 
 [data-theme="dark"] .vq-size-card.is-active {
   background: #0d2922;
   border-color: #59dbc0;
-  box-shadow: 0 0 0 1px #59dbc0;
+  box-shadow: 0 0 0 1.5px #59dbc0;
 }
 
 .vq-size-card-title {
@@ -3011,6 +3081,73 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-size-card-desc {
   font-size: 11px;
+  color: var(--vq-text-3, var(--vq-ink-500));
+}
+
+/* ── Tone Options Grid ───────────────────────────────────────────────── */
+.vq-tone-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 2px;
+}
+
+.vq-tone-card {
+  padding: 10px 12px;
+  border-radius: var(--vq-r-md);
+  border: 1px solid var(--vq-line, var(--vq-ink-200));
+  background: var(--vq-surface, #ffffff);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all var(--vq-dur-1) var(--vq-ease-out);
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .vq-tone-card {
+  background: #17201b;
+  border-color: #24332c;
+}
+
+.vq-tone-card:hover {
+  border-color: var(--vq-teal-500);
+}
+
+.vq-tone-card.is-active {
+  border-color: var(--vq-teal-500);
+  background: var(--vq-teal-50);
+  box-shadow: 0 0 0 1.5px var(--vq-teal-500);
+}
+
+[data-theme="dark"] .vq-tone-card.is-active {
+  background: #0d2922;
+  border-color: #59dbc0;
+  box-shadow: 0 0 0 1.5px #59dbc0;
+}
+
+.vq-tone-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--vq-r-xs);
+  flex-shrink: 0;
+  border: 1px solid var(--vq-line, var(--vq-ink-200));
+}
+
+.vq-tone-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vq-tone-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--vq-text, var(--vq-ink-900));
+}
+
+.vq-tone-desc {
+  font-size: 10.5px;
   color: var(--vq-text-3, var(--vq-ink-500));
 }
 
@@ -3071,4 +3208,73 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   color: #ffffff;
   border-color: var(--vq-teal-500);
   box-shadow: var(--vq-glow-accent);
+}
+
+/* ── V6 Design System Switch ─────────────────────────────────────────── */
+.vq-v6-switch-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--vq-surface, #ffffff);
+  border: 1px solid var(--vq-line, var(--vq-ink-200));
+  border-radius: var(--vq-r-md);
+  cursor: pointer;
+  transition: border-color var(--vq-dur-1) var(--vq-ease-out);
+}
+
+[data-theme="dark"] .vq-v6-switch-wrapper {
+  background: #17201b;
+  border-color: #24332c;
+}
+
+.vq-v6-switch-wrapper:hover {
+  border-color: var(--vq-teal-500);
+}
+
+.vq-v6-switch-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.vq-v6-switch-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--vq-text, var(--vq-ink-900));
+}
+
+.vq-v6-switch-sub {
+  font-size: 11px;
+  color: var(--vq-text-3, var(--vq-ink-500));
+}
+
+.vq-v6-switch-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--vq-line, var(--vq-ink-200));
+  padding: 2px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background-color var(--vq-dur-2) var(--vq-ease-out);
+  box-sizing: border-box;
+}
+
+.vq-v6-switch-track.is-on {
+  background: var(--vq-teal-500);
+  box-shadow: var(--vq-glow-accent);
+}
+
+.vq-v6-switch-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform var(--vq-dur-2) var(--vq-ease-spring);
+  transform: translateX(0);
+}
+
+.vq-v6-switch-track.is-on .vq-v6-switch-knob {
+  transform: translateX(20px);
 }

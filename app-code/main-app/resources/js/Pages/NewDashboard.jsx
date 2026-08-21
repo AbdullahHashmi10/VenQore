@@ -1331,6 +1331,8 @@ function hostDimensions(host, card) {
 }
 
 function renderCard(c){
+  const tone = c.tone || (c.accent ? "accent" : "surface");
+  const toneClass = tone === "accent" ? "vqc--tone-accent vqc--accent" : tone === "ink" ? "vqc--tone-ink" : tone === "mesh" ? "vqc--tone-mesh" : "vqc--tone-surface";
   const rd = readingOf(c.key);
   const [w, h] = sizeOf(c);
   const title = c.title || rd.label;
@@ -1370,7 +1372,7 @@ function renderCard(c){
       ${c.chart === "status" ? "" : `<p class="vqc-head-when vqc-when">${hl.when}</p>`}
       ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}`;
   }
-  return `<article class="vqc vqc--${c.cat.toLowerCase()} vq-w${w} vq-h${h} ${c.accent?"vqc--accent":""}"
+  return `<article class="vqc vqc--${c.cat.toLowerCase()} vq-w${w} vq-h${h} ${toneClass}"
     data-id="${c.id}" tabindex="0" draggable="false" style="--i:${CARDS.indexOf(c)}">${body}
     <span class="vqc-glare" aria-hidden="true"></span>
     <button class="vqc-resize" aria-label="Resize card" title="Drag to resize"></button></article>`;
@@ -1759,6 +1761,14 @@ const CARD_SIZES = [
   { id: 'full', label: 'Full Width Hub', sub: '12 × 4 cols', cat: 'C6', fit: 0, w: 12, h: 4, previewClass: 'preview-size-full' }
 ];
 
+// 4 V6 Design System Card Background Tones
+const CARD_TONES = [
+  { id: 'surface', name: 'Default Surface', desc: 'Adapts to theme', swatchBg: 'var(--vq-surface, #ffffff)' },
+  { id: 'accent', name: 'Mint Accent', desc: 'Teal brand gradient', swatchBg: 'linear-gradient(135deg, #0baa8f, #076b5e)' },
+  { id: 'ink', name: 'Obsidian Ink', desc: 'Always dark obsidian', swatchBg: '#0d1412' },
+  { id: 'mesh', name: 'Aurora Mesh', desc: 'Teal / sky gradient mesh', swatchBg: 'radial-gradient(circle at 100% 0%, #93ebd6 0%, #8fd9f5 100%)' }
+];
+
 // Rich description lookup dictionary matching the screenshot
 const DESCRIPTIONS = {
   'sales.revenue': 'Money earned from posted sales, net of returns and excluding tax.',
@@ -1829,6 +1839,7 @@ export default function NewDashboard(props) {
   const [selectedSizeId, setSelectedSizeId] = useState('standard');
   const [draftChart, setDraftChart] = useState('area');
   const [draftVariant, setDraftVariant] = useState('gradient');
+  const [draftTone, setDraftTone] = useState('surface');
   const [draftPeriod, setDraftPeriod] = useState('Month');
   const [draftAccent, setDraftAccent] = useState(false);
   const [draftTitle, setDraftTitle] = useState('');
@@ -1853,7 +1864,8 @@ export default function NewDashboard(props) {
         variant: draftVariant,
         period: draftPeriod,
         fit: targetSize.fit,
-        accent: draftAccent,
+        tone: draftTone,
+        accent: draftTone === 'accent' || draftAccent,
         title: draftTitle || selectedReading.label,
         w: targetSize.w,
         h: targetSize.h,
@@ -1876,7 +1888,7 @@ export default function NewDashboard(props) {
         }
       });
     }
-  }, [modalOpen, step, selectedReading, selectedSizeId, draftChart, draftVariant, draftPeriod, draftAccent, draftTitle]);
+  }, [modalOpen, step, selectedReading, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftAccent, draftTitle]);
 
   // Open Step 2 for a selected reading
   const selectMetricForStep2 = (rd) => {
@@ -1920,6 +1932,7 @@ export default function NewDashboard(props) {
     setDraftChart(defaultChart);
     setDraftVariant(defaultVar);
     setSelectedSizeId(initialSize);
+    setDraftTone('surface');
     setDraftPeriod('Month');
     setDraftTitle(rd.label);
     setDraftAccent(false);
@@ -1991,7 +2004,8 @@ export default function NewDashboard(props) {
       variant: draftVariant,
       period: draftPeriod,
       fit: targetSize.fit,
-      accent: draftAccent,
+      tone: draftTone,
+      accent: draftTone === 'accent' || draftAccent,
       title: draftTitle || selectedReading.label,
       w: targetSize.w,
       h: targetSize.h,
@@ -2014,7 +2028,12 @@ export default function NewDashboard(props) {
 
   // Catalog data
   const readings = window.VenQoreCards?.getReadings() || [];
-  const areas = ['All', 'Sales', 'Finance', 'Inventory', 'Purchasing', 'Contacts', 'Production', 'Operations', 'Tax'];
+  
+  // Dynamically derive populated areas from readings so no empty chips ever appear
+  const availableAreas = useMemo(() => {
+    const rawAreas = Array.from(new Set(readings.map(r => r.area).filter(Boolean)));
+    return ['All', ...rawAreas];
+  }, [readings]);
   
   const filteredReadings = useMemo(() => {
     return readings.filter(r => {
@@ -2027,11 +2046,11 @@ export default function NewDashboard(props) {
     });
   }, [readings, selectedArea, searchQuery]);
 
-  // Group filtered readings by area
+  // Group filtered readings by area (only populated sections)
   const groupedSections = useMemo(() => {
     const groups = {};
     filteredReadings.forEach(r => {
-      const area = r.area || 'Other';
+      const area = r.area || 'General';
       if (!groups[area]) groups[area] = [];
       groups[area].push(r);
     });
@@ -2351,7 +2370,7 @@ export default function NewDashboard(props) {
                 </div>
 
                 <div className="vq-modal-chips-row">
-                  {areas.map(a => (
+                  {availableAreas.map(a => (
                     <button
                       key={a}
                       className={`vq-modal-chip ${selectedArea === a ? 'is-active' : ''}`}
@@ -2460,6 +2479,26 @@ export default function NewDashboard(props) {
                       </div>
                     </div>
 
+                    {/* Card Background Tone Selector (V6 Design System) */}
+                    <div className="vq-form-group">
+                      <label className="vq-form-label">CARD BACKGROUND TONE</label>
+                      <div className="vq-tone-grid">
+                        {CARD_TONES.map(t => (
+                          <div
+                            key={t.id}
+                            className={`vq-tone-card ${draftTone === t.id ? 'is-active' : ''}`}
+                            onClick={() => setDraftTone(t.id)}
+                          >
+                            <div className="vq-tone-swatch" style={{ background: t.swatchBg }}></div>
+                            <div className="vq-tone-info">
+                              <span className="vq-tone-name">{t.name}</span>
+                              <span className="vq-tone-desc">{t.desc}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Default Timeframe */}
                     <div className="vq-form-group">
                       <label className="vq-form-label">DEFAULT TIMEFRAME</label>
@@ -2476,18 +2515,20 @@ export default function NewDashboard(props) {
                       </div>
                     </div>
 
-                    {/* Accent Card */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                      <input
-                        type="checkbox"
-                        id="draft-accent"
-                        checked={draftAccent}
-                        onChange={e => setDraftAccent(e.target.checked)}
-                        style={{ width: '16px', height: '16px', accentColor: 'var(--vq-teal-500)' }}
-                      />
-                      <label htmlFor="draft-accent" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)', cursor: 'pointer' }}>
-                        Accent Card (Highlighted Glare)
-                      </label>
+                    {/* V6 Design System Switch for Highlight Glare */}
+                    <div
+                      className="vq-v6-switch-wrapper"
+                      onClick={() => setDraftAccent(!draftAccent)}
+                      role="switch"
+                      aria-checked={draftAccent}
+                    >
+                      <div className="vq-v6-switch-label">
+                        <span className="vq-v6-switch-title">Animated Glare Shine</span>
+                        <span className="vq-v6-switch-sub">Subtle holographic lighting reflex</span>
+                      </div>
+                      <div className={`vq-v6-switch-track ${draftAccent ? 'is-on' : ''}`}>
+                        <div className="vq-v6-switch-knob"></div>
+                      </div>
                     </div>
                   </div>
 
@@ -2506,7 +2547,7 @@ export default function NewDashboard(props) {
             <div className="vq-modal-bottom-bar">
               {step === 1 ? (
                 <div className="vq-modal-bottom-desc">
-                  Pick a reading to shape its card — size, chart and period come next, with a live preview before anything lands on your board.
+                  Pick a reading to shape its card — size, chart, background and period come next, with a live preview before anything lands on your board.
                 </div>
               ) : (
                 <button

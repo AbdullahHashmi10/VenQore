@@ -17,8 +17,8 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Flag, Kbd, Money, RowButton, Sheet, n0, n2 } from './ui';
-import { keymap } from './engine';
+import { Flag, Kbd, Money, RowButton, Sheet, n0, n2 } from '@/LayoutLaw/ui';
+import { keymap } from '@/LayoutLaw/engine';
 import { CATEGORIES, PARKED, PARTIES, PAY_METHODS, RECENT, TAX_RATES } from './mock';
 
 /* ── The one line editor ─────────────────────────────────────────────────── */

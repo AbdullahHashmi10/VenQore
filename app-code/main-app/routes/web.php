@@ -1107,6 +1107,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // nothing. Wiring notes are at the top of NewPosController.
     Route::get('/new-pos', [\App\Http\Controllers\NewPosController::class, 'index'])->middleware('permission:pos.checkout')->name('new-pos');
 
+    // New invoice — one editor, thirteen document types. Layout Law v2.0
+    // document composer, V6 tokens, one payload builder. STRUCTURE ONLY for
+    // now: it runs on resources/js/NewInvoice/mock.js and posts nothing.
+    // Wiring notes are at the top of NewInvoiceController.
+    Route::get('/new-invoice', [\App\Http\Controllers\NewInvoiceController::class, 'index'])->middleware('permission:sales.create')->name('new-invoice');
+
     // Inventory
     Route::get('/inventory', [InventoryController::class, 'dashboard'])->middleware('permission:inventory.view')->name('inventory.dashboard');
     Route::get('/inventory/list', [InventoryController::class, 'index'])->name('inventory.index');

@@ -46,7 +46,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react';
 
 import '@/NewPos/newpos.css';
-import { LAW, composeTerminal, marginAt, presetComposition } from '@/NewPos/engine';
+import { LAW, composeTerminal, marginAt, presetComposition } from '@/LayoutLaw/engine';
 import {
     BANKS, CATEGORIES, DISCOUNT_PRESETS, HUES, NAV, OPENING_CART, PARTIES, PAY_METHODS,
     PRODUCTS, QUEUE, TABLES, TAX_RATES, WAREHOUSES, bandedPrice, lookup, productById,
@@ -57,7 +57,7 @@ import {
 import {
     Flag, HUE_VAR, Icon, Kbd, Money, Pane, RowButton, Sheet, Splitter, Stepper, Toasts, n0,
     useViewport,
-} from '@/NewPos/ui';
+} from '@/LayoutLaw/ui';
 import {
     BreakupSheet, ChargesSheet, DiscountSheet, KeysSheet, LineSheet, NavDrawer, NotesSheet,
     OfflineSheet, OverpaySheet, Palette, ParkedSheet, PartySheet, QuickBankSheet,
@@ -574,7 +574,11 @@ export default function NewPos({ auth }) {
                 setPaletteOpen(true);
                 return;
             }
-            if (typing() || anyOverlay) return;
+            // A SHEET suspends the map — that is what the original defect was
+            // about, F-keys firing from inside a modal's inputs. A resident
+            // field does not: function keys and Ctrl-combos never collide with
+            // typing, and only the single-character shortcuts below check.
+            if (anyOverlay) return;
 
             const line = sel >= 0 ? tab.lines[sel] : null;
             const withLine = (fn) => {
@@ -611,7 +615,8 @@ export default function NewPos({ auth }) {
                 case 'F9': e.preventDefault(); setSheet('discount'); break;
                 case 'F11': e.preventDefault(); setSheet('party'); break;
                 case 'F12': e.preventDefault(); setSheet('notes'); break;
-                case '?': e.preventDefault(); setSheet('keys'); break;
+                // The one key on the map that is also a character you might type.
+                case '?': if (!typing()) { e.preventDefault(); setSheet('keys'); } break;
                 default: break;
             }
         };

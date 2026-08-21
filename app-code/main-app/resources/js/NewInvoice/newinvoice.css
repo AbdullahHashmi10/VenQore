@@ -1,0 +1,567 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   NewInvoice — the document editor's own stylesheet.
+
+   Scoped entirely under `.nqd`. Every value is a V6 token; this file types no
+   colour, no radius, no duration and no font.
+
+   THE BOX HEIGHTS BELOW ARE THE LAW'S, handed in as custom properties by the
+   page. A summary row that is 38px tall while the law measured 36 is a column
+   the law calls stickable and the browser does not — which is how a Complete
+   button ends up 13px below the fold on a 1280×570. So `--nqd-sumrow`,
+   `--nqd-sumtot`, `--nqd-actions`, `--nqd-zoneh` and `--nqd-dockh` come from
+   `composeDocument()` and nothing here hard-codes them.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.nqd {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    overflow: hidden;
+    background: var(--vq-bg);
+    color: var(--vq-text);
+    font-family: var(--vq-font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    font-size: calc(15px * var(--nqd-scale, 1));
+}
+
+.nqd *, .nqd *::before, .nqd *::after { box-sizing: border-box; }
+
+/* The reset carries ZERO specificity — see the note in newpos.css. A reset that
+   outranks the components it resets silently strips their borders. */
+:where(.nqd) :where(button) {
+    font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0;
+}
+:where(.nqd) :where(input, select, textarea) { font: inherit; color: inherit; }
+:where(.nqd) :where([role='button']) { cursor: pointer; }
+:where(.nqd) :where(button, [role='button'], input, select) { min-height: 44px; }
+.nqd-tight { min-height: 0; }
+
+.nqd button:focus-visible,
+.nqd input:focus-visible,
+.nqd select:focus-visible,
+.nqd textarea:focus-visible,
+.nqd [tabindex]:focus-visible {
+    outline: 2px solid var(--vq-focus);
+    outline-offset: 2px;
+}
+
+.nqd .num {
+    font-family: var(--vq-font-numeric);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.nqd .mono { font-family: var(--vq-font-numeric); font-size: 0.8em; color: var(--vq-text-3); }
+
+.nqd[data-senior='true'] { font-size: calc(17px * var(--nqd-scale, 1)); }
+
+/* ── Rail + bar ───────────────────────────────────────────────────────────── */
+.nqd-rail {
+    flex: 0 0 auto; background: var(--vq-teal-900); display: flex; flex-direction: column;
+    align-items: center; gap: var(--vq-space-1); padding: var(--vq-space-3) 0;
+    overflow: hidden; z-index: var(--vq-z-rail);
+}
+.nqd-railicon {
+    width: 44px; height: 44px; border-radius: var(--vq-r-sm); color: var(--vq-teal-200);
+    font-size: 17px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.nqd-railicon:hover { background: rgb(255 255 255 / 0.12); }
+.nqd-railicon[aria-current='true'] { background: var(--vq-teal-500); color: var(--vq-ink-0); }
+.nqd-rail-sp { flex: 1; }
+
+/* The document archetype expands its nav at 1708px. 264px of icons with no
+   labels is not a rail — it is a rail that forgot what it was for. */
+.nqd-rail[data-expanded='true'] { align-items: stretch; padding: var(--vq-space-3) var(--vq-space-2); }
+.nqd-rail[data-expanded='true'] .nqd-railicon {
+    width: auto; justify-content: flex-start; gap: var(--vq-space-3);
+    padding: 0 var(--vq-space-3); font-size: 14px; font-weight: 600;
+}
+.nqd-rail[data-expanded='true'] .nqd-railicon .glyph { width: 20px; text-align: center; font-size: 17px; flex: 0 0 auto; }
+
+.nqd-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* The document bar is LIGHT, not the register's dark chrome. A register is a
+   dedicated appliance; a document is a page inside the app, and it should not
+   pretend otherwise. */
+.nqd-bar {
+    height: 64px; flex: 0 0 64px; display: flex; align-items: center; gap: var(--vq-space-2);
+    padding: 0 var(--vq-space-3); background: var(--vq-surface);
+    border-bottom: 1px solid var(--vq-line); font-size: 13px; z-index: var(--vq-z-nav);
+}
+.nqd-title {
+    font-family: var(--vq-font-display); font-weight: 700; font-size: 17px;
+    letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nqd-docno { font-family: var(--vq-font-numeric); font-size: 12px; color: var(--vq-text-3); }
+.nqd-sp { flex: 1; min-width: var(--vq-space-2); }
+
+.nqd-iconbtn {
+    width: 38px; height: 38px; min-height: 38px; border-radius: var(--vq-r-xs);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--vq-text-2); flex: 0 0 auto; font-size: 16px;
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.nqd-iconbtn:hover { background: var(--vq-sunken); }
+
+/* The nav held the rail because expanding it would have cost THIS composition a
+   line column. That is worth saying out loud rather than leaving as a mystery. */
+.nqd-held {
+    display: inline-flex; align-items: center; gap: 6px; border-radius: var(--vq-r-full);
+    padding: 4px var(--vq-space-3); font-size: 11px; font-weight: var(--vq-fw-bold);
+    background: var(--vq-warning-bg); color: var(--vq-warning); white-space: nowrap; min-height: 28px;
+}
+.nqd-status {
+    display: inline-flex; align-items: center; gap: var(--vq-space-1); font-size: 11px;
+    border: 1px solid var(--vq-line); border-radius: var(--vq-r-xs); padding: 4px var(--vq-space-2);
+    white-space: nowrap; min-height: 28px; color: var(--vq-text-2); background: var(--vq-surface);
+}
+
+/* ── The scroller ─────────────────────────────────────────────────────────── */
+.nqd-body { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
+.nqd-scroll {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding: var(--nqd-margin, 24px);
+    display: flex; flex-direction: column; gap: var(--vq-gutter);
+}
+/* A scrolling flex column must not SHRINK its children — the default
+   flex-shrink: 1 compresses them to nothing and, because a zone clips its own
+   overflow, the content vanishes instead of scrolling. This one line is the
+   difference between "the invoice renders" and "only the summary renders". */
+.nqd-scroll > * { flex: 0 0 auto; }
+
+.nqd-grid { display: grid; gap: 0; align-items: start; min-width: 0; }
+.nqd-grid > .nqd-zone { min-width: 0; }
+
+.nqd-zone {
+    background: var(--vq-surface); border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md); min-width: 0; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+.nqd-zh {
+    height: var(--nqd-zoneh, 44px); flex: 0 0 auto; display: flex; align-items: center;
+    gap: var(--vq-space-2); padding: 0 var(--vq-space-4);
+    border-bottom: 1px solid var(--vq-line-soft); font-size: 10px;
+    font-weight: var(--vq-fw-bold); letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--vq-text-3);
+}
+.nqd-togg {
+    margin-left: auto; font-weight: var(--vq-fw-bold); color: var(--vq-accent-text);
+    font-size: 10px; letter-spacing: 0.08em; min-height: 32px; padding: 0 var(--vq-space-2);
+    border-radius: var(--vq-r-xs);
+}
+.nqd-togg:hover { background: var(--vq-accent-quiet); }
+
+/* ── Header fields ────────────────────────────────────────────────────────── */
+.nqd-hdr { display: grid; gap: 12px 16px; padding: var(--vq-space-4); }
+.nqd-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nqd-f > label {
+    font-size: 10px; font-weight: var(--vq-fw-bold); letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--vq-text-3);
+    display: flex; align-items: center; gap: 5px;
+}
+.nqd-req { color: var(--vq-danger); }
+.nqd-ctl {
+    height: 42px; min-height: 42px; border: 1px solid var(--vq-line-strong);
+    border-radius: var(--vq-r-xs); padding: 0 11px; display: flex; align-items: center;
+    background: var(--vq-surface); font-size: 14px; min-width: 0; overflow: hidden;
+    white-space: nowrap; text-overflow: ellipsis; gap: var(--vq-space-2); width: 100%;
+    text-align: left;
+}
+.nqd-ctl:hover { border-color: var(--vq-accent); }
+.nqd-ctl[data-party='true'] { border-color: var(--vq-accent); background: var(--vq-accent-quiet); }
+.nqd-ctl[aria-invalid='true'] { border-color: var(--vq-danger); box-shadow: 0 0 0 3px var(--vq-danger-bg); }
+.nqd-ctl .ph { color: var(--vq-text-3); }
+.nqd-ctl .chev { margin-left: auto; opacity: 0.5; flex: 0 0 auto; }
+.nqd-f .hint { font-size: 10px; color: var(--vq-text-3); }
+.nqd-f .err { font-size: 10.5px; color: var(--vq-danger); font-weight: 600; }
+.nqd-f textarea {
+    min-height: 42px; border: 1px solid var(--vq-line-strong); border-radius: var(--vq-r-xs);
+    padding: 10px 11px; background: var(--vq-surface); font-size: 14px; resize: vertical; width: 100%;
+}
+.nqd-avatar {
+    width: 22px; height: 22px; border-radius: 6px; background: var(--vq-teal-200);
+    color: var(--vq-teal-900); display: flex; align-items: center; justify-content: center;
+    font-weight: var(--vq-fw-bold); flex: 0 0 auto; font-size: 11px;
+}
+
+/* ── The collapsed details strip — one line, and it is a BUTTON ───────────── */
+.nqd-strip {
+    display: flex; align-items: center; gap: var(--vq-space-3); width: 100%;
+    padding: 0 var(--vq-space-4); height: 60px; background: var(--vq-surface);
+    border: 1px solid var(--vq-line); border-radius: var(--vq-r-md); text-align: left; min-width: 0;
+}
+.nqd-strip:hover { border-color: var(--vq-accent); background: var(--vq-accent-quiet); }
+.nqd-strip .chev { flex: 0 0 auto; color: var(--vq-text-3); font-size: 13px; }
+.nqd-strip .who {
+    font-weight: var(--vq-fw-bold); font-size: 14px; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nqd-strip .meta {
+    font-family: var(--vq-font-numeric); font-size: 11.5px; color: var(--vq-text-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+.nqd-strip .amt {
+    margin-left: auto; font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold);
+    font-size: 15px; color: var(--vq-teal-800); flex: 0 0 auto;
+}
+.vq-dark .nqd-strip .amt, [data-theme='dark'] .nqd-strip .amt { color: var(--vq-accent-text); }
+
+/* ── The line table ───────────────────────────────────────────────────────── */
+.nqd-tblwrap { overflow-x: auto; }
+.nqd-tbl { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.nqd-tbl th {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--vq-text-3);
+    font-weight: var(--vq-fw-bold); padding: var(--vq-space-2); text-align: left;
+    border-bottom: 1px solid var(--vq-line); white-space: nowrap;
+}
+.nqd-tbl td { padding: 6px var(--vq-space-2); border-bottom: 1px solid var(--vq-line-soft); vertical-align: middle; }
+.nqd-tbl th.n, .nqd-tbl td.n { text-align: right; }
+.nqd-tbl tr[data-sel='true'] td { background: var(--vq-accent-quiet); }
+
+.nqd-cell {
+    height: 36px; min-height: 36px; border: 1px solid transparent; border-radius: var(--vq-r-xs);
+    padding: 0 var(--vq-space-2); display: flex; align-items: center; background: transparent;
+    width: 100%; font-size: 13px;
+}
+.nqd-cell:hover { border-color: var(--vq-line); background: var(--vq-surface-2); }
+.nqd-cell.n { justify-content: flex-end; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; }
+.nqd-cell.name {
+    font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: block; line-height: 36px; text-align: left;
+}
+.nqd-cell:disabled { opacity: 0.45; cursor: not-allowed; }
+.nqd-cellinput {
+    height: 36px; min-height: 36px; width: 100%; border: 1px solid var(--vq-accent);
+    border-radius: var(--vq-r-xs); padding: 0 var(--vq-space-2); background: var(--vq-surface);
+    font-family: var(--vq-font-numeric); font-size: 13px; text-align: right;
+}
+
+.nqd-card { border-bottom: 1px solid var(--vq-line-soft); padding: 11px var(--vq-space-4); display: flex; flex-direction: column; gap: var(--vq-space-2); width: 100%; text-align: left; }
+.nqd-card:hover { background: var(--vq-accent-quiet); }
+.nqd-card[data-open='true'] { background: var(--vq-accent-quiet); box-shadow: inset 3px 0 0 var(--vq-accent); }
+.nqd-card .top { display: flex; align-items: baseline; gap: var(--vq-space-3); }
+.nqd-card .nm { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nqd-card .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); gap: var(--vq-space-2); }
+.nqd-mini { display: flex; flex-direction: column; gap: 2px; }
+.nqd-mini .k { font-size: 9px; font-weight: var(--vq-fw-bold); letter-spacing: 0.07em; text-transform: uppercase; color: var(--vq-text-3); }
+.nqd-mini .v { font-family: var(--vq-font-numeric); font-size: 13px; font-weight: var(--vq-fw-bold); }
+
+/* Tap-to-adjust, brought over from the register: a line is a summary until you
+   touch it, then it opens its own controls IN PLACE. No modal, no edit screen. */
+.nqd-adjust {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: var(--vq-space-2); padding: 10px var(--vq-space-4) 12px;
+    background: var(--vq-accent-quiet); border-bottom: 1px solid var(--vq-accent-quiet-line);
+}
+.nqd-adjf { display: flex; flex-direction: column; gap: 3px; }
+.nqd-adjf .k { font-size: 9px; font-weight: var(--vq-fw-bold); letter-spacing: 0.07em; text-transform: uppercase; color: var(--vq-text-3); }
+.nqd-adjf input, .nqd-adjf select {
+    height: 40px; min-height: 40px; border: 1px solid var(--vq-line-strong);
+    border-radius: var(--vq-r-xs); background: var(--vq-surface); padding: 0 10px;
+    font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold); font-size: 14px; width: 100%;
+}
+.nqd-step {
+    display: flex; align-items: center; height: 40px; border: 1px solid var(--vq-line-strong);
+    border-radius: var(--vq-r-xs); background: var(--vq-surface); overflow: hidden;
+}
+.nqd-step button { width: 34px; height: 100%; min-height: 0; font-size: 16px; font-weight: var(--vq-fw-bold); color: var(--vq-accent-text); }
+.nqd-step button:hover { background: var(--vq-accent-quiet); }
+.nqd-step .n { flex: 1; text-align: center; font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold); font-size: 14px; min-width: 0; }
+.nqd-rm {
+    height: 40px; min-height: 40px; border-radius: var(--vq-r-xs);
+    border: 1px solid var(--vq-danger-line); color: var(--vq-danger);
+    background: var(--vq-surface); font-weight: var(--vq-fw-bold); font-size: 13px;
+}
+.nqd-rm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.nqd-addline {
+    display: flex; align-items: center; gap: var(--vq-space-2); padding: 11px var(--vq-space-4);
+    color: var(--vq-accent-text); font-weight: var(--vq-fw-bold); font-size: 13px; width: 100%;
+    border-top: 1px solid var(--vq-line-soft);
+}
+.nqd-addline:hover { background: var(--vq-accent-quiet); }
+
+.nqd-empty { padding: var(--vq-space-10) var(--vq-space-5); text-align: center; color: var(--vq-text-3); font-size: 13px; }
+
+/* ── The summary column ───────────────────────────────────────────────────── */
+.nqd-sumcol { min-width: 0; display: flex; flex-direction: column; gap: var(--vq-gutter); }
+.nqd-sumcol[data-stick='true'] {
+    position: sticky; top: 0; align-self: start; max-height: 100%;
+    overflow-y: auto; scrollbar-width: thin;
+}
+
+/* EXACTLY one row per key in the density's summary list — never an extra. The
+   law measures this column's height from that list, so an extra row painted
+   here is a column the law thinks fits and does not. */
+.nqd-sumrow {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--vq-space-3); height: var(--nqd-sumrow, 36px); flex: 0 0 auto;
+    padding: 0 var(--vq-space-4); font-size: 13px;
+}
+.nqd-sumrow .k { color: var(--vq-text-2); flex: 0 0 auto; }
+.nqd-sumrow .v { font-family: var(--vq-font-numeric); font-weight: 600; text-align: right; min-width: 0; }
+.nqd-sumrow[data-kind='tot'] {
+    border-top: 1px solid var(--vq-line); background: var(--vq-surface-2);
+    height: var(--nqd-sumtot, 51px);
+}
+.nqd-sumrow[data-kind='tot'] .k {
+    font-size: 10px; font-weight: var(--vq-fw-bold); letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--vq-text-3);
+}
+.nqd-sumrow[data-kind='tot'] .v { color: var(--vq-teal-800); font-weight: var(--vq-fw-bold); }
+.vq-dark .nqd-sumrow[data-kind='tot'] .v,
+[data-theme='dark'] .nqd-sumrow[data-kind='tot'] .v { color: var(--vq-accent-text); }
+.nqd-sumrow[data-kind='bal'] .v { color: var(--vq-coral-700); }
+.nqd-sumrow button { min-height: 0; }
+
+/* The rank law, on one row: rank 1 always has the surface, rank 2 gets it only
+   while there is room, and whatever does not fit goes into the overflow rather
+   than off the edge of the panel. */
+.nqd-actions {
+    display: flex; gap: var(--vq-space-2); padding: 0 var(--vq-space-4); align-items: center;
+    flex: 0 0 auto; height: var(--nqd-actions, 68px); border-top: 1px solid var(--vq-line-soft);
+    overflow: hidden;
+}
+.nqd-btn {
+    height: var(--nqd-btnh, 44px); min-height: 0; border-radius: var(--vq-r-xs);
+    padding: 0 var(--vq-space-4); font-weight: var(--vq-fw-bold); font-size: 14px;
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--vq-space-2);
+    border: 1px solid var(--vq-line-strong); background: var(--vq-surface); color: var(--vq-text-2);
+    white-space: nowrap; overflow: hidden;
+}
+.nqd-btn:hover { background: var(--vq-sunken); }
+.nqd-btn[data-pri='true'] {
+    background: var(--vq-accent-fill); color: var(--vq-on-accent);
+    border-color: var(--vq-accent-fill); flex: 1; min-width: 0;
+}
+.nqd-btn[data-pri='true']:hover { background: var(--vq-accent-fill-hover); }
+.nqd-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── The splitter ─────────────────────────────────────────────────────────── */
+.nqd-vsplit {
+    cursor: col-resize; position: relative; align-self: stretch; touch-action: none;
+    display: flex; align-items: center; justify-content: center; min-height: 44px;
+}
+.nqd-vsplit::before {
+    content: ''; position: absolute; top: 6px; bottom: 6px; left: 50%; width: 2px;
+    margin-left: -1px; border-radius: var(--vq-r-full); background: var(--vq-line);
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.nqd-vsplit::after {
+    content: ''; position: absolute; top: 50%; margin-top: -16px; height: 32px; width: 4px;
+    border-radius: var(--vq-r-full); background: var(--vq-line-strong);
+}
+.nqd-vsplit:hover::before, .nqd-vsplit[data-drag='true']::before,
+.nqd-vsplit:focus-visible::before { background: var(--vq-accent); width: 4px; margin-left: -2px; }
+.nqd-vsplit:hover::after, .nqd-vsplit[data-drag='true']::after { background: var(--vq-accent-fill); }
+.nqd-vsplit:focus-visible { outline: none; }
+
+/* ── THE DOCK ─────────────────────────────────────────────────────────────────
+   Bottom-right — and a REAL ROW, not a float. Its height is taken out of the
+   scroller before anything else is measured, so it cannot cover the last line
+   the way the Counter register's browse button covered the payment panel. The
+   row is reserved from the start and the bar fades into it once you scroll, so
+   nothing ever shifts. */
+.nqd-dockrow {
+    flex: 0 0 auto; display: flex; justify-content: flex-end; align-items: center;
+    padding: 0 var(--nqd-margin, 24px) var(--nqd-margin, 24px); pointer-events: none;
+}
+.nqd-dock {
+    display: flex; align-items: center; gap: var(--vq-space-3);
+    padding: 0 var(--vq-space-3) 0 var(--vq-space-4); height: var(--nqd-dockh, 60px);
+    max-width: 100%; min-width: 0; background: var(--vq-ink-950); color: var(--vq-ink-0);
+    border-radius: var(--vq-r-md); box-shadow: var(--vq-elev-3);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity var(--vq-dur-2) var(--vq-ease-out), transform var(--vq-dur-2) var(--vq-ease-out);
+}
+.nqd-dock[data-on='true'] { opacity: 1; transform: none; pointer-events: auto; }
+.nqd-dock > div { min-width: 0; flex: 0 1 auto; }
+.nqd-dock .k { font-size: 9px; font-weight: var(--vq-fw-bold); letter-spacing: 0.1em; text-transform: uppercase; color: var(--vq-teal-300); }
+.nqd-dock .v {
+    font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold); font-size: 20px;
+    line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.nqd-dock .bal {
+    font-family: var(--vq-font-numeric); font-size: 11px; color: var(--vq-ink-300);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.nqd-dock .nqd-btn {
+    height: 44px; background: var(--vq-teal-500); border-color: var(--vq-teal-500);
+    color: var(--vq-ink-0); flex: 0 0 auto;
+}
+.nqd-dock .nqd-btn:hover { background: var(--vq-teal-400); }
+.nqd-dock .nqd-btn[data-ghost='true'] { background: transparent; border-color: rgb(255 255 255 / 0.3); color: var(--vq-ink-0); }
+
+/* ── Chips, flags, notes ──────────────────────────────────────────────────── */
+.nqd-flag {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10px;
+    font-weight: var(--vq-fw-bold); letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: var(--vq-r-xs);
+    background: var(--vq-accent-quiet); color: var(--vq-accent-text);
+}
+.nqd-flag[data-tone='warn'] { background: var(--vq-warning-bg); color: var(--vq-warning); }
+.nqd-flag[data-tone='bad'] { background: var(--vq-danger-bg); color: var(--vq-danger); }
+.nqd-flag[data-tone='info'] { background: var(--vq-info-bg); color: var(--vq-info); }
+
+.nqd-cap {
+    display: inline-block; font-size: 10.5px; font-weight: var(--vq-fw-bold);
+    padding: 3px 7px; border-radius: 6px; margin: 0 4px 4px 0;
+    background: var(--vq-accent-quiet); color: var(--vq-accent-text);
+    border: 1px solid var(--vq-accent-quiet-line);
+}
+.nqd-cap[data-off='true'] {
+    background: var(--vq-sunken); color: var(--vq-text-3);
+    border-color: var(--vq-line); text-decoration: line-through;
+}
+
+.nqd-note {
+    font-size: 11.5px; color: var(--vq-warning); background: var(--vq-warning-bg);
+    border: 1px solid var(--vq-warning-line); border-radius: var(--vq-r-xs);
+    padding: 8px 11px; line-height: 1.55;
+}
+.nqd-readout {
+    font-family: var(--vq-font-numeric); font-size: 11.5px; line-height: 1.7;
+    color: var(--vq-text-2); background: var(--vq-surface-2);
+    border: 1px solid var(--vq-line-soft); border-radius: var(--vq-r-md); padding: var(--vq-space-3);
+}
+.nqd-readout b { color: var(--vq-text); }
+
+/* ── Sheets, drawer and overlays ──────────────────────────────────────────── */
+.nqd-scrim {
+    position: fixed; inset: 0; background: var(--vq-scrim); opacity: 0; pointer-events: none;
+    transition: opacity var(--vq-dur-3) var(--vq-ease-out); z-index: var(--vq-z-drawer);
+}
+.nqd-scrim[data-open='true'] { opacity: 1; pointer-events: auto; }
+
+.nqd-sheet {
+    position: fixed; inset: 0 0 0 auto; width: min(460px, 94%); background: var(--vq-surface);
+    box-shadow: var(--vq-elev-3); transform: translateX(101%);
+    transition: transform var(--vq-dur-3) var(--vq-ease-out), visibility 0s linear var(--vq-dur-3);
+    display: flex; flex-direction: column; z-index: var(--vq-z-modal); visibility: hidden;
+}
+.nqd-sheet[data-open='true'] {
+    transform: none; visibility: visible;
+    transition: transform var(--vq-dur-3) var(--vq-ease-out), visibility 0s;
+}
+.nqd-sheet[data-size='wide'] { width: min(600px, 96%); }
+.nqd-sheet[data-size='bottom'] {
+    inset: auto 0 0 0; width: 100%; max-height: 90%; transform: translateY(101%);
+    border-radius: var(--vq-r-xl) var(--vq-r-xl) 0 0;
+}
+.nqd-sheet[data-size='bottom'][data-open='true'] { transform: none; }
+.nqd-sheet[data-side='left'] { inset: 0 auto 0 0; transform: translateX(-101%); }
+.nqd-sheet[data-side='left'][data-open='true'] { transform: none; }
+
+.nqd-sh {
+    flex: 0 0 54px; display: flex; align-items: center; gap: var(--vq-space-3);
+    padding: 0 var(--vq-space-2) 0 var(--vq-space-4); border-bottom: 1px solid var(--vq-line-soft);
+    font-weight: var(--vq-fw-bold); background: var(--vq-surface);
+}
+.nqd-sb { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.nqd-sf { flex: 0 0 auto; border-top: 1px solid var(--vq-line-soft); background: var(--vq-surface); }
+.nqd-sf .nqd-actions { border-top: 0; height: auto; padding: var(--vq-space-3) var(--vq-space-4); }
+
+.nqd-row {
+    display: flex; align-items: center; gap: var(--vq-space-3); width: 100%; text-align: left;
+    padding: var(--vq-space-3) var(--vq-space-4); border-bottom: 1px solid var(--vq-line-soft);
+    min-height: 56px;
+}
+.nqd-row:hover { background: var(--vq-surface-2); }
+.nqd-rowmain { flex: 1; min-width: 0; }
+.nqd-rowtitle { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.nqd-rowsub { font-size: 11px; color: var(--vq-text-3); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.nqd-navitem {
+    display: flex; align-items: center; gap: var(--vq-space-3); width: 100%; text-align: left;
+    padding: var(--vq-space-3) var(--vq-space-4); font-size: 14px; font-weight: 600;
+    color: var(--vq-text-2); min-height: 46px;
+}
+.nqd-navitem:hover { background: var(--vq-sunken); }
+.nqd-navitem[aria-current='true'] { background: var(--vq-accent-quiet); color: var(--vq-accent-text); box-shadow: inset 3px 0 0 var(--vq-accent); }
+
+/* ── Settings controls ────────────────────────────────────────────────────── */
+.nqd-set { display: flex; flex-direction: column; gap: var(--vq-space-5); padding: var(--vq-space-4); }
+.nqd-setgroup { display: flex; flex-direction: column; gap: var(--vq-space-3); }
+.nqd-setgroup > h3 { margin: 0; font-size: 10px; font-weight: var(--vq-fw-bold); letter-spacing: 0.09em; text-transform: uppercase; color: var(--vq-text-3); }
+.nqd-ctlbox { display: flex; flex-direction: column; gap: var(--vq-space-1); min-width: 0; }
+.nqd-ctlbox > .lbl { font-size: 11px; font-weight: var(--vq-fw-bold); color: var(--vq-text-2); display: flex; align-items: baseline; gap: 6px; justify-content: space-between; }
+.nqd-ctlbox > .lbl b { font-family: var(--vq-font-numeric); color: var(--vq-text); font-size: 12px; }
+.nqd-set .note { font-size: 11px; color: var(--vq-text-3); line-height: 1.45; }
+
+.nqd-seg { display: flex; border: 1px solid var(--vq-line); border-radius: var(--vq-r-xs); overflow: hidden; background: var(--vq-surface); }
+.nqd-seg button { flex: 1; min-height: 36px; font-size: 12px; font-weight: var(--vq-fw-bold); color: var(--vq-text-2); padding: 0 6px; white-space: nowrap; }
+.nqd-seg button[aria-pressed='true'] { background: var(--vq-accent-fill); color: var(--vq-on-accent); }
+.nqd-seg button:disabled { opacity: 0.34; cursor: not-allowed; }
+.nqd-set input[type='range'] { accent-color: var(--vq-accent-fill); width: 100%; min-height: 0; }
+.nqd-set input[type='range']:disabled { opacity: 0.4; }
+
+.nqd-switch { display: flex; align-items: center; justify-content: space-between; gap: var(--vq-space-3); width: 100%; text-align: left; padding: var(--vq-space-2) 0; min-height: 44px; }
+.nqd-switchbox { flex: 0 0 46px; height: 26px; border-radius: var(--vq-r-full); background: var(--vq-line-strong); position: relative; transition: background var(--vq-dur-2) var(--vq-ease-out); }
+.nqd-switchbox::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: var(--vq-r-full); background: var(--vq-ink-0); transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.nqd-switch[aria-pressed='true'] .nqd-switchbox { background: var(--vq-accent-fill); }
+.nqd-switch[aria-pressed='true'] .nqd-switchbox::after { transform: translateX(20px); }
+
+.nqd-presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: var(--vq-space-2); }
+.nqd-preset {
+    border: 1px solid var(--vq-line); border-radius: var(--vq-r-md); padding: var(--vq-space-3);
+    text-align: left; display: flex; flex-direction: column; gap: 3px;
+    background: var(--vq-surface); min-height: 66px;
+}
+.nqd-preset:hover { border-color: var(--vq-accent); }
+.nqd-preset[aria-pressed='true'] { border-color: var(--vq-accent); background: var(--vq-accent-quiet); }
+.nqd-preset b { font-size: 13px; }
+.nqd-preset span { font-size: 11px; color: var(--vq-text-3); line-height: 1.35; }
+.nqd-auto {
+    border: 1px solid var(--vq-accent-quiet-line); background: var(--vq-accent-quiet);
+    border-radius: var(--vq-r-md); padding: var(--vq-space-3) var(--vq-space-4);
+    display: flex; flex-direction: column; gap: var(--vq-space-2);
+}
+
+.nqd-kbd {
+    font-family: var(--vq-font-numeric); font-size: 11px; font-weight: var(--vq-fw-bold);
+    border: 1px solid var(--vq-line); border-bottom-width: 2px; border-radius: var(--vq-r-xs);
+    padding: 1px 5px; color: var(--vq-text-2); background: var(--vq-surface-2); white-space: nowrap;
+}
+.nqd-keymap { display: grid; grid-template-columns: auto 1fr auto; gap: var(--vq-space-2) var(--vq-space-3); padding: var(--vq-space-4); align-items: center; font-size: 13px; }
+
+.nqd-pre {
+    font-family: var(--vq-font-numeric); font-size: 11.5px; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-word; padding: var(--vq-space-4);
+    color: var(--vq-text-2); margin: 0;
+}
+
+/* ── Toasts ───────────────────────────────────────────────────────────────── */
+.nqd-toasts {
+    position: fixed; left: 50%; bottom: var(--vq-space-6); transform: translateX(-50%);
+    display: flex; flex-direction: column; gap: var(--vq-space-2); z-index: var(--vq-z-toast);
+    pointer-events: none; width: min(520px, calc(100% - 32px));
+}
+.nqd-toast {
+    pointer-events: auto; background: var(--vq-ink-900); color: var(--vq-ink-0);
+    border-radius: var(--vq-r-md); padding: var(--vq-space-3) var(--vq-space-4); font-size: 13px;
+    font-weight: 600; display: flex; align-items: center; gap: var(--vq-space-3);
+    box-shadow: var(--vq-elev-3);
+}
+.nqd-toast[data-tone='bad'] { background: var(--vq-danger); }
+.nqd-toast[data-tone='good'] { background: var(--vq-success); }
+.nqd-toast button { margin-left: auto; min-height: 32px; padding: 0 var(--vq-space-3); border-radius: var(--vq-r-xs); background: rgb(255 255 255 / 0.16); font-size: 12px; font-weight: var(--vq-fw-bold); white-space: nowrap; }
+
+.nqd-palette {
+    position: fixed; top: 12vh; left: 50%; transform: translateX(-50%); width: min(560px, 92%);
+    background: var(--vq-raised); border: 1px solid var(--vq-line); border-radius: var(--vq-r-xl);
+    box-shadow: var(--vq-elev-3); z-index: var(--vq-z-command); display: flex;
+    flex-direction: column; overflow: hidden; max-height: 70vh;
+}
+.nqd-palette input { height: 56px; border: 0; border-bottom: 1px solid var(--vq-line-soft); background: none; padding: 0 var(--vq-space-4); font-size: 16px; }
+.nqd-palette input:focus { outline: none; }
+
+/* Rank overlay — the surface's own audit, on demand. */
+.nqd[data-rankmode='true'] [data-rank] { outline: 1.5px dashed transparent; outline-offset: 1px; }
+.nqd[data-rankmode='true'] [data-rank='1'] { outline-color: var(--vq-teal-500); }
+.nqd[data-rankmode='true'] [data-rank='2'] { outline-color: var(--vq-sky-500); }
+.nqd[data-rankmode='true'] [data-rank='3'] { outline-color: var(--vq-ink-400); }
+
+@media (prefers-reduced-motion: reduce) {
+    .nqd *, .nqd *::before, .nqd *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; }
+}

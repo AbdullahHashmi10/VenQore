@@ -27,10 +27,10 @@
  */
 
 import React from 'react';
-import { presets } from './engine';
+import { presets } from '@/LayoutLaw/engine';
 import { PROFILES, RETURN_POLICIES, screenBand } from './settings';
 import { TAX_RATES, WAREHOUSES, BANKS } from './mock';
-import { Seg, Sheet, Slider, Switch } from './ui';
+import { Seg, Sheet, Slider, Switch } from '@/LayoutLaw/ui';
 
 const PCT = (v) => `${Math.round(v * 100)}%`;
 

@@ -26,8 +26,8 @@
  * and on the counter terminal does not want the same register.
  */
 
-import { presetComposition } from './engine';
-import { LAW } from './law';
+import { presetComposition } from '@/LayoutLaw/engine';
+import { LAW } from '@/LayoutLaw/law';
 
 export const PROFILES = [
     {
