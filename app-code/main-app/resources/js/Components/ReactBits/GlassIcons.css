@@ -1,0 +1,113 @@
+.icon-btns {
+  display: grid;
+  grid-gap: 3.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  margin: auto;
+  padding: 2rem 1rem 3rem;
+  overflow: visible;
+  justify-items: center;
+}
+
+@media (max-width: 640px) {
+  .icon-btns {
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 2.5rem;
+  }
+}
+
+.icon-btn {
+  background-color: transparent;
+  outline: none;
+  position: relative;
+  width: 4.8em;
+  height: 4.8em;
+  perspective: 24em;
+  transform-style: preserve-3d;
+  -webkit-tap-highlight-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.icon-btn__back,
+.icon-btn__front,
+.icon-btn__label {
+  transition:
+    opacity 0.3s cubic-bezier(0.83, 0, 0.17, 1),
+    transform 0.3s cubic-bezier(0.83, 0, 0.17, 1);
+}
+
+.icon-btn__back,
+.icon-btn__front {
+  border-radius: 1.25em;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.icon-btn__back {
+  box-shadow: 0.5em -0.5em 0.75em hsla(223, 10%, 10%, 0.15);
+  display: block;
+  transform: rotate(15deg);
+  transform-origin: 100% 100%;
+  will-change: transform;
+}
+
+.icon-btn__front {
+  background-color: hsla(0, 0%, 100%, 0.2);
+  box-shadow: 0 0 0 0.1em hsla(0, 0%, 100%, 0.4) inset;
+  backdrop-filter: blur(0.75em);
+  -webkit-backdrop-filter: blur(0.75em);
+  -moz-backdrop-filter: blur(0.75em);
+  display: flex;
+  transform-origin: 80% 50%;
+  will-change: transform;
+}
+
+.icon-btn__icon {
+  margin: auto;
+  width: 2em;
+  height: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.icon-btn__label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--vq-text, #17201b);
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.4;
+  opacity: 0.9;
+  position: absolute;
+  top: 106%;
+  right: 0;
+  left: 0;
+  transform: translateY(0);
+}
+
+[data-theme="dark"] .icon-btn__label {
+  color: #edf2ef;
+}
+
+.icon-btn:focus-visible .icon-btn__back,
+.icon-btn:hover .icon-btn__back {
+  transform: rotate(25deg) translate3d(-0.5em, -0.5em, 0.5em);
+}
+
+.icon-btn:focus-visible .icon-btn__front,
+.icon-btn:hover .icon-btn__front {
+  transform: translate3d(0, 0, 1.8em);
+}
+
+.icon-btn:focus-visible .icon-btn__label,
+.icon-btn:hover .icon-btn__label {
+  opacity: 1;
+  transform: translateY(12%);
+  color: var(--vq-teal-500, #0baa8f);
+}

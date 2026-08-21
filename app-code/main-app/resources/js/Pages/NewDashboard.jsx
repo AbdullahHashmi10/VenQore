@@ -2,6 +2,12 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import './NewDashboard.css';
 
+// React Bits Components
+import Folder from '@/Components/ReactBits/Folder';
+import GlassIcons from '@/Components/ReactBits/GlassIcons';
+import StarBorder from '@/Components/ReactBits/StarBorder';
+import Stepper from '@/Components/ReactBits/Stepper';
+
 function runCardBuilder() {
 
 const READINGS = [{"key":"accounting.assets","label":"Assets","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Assets","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.liabilities","label":"Liabilities","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Liabilities","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.income_ytd","label":"Income (YTD)","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Income (YTD)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.expense_ytd","label":"Expense (YTD)","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Expense (YTD)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.total_balance","label":"Total Balance","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Total Balance","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.cash_on_hand","label":"Cash on Hand","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Cash on Hand","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.money_in_today","label":"Money In (Today)","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Money In (Today)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.money_out_today","label":"Money Out (Today)","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Money Out (Today","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.total_txns","label":"Total Txns","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Total Txns","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.matched","label":"Matched","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Matched","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.unmatched","label":"Unmatched","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Unmatched","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"batch_tracking.total_batches","label":"Total Batches","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Total Batches","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.expiring_soon","label":"Expiring Soon","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Expiring Soon","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.expired","label":"Expired","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Expired","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.total_qty","label":"Total Qty","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Total Qty","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"debit_notes.total_notes","label":"Total Notes","shape":"SCALAR","unit":"count","area":"Purchasing","module":"DebitNotes","short":"Total Notes","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.spend","label":"Total Value","shape":"SCALAR","unit":"currency","area":"Purchasing","module":"DebitNotes","short":"Total Value","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"debit_notes.open_credits","label":"Open Credits","shape":"SCALAR","unit":"currency","area":"Purchasing","module":"DebitNotes","short":"Open Credits","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"finance.expenses_total","label":"Today's Expenses","shape":"SCALAR","unit":"currency","area":"Finance","module":"Expenses","short":"Today's Expenses","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.payables","label":"Total Payable","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Total Payable","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"party.supplier_count","label":"Active Creditors","shape":"SCALAR","unit":"count","area":"Finance","module":"Finance","short":"Active Creditors","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.avg_balance","label":"Avg Balance","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Avg Balance","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.receivables","label":"Total Receivable","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Total Receivable","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"party.customer_count","label":"Active Debtors","shape":"SCALAR","unit":"count","area":"Finance","module":"Finance","short":"Active Debtors","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"inventory.total_categories","label":"Total Categories","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Total Categories","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.main_categories","label":"Main Categories","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Main Categories","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.products_linked","label":"Products Linked","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Products Linked","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.product_count","label":"Total Products","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Total Products","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.low_stock_count","label":"Low Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Low Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.stock_value","label":"Inventory Value","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Inventory","short":"Inventory Value","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"production.run_count","label":"Active Runs","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Active Runs","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.completed_today","label":"Completed Today","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Completed Today","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"production.total_cost","label":"Cost (Month)","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Inventory","short":"Cost (Month)","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.out_of_stock_count","label":"Out of Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Out of Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"pre_sales.total_quotes","label":"Total Quotes","shape":"SCALAR","unit":"count","area":"Sales","module":"PreSales","short":"Total Quotes","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"pre_sales.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"PreSales","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.total_proposals","label":"Total Proposals","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Total Proposals","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.accepted","label":"Accepted","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Accepted","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"purchasing.count","label":"Total Orders","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Total Orders","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchase_orders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Pending","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchase_orders.received","label":"Received","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Received","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"recurring_invoices.total","label":"Total","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Total","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.active","label":"Active","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Active","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.paused","label":"Paused","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Paused","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.monthly_revenue","label":"Monthly Revenue","shape":"SCALAR","unit":"currency","area":"Sales","module":"RecurringInvoices","short":"Monthly Revenue","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.total_scheduled","label":"Total Scheduled","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Total Scheduled","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.sent","label":"Sent","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Sent","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.overdue","label":"Overdue","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Overdue","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.total_returns","label":"Total Returns","shape":"SCALAR","unit":"count","area":"Sales","module":"Returns","short":"Total Returns","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.items_returned","label":"Items Returned","shape":"SCALAR","unit":"count","area":"Sales","module":"Returns","short":"Items Returned","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.total_refunded","label":"Total Refunded","shape":"SCALAR","unit":"currency","area":"Sales","module":"Returns","short":"Total Refunded","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.revenue","label":"Total Sale","shape":"SCALAR","unit":"currency","area":"Sales","module":"Sales","short":"Total Sale","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales_orders.confirmed","label":"Confirmed","shape":"SCALAR","unit":"count","area":"Sales","module":"SalesOrders","short":"Confirmed","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales_orders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"SalesOrders","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"serial_tracking.total_serials","label":"Total Serials","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Total Serials","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.in_stock","label":"In Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"In Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.sold","label":"Sold","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Sold","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.returned","label":"Returned","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Returned","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"staff.member_count","label":"Total Staff","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Total Staff","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.on_shift_count","label":"Present","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Present","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.absent","label":"Absent","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Absent","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.pending_gaps","label":"Pending Gaps","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Pending Gaps","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.hours_today","label":"Hours Today","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Hours Today","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"sales.revenue_trend","label":"Revenue trend","shape":"SERIES","unit":"currency","area":"Sales","module":"Extra","short":"Revenue trend","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.payment_breakdown","label":"Payment breakdown","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Payment breakdow","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.top_products","label":"Top products","shape":"RANKING","unit":"currency","area":"Sales","module":"Extra","short":"Top products","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.top_customers","label":"Top customers","shape":"RANKING","unit":"currency","area":"Sales","module":"Extra","short":"Top customers","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.hourly_heatmap","label":"Sales by hour and day","shape":"TABLE","unit":"count","area":"Sales","module":"Extra","short":"Sales by hour an","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.live_feed","label":"Live sales feed","shape":"FEED","unit":"currency","area":"Sales","module":"Extra","short":"Live sales feed","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.avg_order_value","label":"Average order value","shape":"SCALAR","unit":"currency","area":"Sales","module":"Extra","short":"Average order va","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.basket_size","label":"Average basket size","shape":"SCALAR","unit":"count","area":"Sales","module":"Extra","short":"Average basket s","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.discount_given","label":"Discount given","shape":"SCALAR","unit":"currency","area":"Sales","module":"Extra","short":"Discount given","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.return_rate","label":"Return rate","shape":"SCALAR","unit":"percent","area":"Sales","module":"Extra","short":"Return rate","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.conversion_funnel","label":"Sales funnel","shape":"RANKING","unit":"count","area":"Sales","module":"Extra","short":"Sales funnel","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.channel_split","label":"Sales by channel","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Sales by channel","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.region_split","label":"Sales by region","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Sales by region","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"finance.profit_trend","label":"Profit trend","shape":"SERIES","unit":"currency","area":"Finance","module":"Extra","short":"Profit trend","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.cash_flow_trend","label":"Cash in vs out","shape":"MULTI_SERIES","unit":"currency","area":"Finance","module":"Extra","short":"Cash in vs out","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.expenses_by_category","label":"Expenses by category","shape":"BREAKDOWN","unit":"currency","area":"Finance","module":"Extra","short":"Expenses by cate","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.receivables_aging","label":"Receivables ageing","shape":"BREAKDOWN","unit":"currency","area":"Finance","module":"Extra","short":"Receivables agei","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.balance_sheet_ok","label":"Books balanced","shape":"STATUS","unit":"count","area":"Finance","module":"Extra","short":"Books balanced","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.cash_runway","label":"Cash runway","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Cash runway","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.dso","label":"Days sales outstanding","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Days sales outst","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.dpo","label":"Days payable outstanding","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Days payable out","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.quick_ratio","label":"Quick ratio","shape":"SCALAR","unit":"percent","area":"Finance","module":"Extra","short":"Quick ratio","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.expense_ratio","label":"Expense ratio","shape":"SCALAR","unit":"percent","area":"Finance","module":"Extra","short":"Expense ratio","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.tax_liability","label":"Tax liability","shape":"SCALAR","unit":"currency","area":"Finance","module":"Extra","short":"Tax liability","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"inventory.low_stock_list","label":"Low stock list","shape":"TABLE","unit":"count","area":"Inventory","module":"Extra","short":"Low stock list","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.turnover","label":"Inventory turnover","shape":"SCALAR","unit":"percent","area":"Inventory","module":"Extra","short":"Inventory turnov","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.days_of_cover","label":"Days of cover","shape":"SCALAR","unit":"count","area":"Inventory","module":"Extra","short":"Days of cover","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.sell_through","label":"Sell-through rate","shape":"SCALAR","unit":"percent","area":"Inventory","module":"Extra","short":"Sell-through rat","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.dead_stock_value","label":"Dead stock value","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Extra","short":"Dead stock value","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.value_trend","label":"Stock value trend","shape":"SERIES","unit":"currency","area":"Inventory","module":"Extra","short":"Stock value tren","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.by_warehouse","label":"Stock by warehouse","shape":"BREAKDOWN","unit":"currency","area":"Inventory","module":"Extra","short":"Stock by warehou","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.expiry_window","label":"Expiring in 30 days","shape":"RANKING","unit":"count","area":"Inventory","module":"Extra","short":"Expiring in 30 d","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"purchasing.spend_trend","label":"Purchase spend trend","shape":"SERIES","unit":"currency","area":"Purchasing","module":"Extra","short":"Purchase spend t","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.by_supplier","label":"Spend by supplier","shape":"BREAKDOWN","unit":"currency","area":"Purchasing","module":"Extra","short":"Spend by supplie","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.supplier_concentration","label":"Supplier concentration","shape":"SCALAR","unit":"percent","area":"Purchasing","module":"Extra","short":"Supplier concent","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.lead_time","label":"Average lead time","shape":"SCALAR","unit":"count","area":"Purchasing","module":"Extra","short":"Average lead tim","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.on_time_rate","label":"On-time delivery","shape":"SCALAR","unit":"percent","area":"Purchasing","module":"Extra","short":"On-time delivery","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"operations.plan_usage","label":"Plan usage","shape":"GAUGE","unit":"percent","area":"Operations","module":"Extra","short":"Plan usage","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.sales_per_head","label":"Sales per staff member","shape":"SCALAR","unit":"currency","area":"Operations","module":"Extra","short":"Sales per staff ","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.attendance_rate","label":"Attendance rate","shape":"SCALAR","unit":"percent","area":"Operations","module":"Extra","short":"Attendance rate","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"operations.open_tickets","label":"Open tickets","shape":"SCALAR","unit":"count","area":"Operations","module":"Extra","short":"Open tickets","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"party.new_vs_returning","label":"New vs returning","shape":"BREAKDOWN","unit":"count","area":"Operations","module":"Extra","short":"New vs returning","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"party.retention_rate","label":"Customer retention","shape":"SCALAR","unit":"percent","area":"Operations","module":"Extra","short":"Customer retenti","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]}];
@@ -1330,11 +1336,182 @@ function hostDimensions(host, card) {
   return { W: Math.round(W), H: Math.round(H) };
 }
 
+function getDeepLinkForCard(key) {
+  if (!key) return '/pos';
+  if (key.startsWith('sales')) return '/s/my-business-store-353/sales';
+  if (key.startsWith('purchase')) return '/s/my-business-store-353/purchase-orders';
+  if (key.startsWith('inventory')) return '/s/my-business-store-353/inventory';
+  if (key.startsWith('accounting') || key.startsWith('finance') || key.startsWith('bank')) return '/s/my-business-store-353/finance';
+  if (key.startsWith('parties') || key.startsWith('contacts')) return '/s/my-business-store-353/parties';
+  return '/s/my-business-store-353/reports';
+}
+
 function renderCard(c){
   const tone = c.tone || (c.accent ? "accent" : "surface");
   const toneClass = tone === "accent" ? "vqc--tone-accent vqc--accent" : tone === "ink" ? "vqc--tone-ink" : tone === "mesh" ? "vqc--tone-mesh" : "vqc--tone-surface";
-  const rd = readingOf(c.key);
   const [w, h] = sizeOf(c);
+  const deepLink = c.link || getDeepLinkForCard(c.key);
+
+  // 1. Quick Actions Hub Card
+  if (c.type === 'action_hub') {
+    return `<article class="vqc vqc--action-hub vq-w${w} vq-h${h} vqc--tone-ink" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+      <div class="vqc-hd">
+        <span class="vqc-eyebrow">OPERATIONS HUB</span>
+        <div class="vqc-acts">
+          <a href="${deepLink}" class="vqc-nav-link" title="Open Operations Hub" target="_self">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+          </a>
+          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div class="vqc-action-hub-title">${c.title || 'Quick Operations'}</div>
+      <div class="vqc-action-hub-sub">Point of sale, purchases & quick dispatch</div>
+      <div class="vqc-action-hub-grid">
+        <a href="/pos" class="vqc-hub-btn vqc-hub-btn--sales">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          <span>Point of Sale</span>
+        </a>
+        <a href="/s/my-business-store-353/purchase-orders" class="vqc-hub-btn vqc-hub-btn--purchase">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span>Purchase Order</span>
+        </a>
+        <button type="button" class="vqc-hub-btn vqc-hub-btn--actions" onclick="window.VenQoreCards?.openGlassActions?.()">
+          <span class="vqc-hub-plus">+</span>
+          <span>Quick Actions</span>
+        </button>
+      </div>
+      <div class="vqc-grip"></div>
+    </article>`;
+  }
+
+  // 2. Bank Accounts & Cash in Hand Liquidity Card
+  if (c.type === 'bank_liquidity') {
+    return `<article class="vqc vqc--bank-liquidity vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+      <div class="vqc-hd">
+        <span class="vqc-eyebrow">LIQUIDITY & BALANCES</span>
+        <div class="vqc-acts">
+          <a href="/s/my-business-store-353/finance" class="vqc-nav-link" title="Open Finance" target="_self">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+          </a>
+          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div class="vqc-bank-grid">
+        <div class="vqc-bank-box">
+          <span class="vqc-bank-label">Bank Accounts</span>
+          <span class="vqc-bank-val">Rs 4,820,400</span>
+          <span class="vqc-bank-sub">3 accounts active</span>
+        </div>
+        <div class="vqc-bank-box">
+          <span class="vqc-bank-label">Cash on Hand</span>
+          <span class="vqc-bank-val">Rs 1,816,149</span>
+          <span class="vqc-bank-sub">Drawer & safe</span>
+        </div>
+        <div class="vqc-bank-box is-total">
+          <span class="vqc-bank-label">Total Liquid Net</span>
+          <span class="vqc-bank-val">Rs 6,636,549</span>
+          <span class="vqc-bank-sub" style="color:var(--vq-teal-600)">+8.2% vs last mo</span>
+        </div>
+      </div>
+      <div class="vqc-grip"></div>
+    </article>`;
+  }
+
+  // 3. Alerts & Action Required Card
+  if (c.type === 'alerts_hub') {
+    return `<article class="vqc vqc--alerts-hub vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+      <div class="vqc-hd">
+        <span class="vqc-eyebrow">ACTIONS REQUIRED</span>
+        <div class="vqc-acts">
+          <a href="/s/my-business-store-353/reports" class="vqc-nav-link" title="Open Alerts" target="_self">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+          </a>
+          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div class="vqc-alerts-list">
+        <a href="/s/my-business-store-353/inventory" class="vqc-alert-item vqc-alert-item--warning">
+          <span class="vqc-alert-dot"></span>
+          <span class="vqc-alert-msg"><strong>4 products</strong> reached safety reorder limit</span>
+          <span class="vqc-alert-btn">Reorder →</span>
+        </a>
+        <a href="/s/my-business-store-353/finance" class="vqc-alert-item vqc-alert-item--danger">
+          <span class="vqc-alert-dot"></span>
+          <span class="vqc-alert-msg"><strong>Rs 10,260</strong> customer dues overdue (>30 days)</span>
+          <span class="vqc-alert-btn">Follow up →</span>
+        </a>
+        <a href="/s/my-business-store-353/purchase-orders" class="vqc-alert-item vqc-alert-item--info">
+          <span class="vqc-alert-dot"></span>
+          <span class="vqc-alert-msg"><strong>2 purchase orders</strong> awaiting warehouse receipt</span>
+          <span class="vqc-alert-btn">Receive →</span>
+        </a>
+      </div>
+      <div class="vqc-grip"></div>
+    </article>`;
+  }
+
+  // 4. Growth Engine Card
+  if (c.type === 'growth_engine') {
+    return `<article class="vqc vqc--growth-engine vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+      <div class="vqc-hd">
+        <span class="vqc-eyebrow">GROWTH ENGINE</span>
+        <div class="vqc-acts">
+          <a href="/s/my-business-store-353/reports" class="vqc-nav-link" title="Open Growth Engine" target="_self">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+          </a>
+          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div class="vqc-growth-grid">
+        <div class="vqc-growth-stat">
+          <span class="vqc-growth-label">Revenue Velocity</span>
+          <span class="vqc-growth-val">+18.4%</span>
+          <span class="vqc-growth-sub">Pace vs prev month</span>
+        </div>
+        <div class="vqc-growth-stat">
+          <span class="vqc-growth-label">Target On-Track</span>
+          <span class="vqc-growth-val">94.2%</span>
+          <span class="vqc-growth-sub">Rs 2.8M / 3.0M Goal</span>
+        </div>
+        <div class="vqc-growth-stat">
+          <span class="vqc-growth-label">Customer Retention</span>
+          <span class="vqc-growth-val">68.5%</span>
+          <span class="vqc-growth-sub">Repeat shoppers</span>
+        </div>
+      </div>
+      <div class="vqc-grip"></div>
+    </article>`;
+  }
+
+  // 5. Custom Button Card
+  if (c.type === 'custom_button') {
+    return `<article class="vqc vqc--custom-btn vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+      <div class="vqc-hd">
+        <span class="vqc-eyebrow">CUSTOM SHORTCUT</span>
+        <div class="vqc-acts">
+          <a href="${c.targetUrl || '/pos'}" class="vqc-nav-link" title="Open Shortcut" target="_self">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+          </a>
+          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <a href="${c.targetUrl || '/pos'}" class="vqc-custom-action-anchor">
+        <div class="vqc-custom-icon-ring" style="background: ${c.btnColor || 'var(--vq-teal-500)'}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <span class="vqc-custom-btn-title">${c.title || 'Launch Action'}</span>
+        <span class="vqc-custom-btn-sub">${c.sub || 'Instant one-click dispatch'}</span>
+      </a>
+      <div class="vqc-grip"></div>
+    </article>`;
+  }
+
+  const rd = readingOf(c.key);
   const title = c.title || rd.label;
   const hl = headlineOf(c);
   const keys = [c.key, ...c.extraKeys];
@@ -1725,7 +1902,10 @@ window.VenQoreCards = {
   openEdit: openEdit,
   closeEdit: closeEdit,
   addCard: addCard,
-  boot: boot
+  boot: boot,
+  openGlassActions: () => {
+    if (window._vqOpenGlassActions) window._vqOpenGlassActions();
+  }
 };
 
 
@@ -1769,55 +1949,52 @@ const CARD_TONES = [
   { id: 'mesh', name: 'Aurora Mesh', desc: 'Teal / sky gradient mesh', swatchBg: 'radial-gradient(circle at 100% 0%, #93ebd6 0%, #8fd9f5 100%)' }
 ];
 
-// Rich description lookup dictionary matching the screenshot
-const DESCRIPTIONS = {
-  'sales.revenue': 'Money earned from posted sales, net of returns and excluding tax.',
-  'sales.max_sale': 'The largest individual sale amount, excluding tax, within the period.',
-  'sales.gross_margin_pct': 'Gross profit as a percentage of revenue.',
-  'sales.revenue_trend': 'Monthly sales revenue trend.',
-  'sales.payment_breakdown': 'Sales breakdown by payment method.',
-  'sales.top_products': 'Highest selling products this period.',
-  'sales.top_customers': 'Highest value customers this period.',
-  'sales.hourly_heatmap': 'Sales count by hour of day and day of week.',
-  'sales.live_feed': 'Real-time activity log of orders and payments.',
-  'sales.avg_order_value': 'Average spend per registered transaction.',
-  'sales.basket_size': 'Average items purchased per customer order.',
-  'sales.discount_given': 'Total price discounts and promotional markdowns.',
-  'sales.return_rate': 'Percentage of sales returned or refunded.',
-  'accounting.assets': 'Total tangible and current asset holdings recorded.',
-  'accounting.liabilities': 'Short-term and long-term financial obligations.',
-  'accounting.income_ytd': 'Total accumulated fiscal year revenue to date.',
-  'accounting.expense_ytd': 'Total accumulated fiscal year expenditures to date.',
-  'inventory.total_items': 'Total unique stock keeping units in warehouse.',
-  'inventory.low_stock': 'Items below designated safety reorder thresholds.',
-  'inventory.out_of_stock': 'Products completely depleted from stock shelves.',
-  'inventory.valuation': 'Total monetary valuation of existing on-hand stock.',
-  'purchase.pending_pos': 'Submitted purchase orders awaiting supplier dispatch.',
-  'purchase.received_today': 'Stock delivery consignments received at dock today.',
-  'parties.total_customers': 'Active registered retail and wholesale customers.',
-  'parties.outstanding_dues': 'Receivable dues currently owed by customer accounts.'
-};
+// Pre-packaged Operations & Command Cards
+const OPERATIONAL_TEMPLATES = [
+  {
+    type: 'action_hub',
+    title: 'Quick Operations Hub',
+    desc: '3-button fast lane: Point of Sale, Purchase Orders, and Quick Actions.',
+    category: 'Operations',
+    defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Wide Hub (6 × 2)' },
+    tone: 'ink'
+  },
+  {
+    type: 'bank_liquidity',
+    title: 'Bank & Liquid Net Balances',
+    desc: 'Breakdown of active bank accounts, cash drawer holdings, and total liquid net.',
+    category: 'Finance',
+    defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Wide Tile (6 × 2)' },
+    tone: 'surface'
+  },
+  {
+    type: 'alerts_hub',
+    title: 'Actions Required & Alerts',
+    desc: 'Live operational alerts: low stock reorders, overdue receivables, and warehouse dispatches.',
+    category: 'Operations',
+    defaultSize: { w: 6, h: 3, cat: 'C4', label: 'Standard Alert Box (6 × 3)' },
+    tone: 'surface'
+  },
+  {
+    type: 'growth_engine',
+    title: 'Growth Engine & Target Pace',
+    desc: 'Revenue velocity, target progress on-track indicator, and repeat customer retention rate.',
+    category: 'Sales',
+    defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Growth Strip (6 × 2)' },
+    tone: 'surface'
+  }
+];
 
-function shapeBadgeText(shape) {
-  if (shape === 'SCALAR') return 'NUMBER';
-  if (shape === 'SERIES') return 'TREND';
-  if (shape === 'BREAKDOWN') return 'BREAKDOWN';
-  if (shape === 'RANKING') return 'RANKING';
-  if (shape === 'TABLE') return 'TABLE';
-  if (shape === 'FEED') return 'FEED';
-  if (shape === 'GAUGE') return 'GAUGE';
-  return shape || 'NUMBER';
-}
-
-function readingDescription(r) {
-  if (DESCRIPTIONS[r.key]) return DESCRIPTIONS[r.key];
-  if (r.shape === 'SCALAR') return `Current metric reading for ${r.label.toLowerCase()} across registered period.`;
-  if (r.shape === 'SERIES') return `Historical periodic trend overview for ${r.label.toLowerCase()}.`;
-  if (r.shape === 'BREAKDOWN') return `Categorical distribution analysis for ${r.label.toLowerCase()}.`;
-  if (r.shape === 'TABLE') return `Tabular breakdown and matrix log for ${r.label.toLowerCase()}.`;
-  if (r.shape === 'FEED') return `Real-time activity stream and event logging for ${r.label.toLowerCase()}.`;
-  return `Comprehensive analysis and monitoring reading for ${r.label.toLowerCase()}.`;
-}
+// Shortcut Action targets for Custom Button Builder
+const SHORTCUT_TARGETS = [
+  { label: 'Point of Sale (POS)', url: '/pos', icon: 'cart', color: '#0baa8f' },
+  { label: 'Create New Invoice', url: '/s/my-business-store-353/sales', icon: 'file', color: '#2ba5d1' },
+  { label: 'Inventory & Stock List', url: '/s/my-business-store-353/inventory', icon: 'box', color: '#8ccb2e' },
+  { label: 'Create Purchase Order', url: '/s/my-business-store-353/purchase-orders', icon: 'truck', color: '#f26a47' },
+  { label: 'Financial Accounts & Ledgers', url: '/s/my-business-store-353/finance', icon: 'dollar', color: '#5227ff' },
+  { label: 'Parties & Customers CRM', url: '/s/my-business-store-353/parties', icon: 'users', color: '#e0b4e0' },
+  { label: 'Business Intel Reports', url: '/s/my-business-store-353/reports', icon: 'chart', color: '#f5b32e' }
+];
 
 export default function NewDashboard(props) {
   const containerRef = useRef(null);
@@ -1828,13 +2005,27 @@ export default function NewDashboard(props) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   
-  // 2-Step Add Card Modal State
+  // Quick Actions GlassIcons Popup State
+  const [glassModalOpen, setGlassModalOpen] = useState(false);
+
+  // Expose global opener for GlassIcons popup
+  useEffect(() => {
+    window._vqOpenGlassActions = () => setGlassModalOpen(true);
+    return () => { window._vqOpenGlassActions = null; };
+  }, []);
+
+  // 3-Step Add Card Modal State
   const [modalOpen, setModalOpen] = useState(false);
+  const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0: Analytics Readings, 1: Operations Cards, 2: Custom Shortcut Buttons
   const [step, setStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArea, setSelectedArea] = useState('All');
-  const [selectedReading, setSelectedReading] = useState(null);
   
+  // Selected Card Draft
+  const [selectedReading, setSelectedReading] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [customBtnTarget, setCustomBtnTarget] = useState(SHORTCUT_TARGETS[0]);
+
   // Card Customization Draft State
   const [selectedSizeId, setSelectedSizeId] = useState('standard');
   const [draftChart, setDraftChart] = useState('area');
@@ -1842,6 +2033,7 @@ export default function NewDashboard(props) {
   const [draftTone, setDraftTone] = useState('surface');
   const [draftPeriod, setDraftPeriod] = useState('Month');
   const [draftAccent, setDraftAccent] = useState(false);
+  const [draftStarBorder, setDraftStarBorder] = useState(false);
   const [draftTitle, setDraftTitle] = useState('');
 
   const store = props?.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs' };
@@ -1853,46 +2045,75 @@ export default function NewDashboard(props) {
 
   // Update preview in Step 2 whenever configuration changes
   useEffect(() => {
-    if (modalOpen && step === 2 && selectedReading && window.VenQoreCards && previewRef.current) {
+    if (modalOpen && step === 2 && previewRef.current && window.VenQoreCards) {
       const targetSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
       
-      const cardDraft = {
-        id: 'preview-card',
-        key: selectedReading.key,
-        cat: targetSize.cat,
-        chart: draftChart,
-        variant: draftVariant,
-        period: draftPeriod,
-        fit: targetSize.fit,
-        tone: draftTone,
-        accent: draftTone === 'accent' || draftAccent,
-        title: draftTitle || selectedReading.label,
-        w: targetSize.w,
-        h: targetSize.h,
-        extraKeys: []
-      };
+      let cardDraft = null;
 
-      const cardHtml = window.VenQoreCards.renderCard(cardDraft);
-      previewRef.current.innerHTML = cardHtml;
-      
-      const cardEl = previewRef.current.querySelector(".vqc");
-      if (cardEl) {
-        cardEl.classList.add(targetSize.previewClass);
+      if (categoryFolderIndex === 0 && selectedReading) {
+        cardDraft = {
+          id: 'preview-card',
+          key: selectedReading.key,
+          cat: targetSize.cat,
+          chart: draftChart,
+          variant: draftVariant,
+          period: draftPeriod,
+          fit: targetSize.fit,
+          tone: draftTone,
+          accent: draftTone === 'accent' || draftAccent,
+          starBorder: draftStarBorder,
+          title: draftTitle || selectedReading.label,
+          w: targetSize.w,
+          h: targetSize.h,
+          extraKeys: []
+        };
+      } else if (categoryFolderIndex === 1 && selectedTemplate) {
+        cardDraft = {
+          id: 'preview-card',
+          type: selectedTemplate.type,
+          title: draftTitle || selectedTemplate.title,
+          tone: draftTone || selectedTemplate.tone,
+          cat: selectedTemplate.defaultSize.cat,
+          w: selectedTemplate.defaultSize.w,
+          h: selectedTemplate.defaultSize.h
+        };
+      } else if (categoryFolderIndex === 2) {
+        cardDraft = {
+          id: 'preview-card',
+          type: 'custom_button',
+          title: draftTitle || customBtnTarget.label,
+          targetUrl: customBtnTarget.url,
+          btnColor: customBtnTarget.color,
+          tone: draftTone,
+          cat: 'C2',
+          w: 3,
+          h: 2
+        };
       }
-      
-      // Delay mounting chart by one animation frame so preview card DOM is laid out accurately
-      requestAnimationFrame(() => {
-        const host = previewRef.current?.querySelector(".vqc-host");
-        if (host) {
-          window.VenQoreCards.mountChart(host, cardDraft);
+
+      if (cardDraft) {
+        const cardHtml = window.VenQoreCards.renderCard(cardDraft);
+        previewRef.current.innerHTML = cardHtml;
+        
+        const cardEl = previewRef.current.querySelector(".vqc");
+        if (cardEl) {
+          cardEl.classList.add(targetSize.previewClass);
         }
-      });
+        
+        requestAnimationFrame(() => {
+          const host = previewRef.current?.querySelector(".vqc-host");
+          if (host) {
+            window.VenQoreCards.mountChart(host, cardDraft);
+          }
+        });
+      }
     }
-  }, [modalOpen, step, selectedReading, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftAccent, draftTitle]);
+  }, [modalOpen, step, categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftAccent, draftStarBorder, draftTitle]);
 
   // Open Step 2 for a selected reading
   const selectMetricForStep2 = (rd) => {
     setSelectedReading(rd);
+    setSelectedTemplate(null);
     const shape = rd.shape;
     
     let defaultChart = 'area';
@@ -1936,6 +2157,26 @@ export default function NewDashboard(props) {
     setDraftPeriod('Month');
     setDraftTitle(rd.label);
     setDraftAccent(false);
+    setDraftStarBorder(false);
+    setStep(2);
+  };
+
+  // Open Step 2 for an Operational Template
+  const selectTemplateForStep2 = (tmpl) => {
+    setSelectedTemplate(tmpl);
+    setSelectedReading(null);
+    setDraftTone(tmpl.tone || 'surface');
+    setDraftTitle(tmpl.title);
+    setStep(2);
+  };
+
+  // Open Step 2 for Custom Button
+  const selectCustomBtnForStep2 = (target) => {
+    setCustomBtnTarget(target);
+    setSelectedReading(null);
+    setSelectedTemplate(null);
+    setDraftTone('surface');
+    setDraftTitle(target.label);
     setStep(2);
   };
 
@@ -1992,30 +2233,58 @@ export default function NewDashboard(props) {
 
   // Add customized card to dashboard
   const handleAddCardConfirm = () => {
-    if (!selectedReading || !window.VenQoreCards) return;
+    if (!window.VenQoreCards) return;
     
-    const targetSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
-    
-    const newCard = {
-      id: 'c-' + Math.random().toString(36).substring(2, 9),
-      key: selectedReading.key,
-      cat: targetSize.cat,
-      chart: draftChart,
-      variant: draftVariant,
-      period: draftPeriod,
-      fit: targetSize.fit,
-      tone: draftTone,
-      accent: draftTone === 'accent' || draftAccent,
-      title: draftTitle || selectedReading.label,
-      w: targetSize.w,
-      h: targetSize.h,
-      extraKeys: []
-    };
+    let newCard = null;
 
-    const current = window.VenQoreCards.getCards();
-    window.VenQoreCards.setCards([...current, newCard]);
-    setModalOpen(false);
-    setStep(1);
+    if (categoryFolderIndex === 0 && selectedReading) {
+      const targetSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
+      newCard = {
+        id: 'c-' + Math.random().toString(36).substring(2, 9),
+        key: selectedReading.key,
+        cat: targetSize.cat,
+        chart: draftChart,
+        variant: draftVariant,
+        period: draftPeriod,
+        fit: targetSize.fit,
+        tone: draftTone,
+        accent: draftTone === 'accent' || draftAccent,
+        starBorder: draftStarBorder,
+        title: draftTitle || selectedReading.label,
+        w: targetSize.w,
+        h: targetSize.h,
+        extraKeys: []
+      };
+    } else if (categoryFolderIndex === 1 && selectedTemplate) {
+      newCard = {
+        id: 'c-' + Math.random().toString(36).substring(2, 9),
+        type: selectedTemplate.type,
+        title: draftTitle || selectedTemplate.title,
+        tone: draftTone || selectedTemplate.tone,
+        cat: selectedTemplate.defaultSize.cat,
+        w: selectedTemplate.defaultSize.w,
+        h: selectedTemplate.defaultSize.h
+      };
+    } else if (categoryFolderIndex === 2) {
+      newCard = {
+        id: 'c-' + Math.random().toString(36).substring(2, 9),
+        type: 'custom_button',
+        title: draftTitle || customBtnTarget.label,
+        targetUrl: customBtnTarget.url,
+        btnColor: customBtnTarget.color,
+        tone: draftTone,
+        cat: 'C2',
+        w: 3,
+        h: 2
+      };
+    }
+
+    if (newCard) {
+      const current = window.VenQoreCards.getCards();
+      window.VenQoreCards.setCards([...current, newCard]);
+      setModalOpen(false);
+      setStep(1);
+    }
   };
 
   // Reset to initial cards
@@ -2065,6 +2334,46 @@ export default function NewDashboard(props) {
   // Variants for current chart
   const variantsMap = window.VenQoreCards?.getVariants?.() || {};
   const currentVariants = variantsMap[draftChart] || [['standard', 'Standard']];
+
+  // GlassIcons items for the center action popup
+  const glassActionItems = [
+    {
+      label: 'POS Register',
+      color: 'teal',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
+      href: '/pos'
+    },
+    {
+      label: 'New Invoice',
+      color: 'blue',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>,
+      href: '/s/my-business-store-353/sales'
+    },
+    {
+      label: 'Add Product',
+      color: 'orange',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>,
+      href: '/s/my-business-store-353/inventory'
+    },
+    {
+      label: 'Stock Intake',
+      color: 'purple',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/></svg>,
+      href: '/s/my-business-store-353/purchase-orders'
+    },
+    {
+      label: 'New Customer',
+      color: 'sky',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>,
+      href: '/s/my-business-store-353/parties'
+    },
+    {
+      label: 'Add Expense',
+      color: 'coral',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+      href: '/s/my-business-store-353/finance'
+    }
+  ];
 
   return (
     <div ref={containerRef} className={`vq-shell ${isEditMode ? 'is-editing' : ''}`} style={{ minHeight: '100vh', background: 'var(--vq-bg)' }}>
@@ -2205,11 +2514,14 @@ export default function NewDashboard(props) {
           </div>
 
           <div className="vq-header-right">
-            <div className="vq-search-box">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <span>Search metrics...</span>
-              <span className="vq-search-kbd">⌘K</span>
-            </div>
+            <button
+              onClick={() => setGlassModalOpen(true)}
+              className="vq-choice-btn"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600 }}
+            >
+              <span style={{ color: 'var(--vq-teal-500)', fontSize: '15px' }}>⚡</span>
+              <span>Quick Actions</span>
+            </button>
 
             <button
               onClick={() => {
@@ -2323,40 +2635,120 @@ export default function NewDashboard(props) {
         </main>
       </div>
 
-      {/* ── Exact Step 1 & Step 2 Add Cards Modal (Strict V6 Design System) ── */}
+      {/* ── React Bits GlassIcons Quick Actions Center Popup ── */}
+      {glassModalOpen && (
+        <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)}>
+          <div className="vq-glass-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="vq-glass-modal-header">
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--vq-teal-600)' }}>
+                  COMMAND CENTER FAST LANE
+                </div>
+                <div className="vq-glass-modal-title">Quick Actions</div>
+              </div>
+              <button
+                className="vq-modal-close-x"
+                onClick={() => setGlassModalOpen(false)}
+                aria-label="Close Quick Actions"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+
+            <GlassIcons
+              items={glassActionItems}
+              onActionClick={(item) => {
+                setGlassModalOpen(false);
+                if (item.href) window.location.href = item.href;
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Add Cards Multi-Step Wizard Modal ── */}
       {modalOpen && (
         <div className="vq-modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="vq-modal-card" onClick={e => e.stopPropagation()}>
-            {/* Top Bar */}
+            {/* Top Bar with Stepper */}
             <div className="vq-modal-top-bar">
               <div>
                 <div className="vq-modal-step-sub">
-                  {step === 1 ? 'ADD CARDS · STEP 1 OF 2' : 'ADD CARDS · STEP 2 OF 2'}
+                  ADD CARDS · STEP {step} OF 3
                 </div>
                 <div className="vq-modal-heading">
-                  {step === 1 ? 'Choose a reading' : `Configure: ${selectedReading?.label}`}
+                  {step === 1 ? 'Choose Card Type' : step === 2 ? 'Configure Layout & Visuals' : 'Confirm & Place Card'}
                 </div>
               </div>
               <div className="vq-modal-top-right">
-                {step === 1 && (
-                  <span className="vq-modal-count">
-                    {filteredReadings.length} of {readings.length}
-                  </span>
-                )}
                 <button
                   className="vq-modal-close-x"
                   onClick={() => setModalOpen(false)}
                   aria-label="Close modal"
-                  title="Close modal"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
               </div>
             </div>
 
-            {/* Filter Zone */}
+            {/* Stepper Navigation */}
+            <div style={{ padding: '0 32px' }}>
+              <Stepper
+                steps={[
+                  { label: 'Select Card' },
+                  { label: 'Visual Styling' },
+                  { label: 'Preview & Confirm' }
+                ]}
+                currentStep={step}
+                onStepClick={(s) => {
+                  if (s <= step || (s === 2 && (selectedReading || selectedTemplate || customBtnTarget))) {
+                    setStep(s);
+                  }
+                }}
+              />
+            </div>
+
+            {/* Step 1: Category Switcher using React Bits Folder */}
             {step === 1 && (
-              <div className="vq-modal-filter-zone">
+              <div className="vq-folder-tabs-header">
+                <div className="vq-category-folder-pill-group">
+                  <button
+                    className={`vq-category-folder-pill ${categoryFolderIndex === 0 ? 'is-active' : ''}`}
+                    onClick={() => setCategoryFolderIndex(0)}
+                  >
+                    📊 Metric Readings ({readings.length})
+                  </button>
+                  <button
+                    className={`vq-category-folder-pill ${categoryFolderIndex === 1 ? 'is-active' : ''}`}
+                    onClick={() => setCategoryFolderIndex(1)}
+                  >
+                    ⚡ Operations & Hubs ({OPERATIONAL_TEMPLATES.length})
+                  </button>
+                  <button
+                    className={`vq-category-folder-pill ${categoryFolderIndex === 2 ? 'is-active' : ''}`}
+                    onClick={() => setCategoryFolderIndex(2)}
+                  >
+                    🚀 Custom Action Shortcuts
+                  </button>
+                </div>
+
+                <Folder
+                  size={0.65}
+                  color="#0baa8f"
+                  selectedIndex={categoryFolderIndex}
+                  onSelectCategory={(i) => setCategoryFolderIndex(i)}
+                  items={[
+                    <span>Readings</span>,
+                    <span>Operations</span>,
+                    <span>Shortcuts</span>
+                  ]}
+                />
+              </div>
+            )}
+
+            {/* Step 1 Filters for Metrics */}
+            {step === 1 && categoryFolderIndex === 0 && (
+              <div className="vq-modal-filter-zone" style={{ marginTop: '12px' }}>
                 <div className="vq-modal-search-wrapper">
                   <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                   <input
@@ -2386,98 +2778,172 @@ export default function NewDashboard(props) {
             {/* Scrollable Content Body */}
             <div className="vq-modal-scroll-area">
               {step === 1 ? (
-                Object.keys(groupedSections).map(area => (
-                  <div key={area} className="vq-modal-section-group">
-                    <div className="vq-modal-section-title">{area}</div>
+                categoryFolderIndex === 0 ? (
+                  /* 1. Metric Readings */
+                  Object.keys(groupedSections).map(area => (
+                    <div key={area} className="vq-modal-section-group">
+                      <div className="vq-modal-section-title">{area}</div>
+                      <div className="vq-modal-cards-grid">
+                        {groupedSections[area].map(r => (
+                          <div
+                            key={r.key}
+                            className="vq-item-card"
+                            onClick={() => selectMetricForStep2(r)}
+                          >
+                            <div className="vq-item-card-top">
+                              <span className="vq-item-card-title">{r.label}</span>
+                              {r.extra && (
+                                <span className="vq-item-new-badge">✨ NEW</span>
+                              )}
+                            </div>
+                            
+                            <p className="vq-item-card-desc">
+                              {r.label} overview reading
+                            </p>
+
+                            <div className="vq-item-card-foot">
+                              <span className="vq-item-shape-tag">
+                                {r.shape || 'NUMBER'}
+                              </span>
+                              <span className="vq-item-card-key">{r.key}</span>
+                              <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : categoryFolderIndex === 1 ? (
+                  /* 2. Operational & Command Hub Cards */
+                  <div className="vq-modal-section-group">
+                    <div className="vq-modal-section-title">OPERATIONAL & COMMAND CARDS</div>
                     <div className="vq-modal-cards-grid">
-                      {groupedSections[area].map(r => (
+                      {OPERATIONAL_TEMPLATES.map(tmpl => (
                         <div
-                          key={r.key}
+                          key={tmpl.type}
                           className="vq-item-card"
-                          onClick={() => selectMetricForStep2(r)}
+                          onClick={() => selectTemplateForStep2(tmpl)}
                         >
                           <div className="vq-item-card-top">
-                            <span className="vq-item-card-title">{r.label}</span>
-                            {r.extra && (
-                              <span className="vq-item-new-badge">✨ NEW</span>
-                            )}
+                            <span className="vq-item-card-title">{tmpl.title}</span>
+                            <span className="vq-item-new-badge">⚡ Interactive</span>
                           </div>
                           
-                          <p className="vq-item-card-desc">
-                            {readingDescription(r)}
-                          </p>
+                          <p className="vq-item-card-desc">{tmpl.desc}</p>
 
                           <div className="vq-item-card-foot">
-                            <span className="vq-item-shape-tag">
-                              {shapeBadgeText(r.shape)}
-                            </span>
-                            <span className="vq-item-card-key">{r.key}</span>
+                            <span className="vq-item-shape-tag">{tmpl.defaultSize.label}</span>
+                            <span className="vq-item-card-key">{tmpl.category}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                ))
+                ) : (
+                  /* 3. Custom Action Button Shortcuts */
+                  <div className="vq-modal-section-group">
+                    <div className="vq-modal-section-title">CREATE YOUR OWN ACTION SHORTCUT</div>
+                    <div className="vq-modal-cards-grid">
+                      {SHORTCUT_TARGETS.map(target => (
+                        <div
+                          key={target.url}
+                          className="vq-item-card"
+                          onClick={() => selectCustomBtnForStep2(target)}
+                        >
+                          <div className="vq-item-card-top">
+                            <span className="vq-item-card-title">{target.label}</span>
+                            <span className="vq-item-new-badge" style={{ background: 'var(--vq-teal-50)', color: 'var(--vq-teal-700)' }}>1-Click</span>
+                          </div>
+                          
+                          <p className="vq-item-card-desc">Direct jump shortcut to {target.label} workflow.</p>
+
+                          <div className="vq-item-card-foot">
+                            <span className="vq-item-shape-tag" style={{ background: target.color, color: '#fff' }}>SHORTCUT</span>
+                            <span className="vq-item-card-key">{target.url}</span>
+                            <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
               ) : (
-                /* Step 2: Controls & Accurate Proportional Preview */
+                /* Step 2 & 3: Controls & Live Preview */
                 <div className="vq-step2-layout">
                   {/* Left Controls Pane */}
                   <div className="vq-controls-pane">
-                    {/* Card Size Selector */}
+                    {/* Title */}
                     <div className="vq-form-group">
-                      <label className="vq-form-label">
-                        <span>CARD SIZE</span>
-                        <span className="vq-form-sublabel">Auto-scales layout</span>
-                      </label>
-                      <div className="vq-size-grid">
-                        {CARD_SIZES.map(s => (
-                          <div
-                            key={s.id}
-                            className={`vq-size-card ${selectedSizeId === s.id ? 'is-active' : ''}`}
-                            onClick={() => handleSizeSelect(s.id)}
-                          >
-                            <div className="vq-size-card-title">{s.label}</div>
-                            <div className="vq-size-card-desc">{s.sub}</div>
+                      <label className="vq-form-label">CUSTOM CARD TITLE</label>
+                      <input
+                        type="text"
+                        className="vq-modal-search-input"
+                        style={{ height: '38px', padding: '0 14px' }}
+                        value={draftTitle}
+                        onChange={e => setDraftTitle(e.target.value)}
+                        placeholder="Enter card display title..."
+                      />
+                    </div>
+
+                    {categoryFolderIndex === 0 && (
+                      <>
+                        {/* Card Size Selector */}
+                        <div className="vq-form-group">
+                          <label className="vq-form-label">
+                            <span>CARD SIZE</span>
+                            <span className="vq-form-sublabel">Auto-scales layout</span>
+                          </label>
+                          <div className="vq-size-grid">
+                            {CARD_SIZES.map(s => (
+                              <div
+                                key={s.id}
+                                className={`vq-size-card ${selectedSizeId === s.id ? 'is-active' : ''}`}
+                                onClick={() => handleSizeSelect(s.id)}
+                              >
+                                <div className="vq-size-card-title">{s.label}</div>
+                                <div className="vq-size-card-desc">{s.sub}</div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                        </div>
 
-                    {/* Chart Type Selector */}
-                    <div className="vq-form-group">
-                      <label className="vq-form-label">
-                        <span>CHART TYPE</span>
-                        <span className="vq-form-sublabel">Auto-resizes card if needed</span>
-                      </label>
-                      <div className="vq-select-btn-group">
-                        {legalCharts.map(ch => (
-                          <button
-                            key={ch}
-                            className={`vq-choice-btn ${draftChart === ch ? 'is-active' : ''}`}
-                            onClick={() => handleChartSelect(ch)}
-                          >
-                            {chartNames[ch] || ch}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                        {/* Chart Type Selector */}
+                        <div className="vq-form-group">
+                          <label className="vq-form-label">
+                            <span>CHART TYPE</span>
+                            <span className="vq-form-sublabel">Auto-resizes card if needed</span>
+                          </label>
+                          <div className="vq-select-btn-group">
+                            {legalCharts.map(ch => (
+                              <button
+                                key={ch}
+                                className={`vq-choice-btn ${draftChart === ch ? 'is-active' : ''}`}
+                                onClick={() => handleChartSelect(ch)}
+                              >
+                                {chartNames[ch] || ch}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
-                    {/* Visual Variant Selector */}
-                    <div className="vq-form-group">
-                      <label className="vq-form-label">VISUAL VARIANT</label>
-                      <div className="vq-select-btn-group">
-                        {currentVariants.map(([v, n]) => (
-                          <button
-                            key={v}
-                            className={`vq-choice-btn ${draftVariant === v ? 'is-active' : ''}`}
-                            onClick={() => setDraftVariant(v)}
-                          >
-                            {n}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                        {/* Visual Variant Selector */}
+                        <div className="vq-form-group">
+                          <label className="vq-form-label">VISUAL VARIANT</label>
+                          <div className="vq-select-btn-group">
+                            {currentVariants.map(([v, n]) => (
+                              <button
+                                key={v}
+                                className={`vq-choice-btn ${draftVariant === v ? 'is-active' : ''}`}
+                                onClick={() => setDraftVariant(v)}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
 
                     {/* Card Background Tone Selector (V6 Design System) */}
                     <div className="vq-form-group">
@@ -2500,22 +2966,40 @@ export default function NewDashboard(props) {
                     </div>
 
                     {/* Default Timeframe */}
-                    <div className="vq-form-group">
-                      <label className="vq-form-label">DEFAULT TIMEFRAME</label>
-                      <div className="vq-select-btn-group">
-                        {['Today', 'Week', 'Month', 'Quarter', 'Year'].map(p => (
-                          <button
-                            key={p}
-                            className={`vq-choice-btn ${draftPeriod === p ? 'is-active' : ''}`}
-                            onClick={() => setDraftPeriod(p)}
-                          >
-                            {p}
-                          </button>
-                        ))}
+                    {categoryFolderIndex === 0 && (
+                      <div className="vq-form-group">
+                        <label className="vq-form-label">DEFAULT TIMEFRAME</label>
+                        <div className="vq-select-btn-group">
+                          {['Today', 'Week', 'Month', 'Quarter', 'Year'].map(p => (
+                            <button
+                              key={p}
+                              className={`vq-choice-btn ${draftPeriod === p ? 'is-active' : ''}`}
+                              onClick={() => setDraftPeriod(p)}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* StarBorder Glowing Edge Option */}
+                    <div
+                      className="vq-v6-switch-wrapper"
+                      onClick={() => setDraftStarBorder(!draftStarBorder)}
+                      role="switch"
+                      aria-checked={draftStarBorder}
+                    >
+                      <div className="vq-v6-switch-label">
+                        <span className="vq-v6-switch-title">Animated Star Border</span>
+                        <span className="vq-v6-switch-sub">High-priority highlighted card glow</span>
+                      </div>
+                      <div className={`vq-v6-switch-track ${draftStarBorder ? 'is-on' : ''}`}>
+                        <div className="vq-v6-switch-knob"></div>
                       </div>
                     </div>
 
-                    {/* V6 Design System Switch for Highlight Glare */}
+                    {/* Glare Shine Switch */}
                     <div
                       className="vq-v6-switch-wrapper"
                       onClick={() => setDraftAccent(!draftAccent)}
@@ -2523,8 +3007,8 @@ export default function NewDashboard(props) {
                       aria-checked={draftAccent}
                     >
                       <div className="vq-v6-switch-label">
-                        <span className="vq-v6-switch-title">Animated Glare Shine</span>
-                        <span className="vq-v6-switch-sub">Subtle holographic lighting reflex</span>
+                        <span className="vq-v6-switch-title">Animated Glare Reflex</span>
+                        <span className="vq-v6-switch-sub">Holographic light reflection</span>
                       </div>
                       <div className={`vq-v6-switch-track ${draftAccent ? 'is-on' : ''}`}>
                         <div className="vq-v6-switch-knob"></div>
@@ -2535,9 +3019,15 @@ export default function NewDashboard(props) {
                   {/* Right Live Dashboard Preview */}
                   <div className="vq-preview-stage">
                     <div style={{ position: 'absolute', top: '14px', left: '18px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--vq-text-3)', letterSpacing: '0.06em' }}>
-                      LIVE DASHBOARD PREVIEW
+                      LIVE PREVIEW
                     </div>
-                    <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}></div>
+                    {draftStarBorder ? (
+                      <StarBorder color="rgba(11, 170, 143, 0.95)" speed="4s">
+                        <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}></div>
+                      </StarBorder>
+                    ) : (
+                      <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}></div>
+                    )}
                   </div>
                 </div>
               )}
@@ -2547,7 +3037,7 @@ export default function NewDashboard(props) {
             <div className="vq-modal-bottom-bar">
               {step === 1 ? (
                 <div className="vq-modal-bottom-desc">
-                  Pick a reading to shape its card — size, chart, background and period come next, with a live preview before anything lands on your board.
+                  Pick a card from Metric Readings, Operations Hubs, or Action Shortcuts to configure layout, background tones, and interactive options.
                 </div>
               ) : (
                 <button
@@ -2556,7 +3046,7 @@ export default function NewDashboard(props) {
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                  <span>Change Reading</span>
+                  <span>Change Selection</span>
                 </button>
               )}
 
