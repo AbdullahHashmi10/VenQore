@@ -1655,20 +1655,29 @@ function boot(){
      page ground, so contrast rules carry over untouched. */
   const THEMES = [["light",null], ["dark",null], ["dark","mesh"]];
   let themeAt = 0;
-  document.getElementById("vq-theme").onclick = () => {
-    themeAt = (themeAt + 1) % THEMES.length;
-    const [t, bg] = THEMES[themeAt];
-    const r = document.documentElement;
-    r.setAttribute("data-theme", t);
-    if (bg) r.setAttribute("data-bg", bg); else r.removeAttribute("data-bg");
-    document.getElementById("vq-theme").setAttribute("data-mode", bg || t);
-    draw();
-  };
-  document.getElementById("lib-open").onclick = () => {
-    document.getElementById("lib").classList.add("is-on");
-    document.getElementById("lib-q")?.focus();
-  };
-  document.getElementById("lib-close").onclick = () => document.getElementById("lib").classList.remove("is-on");
+  const themeBtn = document.getElementById("vq-theme");
+  if (themeBtn) {
+    themeBtn.onclick = () => {
+      themeAt = (themeAt + 1) % THEMES.length;
+      const [t, bg] = THEMES[themeAt];
+      const r = document.documentElement;
+      r.setAttribute("data-theme", t);
+      if (bg) r.setAttribute("data-bg", bg); else r.removeAttribute("data-bg");
+      themeBtn.setAttribute("data-mode", bg || t);
+      draw();
+    };
+  }
+  const libOpenBtn = document.getElementById("lib-open");
+  if (libOpenBtn) {
+    libOpenBtn.onclick = () => {
+      document.getElementById("lib")?.classList.add("is-on");
+      document.getElementById("lib-q")?.focus();
+    };
+  }
+  const libCloseBtn = document.getElementById("lib-close");
+  if (libCloseBtn) {
+    libCloseBtn.onclick = () => document.getElementById("lib")?.classList.remove("is-on");
+  }
   draw();
 }
 
