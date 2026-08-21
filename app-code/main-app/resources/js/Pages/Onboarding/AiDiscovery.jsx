@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs/ThinkingOrb';
 import { Sparkles, ArrowRight, ArrowLeft, Bot, CheckCircle2, Zap, Layers, MessageSquare } from 'lucide-react';
 
-export default function AiDiscovery({ onNext, onBack, onAiResult }) {
+export default function AiDiscovery({ onNext, onBack, onAiResult, storeSlug }) {
     const [prompt, setPrompt] = useState('');
     const [industry, setIndustry] = useState('cafe');
     const [teamSize, setTeamSize] = useState('solo');
@@ -12,7 +12,7 @@ export default function AiDiscovery({ onNext, onBack, onAiResult }) {
     const handleAnalyze = async () => {
         setIsAnalyzing(true);
         try {
-            const res = await fetch(route('onboarding.v2.ai-discovery'), {
+            const res = await fetch(route('store.onboarding.v2.ai-discovery', { store_slug: storeSlug }), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -31,7 +31,7 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
     const handleApplyAndBuild = async () => {
         setStep('building');
         try {
-            await fetch(route('onboarding.v2.apply-preset'), {
+            await fetch(route('store.onboarding.v2.apply-preset', { store_slug: storeSlug }), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
 
     const handleCompleteOnboarding = async () => {
         try {
-            const res = await fetch(route('onboarding.v2.complete'), {
+            const res = await fetch(route('store.onboarding.v2.complete', { store_slug: storeSlug }), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,6 +117,7 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
 
                 {step === 'ai' && (
                     <AiDiscovery
+                        storeSlug={storeSlug}
                         onBack={() => setStep('welcome')}
                         onAiResult={handleAiResult}
                         onNext={() => setStep('proposal')}
