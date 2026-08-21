@@ -2,8 +2,8 @@
 :root {
   --folder-color: #0baa8f;
   --folder-back-color: #088975;
-  --paper-1: #e6ece8;
-  --paper-2: #f1f5f2;
+  --paper-1: #ffffff;
+  --paper-2: #ffffff;
   --paper-3: #ffffff;
 }
 
@@ -11,27 +11,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 20px;
 }
 
 .folder {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   user-select: none;
   position: relative;
 }
 
 .folder:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
 }
 
 .folder .paper {
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Closed state */
 .folder.closed .paper {
-  transform: translate(-50%, 20%) scale(0.7) !important;
+  transform: translate(-50%, 25%) scale(0.6) !important;
   opacity: 0;
   pointer-events: none;
 }
@@ -40,55 +40,59 @@
   transform: none !important;
 }
 
-/* Open state */
+/* Open state with 3 prominent category papers */
 .folder.open .paper:nth-child(1) {
   opacity: 1;
-  transform: translate(-115%, -65%) rotateZ(-12deg);
+  transform: translate(-125%, -65%) rotateZ(-14deg);
+  width: 105px;
+  height: 95px;
 }
 
 .folder.open .paper:nth-child(1):hover,
 .folder.open .paper:nth-child(1).is-selected-paper {
-  transform: translate(-115%, -75%) rotateZ(-12deg) scale(1.08);
-  box-shadow: 0 8px 24px rgba(11, 170, 143, 0.35);
+  transform: translate(-125%, -78%) rotateZ(-14deg) scale(1.12);
+  box-shadow: 0 16px 36px rgba(11, 170, 143, 0.45);
   border: 2px solid var(--vq-teal-500, #0baa8f);
   z-index: 10;
 }
 
 .folder.open .paper:nth-child(2) {
   opacity: 1;
-  transform: translate(15%, -65%) rotateZ(12deg);
-  height: 80%;
+  transform: translate(25%, -65%) rotateZ(14deg);
+  width: 105px;
+  height: 95px;
 }
 
 .folder.open .paper:nth-child(2):hover,
 .folder.open .paper:nth-child(2).is-selected-paper {
-  transform: translate(15%, -75%) rotateZ(12deg) scale(1.08);
-  box-shadow: 0 8px 24px rgba(11, 170, 143, 0.35);
+  transform: translate(25%, -78%) rotateZ(14deg) scale(1.12);
+  box-shadow: 0 16px 36px rgba(11, 170, 143, 0.45);
   border: 2px solid var(--vq-teal-500, #0baa8f);
   z-index: 10;
 }
 
 .folder.open .paper:nth-child(3) {
   opacity: 1;
-  transform: translate(-50%, -95%) rotateZ(0deg);
-  height: 85%;
+  transform: translate(-50%, -105%) rotateZ(0deg);
+  width: 115px;
+  height: 100px;
 }
 
 .folder.open .paper:nth-child(3):hover,
 .folder.open .paper:nth-child(3).is-selected-paper {
-  transform: translate(-50%, -105%) rotateZ(0deg) scale(1.08);
-  box-shadow: 0 8px 24px rgba(11, 170, 143, 0.35);
+  transform: translate(-50%, -118%) rotateZ(0deg) scale(1.12);
+  box-shadow: 0 16px 36px rgba(11, 170, 143, 0.45);
   border: 2px solid var(--vq-teal-500, #0baa8f);
   z-index: 10;
 }
 
 .folder__back {
   position: relative;
-  width: 110px;
-  height: 84px;
+  width: 140px;
+  height: 105px;
   background: var(--folder-back-color);
-  border-radius: 0px 12px 12px 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 0px 16px 16px 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
 .folder__back::after {
@@ -97,10 +101,10 @@
   bottom: 98%;
   left: 0;
   content: '';
-  width: 36px;
-  height: 12px;
+  width: 48px;
+  height: 16px;
   background: var(--folder-back-color);
-  border-radius: 6px 6px 0 0;
+  border-radius: 8px 8px 0 0;
 }
 
 .paper {
@@ -111,31 +115,26 @@
   transform: translate(-50%, 10%);
   width: 80%;
   height: 80%;
-  background: var(--paper-1);
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px;
-  font-size: 11px;
-  font-weight: 700;
+  padding: 10px 8px;
   color: #17201b;
   text-align: center;
   cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
 }
 
-.paper:nth-child(2) {
-  background: var(--paper-2);
-  width: 85%;
-  height: 75%;
-}
-
-.paper:nth-child(3) {
-  background: var(--paper-3);
-  width: 90%;
-  height: 70%;
+[data-theme="dark"] .paper {
+  background: #1c2721;
+  color: #ffffff;
+  border-color: #2e3e35;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .folder__front {
@@ -144,94 +143,191 @@
   width: 100%;
   height: 100%;
   background: var(--folder-color);
-  border-radius: 6px 12px 12px 12px;
+  border-radius: 8px 16px 16px 16px;
   transform-origin: bottom;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 6px 16px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.25), 0 10px 24px rgba(0, 0, 0, 0.25);
 }
 
 .folder.open .folder__front {
-  transform: skew(15deg) scaleY(0.55);
+  transform: skew(15deg) scaleY(0.52);
 }
 
 .folder.open .right {
-  transform: skew(-15deg) scaleY(0.55);
+  transform: skew(-15deg) scaleY(0.52);
 }
 
-/* ── 3D Folder Button Trigger Component ── */
-.vq-folder-trigger-btn {
+/* ── Windows Desktop Style Folder Icon Button ── */
+.vq-desktop-folder-btn {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 6px 16px 6px 10px;
-  background: linear-gradient(135deg, var(--vq-teal-500, #0baa8f), var(--vq-teal-700, #076b5e));
-  border: none;
-  border-radius: var(--vq-r-full, 9999px);
-  color: #ffffff;
-  font-family: var(--vq-font-sans, sans-serif);
-  font-size: 13px;
-  font-weight: 700;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--vq-r-md, 12px);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(11, 170, 143, 0.35);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  color: var(--vq-text, var(--vq-ink-900));
 }
 
-.vq-folder-trigger-btn:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(11, 170, 143, 0.5);
+.vq-desktop-folder-btn:hover {
+  background: rgba(11, 170, 143, 0.08);
+  border-color: rgba(11, 170, 143, 0.2);
+  transform: translateY(-2px);
 }
 
-.vq-folder-trigger-btn:active {
-  transform: translateY(0) scale(0.98);
+[data-theme="dark"] .vq-desktop-folder-btn:hover {
+  background: rgba(89, 219, 192, 0.12);
+  border-color: rgba(89, 219, 192, 0.25);
 }
 
-.vq-mini-folder-icon {
+.vq-desktop-folder-btn:active {
+  transform: scale(0.96);
+}
+
+.vq-desktop-folder-icon {
   position: relative;
-  width: 24px;
-  height: 18px;
+  width: 32px;
+  height: 24px;
   background: #088975;
-  border-radius: 0 3px 3px 3px;
-  display: inline-block;
+  border-radius: 0 4px 4px 4px;
+  display: block;
   flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease;
 }
 
-.vq-mini-folder-icon::before {
+.vq-desktop-folder-icon::before {
   content: '';
   position: absolute;
   bottom: 100%;
   left: 0;
-  width: 9px;
-  height: 3px;
+  width: 12px;
+  height: 4px;
   background: #088975;
-  border-radius: 2px 2px 0 0;
+  border-radius: 3px 3px 0 0;
 }
 
-.vq-mini-folder-front {
+.vq-desktop-folder-papers {
+  position: absolute;
+  top: -5px;
+  left: 4px;
+  width: 20px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 2px;
+  opacity: 0.95;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vq-desktop-folder-front {
   position: absolute;
   inset: 0;
-  background: #23c4a6;
-  border-radius: 2px 3px 3px 3px;
+  background: linear-gradient(135deg, #0baa8f, #23c4a6);
+  border-radius: 2px 4px 4px 4px;
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.vq-folder-trigger-btn:hover .vq-mini-folder-front {
+.vq-desktop-folder-btn:hover .vq-desktop-folder-front {
   transform: skew(-10deg) scaleY(0.85);
 }
 
-.vq-mini-folder-papers {
-  position: absolute;
-  top: -4px;
-  left: 3px;
-  width: 14px;
-  height: 10px;
-  background: #ffffff;
-  border-radius: 2px;
-  opacity: 0.9;
-  transition: transform 0.2s ease;
+.vq-desktop-folder-btn:hover .vq-desktop-folder-papers {
+  transform: translateY(-4px);
 }
 
-.vq-folder-trigger-btn:hover .vq-mini-folder-papers {
-  transform: translateY(-3px);
+.vq-desktop-folder-label {
+  font-family: var(--vq-font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--vq-text, var(--vq-ink-900));
+  letter-spacing: -0.01em;
+  text-align: center;
+  line-height: 1.1;
+}
+
+[data-theme="dark"] .vq-desktop-folder-label {
+  color: #EDF2EF;
+}
+
+/* ── Pure Floating 3D Folder Center Launcher ── */
+.vq-folder-portal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(13, 20, 18, 0.72) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  z-index: 800 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  animation: vqFade 0.25s var(--vq-ease-out) both;
+}
+
+.vq-folder-portal-floating-close {
+  position: fixed !important;
+  top: 28px !important;
+  right: 28px !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: rgba(0, 0, 0, 0.45) !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.vq-folder-portal-floating-close:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  transform: scale(1.08) !important;
+}
+
+.vq-folder-paper-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.vq-folder-paper-icon {
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.vq-folder-paper-title {
+  font-family: var(--vq-font-display, "Space Grotesk", sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--vq-text, #17201b);
+}
+
+[data-theme="dark"] .vq-folder-paper-title {
+  color: #ffffff;
+}
+
+.vq-folder-paper-sub {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--vq-teal-600, #088975);
+}
+
+[data-theme="dark"] .vq-folder-paper-sub {
+  color: #59dbc0;
 }

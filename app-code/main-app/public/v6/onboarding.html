@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>See a build — describe a business, watch it become a system | VenQore</title>
+<meta name="description" content="The VenQore onboarding flow: describe your business, review the Blueprint it composes, pick a plan, go live. Four minutes, and nothing is real until you approve it.">
+<meta property="og:title" content="See a build — describe a business, watch it become a system | VenQore">
+<meta property="og:description" content="The VenQore onboarding flow: describe your business, review the Blueprint it composes, pick a plan, go live. Four minutes, and nothing is real until you approve it.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VenQore">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0BAA8F">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="assets/venqore.css">
+<script>
+/* Theme before paint — no flash. */
+(function(){try{var r=document.documentElement,t=r.getAttribute('data-theme')||localStorage.getItem('vq-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',t);r.classList.toggle('dark',t==='dark');}catch(e){}})();
+</script>
+
+</head>
+<body class="vq-bare">
+
+
+<main id="main">
+
+<div class="vq-wiz">
+
+  <div class="vq-wiz__bar">
+    <div class="vq-wiz__track"><div class="vq-wiz__fill" data-wiz-fill></div></div>
+    <div class="vq-container" style="height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--vq-space-6)">
+      <a class="vq-brand" href="index.html" aria-label="VenQore home">
+        <img src="assets/logo.png" alt="" width="26" height="26" style="height:26px">
+        <span class="vq-brand__word" style="font-size:18px">VenQore</span>
+      </a>
+      <ol class="vq-row vq-gap-6" data-wiz-steps style="overflow-x:auto;scrollbar-width:none">
+        <li class="vq-eyebrow" data-step-label="0" style="white-space:nowrap">Business</li><li class="vq-eyebrow" data-step-label="1" style="white-space:nowrap">Describe</li><li class="vq-eyebrow" data-step-label="2" style="white-space:nowrap">Details</li><li class="vq-eyebrow" data-step-label="3" style="white-space:nowrap">Blueprint</li><li class="vq-eyebrow" data-step-label="4" style="white-space:nowrap">Plan</li><li class="vq-eyebrow" data-step-label="5" style="white-space:nowrap">Account</li>
+      </ol>
+      <button class="vq-theme-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <span class="vq-icon-sun"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span class="vq-icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="vq-wiz__stage">
+
+    <!-- 0 · Business type ------------------------------------------------ -->
+    <section class="vq-wiz__panel is-on" data-panel="0">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Step 1 of 6</span>
+      <h1 class="vq-h1 vq-mt-4">What kind of business?</h1>
+      <p class="vq-lede vq-mt-3">Pick the closest — you can change everything later.</p>
+      <div class="vq-pick vq-mt-8">
+        
+        <button class="vq-pick__card" type="button" data-type="0" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg><b>Retail shop</b><span>General retail, one counter</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="1" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg><b>Grocery / karyana</b><span>High SKU count, fast checkout</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="2" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg><b>Pharmacy</b><span>Batch, expiry, distributors</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="3" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1z"/><path d="M6 2v2"/><path d="M17 9h1a3 3 0 0 1 0 6h-1"/></svg><b>Café</b><span>Counter service, own recipes</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="4" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1z"/><path d="M6 2v2"/><path d="M17 9h1a3 3 0 0 1 0 6h-1"/></svg><b>Restaurant</b><span>Tables, kitchen, ingredients</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="5" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16h.01"/><path d="M16 16h.01"/><path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 9.5v-2a.5.5 0 0 0-.769-.422L9.77 9.922A.5.5 0 0 1 9 9.5V3.5a.5.5 0 0 0-.5-.5h-3a2 2 0 0 0-2 2Z"/><path d="M8 16h.01"/></svg><b>Bakery</b><span>Production runs and wastage</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="6" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg><b>Mobile &amp; electronics</b><span>IMEI, serials, warranties</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="7" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><b>Clothing</b><span>Size and colour variants</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="8" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><b>Hardware &amp; tools</b><span>Deep catalogue, units</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="9" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg><b>Wholesale</b><span>Price tiers, credit terms</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="10" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg><b>Multi-branch retail</b><span>More than one location</span>
+        </button>
+        <button class="vq-pick__card" type="button" data-type="11" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><b>I'm not sure yet</b><span>Describe it and we'll work it out</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 1 · Describe ------------------------------------------------------ -->
+    <section class="vq-wiz__panel" data-panel="1">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Step 2 of 6</span>
+      <h2 class="vq-h1 vq-mt-4">Now tell us how it actually works.</h2>
+      <p class="vq-lede vq-mt-3">Sentences, not a form. What you sell, how you buy, who works there,
+        what your accountant asks for. The more you say, the less you have to fix afterwards.</p>
+      <div class="vq-card vq-card--xl vq-mt-8">
+        <label class="vq-label" for="wiz-desc">Your business, in your words</label>
+        <textarea class="vq-textarea vq-mt-2" id="wiz-desc" data-wiz-desc rows="6"
+          placeholder="I run two pharmacy branches. I buy on 30-day credit from four distributors, I need batch and expiry tracking, and my accountant wants a trial balance every month."></textarea>
+        <div class="vq-row vq-wrap vq-gap-2 vq-mt-4">
+          <span class="vq-caption">Or borrow one:</span>
+          <button type="button" class="vq-chip" data-example="pharmacy">Pharmacy</button>
+          <button type="button" class="vq-chip" data-example="wholesale">Wholesale</button>
+          <button type="button" class="vq-chip" data-example="cafe">Café</button>
+        </div>
+      </div>
+      <div class="vq-row vq-gap-3 vq-mt-6">
+        <button class="vq-btn vq-btn--secondary vq-btn--lg" data-back>Back</button>
+        <button class="vq-btn vq-btn--primary vq-btn--lg" data-next>Continue <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></button>
+      </div>
+    </section>
+
+    <!-- 2 · Details ------------------------------------------------------- -->
+    <section class="vq-wiz__panel" data-panel="2">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Step 3 of 6</span>
+      <h2 class="vq-h1 vq-mt-4">Four things that change the build.</h2>
+      <p class="vq-lede vq-mt-3">Only questions whose answer changes your configuration. Nothing here
+        is a marketing field.</p>
+      <div class="vq-card vq-card--xl vq-mt-8">
+        <div class="vq-grid vq-grid--2" style="gap:var(--vq-space-5)">
+          <div class="vq-field">
+            <label class="vq-label" for="w-biz">Business name</label>
+            <input class="vq-input" id="w-biz" data-wiz-name placeholder="Al-Madina Pharmacy">
+            <span class="vq-help">Appears on every receipt, invoice and statement.</span>
+          </div>
+          <div class="vq-field">
+            <label class="vq-label" for="w-cur">Currency</label>
+            <select class="vq-select" id="w-cur">
+              <option>PKR — Pakistani Rupee (Rs)</option>
+              <option>AED — UAE Dirham (د.إ)</option>
+              <option>SAR — Saudi Riyal (﷼)</option>
+              <option>USD — US Dollar ($)</option>
+              <option>GBP — Pound Sterling (£)</option>
+            </select>
+            <span class="vq-help">Becomes the system default. Critical — it sets the ledger.</span>
+          </div>
+          <div class="vq-field">
+            <label class="vq-label" for="w-loc">How many locations?</label>
+            <select class="vq-select" id="w-loc" data-wiz-loc>
+              <option value="1">Just one</option>
+              <option value="2">2 to 3</option>
+              <option value="5">4 to 10</option>
+              <option value="12">More than 10</option>
+            </select>
+          </div>
+          <div class="vq-field">
+            <label class="vq-label" for="w-team">How many people work there?</label>
+            <select class="vq-select" id="w-team" data-wiz-team>
+              <option value="2">Just me, or two of us</option>
+              <option value="3">3 to 5</option>
+              <option value="10">6 to 15</option>
+              <option value="40">More than 15</option>
+            </select>
+            <span class="vq-help">Sets your roles, approval chain and seat count.</span>
+          </div>
+        </div>
+      </div>
+      <div class="vq-row vq-gap-3 vq-mt-6">
+        <button class="vq-btn vq-btn--secondary vq-btn--lg" data-back>Back</button>
+        <button class="vq-btn vq-btn--primary vq-btn--lg" data-next>Build my system <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></button>
+      </div>
+    </section>
+
+    <!-- 3 · Building + Blueprint ------------------------------------------ -->
+    <section class="vq-wiz__panel" data-panel="3">
+      <div data-wiz-building>
+        <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Working</span>
+        <h2 class="vq-h1 vq-mt-4">Reading your business…</h2>
+        <p class="vq-lede vq-mt-3">This takes a few seconds. Nothing is created yet — you'll see the
+          whole plan before anything is real.</p>
+        <div class="vq-card vq-card--xl vq-mt-8">
+          <div class="vq-steps" data-wiz-steps-list></div>
+        </div>
+      </div>
+
+      <div data-wiz-plan hidden>
+        <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Step 4 of 6</span>
+        <h2 class="vq-h1 vq-mt-4">Your Blueprint</h2>
+        <p class="vq-lede vq-mt-3" data-wiz-summary></p>
+        <div class="vq-card vq-card--xl vq-mt-8" data-wiz-blueprint></div>
+        <div class="vq-row vq-gap-3 vq-mt-6">
+          <button class="vq-btn vq-btn--secondary vq-btn--lg" data-back>Back</button>
+          <button class="vq-btn vq-btn--primary vq-btn--lg" data-next>Looks right <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></button>
+        </div>
+        <p class="vq-caption vq-mt-4" style="max-width:none">Every line is editable, now and later.
+          Nothing posts to your books until you approve it.</p>
+      </div>
+    </section>
+
+    <!-- 4 · Plan ---------------------------------------------------------- -->
+    <section class="vq-wiz__panel" data-panel="4">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Step 5 of 6</span>
+      <h2 class="vq-h1 vq-mt-4">Pick a plan, or don't.</h2>
+      <p class="vq-lede vq-mt-3">The trial is 14 days on the full product either way. We've marked the
+        one that fits what you just told us.</p>
+      <div class="vq-grid vq-grid--3 vq-mt-8" data-wiz-plans></div>
+      <div class="vq-row vq-gap-3 vq-mt-6">
+        <button class="vq-btn vq-btn--secondary vq-btn--lg" data-back>Back</button>
+        <button class="vq-btn vq-btn--primary vq-btn--lg" data-next>Continue <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></button>
+      </div>
+      <p class="vq-caption vq-mt-4" style="max-width:none">No card now. We'll remind you before day 14.</p>
+    </section>
+
+    <!-- 5 · Account ------------------------------------------------------- -->
+    <section class="vq-wiz__panel" data-panel="5" style="max-width:460px">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Step 6 of 6</span>
+      <h2 class="vq-h1 vq-mt-4">Last thing.</h2>
+      <p class="vq-lede vq-mt-3">This is the account that owns your ledger.</p>
+      <div class="vq-card vq-card--xl vq-mt-8">
+        <form class="vq-stack vq-gap-5" data-demo>
+          <div class="vq-field">
+            <label class="vq-label" for="w-email">Work email</label>
+            <input class="vq-input" id="w-email" type="email" required autocomplete="email" placeholder="you@company.com">
+            <span class="vq-help">We'll send the login link here.</span>
+          </div>
+          <div class="vq-field">
+            <label class="vq-label" for="w-pass">Password</label>
+            <input class="vq-input" id="w-pass" type="password" required autocomplete="new-password" minlength="10">
+            <span class="vq-help">At least 10 characters.</span>
+          </div>
+          <label class="vq-check">
+            <input type="checkbox" required>
+            <span class="vq-caption" style="max-width:none">I agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</span>
+          </label>
+          <button type="button" class="vq-btn vq-btn--primary vq-btn--xl vq-btn--block" data-next>
+            Create my system <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </button>
+        </form>
+      </div>
+      <button class="vq-btn vq-btn--ghost vq-btn--lg vq-mt-4" data-back>Back</button>
+    </section>
+
+    <!-- 6 · Done ---------------------------------------------------------- -->
+    <section class="vq-wiz__panel" data-panel="6" style="max-width:1400px">
+      <div class="vq-center" style="max-width:640px;margin-inline:auto">
+        <span class="vq-status vq-status--ok"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Live</span>
+        <h2 class="vq-display vq-mt-4">Your system is live.</h2>
+        <p class="vq-lede vq-mt-4" style="margin-inline:auto">Ledger wired, chart of accounts seeded,
+          your words applied. Nothing in it is a template — it is the composition you just approved.</p>
+        <div class="vq-row vq-gap-3 vq-mt-8" style="justify-content:center">
+          <a class="vq-btn vq-btn--primary vq-btn--lg" href="#">Add your first product <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+          <a class="vq-btn vq-btn--secondary vq-btn--lg" href="index.html">Back to the site</a>
+        </div>
+      </div>
+      <div class="vq-mt-12">
+<div class="vq-app">
+  <div class="vq-app__bar">
+    <div class="vq-app__dots"><i></i><i></i><i></i></div>
+    <div class="vq-app__omni"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Ask your business a question…</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span class="vq-badge vq-badge--accent">Pharmacy · 2 branches</span>
+    </div>
+  </div>
+  <div class="vq-app__body">
+    <nav class="vq-app__rail" aria-label="Product navigation (illustration)">
+      <span class="vq-app__nav" aria-current="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> Dashboard</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Sell</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg> Stock</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Buy</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg> Money</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> People</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> Reports</span>
+      <span class="vq-app__nav" style="margin-top:auto"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2"/><circle cx="12" cy="12" r="3"/></svg> Settings</span>
+    </nav>
+    <div class="vq-app__main">
+      <div class="vq-app__title">
+        <div><h3 class="vq-h3" style="font-size:19px">Today</h3>
+          <span class="vq-caption">Wednesday, 4 September</span></div>
+        <span class="vq-status vq-status--ok"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Ledger balanced</span>
+      </div>
+      <div class="vq-cards">
+
+        <div class="vq-dcard vq-dcard--accent c5 r2">
+          <div class="vq-stat">
+            <span class="vq-stat__label">Sales today</span>
+            <span class="vq-stat__value">184.2<span class="vq-stat__unit">k PKR</span></span>
+          </div>
+          <div class="vq-row vq-gap-2">
+            <span class="vq-delta">▲ 8.2%</span>
+            <span class="vq-stat__note">vs last Wednesday</span>
+          </div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Gross margin</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">31.4<span class="vq-stat__unit">%</span></span>
+          </div>
+          <div class="vq-row vq-gap-2">
+            <span class="vq-delta vq-delta--down">▼ 1.1pt</span>
+            <span class="vq-stat__note">vs last month</span>
+          </div>
+        </div>
+
+        <div class="vq-dcard c3 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Expiring ≤30 days</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">27<span class="vq-stat__unit">batches</span></span>
+          </div>
+          <span class="vq-status vq-status--warn"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Review</span>
+        </div>
+
+        <div class="vq-dcard c7 r3">
+          <div class="vq-dcard__head">
+            <span class="vq-dcard__title">Sales, last 14 days</span>
+            <span class="vq-badge">Branch: all</span>
+          </div>
+          <div style="margin-top:auto"><div class="vq-chart" style="height:108px">
+    <svg viewBox="0 0 320 108" preserveAspectRatio="none" role="img" aria-label="Trend, last 14 periods">
+      <defs><linearGradient id="vqFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--vq-series-1-ink)" stop-opacity=".22"/>
+        <stop offset="100%" stop-color="var(--vq-series-1-ink)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path class="area" d="M0.0 101.7 L24.6 91.8 L49.2 105.0 L73.8 78.7 L98.5 68.8 L123.1 82.0 L147.7 58.9 L172.3 65.5 L196.9 45.8 L221.5 52.4 L246.2 32.6 L270.8 42.5 L295.4 16.2 L320.0 3.0 L320 108 L0 108 Z"/><path class="line" d="M0.0 101.7 L24.6 91.8 L49.2 105.0 L73.8 78.7 L98.5 68.8 L123.1 82.0 L147.7 58.9 L172.3 65.5 L196.9 45.8 L221.5 52.4 L246.2 32.6 L270.8 42.5 L295.4 16.2 L320.0 3.0"/>
+    </svg></div></div>
+        </div>
+
+        <div class="vq-dcard c5 r3">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Top lines by margin</span></div>
+          <div class="vq-mt-4"><div class="vq-rank">
+  <div class="vq-rank__row"><span class="vq-rank__name">Panadol 500mg</span><span class="vq-rank__val">41.2%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:92%"></span></span>
+  </div>
+  <div class="vq-rank__row"><span class="vq-rank__name">Augmentin 625</span><span class="vq-rank__val">33.8%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:76%"></span></span>
+  </div>
+  <div class="vq-rank__row"><span class="vq-rank__name">Surgical masks</span><span class="vq-rank__val">28.1%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:63%"></span></span>
+  </div>
+  <div class="vq-rank__row"><span class="vq-rank__name">Glucose strips</span><span class="vq-rank__val">19.4%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:44%"></span></span>
+  </div></div></div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Cash vs card</span></div>
+          <div style="margin-top:auto"><div class="vq-chart" style="height:78px">
+    <svg viewBox="0 0 260 78" preserveAspectRatio="none" role="img" aria-label="Comparison by period"><line class="grid" x1="0" x2="260" y1="21.12" y2="21.12"/><line class="grid" x1="0" x2="260" y1="42.24" y2="42.24"/><line class="grid" x1="0" x2="260" y1="64" y2="64"/><rect class="bar" x="0.0" y="27.1" width="32.0" height="36.9"/><rect class="bar" x="38.0" y="19.2" width="32.0" height="44.8"/><rect class="bar" x="76.0" y="30.6" width="32.0" height="33.4"/><rect class="bar" x="114.0" y="11.3" width="32.0" height="52.7"/><rect class="bar" x="152.0" y="22.7" width="32.0" height="41.3"/><rect class="bar is-on" x="190.0" y="6.0" width="32.0" height="58.0"/><rect class="bar" x="228.0" y="13.0" width="32.0" height="51.0"/><text class="lbl" x="16.0" y="76" text-anchor="middle">M</text><text class="lbl" x="54.0" y="76" text-anchor="middle">T</text><text class="lbl" x="92.0" y="76" text-anchor="middle">W</text><text class="lbl" x="130.0" y="76" text-anchor="middle">T</text><text class="lbl" x="168.0" y="76" text-anchor="middle">F</text><text class="lbl" x="206.0" y="76" text-anchor="middle">S</text><text class="lbl" x="244.0" y="76" text-anchor="middle">S</text></svg></div></div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Owed to you</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">612<span class="vq-stat__unit">k</span></span>
+            <span class="vq-stat__note">Rs 84k over 60 days</span>
+          </div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">You owe</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">(438)<span class="vq-stat__unit">k</span></span>
+            <span class="vq-stat__note">4 distributors · next due Fri</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div></div>
+    </section>
+
+  </div>
+</div>
+</main>
+
+<script src="assets/venqore.js" defer></script>
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)},
+    $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+
+var EXAMPLES={
+ pharmacy:"I run two pharmacy branches. I buy on 30-day credit from four distributors, I need batch and expiry tracking, and my accountant wants a trial balance every month.",
+ wholesale:"We distribute FMCG to about 300 shops. Everyone buys on different price tiers, most on credit, and I need to know which customer stopped ordering.",
+ cafe:"Small caf\u00e9, one location, six staff. We make our own bread and pastries, we sell over the counter, and I keep losing track of what the flour actually costs me."
+};
+
+/* The composition rules. This is a public demonstration of what the builder
+   does — the same eleven signals the capability resolver reads, applied to
+   the same module list. Nothing here is invented for the page. */
+var BASE=['Point of sale','Products','Customers','Core Ledger','Chart of accounts','Cash & bank','Tax handling','Reports','Roles & permissions'];
+var SIGNALS=[
+ {re:/expir|batch|pharma|medicine|drug/i,   add:['Batch & expiry','Expiring-soon alerts'],   why:'expiry'},
+ {re:/credit|khata|owe|due|30.day|receivab/i,add:['Customer khata','Aged receivables','Credit limits'], why:'credit'},
+ {re:/supplier|distributor|purchas|buy /i,  add:['Purchase orders','Supplier khata','Aged payables'], why:'suppliers'},
+ {re:/branch|location|store[s]|outlet/i,    add:['Multi-branch stock','Stock transfers','Per-branch pricing'], why:'branches'},
+ {re:/recipe|bake|kitchen|ingredient|cook|caf|restaur|flour/i, add:['Recipes / BOM','Ingredient draw-down','Wastage'], why:'recipes'},
+ {re:/tier|wholesale|distribut|b2b/i,       add:['Price tiers','Sales orders','Statements'], why:'wholesale'},
+ {re:/imei|serial|warrant|mobile|electron/i,add:['Serial & IMEI tracking','Warranty register'], why:'serials'},
+ {re:/size|colour|color|variant|cloth|garment|apparel/i, add:['Variant factory','Variant-aware costing'], why:'variants'},
+ {re:/staff|employee|people|shift|attend|team/i, add:['Shift & attendance','Approval chains'], why:'staff'},
+ {re:/online|website|amazon|woocommerce|ebay|tiktok|channel/i, add:['VenSynQ channels','Channel commission isolation'], why:'channels'},
+ {re:/trial balance|accountant|p&l|profit|balance sheet|ledger/i, add:['Trial balance','Profit & loss','Balance sheet'], why:'accounting'}
+];
+var ALL_OFF=['Recipes / BOM','Table service','Production runs','Serial & IMEI tracking','Variant factory','Multi-branch stock','Price tiers','VenSynQ channels','Batch & expiry','Loyalty','Gift cards'];
+var OPTIONAL=['Loyalty','Gift cards','Online store','Proposals & quotes','Recurring invoices','Barcode labels'];
+
+var TYPE_HINT=['retail shop','grocery shop with a lot of SKUs','pharmacy with batch and expiry','caf\u00e9 with our own recipes','restaurant with a kitchen','bakery with production runs','mobile and electronics shop with IMEI tracking','clothing shop with size and colour variants','hardware shop with a deep catalogue','wholesale distributor with price tiers','retail business with several branches',''];
+
+var state={step:0,type:-1,desc:'',loc:1,team:2,plan:1,mods:[],off:[]};
+
+var fill=$('[data-wiz-fill]');
+function show(n){
+ state.step=n;
+ $$('.vq-wiz__panel').forEach(function(p){p.classList.toggle('is-on',+p.dataset.panel===n)});
+ $$('[data-step-label]').forEach(function(l,i){
+   l.style.color = i<n ? 'var(--vq-accent-text)' : i===n ? 'var(--vq-text)' : 'var(--vq-text-3)';
+   l.style.fontWeight = i===n ? '600' : '500';
+ });
+ fill.style.width=Math.round(Math.min(n,6)/6*100)+'%';
+ window.scrollTo({top:0,behavior:'auto'});
+ if(n===3) build();
+ if(n===4) plans();
+}
+
+/* Step 1 */
+$$('[data-type]').forEach(function(b){
+ b.addEventListener('click',function(){
+  $$('[data-type]').forEach(function(x){x.setAttribute('aria-pressed','false')});
+  b.setAttribute('aria-pressed','true');
+  state.type=+b.dataset.type;
+  var ta=$('[data-wiz-desc]');
+  if(ta && !ta.value && TYPE_HINT[state.type]) ta.placeholder='I run a '+TYPE_HINT[state.type]+'…';
+  setTimeout(function(){show(1)},220);
+ });
+});
+
+/* Step 2 */
+$$('[data-example]').forEach(function(c){
+ c.addEventListener('click',function(){ $('[data-wiz-desc]').value=EXAMPLES[c.dataset.example]; });
+});
+
+/* Navigation */
+$$('[data-next]').forEach(function(b){b.addEventListener('click',function(){
+  if(state.step===1) state.desc=($('[data-wiz-desc]').value||$('[data-wiz-desc]').placeholder||'');
+  if(state.step===2){ state.loc=+$('[data-wiz-loc]').value; state.team=+$('[data-wiz-team]').value; }
+  show(Math.min(state.step+1,6));
+})});
+$$('[data-back]').forEach(function(b){b.addEventListener('click',function(){show(Math.max(state.step-1,0))})});
+
+/* Step 4 — the build */
+var STEP_TEXT=['Reading your business','Selecting modules','Naming your fields','Setting roles and approvals','Wiring the ledger'];
+function build(){
+ var box=$('[data-wiz-building]'), out=$('[data-wiz-plan]'), list=$('[data-wiz-steps-list]');
+ box.hidden=false; out.hidden=true;
+ list.innerHTML=STEP_TEXT.map(function(s){return '<div class="vq-step"><span class="vq-step__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'+s+'\u2026</div>'}).join('');
+ var steps=$$('.vq-step',list), i=0;
+ (function next(){
+   if(state.step!==3) return;
+   if(i>0){steps[i-1].classList.remove('is-live');steps[i-1].classList.add('is-done')}
+   if(i>=steps.length){ setTimeout(reveal,320); return; }
+   steps[i].classList.add('is-live'); i++;
+   setTimeout(next,300+Math.random()*180);
+ })();
+}
+
+function compose(){
+ var text=(state.desc+' '+(TYPE_HINT[state.type]||'')).toLowerCase();
+ if(state.loc>1) text+=' branches locations';
+ if(state.team>5) text+=' staff team shifts';
+ var on=BASE.slice(), why={};
+ SIGNALS.forEach(function(s){ if(s.re.test(text)) s.add.forEach(function(m){ if(on.indexOf(m)<0){on.push(m);why[m]=s.why} }) });
+ var opt=OPTIONAL.filter(function(m){return on.indexOf(m)<0}).slice(0,4);
+ var off=ALL_OFF.filter(function(m){return on.indexOf(m)<0 && opt.indexOf(m)<0});
+ state.mods=on; state.off=off;
+ return {on:on,off:off,opt:opt};
+}
+
+function chip(label,cls,d){
+ var mark = cls==='vq-mod--on'
+   ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+   : cls==='vq-mod--off'
+   ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
+   : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+ return '<button type="button" class="vq-mod '+cls+'" style="--d:'+d+'ms" data-toggle>'+mark+(cls==='vq-mod--off'?'<s>'+label+'</s>':label)+'</button>';
+}
+
+function reveal(){
+ var c=compose(), d=0;
+ $('[data-wiz-summary]').innerHTML=c.on.length+' modules \u00b7 '+(state.team>5?7:4)+' roles \u00b7 '+(9+Math.min(c.on.length-9,14))+' reports. Composed from what you wrote \u2014 not from a template.';
+ $('[data-wiz-blueprint]').innerHTML=
+  '<span class="vq-eyebrow vq-eyebrow--accent">Included</span><div class="vq-mods vq-mt-3">'+
+   c.on.map(function(m){d+=22;return chip(m,'vq-mod--on',d)}).join('')+'</div>'+
+  '<div class="vq-mt-6"><span class="vq-eyebrow">Optional \u2014 tap to add</span><div class="vq-mods vq-mt-3">'+
+   c.opt.map(function(m){d+=22;return chip(m,'',d)}).join('')+'</div></div>'+
+  '<div class="vq-mt-6"><span class="vq-eyebrow">Left off, on purpose</span><div class="vq-mods vq-mt-3">'+
+   c.off.map(function(m){d+=22;return chip(m,'vq-mod--off',d)}).join('')+'</div></div>'+
+  '<div class="vq-hr" style="margin-block:var(--vq-space-6)"></div>'+
+  '<div class="vq-row vq-wrap vq-gap-6"><div><span class="vq-eyebrow">Currency</span><p class="vq-small vq-mt-1">'+
+   ($('#w-cur').value.split(' ')[0])+'</p></div><div><span class="vq-eyebrow">Locations</span><p class="vq-small vq-mt-1">'+
+   state.loc+'</p></div><div><span class="vq-eyebrow">Seats</span><p class="vq-small vq-mt-1">'+state.team+'</p></div>'+
+   '<div><span class="vq-eyebrow">Ledger</span><p class="vq-small vq-mt-1">Double-entry, seeded</p></div></div>';
+
+ $$('[data-toggle]','[data-wiz-blueprint]'.length?$('[data-wiz-blueprint]'):document).forEach(function(b){
+   b.addEventListener('click',function(){
+     if(b.classList.contains('vq-mod--off')) return;      /* left off stays off here */
+     b.classList.toggle('vq-mod--on');
+   });
+ });
+
+ $('[data-wiz-building]').hidden=true;
+ $('[data-wiz-plan]').hidden=false;
+}
+
+/* Step 5 — recommend by capacity, never by capability */
+var PLANS=[
+ {n:'Starter',p:'$36',l:['1 branch, 3 users','The whole system','20 AI pages/month']},
+ {n:'Growth', p:'$63',l:['3 branches, 10 users','Multi-branch + production','60 AI pages/month']},
+ {n:'Scale',  p:'$129',l:['10 branches, 50 users','Channels, API, loyalty','150 AI pages/month']}
+];
+function plans(){
+ var rec = state.loc>3||state.team>15 ? 2 : (state.loc>1||state.team>3 ? 1 : 0);
+ state.plan=rec;
+ $('[data-wiz-plans]').innerHTML=PLANS.map(function(p,i){
+  return '<div class="vq-plan'+(i===rec?' vq-plan--featured':'')+'" data-plan="'+i+'">'+
+   (i===rec?'<span class="vq-plan__flag">Fits what you told us</span>':'')+
+   '<h3 class="vq-plan__name">'+p.n+'</h3>'+
+   '<div class="vq-plan__price"><span class="vq-plan__amt">'+p.p+'</span><span class="vq-plan__per">/month</span></div>'+
+   '<ul class="vq-plan__list">'+p.l.map(function(x){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>'+x+'</span></li>'}).join('')+'</ul>'+
+   '<button type="button" class="vq-btn '+(i===rec?'vq-btn--primary':'vq-btn--secondary')+' vq-btn--lg vq-btn--block">Choose '+p.n+'</button></div>';
+ }).join('');
+ $$('[data-plan]').forEach(function(el){
+  el.querySelector('button').addEventListener('click',function(){
+    state.plan=+el.dataset.plan;
+    $$('[data-plan]').forEach(function(x){
+      var on = x===el;
+      x.classList.toggle('vq-plan--featured',on);
+      var b=x.querySelector('button');
+      b.classList.toggle('vq-btn--primary',on);
+      b.classList.toggle('vq-btn--secondary',!on);
+    });
+  });
+ });
+}
+
+/* Carry the sentence in from the landing hero. */
+try{
+ var q=new URLSearchParams(location.search).get('prompt');
+ if(q){ $('[data-wiz-desc]').value=q; show(1); } else { show(0); }
+}catch(e){ show(0); }
+})();
+</script>
+</body>
+</html>

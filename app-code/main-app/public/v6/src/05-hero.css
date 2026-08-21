@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRESERVED — hero + footer, authored by Rehan (extras/Hero Section).
+   Curated slice of the original style.css. Values unchanged.
+   The only additions are the ones that let new sections sit *between* the
+   hero and the footer without the fixed WebGL canvas painting over them
+   (DESIGN-RULES §14: the hero gradient "fades below the fold so it reads as
+   the top of the page rather than as a background the whole site sits on").
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Instrument Serif is loaded with the V6 faces in 01-tokens.css. */
+.font-serif-italic {
+  font-family: var(--vq-font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ── WebGL fluid canvas ───────────────────────────────────────────────── */
+#fluid-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  filter: blur(1px);
+  opacity: .9;
+}
+/* Continuous WebGL is a battery and thermal problem on a phone. */
+@media (max-width: 767px) { #fluid-canvas { display: none; } }
+
+.header-blur { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+/* ── Hero gradient — light: deep dark → slate teal → soft mint ────────── */
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg, #021416 10%, #327882 50%, #ecf9fb 90%);
+  transition: background .4s ease;
+}
+:root[data-theme="dark"] .hero-gradient-overlay,
+html.dark .hero-gradient-overlay {
+  background: linear-gradient(180deg, #ecf9fb 10%, #327882 51%, #021416 90%);
+}
+
+/* Everything the hero renders sits above the canvas. */
+.vq-hero-section { position: relative; overflow: hidden; }
+.vq-hero-section > .vq-hero-inner,
+.vq-hero-section > .vq-hero-foot { position: relative; z-index: 10; }
+
+/* The page body below the fold covers the canvas — it is the top of the
+   page, not a background the whole site sits on. */
+.vq-page { position: relative; z-index: 3; background: var(--vq-bg); }
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(8px); }
+}
+.animate-bounce-slow { animation: bounce-slow 2.5s infinite ease-in-out; }
+
+/* ── ShinyText — the animated placeholder in the hero prompt ──────────── */
+.shiny-text {
+  background: linear-gradient(120deg,
+    rgb(255 255 255 / .55) 40%,
+    rgb(255 255 255 / .98) 50%,
+    rgb(255 255 255 / .55) 60%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: vq-shine 5s linear infinite;
+}
+:root[data-theme="dark"] .shiny-text, html.dark .shiny-text {
+  background-image: linear-gradient(120deg,
+    rgb(0 0 0 / .45) 40%, rgb(0 0 0 / .92) 50%, rgb(0 0 0 / .45) 60%);
+}
+@keyframes vq-shine { 0% { background-position: 100% 50%; } 100% { background-position: -100% 50%; } }
+
+/* ── Footer — preserved ───────────────────────────────────────────────── */
+.footer-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--footer-bg, #021416);
+  z-index: 0;
+  pointer-events: none;
+  transition: background .3s ease;
+}
+.mesh-gradient-card {
+  background-color: #0A0B0F;
+  color: #F4F6F8;
+  position: relative;
+  overflow: hidden;
+}
+.mesh-gradient-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(50% 60% at 18% 12%, rgb(11 170 143 / .45), transparent 70%),
+    radial-gradient(46% 52% at 82% 78%, rgb(10 80 73 / .50), transparent 70%),
+    radial-gradient(38% 40% at 60% 25%, rgb(35 196 166 / .20), transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+.mesh-gradient-card > * { position: relative; z-index: 2; }
+
+/* The giant cut-off wordmark. Original geometry, V6 teal. */
+.watermark-wrapper {
+  position: absolute;
+  left: 50%; bottom: 0;
+  transform: translate(-50%, 20%);
+  width: 100%;
+  z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.watermark-wrapper span {
+  position: relative; z-index: 10;
+  font-family: var(--vq-font-display);
+  font-size: 16vw;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgb(11 170 143 / .15);
+  white-space: nowrap;
+}
+@media (min-width: 640px) { .watermark-wrapper span { font-size: 14vw; } }
+
+/* ── Header while it sits on the hero ─────────────────────────────────────
+   The original does this with `header { --text: var(--header-text) }`, where
+   header-text is mint in the light theme (the hero top is dark) and pine in
+   the dark theme (the dark hero top is light). Same idea, scoped. */
+.vq-header--onHero:not(.is-stuck) { --on-hero: #C6F5E9; }
+:root[data-theme="dark"] .vq-header--onHero:not(.is-stuck),
+html.dark .vq-header--onHero:not(.is-stuck) { --on-hero: #0B3A35; }
+
+.vq-header--onHero:not(.is-stuck) .vq-brand,
+.vq-header--onHero:not(.is-stuck) .vq-nav__link,
+.vq-header--onHero:not(.is-stuck) .vq-burger { color: var(--on-hero); }
+.vq-header--onHero:not(.is-stuck) .vq-nav__link:hover,
+.vq-header--onHero:not(.is-stuck) .vq-brand:hover { color: #fff; }
+:root[data-theme="dark"] .vq-header--onHero:not(.is-stuck) .vq-nav__link:hover,
+html.dark .vq-header--onHero:not(.is-stuck) .vq-nav__link:hover { color: #062421; }
+.vq-header--onHero:not(.is-stuck) .vq-theme-btn {
+  background: rgb(255 255 255 / .10);
+  border-color: rgb(255 255 255 / .18);
+  color: var(--on-hero);
+  backdrop-filter: blur(8px);
+}
+.vq-header--onHero:not(.is-stuck) .vq-theme-btn:hover { background: rgb(255 255 255 / .20); color: #fff; }
+
+/* ── Hero type — camouflaged: white on light theme, black on dark ─────── */
+.vq-hero-h1 { color: #fff; }
+.vq-hero-eyebrow { color: rgb(255 255 255 / .78); }
+.vq-hero-foot p, .vq-hero-foot a { color: var(--vq-ink-950); }
+.vq-hero-caret { color: rgb(255 255 255 / .70); }
+:root[data-theme="dark"] .vq-hero-h1, html.dark .vq-hero-h1 { color: #05100E; }
+:root[data-theme="dark"] .vq-hero-eyebrow, html.dark .vq-hero-eyebrow { color: rgb(6 36 33 / .72); }
+:root[data-theme="dark"] .vq-hero-caret, html.dark .vq-hero-caret { color: rgb(6 36 33 / .66); }
+:root[data-theme="dark"] .vq-hero-foot p, :root[data-theme="dark"] .vq-hero-foot a,
+html.dark .vq-hero-foot p, html.dark .vq-hero-foot a { color: #EDF2EF; }
+
+/* Prompt row */
+.vq-hero-rule { border-bottom: 1px solid rgb(255 255 255 / .30); }
+:root[data-theme="dark"] .vq-hero-rule, html.dark .vq-hero-rule { border-bottom-color: rgb(6 36 33 / .26); }
+.vq-hero-input { color: #fff; }
+:root[data-theme="dark"] .vq-hero-input, html.dark .vq-hero-input { color: #05100E; }
+.vq-hero-icon {
+  display: grid; place-items: center; height: 40px; width: 40px; flex: none;
+  border-radius: var(--vq-r-full);
+  background: rgb(255 255 255 / .12);
+  border: 1px solid rgb(255 255 255 / .16);
+  color: #fff; backdrop-filter: blur(8px);
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-hero-icon:hover { background: rgb(255 255 255 / .22); }
+:root[data-theme="dark"] .vq-hero-icon, html.dark .vq-hero-icon {
+  background: rgb(6 36 33 / .10); border-color: rgb(6 36 33 / .14); color: #05100E;
+}
+.vq-hero-go {
+  display: grid; place-items: center; height: 40px; width: 40px; flex: none;
+  border-radius: var(--vq-r-full);
+  background: #fff; color: var(--vq-ink-950);
+  box-shadow: var(--vq-elev-2);
+  transition: transform var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-hero-go:hover { transform: translateY(-1px); }
+:root[data-theme="dark"] .vq-hero-go, html.dark .vq-hero-go { background: #05100E; color: #fff; }
+
+/* Hero chips — a chip on a dark ground, not a white blob. */
+.vq-chip--onHero {
+  background: rgb(255 255 255 / .10);
+  border-color: rgb(255 255 255 / .18);
+  color: rgb(255 255 255 / .88);
+  backdrop-filter: blur(8px);
+}
+.vq-chip--onHero:hover { background: rgb(255 255 255 / .20); border-color: rgb(255 255 255 / .34); color: #fff; }
+:root[data-theme="dark"] .vq-chip--onHero, html.dark .vq-chip--onHero {
+  background: rgb(6 36 33 / .10); border-color: rgb(6 36 33 / .16); color: rgb(6 36 33 / .84);
+}
+:root[data-theme="dark"] .vq-chip--onHero:hover, html.dark .vq-chip--onHero:hover {
+  background: rgb(6 36 33 / .18); color: #05100E;
+}
+
+/* The hero prompt is the most important element on the site; it must not
+   crowd itself on a 390px screen. */
+@media (max-width: 560px) {
+  .vq-hero-inner form textarea, .vq-hero-inner [data-hero-placeholder] { font-size: var(--vq-fs-body); }
+  .vq-hero-icon, .vq-hero-go { height: 36px; width: 36px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §15 corrections — measured, not guessed
+   ───────────────────────────────────────────────────────────────────────────
+   Two values in the V6 semantic layer do not clear the contrast floor these
+   pages need. Both fixes stay inside the V6 ink and teal ramps; neither
+   invents a colour.
+
+   1 · --vq-accent-fill is teal-600. White on teal-600 measures 4.33:1, and
+       4.33 is the *ceiling* on that fill — no colour reaches 4.5:1 against
+       it, so a 14px button label can never pass. Light mode fills solids one
+       step deeper, at teal-700 (6.6:1), and moves hover to teal-800 so §9's
+       "darken one ramp step on hover" contract is unchanged. Dark mode is
+       untouched: ink on teal-500 already measures 5.8:1.
+
+   2 · --vq-text-3 is ink-500, which measures 4.12:1 on the ink-50 page —
+       under the 4.5:1 floor for body text. The light text ramp shifts down
+       one step (text-2 → ink-700 at 8.4:1, text-3 → ink-600 at 5.9:1). The
+       three steps stay visually distinct. Dark mode already passes at 6.4:1.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --vq-accent-fill: var(--vq-teal-700);
+  --vq-accent-fill-hover: var(--vq-teal-800);
+  --vq-text-2: var(--vq-ink-700);
+  --vq-text-3: var(--vq-ink-600);
+}
+
+/* Secondary text on the one filled card. On a solid teal the inverted ink
+   has to run at high alpha or it drops under the floor. */
+.vq-card--accent .vq-eyebrow,
+.vq-card--accent .vq-text-2,
+.vq-card--accent .vq-text-3,
+.vq-card--accent .vq-stat__label,
+.vq-card--accent .vq-stat__unit,
+.vq-card--accent .vq-stat__note,
+.vq-dcard--accent .vq-stat__label,
+.vq-dcard--accent .vq-stat__unit,
+.vq-dcard--accent .vq-stat__note { color: rgb(255 255 255 / .88); }
+:root[data-theme="dark"] .vq-card--accent .vq-eyebrow,
+:root[data-theme="dark"] .vq-card--accent .vq-stat__label,
+:root[data-theme="dark"] .vq-card--accent .vq-stat__unit,
+:root[data-theme="dark"] .vq-card--accent .vq-stat__note,
+:root[data-theme="dark"] .vq-dcard--accent .vq-stat__label,
+:root[data-theme="dark"] .vq-dcard--accent .vq-stat__unit,
+:root[data-theme="dark"] .vq-dcard--accent .vq-stat__note,
+html.dark .vq-card--accent .vq-eyebrow,
+html.dark .vq-card--accent .vq-stat__label,
+html.dark .vq-card--accent .vq-stat__unit,
+html.dark .vq-card--accent .vq-stat__note,
+html.dark .vq-dcard--accent .vq-stat__label,
+html.dark .vq-dcard--accent .vq-stat__unit,
+html.dark .vq-dcard--accent .vq-stat__note { color: rgb(6 36 33 / .90); }
+
+/* The footer sits on near-black; ink-500 is too quiet on it. */
+.vq-footer .vq-small[style*="ink-500"], .vq-footer p.vq-small { color: var(--vq-ink-400) !important; }
+
+/* Backgrounds the contrast sweep cannot read off a gradient. */
+.vq-band-dark { --vq-known-bg: #0A1614; }
+.vq-footer { --vq-known-bg: #060A09; }
+.mesh-gradient-card { --vq-known-bg: #0A0B0F; }
+.vq-hero-section { --vq-known-bg: skip; }
+
+/* A dark band inside a light page is a theme change, not a colour override.
+   Redefining the semantic layer locally means every component inside it —
+   captions, borders, cards, links — resolves correctly without a per-class
+   rule, and nothing inherits a light-mode ink onto a near-black ground. */
+.vq-band-dark, .vq-auth__aside.vq-band-dark {
+  --vq-text: #EDF2EF;
+  --vq-text-2: rgb(237 242 239 / .72);
+  --vq-text-3: rgb(237 242 239 / .58);
+  --vq-line: rgb(255 255 255 / .10);
+  --vq-line-soft: rgb(255 255 255 / .06);
+  --vq-line-strong: rgb(255 255 255 / .20);
+  --vq-surface: rgb(255 255 255 / .04);
+  --vq-surface-2: rgb(255 255 255 / .06);
+  --vq-sunken: rgb(255 255 255 / .05);
+  --vq-accent: var(--vq-teal-400);
+  --vq-accent-text: var(--vq-teal-300);
+  --vq-accent-quiet: rgb(35 196 166 / .14);
+  --vq-accent-quiet-line: rgb(35 196 166 / .28);
+  color: var(--vq-text);
+}
+
+/* Semantic tints. The V6 pairs (e.g. success #12855C on #E4F6EC) measure
+   4.1–4.3:1, which is fine for a 16px label and short of the floor for the
+   11–13px chips these actually appear in. Darkening the foreground toward
+   ink-950 is a derivation from the ramp, not a new colour, and lands them
+   at 5.2–5.6:1 without changing the hue anyone recognises. */
+.vq-status--ok,   .vq-badge--success { color: color-mix(in srgb, var(--vq-success) 82%, var(--vq-ink-950)); }
+.vq-status--warn, .vq-badge--warning { color: color-mix(in srgb, var(--vq-warning) 86%, var(--vq-ink-950)); }
+.vq-status--bad,  .vq-delta--down    { color: color-mix(in srgb, var(--vq-danger)  84%, var(--vq-ink-950)); }
+.vq-status--info                     { color: color-mix(in srgb, var(--vq-info)    88%, var(--vq-ink-950)); }
+.vq-delta--up                        { color: color-mix(in srgb, var(--vq-success) 82%, var(--vq-ink-950)); }
+:root[data-theme="dark"] .vq-status--ok,   html.dark .vq-status--ok,
+:root[data-theme="dark"] .vq-badge--success, html.dark .vq-badge--success,
+:root[data-theme="dark"] .vq-delta--up,    html.dark .vq-delta--up    { color: var(--vq-success); }
+:root[data-theme="dark"] .vq-status--warn, html.dark .vq-status--warn,
+:root[data-theme="dark"] .vq-badge--warning, html.dark .vq-badge--warning { color: var(--vq-warning); }
+:root[data-theme="dark"] .vq-status--bad,  html.dark .vq-status--bad,
+:root[data-theme="dark"] .vq-delta--down,  html.dark .vq-delta--down  { color: var(--vq-danger); }
+:root[data-theme="dark"] .vq-status--info, html.dark .vq-status--info { color: var(--vq-info); }
+
+/* The header over the hero gradient is verified by eye, not by walking up
+   the DOM for an opaque background there isn't one of. */
+.vq-header--onHero:not(.is-stuck) { --vq-known-bg: skip; }

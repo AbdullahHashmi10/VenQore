@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>Sign in | VenQore</title>
+<meta name="description" content="Sign in to VenQore.">
+<meta property="og:title" content="Sign in | VenQore">
+<meta property="og:description" content="Sign in to VenQore.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VenQore">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0BAA8F">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="assets/venqore.css">
+<script>
+/* Theme before paint — no flash. */
+(function(){try{var r=document.documentElement,t=r.getAttribute('data-theme')||localStorage.getItem('vq-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',t);r.classList.toggle('dark',t==='dark');}catch(e){}})();
+</script>
+
+</head>
+<body class="vq-bare">
+
+
+<main id="main">
+
+<div class="vq-auth" style="grid-template-columns:1fr;place-items:center;min-height:100vh">
+  <div class="vq-auth__pane">
+    <div class="vq-auth__form">
+      <a class="vq-brand" href="index.html" style="justify-content:center;margin-bottom:var(--vq-space-8)">
+        <img src="assets/logo.png" alt="" width="32" height="32" style="height:32px">
+        <span class="vq-brand__word">VenQore</span>
+      </a>
+
+      <div class="vq-card vq-card--xl" style="box-shadow:var(--vq-elev-2)">
+        <h1 class="vq-h2">Sign in</h1>
+        <p class="vq-caption vq-mt-2" style="max-width:none">Welcome back.</p>
+
+        <form class="vq-stack vq-gap-5 vq-mt-8" data-demo>
+          <div class="vq-field">
+            <label class="vq-label" for="email">Work email</label>
+            <input class="vq-input" id="email" name="email" type="email" required autocomplete="email"
+                   autofocus placeholder="you@company.com">
+          </div>
+          <div class="vq-field">
+            <div class="vq-row" style="justify-content:space-between">
+              <label class="vq-label" for="password">Password</label>
+              <a class="vq-caption" href="#" style="color:var(--vq-accent-text)">Forgot?</a>
+            </div>
+            <input class="vq-input" id="password" name="password" type="password" required autocomplete="current-password">
+          </div>
+          <label class="vq-check">
+            <input type="checkbox" name="remember" checked>
+            <span class="vq-caption" style="max-width:none">Keep me signed in on this device</span>
+          </label>
+          <button type="submit" class="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Sign in</button>
+        </form>
+
+        <div class="vq-row vq-gap-4 vq-mt-8" style="align-items:center">
+          <span style="flex:1;height:1px;background:var(--vq-line)"></span>
+          <span class="vq-caption">or</span>
+          <span style="flex:1;height:1px;background:var(--vq-line)"></span>
+        </div>
+
+        <button type="button" class="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block vq-mt-6">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Email me a sign-in link
+        </button>
+        <button type="button" class="vq-btn vq-btn--ghost vq-btn--lg vq-btn--block vq-mt-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Sign in with a cashier PIN
+        </button>
+      </div>
+
+      <p class="vq-caption vq-center vq-mt-6" style="max-width:none">
+        Don't have a system yet? <a href="register.html">Start building →</a>
+      </p>
+      <p class="vq-caption vq-center vq-mt-8" style="max-width:none;color:var(--vq-text-3)">
+        <a href="index.html" style="color:inherit">← Back to venqore.com</a>
+      </p>
+    </div>
+  </div>
+</div>
+</main>
+
+<script src="assets/venqore.js" defer></script>
+
+</body>
+</html>

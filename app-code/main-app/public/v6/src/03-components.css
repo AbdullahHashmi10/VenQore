@@ -1,0 +1,631 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VenQore V6 — Component library (public pages)
+   Component contracts: DESIGN-RULES.md §13. Hover contract: §9.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Button ────────────────────────────────────────────────────────────────
+   Height 42/48/56. Horizontal padding 22px — buttons that hug their label
+   look cheap. Radius lg (20px) or full. One primary per view. Primary
+   carries --vq-glow-accent. Hover = darken one ramp step + translateY(-1px).
+   NEVER scale a button on hover. */
+.vq-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--vq-control-md);
+  padding-inline: 22px;
+  border-radius: var(--vq-r-full);
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-small);
+  font-weight: var(--vq-fw-semi);
+  letter-spacing: -0.01em;
+  word-spacing: normal;
+  white-space: nowrap;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--vq-dur-1) var(--vq-ease-out),
+    border-color     var(--vq-dur-1) var(--vq-ease-out),
+    color            var(--vq-dur-1) var(--vq-ease-out),
+    box-shadow       var(--vq-dur-2) var(--vq-ease-out),
+    transform        var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-btn:hover { transform: translateY(-1px); }
+.vq-btn:active { transform: translateY(0); }
+.vq-btn svg { flex: none; }
+
+.vq-btn--lg { height: var(--vq-control-lg); padding-inline: 26px; font-size: var(--vq-fs-body); }
+.vq-btn--xl { height: var(--vq-control-xl); padding-inline: 32px; font-size: var(--vq-fs-body); }
+.vq-btn--sm { height: var(--vq-control-sm); padding-inline: 16px; font-size: var(--vq-fs-caption); }
+.vq-btn--block { width: 100%; }
+
+.vq-btn--primary {
+  background: var(--vq-accent-fill);
+  color: var(--vq-on-accent);
+  box-shadow: var(--vq-glow-accent);
+}
+.vq-btn--primary:hover {
+  background: var(--vq-accent-fill-hover);
+  color: var(--vq-on-accent);
+  box-shadow: var(--vq-glow-accent-strong);
+}
+
+.vq-btn--secondary {
+  background: var(--vq-surface);
+  color: var(--vq-text);
+  border-color: var(--vq-line);
+  box-shadow: var(--vq-elev-1);
+}
+.vq-btn--secondary:hover { border-color: var(--vq-line-strong); color: var(--vq-text); box-shadow: var(--vq-elev-2); }
+
+.vq-btn--ghost { background: transparent; color: var(--vq-text-2); }
+.vq-btn--ghost:hover { background: var(--vq-sunken); color: var(--vq-text); }
+
+.vq-btn--quiet {
+  background: var(--vq-accent-quiet);
+  color: var(--vq-accent-text);
+  border-color: var(--vq-accent-quiet-line);
+}
+.vq-btn--quiet:hover { background: var(--vq-accent-quiet); border-color: var(--vq-accent); color: var(--vq-accent-text); }
+
+/* On a dark ground (hero, dark bands) */
+.vq-btn--onDark { background: rgb(255 255 255 / .10); color: #fff; border-color: rgb(255 255 255 / .16); backdrop-filter: blur(10px); }
+.vq-btn--onDark:hover { background: rgb(255 255 255 / .18); color: #fff; }
+.vq-btn--light { background: #fff; color: var(--vq-ink-950); box-shadow: var(--vq-elev-2); }
+.vq-btn--light:hover { background: var(--vq-ink-50); color: var(--vq-ink-950); }
+
+.vq-btn__arrow { transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.vq-btn:hover .vq-btn__arrow { transform: translateX(3px); }
+
+/* Text link with an arrow — the standard "read more" affordance */
+.vq-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--vq-fs-small); font-weight: var(--vq-fw-semi);
+  color: var(--vq-accent-text); text-decoration: none; word-spacing: normal;
+}
+.vq-link svg { transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.vq-link:hover svg { transform: translateX(3px); }
+
+/* ── Card ──────────────────────────────────────────────────────────────────
+   Hover = border colour + elevation 1 → 2. NO transform. Ever. */
+.vq-card {
+  position: relative;
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-lg);
+  box-shadow: var(--vq-elev-1);
+  padding: var(--vq-space-6);
+  transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+              box-shadow   var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-card--xl { border-radius: var(--vq-r-xl); padding: var(--vq-space-8); }
+.vq-card--flat { box-shadow: none; }
+.vq-card--interactive:hover { border-color: var(--vq-line-strong); box-shadow: var(--vq-elev-2); }
+a.vq-card { text-decoration: none; color: inherit; display: block; }
+a.vq-card:hover { color: inherit; border-color: var(--vq-accent-quiet-line); box-shadow: var(--vq-elev-2); }
+
+/* M1 · Exactly one filled card per grid, and it is the most important one.
+   It blooms in dark mode — the light version does not have the glow. */
+.vq-card--accent {
+  background: var(--vq-accent-fill);
+  border-color: transparent;
+  color: var(--vq-on-accent);
+  box-shadow: var(--vq-glow-accent);
+}
+.vq-card--accent .vq-eyebrow,
+.vq-card--accent .vq-text-2,
+.vq-card--accent .vq-text-3 { color: rgb(255 255 255 / .72); }
+:root[data-theme="dark"] .vq-card--accent .vq-eyebrow,
+html.dark .vq-card--accent .vq-eyebrow { color: rgb(6 36 33 / .70); }
+:root[data-theme="dark"] .vq-card--accent,
+html.dark .vq-card--accent { box-shadow: var(--vq-glow-accent-strong); }
+
+/* Feature tile — icon, title, one line. The workhorse of a features page. */
+.vq-tile { display: flex; flex-direction: column; gap: var(--vq-space-3); }
+.vq-tile__icon {
+  display: grid; place-items: center;
+  width: 40px; height: 40px;
+  border-radius: var(--vq-r-md);
+  background: var(--vq-accent-quiet);
+  color: var(--vq-accent-text);
+  border: 1px solid var(--vq-accent-quiet-line);
+  margin-bottom: var(--vq-space-2);
+}
+.vq-tile__icon svg { width: 20px; height: 20px; }
+.vq-tile__title { font-family: var(--vq-font-display); font-size: var(--vq-fs-h3); line-height: 1.25; letter-spacing: -0.018em; font-weight: var(--vq-fw-semi); }
+.vq-tile__body  { font-size: var(--vq-fs-small); line-height: 1.6; color: var(--vq-text-2); max-width: none; }
+
+/* ── Stat / KPI ────────────────────────────────────────────────────────────
+   M2 · Three type sizes. Eyebrow 11 → value 38/26 → unit ≤50%, demoted.
+   M3 · Delta is a pill with a glyph and it is the smallest thing here. */
+.vq-stat { display: flex; flex-direction: column; gap: var(--vq-space-2); }
+.vq-stat__label { font-family: var(--vq-font-numeric); font-size: var(--vq-fs-eyebrow); letter-spacing: var(--vq-ls-eyebrow); text-transform: uppercase; font-weight: var(--vq-fw-medium); color: var(--vq-text-3); word-spacing: normal; }
+.vq-stat__value {
+  font-family: var(--vq-font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--vq-fs-metric);
+  line-height: var(--vq-lh-metric);
+  letter-spacing: var(--vq-ls-metric);
+  font-weight: var(--vq-fw-semi);
+  word-spacing: normal;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.vq-stat__value--sm { font-size: var(--vq-fs-metric-sm); }
+.vq-stat__unit { font-size: 0.5em; font-weight: var(--vq-fw-medium); color: var(--vq-text-3); letter-spacing: 0; }
+.vq-stat__note { font-size: var(--vq-fs-caption); color: var(--vq-text-3); }
+.vq-card--accent .vq-stat__label,
+.vq-card--accent .vq-stat__unit,
+.vq-card--accent .vq-stat__note { color: rgb(255 255 255 / .70); }
+
+.vq-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 22px; padding-inline: 8px;
+  border-radius: var(--vq-r-full);
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-medium);
+  font-variant-numeric: tabular-nums;
+  word-spacing: normal;
+}
+.vq-delta--up   { background: var(--vq-success-bg); color: var(--vq-success); }
+.vq-delta--down { background: var(--vq-danger-bg);  color: var(--vq-danger); }
+.vq-delta--flat { background: var(--vq-sunken);     color: var(--vq-text-3); }
+
+/* ── Chip / badge / pill ──────────────────────────────────────────────── */
+.vq-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 34px; padding-inline: 14px;
+  border-radius: var(--vq-r-full);
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  font-size: var(--vq-fs-small);
+  font-weight: var(--vq-fw-medium);
+  color: var(--vq-text-2);
+  word-spacing: normal;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out),
+              border-color     var(--vq-dur-1) var(--vq-ease-out),
+              color            var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-chip:hover { border-color: var(--vq-line-strong); color: var(--vq-text); }
+.vq-chip[aria-selected="true"], .vq-chip--on {
+  background: var(--vq-accent-quiet);
+  border-color: var(--vq-accent);
+  color: var(--vq-accent-text);
+}
+
+.vq-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 24px; padding-inline: 10px;
+  border-radius: var(--vq-r-sm);
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-eyebrow);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: var(--vq-fw-medium);
+  word-spacing: normal;
+  background: var(--vq-sunken);
+  color: var(--vq-text-2);
+}
+.vq-badge--accent  { background: var(--vq-accent-quiet); color: var(--vq-accent-text); }
+.vq-badge--success { background: var(--vq-success-bg); color: var(--vq-success); }
+.vq-badge--warning { background: var(--vq-warning-bg); color: var(--vq-warning); }
+.vq-badge--soon    { background: var(--vq-sunken); color: var(--vq-text-3); }
+
+/* Segmented toggle (monthly / annual) */
+.vq-seg {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px;
+  background: var(--vq-sunken);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-full);
+}
+.vq-seg__btn {
+  height: 36px; padding-inline: 18px;
+  border-radius: var(--vq-r-full);
+  font-size: var(--vq-fs-small); font-weight: var(--vq-fw-semi);
+  color: var(--vq-text-2); word-spacing: normal;
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out),
+              color var(--vq-dur-1) var(--vq-ease-out),
+              box-shadow var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-seg__btn[aria-selected="true"] {
+  background: var(--vq-surface);
+  color: var(--vq-text);
+  box-shadow: var(--vq-elev-1);
+}
+
+/* ── Form ──────────────────────────────────────────────────────────────────
+   Input height 48, radius md (14px), 1px line, 16px padding.
+   Font-size 16px minimum — anything smaller makes iOS Safari zoom on focus.
+   Label above the field, always. Placeholder never substitutes a label. */
+.vq-field { display: flex; flex-direction: column; gap: var(--vq-space-2); }
+.vq-label {
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-medium);
+  color: var(--vq-text-2);
+  word-spacing: normal;
+}
+.vq-input, .vq-select, .vq-textarea {
+  width: 100%;
+  height: var(--vq-control-lg);
+  padding-inline: var(--vq-space-4);
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md);
+  color: var(--vq-text);
+  font-size: 16px;
+  word-spacing: normal;
+  transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+              box-shadow   var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-textarea { height: auto; min-height: 132px; padding-block: var(--vq-space-3); resize: vertical; line-height: 1.6; }
+.vq-input::placeholder, .vq-textarea::placeholder { color: var(--vq-text-3); }
+.vq-input:focus, .vq-select:focus, .vq-textarea:focus {
+  outline: none;
+  border-color: var(--vq-focus);
+  box-shadow: var(--vq-ring-focus);
+}
+.vq-help { font-size: var(--vq-fs-caption); color: var(--vq-text-3); }
+.vq-select {
+  appearance: none;
+  padding-right: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7A73' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+.vq-check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.vq-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--vq-teal-600); flex: none; }
+
+/* ── Table ─────────────────────────────────────────────────────────────────
+   Horizontal rules only. Numbers right-aligned, Space Grotesk, tabular.
+   Vertical lines make it look like a spreadsheet, and the whole point is
+   that you replaced the spreadsheet. */
+.vq-table-wrap { overflow-x: auto; border-radius: var(--vq-r-lg); border: 1px solid var(--vq-line); background: var(--vq-surface); }
+.vq-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.vq-table th {
+  height: var(--vq-row-head-h);
+  padding: 0 var(--vq-space-5);
+  text-align: left;
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-eyebrow);
+  letter-spacing: var(--vq-ls-eyebrow);
+  text-transform: uppercase;
+  font-weight: var(--vq-fw-medium);
+  color: var(--vq-text-3);
+  word-spacing: normal;
+  border-bottom: 1px solid var(--vq-line);
+  background: var(--vq-surface-2);
+  white-space: nowrap;
+}
+.vq-table td {
+  height: var(--vq-row-h);
+  padding: var(--vq-space-3) var(--vq-space-5);
+  font-size: var(--vq-fs-small);
+  border-bottom: 1px solid var(--vq-line-soft);
+  vertical-align: middle;
+}
+.vq-table tbody tr:last-child td { border-bottom: 0; }
+.vq-table tbody tr { transition: background-color var(--vq-dur-1) var(--vq-ease-out); }
+.vq-table tbody tr:hover { background: var(--vq-sunken); }
+.vq-table .vq-num, .vq-table .num { text-align: right; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; word-spacing: normal; }
+.vq-table__row-head { font-weight: var(--vq-fw-medium); color: var(--vq-text); }
+.vq-table__win { font-weight: var(--vq-fw-semi); color: var(--vq-accent-text); }
+.vq-table--compare td { text-align: center; }
+.vq-table--compare td:first-child, .vq-table--compare th:first-child { text-align: left; }
+.vq-table--compare col.is-us { background: var(--vq-accent-quiet); }
+
+.vq-tick   { color: var(--vq-success); }
+.vq-cross  { color: var(--vq-text-3); }
+
+/* ── Header / nav ──────────────────────────────────────────────────────────
+   Five links + two buttons. Seven links in a row reads as an agency site. */
+.vq-header {
+  position: fixed; inset-inline: 0; top: 0;
+  z-index: var(--vq-z-nav);
+  transition: background-color var(--vq-dur-3) var(--vq-ease-out),
+              border-color var(--vq-dur-3) var(--vq-ease-out),
+              box-shadow var(--vq-dur-3) var(--vq-ease-out);
+  border-bottom: 1px solid transparent;
+}
+.vq-header__inner {
+  max-width: var(--vq-page-max);
+  margin-inline: auto;
+  height: 88px;
+  padding-inline: var(--vq-space-6);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--vq-space-8);
+}
+@media (min-width: 768px) { .vq-header__inner { padding-inline: var(--vq-space-8); } }
+
+.vq-header.is-stuck {
+  background: var(--vq-glass);
+  backdrop-filter: blur(var(--vq-glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--vq-glass-blur)) saturate(160%);
+  border-bottom-color: var(--vq-line);
+}
+.vq-header.is-stuck .vq-header__inner { height: 72px; }
+
+.vq-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--vq-text); }
+.vq-brand:hover { color: var(--vq-text); }
+.vq-brand img { height: 30px; width: auto; object-fit: contain; }
+.vq-brand__word {
+  font-family: var(--vq-font-display);
+  font-size: 21px; font-weight: var(--vq-fw-semi);
+  letter-spacing: -0.03em; word-spacing: normal;
+}
+
+.vq-nav { display: none; }
+@media (min-width: 1024px) { .vq-nav { display: block; } }
+.vq-nav__list { display: flex; align-items: center; gap: var(--vq-space-8); }
+.vq-nav__link {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--vq-fs-small); font-weight: var(--vq-fw-medium);
+  color: var(--vq-text-2); text-decoration: none; word-spacing: normal;
+  transition: color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-nav__link:hover, .vq-nav__link[aria-current="page"] { color: var(--vq-text); }
+.vq-nav__link[aria-current="page"] { font-weight: var(--vq-fw-semi); }
+
+.vq-header__actions { display: none; align-items: center; gap: var(--vq-space-5); }
+@media (min-width: 1024px) { .vq-header__actions { display: flex; } }
+
+/* Mega menu — portalled visually, anchored to the nav item */
+.vq-nav__item { position: relative; }
+.vq-mega {
+  position: absolute; top: calc(100% + 14px); left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  min-width: 560px;
+  padding: var(--vq-space-5);
+  background: var(--vq-raised);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-xl);
+  box-shadow: var(--vq-elev-3);
+  z-index: var(--vq-z-dropdown);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity var(--vq-dur-2) var(--vq-ease-out),
+              transform var(--vq-dur-3) var(--vq-ease-spring-soft),
+              visibility 0s linear var(--vq-dur-3);
+}
+.vq-nav__item:hover .vq-mega,
+.vq-nav__item:focus-within .vq-mega {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+  transition-delay: 0s;
+}
+.vq-mega__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--vq-space-6); }
+.vq-mega__col > .vq-eyebrow { margin-bottom: var(--vq-space-3); display: block; }
+.vq-mega__link {
+  display: block; padding: 10px 12px; border-radius: var(--vq-r-md);
+  text-decoration: none; color: var(--vq-text);
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-mega__link:hover { background: var(--vq-sunken); color: var(--vq-text); }
+.vq-mega__link b { display: block; font-size: var(--vq-fs-small); font-weight: var(--vq-fw-semi); }
+.vq-mega__link span { display: block; font-size: var(--vq-fs-caption); color: var(--vq-text-3); margin-top: 1px; }
+.vq-mega__foot { margin-top: var(--vq-space-4); padding-top: var(--vq-space-4); border-top: 1px solid var(--vq-line-soft); }
+
+/* Mobile menu */
+.vq-burger { display: grid; place-items: center; width: 42px; height: 42px; border-radius: var(--vq-r-full); color: var(--vq-text); }
+@media (min-width: 1024px) { .vq-burger { display: none; } }
+.vq-mobile {
+  position: fixed; inset: 0; z-index: var(--vq-z-drawer);
+  background: var(--vq-bg);
+  padding: 100px var(--vq-space-6) var(--vq-space-8);
+  display: flex; flex-direction: column; gap: var(--vq-space-2);
+  opacity: 0; visibility: hidden; transform: translateY(-8px);
+  transition: opacity var(--vq-dur-3) var(--vq-ease-out),
+              transform var(--vq-dur-3) var(--vq-ease-out),
+              visibility 0s linear var(--vq-dur-3);
+  overflow-y: auto;
+}
+.vq-mobile.is-open { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.vq-mobile a:not(.vq-btn) {
+  display: block; padding: 14px 4px;
+  font-family: var(--vq-font-display); font-size: 26px; font-weight: var(--vq-fw-semi);
+  letter-spacing: -0.028em; color: var(--vq-text); text-decoration: none;
+  border-bottom: 1px solid var(--vq-line-soft);
+}
+.vq-mobile__actions { margin-top: var(--vq-space-8); display: flex; flex-direction: column; gap: var(--vq-space-3); }
+
+/* Theme toggle */
+.vq-theme-btn {
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  border-radius: var(--vq-r-full);
+  color: var(--vq-text-2);
+  border: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+  transition: color var(--vq-dur-1) var(--vq-ease-out),
+              border-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-theme-btn:hover { color: var(--vq-text); border-color: var(--vq-line-strong); }
+.vq-theme-btn .vq-icon-moon { display: none; }
+:root[data-theme="dark"] .vq-theme-btn .vq-icon-moon,
+html.dark .vq-theme-btn .vq-icon-moon { display: block; }
+:root[data-theme="dark"] .vq-theme-btn .vq-icon-sun,
+html.dark .vq-theme-btn .vq-icon-sun { display: none; }
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.vq-footer {
+  position: relative;
+  overflow: hidden;
+  background: var(--vq-ink-1000);
+  color: var(--vq-ink-300);
+  padding-top: var(--vq-space-20);
+}
+.vq-footer::before {
+  content: "";
+  position: absolute; inset-inline: 0; bottom: 0; height: 75%;
+  background: linear-gradient(to top, #0f3b30 0%, rgb(19 78 64 / .30) 45%, transparent 100%);
+  opacity: .6; pointer-events: none;
+}
+.vq-footer a { color: var(--vq-ink-400); text-decoration: none; transition: color var(--vq-dur-1) var(--vq-ease-out); }
+.vq-footer a:hover { color: #fff; }
+.vq-footer__head {
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-eyebrow); letter-spacing: var(--vq-ls-eyebrow);
+  text-transform: uppercase; font-weight: var(--vq-fw-medium);
+  color: var(--vq-ink-300); word-spacing: normal;
+}
+.vq-footer__cta {
+  position: relative; overflow: hidden;
+  border-radius: var(--vq-r-2xl);
+  border: 1px solid rgb(255 255 255 / .10);
+  padding: clamp(32px, 5vw, 56px);
+  box-shadow: var(--vq-elev-3);
+  background:
+    radial-gradient(90% 120% at 12% 0%, rgb(35 196 166 / .34), transparent 60%),
+    radial-gradient(70% 100% at 88% 100%, rgb(11 170 143 / .22), transparent 62%),
+    linear-gradient(150deg, #0A5049 0%, #0B3A35 48%, #062421 100%);
+}
+.vq-footer__mark {
+  position: absolute; left: 50%; bottom: 0;
+  transform: translate(-50%, 20%);
+  width: 100%; z-index: 2;
+  display: flex; justify-content: center;
+  pointer-events: none; user-select: none; overflow: hidden;
+}
+.vq-footer__mark span {
+  font-family: var(--vq-font-display);
+  font-size: clamp(80px, 15vw, 260px);
+  font-weight: var(--vq-fw-bold);
+  letter-spacing: -0.06em;
+  line-height: .8;
+  text-transform: uppercase;
+  color: rgb(11 170 143 / .15);
+  white-space: nowrap;
+}
+.vq-footer__social {
+  display: grid; place-items: center;
+  width: 44px; height: 44px;
+  border-radius: var(--vq-r-full);
+  background: rgb(255 255 255 / .08);
+  color: #fff;
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-footer__social:hover { background: rgb(255 255 255 / .18); color: #fff; }
+
+/* ── Ambient backgrounds — public pages only, ≥768px, reduced-motion aware ─
+   §14: the hero gradient is a real "made by someone who cares" signal and
+   costs nothing at the top of a marketing page. It must not be covered by a
+   canvas painted over it, it is disabled below 768px, it respects
+   prefers-reduced-motion, and it fades below the fold. */
+.vq-amb { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.vq-amb > * { position: absolute; }
+
+/* Aurora — three drifting mint blooms. Marketing only. */
+.vq-amb__aurora {
+  inset: -30%;
+  filter: blur(72px);
+  opacity: .55;
+  background:
+    radial-gradient(32% 44% at 22% 28%, rgb(35 196 166 / .55), transparent 68%),
+    radial-gradient(30% 40% at 76% 38%, rgb(11 170 143 / .42), transparent 66%),
+    radial-gradient(38% 46% at 52% 78%, rgb(7 107 94 / .38), transparent 70%);
+  animation: vq-drift var(--vq-dur-amb) var(--vq-ease-in-out) infinite alternate;
+}
+:root[data-theme="dark"] .vq-amb__aurora, html.dark .vq-amb__aurora { opacity: .40; }
+@keyframes vq-drift {
+  0%   { transform: translate3d(0,0,0) scale(1); }
+  100% { transform: translate3d(3%, -4%, 0) scale(1.10); }
+}
+@media (max-width: 767px) { .vq-amb__aurora { animation: none; opacity: .35; filter: blur(56px); } }
+
+/* Dot field — the "engineered" texture. Static, cheap, reads as precision. */
+.vq-amb__dots {
+  inset: 0;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--vq-ink-300);
+  opacity: .30;
+  mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 78%);
+}
+:root[data-theme="dark"] .vq-amb__dots, html.dark .vq-amb__dots { color: var(--vq-ink-600); opacity: .55; }
+
+/* Grid — architectural lines, used behind product/system sections. */
+.vq-amb__grid {
+  inset: 0;
+  background-image:
+    linear-gradient(to right, currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  background-size: 64px 64px;
+  color: var(--vq-line);
+  opacity: .7;
+  mask-image: radial-gradient(80% 70% at 50% 40%, #000 0%, transparent 76%);
+  -webkit-mask-image: radial-gradient(80% 70% at 50% 40%, #000 0%, transparent 76%);
+}
+
+/* Beams — slow vertical light shafts. Above the fold only. */
+.vq-amb__beams { inset: -20% 0 auto; height: 120%; opacity: .5; }
+.vq-amb__beams i {
+  position: absolute; top: 0; height: 100%; width: 200px;
+  background: linear-gradient(to bottom, rgb(35 196 166 / .00), rgb(35 196 166 / .30), rgb(35 196 166 / .00));
+  filter: blur(46px);
+  animation: vq-sweep var(--vq-dur-amb) var(--vq-ease-in-out) infinite alternate;
+}
+.vq-amb__beams i:nth-child(1) { left: 12%; animation-delay: 0s;      transform: rotate(-14deg); }
+.vq-amb__beams i:nth-child(2) { left: 46%; animation-delay: -3200ms; transform: rotate(9deg); opacity: .7; }
+.vq-amb__beams i:nth-child(3) { left: 78%; animation-delay: -6000ms; transform: rotate(-6deg); opacity: .55; }
+@keyframes vq-sweep {
+  0%   { transform: translateX(-40px) rotate(-10deg); }
+  100% { transform: translateX(40px)  rotate(-4deg); }
+}
+@media (max-width: 767px) { .vq-amb__beams { display: none; } }
+
+/* Grain — the thing that stops a flat gradient looking like a screenshot. */
+.vq-amb__grain {
+  inset: 0;
+  opacity: .18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+/* A dark band inside a light page — used for the "moat" / proof sections. */
+.vq-band-dark {
+  position: relative;
+  overflow: hidden;
+  color: #EDF2EF;
+  background:
+    radial-gradient(78% 100% at 18% 0%, rgb(11 170 143 / .20), transparent 60%),
+    radial-gradient(62% 90% at 88% 100%, rgb(35 196 166 / .12), transparent 62%),
+    linear-gradient(168deg, #0C1211 0%, #0A1614 55%, #06100E 100%);
+}
+.vq-band-dark h1, .vq-band-dark h2, .vq-band-dark h3 { color: #fff; }
+.vq-band-dark .vq-lede { color: rgb(237 242 239 / .74); }
+.vq-band-dark .vq-eyebrow { color: var(--vq-teal-300); }
+.vq-band-dark .vq-card {
+  background: rgb(255 255 255 / .04);
+  border-color: rgb(255 255 255 / .10);
+  box-shadow: none;
+  color: #EDF2EF;
+  backdrop-filter: blur(10px);
+}
+.vq-band-dark .vq-card .vq-tile__body,
+.vq-band-dark .vq-text-2 { color: rgb(237 242 239 / .68); }
+.vq-band-dark .vq-text-3, .vq-band-dark .vq-stat__label, .vq-band-dark .vq-stat__note { color: rgb(237 242 239 / .52); }
+.vq-band-dark .vq-tile__icon { background: rgb(35 196 166 / .14); border-color: rgb(35 196 166 / .26); color: var(--vq-teal-300); }
+.vq-band-dark .vq-hr { background: rgb(255 255 255 / .10); }
+
+/* ── Scroll reveal — 520ms, spring-soft, 60ms stagger ─────────────────── */
+.vq-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--vq-dur-4) var(--vq-ease-out),
+              transform var(--vq-dur-4) var(--vq-ease-spring-soft);
+  transition-delay: var(--vq-reveal-delay, 0ms);
+}
+.vq-reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .vq-reveal { opacity: 1; transform: none; }
+}
+
+/* ── Marquee (logo / integration strip) ───────────────────────────────── */
+.vq-marquee { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.vq-marquee__track { display: flex; gap: var(--vq-space-12); width: max-content; animation: vq-marquee 38s linear infinite; }
+.vq-marquee:hover .vq-marquee__track { animation-play-state: paused; }
+@keyframes vq-marquee { to { transform: translateX(-50%); } }

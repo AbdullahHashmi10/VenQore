@@ -2005,7 +2005,7 @@ export default function NewDashboard(props) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   
-  // 1. Center 3D Folder Launcher Stage State
+  // 1. Center 3D Floating Folder Stage State
   const [folderLauncherOpen, setFolderLauncherOpen] = useState(false);
 
   // 2. Stepper Modal Dialog State
@@ -2046,7 +2046,7 @@ export default function NewDashboard(props) {
     runCardBuilder();
   }, []);
 
-  // Launch Category Choice from 3D Folder
+  // Launch Category Choice from 3D Floating Folder
   const launchCategoryModal = (catIndex) => {
     setCategoryFolderIndex(catIndex);
     setFolderLauncherOpen(false);
@@ -2536,17 +2536,17 @@ export default function NewDashboard(props) {
               <span>Quick Actions</span>
             </button>
 
-            {/* Main Add New Card Trigger (Closed 3D Folder Button) */}
+            {/* Desktop / Windows Style Add Card Folder Trigger */}
             <button
               onClick={() => setFolderLauncherOpen(true)}
-              className="vq-folder-trigger-btn"
-              title="Open Card Catalog Folder"
+              className="vq-desktop-folder-btn"
+              title="Add New Card"
             >
-              <div className="vq-mini-folder-icon">
-                <div className="vq-mini-folder-papers"></div>
-                <div className="vq-mini-folder-front"></div>
+              <div className="vq-desktop-folder-icon">
+                <div className="vq-desktop-folder-papers"></div>
+                <div className="vq-desktop-folder-front"></div>
               </div>
-              <span>Add New Card</span>
+              <span className="vq-desktop-folder-label">Add Card</span>
             </button>
 
             <button id="vq-theme" className="pg-theme" aria-label="Toggle light and dark theme">
@@ -2632,15 +2632,15 @@ export default function NewDashboard(props) {
               </div>
               <div className="board-actions">
                 <button
-                  className="vq-folder-trigger-btn"
                   onClick={() => setFolderLauncherOpen(true)}
-                  title="Open Card Catalog Folder"
+                  className="vq-desktop-folder-btn"
+                  title="Add New Card"
                 >
-                  <div className="vq-mini-folder-icon">
-                    <div className="vq-mini-folder-papers"></div>
-                    <div className="vq-mini-folder-front"></div>
+                  <div className="vq-desktop-folder-icon">
+                    <div className="vq-desktop-folder-papers"></div>
+                    <div className="vq-desktop-folder-front"></div>
                   </div>
-                  <span>Add New Card</span>
+                  <span className="vq-desktop-folder-label">Add Card</span>
                 </button>
               </div>
             </div>
@@ -2650,73 +2650,41 @@ export default function NewDashboard(props) {
         </main>
       </div>
 
-      {/* ── 1. CENTER 3D ANIMATED FOLDER CATEGORY LAUNCHER MODAL ── */}
+      {/* ── 1. CENTER 3D FLOATING FOLDER CATEGORY LAUNCHER (NO CARD CONTAINER) ── */}
       {folderLauncherOpen && (
         <div className="vq-folder-portal-overlay" onClick={() => setFolderLauncherOpen(false)}>
-          <div className="vq-folder-portal-card" onClick={e => e.stopPropagation()}>
-            <button
-              className="vq-folder-portal-close"
-              onClick={() => setFolderLauncherOpen(false)}
-              aria-label="Close"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
+          <button
+            className="vq-folder-portal-floating-close"
+            onClick={() => setFolderLauncherOpen(false)}
+            aria-label="Close"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
 
-            <div className="vq-folder-stage-container">
-              <Folder
-                size={1.3}
-                color="#0baa8f"
-                selectedIndex={categoryFolderIndex}
-                autoAnimateOpen={true}
-                onSelectCategory={(i) => launchCategoryModal(i)}
-                items={[
-                  <span>📊 Readings</span>,
-                  <span>⚡ Operations</span>,
-                  <span>🚀 Shortcuts</span>
-                ]}
-              />
-              <div className="vq-folder-portal-heading">What would you like to add?</div>
-              <div className="vq-folder-portal-sub">Click a category card below or click any paper in the folder</div>
-            </div>
-
-            <div className="vq-portal-options-grid">
-              {/* Option 1: Metric Readings */}
-              <div
-                className="vq-portal-option-tile"
-                onClick={() => launchCategoryModal(0)}
-              >
-                <div className="vq-portal-option-icon">📊</div>
-                <div className="vq-portal-option-title">Metric & Analytics Readings</div>
-                <div className="vq-portal-option-desc">
-                  Browse {readings.length} real-time business readings across Sales, Finance, Inventory, Purchasing, and Operations.
-                </div>
+          <Folder
+            size={1.75}
+            color="#0baa8f"
+            selectedIndex={categoryFolderIndex}
+            autoAnimateOpen={true}
+            onSelectCategory={(i) => launchCategoryModal(i)}
+            items={[
+              <div className="vq-folder-paper-content">
+                <span className="vq-folder-paper-icon">📊</span>
+                <span className="vq-folder-paper-title">Readings</span>
+                <span className="vq-folder-paper-sub">108 Metrics</span>
+              </div>,
+              <div className="vq-folder-paper-content">
+                <span className="vq-folder-paper-icon">⚡</span>
+                <span className="vq-folder-paper-title">Operations</span>
+                <span className="vq-folder-paper-sub">Hubs & Live</span>
+              </div>,
+              <div className="vq-folder-paper-content">
+                <span className="vq-folder-paper-icon">🚀</span>
+                <span className="vq-folder-paper-title">Shortcuts</span>
+                <span className="vq-folder-paper-sub">1-Click Jump</span>
               </div>
-
-              {/* Option 2: Operations & Command Cards */}
-              <div
-                className="vq-portal-option-tile"
-                onClick={() => launchCategoryModal(1)}
-              >
-                <div className="vq-portal-option-icon" style={{ background: '#e6f7ff', color: '#0050b3' }}>⚡</div>
-                <div className="vq-portal-option-title">Operations & Hub Cards</div>
-                <div className="vq-portal-option-desc">
-                  Fast-lane 3-button operations hub, bank liquidity monitor, actions required alerts, and growth velocity cards.
-                </div>
-              </div>
-
-              {/* Option 3: Custom Action Shortcuts */}
-              <div
-                className="vq-portal-option-tile"
-                onClick={() => launchCategoryModal(2)}
-              >
-                <div className="vq-portal-option-icon" style={{ background: '#f6ffed', color: '#389e0d' }}>🚀</div>
-                <div className="vq-portal-option-title">Custom 1-Click Shortcuts</div>
-                <div className="vq-portal-option-desc">
-                  Create your own one-click shortcut launcher card to instantly jump to POS, invoices, inventory, or reports.
-                </div>
-              </div>
-            </div>
-          </div>
+            ]}
+          />
         </div>
       )}
 
