@@ -18,8 +18,10 @@ import {
 } from 'lucide-react';
 
 import { getChartComponent } from '../Dashboard/chartRegistry';
+import { gridProps, coerce, validate } from '../Dashboard/layoutLaw';
 import DashboardCardFrame from '../Dashboard/components/DashboardCardFrame';
 import DashboardBuilderSheet from '../Dashboard/components/DashboardBuilderSheet';
+import DashboardCardEditor from '../Dashboard/components/DashboardCardEditor';
 import axios from 'axios';
 
 export default function Dashboard() {
@@ -36,6 +38,11 @@ export default function Dashboard() {
 
     // Builder sheet & Edit states
     const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+    // The card the editor is open on. `DashboardCardFrame` has accepted an
+    // `onEdit` prop since it was written and nothing ever passed one, so a card
+    // could be added and deleted but never edited — to change a period you
+    // deleted the card and rebuilt it from step one.
+    const [editingCardId, setEditingCardId] = useState(null);
     const [activeLayout, setActiveLayout] = useState([]);
     const [isSavingLayout, setIsSavingLayout] = useState(false);
 
@@ -201,6 +208,48 @@ export default function Dashboard() {
             console.error('Failed to remove card', err);
         }
     };
+
+    /**
+     * Save one card's edits.
+     *
+     * PATCH rather than delete-and-recreate, so the card keeps its id — which
+     * matters because the id is what the layout coordinates, the loading state
+     * and the data cache are all keyed on.
+     *
+     * Mechanism M1 is enforced server-side by LayoutLaw::enforceAccentBudget(),
+     * but the accent is cleared here too: the reload is a round trip, and a
+     * board that shows two accent cards for 200ms has told the user something
+     * false about which number matters.
+     */
+    const handleUpdateCard = async (cardId, patch) => {
+        if (!currentDashboard) return;
+
+        if (patch.style?.accent) {
+            setCurrentDashboard(d => ({
+                ...d,
+                cards: d.cards.map(c => c.id === cardId
+                    ? c
+                    : { ...c, style: { ...(c.style || {}), accent: false } }),
+            }));
+        }
+
+        try {
+            await axios.patch(`/api/dashboards/${currentDashboard.id}/cards/${cardId}`, patch);
+            setEditingCardId(null);
+            loadDashboardDetail(currentDashboard.id);
+        } catch (err) {
+            console.error('Failed to update card', err);
+        }
+    };
+
+    // Which card currently holds the accent, so the editor can name it before
+    // taking it away rather than silently demoting it.
+    const accentHolder = (() => {
+        const card = currentDashboard?.cards?.find(c => c.style?.accent);
+        if (!card) return null;
+        const def = catalogue.find(m => m.key === card.reading_key);
+        return { id: card.id, label: card.title_override || def?.label || 'A card' };
+    })();
 
     // 5. Manager publishing & locking layout toggles
     const handleResetLayout = async () => {
@@ -556,10 +605,18 @@ export default function Dashboard() {
                             <ReactGridLayout
                                 className="layout"
                                 layout={activeLayout}
-                                cols={12}
-                                rowHeight={80}
                                 width={width}
-                                margin={[16, 16]}
+                                /*
+                                 * Layout Law v2.0 §1. This read cols={12}
+                                 * rowHeight={80} margin={[16,16]}, so every
+                                 * persisted card was 16px per row too tall and
+                                 * 8px per gutter too tight. The law is
+                                 * size(n) = n*64 + (n-1)*24 — 2 rows is 152px,
+                                 * not 160 — and react-grid-layout reproduces it
+                                 * exactly when rowHeight is the unit and margin
+                                 * is the gutter. One source: layout-law.json.
+                                 */
+                                {...gridProps()}
                                 isDraggable={!currentDashboard?.is_locked}
                                 isResizable={!currentDashboard?.is_locked}
                                 onLayoutChange={handleLayoutChange}
@@ -577,6 +634,7 @@ export default function Dashboard() {
                                                 loading={cardLoaders[card.id]}
                                                 error={cardErrors[card.id]}
                                                 isLocked={currentDashboard?.is_locked}
+                                                onEdit={() => setEditingCardId(card.id)}
                                                 onRemove={() => handleRemoveCard(card.id)}
                                             >
                                                 {cardData[card.id] && Chart && (
@@ -584,6 +642,13 @@ export default function Dashboard() {
                                                         data={cardData[card.id]}
                                                         definition={def}
                                                         settings={store?.settings}
+                                                        /* A chart needs to know
+                                                           which category it is
+                                                           in: M2 allows exactly
+                                                           two metric sizes, and
+                                                           38px does not fit a
+                                                           C1 tile. */
+                                                        card={card}
                                                     />
                                                 )}
                                             </DashboardCardFrame>
@@ -595,6 +660,18 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Edit one card in place — every knob the builder asks once, plus
+                the ones it never asked: category, fit and emphasis. */}
+            <DashboardCardEditor
+                isOpen={Boolean(editingCardId)}
+                card={currentDashboard?.cards?.find(c => c.id === editingCardId) || null}
+                definition={catalogue.find(m => m.key ===
+                    currentDashboard?.cards?.find(c => c.id === editingCardId)?.reading_key)}
+                accentHolder={accentHolder}
+                onClose={() => setEditingCardId(null)}
+                onSave={(patch) => handleUpdateCard(editingCardId, patch)}
+            />
 
             {/* Step-by-Step Metric card Builder */}
             <DashboardBuilderSheet

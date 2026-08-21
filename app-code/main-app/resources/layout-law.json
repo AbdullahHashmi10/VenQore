@@ -1,0 +1,468 @@
+{
+  "$comment": [
+    "VENQORE LAYOUT LAW v2.0 — the machine-readable source.",
+    "",
+    "VENQORE_LAYOUT_LAW.md says it is 'generated from layout-law.json'. That file did",
+    "not exist in the repo, which is why three geometry numbers had already drifted",
+    "between the prose and the V6 token files (gutter 20 vs 24, topbar 68 vs 64, rail",
+    "248 vs 264). This is that file. It is the single source for card geometry, and",
+    "both the JS engine (resources/js/Dashboard/layoutLaw.js) and the PHP sanitizer",
+    "(app/Reckoner/LayoutLaw.php) read it rather than restating it.",
+    "",
+    "Nothing here is a preference. Where a number looks arbitrary the derivation is",
+    "next to it, and a number with no derivation does not belong in this file."
+  ],
+  "version": "2.0.0",
+  "grid": {
+    "$comment": [
+      "size(n) = n*unit + (n-1)*gutter.",
+      "",
+      "The gutter is part of the PITCH, not something added between cards. CSS Grid",
+      "computes this natively from `gap`. That distinction is the documented",
+      "alignment bug: with margin-bottom a 2-row card is 64+64=128px while two",
+      "stacked 1-row cards are 64+24+64=152px. As part of the pitch, the 2-row card",
+      "spans across the gutter and absorbs it — 2*64 + 1*24 = 152 — and the two line",
+      "up exactly. Never implement this by hand; `gap` already does it."
+    ],
+    "columns": 12,
+    "unit": 64,
+    "gutter": 24,
+    "rowHeights": {
+      "1": 64,
+      "2": 152,
+      "3": 240,
+      "4": 328,
+      "5": 416,
+      "6": 504,
+      "7": 592,
+      "8": 680,
+      "9": 768,
+      "10": 856,
+      "12": 1032,
+      "16": 1384
+    }
+  },
+  "shell": {
+    "$comment": "Three regions and only three. Nothing else may position against the viewport.",
+    "navExpanded": 264,
+    "navRail": 72,
+    "navHidden": 0,
+    "headerHeight": 64,
+    "$headerComment": "header_h == unit. One number, two jobs.",
+    "subnavWidth": 224,
+    "contentMarginMin": 16,
+    "contentMarginMax": 24,
+    "pushThreshold": 1216,
+    "$pushComment": "Below this the nav overlays rather than pushes. Found by sweeping every integer width from 320 to 3440, not by picking breakpoints."
+  },
+  "categories": {
+    "$comment": [
+      "Six categories. Each declares a MAX and an ordered list of FITS.",
+      "",
+      "A fit is cols x rows plus a pixel width floor — the narrowest the card may",
+      "render and still use that fit. There is no separate 'minimum size': the",
+      "leanest fit IS the minimum.",
+      "",
+      "A card WIDENS BEFORE IT DEGRADES. It only drops to a leaner fit when",
+      "widening is exhausted, and degrading trades a column for a row and re-lays",
+      "its inside.",
+      "",
+      "Supersedes VENQORE_CARD_BUILDER_BUILD_SPEC.md §7.2 (small/medium/large/full)",
+      "and the twelve 2x4..8x8 presets that shipped in DashboardBuilderSheet.jsx."
+    ],
+    "C1": {
+      "name": "Tile",
+      "role": "Shortcut, quick action, single-glyph stat",
+      "max": {
+        "w": 3,
+        "h": 2
+      },
+      "fits": [
+        {
+          "key": "icon-label",
+          "w": 2,
+          "h": 1,
+          "floor": 124,
+          "default": true,
+          "label": "Icon + label"
+        },
+        {
+          "key": "icon",
+          "w": 1,
+          "h": 1,
+          "floor": 52,
+          "label": "Icon only"
+        }
+      ]
+    },
+    "C2": {
+      "name": "Strip",
+      "role": "One KPI on one line — label left, value right",
+      "max": {
+        "w": 6,
+        "h": 2
+      },
+      "fits": [
+        {
+          "key": "inline",
+          "w": 4,
+          "h": 1,
+          "floor": 356,
+          "default": true,
+          "label": "Inline"
+        },
+        {
+          "key": "stacked",
+          "w": 3,
+          "h": 2,
+          "floor": 200,
+          "label": "Stacked"
+        }
+      ]
+    },
+    "C3": {
+      "name": "Metric",
+      "role": "KPI with delta, sparkline or comparison",
+      "max": {
+        "w": 6,
+        "h": 4
+      },
+      "fits": [
+        {
+          "key": "full",
+          "w": 4,
+          "h": 3,
+          "floor": 386,
+          "label": "Full"
+        },
+        {
+          "key": "standard",
+          "w": 3,
+          "h": 2,
+          "floor": 274,
+          "default": true,
+          "label": "Standard"
+        },
+        {
+          "key": "compact",
+          "w": 2,
+          "h": 2,
+          "floor": 200,
+          "label": "Compact"
+        },
+        {
+          "key": "stacked",
+          "w": 2,
+          "h": 3,
+          "floor": 163,
+          "label": "Stacked"
+        }
+      ]
+    },
+    "C4": {
+      "name": "Panel",
+      "role": "Ranked list, breakdown, small chart, table excerpt",
+      "max": {
+        "w": 6,
+        "h": 6
+      },
+      "fits": [
+        {
+          "key": "full",
+          "w": 4,
+          "h": 4,
+          "floor": 492,
+          "label": "Full"
+        },
+        {
+          "key": "standard",
+          "w": 3,
+          "h": 4,
+          "floor": 356,
+          "default": true,
+          "label": "Standard"
+        },
+        {
+          "key": "compact",
+          "w": 3,
+          "h": 5,
+          "floor": 200,
+          "label": "Compact"
+        },
+        {
+          "key": "list",
+          "w": 2,
+          "h": 6,
+          "floor": 200,
+          "label": "List"
+        }
+      ]
+    },
+    "C5": {
+      "name": "Board",
+      "role": "Full chart, multi-series, wide table",
+      "max": {
+        "w": 12,
+        "h": 9
+      },
+      "fits": [
+        {
+          "key": "full",
+          "w": 6,
+          "h": 6,
+          "floor": 593,
+          "default": true,
+          "label": "Full"
+        },
+        {
+          "key": "narrow",
+          "w": 5,
+          "h": 7,
+          "floor": 415,
+          "label": "Narrow"
+        },
+        {
+          "key": "min",
+          "w": 4,
+          "h": 8,
+          "floor": 295,
+          "label": "Minimum"
+        }
+      ]
+    },
+    "C6": {
+      "name": "Canvas",
+      "role": "Hero chart, P&L, cohort grid, map",
+      "max": {
+        "w": 12,
+        "h": 16
+      },
+      "fits": [
+        {
+          "key": "full",
+          "w": 8,
+          "h": 8,
+          "floor": 733,
+          "default": true,
+          "label": "Full"
+        },
+        {
+          "key": "narrow",
+          "w": 6,
+          "h": 10,
+          "floor": 533,
+          "label": "Narrow"
+        },
+        {
+          "key": "min",
+          "w": 4,
+          "h": 12,
+          "floor": 295,
+          "label": "Minimum"
+        }
+      ]
+    }
+  },
+  "chartLegality": {
+    "$comment": [
+      "A chart may only render a shape it is legal for. Shapes come from the",
+      "Reckoner; the first entry in each list is the default.",
+      "",
+      "Candlestick is excluded from the entire system — VenQore has no OHLC data."
+    ],
+    "SCALAR": [
+      "stat",
+      "sparkline",
+      "gauge"
+    ],
+    "STATUS": [
+      "status"
+    ],
+    "SERIES": [
+      "line",
+      "area",
+      "bar",
+      "profit_loss_line",
+      "sparkline"
+    ],
+    "MULTI_SERIES": [
+      "composed",
+      "line",
+      "area"
+    ],
+    "BREAKDOWN": [
+      "pie",
+      "ring",
+      "sunburst",
+      "funnel",
+      "bar"
+    ],
+    "RANKING": [
+      "bar",
+      "table",
+      "funnel"
+    ],
+    "TABLE": [
+      "table",
+      "heatmap"
+    ],
+    "GAUGE": [
+      "gauge",
+      "ring"
+    ],
+    "FEED": [
+      "feed"
+    ]
+  },
+  "chartCategories": {
+    "$comment": [
+      "Which categories a chart can legibly occupy, leanest first. The first entry",
+      "is the legibility floor: rendering the chart below it is a fail, which is",
+      "what stopped a pie being persisted at 2x4 under the old preset system.",
+      "",
+      "The floors are a function of how much the mark has to say. A stat is one",
+      "number and survives a tile; a heatmap is a two-dimensional grid and needs a",
+      "board before its cells are distinguishable.",
+      "",
+      "The last five are legal for no shape, so the editor never offers them. They",
+      "are listed anyway because a card persisted before the law may hold one, and a",
+      "chart with no entry would fall back to a default that could be below its real",
+      "legibility floor."
+    ],
+    "stat": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "status": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "sparkline": [
+      "C2",
+      "C3",
+      "C4"
+    ],
+    "gauge": [
+      "C3",
+      "C4"
+    ],
+    "ring": [
+      "C3",
+      "C4",
+      "C5"
+    ],
+    "bar": [
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "line": [
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "area": [
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "profit_loss_line": [
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "pie": [
+      "C4",
+      "C5"
+    ],
+    "funnel": [
+      "C4",
+      "C5"
+    ],
+    "feed": [
+      "C4",
+      "C5"
+    ],
+    "table": [
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "composed": [
+      "C5",
+      "C6"
+    ],
+    "sunburst": [
+      "C5",
+      "C6"
+    ],
+    "heatmap": [
+      "C5",
+      "C6"
+    ],
+    "live_line": [
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "scatter": [
+      "C5",
+      "C6"
+    ],
+    "radar": [
+      "C4",
+      "C5"
+    ],
+    "sankey": [
+      "C5",
+      "C6"
+    ],
+    "choropleth": [
+      "C5",
+      "C6"
+    ]
+  },
+  "rankLaw": {
+    "$comment": "Action budget. A card exposes at most its rank-1 actions at rest, and Configure never sits on the card face.",
+    "act": {
+      "rank": 1,
+      "lives": "the working surface",
+      "budget": 7
+    },
+    "adjust": {
+      "rank": 2,
+      "lives": "one gesture away, contextual",
+      "budget": null
+    },
+    "configure": {
+      "rank": 3,
+      "lives": "settings drawer only",
+      "budget": 0
+    }
+  },
+  "numberLadder": {
+    "$comment": [
+      "Currency drops first, then decimals, then magnitude. Full precision belongs",
+      "in the ledger, never on a dashboard card, and the exact value is always one",
+      "hover away.",
+      "",
+      "A value must never overflow, clip or ellipsize its card. It steps down."
+    ],
+    "steps": [
+      "full4",
+      "full2",
+      "full",
+      "grouped",
+      "abbr2",
+      "abbr1",
+      "abbr0",
+      "bare"
+    ]
+  },
+  "accent": {
+    "$comment": "Mechanism M1. Exactly one accent-filled card per board, and it must be the headline metric. Zero is a fail; two is a fail.",
+    "maxPerBoard": 1
+  }
+}

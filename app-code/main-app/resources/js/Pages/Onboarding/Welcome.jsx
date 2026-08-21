@@ -107,7 +107,7 @@ export default function Welcome({ storeSlug, tenantName, onNext, onSelectMode })
                                     AI Business Translator
                                 </h3>
                                 <p className="text-xs text-indigo-400 font-mono">
-                                    Describe in plain language -> Instant architecture
+                                    Describe in plain language → Instant architecture
                                 </p>
                             </div>
                         </div>

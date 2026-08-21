@@ -235,6 +235,65 @@ export default {
             },
 
             /* ───────────────────────────────────────────────────────────────
+               STACKING
+               ───────────────────────────────────────────────────────────────
+               The audit found 31 distinct hand-written z-index values, from
+               `z-[5]` to `z-[99999]`, and ZERO `zIndex` entries in this file.
+               The second fact caused the first: there was no list to consult,
+               so every time something was invisible someone raised the number.
+
+               Twelve values, from layout-law.json's own ladder. Roughly: how
+               much of the screen a thing owns, then what has to be dismissable
+               on top of what. A tooltip outranks a modal because you can have a
+               tooltip ON a modal; a toast outranks both because a "Saved"
+               confirmation that appears behind the dialog that triggered it is
+               worse than useless.
+
+               Two rules that prevent the next 31:
+                 · A scrim is its owner's level MINUS ONE. Never its own number.
+                 · If a thing is invisible, look for an `overflow-hidden`
+                   ancestor BEFORE touching z-index. Clipping happens during
+                   paint, before stacking is considered, so no z-index can
+                   escape it — which is what most of those 31 values were
+                   actually trying to do.
+
+               These are additive for now. `theme.zIndex` (replacing rather than
+               extending) is what finally stops `z-[9999]` compiling, and that
+               switch is thrown after the Phase 3 codemod, not before — closing
+               the set today would strip the stacking off 96 live call sites.
+               ─────────────────────────────────────────────────────────────── */
+            zIndex: {
+                base: 'var(--vq-z-base)',
+                raised: 'var(--vq-z-raised)',
+                sticky: 'var(--vq-z-sticky)',
+                nav: 'var(--vq-z-nav)',
+                rail: 'var(--vq-z-rail)',
+                dropdown: 'var(--vq-z-dropdown)',
+                drawer: 'var(--vq-z-drawer)',
+                'drawer-scrim': 'calc(var(--vq-z-drawer) - 1)',
+                modal: 'var(--vq-z-modal)',
+                'modal-scrim': 'calc(var(--vq-z-modal) - 1)',
+                popover: 'var(--vq-z-popover)',
+                tooltip: 'var(--vq-z-tooltip)',
+                toast: 'var(--vq-z-toast)',
+                command: 'var(--vq-z-command)',
+            },
+
+            /* ───────────────────────────────────────────────────────────────
+               LAYOUT LAW
+               ───────────────────────────────────────────────────────────────
+               size(n) = n*64 + (n-1)*24. The gutter is part of the PITCH, not
+               a margin, so `gap-gutter` on a grid is the whole implementation.
+               ─────────────────────────────────────────────────────────────── */
+            spacing: {
+                'row-unit': 'var(--vq-row-unit)',
+                gutter: 'var(--vq-gutter)',
+                'rail-w': 'var(--vq-rail-w)',
+                'rail-min': 'var(--vq-rail-w-min)',
+                'topbar-h': 'var(--vq-topbar-h)',
+            },
+
+            /* ───────────────────────────────────────────────────────────────
                MOTION
                ─────────────────────────────────────────────────────────────── */
             transitionDuration: varMap(MOTION_TOKENS.duration, cssVar.duration),
@@ -254,6 +313,12 @@ export default {
                 'gradient-danger': `var(${cssVar.gradient('danger')})`,
                 'gradient-aurora': `var(${cssVar.gradient('aurora')})`,
                 'gradient-hairline': `var(${cssVar.gradient('hairline-accent')})`,
+                // V6's signature marketing gradients. Public pages only —
+                // inside the app the background is flat --vq-bg and nothing
+                // else (DESIGN-RULES v3.0 §14).
+                'gradient-hero': `var(${cssVar.gradient('hero')})`,
+                'gradient-spot': `var(${cssVar.gradient('spot')})`,
+                'gradient-warm': `var(${cssVar.gradient('warm')})`,
             },
         },
     },

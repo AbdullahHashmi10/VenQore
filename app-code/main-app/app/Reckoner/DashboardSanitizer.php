@@ -10,21 +10,25 @@ namespace App\Reckoner;
  */
 class DashboardSanitizer
 {
-    /** 12 canonical grid size presets. */
-    public const SIZES = [
-        '2x4' => ['w' => 2, 'h' => 4],
-        '2x6' => ['w' => 2, 'h' => 6],
-        '2x8' => ['w' => 2, 'h' => 8],
-        '4x4' => ['w' => 4, 'h' => 4],
-        '4x6' => ['w' => 4, 'h' => 6],
-        '4x8' => ['w' => 4, 'h' => 8],
-        '6x4' => ['w' => 6, 'h' => 4],
-        '6x6' => ['w' => 6, 'h' => 6],
-        '6x8' => ['w' => 6, 'h' => 8],
-        '8x4' => ['w' => 8, 'h' => 4],
-        '8x6' => ['w' => 8, 'h' => 6],
-        '8x8' => ['w' => 8, 'h' => 8],
-    ];
+    /**
+     * The twelve `2x4 … 8x8` presets that used to live here are gone.
+     *
+     * They were superseded by Layout Law v2.0's six categories and eighteen
+     * fits, and they were wrong in three ways that mattered: they could not
+     * express a C1 tile or a 4x1 inline strip, they carried no legibility floor
+     * (a pie chart could be persisted at 2x4 and render as an unreadable disc),
+     * and they were declared a second time in DashboardBuilderSheet.jsx with
+     * nothing checking the two lists agreed.
+     *
+     * Geometry now comes from resources/layout-law.json via App\Reckoner\LayoutLaw,
+     * which the JS resolver reads too. Stored rows still carrying a legacy
+     * `size` are translated by LayoutLaw::fromLegacySize().
+     *
+     * @deprecated Kept only so any caller still reading it fails loudly rather
+     *             than silently sizing every card 4x4.
+     * @see \App\Reckoner\LayoutLaw
+     */
+    public const SIZES = [];
 
     /** Deprecated metric keys migration map. */
     private const DEPRECATED_MAP = [
@@ -91,13 +95,19 @@ class DashboardSanitizer
                 $chart = ReckonerCharts::default($shape);
             }
 
-            // Validate and force size presets
-            $size = $item['size'] ?? '4x4';
-            if (! array_key_exists($size, self::SIZES)) {
-                $size = '4x4';
-            }
-
-            $dimensions = self::SIZES[$size];
+            // Category, fit and span, forced legal by the Layout Law. This
+            // also absorbs rows written under the old preset system: an
+            // incoming `size` of '4x8' is mapped to the nearest legal fit
+            // rather than dropped, so a board survives the migration looking
+            // like the board the user built.
+            $geometry = LayoutLaw::coerce([
+                'chart' => $chart,
+                'category' => $item['category'] ?? null,
+                'fit' => $item['fit'] ?? null,
+                'size' => $item['size'] ?? null,
+                'x' => $item['x'] ?? 0,
+                'y' => $item['y'] ?? 0,
+            ]);
 
             // Whitelist args (currently we allow null or array, in a real env we can filter further)
             $args = $item['args'] ?? null;
@@ -111,6 +121,14 @@ class DashboardSanitizer
                 $periodCustom = null;
             }
 
+            // The `style` bag carries the knobs the prototype exposed and the
+            // shipped builder never did: variant, accent, period picker. The
+            // column has existed since the dashboards migration and nothing
+            // read it. Whitelisted rather than passed through, because it is
+            // user-supplied JSON that ends up in a style attribute.
+            $style = $item['style'] ?? null;
+            $style = is_array($style) ? self::sanitizeStyle($style) : null;
+
             $clean[] = [
                 'id' => $item['id'] ?? null, // keep ID if updating
                 'reading_key' => $readingKey,
@@ -118,19 +136,71 @@ class DashboardSanitizer
                 'period_custom' => $periodCustom,
                 'granularity' => $item['granularity'] ?? null,
                 'chart' => $chart,
-                'size' => $size,
-                'x' => max(0, min(11, (int) ($item['x'] ?? 0))),
-                'y' => max(0, min(500, (int) ($item['y'] ?? 0))),
-                'w' => $dimensions['w'],
-                'h' => $dimensions['h'],
+                'category' => $geometry['category'],
+                'fit' => $geometry['fit'],
+                'x' => $geometry['x'],
+                'y' => min(500, $geometry['y']),
+                'w' => $geometry['w'],
+                'h' => $geometry['h'],
                 'title_override' => isset($item['title_override']) ? substr((string)$item['title_override'], 0, 80) : null,
                 'args' => $args,
-                'style' => $item['style'] ?? null,
+                'style' => $style,
             ];
 
             $count++;
         }
 
-        return $clean;
+        // Mechanism M1: the accent is spent once per board, on the headline
+        // metric. Enforced on write so a board can never be stored in a state
+        // the validator would reject.
+        return LayoutLaw::enforceAccentBudget($clean);
+    }
+
+    /**
+     * Whitelist the card `style` bag.
+     *
+     * Everything here is a closed set or a boolean. Nothing free-form reaches a
+     * style attribute: `variant` and `emphasis` are matched against the values
+     * the card renderer knows, and an unrecognised value is dropped rather than
+     * passed through, because this JSON is user-supplied and ends up in the DOM.
+     *
+     * @param  array<string,mixed>  $style
+     * @return array<string,mixed>|null
+     */
+    private static function sanitizeStyle(array $style): ?array
+    {
+        $clean = [];
+
+        // The one accent-filled card on the board (M1).
+        if (isset($style['accent'])) {
+            $clean['accent'] = (bool) $style['accent'];
+        }
+
+        // Which look a chart wears. Free text would be a style-injection
+        // vector, so it is slug-shaped or nothing.
+        if (isset($style['variant']) && is_string($style['variant'])
+            && preg_match('/^[a-z][a-z0-9_-]{0,31}$/', $style['variant'])) {
+            $clean['variant'] = $style['variant'];
+        }
+
+        // Per-card period control (PREFS.periodPicker in the prototype).
+        if (isset($style['periodPicker'])) {
+            $clean['periodPicker'] = (bool) $style['periodPicker'];
+        }
+
+        // Extra series for comparison. Reading keys are validated against the
+        // registry by the caller; here they are only shape-checked and capped
+        // at three, which is the prototype's limit.
+        if (isset($style['extraKeys']) && is_array($style['extraKeys'])) {
+            $keys = array_values(array_filter(
+                $style['extraKeys'],
+                fn ($k) => is_string($k) && $k !== '' && ! str_starts_with($k, 'platform.'),
+            ));
+            if ($keys !== []) {
+                $clean['extraKeys'] = array_slice($keys, 0, 3);
+            }
+        }
+
+        return $clean === [] ? null : $clean;
     }
 }

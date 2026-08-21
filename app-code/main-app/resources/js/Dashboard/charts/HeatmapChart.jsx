@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { getSequential } from './palette';
+
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = ['9am', '12pm', '3pm', '6pm', '9pm'];
 
@@ -20,7 +22,7 @@ export default function HeatmapChart({ data }) {
                 
                 {/* Hours headers */}
                 {HOURS.map((h, i) => (
-                    <div key={i} className="text-[7px] text-slate-400 font-extrabold uppercase text-center col-span-1">{h}</div>
+                    <div key={i} className="text-[7px] text-ink-muted font-semibold uppercase text-center col-span-1">{h}</div>
                 ))}
                 
                 {/* Remaining hour blocks padding */}
@@ -31,19 +33,32 @@ export default function HeatmapChart({ data }) {
                     return (
                         <React.Fragment key={dayIndex}>
                             {/* Day Header */}
-                            <div className="text-[8px] font-extrabold text-slate-500 dark:text-slate-400 capitalize">{d}</div>
+                            <div className="text-[8px] font-semibold text-ink-muted capitalize">{d}</div>
                             
                             {/* Grid block intensities */}
                             {[10, 12, 14, 16, 18].map((hour, hourIndex) => {
                                 const key = `${d}-${hour}`;
                                 // Intensity opacity derived mock
                                 const count = salesMap[key] || (dayIndex * hourIndex + 3) % 15;
-                                const opacity = count > 12 ? 'bg-indigo-600' : count > 8 ? 'bg-indigo-500/70' : count > 4 ? 'bg-indigo-500/40' : 'bg-indigo-500/10 dark:bg-slate-800/40';
+                                /*
+                                 * Magnitude uses the sequential ramp — one hue,
+                                 * light to dark — never a categorical slot and
+                                 * never the brand at four alphas.
+                                 *
+                                 * Alpha was the wrong tool here regardless: a
+                                 * cell at 10% opacity sits at roughly 1.2:1
+                                 * against the card, and a mark that encodes a
+                                 * quantity has to clear 3:1. The ramp's own
+                                 * steps are built to.
+                                 */
+                                const t = count > 12 ? 1 : count > 8 ? 0.75 : count > 4 ? 0.5 : 0.25;
+                                const fill = count > 0 ? getSequential(t) : 'var(--vq-chart-track)';
 
                                 return (
                                     <div
                                         key={hourIndex}
-                                        className={`h-3 rounded-xs ${opacity} transition-all duration-300 hover:scale-110 cursor-pointer`}
+                                        className="h-3 rounded-xs cursor-pointer transition-colors duration-fast"
+                                        style={{ background: fill }}
                                         title={`${d} at ${hour}:00 — ${count} sales`}
                                     />
                                 );

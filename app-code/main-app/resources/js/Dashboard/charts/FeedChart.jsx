@@ -6,7 +6,7 @@ export default function FeedChart({ data }) {
 
     if (items.length === 0) {
         return (
-            <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-600 text-3xs font-bold uppercase tracking-wider select-none">
+            <div className="flex items-center justify-center h-full text-ink-muted dark:text-ink-secondary text-3xs font-bold uppercase tracking-wider select-none">
                 No Activity Feed
             </div>
         );
@@ -18,20 +18,20 @@ export default function FeedChart({ data }) {
                 {items.slice(0, 3).map((item, i) => (
                     <div 
                         key={item.id || i}
-                        className="flex items-center justify-between gap-3 p-1.5 rounded-xl border border-slate-50 dark:border-slate-800/40 bg-slate-50/20 dark:bg-slate-900/10 select-none text-[9px] font-bold"
+                        className="flex items-center justify-between gap-3 p-1.5 rounded-xl border border-border dark:border-border bg-sunken dark:bg-sunken select-none text-[9px] font-bold"
                     >
                         <div className="flex items-center gap-2 min-w-0">
-                            <div className="p-1 rounded-lg bg-indigo-500/10 text-indigo-500 shrink-0">
+                            <div className="p-1 rounded-lg bg-brand-500/10 text-brand-500 shrink-0">
                                 <CreditCard size={10} />
                             </div>
                             <div className="min-w-0">
-                                <div className="text-slate-800 dark:text-slate-300 truncate max-w-[120px]">{item.title}</div>
-                                <div className="text-slate-400 dark:text-slate-500 text-[8px] font-semibold">{item.subtitle}</div>
+                                <div className="text-ink truncate max-w-[120px]">{item.title}</div>
+                                <div className="text-ink-muted dark:text-ink-muted text-[8px] font-semibold">{item.subtitle}</div>
                             </div>
                         </div>
                         <div className="text-right shrink-0">
-                            <div className="text-indigo-600 dark:text-indigo-400">{item.value}</div>
-                            <div className="text-[7px] text-slate-400 font-semibold">{item.at}</div>
+                            <div className="text-brand-600 dark:text-brand-400">{item.value}</div>
+                            <div className="text-[7px] text-ink-muted font-semibold">{item.at}</div>
                         </div>
                     </div>
                 ))}

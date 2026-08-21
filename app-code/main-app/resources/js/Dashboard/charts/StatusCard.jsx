@@ -7,7 +7,7 @@ export default function StatusCard({ data, definition }) {
     const severity = data?.severity || 'neutral';
 
     let ColorIcon = AlertCircle;
-    let pillColor = 'text-slate-600 bg-slate-50 border-slate-100 dark:text-slate-400 dark:bg-slate-800/40 dark:border-slate-800';
+    let pillColor = 'text-ink-secondary bg-sunken border-border  dark:bg-sunken dark:border-border';
 
     if (severity === 'ok') {
         ColorIcon = CheckCircle2;
@@ -22,17 +22,17 @@ export default function StatusCard({ data, definition }) {
 
     return (
         <div className="flex flex-col justify-between h-full w-full relative">
-            <div className="flex items-center gap-2 border px-3 py-2 rounded-xl w-fit font-extrabold text-sm tracking-tight transition-transform duration-300 group-hover:scale-105 select-none shrink-0 mb-2 shadow-sm capitalize z-10 class-pill-state">
+            <div className="flex items-center gap-2 border px-3 py-2 rounded-xl w-fit font-semibold text-sm tracking-tight transition-transform duration-normal select-none shrink-0 mb-2 shadow-sm capitalize z-10 class-pill-state">
                 <ColorIcon size={16} className="shrink-0" />
                 <span className={pillColor.split(' ')[0]}>{label}</span>
             </div>
 
             <div className="flex flex-col gap-1.5 grow justify-center shrink-0 z-10 mt-1 select-none">
-                <div className="flex items-center gap-2 text-3xs font-semibold text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2 text-3xs font-semibold text-ink-muted">
                     <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
                     <span>General Ledger Structure Ok</span>
                 </div>
-                <div className="flex items-center gap-2 text-3xs font-semibold text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2 text-3xs font-semibold text-ink-muted">
                     <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
                     <span>Debits Match Credits</span>
                 </div>

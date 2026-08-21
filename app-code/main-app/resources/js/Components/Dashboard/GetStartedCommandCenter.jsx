@@ -23,7 +23,7 @@ export default function GetStartedCommandCenter({ storeSlug, initialCompleted = 
             title: 'Add your first product or service',
             desc: 'Set up items, categories & pricing',
             icon: Package,
-            link: route('store.products.index', { store_slug: storeSlug }),
+            link: route('store.inventory.index', { store_slug: storeSlug }),
             color: 'indigo',
         },
         {

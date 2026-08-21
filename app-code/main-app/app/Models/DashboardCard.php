@@ -19,6 +19,11 @@ class DashboardCard extends Model
         'period_custom',
         'granularity',
         'chart',
+        // Layout Law v2.0 geometry. `size` is deprecated and no longer written
+        // — see the 2026_08_21 migration — but stays fillable so a rollback
+        // does not fail on mass-assignment.
+        'category',
+        'fit',
         'size',
         'x',
         'y',

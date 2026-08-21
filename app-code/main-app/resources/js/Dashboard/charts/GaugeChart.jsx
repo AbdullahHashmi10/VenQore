@@ -54,13 +54,16 @@ export default function GaugeChart({ data, definition, settings }) {
                         strokeDasharray="62.8" // Approximate length of the 180 deg arc with r=20
                         // 62.8 is PI * r.
                         strokeDashoffset={62.8 - (percentage / 100) * 62.8}
-                        className="transition-all duration-1000 ease-out"
+                        /* 520ms, the longest legal duration. A gauge sweeping for a
+                               full second reads as the number being computed
+                               rather than displayed — and it is already known. */
+                        className="transition-all duration-slower ease-standard"
                     />
                 </svg>
 
                 {/* Numeric value inside gauge */}
                 <div className="absolute inset-x-0 bottom-1 flex flex-col items-center justify-end">
-                    <span className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none">
+                    <span className="text-xl font-semibold text-ink tracking-tight leading-none">
                         {displayValue}
                     </span>
                 </div>

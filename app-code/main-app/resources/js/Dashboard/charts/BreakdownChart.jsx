@@ -7,7 +7,7 @@ export default function BreakdownChart({ data, definition, chartType = 'ring', s
     
     if (rawSlices.length === 0) {
         return (
-            <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-600 text-3xs font-bold uppercase tracking-wider select-none">
+            <div className="flex items-center justify-center h-full text-ink-muted dark:text-ink-secondary text-3xs font-bold uppercase tracking-wider select-none">
                 No Breakdown Data
             </div>
         );
@@ -78,7 +78,7 @@ export default function BreakdownChart({ data, definition, chartType = 'ring', s
                             key={i}
                             d={p.path}
                             fill={p.color}
-                            className="transition-all duration-300 hover:scale-105 origin-center cursor-pointer"
+                            className="transition-all duration-normal origin-center cursor-pointer"
                         />
                     ))}
 
@@ -88,7 +88,11 @@ export default function BreakdownChart({ data, definition, chartType = 'ring', s
                             cx={center}
                             cy={center}
                             r={radius * 0.65}
-                            fill={settings?.dark_mode ? '#0f172a' : '#ffffff'}
+                            /* The card surface, so a pie label punches
+                               through its own slice. Asking the token layer
+                               deletes the dark_mode branch entirely:
+                               --vq-surface already flips with the mode. */
+                            fill="var(--vq-surface)"
                             className="dark:fill-slate-900"
                         />
                     )}
@@ -96,10 +100,10 @@ export default function BreakdownChart({ data, definition, chartType = 'ring', s
 
                 {isRing && total > 0 && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-                        <span className="text-[10px] font-black text-slate-700 dark:text-slate-300">
+                        <span className="text-[10px] font-semibold text-ink-secondary">
                             {formatValue(total, definition?.unit, 0, settings)}
                         </span>
-                        <span className="text-[7px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                        <span className="text-[7px] text-ink-muted font-bold uppercase tracking-wider mt-0.5">
                             Total
                         </span>
                     </div>
@@ -112,9 +116,9 @@ export default function BreakdownChart({ data, definition, chartType = 'ring', s
                     <div key={i} className="flex items-center justify-between gap-2 text-[9px] font-bold">
                         <div className="flex items-center gap-1.5 min-w-0">
                             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-                            <span className="text-slate-600 dark:text-slate-400 truncate max-w-[70px]">{p.name}</span>
+                            <span className="text-ink-secondary truncate max-w-[70px]">{p.name}</span>
                         </div>
-                        <span className="text-slate-400 shrink-0 font-medium">{p.pct?.toFixed(0)}%</span>
+                        <span className="text-ink-muted shrink-0 font-medium">{p.pct?.toFixed(0)}%</span>
                     </div>
                 ))}
             </div>

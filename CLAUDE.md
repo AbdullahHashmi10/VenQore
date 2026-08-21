@@ -7,11 +7,32 @@ This is the authoritative context file for AI agents working in this codebase. R
 | File | What it is |
 |---|---|
 | **`PHASE_0_STATUS.md`** | **Start here.** What is done, what is next, and the rules for working in this repo right now |
-| `DESIGN-RULES.md` | Authoritative design and styling rules (v2.0) — colors, radii, hover effects, type scale |
+| **`V6_ROLLOUT_AUDIT_AND_PLAN.md`** | **The design rollout. Audit, architecture and 9 phases. Read before touching any styling** |
+| `DESIGN-RULES.md` | Authoritative design and styling rules (**v3.0, V6-aligned**) — colors, radii, hover effects, type scale, z-index, CI greps |
+| `VENQORE_LAYOUT_LAW.md` | Geometry law v2.0 — grid, gutters, row track, card categories C1–C6. **Outranks DESIGN-RULES on any geometry number** |
 | `VENQORE_TECHNICAL_BUILD_PLAN_V4.md` | The authoritative technical plan — phases, tasks, acceptance criteria |
 | `VENQORE_PRICING_AND_STRATEGY.md` | Pricing, plan limits, AI quotas and the reasoning behind them |
 
 **Do not invent phases, do not replace the plan file, and do not mark a task complete unless its acceptance criteria in the plan actually pass.** If the plan is unclear or looks wrong, say so — do not substitute your own.
+
+### ⛔ Design precedence — settled 21 Aug 2026
+
+Three documents govern the look of this product. When they disagree:
+
+1. **`VENQORE_LAYOUT_LAW.md` v2.0** — geometry (grid, gutter 24px, row track 64px, card fits, shell regions).
+2. **V6 design system** — `extras/Design System/VenQore Design System/tokens/*.css` — every *value* (colour, type, radius, elevation, motion, density). **286 tokens. This is the only place a value may be typed.**
+3. **`DESIGN-RULES.md` v3.0** — structure (z-index ladder, hover contract, component contracts, chart rules, CI enforcement).
+
+Rank 3 never overrides rank 1 or 2 on a value.
+
+**Superseded — do not read, do not follow:**
+`resources/css/venqore-tokens.css` · `venqore.tailwind.js` · `DESIGN-RULES.v2.0.superseded.md` · `VENQORE_CARD_BUILDER_BUILD_SPEC.md` §7.2.
+
+> The V6 token folder's own comments call it "v5". **"V6" and "v5" name the same token set** — the one with `--vq-r-lg: 20px`, Plus Jakarta Sans and `--vq-dur-1: 120ms`. The values are the identity, not the label.
+
+**Known live defect:** Tailwind resolves `rounded-lg` through `--vq-radius-lg`, not `--vq-r-lg`. Those tokens have never been connected, so `rounded-lg` currently renders at **8px** instead of V6's 20px. Fixing that one link re-skins all 312 pages. See `V6_ROLLOUT_AUDIT_AND_PLAN.md` Phase 0.
+
+**Before deleting any page:** check `routes/web.php`. Inertia resolves pages by string name, so "zero imports" does not mean dead.
 
 ## Deliverable Format Preference
 

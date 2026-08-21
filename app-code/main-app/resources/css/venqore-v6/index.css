@@ -1,0 +1,70 @@
+/**
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║  VenQore V6 — the token layer                                             ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
+ *
+ * `tokens/` is the V6 design system, copied verbatim from
+ * `extras/Design System/VenQore Design System/tokens/`. It is the single place
+ * a colour, size, radius, duration or spacing value may be typed.
+ *
+ * ── Two things read these tokens ────────────────────────────────────────────
+ *
+ *   1. Components, directly:  `var(--vq-r-lg)` → 20px.
+ *   2. Tailwind, indirectly:  `rounded-lg` → `var(--vq-radius-lg)`, a different
+ *      name emitted into `theme.generated.css` by the theme engine.
+ *
+ * Path 2 is generated FROM path 1 — `resources/js/theme/build/from-v6-tokens.js`
+ * parses these files into `resources/js/theme/themes/venqore-v6.js`, which
+ * `generate.js` then turns into CSS. So both paths carry the same numbers by
+ * construction rather than by anyone remembering to update two places.
+ *
+ * That is the bug this replaced: the token file said `--vq-r-lg: 20px` while
+ * the variable Tailwind actually read said `0.5rem`, so `rounded-lg` shipped at
+ * 8px on all 312 pages.
+ *
+ *     Edit a token  →  npm run theme:from-v6  →  npm run theme:build
+ *
+ * Both run automatically inside `npm run dev` and `npm run build`.
+ *
+ * ── Load order is not arbitrary ─────────────────────────────────────────────
+ *
+ * It is the order in the design system's own `_ds_manifest.json` →
+ * `globalCssPaths`. Raw ramps must land before the semantic layer that
+ * references them, and `theme.css` must land before `base.css` applies them to
+ * elements. Do not reorder.
+ *
+ * ── Three local corrections to the source ───────────────────────────────────
+ *
+ * `tokens/spacing.css` carried three values that contradict VENQORE_LAYOUT_LAW
+ * v2.0, which outranks the token files on geometry. All three are corrected in
+ * place and annotated:
+ *
+ *   --vq-gutter     20px → 24px   size(n) = n·64 + (n−1)·24 depends on it
+ *   --vq-topbar-h   68px → 64px   header_h == row
+ *   --vq-rail-w     248  → 264    and rail-w-min 76 → 72
+ *
+ * `--vq-row-unit` and `--vq-grid-cols` are additions: the Layout Law needs both
+ * and V6 stated neither.
+ *
+ * ── Fonts ───────────────────────────────────────────────────────────────────
+ *
+ * `tokens/fonts.css` pulls Bricolage Grotesque, Plus Jakarta Sans and Space
+ * Grotesk from the Google CDN, as V6 ships it. The POS is offline-capable, so
+ * a terminal with no network renders in the `system-ui` fallback rather than
+ * the brand faces. Self-hosting the three `.woff2` files under
+ * `resources/fonts/` and replacing that one `@import` is the fix, and is the
+ * one open decision left in Phase 0.
+ */
+
+@import './tokens/fonts.css';
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+@import './tokens/radius.css';
+@import './tokens/elevation.css';
+@import './tokens/motion.css';
+@import './tokens/theme.css';
+@import './tokens/base.css';
+
+/* Deprecated v2.0 names, aliased onto V6. Shrinks to nothing — see the file. */
+@import './compat.css';

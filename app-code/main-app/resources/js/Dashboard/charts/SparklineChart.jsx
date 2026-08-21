@@ -33,7 +33,7 @@ export default function SparklineChart({ data, definition, settings }) {
     return (
         <div className="flex flex-col justify-between h-full w-full relative">
             <div className="flex items-baseline justify-between shrink-0 mb-1 z-10">
-                <div className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight transition-all duration-300 group-hover:scale-[1.02] origin-left">
+                <div className="text-3xl font-semibold text-ink tracking-tight transition-all duration-normal origin-left">
                     {displayValue}
                 </div>
             </div>
@@ -61,7 +61,7 @@ export default function SparklineChart({ data, definition, settings }) {
                         />
                     </svg>
                 ) : (
-                    <div className="flex items-center justify-center h-full text-slate-300 dark:text-slate-700 text-3xs uppercase font-bold tracking-wider">
+                    <div className="flex items-center justify-center h-full text-ink-secondary dark:text-ink-secondary text-3xs uppercase font-bold tracking-wider">
                         No Trend Data
                     </div>
                 )}

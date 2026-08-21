@@ -17,7 +17,7 @@ export default function SeriesChart({ data, definition, chartType = 'line', sett
     const allPoints = seriesList.flatMap(s => s.points || []);
     if (allPoints.length === 0) {
         return (
-            <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-600 text-3xs font-bold uppercase tracking-wider select-none">
+            <div className="flex items-center justify-center h-full text-ink-muted dark:text-ink-secondary text-3xs font-bold uppercase tracking-wider select-none">
                 No Series Data
             </div>
         );
@@ -160,7 +160,7 @@ export default function SeriesChart({ data, definition, chartType = 'line', sett
                                             height={Math.max(1, barHeight)}
                                             fill={isProfitLoss ? (c.raw.y < 0 ? PALETTE.semantic.danger : PALETTE.semantic.success) : color}
                                             rx="1.5"
-                                            className="transition-all duration-300 hover:opacity-80 cursor-pointer"
+                                            className="transition-all duration-normal hover:opacity-80 cursor-pointer"
                                             onMouseEnter={() => setActivePoint({ series: series.name, ...c.raw })}
                                             onMouseLeave={() => setActivePoint(null)}
                                         />
@@ -177,7 +177,7 @@ export default function SeriesChart({ data, definition, chartType = 'line', sett
                                         fill={color}
                                         stroke="white"
                                         strokeWidth="1"
-                                        className="transition-transform duration-200 hover:scale-150 cursor-pointer"
+                                        className="transition-transform duration-normal cursor-pointer"
                                         onMouseEnter={() => setActivePoint({ series: series.name, ...c.raw })}
                                         onMouseLeave={() => setActivePoint(null)}
                                     />
@@ -197,11 +197,11 @@ export default function SeriesChart({ data, definition, chartType = 'line', sett
             </div>
 
             {/* Tooltip detail block */}
-            <div className="h-6 shrink-0 flex items-center justify-between border-t border-slate-50 dark:border-slate-800/40 pt-1 text-3xs font-bold text-slate-400 dark:text-slate-500 uppercase select-none">
+            <div className="h-6 shrink-0 flex items-center justify-between border-t border-border dark:border-border pt-1 text-3xs font-bold text-ink-muted dark:text-ink-muted uppercase select-none">
                 {activePoint ? (
                     <div className="flex items-center gap-1.5 truncate max-w-full">
-                        <span className="text-slate-600 dark:text-slate-300">{activePoint.x}:</span>
-                        <span className="text-indigo-500 font-extrabold">{formatValue(activePoint.y, definition?.unit, definition?.precision, settings)}</span>
+                        <span className="text-ink-secondary">{activePoint.x}:</span>
+                        <span className="text-brand-500 font-semibold">{formatValue(activePoint.y, definition?.unit, definition?.precision, settings)}</span>
                     </div>
                 ) : (
                     <span>Hover nodes to inspect</span>

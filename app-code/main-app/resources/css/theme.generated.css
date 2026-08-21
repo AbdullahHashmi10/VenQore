@@ -3,9 +3,9 @@
  *  GENERATED FILE — DO NOT EDIT
  * ═══════════════════════════════════════════════════════════════════════════
  *
- *  Build-time default:  Midnight Nebula (midnight-nebula)
- *  Source:              resources/js/theme/themes/midnight-nebula.js
- *  Runtime-selectable:  midnight-nebula, daylight-calm
+ *  Build-time default:  VenQore V6 (venqore-v6)
+ *  Source:              resources/js/theme/themes/venqore-v6.js
+ *  Runtime-selectable:  venqore-v6
  *
  *  Regenerate with:  npm run theme:build
  *
@@ -21,7 +21,7 @@
 
 :root {
     /* Theme identity — readable from JS via getComputedStyle if ever needed */
-    --vq-theme-id: 'midnight-nebula';
+    --vq-theme-id: 'venqore-v6';
 
     /* ═══════════════ COLOUR RAMPS ═══════════════
        Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
@@ -30,542 +30,287 @@
        /opacity class in the codebase. */
 
     /* ramp: accent */
-    --vq-ramp-accent-50: 245 243 255;
-    --vq-ramp-accent-100: 237 233 254;
-    --vq-ramp-accent-200: 221 214 254;
-    --vq-ramp-accent-300: 196 181 253;
-    --vq-ramp-accent-400: 167 139 250;
-    --vq-ramp-accent-500: 139 92 246;
-    --vq-ramp-accent-600: 124 58 237;
-    --vq-ramp-accent-700: 109 40 217;
-    --vq-ramp-accent-800: 91 33 182;
-    --vq-ramp-accent-900: 76 29 149;
-    --vq-ramp-accent-950: 46 16 101;
-
-    /* ramp: amber */
-    --vq-ramp-amber-50: 255 251 235;
-    --vq-ramp-amber-100: 254 243 199;
-    --vq-ramp-amber-200: 253 230 138;
-    --vq-ramp-amber-300: 252 211 77;
-    --vq-ramp-amber-400: 251 191 36;
-    --vq-ramp-amber-500: 245 158 11;
-    --vq-ramp-amber-600: 217 119 6;
-    --vq-ramp-amber-700: 180 83 9;
-    --vq-ramp-amber-800: 146 64 14;
-    --vq-ramp-amber-900: 120 53 15;
-    --vq-ramp-amber-950: 69 26 3;
-
-    /* ramp: blue */
-    --vq-ramp-blue-50: 239 246 255;
-    --vq-ramp-blue-100: 219 234 254;
-    --vq-ramp-blue-200: 191 219 254;
-    --vq-ramp-blue-300: 147 197 253;
-    --vq-ramp-blue-400: 96 165 250;
-    --vq-ramp-blue-500: 59 130 246;
-    --vq-ramp-blue-600: 37 99 235;
-    --vq-ramp-blue-700: 29 78 216;
-    --vq-ramp-blue-800: 30 64 175;
-    --vq-ramp-blue-900: 30 58 138;
-    --vq-ramp-blue-950: 23 37 84;
+    --vq-ramp-accent-50: 230 251 245;
+    --vq-ramp-accent-100: 198 245 233;
+    --vq-ramp-accent-200: 147 235 214;
+    --vq-ramp-accent-300: 89 219 192;
+    --vq-ramp-accent-400: 35 196 166;
+    --vq-ramp-accent-500: 11 170 143;
+    --vq-ramp-accent-600: 8 137 117;
+    --vq-ramp-accent-700: 7 107 94;
+    --vq-ramp-accent-800: 10 80 73;
+    --vq-ramp-accent-900: 11 58 53;
+    --vq-ramp-accent-950: 6 36 33;
 
     /* ramp: brand */
-    --vq-ramp-brand-50: 238 242 255;
-    --vq-ramp-brand-100: 224 231 255;
-    --vq-ramp-brand-200: 199 210 254;
-    --vq-ramp-brand-300: 165 180 252;
-    --vq-ramp-brand-400: 129 140 248;
-    --vq-ramp-brand-500: 99 102 241;
-    --vq-ramp-brand-600: 79 70 229;
-    --vq-ramp-brand-700: 67 56 202;
-    --vq-ramp-brand-800: 55 48 163;
-    --vq-ramp-brand-900: 49 46 129;
-    --vq-ramp-brand-950: 30 27 75;
+    --vq-ramp-brand-50: 230 251 245;
+    --vq-ramp-brand-100: 198 245 233;
+    --vq-ramp-brand-200: 147 235 214;
+    --vq-ramp-brand-300: 89 219 192;
+    --vq-ramp-brand-400: 35 196 166;
+    --vq-ramp-brand-500: 11 170 143;
+    --vq-ramp-brand-600: 8 137 117;
+    --vq-ramp-brand-700: 7 107 94;
+    --vq-ramp-brand-800: 10 80 73;
+    --vq-ramp-brand-900: 11 58 53;
+    --vq-ramp-brand-950: 6 36 33;
 
-    /* ramp: cyan */
-    --vq-ramp-cyan-50: 236 254 255;
-    --vq-ramp-cyan-100: 207 250 254;
-    --vq-ramp-cyan-200: 165 243 252;
-    --vq-ramp-cyan-300: 103 232 249;
-    --vq-ramp-cyan-400: 34 211 238;
-    --vq-ramp-cyan-500: 6 182 212;
-    --vq-ramp-cyan-600: 8 145 178;
-    --vq-ramp-cyan-700: 14 116 144;
-    --vq-ramp-cyan-800: 21 94 117;
-    --vq-ramp-cyan-900: 22 78 99;
-    --vq-ramp-cyan-950: 8 51 68;
+    /* ramp: butter */
+    --vq-ramp-butter-50: 251 249 244;
+    --vq-ramp-butter-100: 255 243 214;
+    --vq-ramp-butter-200: 243 227 196;
+    --vq-ramp-butter-300: 255 221 142;
+    --vq-ramp-butter-400: 255 205 91;
+    --vq-ramp-butter-500: 245 179 46;
+    --vq-ramp-butter-600: 234 160 11;
+    --vq-ramp-butter-700: 166 116 10;
+    --vq-ramp-butter-800: 148 104 15;
+    --vq-ramp-butter-900: 112 80 15;
+    --vq-ramp-butter-950: 65 47 11;
+
+    /* ramp: coral */
+    --vq-ramp-coral-50: 251 245 244;
+    --vq-ramp-coral-100: 255 232 225;
+    --vq-ramp-coral-200: 242 206 197;
+    --vq-ramp-coral-300: 255 174 150;
+    --vq-ramp-coral-400: 255 138 107;
+    --vq-ramp-coral-500: 242 106 71;
+    --vq-ramp-coral-600: 229 60 16;
+    --vq-ramp-coral-700: 185 69 38;
+    --vq-ramp-coral-800: 145 44 18;
+    --vq-ramp-coral-900: 110 36 17;
+    --vq-ramp-coral-950: 64 23 12;
 
     /* ramp: danger */
-    --vq-ramp-danger-50: 254 242 242;
-    --vq-ramp-danger-100: 254 226 226;
-    --vq-ramp-danger-200: 254 202 202;
-    --vq-ramp-danger-300: 252 165 165;
-    --vq-ramp-danger-400: 248 113 113;
-    --vq-ramp-danger-500: 239 68 68;
-    --vq-ramp-danger-600: 220 38 38;
-    --vq-ramp-danger-700: 185 28 28;
-    --vq-ramp-danger-800: 153 27 27;
-    --vq-ramp-danger-900: 127 29 29;
-    --vq-ramp-danger-950: 69 10 10;
-
-    /* ramp: emerald */
-    --vq-ramp-emerald-50: 236 253 245;
-    --vq-ramp-emerald-100: 209 250 229;
-    --vq-ramp-emerald-200: 167 243 208;
-    --vq-ramp-emerald-300: 110 231 183;
-    --vq-ramp-emerald-400: 52 211 153;
-    --vq-ramp-emerald-500: 16 185 129;
-    --vq-ramp-emerald-600: 5 150 105;
-    --vq-ramp-emerald-700: 4 120 87;
-    --vq-ramp-emerald-800: 6 95 70;
-    --vq-ramp-emerald-900: 6 78 59;
-    --vq-ramp-emerald-950: 2 44 34;
-
-    /* ramp: fuchsia */
-    --vq-ramp-fuchsia-50: 253 244 255;
-    --vq-ramp-fuchsia-100: 250 232 255;
-    --vq-ramp-fuchsia-200: 245 208 254;
-    --vq-ramp-fuchsia-300: 240 171 252;
-    --vq-ramp-fuchsia-400: 232 121 249;
-    --vq-ramp-fuchsia-500: 217 70 239;
-    --vq-ramp-fuchsia-600: 192 38 211;
-    --vq-ramp-fuchsia-700: 162 28 175;
-    --vq-ramp-fuchsia-800: 134 25 143;
-    --vq-ramp-fuchsia-900: 112 26 117;
-    --vq-ramp-fuchsia-950: 74 4 78;
-
-    /* ramp: gray */
-    --vq-ramp-gray-50: 249 250 251;
-    --vq-ramp-gray-100: 243 244 246;
-    --vq-ramp-gray-200: 229 231 235;
-    --vq-ramp-gray-300: 209 213 219;
-    --vq-ramp-gray-400: 156 163 175;
-    --vq-ramp-gray-500: 107 114 128;
-    --vq-ramp-gray-600: 75 85 99;
-    --vq-ramp-gray-700: 55 65 81;
-    --vq-ramp-gray-800: 31 41 55;
-    --vq-ramp-gray-900: 17 24 39;
-    --vq-ramp-gray-950: 3 7 18;
-
-    /* ramp: green */
-    --vq-ramp-green-50: 240 253 244;
-    --vq-ramp-green-100: 220 252 231;
-    --vq-ramp-green-200: 187 247 208;
-    --vq-ramp-green-300: 134 239 172;
-    --vq-ramp-green-400: 74 222 128;
-    --vq-ramp-green-500: 34 197 94;
-    --vq-ramp-green-600: 22 163 74;
-    --vq-ramp-green-700: 21 128 61;
-    --vq-ramp-green-800: 22 101 52;
-    --vq-ramp-green-900: 20 83 45;
-    --vq-ramp-green-950: 5 46 22;
+    --vq-ramp-danger-50: 250 245 245;
+    --vq-ramp-danger-100: 253 234 231;
+    --vq-ramp-danger-200: 243 183 175;
+    --vq-ramp-danger-300: 222 174 170;
+    --vq-ramp-danger-400: 212 131 124;
+    --vq-ramp-danger-500: 204 91 82;
+    --vq-ramp-danger-600: 196 68 58;
+    --vq-ramp-danger-700: 155 57 49;
+    --vq-ramp-danger-800: 122 47 42;
+    --vq-ramp-danger-900: 93 39 35;
+    --vq-ramp-danger-950: 54 24 22;
 
     /* ramp: highlight */
-    --vq-ramp-highlight-50: 255 241 242;
-    --vq-ramp-highlight-100: 255 228 230;
-    --vq-ramp-highlight-200: 254 205 211;
-    --vq-ramp-highlight-300: 253 164 175;
-    --vq-ramp-highlight-400: 251 113 133;
-    --vq-ramp-highlight-500: 244 63 94;
-    --vq-ramp-highlight-600: 225 29 72;
-    --vq-ramp-highlight-700: 190 18 60;
-    --vq-ramp-highlight-800: 159 18 57;
-    --vq-ramp-highlight-900: 136 19 55;
-    --vq-ramp-highlight-950: 76 5 25;
-
-    /* ramp: indigo */
-    --vq-ramp-indigo-50: 238 242 255;
-    --vq-ramp-indigo-100: 224 231 255;
-    --vq-ramp-indigo-200: 199 210 254;
-    --vq-ramp-indigo-300: 165 180 252;
-    --vq-ramp-indigo-400: 129 140 248;
-    --vq-ramp-indigo-500: 99 102 241;
-    --vq-ramp-indigo-600: 79 70 229;
-    --vq-ramp-indigo-700: 67 56 202;
-    --vq-ramp-indigo-800: 55 48 163;
-    --vq-ramp-indigo-900: 49 46 129;
-    --vq-ramp-indigo-950: 30 27 75;
+    --vq-ramp-highlight-50: 251 245 244;
+    --vq-ramp-highlight-100: 255 232 225;
+    --vq-ramp-highlight-200: 242 206 197;
+    --vq-ramp-highlight-300: 255 174 150;
+    --vq-ramp-highlight-400: 255 138 107;
+    --vq-ramp-highlight-500: 242 106 71;
+    --vq-ramp-highlight-600: 229 60 16;
+    --vq-ramp-highlight-700: 185 69 38;
+    --vq-ramp-highlight-800: 145 44 18;
+    --vq-ramp-highlight-900: 110 36 17;
+    --vq-ramp-highlight-950: 64 23 12;
 
     /* ramp: info */
-    --vq-ramp-info-50: 239 246 255;
-    --vq-ramp-info-100: 219 234 254;
-    --vq-ramp-info-200: 191 219 254;
-    --vq-ramp-info-300: 147 197 253;
-    --vq-ramp-info-400: 96 165 250;
-    --vq-ramp-info-500: 59 130 246;
-    --vq-ramp-info-600: 37 99 235;
-    --vq-ramp-info-700: 29 78 216;
-    --vq-ramp-info-800: 30 64 175;
-    --vq-ramp-info-900: 30 58 138;
-    --vq-ramp-info-950: 23 37 84;
+    --vq-ramp-info-50: 244 248 250;
+    --vq-ramp-info-100: 221 242 251;
+    --vq-ramp-info-200: 168 220 240;
+    --vq-ramp-info-300: 163 209 230;
+    --vq-ramp-info-400: 112 190 224;
+    --vq-ramp-info-500: 65 173 221;
+    --vq-ramp-info-600: 27 112 150;
+    --vq-ramp-info-700: 34 128 170;
+    --vq-ramp-info-800: 31 101 133;
+    --vq-ramp-info-900: 27 78 101;
+    --vq-ramp-info-950: 18 46 59;
+
+    /* ramp: ink */
+    --vq-ramp-ink-50: 241 245 242;
+    --vq-ramp-ink-100: 230 236 232;
+    --vq-ramp-ink-200: 211 220 215;
+    --vq-ramp-ink-300: 180 192 186;
+    --vq-ramp-ink-400: 127 142 135;
+    --vq-ramp-ink-500: 98 113 105;
+    --vq-ramp-ink-600: 83 97 89;
+    --vq-ramp-ink-700: 60 72 65;
+    --vq-ramp-ink-800: 41 51 45;
+    --vq-ramp-ink-900: 23 32 27;
+    --vq-ramp-ink-950: 13 20 18;
 
     /* ramp: lime */
-    --vq-ramp-lime-50: 247 254 231;
-    --vq-ramp-lime-100: 236 252 203;
-    --vq-ramp-lime-200: 217 249 157;
-    --vq-ramp-lime-300: 190 242 100;
-    --vq-ramp-lime-400: 163 230 53;
-    --vq-ramp-lime-500: 132 204 22;
-    --vq-ramp-lime-600: 101 163 13;
-    --vq-ramp-lime-700: 77 124 15;
-    --vq-ramp-lime-800: 63 98 18;
-    --vq-ramp-lime-900: 54 83 20;
-    --vq-ramp-lime-950: 26 46 5;
+    --vq-ramp-lime-50: 248 250 245;
+    --vq-ramp-lime-100: 238 249 215;
+    --vq-ramp-lime-200: 223 236 203;
+    --vq-ramp-lime-300: 200 238 126;
+    --vq-ramp-lime-400: 169 227 75;
+    --vq-ramp-lime-500: 140 203 46;
+    --vq-ramp-lime-600: 138 200 45;
+    --vq-ramp-lime-700: 94 140 21;
+    --vq-ramp-lime-800: 91 128 35;
+    --vq-ramp-lime-900: 70 98 30;
+    --vq-ramp-lime-950: 42 57 19;
 
     /* ramp: neutral */
-    --vq-ramp-neutral-50: 248 250 252;
-    --vq-ramp-neutral-100: 241 245 249;
-    --vq-ramp-neutral-200: 226 232 240;
-    --vq-ramp-neutral-300: 203 213 225;
-    --vq-ramp-neutral-400: 148 163 184;
-    --vq-ramp-neutral-500: 100 116 139;
-    --vq-ramp-neutral-600: 71 85 105;
-    --vq-ramp-neutral-700: 51 65 85;
-    --vq-ramp-neutral-800: 30 41 59;
-    --vq-ramp-neutral-900: 15 23 42;
-    --vq-ramp-neutral-950: 2 6 23;
+    --vq-ramp-neutral-50: 241 245 242;
+    --vq-ramp-neutral-100: 230 236 232;
+    --vq-ramp-neutral-200: 211 220 215;
+    --vq-ramp-neutral-300: 180 192 186;
+    --vq-ramp-neutral-400: 127 142 135;
+    --vq-ramp-neutral-500: 98 113 105;
+    --vq-ramp-neutral-600: 83 97 89;
+    --vq-ramp-neutral-700: 60 72 65;
+    --vq-ramp-neutral-800: 41 51 45;
+    --vq-ramp-neutral-900: 23 32 27;
+    --vq-ramp-neutral-950: 13 20 18;
 
-    /* ramp: orange */
-    --vq-ramp-orange-50: 255 247 237;
-    --vq-ramp-orange-100: 255 237 213;
-    --vq-ramp-orange-200: 254 215 170;
-    --vq-ramp-orange-300: 253 186 116;
-    --vq-ramp-orange-400: 251 146 60;
-    --vq-ramp-orange-500: 249 115 22;
-    --vq-ramp-orange-600: 234 88 12;
-    --vq-ramp-orange-700: 194 65 12;
-    --vq-ramp-orange-800: 154 52 18;
-    --vq-ramp-orange-900: 124 45 18;
-    --vq-ramp-orange-950: 67 20 7;
-
-    /* ramp: pink */
-    --vq-ramp-pink-50: 253 242 248;
-    --vq-ramp-pink-100: 252 231 243;
-    --vq-ramp-pink-200: 251 207 232;
-    --vq-ramp-pink-300: 249 168 212;
-    --vq-ramp-pink-400: 244 114 182;
-    --vq-ramp-pink-500: 236 72 153;
-    --vq-ramp-pink-600: 219 39 119;
-    --vq-ramp-pink-700: 190 24 93;
-    --vq-ramp-pink-800: 157 23 77;
-    --vq-ramp-pink-900: 131 24 67;
-    --vq-ramp-pink-950: 80 7 36;
-
-    /* ramp: purple */
-    --vq-ramp-purple-50: 250 245 255;
-    --vq-ramp-purple-100: 243 232 255;
-    --vq-ramp-purple-200: 233 213 255;
-    --vq-ramp-purple-300: 216 180 254;
-    --vq-ramp-purple-400: 192 132 252;
-    --vq-ramp-purple-500: 168 85 247;
-    --vq-ramp-purple-600: 147 51 234;
-    --vq-ramp-purple-700: 126 34 206;
-    --vq-ramp-purple-800: 107 33 168;
-    --vq-ramp-purple-900: 88 28 135;
-    --vq-ramp-purple-950: 59 7 100;
-
-    /* ramp: red */
-    --vq-ramp-red-50: 254 242 242;
-    --vq-ramp-red-100: 254 226 226;
-    --vq-ramp-red-200: 254 202 202;
-    --vq-ramp-red-300: 252 165 165;
-    --vq-ramp-red-400: 248 113 113;
-    --vq-ramp-red-500: 239 68 68;
-    --vq-ramp-red-600: 220 38 38;
-    --vq-ramp-red-700: 185 28 28;
-    --vq-ramp-red-800: 153 27 27;
-    --vq-ramp-red-900: 127 29 29;
-    --vq-ramp-red-950: 69 10 10;
-
-    /* ramp: rose */
-    --vq-ramp-rose-50: 255 241 242;
-    --vq-ramp-rose-100: 255 228 230;
-    --vq-ramp-rose-200: 254 205 211;
-    --vq-ramp-rose-300: 253 164 175;
-    --vq-ramp-rose-400: 251 113 133;
-    --vq-ramp-rose-500: 244 63 94;
-    --vq-ramp-rose-600: 225 29 72;
-    --vq-ramp-rose-700: 190 18 60;
-    --vq-ramp-rose-800: 159 18 57;
-    --vq-ramp-rose-900: 136 19 55;
-    --vq-ramp-rose-950: 76 5 25;
+    /* ramp: plum */
+    --vq-ramp-plum-50: 249 246 248;
+    --vq-ramp-plum-100: 243 237 242;
+    --vq-ramp-plum-200: 228 211 226;
+    --vq-ramp-plum-300: 224 180 224;
+    --vq-ramp-plum-400: 201 139 201;
+    --vq-ramp-plum-500: 178 102 168;
+    --vq-ramp-plum-600: 163 82 152;
+    --vq-ramp-plum-700: 126 62 118;
+    --vq-ramp-plum-800: 106 57 99;
+    --vq-ramp-plum-900: 81 46 77;
+    --vq-ramp-plum-950: 48 28 46;
 
     /* ramp: sky */
-    --vq-ramp-sky-50: 240 249 255;
-    --vq-ramp-sky-100: 224 242 254;
-    --vq-ramp-sky-200: 186 230 253;
-    --vq-ramp-sky-300: 125 211 252;
-    --vq-ramp-sky-400: 56 189 248;
-    --vq-ramp-sky-500: 14 165 233;
-    --vq-ramp-sky-600: 2 132 199;
-    --vq-ramp-sky-700: 3 105 161;
-    --vq-ramp-sky-800: 7 89 133;
-    --vq-ramp-sky-900: 12 74 110;
-    --vq-ramp-sky-950: 8 47 73;
-
-    /* ramp: slate */
-    --vq-ramp-slate-50: 248 250 252;
-    --vq-ramp-slate-100: 241 245 249;
-    --vq-ramp-slate-200: 226 232 240;
-    --vq-ramp-slate-300: 203 213 225;
-    --vq-ramp-slate-400: 148 163 184;
-    --vq-ramp-slate-500: 100 116 139;
-    --vq-ramp-slate-600: 71 85 105;
-    --vq-ramp-slate-700: 51 65 85;
-    --vq-ramp-slate-800: 30 41 59;
-    --vq-ramp-slate-900: 15 23 42;
-    --vq-ramp-slate-950: 2 6 23;
-
-    /* ramp: stone */
-    --vq-ramp-stone-50: 250 250 249;
-    --vq-ramp-stone-100: 245 245 244;
-    --vq-ramp-stone-200: 231 229 228;
-    --vq-ramp-stone-300: 214 211 209;
-    --vq-ramp-stone-400: 168 162 158;
-    --vq-ramp-stone-500: 120 113 108;
-    --vq-ramp-stone-600: 87 83 78;
-    --vq-ramp-stone-700: 68 64 60;
-    --vq-ramp-stone-800: 41 37 36;
-    --vq-ramp-stone-900: 28 25 23;
-    --vq-ramp-stone-950: 12 10 9;
+    --vq-ramp-sky-50: 245 249 250;
+    --vq-ramp-sky-100: 221 242 251;
+    --vq-ramp-sky-200: 202 227 236;
+    --vq-ramp-sky-300: 143 217 245;
+    --vq-ramp-sky-400: 85 196 236;
+    --vq-ramp-sky-500: 43 165 209;
+    --vq-ramp-sky-600: 42 160 203;
+    --vq-ramp-sky-700: 27 112 150;
+    --vq-ramp-sky-800: 33 104 130;
+    --vq-ramp-sky-900: 28 80 99;
+    --vq-ramp-sky-950: 19 47 58;
 
     /* ramp: success */
-    --vq-ramp-success-50: 236 253 245;
-    --vq-ramp-success-100: 209 250 229;
-    --vq-ramp-success-200: 167 243 208;
-    --vq-ramp-success-300: 110 231 183;
-    --vq-ramp-success-400: 52 211 153;
-    --vq-ramp-success-500: 16 185 129;
-    --vq-ramp-success-600: 5 150 105;
-    --vq-ramp-success-700: 4 120 87;
-    --vq-ramp-success-800: 6 95 70;
-    --vq-ramp-success-900: 6 78 59;
-    --vq-ramp-success-950: 2 44 34;
+    --vq-ramp-success-50: 244 251 248;
+    --vq-ramp-success-100: 228 246 236;
+    --vq-ramp-success-200: 169 224 196;
+    --vq-ramp-success-300: 160 233 207;
+    --vq-ramp-success-400: 107 230 186;
+    --vq-ramp-success-500: 57 228 167;
+    --vq-ramp-success-600: 18 133 92;
+    --vq-ramp-success-700: 27 177 123;
+    --vq-ramp-success-800: 26 138 98;
+    --vq-ramp-success-900: 23 105 75;
+    --vq-ramp-success-950: 16 61 45;
 
     /* ramp: teal */
-    --vq-ramp-teal-50: 240 253 250;
-    --vq-ramp-teal-100: 204 251 241;
-    --vq-ramp-teal-200: 153 246 228;
-    --vq-ramp-teal-300: 94 234 212;
-    --vq-ramp-teal-400: 45 212 191;
-    --vq-ramp-teal-500: 20 184 166;
-    --vq-ramp-teal-600: 13 148 136;
-    --vq-ramp-teal-700: 15 118 110;
-    --vq-ramp-teal-800: 17 94 89;
-    --vq-ramp-teal-900: 19 78 74;
-    --vq-ramp-teal-950: 4 47 46;
-
-    /* ramp: violet */
-    --vq-ramp-violet-50: 245 243 255;
-    --vq-ramp-violet-100: 237 233 254;
-    --vq-ramp-violet-200: 221 214 254;
-    --vq-ramp-violet-300: 196 181 253;
-    --vq-ramp-violet-400: 167 139 250;
-    --vq-ramp-violet-500: 139 92 246;
-    --vq-ramp-violet-600: 124 58 237;
-    --vq-ramp-violet-700: 109 40 217;
-    --vq-ramp-violet-800: 91 33 182;
-    --vq-ramp-violet-900: 76 29 149;
-    --vq-ramp-violet-950: 46 16 101;
+    --vq-ramp-teal-50: 230 251 245;
+    --vq-ramp-teal-100: 198 245 233;
+    --vq-ramp-teal-200: 147 235 214;
+    --vq-ramp-teal-300: 89 219 192;
+    --vq-ramp-teal-400: 35 196 166;
+    --vq-ramp-teal-500: 11 170 143;
+    --vq-ramp-teal-600: 8 137 117;
+    --vq-ramp-teal-700: 7 107 94;
+    --vq-ramp-teal-800: 10 80 73;
+    --vq-ramp-teal-900: 11 58 53;
+    --vq-ramp-teal-950: 6 36 33;
 
     /* ramp: void */
-    --vq-ramp-void-50: 232 232 239;
-    --vq-ramp-void-100: 201 201 216;
-    --vq-ramp-void-200: 154 154 181;
-    --vq-ramp-void-300: 107 107 144;
-    --vq-ramp-void-400: 67 67 106;
-    --vq-ramp-void-500: 42 42 72;
-    --vq-ramp-void-600: 30 41 59;
-    --vq-ramp-void-700: 26 29 46;
-    --vq-ramp-void-800: 15 18 29;
-    --vq-ramp-void-900: 5 3 15;
-    --vq-ramp-void-950: 2 0 16;
+    --vq-ramp-void-50: 246 248 248;
+    --vq-ramp-void-100: 237 242 241;
+    --vq-ramp-void-200: 213 226 222;
+    --vq-ramp-void-300: 184 208 202;
+    --vq-ramp-void-400: 148 189 177;
+    --vq-ramp-void-500: 114 171 155;
+    --vq-ramp-void-600: 91 153 136;
+    --vq-ramp-void-700: 77 127 113;
+    --vq-ramp-void-800: 63 100 90;
+    --vq-ramp-void-900: 13 20 18;
+    --vq-ramp-void-950: 6 10 9;
 
     /* ramp: warning */
-    --vq-ramp-warning-50: 255 251 235;
-    --vq-ramp-warning-100: 254 243 199;
-    --vq-ramp-warning-200: 253 230 138;
-    --vq-ramp-warning-300: 252 211 77;
-    --vq-ramp-warning-400: 251 191 36;
-    --vq-ramp-warning-500: 245 158 11;
-    --vq-ramp-warning-600: 217 119 6;
-    --vq-ramp-warning-700: 180 83 9;
-    --vq-ramp-warning-800: 146 64 14;
-    --vq-ramp-warning-900: 120 53 15;
-    --vq-ramp-warning-950: 69 26 3;
-
-    /* ramp: yellow */
-    --vq-ramp-yellow-50: 254 252 232;
-    --vq-ramp-yellow-100: 254 249 195;
-    --vq-ramp-yellow-200: 254 240 138;
-    --vq-ramp-yellow-300: 253 224 71;
-    --vq-ramp-yellow-400: 250 204 21;
-    --vq-ramp-yellow-500: 234 179 8;
-    --vq-ramp-yellow-600: 202 138 4;
-    --vq-ramp-yellow-700: 161 98 7;
-    --vq-ramp-yellow-800: 133 77 14;
-    --vq-ramp-yellow-900: 113 63 18;
-    --vq-ramp-yellow-950: 66 32 6;
-
-    /* ramp: zinc */
-    --vq-ramp-zinc-50: 250 250 250;
-    --vq-ramp-zinc-100: 244 244 245;
-    --vq-ramp-zinc-200: 228 228 231;
-    --vq-ramp-zinc-300: 212 212 216;
-    --vq-ramp-zinc-400: 161 161 170;
-    --vq-ramp-zinc-500: 113 113 122;
-    --vq-ramp-zinc-600: 82 82 91;
-    --vq-ramp-zinc-700: 63 63 70;
-    --vq-ramp-zinc-800: 39 39 42;
-    --vq-ramp-zinc-900: 24 24 27;
-    --vq-ramp-zinc-950: 9 9 11;
+    --vq-ramp-warning-50: 251 248 244;
+    --vq-ramp-warning-100: 255 243 214;
+    --vq-ramp-warning-200: 242 208 138;
+    --vq-ramp-warning-300: 239 206 154;
+    --vq-ramp-warning-400: 240 184 97;
+    --vq-ramp-warning-500: 242 164 43;
+    --vq-ramp-warning-600: 166 105 10;
+    --vq-ramp-warning-700: 189 121 15;
+    --vq-ramp-warning-800: 147 96 17;
+    --vq-ramp-warning-900: 111 74 16;
+    --vq-ramp-warning-950: 65 44 12;
 
     /* ═══════════════ PALETTE BINDINGS ═══════════════
        Tailwind colour families pointed at ramps. This is the layer that
        reskins the ~40,000 pre-existing colour classes without touching a
        single component. */
 
-    /* slate, neutral → slate */
-    --vq-slate-50: var(--vq-ramp-slate-50);
-    --vq-slate-100: var(--vq-ramp-slate-100);
-    --vq-slate-200: var(--vq-ramp-slate-200);
-    --vq-slate-300: var(--vq-ramp-slate-300);
-    --vq-slate-400: var(--vq-ramp-slate-400);
-    --vq-slate-500: var(--vq-ramp-slate-500);
-    --vq-slate-600: var(--vq-ramp-slate-600);
-    --vq-slate-700: var(--vq-ramp-slate-700);
-    --vq-slate-800: var(--vq-ramp-slate-800);
-    --vq-slate-900: var(--vq-ramp-slate-900);
-    --vq-slate-950: var(--vq-ramp-slate-950);
-    --vq-neutral-50: var(--vq-ramp-slate-50);
-    --vq-neutral-100: var(--vq-ramp-slate-100);
-    --vq-neutral-200: var(--vq-ramp-slate-200);
-    --vq-neutral-300: var(--vq-ramp-slate-300);
-    --vq-neutral-400: var(--vq-ramp-slate-400);
-    --vq-neutral-500: var(--vq-ramp-slate-500);
-    --vq-neutral-600: var(--vq-ramp-slate-600);
-    --vq-neutral-700: var(--vq-ramp-slate-700);
-    --vq-neutral-800: var(--vq-ramp-slate-800);
-    --vq-neutral-900: var(--vq-ramp-slate-900);
-    --vq-neutral-950: var(--vq-ramp-slate-950);
+    /* slate, gray, zinc, stone, neutral → ink */
+    --vq-slate-50: var(--vq-ramp-ink-50);
+    --vq-slate-100: var(--vq-ramp-ink-100);
+    --vq-slate-200: var(--vq-ramp-ink-200);
+    --vq-slate-300: var(--vq-ramp-ink-300);
+    --vq-slate-400: var(--vq-ramp-ink-400);
+    --vq-slate-500: var(--vq-ramp-ink-500);
+    --vq-slate-600: var(--vq-ramp-ink-600);
+    --vq-slate-700: var(--vq-ramp-ink-700);
+    --vq-slate-800: var(--vq-ramp-ink-800);
+    --vq-slate-900: var(--vq-ramp-ink-900);
+    --vq-slate-950: var(--vq-ramp-ink-950);
+    --vq-gray-50: var(--vq-ramp-ink-50);
+    --vq-gray-100: var(--vq-ramp-ink-100);
+    --vq-gray-200: var(--vq-ramp-ink-200);
+    --vq-gray-300: var(--vq-ramp-ink-300);
+    --vq-gray-400: var(--vq-ramp-ink-400);
+    --vq-gray-500: var(--vq-ramp-ink-500);
+    --vq-gray-600: var(--vq-ramp-ink-600);
+    --vq-gray-700: var(--vq-ramp-ink-700);
+    --vq-gray-800: var(--vq-ramp-ink-800);
+    --vq-gray-900: var(--vq-ramp-ink-900);
+    --vq-gray-950: var(--vq-ramp-ink-950);
+    --vq-zinc-50: var(--vq-ramp-ink-50);
+    --vq-zinc-100: var(--vq-ramp-ink-100);
+    --vq-zinc-200: var(--vq-ramp-ink-200);
+    --vq-zinc-300: var(--vq-ramp-ink-300);
+    --vq-zinc-400: var(--vq-ramp-ink-400);
+    --vq-zinc-500: var(--vq-ramp-ink-500);
+    --vq-zinc-600: var(--vq-ramp-ink-600);
+    --vq-zinc-700: var(--vq-ramp-ink-700);
+    --vq-zinc-800: var(--vq-ramp-ink-800);
+    --vq-zinc-900: var(--vq-ramp-ink-900);
+    --vq-zinc-950: var(--vq-ramp-ink-950);
+    --vq-stone-50: var(--vq-ramp-ink-50);
+    --vq-stone-100: var(--vq-ramp-ink-100);
+    --vq-stone-200: var(--vq-ramp-ink-200);
+    --vq-stone-300: var(--vq-ramp-ink-300);
+    --vq-stone-400: var(--vq-ramp-ink-400);
+    --vq-stone-500: var(--vq-ramp-ink-500);
+    --vq-stone-600: var(--vq-ramp-ink-600);
+    --vq-stone-700: var(--vq-ramp-ink-700);
+    --vq-stone-800: var(--vq-ramp-ink-800);
+    --vq-stone-900: var(--vq-ramp-ink-900);
+    --vq-stone-950: var(--vq-ramp-ink-950);
+    --vq-neutral-50: var(--vq-ramp-ink-50);
+    --vq-neutral-100: var(--vq-ramp-ink-100);
+    --vq-neutral-200: var(--vq-ramp-ink-200);
+    --vq-neutral-300: var(--vq-ramp-ink-300);
+    --vq-neutral-400: var(--vq-ramp-ink-400);
+    --vq-neutral-500: var(--vq-ramp-ink-500);
+    --vq-neutral-600: var(--vq-ramp-ink-600);
+    --vq-neutral-700: var(--vq-ramp-ink-700);
+    --vq-neutral-800: var(--vq-ramp-ink-800);
+    --vq-neutral-900: var(--vq-ramp-ink-900);
+    --vq-neutral-950: var(--vq-ramp-ink-950);
 
-    /* gray → gray */
-    --vq-gray-50: var(--vq-ramp-gray-50);
-    --vq-gray-100: var(--vq-ramp-gray-100);
-    --vq-gray-200: var(--vq-ramp-gray-200);
-    --vq-gray-300: var(--vq-ramp-gray-300);
-    --vq-gray-400: var(--vq-ramp-gray-400);
-    --vq-gray-500: var(--vq-ramp-gray-500);
-    --vq-gray-600: var(--vq-ramp-gray-600);
-    --vq-gray-700: var(--vq-ramp-gray-700);
-    --vq-gray-800: var(--vq-ramp-gray-800);
-    --vq-gray-900: var(--vq-ramp-gray-900);
-    --vq-gray-950: var(--vq-ramp-gray-950);
-
-    /* zinc → zinc */
-    --vq-zinc-50: var(--vq-ramp-zinc-50);
-    --vq-zinc-100: var(--vq-ramp-zinc-100);
-    --vq-zinc-200: var(--vq-ramp-zinc-200);
-    --vq-zinc-300: var(--vq-ramp-zinc-300);
-    --vq-zinc-400: var(--vq-ramp-zinc-400);
-    --vq-zinc-500: var(--vq-ramp-zinc-500);
-    --vq-zinc-600: var(--vq-ramp-zinc-600);
-    --vq-zinc-700: var(--vq-ramp-zinc-700);
-    --vq-zinc-800: var(--vq-ramp-zinc-800);
-    --vq-zinc-900: var(--vq-ramp-zinc-900);
-    --vq-zinc-950: var(--vq-ramp-zinc-950);
-
-    /* indigo → indigo */
-    --vq-indigo-50: var(--vq-ramp-indigo-50);
-    --vq-indigo-100: var(--vq-ramp-indigo-100);
-    --vq-indigo-200: var(--vq-ramp-indigo-200);
-    --vq-indigo-300: var(--vq-ramp-indigo-300);
-    --vq-indigo-400: var(--vq-ramp-indigo-400);
-    --vq-indigo-500: var(--vq-ramp-indigo-500);
-    --vq-indigo-600: var(--vq-ramp-indigo-600);
-    --vq-indigo-700: var(--vq-ramp-indigo-700);
-    --vq-indigo-800: var(--vq-ramp-indigo-800);
-    --vq-indigo-900: var(--vq-ramp-indigo-900);
-    --vq-indigo-950: var(--vq-ramp-indigo-950);
-
-    /* violet → violet */
-    --vq-violet-50: var(--vq-ramp-violet-50);
-    --vq-violet-100: var(--vq-ramp-violet-100);
-    --vq-violet-200: var(--vq-ramp-violet-200);
-    --vq-violet-300: var(--vq-ramp-violet-300);
-    --vq-violet-400: var(--vq-ramp-violet-400);
-    --vq-violet-500: var(--vq-ramp-violet-500);
-    --vq-violet-600: var(--vq-ramp-violet-600);
-    --vq-violet-700: var(--vq-ramp-violet-700);
-    --vq-violet-800: var(--vq-ramp-violet-800);
-    --vq-violet-900: var(--vq-ramp-violet-900);
-    --vq-violet-950: var(--vq-ramp-violet-950);
-
-    /* purple → purple */
-    --vq-purple-50: var(--vq-ramp-purple-50);
-    --vq-purple-100: var(--vq-ramp-purple-100);
-    --vq-purple-200: var(--vq-ramp-purple-200);
-    --vq-purple-300: var(--vq-ramp-purple-300);
-    --vq-purple-400: var(--vq-ramp-purple-400);
-    --vq-purple-500: var(--vq-ramp-purple-500);
-    --vq-purple-600: var(--vq-ramp-purple-600);
-    --vq-purple-700: var(--vq-ramp-purple-700);
-    --vq-purple-800: var(--vq-ramp-purple-800);
-    --vq-purple-900: var(--vq-ramp-purple-900);
-    --vq-purple-950: var(--vq-ramp-purple-950);
-
-    /* fuchsia → fuchsia */
-    --vq-fuchsia-50: var(--vq-ramp-fuchsia-50);
-    --vq-fuchsia-100: var(--vq-ramp-fuchsia-100);
-    --vq-fuchsia-200: var(--vq-ramp-fuchsia-200);
-    --vq-fuchsia-300: var(--vq-ramp-fuchsia-300);
-    --vq-fuchsia-400: var(--vq-ramp-fuchsia-400);
-    --vq-fuchsia-500: var(--vq-ramp-fuchsia-500);
-    --vq-fuchsia-600: var(--vq-ramp-fuchsia-600);
-    --vq-fuchsia-700: var(--vq-ramp-fuchsia-700);
-    --vq-fuchsia-800: var(--vq-ramp-fuchsia-800);
-    --vq-fuchsia-900: var(--vq-ramp-fuchsia-900);
-    --vq-fuchsia-950: var(--vq-ramp-fuchsia-950);
-
-    /* blue → blue */
-    --vq-blue-50: var(--vq-ramp-blue-50);
-    --vq-blue-100: var(--vq-ramp-blue-100);
-    --vq-blue-200: var(--vq-ramp-blue-200);
-    --vq-blue-300: var(--vq-ramp-blue-300);
-    --vq-blue-400: var(--vq-ramp-blue-400);
-    --vq-blue-500: var(--vq-ramp-blue-500);
-    --vq-blue-600: var(--vq-ramp-blue-600);
-    --vq-blue-700: var(--vq-ramp-blue-700);
-    --vq-blue-800: var(--vq-ramp-blue-800);
-    --vq-blue-900: var(--vq-ramp-blue-900);
-    --vq-blue-950: var(--vq-ramp-blue-950);
-
-    /* sky → sky */
-    --vq-sky-50: var(--vq-ramp-sky-50);
-    --vq-sky-100: var(--vq-ramp-sky-100);
-    --vq-sky-200: var(--vq-ramp-sky-200);
-    --vq-sky-300: var(--vq-ramp-sky-300);
-    --vq-sky-400: var(--vq-ramp-sky-400);
-    --vq-sky-500: var(--vq-ramp-sky-500);
-    --vq-sky-600: var(--vq-ramp-sky-600);
-    --vq-sky-700: var(--vq-ramp-sky-700);
-    --vq-sky-800: var(--vq-ramp-sky-800);
-    --vq-sky-900: var(--vq-ramp-sky-900);
-    --vq-sky-950: var(--vq-ramp-sky-950);
-
-    /* cyan → cyan */
-    --vq-cyan-50: var(--vq-ramp-cyan-50);
-    --vq-cyan-100: var(--vq-ramp-cyan-100);
-    --vq-cyan-200: var(--vq-ramp-cyan-200);
-    --vq-cyan-300: var(--vq-ramp-cyan-300);
-    --vq-cyan-400: var(--vq-ramp-cyan-400);
-    --vq-cyan-500: var(--vq-ramp-cyan-500);
-    --vq-cyan-600: var(--vq-ramp-cyan-600);
-    --vq-cyan-700: var(--vq-ramp-cyan-700);
-    --vq-cyan-800: var(--vq-ramp-cyan-800);
-    --vq-cyan-900: var(--vq-ramp-cyan-900);
-    --vq-cyan-950: var(--vq-ramp-cyan-950);
-
-    /* teal → teal */
+    /* indigo, teal → teal */
+    --vq-indigo-50: var(--vq-ramp-teal-50);
+    --vq-indigo-100: var(--vq-ramp-teal-100);
+    --vq-indigo-200: var(--vq-ramp-teal-200);
+    --vq-indigo-300: var(--vq-ramp-teal-300);
+    --vq-indigo-400: var(--vq-ramp-teal-400);
+    --vq-indigo-500: var(--vq-ramp-teal-500);
+    --vq-indigo-600: var(--vq-ramp-teal-600);
+    --vq-indigo-700: var(--vq-ramp-teal-700);
+    --vq-indigo-800: var(--vq-ramp-teal-800);
+    --vq-indigo-900: var(--vq-ramp-teal-900);
+    --vq-indigo-950: var(--vq-ramp-teal-950);
     --vq-teal-50: var(--vq-ramp-teal-50);
     --vq-teal-100: var(--vq-ramp-teal-100);
     --vq-teal-200: var(--vq-ramp-teal-200);
@@ -578,916 +323,64 @@
     --vq-teal-900: var(--vq-ramp-teal-900);
     --vq-teal-950: var(--vq-ramp-teal-950);
 
-    /* emerald → emerald */
-    --vq-emerald-50: var(--vq-ramp-emerald-50);
-    --vq-emerald-100: var(--vq-ramp-emerald-100);
-    --vq-emerald-200: var(--vq-ramp-emerald-200);
-    --vq-emerald-300: var(--vq-ramp-emerald-300);
-    --vq-emerald-400: var(--vq-ramp-emerald-400);
-    --vq-emerald-500: var(--vq-ramp-emerald-500);
-    --vq-emerald-600: var(--vq-ramp-emerald-600);
-    --vq-emerald-700: var(--vq-ramp-emerald-700);
-    --vq-emerald-800: var(--vq-ramp-emerald-800);
-    --vq-emerald-900: var(--vq-ramp-emerald-900);
-    --vq-emerald-950: var(--vq-ramp-emerald-950);
-
-    /* green → green */
-    --vq-green-50: var(--vq-ramp-green-50);
-    --vq-green-100: var(--vq-ramp-green-100);
-    --vq-green-200: var(--vq-ramp-green-200);
-    --vq-green-300: var(--vq-ramp-green-300);
-    --vq-green-400: var(--vq-ramp-green-400);
-    --vq-green-500: var(--vq-ramp-green-500);
-    --vq-green-600: var(--vq-ramp-green-600);
-    --vq-green-700: var(--vq-ramp-green-700);
-    --vq-green-800: var(--vq-ramp-green-800);
-    --vq-green-900: var(--vq-ramp-green-900);
-    --vq-green-950: var(--vq-ramp-green-950);
-
-    /* lime → lime */
-    --vq-lime-50: var(--vq-ramp-lime-50);
-    --vq-lime-100: var(--vq-ramp-lime-100);
-    --vq-lime-200: var(--vq-ramp-lime-200);
-    --vq-lime-300: var(--vq-ramp-lime-300);
-    --vq-lime-400: var(--vq-ramp-lime-400);
-    --vq-lime-500: var(--vq-ramp-lime-500);
-    --vq-lime-600: var(--vq-ramp-lime-600);
-    --vq-lime-700: var(--vq-ramp-lime-700);
-    --vq-lime-800: var(--vq-ramp-lime-800);
-    --vq-lime-900: var(--vq-ramp-lime-900);
-    --vq-lime-950: var(--vq-ramp-lime-950);
-
-    /* yellow → yellow */
-    --vq-yellow-50: var(--vq-ramp-yellow-50);
-    --vq-yellow-100: var(--vq-ramp-yellow-100);
-    --vq-yellow-200: var(--vq-ramp-yellow-200);
-    --vq-yellow-300: var(--vq-ramp-yellow-300);
-    --vq-yellow-400: var(--vq-ramp-yellow-400);
-    --vq-yellow-500: var(--vq-ramp-yellow-500);
-    --vq-yellow-600: var(--vq-ramp-yellow-600);
-    --vq-yellow-700: var(--vq-ramp-yellow-700);
-    --vq-yellow-800: var(--vq-ramp-yellow-800);
-    --vq-yellow-900: var(--vq-ramp-yellow-900);
-    --vq-yellow-950: var(--vq-ramp-yellow-950);
-
-    /* amber → amber */
-    --vq-amber-50: var(--vq-ramp-amber-50);
-    --vq-amber-100: var(--vq-ramp-amber-100);
-    --vq-amber-200: var(--vq-ramp-amber-200);
-    --vq-amber-300: var(--vq-ramp-amber-300);
-    --vq-amber-400: var(--vq-ramp-amber-400);
-    --vq-amber-500: var(--vq-ramp-amber-500);
-    --vq-amber-600: var(--vq-ramp-amber-600);
-    --vq-amber-700: var(--vq-ramp-amber-700);
-    --vq-amber-800: var(--vq-ramp-amber-800);
-    --vq-amber-900: var(--vq-ramp-amber-900);
-    --vq-amber-950: var(--vq-ramp-amber-950);
-
-    /* orange → orange */
-    --vq-orange-50: var(--vq-ramp-orange-50);
-    --vq-orange-100: var(--vq-ramp-orange-100);
-    --vq-orange-200: var(--vq-ramp-orange-200);
-    --vq-orange-300: var(--vq-ramp-orange-300);
-    --vq-orange-400: var(--vq-ramp-orange-400);
-    --vq-orange-500: var(--vq-ramp-orange-500);
-    --vq-orange-600: var(--vq-ramp-orange-600);
-    --vq-orange-700: var(--vq-ramp-orange-700);
-    --vq-orange-800: var(--vq-ramp-orange-800);
-    --vq-orange-900: var(--vq-ramp-orange-900);
-    --vq-orange-950: var(--vq-ramp-orange-950);
-
-    /* red → red */
-    --vq-red-50: var(--vq-ramp-red-50);
-    --vq-red-100: var(--vq-ramp-red-100);
-    --vq-red-200: var(--vq-ramp-red-200);
-    --vq-red-300: var(--vq-ramp-red-300);
-    --vq-red-400: var(--vq-ramp-red-400);
-    --vq-red-500: var(--vq-ramp-red-500);
-    --vq-red-600: var(--vq-ramp-red-600);
-    --vq-red-700: var(--vq-ramp-red-700);
-    --vq-red-800: var(--vq-ramp-red-800);
-    --vq-red-900: var(--vq-ramp-red-900);
-    --vq-red-950: var(--vq-ramp-red-950);
-
-    /* rose → rose */
-    --vq-rose-50: var(--vq-ramp-rose-50);
-    --vq-rose-100: var(--vq-ramp-rose-100);
-    --vq-rose-200: var(--vq-ramp-rose-200);
-    --vq-rose-300: var(--vq-ramp-rose-300);
-    --vq-rose-400: var(--vq-ramp-rose-400);
-    --vq-rose-500: var(--vq-ramp-rose-500);
-    --vq-rose-600: var(--vq-ramp-rose-600);
-    --vq-rose-700: var(--vq-ramp-rose-700);
-    --vq-rose-800: var(--vq-ramp-rose-800);
-    --vq-rose-900: var(--vq-ramp-rose-900);
-    --vq-rose-950: var(--vq-ramp-rose-950);
-
-    /* pink → pink */
-    --vq-pink-50: var(--vq-ramp-pink-50);
-    --vq-pink-100: var(--vq-ramp-pink-100);
-    --vq-pink-200: var(--vq-ramp-pink-200);
-    --vq-pink-300: var(--vq-ramp-pink-300);
-    --vq-pink-400: var(--vq-ramp-pink-400);
-    --vq-pink-500: var(--vq-ramp-pink-500);
-    --vq-pink-600: var(--vq-ramp-pink-600);
-    --vq-pink-700: var(--vq-ramp-pink-700);
-    --vq-pink-800: var(--vq-ramp-pink-800);
-    --vq-pink-900: var(--vq-ramp-pink-900);
-    --vq-pink-950: var(--vq-ramp-pink-950);
-
-    /* stone → stone */
-    --vq-stone-50: var(--vq-ramp-stone-50);
-    --vq-stone-100: var(--vq-ramp-stone-100);
-    --vq-stone-200: var(--vq-ramp-stone-200);
-    --vq-stone-300: var(--vq-ramp-stone-300);
-    --vq-stone-400: var(--vq-ramp-stone-400);
-    --vq-stone-500: var(--vq-ramp-stone-500);
-    --vq-stone-600: var(--vq-ramp-stone-600);
-    --vq-stone-700: var(--vq-ramp-stone-700);
-    --vq-stone-800: var(--vq-ramp-stone-800);
-    --vq-stone-900: var(--vq-ramp-stone-900);
-    --vq-stone-950: var(--vq-ramp-stone-950);
-
-    /* void → void */
-    --vq-void-50: var(--vq-ramp-void-50);
-    --vq-void-100: var(--vq-ramp-void-100);
-    --vq-void-200: var(--vq-ramp-void-200);
-    --vq-void-300: var(--vq-ramp-void-300);
-    --vq-void-400: var(--vq-ramp-void-400);
-    --vq-void-500: var(--vq-ramp-void-500);
-    --vq-void-600: var(--vq-ramp-void-600);
-    --vq-void-700: var(--vq-ramp-void-700);
-    --vq-void-800: var(--vq-ramp-void-800);
-    --vq-void-900: var(--vq-ramp-void-900);
-    --vq-void-950: var(--vq-ramp-void-950);
-
-    /* semantic role aliases — prefer these in new code */
-    --vq-neutral-50: var(--vq-ramp-neutral-50);
-    --vq-neutral-100: var(--vq-ramp-neutral-100);
-    --vq-neutral-200: var(--vq-ramp-neutral-200);
-    --vq-neutral-300: var(--vq-ramp-neutral-300);
-    --vq-neutral-400: var(--vq-ramp-neutral-400);
-    --vq-neutral-500: var(--vq-ramp-neutral-500);
-    --vq-neutral-600: var(--vq-ramp-neutral-600);
-    --vq-neutral-700: var(--vq-ramp-neutral-700);
-    --vq-neutral-800: var(--vq-ramp-neutral-800);
-    --vq-neutral-900: var(--vq-ramp-neutral-900);
-    --vq-neutral-950: var(--vq-ramp-neutral-950);
-    --vq-brand-50: var(--vq-ramp-brand-50);
-    --vq-brand-100: var(--vq-ramp-brand-100);
-    --vq-brand-200: var(--vq-ramp-brand-200);
-    --vq-brand-300: var(--vq-ramp-brand-300);
-    --vq-brand-400: var(--vq-ramp-brand-400);
-    --vq-brand-500: var(--vq-ramp-brand-500);
-    --vq-brand-600: var(--vq-ramp-brand-600);
-    --vq-brand-700: var(--vq-ramp-brand-700);
-    --vq-brand-800: var(--vq-ramp-brand-800);
-    --vq-brand-900: var(--vq-ramp-brand-900);
-    --vq-brand-950: var(--vq-ramp-brand-950);
-    --vq-accent-50: var(--vq-ramp-accent-50);
-    --vq-accent-100: var(--vq-ramp-accent-100);
-    --vq-accent-200: var(--vq-ramp-accent-200);
-    --vq-accent-300: var(--vq-ramp-accent-300);
-    --vq-accent-400: var(--vq-ramp-accent-400);
-    --vq-accent-500: var(--vq-ramp-accent-500);
-    --vq-accent-600: var(--vq-ramp-accent-600);
-    --vq-accent-700: var(--vq-ramp-accent-700);
-    --vq-accent-800: var(--vq-ramp-accent-800);
-    --vq-accent-900: var(--vq-ramp-accent-900);
-    --vq-accent-950: var(--vq-ramp-accent-950);
-    --vq-info-50: var(--vq-ramp-info-50);
-    --vq-info-100: var(--vq-ramp-info-100);
-    --vq-info-200: var(--vq-ramp-info-200);
-    --vq-info-300: var(--vq-ramp-info-300);
-    --vq-info-400: var(--vq-ramp-info-400);
-    --vq-info-500: var(--vq-ramp-info-500);
-    --vq-info-600: var(--vq-ramp-info-600);
-    --vq-info-700: var(--vq-ramp-info-700);
-    --vq-info-800: var(--vq-ramp-info-800);
-    --vq-info-900: var(--vq-ramp-info-900);
-    --vq-info-950: var(--vq-ramp-info-950);
-    --vq-success-50: var(--vq-ramp-success-50);
-    --vq-success-100: var(--vq-ramp-success-100);
-    --vq-success-200: var(--vq-ramp-success-200);
-    --vq-success-300: var(--vq-ramp-success-300);
-    --vq-success-400: var(--vq-ramp-success-400);
-    --vq-success-500: var(--vq-ramp-success-500);
-    --vq-success-600: var(--vq-ramp-success-600);
-    --vq-success-700: var(--vq-ramp-success-700);
-    --vq-success-800: var(--vq-ramp-success-800);
-    --vq-success-900: var(--vq-ramp-success-900);
-    --vq-success-950: var(--vq-ramp-success-950);
-    --vq-warning-50: var(--vq-ramp-warning-50);
-    --vq-warning-100: var(--vq-ramp-warning-100);
-    --vq-warning-200: var(--vq-ramp-warning-200);
-    --vq-warning-300: var(--vq-ramp-warning-300);
-    --vq-warning-400: var(--vq-ramp-warning-400);
-    --vq-warning-500: var(--vq-ramp-warning-500);
-    --vq-warning-600: var(--vq-ramp-warning-600);
-    --vq-warning-700: var(--vq-ramp-warning-700);
-    --vq-warning-800: var(--vq-ramp-warning-800);
-    --vq-warning-900: var(--vq-ramp-warning-900);
-    --vq-warning-950: var(--vq-ramp-warning-950);
-    --vq-danger-50: var(--vq-ramp-danger-50);
-    --vq-danger-100: var(--vq-ramp-danger-100);
-    --vq-danger-200: var(--vq-ramp-danger-200);
-    --vq-danger-300: var(--vq-ramp-danger-300);
-    --vq-danger-400: var(--vq-ramp-danger-400);
-    --vq-danger-500: var(--vq-ramp-danger-500);
-    --vq-danger-600: var(--vq-ramp-danger-600);
-    --vq-danger-700: var(--vq-ramp-danger-700);
-    --vq-danger-800: var(--vq-ramp-danger-800);
-    --vq-danger-900: var(--vq-ramp-danger-900);
-    --vq-danger-950: var(--vq-ramp-danger-950);
-    --vq-highlight-50: var(--vq-ramp-highlight-50);
-    --vq-highlight-100: var(--vq-ramp-highlight-100);
-    --vq-highlight-200: var(--vq-ramp-highlight-200);
-    --vq-highlight-300: var(--vq-ramp-highlight-300);
-    --vq-highlight-400: var(--vq-ramp-highlight-400);
-    --vq-highlight-500: var(--vq-ramp-highlight-500);
-    --vq-highlight-600: var(--vq-ramp-highlight-600);
-    --vq-highlight-700: var(--vq-ramp-highlight-700);
-    --vq-highlight-800: var(--vq-ramp-highlight-800);
-    --vq-highlight-900: var(--vq-ramp-highlight-900);
-    --vq-highlight-950: var(--vq-ramp-highlight-950);
-
-    /* ═══════════════ SEMANTIC — LIGHT MODE ═══════════════
-       Overridden by the dark blocks further down. */
-    --vq-bg-app: 241 245 249;
-    --vq-bg-sunken: 226 232 240;
-    --vq-bg-surface: 255 255 255;
-    --vq-bg-raised: 248 250 252;
-    --vq-bg-overlay: 255 255 255;
-    --vq-bg-scrim: 15 23 42;
-    --vq-ink: 15 23 42;
-    --vq-ink-secondary: 51 65 85;
-    --vq-ink-muted: 71 85 105;
-    --vq-ink-faint: 148 163 184;
-    --vq-ink-inverted: 255 255 255;
-    --vq-border: 226 232 240;
-    --vq-border-strong: 203 213 225;
-    --vq-border-subtle: 241 245 249;
-    --vq-interactive-hover: 241 245 249;
-    --vq-interactive-active: 226 232 240;
-    --vq-interactive-selected: 238 242 255;
-    --vq-focus-ring: 99 102 241;
-
-    /* ═══════════════ TYPOGRAPHY ═══════════════ */
-    --vq-font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --vq-font-display: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --vq-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --vq-font-numeric: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
-
-    /* type scale */
-    --vq-text-4xs: 0.5rem;
-    --vq-text-3xs: 0.5625rem;
-    --vq-text-2xs: 0.625rem;
-    --vq-text-1xs: 0.6875rem;
-    --vq-text-xs: 0.75rem;
-    --vq-text-xs--line-height: 1rem;
-    --vq-text-sm: 0.875rem;
-    --vq-text-sm--line-height: 1.25rem;
-    --vq-text-base: 1rem;
-    --vq-text-base--line-height: 1.5rem;
-    --vq-text-lg: 1.125rem;
-    --vq-text-lg--line-height: 1.75rem;
-    --vq-text-xl: 1.25rem;
-    --vq-text-xl--line-height: 1.75rem;
-    --vq-text-2xl: 1.5rem;
-    --vq-text-2xl--line-height: 2rem;
-    --vq-text-3xl: 1.875rem;
-    --vq-text-3xl--line-height: 2.25rem;
-    --vq-text-4xl: 2.25rem;
-    --vq-text-4xl--line-height: 2.5rem;
-    --vq-text-5xl: 3rem;
-    --vq-text-5xl--line-height: 1;
-
-    /* weights */
-    --vq-weight-light: 300;
-    --vq-weight-normal: 400;
-    --vq-weight-medium: 500;
-    --vq-weight-semibold: 600;
-    --vq-weight-bold: 700;
-    --vq-weight-extrabold: 800;
-    --vq-weight-black: 900;
-
-    /* line heights */
-    --vq-leading-none: 1;
-    --vq-leading-tight: 1.25;
-    --vq-leading-snug: 1.375;
-    --vq-leading-normal: 1.5;
-    --vq-leading-relaxed: 1.625;
-    --vq-leading-loose: 2;
-
-    /* letter spacing */
-    --vq-tracking-tighter: -0.05em;
-    --vq-tracking-tight: -0.025em;
-    --vq-tracking-normal: 0em;
-    --vq-tracking-wide: 0.025em;
-    --vq-tracking-wider: 0.05em;
-    --vq-tracking-widest: 0.1em;
-
-    /* ═══════════════ SHAPE ═══════════════ */
-    --vq-radius-none: 0px;
-    --vq-radius-xs: 0.0625rem;
-    --vq-radius-sm: 0.125rem;
-    --vq-radius-md: 0.375rem;
-    --vq-radius-lg: 0.5rem;
-    --vq-radius-xl: 0.75rem;
-    --vq-radius-2xl: 1rem;
-    --vq-radius-3xl: 1.5rem;
-    --vq-radius-full: 9999px;
-
-    /* elevation */
-    --vq-shadow-none: none;
-    --vq-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --vq-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --vq-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --vq-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --vq-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --vq-shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    --vq-shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-    --vq-shadow-glow: 0 0 0 1px rgb(99 102 241 / 0.2), 0 10px 40px -10px rgb(99 102 241 / 0.35);
-
-    /* ═══════════════ DENSITY ═══════════════ */
-    --vq-space-1: 0.25rem;
-    --vq-space-2: 0.5rem;
-    --vq-space-3: 0.75rem;
-    --vq-space-4: 1rem;
-    --vq-space-5: 1.25rem;
-    --vq-space-6: 1.5rem;
-    --vq-space-8: 2rem;
-    --vq-space-10: 2.5rem;
-    --vq-space-12: 3rem;
-    --vq-space-16: 4rem;
-    --vq-space-20: 5rem;
-    --vq-space-24: 6rem;
-    --vq-space-0_5: 0.125rem;
-    --vq-space-1_5: 0.375rem;
-
-    /* control sizing */
-    --vq-control-height-sm: 1.75rem;
-    --vq-control-height-md: 2.25rem;
-    --vq-control-height-lg: 2.75rem;
-    --vq-control-padding-x: 0.75rem;
-    --vq-control-gap: 0.5rem;
-
-    /* layout */
-    --vq-layout-gutter: 1rem;
-    --vq-layout-section-gap: 1.5rem;
-    --vq-layout-card-padding: 1rem;
-    --vq-layout-page-max-width: 100%;
-    --vq-layout-sidebar-width: 16rem;
-
-    /* ═══════════════ MOTION ═══════════════ */
-    --vq-duration-instant: 0ms;
-    --vq-duration-fast: 150ms;
-    --vq-duration-normal: 250ms;
-    --vq-duration-slow: 400ms;
-    --vq-duration-slower: 600ms;
-
-    /* easing curves */
-    --vq-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-    --vq-ease-entrance: cubic-bezier(0, 0, 0.2, 1);
-    --vq-ease-exit: cubic-bezier(0.4, 0, 1, 1);
-    --vq-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-
-    /* ═══════════════ GRADIENTS ═══════════════ */
-    --vq-gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #d946ef 100%);
-    --vq-gradient-brand-soft: linear-gradient(135deg, rgb(99 102 241 / 0.16), rgb(139 92 246 / 0.06));
-    --vq-gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --vq-gradient-info: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
-    --vq-gradient-danger: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-    --vq-gradient-aurora: radial-gradient(ellipse at 12% -8%, rgb(99 102 241 / 0.18), transparent 45%), radial-gradient(ellipse at 100% 0%, rgb(139 92 246 / 0.12), transparent 42%);
-    --vq-gradient-hairline-accent: linear-gradient(to right, transparent, #6366f1, transparent);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   THEME LIBRARY — LIGHT
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* ── Midnight Nebula (midnight-nebula) ── */
-[data-vq-theme="midnight-nebula"] {
-    /* Theme identity — readable from JS via getComputedStyle if ever needed */
-    --vq-theme-id: 'midnight-nebula';
-
-    /* ═══════════════ COLOUR RAMPS ═══════════════
-       Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
-       opacity modifiers keep working: bg-indigo-500/30 compiles to
-       rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every
-       /opacity class in the codebase. */
-
-    /* ramp: accent */
-    --vq-ramp-accent-50: 245 243 255;
-    --vq-ramp-accent-100: 237 233 254;
-    --vq-ramp-accent-200: 221 214 254;
-    --vq-ramp-accent-300: 196 181 253;
-    --vq-ramp-accent-400: 167 139 250;
-    --vq-ramp-accent-500: 139 92 246;
-    --vq-ramp-accent-600: 124 58 237;
-    --vq-ramp-accent-700: 109 40 217;
-    --vq-ramp-accent-800: 91 33 182;
-    --vq-ramp-accent-900: 76 29 149;
-    --vq-ramp-accent-950: 46 16 101;
-
-    /* ramp: amber */
-    --vq-ramp-amber-50: 255 251 235;
-    --vq-ramp-amber-100: 254 243 199;
-    --vq-ramp-amber-200: 253 230 138;
-    --vq-ramp-amber-300: 252 211 77;
-    --vq-ramp-amber-400: 251 191 36;
-    --vq-ramp-amber-500: 245 158 11;
-    --vq-ramp-amber-600: 217 119 6;
-    --vq-ramp-amber-700: 180 83 9;
-    --vq-ramp-amber-800: 146 64 14;
-    --vq-ramp-amber-900: 120 53 15;
-    --vq-ramp-amber-950: 69 26 3;
-
-    /* ramp: blue */
-    --vq-ramp-blue-50: 239 246 255;
-    --vq-ramp-blue-100: 219 234 254;
-    --vq-ramp-blue-200: 191 219 254;
-    --vq-ramp-blue-300: 147 197 253;
-    --vq-ramp-blue-400: 96 165 250;
-    --vq-ramp-blue-500: 59 130 246;
-    --vq-ramp-blue-600: 37 99 235;
-    --vq-ramp-blue-700: 29 78 216;
-    --vq-ramp-blue-800: 30 64 175;
-    --vq-ramp-blue-900: 30 58 138;
-    --vq-ramp-blue-950: 23 37 84;
-
-    /* ramp: brand */
-    --vq-ramp-brand-50: 238 242 255;
-    --vq-ramp-brand-100: 224 231 255;
-    --vq-ramp-brand-200: 199 210 254;
-    --vq-ramp-brand-300: 165 180 252;
-    --vq-ramp-brand-400: 129 140 248;
-    --vq-ramp-brand-500: 99 102 241;
-    --vq-ramp-brand-600: 79 70 229;
-    --vq-ramp-brand-700: 67 56 202;
-    --vq-ramp-brand-800: 55 48 163;
-    --vq-ramp-brand-900: 49 46 129;
-    --vq-ramp-brand-950: 30 27 75;
-
-    /* ramp: cyan */
-    --vq-ramp-cyan-50: 236 254 255;
-    --vq-ramp-cyan-100: 207 250 254;
-    --vq-ramp-cyan-200: 165 243 252;
-    --vq-ramp-cyan-300: 103 232 249;
-    --vq-ramp-cyan-400: 34 211 238;
-    --vq-ramp-cyan-500: 6 182 212;
-    --vq-ramp-cyan-600: 8 145 178;
-    --vq-ramp-cyan-700: 14 116 144;
-    --vq-ramp-cyan-800: 21 94 117;
-    --vq-ramp-cyan-900: 22 78 99;
-    --vq-ramp-cyan-950: 8 51 68;
-
-    /* ramp: danger */
-    --vq-ramp-danger-50: 254 242 242;
-    --vq-ramp-danger-100: 254 226 226;
-    --vq-ramp-danger-200: 254 202 202;
-    --vq-ramp-danger-300: 252 165 165;
-    --vq-ramp-danger-400: 248 113 113;
-    --vq-ramp-danger-500: 239 68 68;
-    --vq-ramp-danger-600: 220 38 38;
-    --vq-ramp-danger-700: 185 28 28;
-    --vq-ramp-danger-800: 153 27 27;
-    --vq-ramp-danger-900: 127 29 29;
-    --vq-ramp-danger-950: 69 10 10;
-
-    /* ramp: emerald */
-    --vq-ramp-emerald-50: 236 253 245;
-    --vq-ramp-emerald-100: 209 250 229;
-    --vq-ramp-emerald-200: 167 243 208;
-    --vq-ramp-emerald-300: 110 231 183;
-    --vq-ramp-emerald-400: 52 211 153;
-    --vq-ramp-emerald-500: 16 185 129;
-    --vq-ramp-emerald-600: 5 150 105;
-    --vq-ramp-emerald-700: 4 120 87;
-    --vq-ramp-emerald-800: 6 95 70;
-    --vq-ramp-emerald-900: 6 78 59;
-    --vq-ramp-emerald-950: 2 44 34;
-
-    /* ramp: fuchsia */
-    --vq-ramp-fuchsia-50: 253 244 255;
-    --vq-ramp-fuchsia-100: 250 232 255;
-    --vq-ramp-fuchsia-200: 245 208 254;
-    --vq-ramp-fuchsia-300: 240 171 252;
-    --vq-ramp-fuchsia-400: 232 121 249;
-    --vq-ramp-fuchsia-500: 217 70 239;
-    --vq-ramp-fuchsia-600: 192 38 211;
-    --vq-ramp-fuchsia-700: 162 28 175;
-    --vq-ramp-fuchsia-800: 134 25 143;
-    --vq-ramp-fuchsia-900: 112 26 117;
-    --vq-ramp-fuchsia-950: 74 4 78;
-
-    /* ramp: gray */
-    --vq-ramp-gray-50: 249 250 251;
-    --vq-ramp-gray-100: 243 244 246;
-    --vq-ramp-gray-200: 229 231 235;
-    --vq-ramp-gray-300: 209 213 219;
-    --vq-ramp-gray-400: 156 163 175;
-    --vq-ramp-gray-500: 107 114 128;
-    --vq-ramp-gray-600: 75 85 99;
-    --vq-ramp-gray-700: 55 65 81;
-    --vq-ramp-gray-800: 31 41 55;
-    --vq-ramp-gray-900: 17 24 39;
-    --vq-ramp-gray-950: 3 7 18;
-
-    /* ramp: green */
-    --vq-ramp-green-50: 240 253 244;
-    --vq-ramp-green-100: 220 252 231;
-    --vq-ramp-green-200: 187 247 208;
-    --vq-ramp-green-300: 134 239 172;
-    --vq-ramp-green-400: 74 222 128;
-    --vq-ramp-green-500: 34 197 94;
-    --vq-ramp-green-600: 22 163 74;
-    --vq-ramp-green-700: 21 128 61;
-    --vq-ramp-green-800: 22 101 52;
-    --vq-ramp-green-900: 20 83 45;
-    --vq-ramp-green-950: 5 46 22;
-
-    /* ramp: highlight */
-    --vq-ramp-highlight-50: 255 241 242;
-    --vq-ramp-highlight-100: 255 228 230;
-    --vq-ramp-highlight-200: 254 205 211;
-    --vq-ramp-highlight-300: 253 164 175;
-    --vq-ramp-highlight-400: 251 113 133;
-    --vq-ramp-highlight-500: 244 63 94;
-    --vq-ramp-highlight-600: 225 29 72;
-    --vq-ramp-highlight-700: 190 18 60;
-    --vq-ramp-highlight-800: 159 18 57;
-    --vq-ramp-highlight-900: 136 19 55;
-    --vq-ramp-highlight-950: 76 5 25;
-
-    /* ramp: indigo */
-    --vq-ramp-indigo-50: 238 242 255;
-    --vq-ramp-indigo-100: 224 231 255;
-    --vq-ramp-indigo-200: 199 210 254;
-    --vq-ramp-indigo-300: 165 180 252;
-    --vq-ramp-indigo-400: 129 140 248;
-    --vq-ramp-indigo-500: 99 102 241;
-    --vq-ramp-indigo-600: 79 70 229;
-    --vq-ramp-indigo-700: 67 56 202;
-    --vq-ramp-indigo-800: 55 48 163;
-    --vq-ramp-indigo-900: 49 46 129;
-    --vq-ramp-indigo-950: 30 27 75;
-
-    /* ramp: info */
-    --vq-ramp-info-50: 239 246 255;
-    --vq-ramp-info-100: 219 234 254;
-    --vq-ramp-info-200: 191 219 254;
-    --vq-ramp-info-300: 147 197 253;
-    --vq-ramp-info-400: 96 165 250;
-    --vq-ramp-info-500: 59 130 246;
-    --vq-ramp-info-600: 37 99 235;
-    --vq-ramp-info-700: 29 78 216;
-    --vq-ramp-info-800: 30 64 175;
-    --vq-ramp-info-900: 30 58 138;
-    --vq-ramp-info-950: 23 37 84;
-
-    /* ramp: lime */
-    --vq-ramp-lime-50: 247 254 231;
-    --vq-ramp-lime-100: 236 252 203;
-    --vq-ramp-lime-200: 217 249 157;
-    --vq-ramp-lime-300: 190 242 100;
-    --vq-ramp-lime-400: 163 230 53;
-    --vq-ramp-lime-500: 132 204 22;
-    --vq-ramp-lime-600: 101 163 13;
-    --vq-ramp-lime-700: 77 124 15;
-    --vq-ramp-lime-800: 63 98 18;
-    --vq-ramp-lime-900: 54 83 20;
-    --vq-ramp-lime-950: 26 46 5;
-
-    /* ramp: neutral */
-    --vq-ramp-neutral-50: 248 250 252;
-    --vq-ramp-neutral-100: 241 245 249;
-    --vq-ramp-neutral-200: 226 232 240;
-    --vq-ramp-neutral-300: 203 213 225;
-    --vq-ramp-neutral-400: 148 163 184;
-    --vq-ramp-neutral-500: 100 116 139;
-    --vq-ramp-neutral-600: 71 85 105;
-    --vq-ramp-neutral-700: 51 65 85;
-    --vq-ramp-neutral-800: 30 41 59;
-    --vq-ramp-neutral-900: 15 23 42;
-    --vq-ramp-neutral-950: 2 6 23;
-
-    /* ramp: orange */
-    --vq-ramp-orange-50: 255 247 237;
-    --vq-ramp-orange-100: 255 237 213;
-    --vq-ramp-orange-200: 254 215 170;
-    --vq-ramp-orange-300: 253 186 116;
-    --vq-ramp-orange-400: 251 146 60;
-    --vq-ramp-orange-500: 249 115 22;
-    --vq-ramp-orange-600: 234 88 12;
-    --vq-ramp-orange-700: 194 65 12;
-    --vq-ramp-orange-800: 154 52 18;
-    --vq-ramp-orange-900: 124 45 18;
-    --vq-ramp-orange-950: 67 20 7;
-
-    /* ramp: pink */
-    --vq-ramp-pink-50: 253 242 248;
-    --vq-ramp-pink-100: 252 231 243;
-    --vq-ramp-pink-200: 251 207 232;
-    --vq-ramp-pink-300: 249 168 212;
-    --vq-ramp-pink-400: 244 114 182;
-    --vq-ramp-pink-500: 236 72 153;
-    --vq-ramp-pink-600: 219 39 119;
-    --vq-ramp-pink-700: 190 24 93;
-    --vq-ramp-pink-800: 157 23 77;
-    --vq-ramp-pink-900: 131 24 67;
-    --vq-ramp-pink-950: 80 7 36;
-
-    /* ramp: purple */
-    --vq-ramp-purple-50: 250 245 255;
-    --vq-ramp-purple-100: 243 232 255;
-    --vq-ramp-purple-200: 233 213 255;
-    --vq-ramp-purple-300: 216 180 254;
-    --vq-ramp-purple-400: 192 132 252;
-    --vq-ramp-purple-500: 168 85 247;
-    --vq-ramp-purple-600: 147 51 234;
-    --vq-ramp-purple-700: 126 34 206;
-    --vq-ramp-purple-800: 107 33 168;
-    --vq-ramp-purple-900: 88 28 135;
-    --vq-ramp-purple-950: 59 7 100;
-
-    /* ramp: red */
-    --vq-ramp-red-50: 254 242 242;
-    --vq-ramp-red-100: 254 226 226;
-    --vq-ramp-red-200: 254 202 202;
-    --vq-ramp-red-300: 252 165 165;
-    --vq-ramp-red-400: 248 113 113;
-    --vq-ramp-red-500: 239 68 68;
-    --vq-ramp-red-600: 220 38 38;
-    --vq-ramp-red-700: 185 28 28;
-    --vq-ramp-red-800: 153 27 27;
-    --vq-ramp-red-900: 127 29 29;
-    --vq-ramp-red-950: 69 10 10;
-
-    /* ramp: rose */
-    --vq-ramp-rose-50: 255 241 242;
-    --vq-ramp-rose-100: 255 228 230;
-    --vq-ramp-rose-200: 254 205 211;
-    --vq-ramp-rose-300: 253 164 175;
-    --vq-ramp-rose-400: 251 113 133;
-    --vq-ramp-rose-500: 244 63 94;
-    --vq-ramp-rose-600: 225 29 72;
-    --vq-ramp-rose-700: 190 18 60;
-    --vq-ramp-rose-800: 159 18 57;
-    --vq-ramp-rose-900: 136 19 55;
-    --vq-ramp-rose-950: 76 5 25;
-
-    /* ramp: sky */
-    --vq-ramp-sky-50: 240 249 255;
-    --vq-ramp-sky-100: 224 242 254;
-    --vq-ramp-sky-200: 186 230 253;
-    --vq-ramp-sky-300: 125 211 252;
-    --vq-ramp-sky-400: 56 189 248;
-    --vq-ramp-sky-500: 14 165 233;
-    --vq-ramp-sky-600: 2 132 199;
-    --vq-ramp-sky-700: 3 105 161;
-    --vq-ramp-sky-800: 7 89 133;
-    --vq-ramp-sky-900: 12 74 110;
-    --vq-ramp-sky-950: 8 47 73;
-
-    /* ramp: slate */
-    --vq-ramp-slate-50: 248 250 252;
-    --vq-ramp-slate-100: 241 245 249;
-    --vq-ramp-slate-200: 226 232 240;
-    --vq-ramp-slate-300: 203 213 225;
-    --vq-ramp-slate-400: 148 163 184;
-    --vq-ramp-slate-500: 100 116 139;
-    --vq-ramp-slate-600: 71 85 105;
-    --vq-ramp-slate-700: 51 65 85;
-    --vq-ramp-slate-800: 30 41 59;
-    --vq-ramp-slate-900: 15 23 42;
-    --vq-ramp-slate-950: 2 6 23;
-
-    /* ramp: stone */
-    --vq-ramp-stone-50: 250 250 249;
-    --vq-ramp-stone-100: 245 245 244;
-    --vq-ramp-stone-200: 231 229 228;
-    --vq-ramp-stone-300: 214 211 209;
-    --vq-ramp-stone-400: 168 162 158;
-    --vq-ramp-stone-500: 120 113 108;
-    --vq-ramp-stone-600: 87 83 78;
-    --vq-ramp-stone-700: 68 64 60;
-    --vq-ramp-stone-800: 41 37 36;
-    --vq-ramp-stone-900: 28 25 23;
-    --vq-ramp-stone-950: 12 10 9;
-
-    /* ramp: success */
-    --vq-ramp-success-50: 236 253 245;
-    --vq-ramp-success-100: 209 250 229;
-    --vq-ramp-success-200: 167 243 208;
-    --vq-ramp-success-300: 110 231 183;
-    --vq-ramp-success-400: 52 211 153;
-    --vq-ramp-success-500: 16 185 129;
-    --vq-ramp-success-600: 5 150 105;
-    --vq-ramp-success-700: 4 120 87;
-    --vq-ramp-success-800: 6 95 70;
-    --vq-ramp-success-900: 6 78 59;
-    --vq-ramp-success-950: 2 44 34;
-
-    /* ramp: teal */
-    --vq-ramp-teal-50: 240 253 250;
-    --vq-ramp-teal-100: 204 251 241;
-    --vq-ramp-teal-200: 153 246 228;
-    --vq-ramp-teal-300: 94 234 212;
-    --vq-ramp-teal-400: 45 212 191;
-    --vq-ramp-teal-500: 20 184 166;
-    --vq-ramp-teal-600: 13 148 136;
-    --vq-ramp-teal-700: 15 118 110;
-    --vq-ramp-teal-800: 17 94 89;
-    --vq-ramp-teal-900: 19 78 74;
-    --vq-ramp-teal-950: 4 47 46;
-
-    /* ramp: violet */
-    --vq-ramp-violet-50: 245 243 255;
-    --vq-ramp-violet-100: 237 233 254;
-    --vq-ramp-violet-200: 221 214 254;
-    --vq-ramp-violet-300: 196 181 253;
-    --vq-ramp-violet-400: 167 139 250;
-    --vq-ramp-violet-500: 139 92 246;
-    --vq-ramp-violet-600: 124 58 237;
-    --vq-ramp-violet-700: 109 40 217;
-    --vq-ramp-violet-800: 91 33 182;
-    --vq-ramp-violet-900: 76 29 149;
-    --vq-ramp-violet-950: 46 16 101;
-
-    /* ramp: void */
-    --vq-ramp-void-50: 232 232 239;
-    --vq-ramp-void-100: 201 201 216;
-    --vq-ramp-void-200: 154 154 181;
-    --vq-ramp-void-300: 107 107 144;
-    --vq-ramp-void-400: 67 67 106;
-    --vq-ramp-void-500: 42 42 72;
-    --vq-ramp-void-600: 30 41 59;
-    --vq-ramp-void-700: 26 29 46;
-    --vq-ramp-void-800: 15 18 29;
-    --vq-ramp-void-900: 5 3 15;
-    --vq-ramp-void-950: 2 0 16;
-
-    /* ramp: warning */
-    --vq-ramp-warning-50: 255 251 235;
-    --vq-ramp-warning-100: 254 243 199;
-    --vq-ramp-warning-200: 253 230 138;
-    --vq-ramp-warning-300: 252 211 77;
-    --vq-ramp-warning-400: 251 191 36;
-    --vq-ramp-warning-500: 245 158 11;
-    --vq-ramp-warning-600: 217 119 6;
-    --vq-ramp-warning-700: 180 83 9;
-    --vq-ramp-warning-800: 146 64 14;
-    --vq-ramp-warning-900: 120 53 15;
-    --vq-ramp-warning-950: 69 26 3;
-
-    /* ramp: yellow */
-    --vq-ramp-yellow-50: 254 252 232;
-    --vq-ramp-yellow-100: 254 249 195;
-    --vq-ramp-yellow-200: 254 240 138;
-    --vq-ramp-yellow-300: 253 224 71;
-    --vq-ramp-yellow-400: 250 204 21;
-    --vq-ramp-yellow-500: 234 179 8;
-    --vq-ramp-yellow-600: 202 138 4;
-    --vq-ramp-yellow-700: 161 98 7;
-    --vq-ramp-yellow-800: 133 77 14;
-    --vq-ramp-yellow-900: 113 63 18;
-    --vq-ramp-yellow-950: 66 32 6;
-
-    /* ramp: zinc */
-    --vq-ramp-zinc-50: 250 250 250;
-    --vq-ramp-zinc-100: 244 244 245;
-    --vq-ramp-zinc-200: 228 228 231;
-    --vq-ramp-zinc-300: 212 212 216;
-    --vq-ramp-zinc-400: 161 161 170;
-    --vq-ramp-zinc-500: 113 113 122;
-    --vq-ramp-zinc-600: 82 82 91;
-    --vq-ramp-zinc-700: 63 63 70;
-    --vq-ramp-zinc-800: 39 39 42;
-    --vq-ramp-zinc-900: 24 24 27;
-    --vq-ramp-zinc-950: 9 9 11;
-
-    /* ═══════════════ PALETTE BINDINGS ═══════════════
-       Tailwind colour families pointed at ramps. This is the layer that
-       reskins the ~40,000 pre-existing colour classes without touching a
-       single component. */
-
-    /* slate, neutral → slate */
-    --vq-slate-50: var(--vq-ramp-slate-50);
-    --vq-slate-100: var(--vq-ramp-slate-100);
-    --vq-slate-200: var(--vq-ramp-slate-200);
-    --vq-slate-300: var(--vq-ramp-slate-300);
-    --vq-slate-400: var(--vq-ramp-slate-400);
-    --vq-slate-500: var(--vq-ramp-slate-500);
-    --vq-slate-600: var(--vq-ramp-slate-600);
-    --vq-slate-700: var(--vq-ramp-slate-700);
-    --vq-slate-800: var(--vq-ramp-slate-800);
-    --vq-slate-900: var(--vq-ramp-slate-900);
-    --vq-slate-950: var(--vq-ramp-slate-950);
-    --vq-neutral-50: var(--vq-ramp-slate-50);
-    --vq-neutral-100: var(--vq-ramp-slate-100);
-    --vq-neutral-200: var(--vq-ramp-slate-200);
-    --vq-neutral-300: var(--vq-ramp-slate-300);
-    --vq-neutral-400: var(--vq-ramp-slate-400);
-    --vq-neutral-500: var(--vq-ramp-slate-500);
-    --vq-neutral-600: var(--vq-ramp-slate-600);
-    --vq-neutral-700: var(--vq-ramp-slate-700);
-    --vq-neutral-800: var(--vq-ramp-slate-800);
-    --vq-neutral-900: var(--vq-ramp-slate-900);
-    --vq-neutral-950: var(--vq-ramp-slate-950);
-
-    /* gray → gray */
-    --vq-gray-50: var(--vq-ramp-gray-50);
-    --vq-gray-100: var(--vq-ramp-gray-100);
-    --vq-gray-200: var(--vq-ramp-gray-200);
-    --vq-gray-300: var(--vq-ramp-gray-300);
-    --vq-gray-400: var(--vq-ramp-gray-400);
-    --vq-gray-500: var(--vq-ramp-gray-500);
-    --vq-gray-600: var(--vq-ramp-gray-600);
-    --vq-gray-700: var(--vq-ramp-gray-700);
-    --vq-gray-800: var(--vq-ramp-gray-800);
-    --vq-gray-900: var(--vq-ramp-gray-900);
-    --vq-gray-950: var(--vq-ramp-gray-950);
-
-    /* zinc → zinc */
-    --vq-zinc-50: var(--vq-ramp-zinc-50);
-    --vq-zinc-100: var(--vq-ramp-zinc-100);
-    --vq-zinc-200: var(--vq-ramp-zinc-200);
-    --vq-zinc-300: var(--vq-ramp-zinc-300);
-    --vq-zinc-400: var(--vq-ramp-zinc-400);
-    --vq-zinc-500: var(--vq-ramp-zinc-500);
-    --vq-zinc-600: var(--vq-ramp-zinc-600);
-    --vq-zinc-700: var(--vq-ramp-zinc-700);
-    --vq-zinc-800: var(--vq-ramp-zinc-800);
-    --vq-zinc-900: var(--vq-ramp-zinc-900);
-    --vq-zinc-950: var(--vq-ramp-zinc-950);
-
-    /* indigo → indigo */
-    --vq-indigo-50: var(--vq-ramp-indigo-50);
-    --vq-indigo-100: var(--vq-ramp-indigo-100);
-    --vq-indigo-200: var(--vq-ramp-indigo-200);
-    --vq-indigo-300: var(--vq-ramp-indigo-300);
-    --vq-indigo-400: var(--vq-ramp-indigo-400);
-    --vq-indigo-500: var(--vq-ramp-indigo-500);
-    --vq-indigo-600: var(--vq-ramp-indigo-600);
-    --vq-indigo-700: var(--vq-ramp-indigo-700);
-    --vq-indigo-800: var(--vq-ramp-indigo-800);
-    --vq-indigo-900: var(--vq-ramp-indigo-900);
-    --vq-indigo-950: var(--vq-ramp-indigo-950);
-
-    /* violet → violet */
-    --vq-violet-50: var(--vq-ramp-violet-50);
-    --vq-violet-100: var(--vq-ramp-violet-100);
-    --vq-violet-200: var(--vq-ramp-violet-200);
-    --vq-violet-300: var(--vq-ramp-violet-300);
-    --vq-violet-400: var(--vq-ramp-violet-400);
-    --vq-violet-500: var(--vq-ramp-violet-500);
-    --vq-violet-600: var(--vq-ramp-violet-600);
-    --vq-violet-700: var(--vq-ramp-violet-700);
-    --vq-violet-800: var(--vq-ramp-violet-800);
-    --vq-violet-900: var(--vq-ramp-violet-900);
-    --vq-violet-950: var(--vq-ramp-violet-950);
-
-    /* purple → purple */
-    --vq-purple-50: var(--vq-ramp-purple-50);
-    --vq-purple-100: var(--vq-ramp-purple-100);
-    --vq-purple-200: var(--vq-ramp-purple-200);
-    --vq-purple-300: var(--vq-ramp-purple-300);
-    --vq-purple-400: var(--vq-ramp-purple-400);
-    --vq-purple-500: var(--vq-ramp-purple-500);
-    --vq-purple-600: var(--vq-ramp-purple-600);
-    --vq-purple-700: var(--vq-ramp-purple-700);
-    --vq-purple-800: var(--vq-ramp-purple-800);
-    --vq-purple-900: var(--vq-ramp-purple-900);
-    --vq-purple-950: var(--vq-ramp-purple-950);
-
-    /* fuchsia → fuchsia */
-    --vq-fuchsia-50: var(--vq-ramp-fuchsia-50);
-    --vq-fuchsia-100: var(--vq-ramp-fuchsia-100);
-    --vq-fuchsia-200: var(--vq-ramp-fuchsia-200);
-    --vq-fuchsia-300: var(--vq-ramp-fuchsia-300);
-    --vq-fuchsia-400: var(--vq-ramp-fuchsia-400);
-    --vq-fuchsia-500: var(--vq-ramp-fuchsia-500);
-    --vq-fuchsia-600: var(--vq-ramp-fuchsia-600);
-    --vq-fuchsia-700: var(--vq-ramp-fuchsia-700);
-    --vq-fuchsia-800: var(--vq-ramp-fuchsia-800);
-    --vq-fuchsia-900: var(--vq-ramp-fuchsia-900);
-    --vq-fuchsia-950: var(--vq-ramp-fuchsia-950);
-
-    /* blue → blue */
-    --vq-blue-50: var(--vq-ramp-blue-50);
-    --vq-blue-100: var(--vq-ramp-blue-100);
-    --vq-blue-200: var(--vq-ramp-blue-200);
-    --vq-blue-300: var(--vq-ramp-blue-300);
-    --vq-blue-400: var(--vq-ramp-blue-400);
-    --vq-blue-500: var(--vq-ramp-blue-500);
-    --vq-blue-600: var(--vq-ramp-blue-600);
-    --vq-blue-700: var(--vq-ramp-blue-700);
-    --vq-blue-800: var(--vq-ramp-blue-800);
-    --vq-blue-900: var(--vq-ramp-blue-900);
-    --vq-blue-950: var(--vq-ramp-blue-950);
-
-    /* sky → sky */
+    /* violet, purple, fuchsia, pink → plum */
+    --vq-violet-50: var(--vq-ramp-plum-50);
+    --vq-violet-100: var(--vq-ramp-plum-100);
+    --vq-violet-200: var(--vq-ramp-plum-200);
+    --vq-violet-300: var(--vq-ramp-plum-300);
+    --vq-violet-400: var(--vq-ramp-plum-400);
+    --vq-violet-500: var(--vq-ramp-plum-500);
+    --vq-violet-600: var(--vq-ramp-plum-600);
+    --vq-violet-700: var(--vq-ramp-plum-700);
+    --vq-violet-800: var(--vq-ramp-plum-800);
+    --vq-violet-900: var(--vq-ramp-plum-900);
+    --vq-violet-950: var(--vq-ramp-plum-950);
+    --vq-purple-50: var(--vq-ramp-plum-50);
+    --vq-purple-100: var(--vq-ramp-plum-100);
+    --vq-purple-200: var(--vq-ramp-plum-200);
+    --vq-purple-300: var(--vq-ramp-plum-300);
+    --vq-purple-400: var(--vq-ramp-plum-400);
+    --vq-purple-500: var(--vq-ramp-plum-500);
+    --vq-purple-600: var(--vq-ramp-plum-600);
+    --vq-purple-700: var(--vq-ramp-plum-700);
+    --vq-purple-800: var(--vq-ramp-plum-800);
+    --vq-purple-900: var(--vq-ramp-plum-900);
+    --vq-purple-950: var(--vq-ramp-plum-950);
+    --vq-fuchsia-50: var(--vq-ramp-plum-50);
+    --vq-fuchsia-100: var(--vq-ramp-plum-100);
+    --vq-fuchsia-200: var(--vq-ramp-plum-200);
+    --vq-fuchsia-300: var(--vq-ramp-plum-300);
+    --vq-fuchsia-400: var(--vq-ramp-plum-400);
+    --vq-fuchsia-500: var(--vq-ramp-plum-500);
+    --vq-fuchsia-600: var(--vq-ramp-plum-600);
+    --vq-fuchsia-700: var(--vq-ramp-plum-700);
+    --vq-fuchsia-800: var(--vq-ramp-plum-800);
+    --vq-fuchsia-900: var(--vq-ramp-plum-900);
+    --vq-fuchsia-950: var(--vq-ramp-plum-950);
+    --vq-pink-50: var(--vq-ramp-plum-50);
+    --vq-pink-100: var(--vq-ramp-plum-100);
+    --vq-pink-200: var(--vq-ramp-plum-200);
+    --vq-pink-300: var(--vq-ramp-plum-300);
+    --vq-pink-400: var(--vq-ramp-plum-400);
+    --vq-pink-500: var(--vq-ramp-plum-500);
+    --vq-pink-600: var(--vq-ramp-plum-600);
+    --vq-pink-700: var(--vq-ramp-plum-700);
+    --vq-pink-800: var(--vq-ramp-plum-800);
+    --vq-pink-900: var(--vq-ramp-plum-900);
+    --vq-pink-950: var(--vq-ramp-plum-950);
+
+    /* blue, sky, cyan → sky */
+    --vq-blue-50: var(--vq-ramp-sky-50);
+    --vq-blue-100: var(--vq-ramp-sky-100);
+    --vq-blue-200: var(--vq-ramp-sky-200);
+    --vq-blue-300: var(--vq-ramp-sky-300);
+    --vq-blue-400: var(--vq-ramp-sky-400);
+    --vq-blue-500: var(--vq-ramp-sky-500);
+    --vq-blue-600: var(--vq-ramp-sky-600);
+    --vq-blue-700: var(--vq-ramp-sky-700);
+    --vq-blue-800: var(--vq-ramp-sky-800);
+    --vq-blue-900: var(--vq-ramp-sky-900);
+    --vq-blue-950: var(--vq-ramp-sky-950);
     --vq-sky-50: var(--vq-ramp-sky-50);
     --vq-sky-100: var(--vq-ramp-sky-100);
     --vq-sky-200: var(--vq-ramp-sky-200);
@@ -1499,702 +392,19 @@
     --vq-sky-800: var(--vq-ramp-sky-800);
     --vq-sky-900: var(--vq-ramp-sky-900);
     --vq-sky-950: var(--vq-ramp-sky-950);
+    --vq-cyan-50: var(--vq-ramp-sky-50);
+    --vq-cyan-100: var(--vq-ramp-sky-100);
+    --vq-cyan-200: var(--vq-ramp-sky-200);
+    --vq-cyan-300: var(--vq-ramp-sky-300);
+    --vq-cyan-400: var(--vq-ramp-sky-400);
+    --vq-cyan-500: var(--vq-ramp-sky-500);
+    --vq-cyan-600: var(--vq-ramp-sky-600);
+    --vq-cyan-700: var(--vq-ramp-sky-700);
+    --vq-cyan-800: var(--vq-ramp-sky-800);
+    --vq-cyan-900: var(--vq-ramp-sky-900);
+    --vq-cyan-950: var(--vq-ramp-sky-950);
 
-    /* cyan → cyan */
-    --vq-cyan-50: var(--vq-ramp-cyan-50);
-    --vq-cyan-100: var(--vq-ramp-cyan-100);
-    --vq-cyan-200: var(--vq-ramp-cyan-200);
-    --vq-cyan-300: var(--vq-ramp-cyan-300);
-    --vq-cyan-400: var(--vq-ramp-cyan-400);
-    --vq-cyan-500: var(--vq-ramp-cyan-500);
-    --vq-cyan-600: var(--vq-ramp-cyan-600);
-    --vq-cyan-700: var(--vq-ramp-cyan-700);
-    --vq-cyan-800: var(--vq-ramp-cyan-800);
-    --vq-cyan-900: var(--vq-ramp-cyan-900);
-    --vq-cyan-950: var(--vq-ramp-cyan-950);
-
-    /* teal → teal */
-    --vq-teal-50: var(--vq-ramp-teal-50);
-    --vq-teal-100: var(--vq-ramp-teal-100);
-    --vq-teal-200: var(--vq-ramp-teal-200);
-    --vq-teal-300: var(--vq-ramp-teal-300);
-    --vq-teal-400: var(--vq-ramp-teal-400);
-    --vq-teal-500: var(--vq-ramp-teal-500);
-    --vq-teal-600: var(--vq-ramp-teal-600);
-    --vq-teal-700: var(--vq-ramp-teal-700);
-    --vq-teal-800: var(--vq-ramp-teal-800);
-    --vq-teal-900: var(--vq-ramp-teal-900);
-    --vq-teal-950: var(--vq-ramp-teal-950);
-
-    /* emerald → emerald */
-    --vq-emerald-50: var(--vq-ramp-emerald-50);
-    --vq-emerald-100: var(--vq-ramp-emerald-100);
-    --vq-emerald-200: var(--vq-ramp-emerald-200);
-    --vq-emerald-300: var(--vq-ramp-emerald-300);
-    --vq-emerald-400: var(--vq-ramp-emerald-400);
-    --vq-emerald-500: var(--vq-ramp-emerald-500);
-    --vq-emerald-600: var(--vq-ramp-emerald-600);
-    --vq-emerald-700: var(--vq-ramp-emerald-700);
-    --vq-emerald-800: var(--vq-ramp-emerald-800);
-    --vq-emerald-900: var(--vq-ramp-emerald-900);
-    --vq-emerald-950: var(--vq-ramp-emerald-950);
-
-    /* green → green */
-    --vq-green-50: var(--vq-ramp-green-50);
-    --vq-green-100: var(--vq-ramp-green-100);
-    --vq-green-200: var(--vq-ramp-green-200);
-    --vq-green-300: var(--vq-ramp-green-300);
-    --vq-green-400: var(--vq-ramp-green-400);
-    --vq-green-500: var(--vq-ramp-green-500);
-    --vq-green-600: var(--vq-ramp-green-600);
-    --vq-green-700: var(--vq-ramp-green-700);
-    --vq-green-800: var(--vq-ramp-green-800);
-    --vq-green-900: var(--vq-ramp-green-900);
-    --vq-green-950: var(--vq-ramp-green-950);
-
-    /* lime → lime */
-    --vq-lime-50: var(--vq-ramp-lime-50);
-    --vq-lime-100: var(--vq-ramp-lime-100);
-    --vq-lime-200: var(--vq-ramp-lime-200);
-    --vq-lime-300: var(--vq-ramp-lime-300);
-    --vq-lime-400: var(--vq-ramp-lime-400);
-    --vq-lime-500: var(--vq-ramp-lime-500);
-    --vq-lime-600: var(--vq-ramp-lime-600);
-    --vq-lime-700: var(--vq-ramp-lime-700);
-    --vq-lime-800: var(--vq-ramp-lime-800);
-    --vq-lime-900: var(--vq-ramp-lime-900);
-    --vq-lime-950: var(--vq-ramp-lime-950);
-
-    /* yellow → yellow */
-    --vq-yellow-50: var(--vq-ramp-yellow-50);
-    --vq-yellow-100: var(--vq-ramp-yellow-100);
-    --vq-yellow-200: var(--vq-ramp-yellow-200);
-    --vq-yellow-300: var(--vq-ramp-yellow-300);
-    --vq-yellow-400: var(--vq-ramp-yellow-400);
-    --vq-yellow-500: var(--vq-ramp-yellow-500);
-    --vq-yellow-600: var(--vq-ramp-yellow-600);
-    --vq-yellow-700: var(--vq-ramp-yellow-700);
-    --vq-yellow-800: var(--vq-ramp-yellow-800);
-    --vq-yellow-900: var(--vq-ramp-yellow-900);
-    --vq-yellow-950: var(--vq-ramp-yellow-950);
-
-    /* amber → amber */
-    --vq-amber-50: var(--vq-ramp-amber-50);
-    --vq-amber-100: var(--vq-ramp-amber-100);
-    --vq-amber-200: var(--vq-ramp-amber-200);
-    --vq-amber-300: var(--vq-ramp-amber-300);
-    --vq-amber-400: var(--vq-ramp-amber-400);
-    --vq-amber-500: var(--vq-ramp-amber-500);
-    --vq-amber-600: var(--vq-ramp-amber-600);
-    --vq-amber-700: var(--vq-ramp-amber-700);
-    --vq-amber-800: var(--vq-ramp-amber-800);
-    --vq-amber-900: var(--vq-ramp-amber-900);
-    --vq-amber-950: var(--vq-ramp-amber-950);
-
-    /* orange → orange */
-    --vq-orange-50: var(--vq-ramp-orange-50);
-    --vq-orange-100: var(--vq-ramp-orange-100);
-    --vq-orange-200: var(--vq-ramp-orange-200);
-    --vq-orange-300: var(--vq-ramp-orange-300);
-    --vq-orange-400: var(--vq-ramp-orange-400);
-    --vq-orange-500: var(--vq-ramp-orange-500);
-    --vq-orange-600: var(--vq-ramp-orange-600);
-    --vq-orange-700: var(--vq-ramp-orange-700);
-    --vq-orange-800: var(--vq-ramp-orange-800);
-    --vq-orange-900: var(--vq-ramp-orange-900);
-    --vq-orange-950: var(--vq-ramp-orange-950);
-
-    /* red → red */
-    --vq-red-50: var(--vq-ramp-red-50);
-    --vq-red-100: var(--vq-ramp-red-100);
-    --vq-red-200: var(--vq-ramp-red-200);
-    --vq-red-300: var(--vq-ramp-red-300);
-    --vq-red-400: var(--vq-ramp-red-400);
-    --vq-red-500: var(--vq-ramp-red-500);
-    --vq-red-600: var(--vq-ramp-red-600);
-    --vq-red-700: var(--vq-ramp-red-700);
-    --vq-red-800: var(--vq-ramp-red-800);
-    --vq-red-900: var(--vq-ramp-red-900);
-    --vq-red-950: var(--vq-ramp-red-950);
-
-    /* rose → rose */
-    --vq-rose-50: var(--vq-ramp-rose-50);
-    --vq-rose-100: var(--vq-ramp-rose-100);
-    --vq-rose-200: var(--vq-ramp-rose-200);
-    --vq-rose-300: var(--vq-ramp-rose-300);
-    --vq-rose-400: var(--vq-ramp-rose-400);
-    --vq-rose-500: var(--vq-ramp-rose-500);
-    --vq-rose-600: var(--vq-ramp-rose-600);
-    --vq-rose-700: var(--vq-ramp-rose-700);
-    --vq-rose-800: var(--vq-ramp-rose-800);
-    --vq-rose-900: var(--vq-ramp-rose-900);
-    --vq-rose-950: var(--vq-ramp-rose-950);
-
-    /* pink → pink */
-    --vq-pink-50: var(--vq-ramp-pink-50);
-    --vq-pink-100: var(--vq-ramp-pink-100);
-    --vq-pink-200: var(--vq-ramp-pink-200);
-    --vq-pink-300: var(--vq-ramp-pink-300);
-    --vq-pink-400: var(--vq-ramp-pink-400);
-    --vq-pink-500: var(--vq-ramp-pink-500);
-    --vq-pink-600: var(--vq-ramp-pink-600);
-    --vq-pink-700: var(--vq-ramp-pink-700);
-    --vq-pink-800: var(--vq-ramp-pink-800);
-    --vq-pink-900: var(--vq-ramp-pink-900);
-    --vq-pink-950: var(--vq-ramp-pink-950);
-
-    /* stone → stone */
-    --vq-stone-50: var(--vq-ramp-stone-50);
-    --vq-stone-100: var(--vq-ramp-stone-100);
-    --vq-stone-200: var(--vq-ramp-stone-200);
-    --vq-stone-300: var(--vq-ramp-stone-300);
-    --vq-stone-400: var(--vq-ramp-stone-400);
-    --vq-stone-500: var(--vq-ramp-stone-500);
-    --vq-stone-600: var(--vq-ramp-stone-600);
-    --vq-stone-700: var(--vq-ramp-stone-700);
-    --vq-stone-800: var(--vq-ramp-stone-800);
-    --vq-stone-900: var(--vq-ramp-stone-900);
-    --vq-stone-950: var(--vq-ramp-stone-950);
-
-    /* void → void */
-    --vq-void-50: var(--vq-ramp-void-50);
-    --vq-void-100: var(--vq-ramp-void-100);
-    --vq-void-200: var(--vq-ramp-void-200);
-    --vq-void-300: var(--vq-ramp-void-300);
-    --vq-void-400: var(--vq-ramp-void-400);
-    --vq-void-500: var(--vq-ramp-void-500);
-    --vq-void-600: var(--vq-ramp-void-600);
-    --vq-void-700: var(--vq-ramp-void-700);
-    --vq-void-800: var(--vq-ramp-void-800);
-    --vq-void-900: var(--vq-ramp-void-900);
-    --vq-void-950: var(--vq-ramp-void-950);
-
-    /* semantic role aliases — prefer these in new code */
-    --vq-neutral-50: var(--vq-ramp-neutral-50);
-    --vq-neutral-100: var(--vq-ramp-neutral-100);
-    --vq-neutral-200: var(--vq-ramp-neutral-200);
-    --vq-neutral-300: var(--vq-ramp-neutral-300);
-    --vq-neutral-400: var(--vq-ramp-neutral-400);
-    --vq-neutral-500: var(--vq-ramp-neutral-500);
-    --vq-neutral-600: var(--vq-ramp-neutral-600);
-    --vq-neutral-700: var(--vq-ramp-neutral-700);
-    --vq-neutral-800: var(--vq-ramp-neutral-800);
-    --vq-neutral-900: var(--vq-ramp-neutral-900);
-    --vq-neutral-950: var(--vq-ramp-neutral-950);
-    --vq-brand-50: var(--vq-ramp-brand-50);
-    --vq-brand-100: var(--vq-ramp-brand-100);
-    --vq-brand-200: var(--vq-ramp-brand-200);
-    --vq-brand-300: var(--vq-ramp-brand-300);
-    --vq-brand-400: var(--vq-ramp-brand-400);
-    --vq-brand-500: var(--vq-ramp-brand-500);
-    --vq-brand-600: var(--vq-ramp-brand-600);
-    --vq-brand-700: var(--vq-ramp-brand-700);
-    --vq-brand-800: var(--vq-ramp-brand-800);
-    --vq-brand-900: var(--vq-ramp-brand-900);
-    --vq-brand-950: var(--vq-ramp-brand-950);
-    --vq-accent-50: var(--vq-ramp-accent-50);
-    --vq-accent-100: var(--vq-ramp-accent-100);
-    --vq-accent-200: var(--vq-ramp-accent-200);
-    --vq-accent-300: var(--vq-ramp-accent-300);
-    --vq-accent-400: var(--vq-ramp-accent-400);
-    --vq-accent-500: var(--vq-ramp-accent-500);
-    --vq-accent-600: var(--vq-ramp-accent-600);
-    --vq-accent-700: var(--vq-ramp-accent-700);
-    --vq-accent-800: var(--vq-ramp-accent-800);
-    --vq-accent-900: var(--vq-ramp-accent-900);
-    --vq-accent-950: var(--vq-ramp-accent-950);
-    --vq-info-50: var(--vq-ramp-info-50);
-    --vq-info-100: var(--vq-ramp-info-100);
-    --vq-info-200: var(--vq-ramp-info-200);
-    --vq-info-300: var(--vq-ramp-info-300);
-    --vq-info-400: var(--vq-ramp-info-400);
-    --vq-info-500: var(--vq-ramp-info-500);
-    --vq-info-600: var(--vq-ramp-info-600);
-    --vq-info-700: var(--vq-ramp-info-700);
-    --vq-info-800: var(--vq-ramp-info-800);
-    --vq-info-900: var(--vq-ramp-info-900);
-    --vq-info-950: var(--vq-ramp-info-950);
-    --vq-success-50: var(--vq-ramp-success-50);
-    --vq-success-100: var(--vq-ramp-success-100);
-    --vq-success-200: var(--vq-ramp-success-200);
-    --vq-success-300: var(--vq-ramp-success-300);
-    --vq-success-400: var(--vq-ramp-success-400);
-    --vq-success-500: var(--vq-ramp-success-500);
-    --vq-success-600: var(--vq-ramp-success-600);
-    --vq-success-700: var(--vq-ramp-success-700);
-    --vq-success-800: var(--vq-ramp-success-800);
-    --vq-success-900: var(--vq-ramp-success-900);
-    --vq-success-950: var(--vq-ramp-success-950);
-    --vq-warning-50: var(--vq-ramp-warning-50);
-    --vq-warning-100: var(--vq-ramp-warning-100);
-    --vq-warning-200: var(--vq-ramp-warning-200);
-    --vq-warning-300: var(--vq-ramp-warning-300);
-    --vq-warning-400: var(--vq-ramp-warning-400);
-    --vq-warning-500: var(--vq-ramp-warning-500);
-    --vq-warning-600: var(--vq-ramp-warning-600);
-    --vq-warning-700: var(--vq-ramp-warning-700);
-    --vq-warning-800: var(--vq-ramp-warning-800);
-    --vq-warning-900: var(--vq-ramp-warning-900);
-    --vq-warning-950: var(--vq-ramp-warning-950);
-    --vq-danger-50: var(--vq-ramp-danger-50);
-    --vq-danger-100: var(--vq-ramp-danger-100);
-    --vq-danger-200: var(--vq-ramp-danger-200);
-    --vq-danger-300: var(--vq-ramp-danger-300);
-    --vq-danger-400: var(--vq-ramp-danger-400);
-    --vq-danger-500: var(--vq-ramp-danger-500);
-    --vq-danger-600: var(--vq-ramp-danger-600);
-    --vq-danger-700: var(--vq-ramp-danger-700);
-    --vq-danger-800: var(--vq-ramp-danger-800);
-    --vq-danger-900: var(--vq-ramp-danger-900);
-    --vq-danger-950: var(--vq-ramp-danger-950);
-    --vq-highlight-50: var(--vq-ramp-highlight-50);
-    --vq-highlight-100: var(--vq-ramp-highlight-100);
-    --vq-highlight-200: var(--vq-ramp-highlight-200);
-    --vq-highlight-300: var(--vq-ramp-highlight-300);
-    --vq-highlight-400: var(--vq-ramp-highlight-400);
-    --vq-highlight-500: var(--vq-ramp-highlight-500);
-    --vq-highlight-600: var(--vq-ramp-highlight-600);
-    --vq-highlight-700: var(--vq-ramp-highlight-700);
-    --vq-highlight-800: var(--vq-ramp-highlight-800);
-    --vq-highlight-900: var(--vq-ramp-highlight-900);
-    --vq-highlight-950: var(--vq-ramp-highlight-950);
-
-    /* ═══════════════ SEMANTIC — LIGHT MODE ═══════════════
-       Overridden by the dark blocks further down. */
-    --vq-bg-app: 241 245 249;
-    --vq-bg-sunken: 226 232 240;
-    --vq-bg-surface: 255 255 255;
-    --vq-bg-raised: 248 250 252;
-    --vq-bg-overlay: 255 255 255;
-    --vq-bg-scrim: 15 23 42;
-    --vq-ink: 15 23 42;
-    --vq-ink-secondary: 51 65 85;
-    --vq-ink-muted: 71 85 105;
-    --vq-ink-faint: 148 163 184;
-    --vq-ink-inverted: 255 255 255;
-    --vq-border: 226 232 240;
-    --vq-border-strong: 203 213 225;
-    --vq-border-subtle: 241 245 249;
-    --vq-interactive-hover: 241 245 249;
-    --vq-interactive-active: 226 232 240;
-    --vq-interactive-selected: 238 242 255;
-    --vq-focus-ring: 99 102 241;
-
-    /* ═══════════════ TYPOGRAPHY ═══════════════ */
-    --vq-font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --vq-font-display: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --vq-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --vq-font-numeric: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
-
-    /* type scale */
-    --vq-text-4xs: 0.5rem;
-    --vq-text-3xs: 0.5625rem;
-    --vq-text-2xs: 0.625rem;
-    --vq-text-1xs: 0.6875rem;
-    --vq-text-xs: 0.75rem;
-    --vq-text-xs--line-height: 1rem;
-    --vq-text-sm: 0.875rem;
-    --vq-text-sm--line-height: 1.25rem;
-    --vq-text-base: 1rem;
-    --vq-text-base--line-height: 1.5rem;
-    --vq-text-lg: 1.125rem;
-    --vq-text-lg--line-height: 1.75rem;
-    --vq-text-xl: 1.25rem;
-    --vq-text-xl--line-height: 1.75rem;
-    --vq-text-2xl: 1.5rem;
-    --vq-text-2xl--line-height: 2rem;
-    --vq-text-3xl: 1.875rem;
-    --vq-text-3xl--line-height: 2.25rem;
-    --vq-text-4xl: 2.25rem;
-    --vq-text-4xl--line-height: 2.5rem;
-    --vq-text-5xl: 3rem;
-    --vq-text-5xl--line-height: 1;
-
-    /* weights */
-    --vq-weight-light: 300;
-    --vq-weight-normal: 400;
-    --vq-weight-medium: 500;
-    --vq-weight-semibold: 600;
-    --vq-weight-bold: 700;
-    --vq-weight-extrabold: 800;
-    --vq-weight-black: 900;
-
-    /* line heights */
-    --vq-leading-none: 1;
-    --vq-leading-tight: 1.25;
-    --vq-leading-snug: 1.375;
-    --vq-leading-normal: 1.5;
-    --vq-leading-relaxed: 1.625;
-    --vq-leading-loose: 2;
-
-    /* letter spacing */
-    --vq-tracking-tighter: -0.05em;
-    --vq-tracking-tight: -0.025em;
-    --vq-tracking-normal: 0em;
-    --vq-tracking-wide: 0.025em;
-    --vq-tracking-wider: 0.05em;
-    --vq-tracking-widest: 0.1em;
-
-    /* ═══════════════ SHAPE ═══════════════ */
-    --vq-radius-none: 0px;
-    --vq-radius-xs: 0.0625rem;
-    --vq-radius-sm: 0.125rem;
-    --vq-radius-md: 0.375rem;
-    --vq-radius-lg: 0.5rem;
-    --vq-radius-xl: 0.75rem;
-    --vq-radius-2xl: 1rem;
-    --vq-radius-3xl: 1.5rem;
-    --vq-radius-full: 9999px;
-
-    /* elevation */
-    --vq-shadow-none: none;
-    --vq-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --vq-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --vq-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --vq-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --vq-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --vq-shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    --vq-shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-    --vq-shadow-glow: 0 0 0 1px rgb(99 102 241 / 0.2), 0 10px 40px -10px rgb(99 102 241 / 0.35);
-
-    /* ═══════════════ DENSITY ═══════════════ */
-    --vq-space-1: 0.25rem;
-    --vq-space-2: 0.5rem;
-    --vq-space-3: 0.75rem;
-    --vq-space-4: 1rem;
-    --vq-space-5: 1.25rem;
-    --vq-space-6: 1.5rem;
-    --vq-space-8: 2rem;
-    --vq-space-10: 2.5rem;
-    --vq-space-12: 3rem;
-    --vq-space-16: 4rem;
-    --vq-space-20: 5rem;
-    --vq-space-24: 6rem;
-    --vq-space-0_5: 0.125rem;
-    --vq-space-1_5: 0.375rem;
-
-    /* control sizing */
-    --vq-control-height-sm: 1.75rem;
-    --vq-control-height-md: 2.25rem;
-    --vq-control-height-lg: 2.75rem;
-    --vq-control-padding-x: 0.75rem;
-    --vq-control-gap: 0.5rem;
-
-    /* layout */
-    --vq-layout-gutter: 1rem;
-    --vq-layout-section-gap: 1.5rem;
-    --vq-layout-card-padding: 1rem;
-    --vq-layout-page-max-width: 100%;
-    --vq-layout-sidebar-width: 16rem;
-
-    /* ═══════════════ MOTION ═══════════════ */
-    --vq-duration-instant: 0ms;
-    --vq-duration-fast: 150ms;
-    --vq-duration-normal: 250ms;
-    --vq-duration-slow: 400ms;
-    --vq-duration-slower: 600ms;
-
-    /* easing curves */
-    --vq-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-    --vq-ease-entrance: cubic-bezier(0, 0, 0.2, 1);
-    --vq-ease-exit: cubic-bezier(0.4, 0, 1, 1);
-    --vq-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-
-    /* ═══════════════ GRADIENTS ═══════════════ */
-    --vq-gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #d946ef 100%);
-    --vq-gradient-brand-soft: linear-gradient(135deg, rgb(99 102 241 / 0.16), rgb(139 92 246 / 0.06));
-    --vq-gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --vq-gradient-info: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
-    --vq-gradient-danger: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-    --vq-gradient-aurora: radial-gradient(ellipse at 12% -8%, rgb(99 102 241 / 0.18), transparent 45%), radial-gradient(ellipse at 100% 0%, rgb(139 92 246 / 0.12), transparent 42%);
-    --vq-gradient-hairline-accent: linear-gradient(to right, transparent, #6366f1, transparent);
-}
-
-/* ── Daylight Calm (daylight-calm) ── */
-[data-vq-theme="daylight-calm"] {
-    /* Theme identity — readable from JS via getComputedStyle if ever needed */
-    --vq-theme-id: 'daylight-calm';
-
-    /* ═══════════════ COLOUR RAMPS ═══════════════
-       Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
-       opacity modifiers keep working: bg-indigo-500/30 compiles to
-       rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every
-       /opacity class in the codebase. */
-
-    /* ramp: accent */
-    --vq-ramp-accent-50: 248 247 247;
-    --vq-ramp-accent-100: 241 239 238;
-    --vq-ramp-accent-200: 224 218 215;
-    --vq-ramp-accent-300: 205 194 188;
-    --vq-ramp-accent-400: 183 164 154;
-    --vq-ramp-accent-500: 163 136 122;
-    --vq-ramp-accent-600: 145 115 100;
-    --vq-ramp-accent-700: 120 96 84;
-    --vq-ramp-accent-800: 95 77 68;
-    --vq-ramp-accent-900: 73 61 54;
-    --vq-ramp-accent-950: 44 37 33;
-
-    /* ramp: brand */
-    --vq-ramp-brand-50: 246 247 249;
-    --vq-ramp-brand-100: 236 238 243;
-    --vq-ramp-brand-200: 210 216 228;
-    --vq-ramp-brand-300: 180 191 213;
-    --vq-ramp-brand-400: 141 162 196;
-    --vq-ramp-brand-500: 104 136 181;
-    --vq-ramp-brand-600: 80 117 164;
-    --vq-ramp-brand-700: 68 100 136;
-    --vq-ramp-brand-800: 56 81 107;
-    --vq-ramp-brand-900: 45 65 82;
-    --vq-ramp-brand-950: 28 39 48;
-
-    /* ramp: danger */
-    --vq-ramp-danger-50: 249 246 246;
-    --vq-ramp-danger-100: 243 237 236;
-    --vq-ramp-danger-200: 229 211 210;
-    --vq-ramp-danger-300: 214 182 178;
-    --vq-ramp-danger-400: 199 144 138;
-    --vq-ramp-danger-500: 185 109 101;
-    --vq-ramp-danger-600: 168 85 76;
-    --vq-ramp-danger-700: 139 72 65;
-    --vq-ramp-danger-800: 109 59 54;
-    --vq-ramp-danger-900: 84 47 44;
-    --vq-ramp-danger-950: 49 29 27;
-
-    /* ramp: highlight */
-    --vq-ramp-highlight-50: 248 246 247;
-    --vq-ramp-highlight-100: 242 237 239;
-    --vq-ramp-highlight-200: 226 213 217;
-    --vq-ramp-highlight-300: 209 184 192;
-    --vq-ramp-highlight-400: 189 148 161;
-    --vq-ramp-highlight-500: 172 114 132;
-    --vq-ramp-highlight-600: 154 91 111;
-    --vq-ramp-highlight-700: 127 77 93;
-    --vq-ramp-highlight-800: 101 63 75;
-    --vq-ramp-highlight-900: 78 50 59;
-    --vq-ramp-highlight-950: 46 31 35;
-
-    /* ramp: info */
-    --vq-ramp-info-50: 246 248 249;
-    --vq-ramp-info-100: 237 240 243;
-    --vq-ramp-info-200: 211 221 228;
-    --vq-ramp-info-300: 181 199 212;
-    --vq-ramp-info-400: 142 173 194;
-    --vq-ramp-info-500: 107 149 179;
-    --vq-ramp-info-600: 83 130 162;
-    --vq-ramp-info-700: 70 108 134;
-    --vq-ramp-info-800: 58 86 105;
-    --vq-ramp-info-900: 46 67 81;
-    --vq-ramp-info-950: 29 40 48;
-
-    /* ramp: neutral */
-    --vq-ramp-neutral-50: 250 249 247;
-    --vq-ramp-neutral-100: 244 242 239;
-    --vq-ramp-neutral-200: 221 219 218;
-    --vq-ramp-neutral-300: 199 196 194;
-    --vq-ramp-neutral-400: 172 168 164;
-    --vq-ramp-neutral-500: 148 143 137;
-    --vq-ramp-neutral-600: 128 123 116;
-    --vq-ramp-neutral-700: 107 103 97;
-    --vq-ramp-neutral-800: 85 82 78;
-    --vq-ramp-neutral-900: 41 38 35;
-    --vq-ramp-neutral-950: 26 24 22;
-
-    /* ramp: success */
-    --vq-ramp-success-50: 246 248 247;
-    --vq-ramp-success-100: 237 242 238;
-    --vq-ramp-success-200: 213 226 216;
-    --vq-ramp-success-300: 185 208 189;
-    --vq-ramp-success-400: 149 188 157;
-    --vq-ramp-success-500: 115 170 127;
-    --vq-ramp-success-600: 92 152 105;
-    --vq-ramp-success-700: 78 126 88;
-    --vq-ramp-success-800: 64 100 71;
-    --vq-ramp-success-900: 51 77 56;
-    --vq-ramp-success-950: 31 46 34;
-
-    /* ramp: void */
-    --vq-ramp-void-50: 236 234 231;
-    --vq-ramp-void-100: 214 210 205;
-    --vq-ramp-void-200: 173 167 159;
-    --vq-ramp-void-300: 132 125 115;
-    --vq-ramp-void-400: 92 86 78;
-    --vq-ramp-void-500: 64 59 53;
-    --vq-ramp-void-600: 47 43 38;
-    --vq-ramp-void-700: 36 32 25;
-    --vq-ramp-void-800: 26 23 19;
-    --vq-ramp-void-900: 18 16 13;
-    --vq-ramp-void-950: 10 9 8;
-
-    /* ramp: warning */
-    --vq-ramp-warning-50: 249 248 245;
-    --vq-ramp-warning-100: 244 240 235;
-    --vq-ramp-warning-200: 231 221 207;
-    --vq-ramp-warning-300: 219 200 174;
-    --vq-ramp-warning-400: 205 175 131;
-    --vq-ramp-warning-500: 194 152 91;
-    --vq-ramp-warning-600: 179 132 66;
-    --vq-ramp-warning-700: 147 110 57;
-    --vq-ramp-warning-800: 115 87 48;
-    --vq-ramp-warning-900: 88 68 39;
-    --vq-ramp-warning-950: 52 41 25;
-
-    /* ═══════════════ PALETTE BINDINGS ═══════════════
-       Tailwind colour families pointed at ramps. This is the layer that
-       reskins the ~40,000 pre-existing colour classes without touching a
-       single component. */
-
-    /* slate, gray, zinc, stone, neutral → neutral */
-    --vq-slate-50: var(--vq-ramp-neutral-50);
-    --vq-slate-100: var(--vq-ramp-neutral-100);
-    --vq-slate-200: var(--vq-ramp-neutral-200);
-    --vq-slate-300: var(--vq-ramp-neutral-300);
-    --vq-slate-400: var(--vq-ramp-neutral-400);
-    --vq-slate-500: var(--vq-ramp-neutral-500);
-    --vq-slate-600: var(--vq-ramp-neutral-600);
-    --vq-slate-700: var(--vq-ramp-neutral-700);
-    --vq-slate-800: var(--vq-ramp-neutral-800);
-    --vq-slate-900: var(--vq-ramp-neutral-900);
-    --vq-slate-950: var(--vq-ramp-neutral-950);
-    --vq-gray-50: var(--vq-ramp-neutral-50);
-    --vq-gray-100: var(--vq-ramp-neutral-100);
-    --vq-gray-200: var(--vq-ramp-neutral-200);
-    --vq-gray-300: var(--vq-ramp-neutral-300);
-    --vq-gray-400: var(--vq-ramp-neutral-400);
-    --vq-gray-500: var(--vq-ramp-neutral-500);
-    --vq-gray-600: var(--vq-ramp-neutral-600);
-    --vq-gray-700: var(--vq-ramp-neutral-700);
-    --vq-gray-800: var(--vq-ramp-neutral-800);
-    --vq-gray-900: var(--vq-ramp-neutral-900);
-    --vq-gray-950: var(--vq-ramp-neutral-950);
-    --vq-zinc-50: var(--vq-ramp-neutral-50);
-    --vq-zinc-100: var(--vq-ramp-neutral-100);
-    --vq-zinc-200: var(--vq-ramp-neutral-200);
-    --vq-zinc-300: var(--vq-ramp-neutral-300);
-    --vq-zinc-400: var(--vq-ramp-neutral-400);
-    --vq-zinc-500: var(--vq-ramp-neutral-500);
-    --vq-zinc-600: var(--vq-ramp-neutral-600);
-    --vq-zinc-700: var(--vq-ramp-neutral-700);
-    --vq-zinc-800: var(--vq-ramp-neutral-800);
-    --vq-zinc-900: var(--vq-ramp-neutral-900);
-    --vq-zinc-950: var(--vq-ramp-neutral-950);
-    --vq-stone-50: var(--vq-ramp-neutral-50);
-    --vq-stone-100: var(--vq-ramp-neutral-100);
-    --vq-stone-200: var(--vq-ramp-neutral-200);
-    --vq-stone-300: var(--vq-ramp-neutral-300);
-    --vq-stone-400: var(--vq-ramp-neutral-400);
-    --vq-stone-500: var(--vq-ramp-neutral-500);
-    --vq-stone-600: var(--vq-ramp-neutral-600);
-    --vq-stone-700: var(--vq-ramp-neutral-700);
-    --vq-stone-800: var(--vq-ramp-neutral-800);
-    --vq-stone-900: var(--vq-ramp-neutral-900);
-    --vq-stone-950: var(--vq-ramp-neutral-950);
-    --vq-neutral-50: var(--vq-ramp-neutral-50);
-    --vq-neutral-100: var(--vq-ramp-neutral-100);
-    --vq-neutral-200: var(--vq-ramp-neutral-200);
-    --vq-neutral-300: var(--vq-ramp-neutral-300);
-    --vq-neutral-400: var(--vq-ramp-neutral-400);
-    --vq-neutral-500: var(--vq-ramp-neutral-500);
-    --vq-neutral-600: var(--vq-ramp-neutral-600);
-    --vq-neutral-700: var(--vq-ramp-neutral-700);
-    --vq-neutral-800: var(--vq-ramp-neutral-800);
-    --vq-neutral-900: var(--vq-ramp-neutral-900);
-    --vq-neutral-950: var(--vq-ramp-neutral-950);
-
-    /* indigo → brand */
-    --vq-indigo-50: var(--vq-ramp-brand-50);
-    --vq-indigo-100: var(--vq-ramp-brand-100);
-    --vq-indigo-200: var(--vq-ramp-brand-200);
-    --vq-indigo-300: var(--vq-ramp-brand-300);
-    --vq-indigo-400: var(--vq-ramp-brand-400);
-    --vq-indigo-500: var(--vq-ramp-brand-500);
-    --vq-indigo-600: var(--vq-ramp-brand-600);
-    --vq-indigo-700: var(--vq-ramp-brand-700);
-    --vq-indigo-800: var(--vq-ramp-brand-800);
-    --vq-indigo-900: var(--vq-ramp-brand-900);
-    --vq-indigo-950: var(--vq-ramp-brand-950);
-
-    /* violet, purple, fuchsia → accent */
-    --vq-violet-50: var(--vq-ramp-accent-50);
-    --vq-violet-100: var(--vq-ramp-accent-100);
-    --vq-violet-200: var(--vq-ramp-accent-200);
-    --vq-violet-300: var(--vq-ramp-accent-300);
-    --vq-violet-400: var(--vq-ramp-accent-400);
-    --vq-violet-500: var(--vq-ramp-accent-500);
-    --vq-violet-600: var(--vq-ramp-accent-600);
-    --vq-violet-700: var(--vq-ramp-accent-700);
-    --vq-violet-800: var(--vq-ramp-accent-800);
-    --vq-violet-900: var(--vq-ramp-accent-900);
-    --vq-violet-950: var(--vq-ramp-accent-950);
-    --vq-purple-50: var(--vq-ramp-accent-50);
-    --vq-purple-100: var(--vq-ramp-accent-100);
-    --vq-purple-200: var(--vq-ramp-accent-200);
-    --vq-purple-300: var(--vq-ramp-accent-300);
-    --vq-purple-400: var(--vq-ramp-accent-400);
-    --vq-purple-500: var(--vq-ramp-accent-500);
-    --vq-purple-600: var(--vq-ramp-accent-600);
-    --vq-purple-700: var(--vq-ramp-accent-700);
-    --vq-purple-800: var(--vq-ramp-accent-800);
-    --vq-purple-900: var(--vq-ramp-accent-900);
-    --vq-purple-950: var(--vq-ramp-accent-950);
-    --vq-fuchsia-50: var(--vq-ramp-accent-50);
-    --vq-fuchsia-100: var(--vq-ramp-accent-100);
-    --vq-fuchsia-200: var(--vq-ramp-accent-200);
-    --vq-fuchsia-300: var(--vq-ramp-accent-300);
-    --vq-fuchsia-400: var(--vq-ramp-accent-400);
-    --vq-fuchsia-500: var(--vq-ramp-accent-500);
-    --vq-fuchsia-600: var(--vq-ramp-accent-600);
-    --vq-fuchsia-700: var(--vq-ramp-accent-700);
-    --vq-fuchsia-800: var(--vq-ramp-accent-800);
-    --vq-fuchsia-900: var(--vq-ramp-accent-900);
-    --vq-fuchsia-950: var(--vq-ramp-accent-950);
-
-    /* blue, sky, cyan, teal → info */
-    --vq-blue-50: var(--vq-ramp-info-50);
-    --vq-blue-100: var(--vq-ramp-info-100);
-    --vq-blue-200: var(--vq-ramp-info-200);
-    --vq-blue-300: var(--vq-ramp-info-300);
-    --vq-blue-400: var(--vq-ramp-info-400);
-    --vq-blue-500: var(--vq-ramp-info-500);
-    --vq-blue-600: var(--vq-ramp-info-600);
-    --vq-blue-700: var(--vq-ramp-info-700);
-    --vq-blue-800: var(--vq-ramp-info-800);
-    --vq-blue-900: var(--vq-ramp-info-900);
-    --vq-blue-950: var(--vq-ramp-info-950);
-    --vq-sky-50: var(--vq-ramp-info-50);
-    --vq-sky-100: var(--vq-ramp-info-100);
-    --vq-sky-200: var(--vq-ramp-info-200);
-    --vq-sky-300: var(--vq-ramp-info-300);
-    --vq-sky-400: var(--vq-ramp-info-400);
-    --vq-sky-500: var(--vq-ramp-info-500);
-    --vq-sky-600: var(--vq-ramp-info-600);
-    --vq-sky-700: var(--vq-ramp-info-700);
-    --vq-sky-800: var(--vq-ramp-info-800);
-    --vq-sky-900: var(--vq-ramp-info-900);
-    --vq-sky-950: var(--vq-ramp-info-950);
-    --vq-cyan-50: var(--vq-ramp-info-50);
-    --vq-cyan-100: var(--vq-ramp-info-100);
-    --vq-cyan-200: var(--vq-ramp-info-200);
-    --vq-cyan-300: var(--vq-ramp-info-300);
-    --vq-cyan-400: var(--vq-ramp-info-400);
-    --vq-cyan-500: var(--vq-ramp-info-500);
-    --vq-cyan-600: var(--vq-ramp-info-600);
-    --vq-cyan-700: var(--vq-ramp-info-700);
-    --vq-cyan-800: var(--vq-ramp-info-800);
-    --vq-cyan-900: var(--vq-ramp-info-900);
-    --vq-cyan-950: var(--vq-ramp-info-950);
-    --vq-teal-50: var(--vq-ramp-info-50);
-    --vq-teal-100: var(--vq-ramp-info-100);
-    --vq-teal-200: var(--vq-ramp-info-200);
-    --vq-teal-300: var(--vq-ramp-info-300);
-    --vq-teal-400: var(--vq-ramp-info-400);
-    --vq-teal-500: var(--vq-ramp-info-500);
-    --vq-teal-600: var(--vq-ramp-info-600);
-    --vq-teal-700: var(--vq-ramp-info-700);
-    --vq-teal-800: var(--vq-ramp-info-800);
-    --vq-teal-900: var(--vq-ramp-info-900);
-    --vq-teal-950: var(--vq-ramp-info-950);
-
-    /* emerald, green, lime → success */
+    /* emerald, green → success */
     --vq-emerald-50: var(--vq-ramp-success-50);
     --vq-emerald-100: var(--vq-ramp-success-100);
     --vq-emerald-200: var(--vq-ramp-success-200);
@@ -2217,19 +427,21 @@
     --vq-green-800: var(--vq-ramp-success-800);
     --vq-green-900: var(--vq-ramp-success-900);
     --vq-green-950: var(--vq-ramp-success-950);
-    --vq-lime-50: var(--vq-ramp-success-50);
-    --vq-lime-100: var(--vq-ramp-success-100);
-    --vq-lime-200: var(--vq-ramp-success-200);
-    --vq-lime-300: var(--vq-ramp-success-300);
-    --vq-lime-400: var(--vq-ramp-success-400);
-    --vq-lime-500: var(--vq-ramp-success-500);
-    --vq-lime-600: var(--vq-ramp-success-600);
-    --vq-lime-700: var(--vq-ramp-success-700);
-    --vq-lime-800: var(--vq-ramp-success-800);
-    --vq-lime-900: var(--vq-ramp-success-900);
-    --vq-lime-950: var(--vq-ramp-success-950);
 
-    /* yellow, amber, orange → warning */
+    /* lime → lime */
+    --vq-lime-50: var(--vq-ramp-lime-50);
+    --vq-lime-100: var(--vq-ramp-lime-100);
+    --vq-lime-200: var(--vq-ramp-lime-200);
+    --vq-lime-300: var(--vq-ramp-lime-300);
+    --vq-lime-400: var(--vq-ramp-lime-400);
+    --vq-lime-500: var(--vq-ramp-lime-500);
+    --vq-lime-600: var(--vq-ramp-lime-600);
+    --vq-lime-700: var(--vq-ramp-lime-700);
+    --vq-lime-800: var(--vq-ramp-lime-800);
+    --vq-lime-900: var(--vq-ramp-lime-900);
+    --vq-lime-950: var(--vq-ramp-lime-950);
+
+    /* yellow, amber → warning */
     --vq-yellow-50: var(--vq-ramp-warning-50);
     --vq-yellow-100: var(--vq-ramp-warning-100);
     --vq-yellow-200: var(--vq-ramp-warning-200);
@@ -2252,19 +464,21 @@
     --vq-amber-800: var(--vq-ramp-warning-800);
     --vq-amber-900: var(--vq-ramp-warning-900);
     --vq-amber-950: var(--vq-ramp-warning-950);
-    --vq-orange-50: var(--vq-ramp-warning-50);
-    --vq-orange-100: var(--vq-ramp-warning-100);
-    --vq-orange-200: var(--vq-ramp-warning-200);
-    --vq-orange-300: var(--vq-ramp-warning-300);
-    --vq-orange-400: var(--vq-ramp-warning-400);
-    --vq-orange-500: var(--vq-ramp-warning-500);
-    --vq-orange-600: var(--vq-ramp-warning-600);
-    --vq-orange-700: var(--vq-ramp-warning-700);
-    --vq-orange-800: var(--vq-ramp-warning-800);
-    --vq-orange-900: var(--vq-ramp-warning-900);
-    --vq-orange-950: var(--vq-ramp-warning-950);
 
-    /* red → danger */
+    /* orange → coral */
+    --vq-orange-50: var(--vq-ramp-coral-50);
+    --vq-orange-100: var(--vq-ramp-coral-100);
+    --vq-orange-200: var(--vq-ramp-coral-200);
+    --vq-orange-300: var(--vq-ramp-coral-300);
+    --vq-orange-400: var(--vq-ramp-coral-400);
+    --vq-orange-500: var(--vq-ramp-coral-500);
+    --vq-orange-600: var(--vq-ramp-coral-600);
+    --vq-orange-700: var(--vq-ramp-coral-700);
+    --vq-orange-800: var(--vq-ramp-coral-800);
+    --vq-orange-900: var(--vq-ramp-coral-900);
+    --vq-orange-950: var(--vq-ramp-coral-950);
+
+    /* red, rose → danger */
     --vq-red-50: var(--vq-ramp-danger-50);
     --vq-red-100: var(--vq-ramp-danger-100);
     --vq-red-200: var(--vq-ramp-danger-200);
@@ -2276,30 +490,17 @@
     --vq-red-800: var(--vq-ramp-danger-800);
     --vq-red-900: var(--vq-ramp-danger-900);
     --vq-red-950: var(--vq-ramp-danger-950);
-
-    /* rose, pink → highlight */
-    --vq-rose-50: var(--vq-ramp-highlight-50);
-    --vq-rose-100: var(--vq-ramp-highlight-100);
-    --vq-rose-200: var(--vq-ramp-highlight-200);
-    --vq-rose-300: var(--vq-ramp-highlight-300);
-    --vq-rose-400: var(--vq-ramp-highlight-400);
-    --vq-rose-500: var(--vq-ramp-highlight-500);
-    --vq-rose-600: var(--vq-ramp-highlight-600);
-    --vq-rose-700: var(--vq-ramp-highlight-700);
-    --vq-rose-800: var(--vq-ramp-highlight-800);
-    --vq-rose-900: var(--vq-ramp-highlight-900);
-    --vq-rose-950: var(--vq-ramp-highlight-950);
-    --vq-pink-50: var(--vq-ramp-highlight-50);
-    --vq-pink-100: var(--vq-ramp-highlight-100);
-    --vq-pink-200: var(--vq-ramp-highlight-200);
-    --vq-pink-300: var(--vq-ramp-highlight-300);
-    --vq-pink-400: var(--vq-ramp-highlight-400);
-    --vq-pink-500: var(--vq-ramp-highlight-500);
-    --vq-pink-600: var(--vq-ramp-highlight-600);
-    --vq-pink-700: var(--vq-ramp-highlight-700);
-    --vq-pink-800: var(--vq-ramp-highlight-800);
-    --vq-pink-900: var(--vq-ramp-highlight-900);
-    --vq-pink-950: var(--vq-ramp-highlight-950);
+    --vq-rose-50: var(--vq-ramp-danger-50);
+    --vq-rose-100: var(--vq-ramp-danger-100);
+    --vq-rose-200: var(--vq-ramp-danger-200);
+    --vq-rose-300: var(--vq-ramp-danger-300);
+    --vq-rose-400: var(--vq-ramp-danger-400);
+    --vq-rose-500: var(--vq-ramp-danger-500);
+    --vq-rose-600: var(--vq-ramp-danger-600);
+    --vq-rose-700: var(--vq-ramp-danger-700);
+    --vq-rose-800: var(--vq-ramp-danger-800);
+    --vq-rose-900: var(--vq-ramp-danger-900);
+    --vq-rose-950: var(--vq-ramp-danger-950);
 
     /* void → void */
     --vq-void-50: var(--vq-ramp-void-50);
@@ -2406,157 +607,901 @@
 
     /* ═══════════════ SEMANTIC — LIGHT MODE ═══════════════
        Overridden by the dark blocks further down. */
-    --vq-bg-app: 244 242 239;
-    --vq-bg-sunken: 235 232 228;
+    --vq-bg-app: 241 245 242;
+    --vq-bg-sunken: 230 236 232;
     --vq-bg-surface: 255 255 255;
-    --vq-bg-raised: 250 249 247;
+    --vq-bg-raised: 248 250 248;
     --vq-bg-overlay: 255 255 255;
-    --vq-bg-scrim: 41 38 35;
-    --vq-ink: 41 38 35;
-    --vq-ink-secondary: 74 69 63;
-    --vq-ink-muted: 107 101 93;
-    --vq-ink-faint: 154 147 138;
+    --vq-bg-scrim: 158 161 160;
+    --vq-ink: 23 32 27;
+    --vq-ink-secondary: 83 97 89;
+    --vq-ink-muted: 98 113 105;
+    --vq-ink-faint: 127 142 135;
     --vq-ink-inverted: 255 255 255;
-    --vq-border: 227 223 218;
-    --vq-border-strong: 203 197 189;
-    --vq-border-subtle: 240 237 234;
-    --vq-interactive-hover: 244 242 239;
-    --vq-interactive-active: 235 232 228;
-    --vq-interactive-selected: 234 240 247;
-    --vq-focus-ring: 74 111 165;
+    --vq-border: 211 220 215;
+    --vq-border-strong: 180 192 186;
+    --vq-border-subtle: 230 236 232;
+    --vq-interactive-hover: 241 245 242;
+    --vq-interactive-active: 230 236 232;
+    --vq-interactive-selected: 230 251 245;
+    --vq-focus-ring: 35 196 166;
 
     /* ═══════════════ TYPOGRAPHY ═══════════════ */
-    --vq-font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --vq-font-display: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --vq-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --vq-font-numeric: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    --vq-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --vq-font-display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+    --vq-font-mono: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+    --vq-font-numeric: "Space Grotesk", ui-monospace, "SF Mono", monospace;
 
     /* type scale */
-    --vq-text-4xs: 0.6875rem;
-    --vq-text-4xs--line-height: 1rem;
-    --vq-text-3xs: 0.6875rem;
-    --vq-text-3xs--line-height: 1rem;
-    --vq-text-2xs: 0.75rem;
-    --vq-text-2xs--line-height: 1.125rem;
-    --vq-text-1xs: 0.8125rem;
-    --vq-text-1xs--line-height: 1.25rem;
-    --vq-text-xs: 0.8125rem;
-    --vq-text-xs--line-height: 1.25rem;
-    --vq-text-sm: 0.9375rem;
+    --vq-text-4xs: 0.5rem;
+    --vq-text-3xs: 0.5625rem;
+    --vq-text-2xs: 0.625rem;
+    --vq-text-1xs: 0.6875rem;
+    --vq-text-xs: 0.75rem;
+    --vq-text-xs--line-height: 1rem;
+    --vq-text-sm: 0.875rem;
     --vq-text-sm--line-height: 1.5rem;
-    --vq-text-base: 1rem;
-    --vq-text-base--line-height: 1.625rem;
-    --vq-text-lg: 1.1875rem;
-    --vq-text-lg--line-height: 1.875rem;
-    --vq-text-xl: 1.375rem;
-    --vq-text-xl--line-height: 2rem;
-    --vq-text-2xl: 1.625rem;
-    --vq-text-2xl--line-height: 2.25rem;
-    --vq-text-3xl: 2rem;
-    --vq-text-3xl--line-height: 2.5rem;
-    --vq-text-4xl: 2.5rem;
-    --vq-text-4xl--line-height: 3rem;
-    --vq-text-5xl: 3.25rem;
-    --vq-text-5xl--line-height: 1.1;
+    --vq-text-base: 16px;
+    --vq-text-base--line-height: 1.6;
+    --vq-text-lg: 1.125rem;
+    --vq-text-lg--line-height: 1.75rem;
+    --vq-text-xl: 21px;
+    --vq-text-xl--line-height: 1.30;
+    --vq-text-2xl: 1.5rem;
+    --vq-text-2xl--line-height: 1.25;
+    --vq-text-3xl: 30px;
+    --vq-text-3xl--line-height: 1.16;
+    --vq-text-4xl: 38px;
+    --vq-text-4xl--line-height: 1.0;
+    --vq-text-5xl: 40px;
+    --vq-text-5xl--line-height: 1.08;
 
     /* weights */
     --vq-weight-light: 300;
     --vq-weight-normal: 400;
     --vq-weight-medium: 500;
     --vq-weight-semibold: 600;
-    --vq-weight-bold: 600;
+    --vq-weight-bold: 700;
     --vq-weight-extrabold: 700;
     --vq-weight-black: 700;
 
     /* line heights */
-    --vq-leading-none: 1.1;
-    --vq-leading-tight: 1.3;
-    --vq-leading-snug: 1.45;
+    --vq-leading-none: 1;
+    --vq-leading-tight: 1.08;
+    --vq-leading-snug: 1.30;
     --vq-leading-normal: 1.6;
-    --vq-leading-relaxed: 1.75;
-    --vq-leading-loose: 2.1;
+    --vq-leading-relaxed: 1.55;
+    --vq-leading-loose: 2;
 
     /* letter spacing */
-    --vq-tracking-tighter: -0.03em;
-    --vq-tracking-tight: -0.015em;
+    --vq-tracking-tighter: -0.032em;
+    --vq-tracking-tight: -0.024em;
     --vq-tracking-normal: 0em;
-    --vq-tracking-wide: 0.015em;
-    --vq-tracking-wider: 0.025em;
-    --vq-tracking-widest: 0.05em;
+    --vq-tracking-wide: 0.025em;
+    --vq-tracking-wider: 0.05em;
+    --vq-tracking-widest: 0.12em;
 
     /* ═══════════════ SHAPE ═══════════════ */
     --vq-radius-none: 0px;
-    --vq-radius-xs: 0.125rem;
-    --vq-radius-sm: 0.25rem;
-    --vq-radius-md: 0.5rem;
-    --vq-radius-lg: 0.6875rem;
-    --vq-radius-xl: 0.9375rem;
-    --vq-radius-2xl: 1.25rem;
-    --vq-radius-3xl: 1.75rem;
-    --vq-radius-full: 9999px;
+    --vq-radius-xs: 8px;
+    --vq-radius-sm: 12px;
+    --vq-radius-md: 14px;
+    --vq-radius-lg: 20px;
+    --vq-radius-xl: 28px;
+    --vq-radius-2xl: 36px;
+    --vq-radius-3xl: 36px;
+    --vq-radius-full: 999px;
 
     /* elevation */
     --vq-shadow-none: none;
-    --vq-shadow-xs: 0 1px 2px 0 rgb(41 38 35 / 0.04);
-    --vq-shadow-sm: 0 1px 3px 0 rgb(41 38 35 / 0.06), 0 1px 2px -1px rgb(41 38 35 / 0.04);
-    --vq-shadow-md: 0 4px 10px -2px rgb(41 38 35 / 0.07), 0 2px 4px -2px rgb(41 38 35 / 0.05);
-    --vq-shadow-lg: 0 12px 24px -6px rgb(41 38 35 / 0.09), 0 4px 8px -4px rgb(41 38 35 / 0.05);
-    --vq-shadow-xl: 0 24px 40px -10px rgb(41 38 35 / 0.11), 0 8px 16px -8px rgb(41 38 35 / 0.06);
-    --vq-shadow-2xl: 0 32px 64px -16px rgb(41 38 35 / 0.16);
-    --vq-shadow-inner: inset 0 1px 3px 0 rgb(41 38 35 / 0.05);
-    --vq-shadow-glow: 0 0 0 1px rgb(74 111 165 / 0.16), 0 8px 28px -8px rgb(74 111 165 / 0.18);
+    --vq-shadow-xs: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-sm: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-md: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-lg: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-2xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-inner: inset 0 1px 0 rgb(255 255 255 / .55);
+    --vq-shadow-glow: 0 6px 20px -6px rgb(11 170 143 / .55);
 
     /* ═══════════════ DENSITY ═══════════════ */
-    --vq-space-1: 0.3125rem;
-    --vq-space-2: 0.625rem;
-    --vq-space-3: 0.9375rem;
-    --vq-space-4: 1.25rem;
-    --vq-space-5: 1.5rem;
-    --vq-space-6: 1.875rem;
-    --vq-space-8: 2.5rem;
-    --vq-space-10: 3.125rem;
-    --vq-space-12: 3.75rem;
-    --vq-space-16: 5rem;
-    --vq-space-20: 6.25rem;
-    --vq-space-24: 7.5rem;
-    --vq-space-0_5: 0.1875rem;
-    --vq-space-1_5: 0.4375rem;
+    --vq-space-1: 4px;
+    --vq-space-2: 8px;
+    --vq-space-3: 12px;
+    --vq-space-4: 16px;
+    --vq-space-5: 20px;
+    --vq-space-6: 24px;
+    --vq-space-8: 32px;
+    --vq-space-10: 40px;
+    --vq-space-12: 48px;
+    --vq-space-16: 64px;
+    --vq-space-20: 80px;
+    --vq-space-24: 96px;
+    --vq-space-0_5: 0.125rem;
+    --vq-space-1_5: 0.375rem;
 
     /* control sizing */
-    --vq-control-height-sm: 2rem;
-    --vq-control-height-md: 2.625rem;
-    --vq-control-height-lg: 3.125rem;
-    --vq-control-padding-x: 1rem;
-    --vq-control-gap: 0.75rem;
+    --vq-control-height-sm: 34px;
+    --vq-control-height-md: 42px;
+    --vq-control-height-lg: 48px;
+    --vq-control-padding-x: 20px;
+    --vq-control-gap: 8px;
 
     /* layout */
-    --vq-layout-gutter: 1.5rem;
-    --vq-layout-section-gap: 2.5rem;
-    --vq-layout-card-padding: 1.5rem;
-    --vq-layout-page-max-width: 1600px;
-    --vq-layout-sidebar-width: 17.5rem;
+    --vq-layout-gutter: 24px;
+    --vq-layout-section-gap: 32px;
+    --vq-layout-card-padding: 20px;
+    --vq-layout-page-max-width: 1240px;
+    --vq-layout-sidebar-width: 264px;
 
     /* ═══════════════ MOTION ═══════════════ */
     --vq-duration-instant: 0ms;
-    --vq-duration-fast: 180ms;
-    --vq-duration-normal: 280ms;
-    --vq-duration-slow: 450ms;
-    --vq-duration-slower: 700ms;
+    --vq-duration-fast: 120ms;
+    --vq-duration-normal: 200ms;
+    --vq-duration-slow: 320ms;
+    --vq-duration-slower: 520ms;
 
     /* easing curves */
-    --vq-ease-standard: cubic-bezier(0.32, 0.08, 0.24, 1);
-    --vq-ease-entrance: cubic-bezier(0.16, 0.84, 0.28, 1);
-    --vq-ease-exit: cubic-bezier(0.5, 0, 0.84, 0.16);
-    --vq-ease-spring: cubic-bezier(0.22, 1.1, 0.36, 1);
+    --vq-ease-standard: cubic-bezier(.22, 1, .36, 1);
+    --vq-ease-entrance: cubic-bezier(.32, 1.28, .5, 1);
+    --vq-ease-exit: cubic-bezier(.65, 0, .35, 1);
+    --vq-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
 
     /* ═══════════════ GRADIENTS ═══════════════ */
-    --vq-gradient-brand: linear-gradient(135deg, #4a6fa5 0%, #5a7fb0 100%);
-    --vq-gradient-brand-soft: linear-gradient(135deg, rgb(74 111 165 / 0.10), rgb(74 111 165 / 0.02));
-    --vq-gradient-success: linear-gradient(135deg, #4f8a5b 0%, #427049 100%);
-    --vq-gradient-info: linear-gradient(135deg, #4a7b9d 0%, #4a6fa5 100%);
-    --vq-gradient-danger: linear-gradient(135deg, #b4544a 0%, #a04a52 100%);
-    --vq-gradient-aurora: radial-gradient(ellipse at 15% -10%, rgb(74 111 165 / 0.07), transparent 50%), radial-gradient(ellipse at 95% 0%, rgb(156 123 106 / 0.05), transparent 45%);
-    --vq-gradient-hairline-accent: linear-gradient(to right, transparent, rgb(74 111 165 / 0.5), transparent);
+    --vq-gradient-brand: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%);
+    --vq-gradient-brand-soft: linear-gradient(135deg, #C6F5E9, #E6FBF5);
+    --vq-gradient-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%);
+    --vq-gradient-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-aurora: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%);
+    --vq-gradient-success: linear-gradient(135deg, #0BAA8F 0%, #076B5E 100%);
+    --vq-gradient-info: linear-gradient(135deg, #55C4EC 0%, #1B7096 100%);
+    --vq-gradient-danger: linear-gradient(135deg, #FF8A6B 0%, #B94526 100%);
+    --vq-gradient-hairline-accent: linear-gradient(to right, transparent, #0BAA8F, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME LIBRARY — LIGHT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── VenQore V6 (venqore-v6) ── */
+[data-vq-theme="venqore-v6"] {
+    /* Theme identity — readable from JS via getComputedStyle if ever needed */
+    --vq-theme-id: 'venqore-v6';
+
+    /* ═══════════════ COLOUR RAMPS ═══════════════
+       Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
+       opacity modifiers keep working: bg-indigo-500/30 compiles to
+       rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every
+       /opacity class in the codebase. */
+
+    /* ramp: accent */
+    --vq-ramp-accent-50: 230 251 245;
+    --vq-ramp-accent-100: 198 245 233;
+    --vq-ramp-accent-200: 147 235 214;
+    --vq-ramp-accent-300: 89 219 192;
+    --vq-ramp-accent-400: 35 196 166;
+    --vq-ramp-accent-500: 11 170 143;
+    --vq-ramp-accent-600: 8 137 117;
+    --vq-ramp-accent-700: 7 107 94;
+    --vq-ramp-accent-800: 10 80 73;
+    --vq-ramp-accent-900: 11 58 53;
+    --vq-ramp-accent-950: 6 36 33;
+
+    /* ramp: brand */
+    --vq-ramp-brand-50: 230 251 245;
+    --vq-ramp-brand-100: 198 245 233;
+    --vq-ramp-brand-200: 147 235 214;
+    --vq-ramp-brand-300: 89 219 192;
+    --vq-ramp-brand-400: 35 196 166;
+    --vq-ramp-brand-500: 11 170 143;
+    --vq-ramp-brand-600: 8 137 117;
+    --vq-ramp-brand-700: 7 107 94;
+    --vq-ramp-brand-800: 10 80 73;
+    --vq-ramp-brand-900: 11 58 53;
+    --vq-ramp-brand-950: 6 36 33;
+
+    /* ramp: butter */
+    --vq-ramp-butter-50: 251 249 244;
+    --vq-ramp-butter-100: 255 243 214;
+    --vq-ramp-butter-200: 243 227 196;
+    --vq-ramp-butter-300: 255 221 142;
+    --vq-ramp-butter-400: 255 205 91;
+    --vq-ramp-butter-500: 245 179 46;
+    --vq-ramp-butter-600: 234 160 11;
+    --vq-ramp-butter-700: 166 116 10;
+    --vq-ramp-butter-800: 148 104 15;
+    --vq-ramp-butter-900: 112 80 15;
+    --vq-ramp-butter-950: 65 47 11;
+
+    /* ramp: coral */
+    --vq-ramp-coral-50: 251 245 244;
+    --vq-ramp-coral-100: 255 232 225;
+    --vq-ramp-coral-200: 242 206 197;
+    --vq-ramp-coral-300: 255 174 150;
+    --vq-ramp-coral-400: 255 138 107;
+    --vq-ramp-coral-500: 242 106 71;
+    --vq-ramp-coral-600: 229 60 16;
+    --vq-ramp-coral-700: 185 69 38;
+    --vq-ramp-coral-800: 145 44 18;
+    --vq-ramp-coral-900: 110 36 17;
+    --vq-ramp-coral-950: 64 23 12;
+
+    /* ramp: danger */
+    --vq-ramp-danger-50: 250 245 245;
+    --vq-ramp-danger-100: 253 234 231;
+    --vq-ramp-danger-200: 243 183 175;
+    --vq-ramp-danger-300: 222 174 170;
+    --vq-ramp-danger-400: 212 131 124;
+    --vq-ramp-danger-500: 204 91 82;
+    --vq-ramp-danger-600: 196 68 58;
+    --vq-ramp-danger-700: 155 57 49;
+    --vq-ramp-danger-800: 122 47 42;
+    --vq-ramp-danger-900: 93 39 35;
+    --vq-ramp-danger-950: 54 24 22;
+
+    /* ramp: highlight */
+    --vq-ramp-highlight-50: 251 245 244;
+    --vq-ramp-highlight-100: 255 232 225;
+    --vq-ramp-highlight-200: 242 206 197;
+    --vq-ramp-highlight-300: 255 174 150;
+    --vq-ramp-highlight-400: 255 138 107;
+    --vq-ramp-highlight-500: 242 106 71;
+    --vq-ramp-highlight-600: 229 60 16;
+    --vq-ramp-highlight-700: 185 69 38;
+    --vq-ramp-highlight-800: 145 44 18;
+    --vq-ramp-highlight-900: 110 36 17;
+    --vq-ramp-highlight-950: 64 23 12;
+
+    /* ramp: info */
+    --vq-ramp-info-50: 244 248 250;
+    --vq-ramp-info-100: 221 242 251;
+    --vq-ramp-info-200: 168 220 240;
+    --vq-ramp-info-300: 163 209 230;
+    --vq-ramp-info-400: 112 190 224;
+    --vq-ramp-info-500: 65 173 221;
+    --vq-ramp-info-600: 27 112 150;
+    --vq-ramp-info-700: 34 128 170;
+    --vq-ramp-info-800: 31 101 133;
+    --vq-ramp-info-900: 27 78 101;
+    --vq-ramp-info-950: 18 46 59;
+
+    /* ramp: ink */
+    --vq-ramp-ink-50: 241 245 242;
+    --vq-ramp-ink-100: 230 236 232;
+    --vq-ramp-ink-200: 211 220 215;
+    --vq-ramp-ink-300: 180 192 186;
+    --vq-ramp-ink-400: 127 142 135;
+    --vq-ramp-ink-500: 98 113 105;
+    --vq-ramp-ink-600: 83 97 89;
+    --vq-ramp-ink-700: 60 72 65;
+    --vq-ramp-ink-800: 41 51 45;
+    --vq-ramp-ink-900: 23 32 27;
+    --vq-ramp-ink-950: 13 20 18;
+
+    /* ramp: lime */
+    --vq-ramp-lime-50: 248 250 245;
+    --vq-ramp-lime-100: 238 249 215;
+    --vq-ramp-lime-200: 223 236 203;
+    --vq-ramp-lime-300: 200 238 126;
+    --vq-ramp-lime-400: 169 227 75;
+    --vq-ramp-lime-500: 140 203 46;
+    --vq-ramp-lime-600: 138 200 45;
+    --vq-ramp-lime-700: 94 140 21;
+    --vq-ramp-lime-800: 91 128 35;
+    --vq-ramp-lime-900: 70 98 30;
+    --vq-ramp-lime-950: 42 57 19;
+
+    /* ramp: neutral */
+    --vq-ramp-neutral-50: 241 245 242;
+    --vq-ramp-neutral-100: 230 236 232;
+    --vq-ramp-neutral-200: 211 220 215;
+    --vq-ramp-neutral-300: 180 192 186;
+    --vq-ramp-neutral-400: 127 142 135;
+    --vq-ramp-neutral-500: 98 113 105;
+    --vq-ramp-neutral-600: 83 97 89;
+    --vq-ramp-neutral-700: 60 72 65;
+    --vq-ramp-neutral-800: 41 51 45;
+    --vq-ramp-neutral-900: 23 32 27;
+    --vq-ramp-neutral-950: 13 20 18;
+
+    /* ramp: plum */
+    --vq-ramp-plum-50: 249 246 248;
+    --vq-ramp-plum-100: 243 237 242;
+    --vq-ramp-plum-200: 228 211 226;
+    --vq-ramp-plum-300: 224 180 224;
+    --vq-ramp-plum-400: 201 139 201;
+    --vq-ramp-plum-500: 178 102 168;
+    --vq-ramp-plum-600: 163 82 152;
+    --vq-ramp-plum-700: 126 62 118;
+    --vq-ramp-plum-800: 106 57 99;
+    --vq-ramp-plum-900: 81 46 77;
+    --vq-ramp-plum-950: 48 28 46;
+
+    /* ramp: sky */
+    --vq-ramp-sky-50: 245 249 250;
+    --vq-ramp-sky-100: 221 242 251;
+    --vq-ramp-sky-200: 202 227 236;
+    --vq-ramp-sky-300: 143 217 245;
+    --vq-ramp-sky-400: 85 196 236;
+    --vq-ramp-sky-500: 43 165 209;
+    --vq-ramp-sky-600: 42 160 203;
+    --vq-ramp-sky-700: 27 112 150;
+    --vq-ramp-sky-800: 33 104 130;
+    --vq-ramp-sky-900: 28 80 99;
+    --vq-ramp-sky-950: 19 47 58;
+
+    /* ramp: success */
+    --vq-ramp-success-50: 244 251 248;
+    --vq-ramp-success-100: 228 246 236;
+    --vq-ramp-success-200: 169 224 196;
+    --vq-ramp-success-300: 160 233 207;
+    --vq-ramp-success-400: 107 230 186;
+    --vq-ramp-success-500: 57 228 167;
+    --vq-ramp-success-600: 18 133 92;
+    --vq-ramp-success-700: 27 177 123;
+    --vq-ramp-success-800: 26 138 98;
+    --vq-ramp-success-900: 23 105 75;
+    --vq-ramp-success-950: 16 61 45;
+
+    /* ramp: teal */
+    --vq-ramp-teal-50: 230 251 245;
+    --vq-ramp-teal-100: 198 245 233;
+    --vq-ramp-teal-200: 147 235 214;
+    --vq-ramp-teal-300: 89 219 192;
+    --vq-ramp-teal-400: 35 196 166;
+    --vq-ramp-teal-500: 11 170 143;
+    --vq-ramp-teal-600: 8 137 117;
+    --vq-ramp-teal-700: 7 107 94;
+    --vq-ramp-teal-800: 10 80 73;
+    --vq-ramp-teal-900: 11 58 53;
+    --vq-ramp-teal-950: 6 36 33;
+
+    /* ramp: void */
+    --vq-ramp-void-50: 246 248 248;
+    --vq-ramp-void-100: 237 242 241;
+    --vq-ramp-void-200: 213 226 222;
+    --vq-ramp-void-300: 184 208 202;
+    --vq-ramp-void-400: 148 189 177;
+    --vq-ramp-void-500: 114 171 155;
+    --vq-ramp-void-600: 91 153 136;
+    --vq-ramp-void-700: 77 127 113;
+    --vq-ramp-void-800: 63 100 90;
+    --vq-ramp-void-900: 13 20 18;
+    --vq-ramp-void-950: 6 10 9;
+
+    /* ramp: warning */
+    --vq-ramp-warning-50: 251 248 244;
+    --vq-ramp-warning-100: 255 243 214;
+    --vq-ramp-warning-200: 242 208 138;
+    --vq-ramp-warning-300: 239 206 154;
+    --vq-ramp-warning-400: 240 184 97;
+    --vq-ramp-warning-500: 242 164 43;
+    --vq-ramp-warning-600: 166 105 10;
+    --vq-ramp-warning-700: 189 121 15;
+    --vq-ramp-warning-800: 147 96 17;
+    --vq-ramp-warning-900: 111 74 16;
+    --vq-ramp-warning-950: 65 44 12;
+
+    /* ═══════════════ PALETTE BINDINGS ═══════════════
+       Tailwind colour families pointed at ramps. This is the layer that
+       reskins the ~40,000 pre-existing colour classes without touching a
+       single component. */
+
+    /* slate, gray, zinc, stone, neutral → ink */
+    --vq-slate-50: var(--vq-ramp-ink-50);
+    --vq-slate-100: var(--vq-ramp-ink-100);
+    --vq-slate-200: var(--vq-ramp-ink-200);
+    --vq-slate-300: var(--vq-ramp-ink-300);
+    --vq-slate-400: var(--vq-ramp-ink-400);
+    --vq-slate-500: var(--vq-ramp-ink-500);
+    --vq-slate-600: var(--vq-ramp-ink-600);
+    --vq-slate-700: var(--vq-ramp-ink-700);
+    --vq-slate-800: var(--vq-ramp-ink-800);
+    --vq-slate-900: var(--vq-ramp-ink-900);
+    --vq-slate-950: var(--vq-ramp-ink-950);
+    --vq-gray-50: var(--vq-ramp-ink-50);
+    --vq-gray-100: var(--vq-ramp-ink-100);
+    --vq-gray-200: var(--vq-ramp-ink-200);
+    --vq-gray-300: var(--vq-ramp-ink-300);
+    --vq-gray-400: var(--vq-ramp-ink-400);
+    --vq-gray-500: var(--vq-ramp-ink-500);
+    --vq-gray-600: var(--vq-ramp-ink-600);
+    --vq-gray-700: var(--vq-ramp-ink-700);
+    --vq-gray-800: var(--vq-ramp-ink-800);
+    --vq-gray-900: var(--vq-ramp-ink-900);
+    --vq-gray-950: var(--vq-ramp-ink-950);
+    --vq-zinc-50: var(--vq-ramp-ink-50);
+    --vq-zinc-100: var(--vq-ramp-ink-100);
+    --vq-zinc-200: var(--vq-ramp-ink-200);
+    --vq-zinc-300: var(--vq-ramp-ink-300);
+    --vq-zinc-400: var(--vq-ramp-ink-400);
+    --vq-zinc-500: var(--vq-ramp-ink-500);
+    --vq-zinc-600: var(--vq-ramp-ink-600);
+    --vq-zinc-700: var(--vq-ramp-ink-700);
+    --vq-zinc-800: var(--vq-ramp-ink-800);
+    --vq-zinc-900: var(--vq-ramp-ink-900);
+    --vq-zinc-950: var(--vq-ramp-ink-950);
+    --vq-stone-50: var(--vq-ramp-ink-50);
+    --vq-stone-100: var(--vq-ramp-ink-100);
+    --vq-stone-200: var(--vq-ramp-ink-200);
+    --vq-stone-300: var(--vq-ramp-ink-300);
+    --vq-stone-400: var(--vq-ramp-ink-400);
+    --vq-stone-500: var(--vq-ramp-ink-500);
+    --vq-stone-600: var(--vq-ramp-ink-600);
+    --vq-stone-700: var(--vq-ramp-ink-700);
+    --vq-stone-800: var(--vq-ramp-ink-800);
+    --vq-stone-900: var(--vq-ramp-ink-900);
+    --vq-stone-950: var(--vq-ramp-ink-950);
+    --vq-neutral-50: var(--vq-ramp-ink-50);
+    --vq-neutral-100: var(--vq-ramp-ink-100);
+    --vq-neutral-200: var(--vq-ramp-ink-200);
+    --vq-neutral-300: var(--vq-ramp-ink-300);
+    --vq-neutral-400: var(--vq-ramp-ink-400);
+    --vq-neutral-500: var(--vq-ramp-ink-500);
+    --vq-neutral-600: var(--vq-ramp-ink-600);
+    --vq-neutral-700: var(--vq-ramp-ink-700);
+    --vq-neutral-800: var(--vq-ramp-ink-800);
+    --vq-neutral-900: var(--vq-ramp-ink-900);
+    --vq-neutral-950: var(--vq-ramp-ink-950);
+
+    /* indigo, teal → teal */
+    --vq-indigo-50: var(--vq-ramp-teal-50);
+    --vq-indigo-100: var(--vq-ramp-teal-100);
+    --vq-indigo-200: var(--vq-ramp-teal-200);
+    --vq-indigo-300: var(--vq-ramp-teal-300);
+    --vq-indigo-400: var(--vq-ramp-teal-400);
+    --vq-indigo-500: var(--vq-ramp-teal-500);
+    --vq-indigo-600: var(--vq-ramp-teal-600);
+    --vq-indigo-700: var(--vq-ramp-teal-700);
+    --vq-indigo-800: var(--vq-ramp-teal-800);
+    --vq-indigo-900: var(--vq-ramp-teal-900);
+    --vq-indigo-950: var(--vq-ramp-teal-950);
+    --vq-teal-50: var(--vq-ramp-teal-50);
+    --vq-teal-100: var(--vq-ramp-teal-100);
+    --vq-teal-200: var(--vq-ramp-teal-200);
+    --vq-teal-300: var(--vq-ramp-teal-300);
+    --vq-teal-400: var(--vq-ramp-teal-400);
+    --vq-teal-500: var(--vq-ramp-teal-500);
+    --vq-teal-600: var(--vq-ramp-teal-600);
+    --vq-teal-700: var(--vq-ramp-teal-700);
+    --vq-teal-800: var(--vq-ramp-teal-800);
+    --vq-teal-900: var(--vq-ramp-teal-900);
+    --vq-teal-950: var(--vq-ramp-teal-950);
+
+    /* violet, purple, fuchsia, pink → plum */
+    --vq-violet-50: var(--vq-ramp-plum-50);
+    --vq-violet-100: var(--vq-ramp-plum-100);
+    --vq-violet-200: var(--vq-ramp-plum-200);
+    --vq-violet-300: var(--vq-ramp-plum-300);
+    --vq-violet-400: var(--vq-ramp-plum-400);
+    --vq-violet-500: var(--vq-ramp-plum-500);
+    --vq-violet-600: var(--vq-ramp-plum-600);
+    --vq-violet-700: var(--vq-ramp-plum-700);
+    --vq-violet-800: var(--vq-ramp-plum-800);
+    --vq-violet-900: var(--vq-ramp-plum-900);
+    --vq-violet-950: var(--vq-ramp-plum-950);
+    --vq-purple-50: var(--vq-ramp-plum-50);
+    --vq-purple-100: var(--vq-ramp-plum-100);
+    --vq-purple-200: var(--vq-ramp-plum-200);
+    --vq-purple-300: var(--vq-ramp-plum-300);
+    --vq-purple-400: var(--vq-ramp-plum-400);
+    --vq-purple-500: var(--vq-ramp-plum-500);
+    --vq-purple-600: var(--vq-ramp-plum-600);
+    --vq-purple-700: var(--vq-ramp-plum-700);
+    --vq-purple-800: var(--vq-ramp-plum-800);
+    --vq-purple-900: var(--vq-ramp-plum-900);
+    --vq-purple-950: var(--vq-ramp-plum-950);
+    --vq-fuchsia-50: var(--vq-ramp-plum-50);
+    --vq-fuchsia-100: var(--vq-ramp-plum-100);
+    --vq-fuchsia-200: var(--vq-ramp-plum-200);
+    --vq-fuchsia-300: var(--vq-ramp-plum-300);
+    --vq-fuchsia-400: var(--vq-ramp-plum-400);
+    --vq-fuchsia-500: var(--vq-ramp-plum-500);
+    --vq-fuchsia-600: var(--vq-ramp-plum-600);
+    --vq-fuchsia-700: var(--vq-ramp-plum-700);
+    --vq-fuchsia-800: var(--vq-ramp-plum-800);
+    --vq-fuchsia-900: var(--vq-ramp-plum-900);
+    --vq-fuchsia-950: var(--vq-ramp-plum-950);
+    --vq-pink-50: var(--vq-ramp-plum-50);
+    --vq-pink-100: var(--vq-ramp-plum-100);
+    --vq-pink-200: var(--vq-ramp-plum-200);
+    --vq-pink-300: var(--vq-ramp-plum-300);
+    --vq-pink-400: var(--vq-ramp-plum-400);
+    --vq-pink-500: var(--vq-ramp-plum-500);
+    --vq-pink-600: var(--vq-ramp-plum-600);
+    --vq-pink-700: var(--vq-ramp-plum-700);
+    --vq-pink-800: var(--vq-ramp-plum-800);
+    --vq-pink-900: var(--vq-ramp-plum-900);
+    --vq-pink-950: var(--vq-ramp-plum-950);
+
+    /* blue, sky, cyan → sky */
+    --vq-blue-50: var(--vq-ramp-sky-50);
+    --vq-blue-100: var(--vq-ramp-sky-100);
+    --vq-blue-200: var(--vq-ramp-sky-200);
+    --vq-blue-300: var(--vq-ramp-sky-300);
+    --vq-blue-400: var(--vq-ramp-sky-400);
+    --vq-blue-500: var(--vq-ramp-sky-500);
+    --vq-blue-600: var(--vq-ramp-sky-600);
+    --vq-blue-700: var(--vq-ramp-sky-700);
+    --vq-blue-800: var(--vq-ramp-sky-800);
+    --vq-blue-900: var(--vq-ramp-sky-900);
+    --vq-blue-950: var(--vq-ramp-sky-950);
+    --vq-sky-50: var(--vq-ramp-sky-50);
+    --vq-sky-100: var(--vq-ramp-sky-100);
+    --vq-sky-200: var(--vq-ramp-sky-200);
+    --vq-sky-300: var(--vq-ramp-sky-300);
+    --vq-sky-400: var(--vq-ramp-sky-400);
+    --vq-sky-500: var(--vq-ramp-sky-500);
+    --vq-sky-600: var(--vq-ramp-sky-600);
+    --vq-sky-700: var(--vq-ramp-sky-700);
+    --vq-sky-800: var(--vq-ramp-sky-800);
+    --vq-sky-900: var(--vq-ramp-sky-900);
+    --vq-sky-950: var(--vq-ramp-sky-950);
+    --vq-cyan-50: var(--vq-ramp-sky-50);
+    --vq-cyan-100: var(--vq-ramp-sky-100);
+    --vq-cyan-200: var(--vq-ramp-sky-200);
+    --vq-cyan-300: var(--vq-ramp-sky-300);
+    --vq-cyan-400: var(--vq-ramp-sky-400);
+    --vq-cyan-500: var(--vq-ramp-sky-500);
+    --vq-cyan-600: var(--vq-ramp-sky-600);
+    --vq-cyan-700: var(--vq-ramp-sky-700);
+    --vq-cyan-800: var(--vq-ramp-sky-800);
+    --vq-cyan-900: var(--vq-ramp-sky-900);
+    --vq-cyan-950: var(--vq-ramp-sky-950);
+
+    /* emerald, green → success */
+    --vq-emerald-50: var(--vq-ramp-success-50);
+    --vq-emerald-100: var(--vq-ramp-success-100);
+    --vq-emerald-200: var(--vq-ramp-success-200);
+    --vq-emerald-300: var(--vq-ramp-success-300);
+    --vq-emerald-400: var(--vq-ramp-success-400);
+    --vq-emerald-500: var(--vq-ramp-success-500);
+    --vq-emerald-600: var(--vq-ramp-success-600);
+    --vq-emerald-700: var(--vq-ramp-success-700);
+    --vq-emerald-800: var(--vq-ramp-success-800);
+    --vq-emerald-900: var(--vq-ramp-success-900);
+    --vq-emerald-950: var(--vq-ramp-success-950);
+    --vq-green-50: var(--vq-ramp-success-50);
+    --vq-green-100: var(--vq-ramp-success-100);
+    --vq-green-200: var(--vq-ramp-success-200);
+    --vq-green-300: var(--vq-ramp-success-300);
+    --vq-green-400: var(--vq-ramp-success-400);
+    --vq-green-500: var(--vq-ramp-success-500);
+    --vq-green-600: var(--vq-ramp-success-600);
+    --vq-green-700: var(--vq-ramp-success-700);
+    --vq-green-800: var(--vq-ramp-success-800);
+    --vq-green-900: var(--vq-ramp-success-900);
+    --vq-green-950: var(--vq-ramp-success-950);
+
+    /* lime → lime */
+    --vq-lime-50: var(--vq-ramp-lime-50);
+    --vq-lime-100: var(--vq-ramp-lime-100);
+    --vq-lime-200: var(--vq-ramp-lime-200);
+    --vq-lime-300: var(--vq-ramp-lime-300);
+    --vq-lime-400: var(--vq-ramp-lime-400);
+    --vq-lime-500: var(--vq-ramp-lime-500);
+    --vq-lime-600: var(--vq-ramp-lime-600);
+    --vq-lime-700: var(--vq-ramp-lime-700);
+    --vq-lime-800: var(--vq-ramp-lime-800);
+    --vq-lime-900: var(--vq-ramp-lime-900);
+    --vq-lime-950: var(--vq-ramp-lime-950);
+
+    /* yellow, amber → warning */
+    --vq-yellow-50: var(--vq-ramp-warning-50);
+    --vq-yellow-100: var(--vq-ramp-warning-100);
+    --vq-yellow-200: var(--vq-ramp-warning-200);
+    --vq-yellow-300: var(--vq-ramp-warning-300);
+    --vq-yellow-400: var(--vq-ramp-warning-400);
+    --vq-yellow-500: var(--vq-ramp-warning-500);
+    --vq-yellow-600: var(--vq-ramp-warning-600);
+    --vq-yellow-700: var(--vq-ramp-warning-700);
+    --vq-yellow-800: var(--vq-ramp-warning-800);
+    --vq-yellow-900: var(--vq-ramp-warning-900);
+    --vq-yellow-950: var(--vq-ramp-warning-950);
+    --vq-amber-50: var(--vq-ramp-warning-50);
+    --vq-amber-100: var(--vq-ramp-warning-100);
+    --vq-amber-200: var(--vq-ramp-warning-200);
+    --vq-amber-300: var(--vq-ramp-warning-300);
+    --vq-amber-400: var(--vq-ramp-warning-400);
+    --vq-amber-500: var(--vq-ramp-warning-500);
+    --vq-amber-600: var(--vq-ramp-warning-600);
+    --vq-amber-700: var(--vq-ramp-warning-700);
+    --vq-amber-800: var(--vq-ramp-warning-800);
+    --vq-amber-900: var(--vq-ramp-warning-900);
+    --vq-amber-950: var(--vq-ramp-warning-950);
+
+    /* orange → coral */
+    --vq-orange-50: var(--vq-ramp-coral-50);
+    --vq-orange-100: var(--vq-ramp-coral-100);
+    --vq-orange-200: var(--vq-ramp-coral-200);
+    --vq-orange-300: var(--vq-ramp-coral-300);
+    --vq-orange-400: var(--vq-ramp-coral-400);
+    --vq-orange-500: var(--vq-ramp-coral-500);
+    --vq-orange-600: var(--vq-ramp-coral-600);
+    --vq-orange-700: var(--vq-ramp-coral-700);
+    --vq-orange-800: var(--vq-ramp-coral-800);
+    --vq-orange-900: var(--vq-ramp-coral-900);
+    --vq-orange-950: var(--vq-ramp-coral-950);
+
+    /* red, rose → danger */
+    --vq-red-50: var(--vq-ramp-danger-50);
+    --vq-red-100: var(--vq-ramp-danger-100);
+    --vq-red-200: var(--vq-ramp-danger-200);
+    --vq-red-300: var(--vq-ramp-danger-300);
+    --vq-red-400: var(--vq-ramp-danger-400);
+    --vq-red-500: var(--vq-ramp-danger-500);
+    --vq-red-600: var(--vq-ramp-danger-600);
+    --vq-red-700: var(--vq-ramp-danger-700);
+    --vq-red-800: var(--vq-ramp-danger-800);
+    --vq-red-900: var(--vq-ramp-danger-900);
+    --vq-red-950: var(--vq-ramp-danger-950);
+    --vq-rose-50: var(--vq-ramp-danger-50);
+    --vq-rose-100: var(--vq-ramp-danger-100);
+    --vq-rose-200: var(--vq-ramp-danger-200);
+    --vq-rose-300: var(--vq-ramp-danger-300);
+    --vq-rose-400: var(--vq-ramp-danger-400);
+    --vq-rose-500: var(--vq-ramp-danger-500);
+    --vq-rose-600: var(--vq-ramp-danger-600);
+    --vq-rose-700: var(--vq-ramp-danger-700);
+    --vq-rose-800: var(--vq-ramp-danger-800);
+    --vq-rose-900: var(--vq-ramp-danger-900);
+    --vq-rose-950: var(--vq-ramp-danger-950);
+
+    /* void → void */
+    --vq-void-50: var(--vq-ramp-void-50);
+    --vq-void-100: var(--vq-ramp-void-100);
+    --vq-void-200: var(--vq-ramp-void-200);
+    --vq-void-300: var(--vq-ramp-void-300);
+    --vq-void-400: var(--vq-ramp-void-400);
+    --vq-void-500: var(--vq-ramp-void-500);
+    --vq-void-600: var(--vq-ramp-void-600);
+    --vq-void-700: var(--vq-ramp-void-700);
+    --vq-void-800: var(--vq-ramp-void-800);
+    --vq-void-900: var(--vq-ramp-void-900);
+    --vq-void-950: var(--vq-ramp-void-950);
+
+    /* semantic role aliases — prefer these in new code */
+    --vq-neutral-50: var(--vq-ramp-neutral-50);
+    --vq-neutral-100: var(--vq-ramp-neutral-100);
+    --vq-neutral-200: var(--vq-ramp-neutral-200);
+    --vq-neutral-300: var(--vq-ramp-neutral-300);
+    --vq-neutral-400: var(--vq-ramp-neutral-400);
+    --vq-neutral-500: var(--vq-ramp-neutral-500);
+    --vq-neutral-600: var(--vq-ramp-neutral-600);
+    --vq-neutral-700: var(--vq-ramp-neutral-700);
+    --vq-neutral-800: var(--vq-ramp-neutral-800);
+    --vq-neutral-900: var(--vq-ramp-neutral-900);
+    --vq-neutral-950: var(--vq-ramp-neutral-950);
+    --vq-brand-50: var(--vq-ramp-brand-50);
+    --vq-brand-100: var(--vq-ramp-brand-100);
+    --vq-brand-200: var(--vq-ramp-brand-200);
+    --vq-brand-300: var(--vq-ramp-brand-300);
+    --vq-brand-400: var(--vq-ramp-brand-400);
+    --vq-brand-500: var(--vq-ramp-brand-500);
+    --vq-brand-600: var(--vq-ramp-brand-600);
+    --vq-brand-700: var(--vq-ramp-brand-700);
+    --vq-brand-800: var(--vq-ramp-brand-800);
+    --vq-brand-900: var(--vq-ramp-brand-900);
+    --vq-brand-950: var(--vq-ramp-brand-950);
+    --vq-accent-50: var(--vq-ramp-accent-50);
+    --vq-accent-100: var(--vq-ramp-accent-100);
+    --vq-accent-200: var(--vq-ramp-accent-200);
+    --vq-accent-300: var(--vq-ramp-accent-300);
+    --vq-accent-400: var(--vq-ramp-accent-400);
+    --vq-accent-500: var(--vq-ramp-accent-500);
+    --vq-accent-600: var(--vq-ramp-accent-600);
+    --vq-accent-700: var(--vq-ramp-accent-700);
+    --vq-accent-800: var(--vq-ramp-accent-800);
+    --vq-accent-900: var(--vq-ramp-accent-900);
+    --vq-accent-950: var(--vq-ramp-accent-950);
+    --vq-info-50: var(--vq-ramp-info-50);
+    --vq-info-100: var(--vq-ramp-info-100);
+    --vq-info-200: var(--vq-ramp-info-200);
+    --vq-info-300: var(--vq-ramp-info-300);
+    --vq-info-400: var(--vq-ramp-info-400);
+    --vq-info-500: var(--vq-ramp-info-500);
+    --vq-info-600: var(--vq-ramp-info-600);
+    --vq-info-700: var(--vq-ramp-info-700);
+    --vq-info-800: var(--vq-ramp-info-800);
+    --vq-info-900: var(--vq-ramp-info-900);
+    --vq-info-950: var(--vq-ramp-info-950);
+    --vq-success-50: var(--vq-ramp-success-50);
+    --vq-success-100: var(--vq-ramp-success-100);
+    --vq-success-200: var(--vq-ramp-success-200);
+    --vq-success-300: var(--vq-ramp-success-300);
+    --vq-success-400: var(--vq-ramp-success-400);
+    --vq-success-500: var(--vq-ramp-success-500);
+    --vq-success-600: var(--vq-ramp-success-600);
+    --vq-success-700: var(--vq-ramp-success-700);
+    --vq-success-800: var(--vq-ramp-success-800);
+    --vq-success-900: var(--vq-ramp-success-900);
+    --vq-success-950: var(--vq-ramp-success-950);
+    --vq-warning-50: var(--vq-ramp-warning-50);
+    --vq-warning-100: var(--vq-ramp-warning-100);
+    --vq-warning-200: var(--vq-ramp-warning-200);
+    --vq-warning-300: var(--vq-ramp-warning-300);
+    --vq-warning-400: var(--vq-ramp-warning-400);
+    --vq-warning-500: var(--vq-ramp-warning-500);
+    --vq-warning-600: var(--vq-ramp-warning-600);
+    --vq-warning-700: var(--vq-ramp-warning-700);
+    --vq-warning-800: var(--vq-ramp-warning-800);
+    --vq-warning-900: var(--vq-ramp-warning-900);
+    --vq-warning-950: var(--vq-ramp-warning-950);
+    --vq-danger-50: var(--vq-ramp-danger-50);
+    --vq-danger-100: var(--vq-ramp-danger-100);
+    --vq-danger-200: var(--vq-ramp-danger-200);
+    --vq-danger-300: var(--vq-ramp-danger-300);
+    --vq-danger-400: var(--vq-ramp-danger-400);
+    --vq-danger-500: var(--vq-ramp-danger-500);
+    --vq-danger-600: var(--vq-ramp-danger-600);
+    --vq-danger-700: var(--vq-ramp-danger-700);
+    --vq-danger-800: var(--vq-ramp-danger-800);
+    --vq-danger-900: var(--vq-ramp-danger-900);
+    --vq-danger-950: var(--vq-ramp-danger-950);
+    --vq-highlight-50: var(--vq-ramp-highlight-50);
+    --vq-highlight-100: var(--vq-ramp-highlight-100);
+    --vq-highlight-200: var(--vq-ramp-highlight-200);
+    --vq-highlight-300: var(--vq-ramp-highlight-300);
+    --vq-highlight-400: var(--vq-ramp-highlight-400);
+    --vq-highlight-500: var(--vq-ramp-highlight-500);
+    --vq-highlight-600: var(--vq-ramp-highlight-600);
+    --vq-highlight-700: var(--vq-ramp-highlight-700);
+    --vq-highlight-800: var(--vq-ramp-highlight-800);
+    --vq-highlight-900: var(--vq-ramp-highlight-900);
+    --vq-highlight-950: var(--vq-ramp-highlight-950);
+
+    /* ═══════════════ SEMANTIC — LIGHT MODE ═══════════════
+       Overridden by the dark blocks further down. */
+    --vq-bg-app: 241 245 242;
+    --vq-bg-sunken: 230 236 232;
+    --vq-bg-surface: 255 255 255;
+    --vq-bg-raised: 248 250 248;
+    --vq-bg-overlay: 255 255 255;
+    --vq-bg-scrim: 158 161 160;
+    --vq-ink: 23 32 27;
+    --vq-ink-secondary: 83 97 89;
+    --vq-ink-muted: 98 113 105;
+    --vq-ink-faint: 127 142 135;
+    --vq-ink-inverted: 255 255 255;
+    --vq-border: 211 220 215;
+    --vq-border-strong: 180 192 186;
+    --vq-border-subtle: 230 236 232;
+    --vq-interactive-hover: 241 245 242;
+    --vq-interactive-active: 230 236 232;
+    --vq-interactive-selected: 230 251 245;
+    --vq-focus-ring: 35 196 166;
+
+    /* ═══════════════ TYPOGRAPHY ═══════════════ */
+    --vq-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --vq-font-display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+    --vq-font-mono: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+    --vq-font-numeric: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+
+    /* type scale */
+    --vq-text-4xs: 0.5rem;
+    --vq-text-3xs: 0.5625rem;
+    --vq-text-2xs: 0.625rem;
+    --vq-text-1xs: 0.6875rem;
+    --vq-text-xs: 0.75rem;
+    --vq-text-xs--line-height: 1rem;
+    --vq-text-sm: 0.875rem;
+    --vq-text-sm--line-height: 1.5rem;
+    --vq-text-base: 16px;
+    --vq-text-base--line-height: 1.6;
+    --vq-text-lg: 1.125rem;
+    --vq-text-lg--line-height: 1.75rem;
+    --vq-text-xl: 21px;
+    --vq-text-xl--line-height: 1.30;
+    --vq-text-2xl: 1.5rem;
+    --vq-text-2xl--line-height: 1.25;
+    --vq-text-3xl: 30px;
+    --vq-text-3xl--line-height: 1.16;
+    --vq-text-4xl: 38px;
+    --vq-text-4xl--line-height: 1.0;
+    --vq-text-5xl: 40px;
+    --vq-text-5xl--line-height: 1.08;
+
+    /* weights */
+    --vq-weight-light: 300;
+    --vq-weight-normal: 400;
+    --vq-weight-medium: 500;
+    --vq-weight-semibold: 600;
+    --vq-weight-bold: 700;
+    --vq-weight-extrabold: 700;
+    --vq-weight-black: 700;
+
+    /* line heights */
+    --vq-leading-none: 1;
+    --vq-leading-tight: 1.08;
+    --vq-leading-snug: 1.30;
+    --vq-leading-normal: 1.6;
+    --vq-leading-relaxed: 1.55;
+    --vq-leading-loose: 2;
+
+    /* letter spacing */
+    --vq-tracking-tighter: -0.032em;
+    --vq-tracking-tight: -0.024em;
+    --vq-tracking-normal: 0em;
+    --vq-tracking-wide: 0.025em;
+    --vq-tracking-wider: 0.05em;
+    --vq-tracking-widest: 0.12em;
+
+    /* ═══════════════ SHAPE ═══════════════ */
+    --vq-radius-none: 0px;
+    --vq-radius-xs: 8px;
+    --vq-radius-sm: 12px;
+    --vq-radius-md: 14px;
+    --vq-radius-lg: 20px;
+    --vq-radius-xl: 28px;
+    --vq-radius-2xl: 36px;
+    --vq-radius-3xl: 36px;
+    --vq-radius-full: 999px;
+
+    /* elevation */
+    --vq-shadow-none: none;
+    --vq-shadow-xs: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-sm: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-md: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-lg: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-2xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-inner: inset 0 1px 0 rgb(255 255 255 / .55);
+    --vq-shadow-glow: 0 6px 20px -6px rgb(11 170 143 / .55);
+
+    /* ═══════════════ DENSITY ═══════════════ */
+    --vq-space-1: 4px;
+    --vq-space-2: 8px;
+    --vq-space-3: 12px;
+    --vq-space-4: 16px;
+    --vq-space-5: 20px;
+    --vq-space-6: 24px;
+    --vq-space-8: 32px;
+    --vq-space-10: 40px;
+    --vq-space-12: 48px;
+    --vq-space-16: 64px;
+    --vq-space-20: 80px;
+    --vq-space-24: 96px;
+    --vq-space-0_5: 0.125rem;
+    --vq-space-1_5: 0.375rem;
+
+    /* control sizing */
+    --vq-control-height-sm: 34px;
+    --vq-control-height-md: 42px;
+    --vq-control-height-lg: 48px;
+    --vq-control-padding-x: 20px;
+    --vq-control-gap: 8px;
+
+    /* layout */
+    --vq-layout-gutter: 24px;
+    --vq-layout-section-gap: 32px;
+    --vq-layout-card-padding: 20px;
+    --vq-layout-page-max-width: 1240px;
+    --vq-layout-sidebar-width: 264px;
+
+    /* ═══════════════ MOTION ═══════════════ */
+    --vq-duration-instant: 0ms;
+    --vq-duration-fast: 120ms;
+    --vq-duration-normal: 200ms;
+    --vq-duration-slow: 320ms;
+    --vq-duration-slower: 520ms;
+
+    /* easing curves */
+    --vq-ease-standard: cubic-bezier(.22, 1, .36, 1);
+    --vq-ease-entrance: cubic-bezier(.32, 1.28, .5, 1);
+    --vq-ease-exit: cubic-bezier(.65, 0, .35, 1);
+    --vq-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+
+    /* ═══════════════ GRADIENTS ═══════════════ */
+    --vq-gradient-brand: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%);
+    --vq-gradient-brand-soft: linear-gradient(135deg, #C6F5E9, #E6FBF5);
+    --vq-gradient-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%);
+    --vq-gradient-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-aurora: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%);
+    --vq-gradient-success: linear-gradient(135deg, #0BAA8F 0%, #076B5E 100%);
+    --vq-gradient-info: linear-gradient(135deg, #55C4EC 0%, #1B7096 100%);
+    --vq-gradient-danger: linear-gradient(135deg, #FF8A6B 0%, #B94526 100%);
+    --vq-gradient-hairline-accent: linear-gradient(to right, transparent, #0BAA8F, transparent);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2565,230 +1510,119 @@
    without depending on source order.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-[data-vq-theme="midnight-nebula"][data-vq-density="compact"] {
-    --vq-space-1: 0.21rem;
-    --vq-space-2: 0.42rem;
-    --vq-space-3: 0.63rem;
-    --vq-space-4: 0.84rem;
-    --vq-space-5: 1.05rem;
-    --vq-space-6: 1.26rem;
-    --vq-space-8: 1.68rem;
-    --vq-space-10: 2.1rem;
-    --vq-space-12: 2.52rem;
-    --vq-space-16: 3.36rem;
-    --vq-space-20: 4.2rem;
-    --vq-space-24: 5.04rem;
+[data-vq-theme="venqore-v6"][data-vq-density="compact"] {
+    --vq-space-1: 3.36px;
+    --vq-space-2: 6.72px;
+    --vq-space-3: 10.08px;
+    --vq-space-4: 13.44px;
+    --vq-space-5: 16.8px;
+    --vq-space-6: 20.16px;
+    --vq-space-8: 26.88px;
+    --vq-space-10: 33.6px;
+    --vq-space-12: 40.32px;
+    --vq-space-16: 53.76px;
+    --vq-space-20: 67.2px;
+    --vq-space-24: 80.64px;
     --vq-space-0_5: 0.105rem;
     --vq-space-1_5: 0.315rem;
-    --vq-control-height-sm: 1.47rem;
-    --vq-control-height-md: 1.89rem;
-    --vq-control-height-lg: 2.31rem;
-    --vq-control-padding-x: 0.63rem;
-    --vq-control-gap: 0.42rem;
-    --vq-layout-gutter: 0.84rem;
-    --vq-layout-section-gap: 1.26rem;
-    --vq-layout-card-padding: 0.84rem;
+    --vq-control-height-sm: 28.56px;
+    --vq-control-height-md: 35.28px;
+    --vq-control-height-lg: 40.32px;
+    --vq-control-padding-x: 16.8px;
+    --vq-control-gap: 6.72px;
+    --vq-layout-gutter: 20.16px;
+    --vq-layout-section-gap: 26.88px;
+    --vq-layout-card-padding: 16.8px;
 }
 
-[data-vq-theme="midnight-nebula"][data-vq-density="comfortable"] {
-    --vq-space-1: 0.25rem;
-    --vq-space-2: 0.5rem;
-    --vq-space-3: 0.75rem;
-    --vq-space-4: 1rem;
-    --vq-space-5: 1.25rem;
-    --vq-space-6: 1.5rem;
-    --vq-space-8: 2rem;
-    --vq-space-10: 2.5rem;
-    --vq-space-12: 3rem;
-    --vq-space-16: 4rem;
-    --vq-space-20: 5rem;
-    --vq-space-24: 6rem;
+[data-vq-theme="venqore-v6"][data-vq-density="comfortable"] {
+    --vq-space-1: 4px;
+    --vq-space-2: 8px;
+    --vq-space-3: 12px;
+    --vq-space-4: 16px;
+    --vq-space-5: 20px;
+    --vq-space-6: 24px;
+    --vq-space-8: 32px;
+    --vq-space-10: 40px;
+    --vq-space-12: 48px;
+    --vq-space-16: 64px;
+    --vq-space-20: 80px;
+    --vq-space-24: 96px;
     --vq-space-0_5: 0.125rem;
     --vq-space-1_5: 0.375rem;
-    --vq-control-height-sm: 1.75rem;
-    --vq-control-height-md: 2.25rem;
-    --vq-control-height-lg: 2.75rem;
-    --vq-control-padding-x: 0.75rem;
-    --vq-control-gap: 0.5rem;
-    --vq-layout-gutter: 1rem;
-    --vq-layout-section-gap: 1.5rem;
-    --vq-layout-card-padding: 1rem;
+    --vq-control-height-sm: 34px;
+    --vq-control-height-md: 42px;
+    --vq-control-height-lg: 48px;
+    --vq-control-padding-x: 20px;
+    --vq-control-gap: 8px;
+    --vq-layout-gutter: 24px;
+    --vq-layout-section-gap: 32px;
+    --vq-layout-card-padding: 20px;
 }
 
-[data-vq-theme="midnight-nebula"][data-vq-density="spacious"] {
-    --vq-space-1: 0.295rem;
-    --vq-space-2: 0.59rem;
-    --vq-space-3: 0.885rem;
-    --vq-space-4: 1.18rem;
-    --vq-space-5: 1.475rem;
-    --vq-space-6: 1.77rem;
-    --vq-space-8: 2.36rem;
-    --vq-space-10: 2.95rem;
-    --vq-space-12: 3.54rem;
-    --vq-space-16: 4.72rem;
-    --vq-space-20: 5.9rem;
-    --vq-space-24: 7.08rem;
+[data-vq-theme="venqore-v6"][data-vq-density="spacious"] {
+    --vq-space-1: 4.72px;
+    --vq-space-2: 9.44px;
+    --vq-space-3: 14.16px;
+    --vq-space-4: 18.88px;
+    --vq-space-5: 23.6px;
+    --vq-space-6: 28.32px;
+    --vq-space-8: 37.76px;
+    --vq-space-10: 47.2px;
+    --vq-space-12: 56.64px;
+    --vq-space-16: 75.52px;
+    --vq-space-20: 94.4px;
+    --vq-space-24: 113.28px;
     --vq-space-0_5: 0.148rem;
     --vq-space-1_5: 0.443rem;
-    --vq-control-height-sm: 2.065rem;
-    --vq-control-height-md: 2.655rem;
-    --vq-control-height-lg: 3.245rem;
-    --vq-control-padding-x: 0.885rem;
-    --vq-control-gap: 0.59rem;
-    --vq-layout-gutter: 1.18rem;
-    --vq-layout-section-gap: 1.77rem;
-    --vq-layout-card-padding: 1.18rem;
-}
-
-[data-vq-theme="daylight-calm"][data-vq-density="compact"] {
-    --vq-space-1: 0.263rem;
-    --vq-space-2: 0.525rem;
-    --vq-space-3: 0.788rem;
-    --vq-space-4: 1.05rem;
-    --vq-space-5: 1.26rem;
-    --vq-space-6: 1.575rem;
-    --vq-space-8: 2.1rem;
-    --vq-space-10: 2.625rem;
-    --vq-space-12: 3.15rem;
-    --vq-space-16: 4.2rem;
-    --vq-space-20: 5.25rem;
-    --vq-space-24: 6.3rem;
-    --vq-space-0_5: 0.158rem;
-    --vq-space-1_5: 0.368rem;
-    --vq-control-height-sm: 1.68rem;
-    --vq-control-height-md: 2.205rem;
-    --vq-control-height-lg: 2.625rem;
-    --vq-control-padding-x: 0.84rem;
-    --vq-control-gap: 0.63rem;
-    --vq-layout-gutter: 1.26rem;
-    --vq-layout-section-gap: 2.1rem;
-    --vq-layout-card-padding: 1.26rem;
-}
-
-[data-vq-theme="daylight-calm"][data-vq-density="comfortable"] {
-    --vq-space-1: 0.313rem;
-    --vq-space-2: 0.625rem;
-    --vq-space-3: 0.938rem;
-    --vq-space-4: 1.25rem;
-    --vq-space-5: 1.5rem;
-    --vq-space-6: 1.875rem;
-    --vq-space-8: 2.5rem;
-    --vq-space-10: 3.125rem;
-    --vq-space-12: 3.75rem;
-    --vq-space-16: 5rem;
-    --vq-space-20: 6.25rem;
-    --vq-space-24: 7.5rem;
-    --vq-space-0_5: 0.188rem;
-    --vq-space-1_5: 0.438rem;
-    --vq-control-height-sm: 2rem;
-    --vq-control-height-md: 2.625rem;
-    --vq-control-height-lg: 3.125rem;
-    --vq-control-padding-x: 1rem;
-    --vq-control-gap: 0.75rem;
-    --vq-layout-gutter: 1.5rem;
-    --vq-layout-section-gap: 2.5rem;
-    --vq-layout-card-padding: 1.5rem;
-}
-
-[data-vq-theme="daylight-calm"][data-vq-density="spacious"] {
-    --vq-space-1: 0.369rem;
-    --vq-space-2: 0.737rem;
-    --vq-space-3: 1.106rem;
-    --vq-space-4: 1.475rem;
-    --vq-space-5: 1.77rem;
-    --vq-space-6: 2.213rem;
-    --vq-space-8: 2.95rem;
-    --vq-space-10: 3.688rem;
-    --vq-space-12: 4.425rem;
-    --vq-space-16: 5.9rem;
-    --vq-space-20: 7.375rem;
-    --vq-space-24: 8.85rem;
-    --vq-space-0_5: 0.221rem;
-    --vq-space-1_5: 0.516rem;
-    --vq-control-height-sm: 2.36rem;
-    --vq-control-height-md: 3.097rem;
-    --vq-control-height-lg: 3.688rem;
-    --vq-control-padding-x: 1.18rem;
-    --vq-control-gap: 0.885rem;
-    --vq-layout-gutter: 1.77rem;
-    --vq-layout-section-gap: 2.95rem;
-    --vq-layout-card-padding: 1.77rem;
+    --vq-control-height-sm: 40.12px;
+    --vq-control-height-md: 49.56px;
+    --vq-control-height-lg: 56.64px;
+    --vq-control-padding-x: 23.6px;
+    --vq-control-gap: 9.44px;
+    --vq-layout-gutter: 28.32px;
+    --vq-layout-section-gap: 37.76px;
+    --vq-layout-card-padding: 23.6px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    USER CUSTOMISATION — CORNER RADIUS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-[data-vq-theme="midnight-nebula"][data-vq-radius="sharp"] {
+[data-vq-theme="venqore-v6"][data-vq-radius="sharp"] {
     --vq-radius-none: 0px;
-    --vq-radius-xs: 0.022rem;
-    --vq-radius-sm: 0.044rem;
-    --vq-radius-md: 0.131rem;
-    --vq-radius-lg: 0.175rem;
-    --vq-radius-xl: 0.262rem;
-    --vq-radius-2xl: 0.35rem;
-    --vq-radius-3xl: 0.525rem;
-    --vq-radius-full: 9999px;
+    --vq-radius-xs: 2.8px;
+    --vq-radius-sm: 4.2px;
+    --vq-radius-md: 4.9px;
+    --vq-radius-lg: 7px;
+    --vq-radius-xl: 9.8px;
+    --vq-radius-2xl: 12.6px;
+    --vq-radius-3xl: 12.6px;
+    --vq-radius-full: 349.65px;
 }
 
-[data-vq-theme="midnight-nebula"][data-vq-radius="default"] {
+[data-vq-theme="venqore-v6"][data-vq-radius="default"] {
     --vq-radius-none: 0px;
-    --vq-radius-xs: 0.063rem;
-    --vq-radius-sm: 0.125rem;
-    --vq-radius-md: 0.375rem;
-    --vq-radius-lg: 0.5rem;
-    --vq-radius-xl: 0.75rem;
-    --vq-radius-2xl: 1rem;
-    --vq-radius-3xl: 1.5rem;
-    --vq-radius-full: 9999px;
+    --vq-radius-xs: 8px;
+    --vq-radius-sm: 12px;
+    --vq-radius-md: 14px;
+    --vq-radius-lg: 20px;
+    --vq-radius-xl: 28px;
+    --vq-radius-2xl: 36px;
+    --vq-radius-3xl: 36px;
+    --vq-radius-full: 999px;
 }
 
-[data-vq-theme="midnight-nebula"][data-vq-radius="round"] {
+[data-vq-theme="venqore-v6"][data-vq-radius="round"] {
     --vq-radius-none: 0px;
-    --vq-radius-xs: 0.1rem;
-    --vq-radius-sm: 0.2rem;
-    --vq-radius-md: 0.6rem;
-    --vq-radius-lg: 0.8rem;
-    --vq-radius-xl: 1.2rem;
-    --vq-radius-2xl: 1.6rem;
-    --vq-radius-3xl: 2.4rem;
-    --vq-radius-full: 9999px;
-}
-
-[data-vq-theme="daylight-calm"][data-vq-radius="sharp"] {
-    --vq-radius-none: 0px;
-    --vq-radius-xs: 0.044rem;
-    --vq-radius-sm: 0.088rem;
-    --vq-radius-md: 0.175rem;
-    --vq-radius-lg: 0.241rem;
-    --vq-radius-xl: 0.328rem;
-    --vq-radius-2xl: 0.438rem;
-    --vq-radius-3xl: 0.612rem;
-    --vq-radius-full: 9999px;
-}
-
-[data-vq-theme="daylight-calm"][data-vq-radius="default"] {
-    --vq-radius-none: 0px;
-    --vq-radius-xs: 0.125rem;
-    --vq-radius-sm: 0.25rem;
-    --vq-radius-md: 0.5rem;
-    --vq-radius-lg: 0.688rem;
-    --vq-radius-xl: 0.938rem;
-    --vq-radius-2xl: 1.25rem;
-    --vq-radius-3xl: 1.75rem;
-    --vq-radius-full: 9999px;
-}
-
-[data-vq-theme="daylight-calm"][data-vq-radius="round"] {
-    --vq-radius-none: 0px;
-    --vq-radius-xs: 0.2rem;
-    --vq-radius-sm: 0.4rem;
-    --vq-radius-md: 0.8rem;
-    --vq-radius-lg: 1.1rem;
-    --vq-radius-xl: 1.5rem;
-    --vq-radius-2xl: 2rem;
-    --vq-radius-3xl: 2.8rem;
-    --vq-radius-full: 9999px;
+    --vq-radius-xs: 12.8px;
+    --vq-radius-sm: 19.2px;
+    --vq-radius-md: 22.4px;
+    --vq-radius-lg: 32px;
+    --vq-radius-xl: 44.8px;
+    --vq-radius-2xl: 57.6px;
+    --vq-radius-3xl: 57.6px;
+    --vq-radius-full: 1598.4px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2839,70 +1673,49 @@
    stops (bg-white dark:bg-slate-900), so flipping the ramps would invert
    every one of those pairs. */
 .dark {
-    --vq-bg-app: 2 6 23;
-    --vq-bg-sunken: 2 0 16;
-    --vq-bg-surface: 15 23 42;
-    --vq-bg-raised: 30 41 59;
-    --vq-bg-overlay: 30 41 59;
-    --vq-bg-scrim: 2 0 16;
-    --vq-ink: 248 250 252;
-    --vq-ink-secondary: 226 232 240;
-    --vq-ink-muted: 148 163 184;
-    --vq-ink-faint: 100 116 139;
-    --vq-ink-inverted: 15 23 42;
-    --vq-border: 30 41 59;
-    --vq-border-strong: 51 65 85;
-    --vq-border-subtle: 15 23 42;
-    --vq-interactive-hover: 30 41 59;
-    --vq-interactive-active: 51 65 85;
-    --vq-interactive-selected: 49 46 129;
-    --vq-focus-ring: 129 140 248;
+    --vq-bg-app: 12 18 17;
+    --vq-bg-sunken: 8 13 12;
+    --vq-bg-surface: 20 27 25;
+    --vq-bg-raised: 26 34 32;
+    --vq-bg-overlay: 29 38 36;
+    --vq-bg-scrim: 6 10 9;
+    --vq-ink: 237 242 239;
+    --vq-ink-secondary: 168 180 174;
+    --vq-ink-muted: 139 154 147;
+    --vq-ink-faint: 98 113 105;
+    --vq-ink-inverted: 12 18 17;
+    --vq-border: 44 50 48;
+    --vq-border-strong: 67 73 71;
+    --vq-border-subtle: 34 41 39;
+    --vq-interactive-hover: 26 34 32;
+    --vq-interactive-active: 29 38 36;
+    --vq-interactive-selected: 22 51 45;
+    --vq-focus-ring: 89 219 192;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    THEME LIBRARY — DARK
    ═══════════════════════════════════════════════════════════════════════════ */
 
-[data-vq-theme="midnight-nebula"].dark {
-    --vq-bg-app: 2 6 23;
-    --vq-bg-sunken: 2 0 16;
-    --vq-bg-surface: 15 23 42;
-    --vq-bg-raised: 30 41 59;
-    --vq-bg-overlay: 30 41 59;
-    --vq-bg-scrim: 2 0 16;
-    --vq-ink: 248 250 252;
-    --vq-ink-secondary: 226 232 240;
-    --vq-ink-muted: 148 163 184;
-    --vq-ink-faint: 100 116 139;
-    --vq-ink-inverted: 15 23 42;
-    --vq-border: 30 41 59;
-    --vq-border-strong: 51 65 85;
-    --vq-border-subtle: 15 23 42;
-    --vq-interactive-hover: 30 41 59;
-    --vq-interactive-active: 51 65 85;
-    --vq-interactive-selected: 49 46 129;
-    --vq-focus-ring: 129 140 248;
-}
-
-[data-vq-theme="daylight-calm"].dark {
-    --vq-bg-app: 26 24 22;
-    --vq-bg-sunken: 18 16 13;
-    --vq-bg-surface: 36 32 25;
-    --vq-bg-raised: 47 43 38;
-    --vq-bg-overlay: 47 43 38;
-    --vq-bg-scrim: 10 9 8;
-    --vq-ink: 244 242 239;
-    --vq-ink-secondary: 221 216 210;
-    --vq-ink-muted: 168 161 154;
-    --vq-ink-faint: 125 118 110;
-    --vq-ink-inverted: 26 24 22;
-    --vq-border: 51 46 40;
-    --vq-border-strong: 74 68 60;
-    --vq-border-subtle: 36 32 25;
-    --vq-interactive-hover: 47 43 38;
-    --vq-interactive-active: 59 54 48;
-    --vq-interactive-selected: 43 55 69;
-    --vq-focus-ring: 125 156 196;
+[data-vq-theme="venqore-v6"].dark {
+    --vq-bg-app: 12 18 17;
+    --vq-bg-sunken: 8 13 12;
+    --vq-bg-surface: 20 27 25;
+    --vq-bg-raised: 26 34 32;
+    --vq-bg-overlay: 29 38 36;
+    --vq-bg-scrim: 6 10 9;
+    --vq-ink: 237 242 239;
+    --vq-ink-secondary: 168 180 174;
+    --vq-ink-muted: 139 154 147;
+    --vq-ink-faint: 98 113 105;
+    --vq-ink-inverted: 12 18 17;
+    --vq-border: 44 50 48;
+    --vq-border-strong: 67 73 71;
+    --vq-border-subtle: 34 41 39;
+    --vq-interactive-hover: 26 34 32;
+    --vq-interactive-active: 29 38 36;
+    --vq-interactive-selected: 22 51 45;
+    --vq-focus-ring: 89 219 192;
 }
 
 /* Colour-scheme hint so native controls (scrollbars, date pickers, form

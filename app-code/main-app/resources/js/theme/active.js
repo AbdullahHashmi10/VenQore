@@ -27,6 +27,7 @@
  *   See ../../../docs/THEMING.md for the full walkthrough.
  */
 
+import venqoreV6 from './themes/venqore-v6.js';
 import midnightNebula from './themes/midnight-nebula.js';
 import daylightCalm from './themes/daylight-calm.js';
 import minimal from './themes/minimal.js';
@@ -37,7 +38,7 @@ import colour from './themes/colour.js';
  *  ▼▼▼  CHANGE THIS LINE TO RESKIN THE ENTIRE APPLICATION  ▼▼▼
  * ─────────────────────────────────────────────────────────────────────────── */
 
-export const ACTIVE_THEME = 'midnight-nebula';
+export const ACTIVE_THEME = 'venqore-v6';
 
 /* ─────────────────────────────────────────────────────────────────────────── *
  *  ▲▲▲                                                                    ▲▲▲
@@ -49,6 +50,8 @@ export const ACTIVE_THEME = 'midnight-nebula';
  * is caught at build time even while it is still being drafted.
  */
 export const AVAILABLE_THEMES = {
+    // GENERATED from the V6 token files — see themes/venqore-v6.js.
+    'venqore-v6': venqoreV6,
     'midnight-nebula': midnightNebula,
     'daylight-calm': daylightCalm,
     minimal,
@@ -73,7 +76,17 @@ export const AVAILABLE_THEMES = {
  * which is a much higher bar, and a draft theme should be able to sit in the
  * first list for a while before it enters the second.
  */
-export const SELECTABLE_THEMES = ['midnight-nebula', 'daylight-calm'];
+/*
+ * V6 is the only selectable theme.
+ *
+ * The others stay registered above so the build keeps validating them, but they
+ * are not offered and no `[data-vq-theme="…"]` block is emitted for them. That
+ * matters for users who already have `midnight-nebula` saved: their attribute
+ * now matches no rule, so they fall through to `:root` — which is V6. Leaving
+ * the old themes selectable would have left those users on the old look
+ * indefinitely, which is not what "the product is V6" means.
+ */
+export const SELECTABLE_THEMES = ['venqore-v6'];
 
 /**
  * What Appearance settings shows. Kept next to the registry so a new theme
@@ -85,18 +98,11 @@ export const SELECTABLE_THEMES = ['midnight-nebula', 'daylight-calm'];
  */
 export const THEME_CATALOG = [
     {
-        id: 'midnight-nebula',
-        name: 'Midnight',
-        tagline: 'The VenQore look — dark, premium, technical',
+        id: 'venqore-v6',
+        name: 'VenQore',
+        tagline: 'Mint on pine. The V6 design system, light and dark',
         supportsDark: true,
-        swatch: ['#0b1020', '#6366f1', '#a855f7'],
-    },
-    {
-        id: 'daylight-calm',
-        name: 'Daylight',
-        tagline: 'The same interface in light colours',
-        supportsDark: true,
-        swatch: ['#f4f2ef', '#4a6fa5', '#9c7b6a'],
+        swatch: ['#F1F5F2', '#0BAA8F', '#0B3A35'],
     },
 ];
 
@@ -104,7 +110,7 @@ export const THEME_CATALOG = [
  * The theme a user lands on before they have ever chosen one.
  * Must match ACTIVE_THEME above and Appearance::defaults() in PHP.
  */
-export const DEFAULT_THEME_ID = 'midnight-nebula';
+export const DEFAULT_THEME_ID = 'venqore-v6';
 
 /**
  * Which mode the app opens in when a user has no saved preference.

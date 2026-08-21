@@ -329,7 +329,18 @@ class DashboardController extends Controller
             'reading_key' => 'required|string',
             'period' => 'nullable|string',
             'chart' => 'nullable|string',
-            'size' => 'nullable|string|in:2x4,2x6,2x8,4x4,4x6,4x8,6x4,6x6,6x8,8x4,8x6,8x8',
+            'title_override' => 'nullable|string|max:80',
+            'style' => 'nullable|array',
+            // Layout Law v2.0 geometry. `size` is legacy — the twelve
+            // 2x4..8x8 presets it enumerated are superseded by six categories
+            // and eighteen fits — but it is still accepted so a client that has
+            // not been redeployed keeps working; LayoutLaw::fromLegacySize()
+            // translates it to the nearest legal shape.
+            'category' => 'nullable|string|in:C1,C2,C3,C4,C5,C6',
+            'fit' => 'nullable|string|max:24',
+            'w' => 'nullable|integer|min:1|max:12',
+            'h' => 'nullable|integer|min:1|max:16',
+            'size' => 'nullable|string|max:12',
         ]);
 
         $reckoner = app(Reckoner::class);
@@ -394,10 +405,19 @@ class DashboardController extends Controller
             'period' => 'nullable|string',
             'period_custom' => 'nullable|array',
             'chart' => 'nullable|string',
-            'size' => 'nullable|string|in:2x4,2x6,2x8,4x4,4x6,4x8,6x4,6x6,6x8,8x4,8x6,8x8',
             'title_override' => 'nullable|string|max:80',
             'args' => 'nullable|array',
             'style' => 'nullable|array',
+            // Layout Law v2.0 geometry. `size` is legacy — the twelve
+            // 2x4..8x8 presets it enumerated are superseded by six categories
+            // and eighteen fits — but it is still accepted so a client that has
+            // not been redeployed keeps working; LayoutLaw::fromLegacySize()
+            // translates it to the nearest legal shape.
+            'category' => 'nullable|string|in:C1,C2,C3,C4,C5,C6',
+            'fit' => 'nullable|string|max:24',
+            'w' => 'nullable|integer|min:1|max:12',
+            'h' => 'nullable|integer|min:1|max:16',
+            'size' => 'nullable|string|max:12',
         ]);
 
         $reckoner = app(Reckoner::class);
@@ -405,8 +425,20 @@ class DashboardController extends Controller
         $availability = $reckoner->checkAvailability($keys, $user, $tenant);
         $availableKeys = array_keys(array_filter($availability));
 
-        // Create updated merge array for sanitization
-        $merged = array_merge($card->toArray(), array_filter($validated));
+        // Merge only the keys the request actually sent.
+        //
+        // This was array_filter($validated), which drops every FALSY value —
+        // so clearing a title (null) or switching a card back to a plain
+        // surface silently did nothing, because the old value survived the
+        // merge. `array_key_exists` is the right test: absent means "leave it
+        // alone", present-and-null means "clear it".
+        $patch = array_filter(
+            $validated,
+            fn ($key) => array_key_exists($key, $request->all()),
+            ARRAY_FILTER_USE_KEY,
+        );
+
+        $merged = array_merge($card->toArray(), $patch);
         $sanitized = DashboardSanitizer::sanitize([$merged], $availableKeys);
 
         if (empty($sanitized)) {

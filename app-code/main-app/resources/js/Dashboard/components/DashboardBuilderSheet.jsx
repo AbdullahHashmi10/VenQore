@@ -1,4 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+
+import {
+    CATEGORIES,
+    CATEGORY_KEYS,
+    fitsFor,
+    defaultFit,
+    dimensionsOf,
+    categoriesForChart,
+    minCategoryForChart,
+    isCategoryLegal,
+    defaultCategoryForChart,
+    size as rowSize,
+} from '../layoutLaw';
 import { X, ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
 /**
@@ -18,22 +31,39 @@ const DOMAINS = [
     { key: 'staff',      label: 'Staff',       desc: 'Shift clock ins, staff counts.' },
 ];
 
-const SIZES = [
-    { key: '2x4', label: '2 Columns × 4 Rows', desc: 'Compact portrait layout.' },
-    { key: '2x6', label: '2 Columns × 6 Rows', desc: 'Tall portrait layout.' },
-    { key: '2x8', label: '2 Columns × 8 Rows', desc: 'Very tall portrait layout.' },
-    { key: '4x4', label: '4 Columns × 4 Rows', desc: 'Square-like layout.' },
-    { key: '4x6', label: '4 Columns × 6 Rows', desc: 'Balanced mid-size layout.' },
-    { key: '4x8', label: '4 Columns × 8 Rows', desc: 'Tall mid-size layout.' },
-    { key: '6x4', label: '6 Columns × 4 Rows', desc: 'Wide landscape layout.' },
-    { key: '6x6', label: '6 Columns × 6 Rows', desc: 'Large square-like layout.' },
-    { key: '6x8', label: '6 Columns × 8 Rows', desc: 'Large tall layout.' },
-    { key: '8x4', label: '8 Columns × 4 Rows', desc: 'Very wide landscape layout.' },
-    { key: '8x6', label: '8 Columns × 6 Rows', desc: 'Very wide tall layout.' },
-    { key: '8x8', label: '8 Columns × 8 Rows', desc: 'Maximum grid size.' },
-];
+/*
+ * The twelve `2x4 … 8x8` presets that used to live here are gone.
+ *
+ * They were superseded by Layout Law v2.0's six categories and eighteen fits,
+ * and they were wrong in three ways that mattered. They could not express a C1
+ * tile or a 4x1 inline strip. They carried no legibility floor, so a pie chart
+ * could be created at 2x4 and render as an unreadable disc. And they were
+ * declared a second time in DashboardSanitizer.php with nothing checking that
+ * the two lists agreed.
+ *
+ * Geometry now comes from resources/layout-law.json via ../layoutLaw, which the
+ * PHP sanitizer reads too.
+ */
 
 const STEP_LABELS = ['Domain', 'Metric', 'Visual', 'Size'];
+
+const hintStyle = {
+    fontSize: 'var(--vq-fs-caption)',
+    lineHeight: 'var(--vq-lh-caption)',
+    color: 'var(--vq-text-3)',
+    margin: '0 0 10px',
+};
+
+const tagStyle = {
+    marginLeft: '8px',
+    fontStyle: 'normal',
+    fontFamily: 'var(--vq-font-numeric)',
+    fontSize: 'var(--vq-fs-eyebrow)',
+    letterSpacing: 'var(--vq-ls-eyebrow)',
+    textTransform: 'uppercase',
+    fontWeight: 'var(--vq-fw-medium)',
+    color: 'var(--vq-text-3)',
+};
 
 export default function DashboardBuilderSheet({
     isOpen,
@@ -47,7 +77,8 @@ export default function DashboardBuilderSheet({
     const [selectedDomain, setSelectedDomain] = useState('sales');
     const [selectedMetric, setSelectedMetric] = useState(null);
     const [selectedChart, setSelectedChart] = useState(null);
-    const [selectedSize, setSelectedSize] = useState('4x4');
+    const [selectedCategory, setSelectedCategory] = useState('C3');
+    const [selectedFit, setSelectedFit] = useState(null);
 
     // Step 1 -> Step 2 transition: Metric filter
     const metricsForDomain = catalogue.filter(m => m.domain === selectedDomain);
@@ -67,15 +98,52 @@ export default function DashboardBuilderSheet({
 
     const handleSelectChart = (chart) => {
         setSelectedChart(chart);
+        // Seed a category the chart is legible in. Its floor is a floor, not a
+        // recommendation, so defaultCategoryForChart picks one step above it.
+        const category = defaultCategoryForChart(chart);
+        setSelectedCategory(category);
+        setSelectedFit(defaultFit(category)?.key ?? null);
         setStep(4);
     };
 
+    // Legality is a floor, not a whitelist: a chart may always be given MORE
+    // room than it needs. So the list runs from its floor upward and the
+    // categories it was designed for are marked rather than being the only ones.
+    const categoryOptions = useMemo(() => {
+        const chart = selectedChart || 'stat';
+        const designedFor = categoriesForChart(chart);
+        const floor = minCategoryForChart(chart);
+
+        return CATEGORY_KEYS
+            .filter(key => isCategoryLegal(chart, key))
+            .map(key => ({
+                key,
+                ...CATEGORIES[key],
+                recommended: designedFor.includes(key),
+                isFloor: key === floor,
+            }));
+    }, [selectedChart]);
+
+    const fitOptions = useMemo(() => fitsFor(selectedCategory), [selectedCategory]);
+
+    const chooseCategory = (category) => {
+        setSelectedCategory(category);
+        // A fit belongs to exactly one category, so changing category
+        // invalidates whichever fit was chosen.
+        setSelectedFit(defaultFit(category)?.key ?? null);
+    };
+
     const handleFinish = () => {
+        const { w, h } = dimensionsOf(selectedCategory, selectedFit);
+
         onSubmit({
             reading_key: selectedMetric.key,
             period: selectedMetric.default_period || 'today',
             chart: selectedChart,
-            size: selectedSize
+            category: selectedCategory,
+            fit: selectedFit,
+            w,
+            h,
         });
         // Reset states
         setStep(1);
@@ -484,49 +552,89 @@ export default function DashboardBuilderSheet({
                                     color: 'var(--vq-text)',
                                     margin: 0,
                                 }}>
-                                    Select Card Size
+                                    Card size
                                 </h3>
                                 <button onClick={() => setStep(3)} style={backBtnStyle}>
                                     <ArrowLeft size={11} /> Back
                                 </button>
                             </div>
 
-                            {SIZES.map(s => (
+                            {/* Category — how much of the board this card owns.
+                                A card widens before it degrades, so this is the
+                                shape decision; the fit below is the proportion. */}
+                            <p style={hintStyle}>
+                                {CATEGORIES[selectedCategory]?.role}
+                            </p>
+
+                            {categoryOptions.map(cat => (
                                 <button
-                                    key={s.key}
-                                    onClick={() => setSelectedSize(s.key)}
-                                    style={rowStyle(selectedSize === s.key)}
-                                    onMouseEnter={e => {
-                                        if (selectedSize !== s.key) {
-                                            e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
-                                            e.currentTarget.style.background = 'var(--vq-sunken)';
-                                        }
-                                    }}
-                                    onMouseLeave={e => {
-                                        if (selectedSize !== s.key) {
-                                            e.currentTarget.style.borderColor = 'var(--vq-line)';
-                                            e.currentTarget.style.background = 'transparent';
-                                        }
-                                    }}
+                                    key={cat.key}
+                                    onClick={() => chooseCategory(cat.key)}
+                                    style={rowStyle(selectedCategory === cat.key)}
                                 >
                                     <span style={{
                                         fontSize: 'var(--vq-fs-small)',
                                         fontWeight: 'var(--vq-fw-semi)',
-                                        color: selectedSize === s.key ? 'var(--vq-accent-text)' : 'var(--vq-text)',
+                                        color: selectedCategory === cat.key ? 'var(--vq-accent-text)' : 'var(--vq-text)',
                                         marginBottom: '3px',
                                         display: 'block',
                                     }}>
-                                        {s.label}
+                                        {cat.key} · {cat.name}
+                                        {cat.isFloor && <em style={tagStyle}>smallest legible</em>}
+                                        {!cat.isFloor && cat.recommended && <em style={tagStyle}>suits this chart</em>}
                                     </span>
                                     <span style={{
                                         fontSize: 'var(--vq-fs-caption)',
                                         color: 'var(--vq-text-2)',
                                         display: 'block',
                                     }}>
-                                        {s.desc}
+                                        {cat.role}
                                     </span>
                                 </button>
                             ))}
+
+                            {/* Fit — cols x rows, and the narrowest width the
+                                card may render it at. The leanest fit IS the
+                                minimum; there is no separate minimum size. */}
+                            <h3 style={{
+                                fontSize: 'var(--vq-fs-small)',
+                                fontWeight: 'var(--vq-fw-semi)',
+                                color: 'var(--vq-text)',
+                                margin: '18px 0 4px',
+                            }}>
+                                Proportion
+                            </h3>
+                            <p style={hintStyle}>
+                                Columns x rows, and the narrowest width this card may use it at.
+                            </p>
+
+                            {fitOptions.map(fit => {
+                                const active = selectedFit === fit.key || (!selectedFit && fit.default);
+                                return (
+                                    <button
+                                        key={fit.key}
+                                        onClick={() => setSelectedFit(fit.key)}
+                                        style={rowStyle(active)}
+                                    >
+                                        <span style={{
+                                            fontSize: 'var(--vq-fs-small)',
+                                            fontWeight: 'var(--vq-fw-semi)',
+                                            color: active ? 'var(--vq-accent-text)' : 'var(--vq-text)',
+                                            marginBottom: '3px',
+                                            display: 'block',
+                                        }}>
+                                            {fit.w} x {fit.h} &middot; {fit.label}
+                                        </span>
+                                        <span style={{
+                                            fontSize: 'var(--vq-fs-caption)',
+                                            color: 'var(--vq-text-2)',
+                                            display: 'block',
+                                        }}>
+                                            From {fit.floor}px wide &middot; {rowSize(fit.h)}px tall
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </>
                     )}
                 </div>

@@ -34,13 +34,18 @@ class Appearance
     /**
      * Kept in step with resources/js/theme/active.js — SELECTABLE_THEMES.
      *
-     * Two, deliberately. Midnight is the product's look and the default every
-     * user gets; Daylight is the same interface in light colours for people
-     * working under bright light. Minimal, Classic and Colour were built but
-     * never verified across all screens, and a theme that has not been looked
-     * at on every page is a promise the product cannot keep.
+     * One, deliberately. V6 is the design system — see DESIGN-RULES.md v3.0 and
+     * VENQORE_LAYOUT_LAW.md v2.0 — and it carries its own light and dark, so
+     * "which theme" and "light or dark" are no longer the same question. Mode
+     * is the MODES constant below.
+     *
+     * Midnight, Daylight, Minimal, Classic and Colour stay registered in
+     * active.js so the build keeps validating them, but none is offered. A
+     * stored value that is not in this list falls through to `:root`, which is
+     * V6 — so a user who had chosen Midnight moves to V6 on their next request
+     * rather than being stranded on a look the product no longer ships.
      */
-    public const THEMES = ['midnight-nebula', 'daylight-calm'];
+    public const THEMES = ['venqore-v6'];
 
     public const MODES = ['light', 'dark', 'system'];
 
@@ -85,11 +90,12 @@ class Appearance
     public static function defaults(): array
     {
         return [
-            // Must stay in step with ACTIVE_THEME in resources/js/theme/active.js.
-            // These disagreeing is what drained the colour out of the product:
-            // the build painted Midnight into `:root`, then this default told
-            // every request the user wanted Minimal, and Minimal won.
-            'theme' => 'midnight-nebula',
+            // Must stay in step with ACTIVE_THEME in resources/js/theme/active.js
+            // AND with DEFAULT_APPEARANCE.theme in resources/js/theme/appearance.js.
+            // All three disagreeing is what drained the colour out of the
+            // product: the build painted one theme into `:root`, this default
+            // named a second, and the JS default named a third ('minimal').
+            'theme' => 'venqore-v6',
             'mode' => 'system',
             'primary' => null,   // null = use the theme's own brand ramp
             'accent' => null,

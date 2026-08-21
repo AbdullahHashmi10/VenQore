@@ -31,7 +31,11 @@ import { ramp } from './color.js';
 import { cssVar, SHADES } from './contract.js';
 
 export const DEFAULT_APPEARANCE = {
-    theme: 'minimal',
+    // Must match ACTIVE_THEME / DEFAULT_THEME_ID in ./active.js and
+    // Appearance::defaults() in PHP. It read 'minimal' — a theme that has never
+    // been selectable — so every user without a saved preference was served an
+    // attribute matching no emitted block.
+    theme: 'venqore-v6',
     mode: 'system',
     primary: null,
     accent: null,
