@@ -2346,8 +2346,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   overflow: visible !important;
 }
 
-/* ── ELIMINATE COVERING POPUP BOX (HEADLINE IS THE ACTIVE DYNAMIC READER) ── */
-.ck-tip {
+/* ── ELIMINATE COVERING POPUP BOX & MOVING PILL (HEADLINE IS ACTIVE READER) ── */
+.ck-tip,
+.ck-ticker {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
