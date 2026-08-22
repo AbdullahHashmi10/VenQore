@@ -1706,7 +1706,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   VENQORE V6 DESIGN SYSTEM - BIG NUMBER TYPOGRAPHY & NON-COVERING TOOLTIP
+   VENQORE V6 DESIGN SYSTEM - BIG NUMBER TYPOGRAPHY & ZERO POPUP OVERLAY
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -2346,63 +2346,12 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   overflow: visible !important;
 }
 
-/* ── COMPACT SMART TOOLTIP (NEVER COVERS OR FILLS THE CARD) ──────────── */
+/* ── ELIMINATE COVERING POPUP BOX (HEADLINE IS THE ACTIVE DYNAMIC READER) ── */
 .ck-tip {
-  position: absolute !important;
-  top: 4px !important;
-  right: 8px !important;
-  left: auto !important;
-  z-index: 30 !important;
-  pointer-events: none !important;
-  background: var(--vq-surface, #ffffff) !important;
-  border: 1px solid var(--vq-line, var(--vq-ink-200)) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
-  padding: 4px 8px !important;
-  min-width: 0 !important;
-  width: auto !important;
-  max-width: 160px !important;
-  height: auto !important;
-  overflow: hidden !important;
-}
-
-[data-theme="dark"] .ck-tip {
-  background: #17201b !important;
-  border-color: #24332c !important;
-}
-
-.ck-tip[hidden] {
   display: none !important;
-}
-
-.ck-tip-h {
-  font-size: 9.5px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  color: var(--vq-text-3, var(--vq-ink-500)) !important;
-  margin: 0 0 2px 0 !important;
-  white-space: nowrap !important;
-}
-
-.ck-tip-r {
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  padding: 0 !important;
-}
-
-.ck-tip-v {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  color: var(--vq-teal-600) !important;
-}
-
-[data-theme="dark"] .ck-tip-v {
-  color: #59dbc0 !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* ── Non-Edit vs Edit Mode Rules ─────────────────────────────────────── */
