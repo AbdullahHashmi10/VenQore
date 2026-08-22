@@ -1706,17 +1706,21 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   VENQORE V6 DESIGN SYSTEM - TOKENS & COMPONENTS
+   VENQORE V6 DESIGN SYSTEM - BALANCED PADDING & LAYOUT LAW
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
   --vq-sidebar-w: 264px;
   --vq-sidebar-rail: 72px;
   --vq-header-h: 64px;
-  --vq-gutter: 24px;
+  --vq-gutter: 20px;
   --vq-row: 64px;
-  --vq-margin: 24px;
+  --vq-margin: 20px;
   --vq-cols: 12;
+
+  /* Card padding rule strictly according to V6 design system */
+  --vq-card-pad-v: 14px;
+  --vq-card-pad-h: 16px;
 
   /* V6 Color Tokens */
   --vq-teal-50: #E6FBF5;
@@ -1750,7 +1754,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   --vq-r-sm: 8px;
   --vq-r-md: 12px;
   --vq-r-lg: 16px;
-  --vq-r-xl: 20px;
+  --vq-r-xl: 18px;
   --vq-r-2xl: 24px;
   --vq-r-full: 9999px;
 
@@ -2142,7 +2146,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  padding: 24px 28px 64px !important;
+  padding: 20px 24px 64px !important;
   box-sizing: border-box !important;
 }
 
@@ -2155,7 +2159,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: grid !important;
   grid-template-columns: repeat(var(--vq-cols, 12), minmax(0, 1fr)) !important;
   grid-auto-rows: var(--vq-row, 64px) !important;
-  gap: var(--vq-gutter, 24px) !important;
+  gap: var(--vq-gutter, 20px) !important;
   width: 100% !important;
   align-content: start !important;
 }
@@ -2169,6 +2173,75 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 @media (min-width: 1440px) and (max-width: 1799px) { :root { --vq-cols: 10; } }
 @media (min-width: 1800px) { :root { --vq-cols: 12; } }
 @media (min-width: 2400px) { :root { --vq-cols: 16; } }
+
+/* ── STRICT BALANCED PADDING RULES (ZERO CLIPPING) ─────────────────────── */
+.vqc {
+  padding: var(--vq-card-pad-v, 14px) var(--vq-card-pad-h, 16px) !important;
+  border-radius: var(--vq-r-xl, 18px) !important;
+  box-sizing: border-box !important;
+}
+
+.vqc--c1, .vqc--c2 {
+  padding: 10px 14px !important;
+}
+
+.vqc-hd {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+  min-height: 20px !important;
+  margin-bottom: 2px !important;
+}
+
+.vqc-head {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+  margin-top: 1px !important;
+  margin-bottom: 1px !important;
+}
+
+.vqc-head-val {
+  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  color: var(--vq-text, var(--vq-ink-900)) !important;
+}
+
+.vqc-head-when {
+  font-size: 10.5px !important;
+  color: var(--vq-text-2, var(--vq-ink-600)) !important;
+  margin: 1px 0 4px 0 !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+}
+
+[data-theme="dark"] .vqc-head-when {
+  color: #8b9a93 !important;
+}
+
+.vqc-host {
+  position: relative !important;
+  flex: 1 1 0% !important;
+  min-height: 48px !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  margin-top: 2px !important;
+}
+
+.vqc-host svg.ck {
+  display: block !important;
+  overflow: visible !important;
+}
 
 /* ── Non-Edit vs Edit Mode Rules ─────────────────────────────────────── */
 .vq-shell:not(.is-editing) .vqc-grip,
@@ -2192,55 +2265,6 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vq-shell.is-editing .vqc-tools {
   opacity: 1 !important;
   display: flex !important;
-}
-
-/* ── Card typography & host layout safety ────────────────────────────── */
-.vqc-hd {
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: space-between !important;
-  gap: var(--vq-space-2) !important;
-  flex-shrink: 0 !important;
-  min-height: 24px !important;
-}
-
-.vqc-head {
-  display: flex !important;
-  align-items: baseline !important;
-  gap: var(--vq-space-2) !important;
-  flex-shrink: 0 !important;
-  margin-top: 4px !important;
-}
-
-.vqc-head-when {
-  font-size: 11px !important;
-  color: var(--vq-text-2, var(--vq-ink-600)) !important;
-  margin: 2px 0 6px 0 !important;
-  flex-shrink: 0 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  display: block !important;
-}
-
-[data-theme="dark"] .vqc-head-when {
-  color: #8b9a93 !important;
-}
-
-.vqc-host {
-  position: relative !important;
-  flex: 1 1 0% !important;
-  min-height: 50px !important;
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-end !important;
-  margin-top: 2px !important;
-}
-
-.vqc-host svg.ck {
-  display: block !important;
-  overflow: visible !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -2311,12 +2335,12 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   INTERACTIVE CARD TYPES (CLEAN UNCLIPPED STYLES)
+   INTERACTIVE CARD TYPES (BALANCED UNCLIPPED STYLES)
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* 1. Quick Operations Hub Card */
 .vqc--action-hub {
-  padding: 16px 20px !important;
+  padding: 14px 16px !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
@@ -2326,10 +2350,10 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vqc-action-hub-title {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 16px !important;
+  font-size: 15.5px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
-  margin-top: 2px !important;
+  margin-top: 1px !important;
   line-height: 1.15 !important;
 }
 
@@ -2345,14 +2369,14 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vqc-action-hub-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
-  gap: 10px !important;
+  gap: 8px !important;
   margin-top: auto !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
 
 .vqc-hub-btn {
-  height: 44px !important;
+  height: 40px !important;
   border-radius: var(--vq-r-md, 12px) !important;
   display: flex !important;
   align-items: center !important;
@@ -2404,32 +2428,32 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-hub-plus {
-  font-size: 16px !important;
+  font-size: 15px !important;
   font-weight: 800 !important;
   color: var(--vq-teal-300) !important;
 }
 
 /* 2. Bank Accounts & Cash in Hand Liquidity Card */
 .vqc--bank-liquidity {
-  padding: 16px 20px !important;
+  padding: 14px 16px !important;
   box-sizing: border-box !important;
 }
 
 .vqc-bank-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
-  gap: 12px !important;
-  margin-top: 10px !important;
+  gap: 10px !important;
+  margin-top: 6px !important;
 }
 
 .vqc-bank-box {
   background: var(--vq-sunken, var(--vq-ink-50)) !important;
   border: 1px solid var(--vq-line, var(--vq-ink-100)) !important;
   border-radius: var(--vq-r-md) !important;
-  padding: 10px 14px !important;
+  padding: 8px 12px !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 3px !important;
+  gap: 2px !important;
 }
 
 [data-theme="dark"] .vqc-bank-box {
@@ -2448,7 +2472,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-bank-label {
-  font-size: 10.5px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.04em !important;
@@ -2457,7 +2481,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vqc-bank-val {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 17px !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   color: var(--vq-text, var(--vq-ink-900)) !important;
 }
@@ -2467,31 +2491,31 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-bank-sub {
-  font-size: 10.5px !important;
+  font-size: 10px !important;
   color: var(--vq-text-2, var(--vq-ink-600)) !important;
 }
 
 /* 3. Alerts & Action Required Card */
 .vqc--alerts-hub {
-  padding: 16px 20px !important;
+  padding: 14px 16px !important;
   box-sizing: border-box !important;
 }
 
 .vqc-alerts-list {
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important;
-  margin-top: 10px !important;
+  gap: 6px !important;
+  margin-top: 6px !important;
 }
 
 .vqc-alert-item {
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
-  padding: 8px 12px !important;
+  gap: 10px !important;
+  padding: 7px 10px !important;
   border-radius: var(--vq-r-md) !important;
   text-decoration: none !important;
-  font-size: 12px !important;
+  font-size: 11.5px !important;
   transition: transform 0.15s ease !important;
 }
 
@@ -2533,8 +2557,8 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-alert-dot {
-  width: 7px !important;
-  height: 7px !important;
+  width: 6px !important;
+  height: 6px !important;
   border-radius: 50% !important;
   background: currentColor !important;
   flex-shrink: 0 !important;
@@ -2546,27 +2570,27 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vqc-alert-btn {
   font-weight: 700 !important;
-  font-size: 11px !important;
+  font-size: 10.5px !important;
 }
 
 /* 4. Growth Engine Card */
 .vqc--growth-engine {
-  padding: 16px 20px !important;
+  padding: 14px 16px !important;
   box-sizing: border-box !important;
 }
 
 .vqc-growth-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
-  gap: 12px !important;
-  margin-top: 10px !important;
+  gap: 10px !important;
+  margin-top: 6px !important;
 }
 
 .vqc-growth-stat {
   background: var(--vq-sunken, var(--vq-ink-50)) !important;
   border: 1px solid var(--vq-line, var(--vq-ink-100)) !important;
   border-radius: var(--vq-r-md) !important;
-  padding: 10px 14px !important;
+  padding: 8px 12px !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 2px !important;
@@ -2578,7 +2602,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-growth-label {
-  font-size: 10.5px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   color: var(--vq-text-3, var(--vq-ink-500)) !important;
@@ -2586,7 +2610,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vqc-growth-val {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 19px !important;
+  font-size: 18px !important;
   font-weight: 800 !important;
   color: var(--vq-teal-600) !important;
 }
@@ -2596,13 +2620,13 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-growth-sub {
-  font-size: 10.5px !important;
+  font-size: 10px !important;
   color: var(--vq-text-2, var(--vq-ink-600)) !important;
 }
 
 /* 5. Custom Button Card */
 .vqc--custom-btn {
-  padding: 16px 20px !important;
+  padding: 12px 14px !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
@@ -2614,9 +2638,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
+  gap: 4px !important;
   text-decoration: none !important;
-  padding: 8px 0 !important;
+  padding: 4px 0 !important;
   cursor: pointer !important;
   transition: transform 0.2s ease !important;
 }
@@ -2626,8 +2650,8 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-custom-icon-ring {
-  width: 44px !important;
-  height: 44px !important;
+  width: 38px !important;
+  height: 38px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
@@ -2638,7 +2662,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vqc-custom-btn-title {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 15px !important;
+  font-size: 14px !important;
   font-weight: 700 !important;
   color: var(--vq-text, var(--vq-ink-900)) !important;
 }
@@ -2648,7 +2672,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vqc-custom-btn-sub {
-  font-size: 10.5px !important;
+  font-size: 10px !important;
   color: var(--vq-text-3, var(--vq-ink-500)) !important;
 }
 
@@ -3122,7 +3146,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    ══════════════════════════════════════════════════════════════════════════ */
 .vq-step2-layout {
   display: grid;
-  grid-template-columns: 390px 1fr;
+  grid-template-columns: 410px 1fr;
   gap: 24px;
   height: 100%;
   min-height: 0;
@@ -3137,7 +3161,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vq-controls-pane {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   overflow-y: auto;
   padding: 6px 12px 24px 6px;
   box-sizing: border-box;
@@ -3169,11 +3193,12 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   box-sizing: border-box !important;
 }
 
-.vq-preview-stage .vqc.preview-size-compact { width: 280px !important; height: 96px !important; }
-.vq-preview-stage .vqc.preview-size-square { width: 330px !important; height: 290px !important; }
-.vq-preview-stage .vqc.preview-size-standard { width: 530px !important; height: 330px !important; max-width: 100% !important; }
-.vq-preview-stage .vqc.preview-size-wide { width: 650px !important; height: 330px !important; max-width: 100% !important; }
-.vq-preview-stage .vqc.preview-size-full { width: 100% !important; max-width: 720px !important; height: 340px !important; }
+.vq-preview-stage .vqc.preview-size-c1 { width: 280px !important; height: 96px !important; }
+.vq-preview-stage .vqc.preview-size-c2 { width: 420px !important; height: 96px !important; max-width: 100% !important; }
+.vq-preview-stage .vqc.preview-size-c3 { width: 420px !important; height: 260px !important; max-width: 100% !important; }
+.vq-preview-stage .vqc.preview-size-c4 { width: 500px !important; height: 320px !important; max-width: 100% !important; }
+.vq-preview-stage .vqc.preview-size-c5 { width: 640px !important; height: 380px !important; max-width: 100% !important; }
+.vq-preview-stage .vqc.preview-size-c6 { width: 100% !important; max-width: 740px !important; height: 440px !important; }
 
 .vq-size-grid {
   display: grid;
@@ -3183,7 +3208,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-size-card {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: var(--vq-r-md);
   border: 1px solid var(--vq-line, var(--vq-ink-200));
   background: var(--vq-surface, #ffffff);
@@ -3191,7 +3216,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   transition: all var(--vq-dur-1) var(--vq-ease-out);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   text-align: left;
   box-sizing: border-box;
 }
@@ -3218,7 +3243,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-size-card-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--vq-text, var(--vq-ink-900));
 }
@@ -3232,7 +3257,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-size-card-desc {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--vq-text-3, var(--vq-ink-500));
 }
 
@@ -3245,7 +3270,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-tone-card {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: var(--vq-r-md);
   border: 1px solid var(--vq-line, var(--vq-ink-200));
   background: var(--vq-surface, #ffffff);
@@ -3279,8 +3304,8 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-tone-swatch {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--vq-r-xs);
   flex-shrink: 0;
   border: 1px solid var(--vq-line, var(--vq-ink-200));
@@ -3293,13 +3318,13 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-tone-name {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--vq-text, var(--vq-ink-900));
 }
 
 .vq-tone-desc {
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--vq-text-3, var(--vq-ink-500));
 }
 
@@ -3334,9 +3359,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-choice-btn {
-  padding: 7px 14px;
+  padding: 6px 12px;
   border-radius: var(--vq-r-full);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   border: 1px solid var(--vq-line, var(--vq-ink-200));
   background: var(--vq-surface, #ffffff);
@@ -3367,7 +3392,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: var(--vq-surface, #ffffff);
   border: 1px solid var(--vq-line, var(--vq-ink-200));
   border-radius: var(--vq-r-md);
@@ -3390,19 +3415,19 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-v6-switch-title {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--vq-text, var(--vq-ink-900));
 }
 
 .vq-v6-switch-sub {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--vq-text-3, var(--vq-ink-500));
 }
 
 .vq-v6-switch-track {
-  width: 44px;
-  height: 24px;
+  width: 40px;
+  height: 22px;
   border-radius: 999px;
   background: var(--vq-line, var(--vq-ink-200));
   padding: 2px;
@@ -3418,8 +3443,8 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-v6-switch-knob {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -3428,5 +3453,5 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-v6-switch-track.is-on .vq-v6-switch-knob {
-  transform: translateX(20px);
+  transform: translateX(18px);
 }

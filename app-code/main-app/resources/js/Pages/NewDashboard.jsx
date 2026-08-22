@@ -1293,7 +1293,7 @@ function sizeOf(c){
   if (c.type === 'bank_liquidity') return [6, 2];
   if (c.type === 'alerts_hub') return [6, 3];
   if (c.type === 'growth_engine') return [6, 2];
-  if (c.type === 'custom_button') return [3, 2];
+  if (c.type === 'custom_button') return [2, 1];
   if (c.cat && FITS[c.cat]) {
     const f = FITS[c.cat][Math.min(c.fit || 0, FITS[c.cat].length - 1)];
     return [f[0], f[1]];
@@ -1309,7 +1309,7 @@ function hostDimensions(host, card) {
   const clientW = host ? host.clientWidth : 0;
   const clientH = host ? host.clientHeight : 0;
 
-  if (clientW > 40 && clientH > 40) {
+  if (clientW > 30 && clientH > 30) {
     return { W: Math.round(clientW), H: Math.round(clientH) };
   }
 
@@ -1334,14 +1334,14 @@ function hostDimensions(host, card) {
 
   const selfLabelled = card.chart === "gauge" || card.chart === "ring" || card.chart === "sunburst";
   const showHead = card.chart !== "status" && !selfLabelled;
-  const headerDeduction = showHead ? 134 : 48;
-  const extraKeysDeduction = (card.extraKeys && card.extraKeys.length > 0) ? 36 : 0;
+  const headerDeduction = showHead ? 110 : 36;
+  const extraKeysDeduction = (card.extraKeys && card.extraKeys.length > 0) ? 30 : 0;
   
-  const calcW = Math.max(80, Math.round(cardW - 40));
-  const calcH = Math.max(50, Math.round(cardH - 40 - headerDeduction - extraKeysDeduction));
+  const calcW = Math.max(80, Math.round(cardW - 32));
+  const calcH = Math.max(50, Math.round(cardH - 32 - headerDeduction - extraKeysDeduction));
 
-  const W = Math.max(80, clientW > 40 ? clientW : calcW);
-  const H = Math.max(50, clientH > 40 ? clientH : calcH);
+  const W = Math.max(80, clientW > 30 ? clientW : calcW);
+  const H = Math.max(50, clientH > 30 ? clientH : calcH);
   return { W: Math.round(W), H: Math.round(H) };
 }
 
@@ -1897,6 +1897,8 @@ window.VenQoreCards = {
   getCards: () => CARDS,
   setCards: (newCards) => { CARDS = newCards; draw(); },
   getReadings: () => READINGS,
+  getCats: () => CATS,
+  getCatNames: () => CAT_NAME,
   getFits: () => FITS,
   getCharts: () => CHARTS,
   getLegalCharts: () => LEGAL,
@@ -1943,13 +1945,14 @@ window.VenQoreCards = {
   }
 }
 
-// User-friendly card sizes mapped to Layout Law specs
+// Official Six Card Categories from VenQore Layout Law
 const CARD_SIZES = [
-  { id: 'compact', label: 'Compact Stat', sub: '2 × 1 cols', cat: 'C2', fit: 0, w: 2, h: 1, previewClass: 'preview-size-compact' },
-  { id: 'square', label: 'Medium Box', sub: '3 × 3 cols', cat: 'C3', fit: 0, w: 3, h: 3, previewClass: 'preview-size-square' },
-  { id: 'standard', label: 'Standard Chart', sub: '6 × 4 cols', cat: 'C5', fit: 0, w: 6, h: 4, previewClass: 'preview-size-standard' },
-  { id: 'wide', label: 'Wide Trend', sub: '8 × 4 cols', cat: 'C5', fit: 1, w: 8, h: 4, previewClass: 'preview-size-wide' },
-  { id: 'full', label: 'Full Width Hub', sub: '12 × 4 cols', cat: 'C6', fit: 0, w: 12, h: 4, previewClass: 'preview-size-full' }
+  { id: 'C1', label: 'Tile C1', sub: 'Single Stat / Action', desc: '2×1 icon+label (min 1×1)', cat: 'C1', fit: 0, w: 2, h: 1, previewClass: 'preview-size-c1' },
+  { id: 'C2', label: 'Strip C2', sub: 'One KPI Inline', desc: '4×1 inline (or 3×2 stacked)', cat: 'C2', fit: 0, w: 4, h: 1, previewClass: 'preview-size-c2' },
+  { id: 'C3', label: 'Metric C3', sub: 'KPI with Delta & Spark', desc: '4×3 full (or 3×2 standard)', cat: 'C3', fit: 0, w: 4, h: 3, previewClass: 'preview-size-c3' },
+  { id: 'C4', label: 'Panel C4', sub: 'Breakdown / Ranked List', desc: '4×4 full (or 3×4 standard)', cat: 'C4', fit: 0, w: 4, h: 4, previewClass: 'preview-size-c4' },
+  { id: 'C5', label: 'Board C5', sub: 'Full Multi-Series Trend', desc: '6×6 full (or 5×7 narrow)', cat: 'C5', fit: 0, w: 6, h: 6, previewClass: 'preview-size-c5' },
+  { id: 'C6', label: 'Canvas C6', sub: 'Master Hub & Flow Map', desc: '8×8 full (or 6×10 narrow)', cat: 'C6', fit: 0, w: 8, h: 8, previewClass: 'preview-size-c6' }
 ];
 
 // 4 V6 Design System Card Background Tones
@@ -2041,7 +2044,7 @@ export default function NewDashboard(props) {
   const [customBtnTarget, setCustomBtnTarget] = useState(SHORTCUT_TARGETS[0]);
 
   // Card Customization Draft State
-  const [selectedSizeId, setSelectedSizeId] = useState('standard');
+  const [selectedSizeId, setSelectedSizeId] = useState('C3');
   const [draftChart, setDraftChart] = useState('area');
   const [draftVariant, setDraftVariant] = useState('gradient');
   const [draftTone, setDraftTone] = useState('surface');
@@ -2109,9 +2112,9 @@ export default function NewDashboard(props) {
           targetUrl: customBtnTarget.url,
           btnColor: customBtnTarget.color,
           tone: draftTone,
-          cat: 'C2',
-          w: 3,
-          h: 2
+          cat: 'C1',
+          w: 2,
+          h: 1
         };
       }
 
@@ -2142,36 +2145,36 @@ export default function NewDashboard(props) {
     
     let defaultChart = 'area';
     let defaultVar = 'gradient';
-    let initialSize = 'standard';
+    let initialSize = 'C3';
 
     if (shape === 'SCALAR') {
       defaultChart = 'stat';
       defaultVar = 'spark';
-      initialSize = 'compact';
+      initialSize = 'C2';
     } else if (shape === 'GAUGE') {
       defaultChart = 'gauge';
       defaultVar = 'standard';
-      initialSize = 'square';
+      initialSize = 'C3';
     } else if (shape === 'TABLE') {
       defaultChart = 'table';
       defaultVar = 'standard';
-      initialSize = 'full';
+      initialSize = 'C6';
     } else if (shape === 'FEED') {
       defaultChart = 'feed';
       defaultVar = 'live';
-      initialSize = 'full';
+      initialSize = 'C5';
     } else if (shape === 'BREAKDOWN') {
       defaultChart = 'bar';
       defaultVar = 'grouped';
-      initialSize = 'standard';
+      initialSize = 'C4';
     } else if (shape === 'RANKING') {
       defaultChart = 'funnel';
       defaultVar = 'solid';
-      initialSize = 'standard';
+      initialSize = 'C4';
     } else {
       defaultChart = 'area';
       defaultVar = 'gradient';
-      initialSize = 'standard';
+      initialSize = 'C3';
     }
     
     setDraftChart(defaultChart);
@@ -2239,10 +2242,10 @@ export default function NewDashboard(props) {
       const [minW, minH] = engine.minSizeFor(mockCard);
       
       if (s.w < minW || s.h < minH) {
-        if (sizeId === 'compact') {
+        if (sizeId === 'C1' || sizeId === 'C2') {
           setDraftChart('stat');
           setDraftVariant('spark');
-        } else if (sizeId === 'square') {
+        } else if (sizeId === 'C3') {
           setDraftChart('gauge');
           setDraftVariant('standard');
         } else {
@@ -2297,9 +2300,9 @@ export default function NewDashboard(props) {
         targetUrl: customBtnTarget.url,
         btnColor: customBtnTarget.color,
         tone: draftTone,
-        cat: 'C2',
-        w: 3,
-        h: 2
+        cat: 'C1',
+        w: 2,
+        h: 1
       };
     }
 
@@ -2881,10 +2884,10 @@ export default function NewDashboard(props) {
 
                     {categoryFolderIndex === 0 && (
                       <>
-                        {/* Card Size Selector */}
+                        {/* Official Six Card Categories Selector */}
                         <div className="vq-form-group">
                           <label className="vq-form-label">
-                            <span>CARD SIZE</span>
+                            <span>CARD CATEGORY & SIZE (LAYOUT LAW)</span>
                             <span className="vq-form-sublabel">Auto-scales layout</span>
                           </label>
                           <div className="vq-size-grid">
@@ -2895,7 +2898,7 @@ export default function NewDashboard(props) {
                                 onClick={() => handleSizeSelect(s.id)}
                               >
                                 <div className="vq-size-card-title">{s.label}</div>
-                                <div className="vq-size-card-desc">{s.sub}</div>
+                                <div className="vq-size-card-desc">{s.desc}</div>
                               </div>
                             ))}
                           </div>
@@ -2905,7 +2908,7 @@ export default function NewDashboard(props) {
                         <div className="vq-form-group">
                           <label className="vq-form-label">
                             <span>CHART TYPE</span>
-                            <span className="vq-form-sublabel">Auto-resizes card if needed</span>
+                            <span className="vq-form-sublabel">Auto-resizes category if needed</span>
                           </label>
                           <div className="vq-select-btn-group">
                             {legalCharts.map(ch => (
