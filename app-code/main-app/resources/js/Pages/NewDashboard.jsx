@@ -1360,6 +1360,8 @@ function renderCard(c){
   const toneClass = tone === "accent" ? "vqc--tone-accent vqc--accent" : tone === "ink" ? "vqc--tone-ink" : tone === "mesh" ? "vqc--tone-mesh" : "vqc--tone-surface";
   const [w, h] = sizeOf(c);
   const deepLink = c.link || getDeepLinkForCard(c.key);
+  const cTitle = c.title || (readingOf(c.key)?.label) || 'Card';
+  const showPicker = c.cat !== 'C2' && c.cat !== 'C1' && (c.showPeriodPicker !== false);
 
   // 1. Quick Actions Hub Card
   if (c.type === 'action_hub') {
@@ -1522,6 +1524,26 @@ function renderCard(c){
     </article>`;
   }
 
+  // 6. C2 Strip (Strictly Pure Number: Label Left, Value Right - NO arrow, NO picker dropdown)
+  if (c.cat === 'C2' || (c.chart === 'stat' && (c.w === 4 || c.w === 3 || c.w === 6) && (c.h === 1 || c.h === 2))) {
+    const hl = headlineOf(c);
+    const isStacked = c.h === 2 && c.w === 3;
+    return `<article class="vqc vqc--c2 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+      <div class="vqc-bd vqc-bd--c2 ${isStacked ? 'is-stacked' : 'is-inline'}">
+        <span class="vqc-eyebrow" title="${cTitle}">${cTitle}</span>
+        <div class="vqc-c2-val-group">
+          <span class="vqc-head-val vqc-value">${rollerHTML(hl.value)}</span>
+          ${hl.pct ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ''}
+        </div>
+      </div>
+      <div class="vqc-tools">
+        <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="vqc-grip"></div>
+    </article>`;
+  }
+
   const rd = readingOf(c.key);
   const title = c.title || rd.label;
   const hl = headlineOf(c);
@@ -1539,23 +1561,13 @@ function renderCard(c){
   } else if (c.cat === "C2" && c.chart === "stat"){
     const [cw] = sizeOf(c);
     const inline = c.fit === 0 && !c.h;
-    body = `<div class="vqc-hd">
+    /* even the one-row strip says what it is and over what window */
+    body = `${tools()}<div class="vqc-bd vqc-bd--strip ${inline ? "is-inline" : ""}">
       <span class="vqc-eyebrow" title="${title}">${title}</span>
-      <div class="vqc-acts">
-        <a href="${deepLink}" class="vqc-nav-link" title="Open ${title}" target="_self">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-        </a>
-        <span class="vqc-hd-r">${PREFS.periodPicker ? periodPicker(c) : ""}</span>
-        ${tools()}
-      </div>
-    </div>
-    <div class="vqc-bd vqc-bd--strip ${inline ? "is-inline" : ""}">
-      <div class="vqc-strip-main">
+      <span class="vqc-head">
         <span class="vqc-head-val vqc-value vqc-value--sm">${rollerHTML(hl.value)}</span>
-        <span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>
-      </div>
-      <span class="vqc-head-when vqc-when">${cw >= 6 ? hl.when : c.period}</span>
-    </div>`;
+        <span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span></span>
+      <span class="vqc-head-when vqc-when">${cw >= 6 ? hl.when : c.period}</span></div>`;
   } else {
     /* only suppress the headline when the chart draws the number in its centre */
     const selfLabelled = c.chart === "gauge" || c.chart === "ring" || c.chart === "sunburst"
@@ -1958,8 +1970,8 @@ window.VenQoreCards = {
 // ── ALL POSSIBLE SIZE OPTIONS FOR METRICS (C2 to C6) ─────────────────────
 const METRIC_SIZE_OPTIONS = [
   // Strip C2 (Min 3×2/4×1, Max 6×2)
-  { id: 'c2-4x1', cat: 'C2', fit: 0, w: 4, h: 1, label: '4 × 1 Inline', sub: 'Strip C2', desc: 'Single KPI inline (min fit)', previewClass: 'preview-size-c2' },
-  { id: 'c2-3x2', cat: 'C2', fit: 1, w: 3, h: 2, label: '3 × 2 Stacked', sub: 'Strip C2', desc: 'Stacked KPI headline', previewClass: 'preview-size-c2' },
+  { id: 'c2-4x1', cat: 'C2', fit: 0, w: 4, h: 1, label: '4 × 1 Inline', sub: 'Strip C2', desc: 'Single KPI inline (label left, val right)', previewClass: 'preview-size-c2' },
+  { id: 'c2-3x2', cat: 'C2', fit: 1, w: 3, h: 2, label: '3 × 2 Stacked', sub: 'Strip C2', desc: 'Stacked single KPI headline', previewClass: 'preview-size-c2' },
   { id: 'c2-6x2', cat: 'C2', fit: 0, w: 6, h: 2, label: '6 × 2 Wide Strip', sub: 'Strip C2 (Max)', desc: 'Max wide single KPI strip', previewClass: 'preview-size-c2' },
 
   // Metric C3 (Min 2×3, Max 6×4)
@@ -2091,6 +2103,7 @@ export default function NewDashboard(props) {
   const [draftVariant, setDraftVariant] = useState('gradient');
   const [draftTone, setDraftTone] = useState('surface');
   const [draftPeriod, setDraftPeriod] = useState('Month');
+  const [draftShowPeriodPicker, setDraftShowPeriodPicker] = useState(true);
   const [draftAccent, setDraftAccent] = useState(false);
   const [draftStarBorder, setDraftStarBorder] = useState(false);
   const [draftTitle, setDraftTitle] = useState('');
@@ -2112,8 +2125,10 @@ export default function NewDashboard(props) {
     setSelectedCatFilter('All');
     if (catIndex === 2) {
       setSelectedSizeId('c1-2x1');
+      setDraftShowPeriodPicker(false);
     } else {
       setSelectedSizeId('c3-4x3');
+      setDraftShowPeriodPicker(true);
     }
     setStepperModalOpen(true);
   };
@@ -2128,6 +2143,12 @@ export default function NewDashboard(props) {
     }
     return METRIC_SIZE_OPTIONS.filter(s => s.cat === selectedCatFilter);
   }, [categoryFolderIndex, selectedCatFilter]);
+
+  // Check if current selected size is C2 (Strip)
+  const isSelectedSizeC2 = useMemo(() => {
+    const s = METRIC_SIZE_OPTIONS.find(x => x.id === selectedSizeId);
+    return s && s.cat === 'C2';
+  }, [selectedSizeId]);
 
   // Update preview in Step 2 whenever configuration changes
   useEffect(() => {
@@ -2145,6 +2166,7 @@ export default function NewDashboard(props) {
           chart: targetSize.cat === 'C2' ? 'stat' : draftChart,
           variant: targetSize.cat === 'C2' ? 'spark' : draftVariant,
           period: draftPeriod,
+          showPeriodPicker: targetSize.cat !== 'C2' && draftShowPeriodPicker,
           fit: targetSize.fit,
           tone: draftTone,
           accent: draftTone === 'accent' || draftAccent,
@@ -2196,7 +2218,7 @@ export default function NewDashboard(props) {
         });
       }
     }
-  }, [stepperModalOpen, step, categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftAccent, draftStarBorder, draftTitle]);
+  }, [stepperModalOpen, step, categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftShowPeriodPicker, draftAccent, draftStarBorder, draftTitle]);
 
   // Open Step 2 for a selected reading
   const selectMetricForStep2 = (rd) => {
@@ -2243,6 +2265,7 @@ export default function NewDashboard(props) {
     setSelectedSizeId(initialSizeId);
     setDraftTone('surface');
     setDraftPeriod('Month');
+    setDraftShowPeriodPicker(initialSizeId !== 'c2-4x1');
     setDraftTitle(rd.label);
     setDraftAccent(false);
     setDraftStarBorder(false);
@@ -2322,6 +2345,7 @@ export default function NewDashboard(props) {
         chart: targetSize.cat === 'C2' ? 'stat' : draftChart,
         variant: targetSize.cat === 'C2' ? 'spark' : draftVariant,
         period: draftPeriod,
+        showPeriodPicker: targetSize.cat !== 'C2' && draftShowPeriodPicker,
         fit: targetSize.fit,
         tone: draftTone,
         accent: draftTone === 'accent' || draftAccent,
@@ -2376,7 +2400,7 @@ export default function NewDashboard(props) {
   // Catalog data
   const readings = window.VenQoreCards?.getReadings() || [];
   
-  // Dynamically derive populated areas from readings so no empty chips ever appear
+  // Dynamically derive populated areas from readings
   const availableAreas = useMemo(() => {
     const rawAreas = Array.from(new Set(readings.map(r => r.area).filter(Boolean)));
     return ['All', ...rawAreas];
@@ -2972,40 +2996,48 @@ export default function NewDashboard(props) {
                           </div>
                         </div>
 
-                        {/* Chart Type Selector */}
-                        <div className="vq-form-group">
-                          <label className="vq-form-label">
-                            <span>CHART TYPE</span>
-                            <span className="vq-form-sublabel">Auto-scales size bounds</span>
-                          </label>
-                          <div className="vq-select-btn-group">
-                            {legalCharts.map(ch => (
-                              <button
-                                key={ch}
-                                className={`vq-choice-btn ${draftChart === ch ? 'is-active' : ''}`}
-                                onClick={() => handleChartSelect(ch)}
-                              >
-                                {chartNames[ch] || ch}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                        {/* Chart Type Selector (Hidden for C2 Strip) */}
+                        {!isSelectedSizeC2 ? (
+                          <>
+                            <div className="vq-form-group">
+                              <label className="vq-form-label">
+                                <span>CHART TYPE</span>
+                                <span className="vq-form-sublabel">Auto-scales size bounds</span>
+                              </label>
+                              <div className="vq-select-btn-group">
+                                {legalCharts.map(ch => (
+                                  <button
+                                    key={ch}
+                                    className={`vq-choice-btn ${draftChart === ch ? 'is-active' : ''}`}
+                                    onClick={() => handleChartSelect(ch)}
+                                  >
+                                    {chartNames[ch] || ch}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
 
-                        {/* Visual Variant Selector */}
-                        <div className="vq-form-group">
-                          <label className="vq-form-label">VISUAL VARIANT</label>
-                          <div className="vq-select-btn-group">
-                            {currentVariants.map(([v, n]) => (
-                              <button
-                                key={v}
-                                className={`vq-choice-btn ${draftVariant === v ? 'is-active' : ''}`}
-                                onClick={() => setDraftVariant(v)}
-                              >
-                                {n}
-                              </button>
-                            ))}
+                            {/* Visual Variant Selector */}
+                            <div className="vq-form-group">
+                              <label className="vq-form-label">VISUAL VARIANT</label>
+                              <div className="vq-select-btn-group">
+                                {currentVariants.map(([v, n]) => (
+                                  <button
+                                    key={v}
+                                    className={`vq-choice-btn ${draftVariant === v ? 'is-active' : ''}`}
+                                    onClick={() => setDraftVariant(v)}
+                                  >
+                                    {n}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ background: 'var(--vq-teal-50)', border: '1px solid var(--vq-teal-200)', borderRadius: '12px', padding: '10px 14px', fontSize: '12px', color: 'var(--vq-teal-900)' }}>
+                            <strong>Strip C2 Rule:</strong> Dedicated to pure single-line KPI readings (label on left, number on right). Visual charts start at Metric C3.
                           </div>
-                        </div>
+                        )}
                       </>
                     )}
 
@@ -3065,6 +3097,24 @@ export default function NewDashboard(props) {
                               {p}
                             </button>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Show Timeframe Picker Dropdown Option (C3 to C6) */}
+                    {!isSelectedSizeC2 && categoryFolderIndex === 0 && (
+                      <div
+                        className="vq-v6-switch-wrapper"
+                        onClick={() => setDraftShowPeriodPicker(!draftShowPeriodPicker)}
+                        role="switch"
+                        aria-checked={draftShowPeriodPicker}
+                      >
+                        <div className="vq-v6-switch-label">
+                          <span className="vq-v6-switch-title">Timeframe Dropdown Button</span>
+                          <span className="vq-v6-switch-sub">Show timeframe switch in card header</span>
+                        </div>
+                        <div className={`vq-v6-switch-track ${draftShowPeriodPicker ? 'is-on' : ''}`}>
+                          <div className="vq-v6-switch-knob"></div>
                         </div>
                       </div>
                     )}

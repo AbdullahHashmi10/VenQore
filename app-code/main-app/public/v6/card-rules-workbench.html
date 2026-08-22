@@ -3,12 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VenQore V6 — Official Card System Rule Book & Padding Workbench</title>
+<title>VenQore V6 — Official Card Categories & Padding Rules</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  /* Dynamic Workbench Customization Variables */
+  --card-pad-v: 14px;
+  --card-pad-h: 16px;
+  --card-head-gap: 4px;
+  --card-radius: 18px;
+
   /* VenQore V6 Design System Tokens */
   --vq-teal-50: #E6FBF5;
   --vq-teal-100: #C6F5E9;
@@ -123,6 +129,97 @@ body {
   color: var(--vq-text);
 }
 
+/* Control Bar (Padding & Sizing Controls) */
+.wb-controls-bar {
+  background: var(--vq-surface);
+  border-bottom: 1px solid var(--vq-line);
+  padding: 18px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  align-items: center;
+}
+
+.wb-ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wb-ctrl-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vq-text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wb-ctrl-val {
+  color: var(--vq-teal-600);
+  font-weight: 800;
+  font-family: var(--vq-font-mono);
+}
+
+[data-theme="dark"] .wb-ctrl-val { color: #59dbc0; }
+
+.wb-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wb-slider {
+  appearance: none;
+  width: 140px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--vq-line);
+  outline: none;
+}
+
+.wb-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--vq-teal-500);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(11, 170, 143, 0.4);
+}
+
+.wb-btn-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.wb-chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--vq-bg);
+  border: 1px solid var(--vq-line);
+  color: var(--vq-text-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wb-chip:hover {
+  background: var(--vq-teal-50);
+  color: var(--vq-teal-700);
+  border-color: var(--vq-teal-200);
+}
+
+.wb-chip.is-active {
+  background: var(--vq-teal-500);
+  color: #fff;
+  border-color: var(--vq-teal-500);
+  box-shadow: 0 2px 8px rgba(11, 170, 143, 0.3);
+}
+
 /* Layout */
 .wb-main {
   padding: 32px;
@@ -151,19 +248,28 @@ body {
   margin-bottom: 18px;
 }
 
+/* Live Card Grid */
+.wb-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 20px;
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
-   CARD STYLES WITH RESPONSIVE DYNAMIC PADDING
+   CARD STYLES (DRIVEN BY DYNAMIC PADDING VARIABLES)
    ══════════════════════════════════════════════════════════════════════════ */
 .vqc {
   background: var(--vq-surface);
   border: 1px solid var(--vq-line);
-  border-radius: 18px;
+  border-radius: var(--card-radius);
+  padding: var(--card-pad-v) var(--card-pad-h);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 2px 8px rgba(13, 20, 18, 0.04);
+  min-height: 120px;
 }
 
 .vqc:hover {
@@ -171,48 +277,152 @@ body {
   box-shadow: 0 8px 24px rgba(13, 20, 18, 0.08);
 }
 
-/* Responsive Dynamic Padding by Category */
-.vqc--c1 { padding: 8px 12px !important; }
-.vqc--c2 { padding: 10px 18px !important; }
-.vqc--c3 { padding: 12px 14px !important; }
-.vqc--c4 { padding: 14px 16px !important; }
-.vqc--c5 { padding: 16px 20px !important; }
-.vqc--c6 { padding: 20px 24px !important; }
-
-/* C2 Inline Strip Styling */
-.vqc--c2 .vqc-hd {
+/* Card Header */
+.vqc-hd {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2px;
+  margin-bottom: var(--card-head-gap);
+  flex-shrink: 0;
 }
-.vqc--c2 .vqc-eyebrow {
-  font-size: 11px;
+
+.vqc-eyebrow {
+  font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--vq-text-3);
 }
-.vqc--c2 .vqc-bd--strip {
+
+.vqc-acts {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  gap: 4px;
 }
-.vqc--c2 .vqc-head-val {
+
+.vqc-nav-link {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vq-text-3);
+  text-decoration: none;
+}
+
+.vqc-nav-link:hover {
+  background: var(--vq-teal-50);
+  color: var(--vq-teal-600);
+}
+
+/* Headline Value */
+.vqc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.vqc-head-val {
   font-family: var(--vq-font-display);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--vq-text);
+  line-height: 1.1;
 }
-.vqc--c2 .vqc-delta {
+
+.vqc-head-delta {
   font-size: 11px;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 999px;
   background: var(--vq-teal-50);
   color: var(--vq-teal-700);
-  margin-left: 6px;
+}
+
+.vqc-head-when {
+  font-size: 11px;
+  color: var(--vq-text-2);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+/* Visual Chart Host Container */
+.vqc-chart-area {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  position: relative;
+}
+
+/* 4 Card Tones */
+.vqc--tone-surface { background: var(--vq-surface); border-color: var(--vq-line); }
+.vqc--tone-accent { background: linear-gradient(135deg, var(--vq-teal-600), var(--vq-teal-800)); color: #fff; border-color: transparent; }
+.vqc--tone-accent .vqc-eyebrow, .vqc--tone-accent .vqc-head-when { color: rgba(255, 255, 255, 0.75); }
+.vqc--tone-accent .vqc-head-val { color: #fff; }
+.vqc--tone-accent .vqc-head-delta { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+.vqc--tone-ink { background: #0D1412; border-color: #1F2B25; color: #EDF2EF; }
+.vqc--tone-ink .vqc-eyebrow, .vqc--tone-ink .vqc-head-when { color: #8B9A93; }
+.vqc--tone-ink .vqc-head-val { color: #fff; }
+
+.vqc--tone-mesh {
+  background: radial-gradient(at 100% 0%, rgba(11, 170, 143, 0.20) 0px, transparent 65%),
+              radial-gradient(at 0% 100%, rgba(43, 165, 209, 0.18) 0px, transparent 65%),
+              var(--vq-surface);
+  border-color: var(--vq-teal-200);
+}
+
+/* Mock Chart Visuals */
+.mock-bar-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 10px;
+}
+.mock-bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--vq-teal-400), var(--vq-teal-600));
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+}
+
+.mock-area-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+}
+
+/* Multi-button Operations Hub */
+.vqc-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.vqc-hub-btn {
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff;
+  border: none;
+  cursor: pointer;
 }
 
 /* Official Rule Alert Box */
@@ -233,20 +443,6 @@ body {
   border-color: #1a5044;
   border-left-color: #59dbc0;
   color: #edf2ef;
-}
-
-.wb-rule-danger {
-  background: #fff1f0;
-  border: 1px solid #ffa39e;
-  border-left: 4px solid #f5222d;
-  color: #820014;
-}
-
-[data-theme="dark"] .wb-rule-danger {
-  background: #2a1215;
-  border-color: #5c1d24;
-  border-left-color: #ff4d4f;
-  color: #ffccc7;
 }
 
 /* Reference Tables */
@@ -312,225 +508,236 @@ body {
   <div class="wb-brand">
     <div class="wb-badge">V6</div>
     <div>
-      <div class="wb-title">VenQore V6 — Official Rule Book & Card Sizing Bounds</div>
-      <div class="wb-sub">Finalized specifications for C1 Shortcuts, Metric Bounds, and Responsive Padding Law</div>
+      <div class="wb-title">VenQore V6 — Official Six Card Categories & Layout Law</div>
+      <div class="wb-sub">Exact specification from VenQore Design System v6</div>
     </div>
   </div>
   <button class="wb-theme-btn" onclick="toggleTheme()">🌓 Toggle Light / Dark</button>
 </header>
 
+<!-- Interactive Dynamic Padding Workbench Controls -->
+<section class="wb-controls-bar">
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">
+      <span>CARD VERTICAL PADDING</span>
+      <span id="valPadV" class="wb-ctrl-val">14px</span>
+    </label>
+    <div class="wb-slider-row">
+      <input type="range" min="8" max="28" value="14" class="wb-slider" id="sliderPadV" oninput="updatePadding()">
+    </div>
+  </div>
+
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">
+      <span>CARD HORIZONTAL PADDING</span>
+      <span id="valPadH" class="wb-ctrl-val">16px</span>
+    </label>
+    <div class="wb-slider-row">
+      <input type="range" min="10" max="32" value="16" class="wb-slider" id="sliderPadH" oninput="updatePadding()">
+    </div>
+  </div>
+
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">PADDING PRESETS</label>
+    <div class="wb-btn-chips">
+      <button class="wb-chip" onclick="setPreset(10, 12)">⚡ Ultra-Compact (10×12)</button>
+      <button class="wb-chip is-active" onclick="setPreset(14, 16)">✨ Balanced V6 (14×16)</button>
+      <button class="wb-chip" onclick="setPreset(18, 20)">🛡️ Medium (18×20)</button>
+      <button class="wb-chip" onclick="setPreset(24, 26)">🍃 Spacious (24×26)</button>
+    </div>
+  </div>
+
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">CORNER RADIUS</label>
+    <div class="wb-slider-row">
+      <input type="range" min="8" max="28" value="18" class="wb-slider" id="sliderRadius" oninput="updateRadius()">
+      <span id="valRadius" class="wb-ctrl-val">18px</span>
+    </div>
+  </div>
+</section>
+
 <main class="wb-main">
 
   <!-- 1. OFFICIAL SIX CARD CATEGORIES TABLE -->
   <section>
-    <div class="wb-section-title">1. Six Card Categories & Sizing Bounds Specification</div>
+    <div class="wb-section-title">Six card categories (Official V6 Design System Rule)</div>
     <div class="wb-section-sub">Standard layout categories, minimum/maximum bounds, and responsive fit levels.</div>
 
     <table class="wb-table">
       <thead>
         <tr>
           <th style="width: 140px;">CATEGORY</th>
-          <th style="width: 320px;">ROLE & EXCLUSIVITY</th>
-          <th style="width: 100px;">MIN BOUND</th>
-          <th style="width: 100px;">MAX BOUND</th>
-          <th>ALL POSSIBLE SIZE OPTIONS</th>
+          <th style="width: 320px;">ROLE</th>
+          <th style="width: 100px;">MIN</th>
+          <th style="width: 100px;">MAX</th>
+          <th>FITS</th>
         </tr>
       </thead>
       <tbody>
-        <tr style="background: rgba(11, 170, 143, 0.04);">
+        <tr>
           <td><strong>Tile <span class="tag-badge">C1</span></strong></td>
-          <td><strong style="color: var(--vq-teal-700);">STRICTLY SHORTCUTS ONLY:</strong> Custom buttons, quick action triggers, 1-click jump glyphs. <em>(No stats or metrics ever go into C1).</em></td>
+          <td>Shortcut, quick action, custom button, single glyph stat</td>
           <td><span class="tag-badge">1×1</span></td>
           <td><span class="tag-badge">3×2</span></td>
           <td>
             <div class="fit-list">
-              <span class="fit-item"><strong>2×1</strong> icon+label (≥124px)</span>
-              <span class="fit-item"><strong>1×1</strong> icon only (≥52px)</span>
-              <span class="fit-item"><strong>3×2</strong> big tile (Max bound)</span>
+              <span class="fit-item"><strong>2×1</strong> icon+label ≥124px</span>
+              <span class="fit-item"><strong>1×1</strong> icon ≥52px</span>
             </div>
           </td>
         </tr>
         <tr>
           <td><strong>Strip <span class="tag-badge">C2</span></strong></td>
-          <td><strong>One KPI on One Line:</strong> Label on the left, value on the right. Perfect for single headline stats.</td>
-          <td><span class="tag-badge">3×2 / 4×1</span></td>
+          <td>One KPI on one line - label left, value right</td>
+          <td><span class="tag-badge">3×2</span></td>
           <td><span class="tag-badge">6×2</span></td>
           <td>
             <div class="fit-list">
-              <span class="fit-item"><strong>4×1</strong> inline (≥356px)</span>
-              <span class="fit-item"><strong>3×2</strong> stacked (≥200px)</span>
-              <span class="fit-item"><strong>6×2</strong> wide strip (Max bound)</span>
+              <span class="fit-item"><strong>4×1</strong> inline ≥356px</span>
+              <span class="fit-item"><strong>3×2</strong> stacked ≥200px</span>
             </div>
           </td>
         </tr>
         <tr>
           <td><strong>Metric <span class="tag-badge">C3</span></strong></td>
-          <td><strong>KPI with Visual Element:</strong> Delta badge, sparkline, period comparison, or compact gauge dial.</td>
+          <td>KPI with delta, sparkline or period comparison</td>
           <td><span class="tag-badge">2×3</span></td>
           <td><span class="tag-badge">6×4</span></td>
           <td>
             <div class="fit-list">
-              <span class="fit-item"><strong>4×3</strong> full (≥386px)</span>
-              <span class="fit-item"><strong>3×2</strong> standard (≥274px)</span>
-              <span class="fit-item"><strong>2×2</strong> compact (≥200px)</span>
-              <span class="fit-item"><strong>2×3</strong> stacked (≥163px)</span>
-              <span class="fit-item"><strong>6×4</strong> wide metric (Max bound)</span>
+              <span class="fit-item"><strong>4×3</strong> full ≥386px</span>
+              <span class="fit-item"><strong>3×2</strong> standard ≥274px</span>
+              <span class="fit-item"><strong>2×2</strong> compact ≥200px</span>
+              <span class="fit-item"><strong>2×3</strong> stacked ≥163px</span>
             </div>
           </td>
         </tr>
         <tr>
           <td><strong>Panel <span class="tag-badge">C4</span></strong></td>
-          <td><strong>Ranked list, breakdown, small chart, table excerpt, operations hub.</strong></td>
+          <td>Ranked list, breakdown, small chart, table excerpt</td>
           <td><span class="tag-badge">2×6</span></td>
           <td><span class="tag-badge">6×6</span></td>
           <td>
             <div class="fit-list">
-              <span class="fit-item"><strong>4×4</strong> full (≥492px)</span>
-              <span class="fit-item"><strong>3×4</strong> standard (≥356px)</span>
-              <span class="fit-item"><strong>3×5</strong> compact (≥200px)</span>
-              <span class="fit-item"><strong>2×6</strong> list (≥200px)</span>
-              <span class="fit-item"><strong>6×6</strong> wide panel (Max bound)</span>
+              <span class="fit-item"><strong>4×4</strong> full ≥492px</span>
+              <span class="fit-item"><strong>3×4</strong> standard ≥356px</span>
+              <span class="fit-item"><strong>3×5</strong> compact ≥200px</span>
+              <span class="fit-item"><strong>2×6</strong> list ≥200px</span>
             </div>
           </td>
         </tr>
         <tr>
           <td><strong>Board <span class="tag-badge">C5</span></strong></td>
-          <td><strong>Full multi-series chart, wide table, activity streams.</strong></td>
+          <td>Full chart, multi-series, wide table</td>
           <td><span class="tag-badge">4×8</span></td>
           <td><span class="tag-badge">12×9</span></td>
           <td>
             <div class="fit-list">
-              <span class="fit-item"><strong>6×6</strong> full (≥593px)</span>
-              <span class="fit-item"><strong>5×7</strong> narrow (≥415px)</span>
-              <span class="fit-item"><strong>4×8</strong> min (≥295px)</span>
-              <span class="fit-item"><strong>12×9</strong> wide board (Max bound)</span>
+              <span class="fit-item"><strong>6×6</strong> full ≥593px</span>
+              <span class="fit-item"><strong>5×7</strong> narrow ≥415px</span>
+              <span class="fit-item"><strong>4×8</strong> min ≥295px</span>
             </div>
           </td>
         </tr>
         <tr>
           <td><strong>Canvas <span class="tag-badge">C6</span></strong></td>
-          <td><strong>Hero chart, P&L statement, cohort grid, master map.</strong></td>
+          <td>Hero chart, P&L statement, cohort grid, map</td>
           <td><span class="tag-badge">4×12</span></td>
           <td><span class="tag-badge">12×16</span></td>
           <td>
             <div class="fit-list">
-              <span class="fit-item"><strong>8×8</strong> full (≥733px)</span>
-              <span class="fit-item"><strong>6×10</strong> narrow (≥533px)</span>
-              <span class="fit-item"><strong>4×12</strong> min (≥295px)</span>
-              <span class="fit-item"><strong>12×16</strong> hero canvas (Max bound)</span>
+              <span class="fit-item"><strong>8×8</strong> full ≥733px</span>
+              <span class="fit-item"><strong>6×10</strong> narrow ≥533px</span>
+              <span class="fit-item"><strong>4×12</strong> min ≥295px</span>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <div class="wb-rule-callout wb-rule-danger">
-      <strong>Rule 1 (C1 Exclusivity):</strong> <code>C1</code> is exclusively designated for Shortcut action buttons. Analytical metrics, numbers, and stats start at <code>C2</code> (Strip).
-    </div>
-
     <div class="wb-rule-callout">
-      <strong>Rule 2 (Layout Law Mechanism):</strong> A card starts at the fit its author designed. If the column is narrow it gets <strong>wider</strong>; only when widening is exhausted does it <strong>degrade to a leaner fit</strong>, which trades a column for a row and re-lays its inside. That guarantees zero content clipping across any screen size.
+      <strong>Core Layout Law Mechanism:</strong> A card starts at the fit its author designed. If the column is narrow it gets <strong>wider</strong>; only when widening is exhausted does it <strong>degrade to a leaner fit</strong>, which trades a column for a row and re-lays its inside. That is the mechanism that guarantees nobody loses data to their screen size.
     </div>
   </section>
 
-  <!-- 2. RESPONSIVE DYNAMIC PADDING LAW -->
+  <!-- 2. LIVE CARD SIZES DEMO -->
   <section>
-    <div class="wb-section-title">2. Responsive Dynamic Padding Law</div>
-    <div class="wb-section-sub">Padding dynamically scales by category to maximize usable content area in small cards and give spacious elegance to larger boards.</div>
+    <div class="wb-section-title">Live Demonstration of the 6 Categories</div>
+    <div class="wb-section-sub">Adjust the padding slider in real time to observe the clearance inside each category.</div>
 
-    <table class="wb-table">
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Size Types</th>
-          <th>Dynamic Padding Spec</th>
-          <th>Purpose & Clearance Behavior</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="tag-badge">C1</span></td>
-          <td>Tile Shortcuts</td>
-          <td><code>8px 12px</code></td>
-          <td>Compact padding leaves maximum room for the 32px icon ring + bold label without overflowing.</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C2</span></td>
-          <td>Inline KPI Strip</td>
-          <td><code>10px 18px</code></td>
-          <td>Wide horizontal padding spreads label left and number right with 16px clearance gap.</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C3</span></td>
-          <td>Medium Metric</td>
-          <td><code>12px 14px</code></td>
-          <td>Tight vertical padding gives gauge dial and sparklines maximum vertical height without clipping.</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C4</span></td>
-          <td>Panel / Operations</td>
-          <td><code>14px 16px</code></td>
-          <td>Balanced padding for 3-button operations hubs, alerts lists, and breakdown bars.</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C5</span></td>
-          <td>Board / Multi-Series</td>
-          <td><code>16px 20px</code></td>
-          <td>Spacious layout providing breathing room for multi-series axes and legends.</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C6</span></td>
-          <td>Hero Canvas</td>
-          <td><code>20px 24px</code></td>
-          <td>Full canvas padding for master financial ledgers and sankey flows.</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 3. LIVE DEMONSTRATION -->
-  <section>
-    <div class="wb-section-title">3. Live Renderings Under Dynamic Padding Law</div>
-    <div class="wb-section-sub">Notice how C1 shortcut and C2 inline strip maintain crisp spacing and zero content crowding.</div>
-
-    <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px;">
-      <!-- C1: Shortcut -->
-      <article class="vqc vqc--c1" style="grid-column: span 3; min-height: 80px; align-items: center; justify-content: center; text-align: center;">
-        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--vq-teal-500); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 3px;">⚡</div>
-        <div style="font-size: 13px; font-weight: 700;">Point of Sale</div>
-        <span style="font-size: 9.5px; color: var(--vq-text-3);">1-Click Launch (C1)</span>
+    <div class="wb-grid">
+      <!-- C1: Tile -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 2; min-height: 80px; align-items: center; justify-content: center; text-align: center;">
+        <div style="font-size: 20px; margin-bottom: 2px;">⚡</div>
+        <div style="font-size: 11px; font-weight: 700;">Tile C1</div>
+        <span class="tag-badge" style="margin-top: 4px;">2×1 icon+label</span>
       </article>
 
-      <!-- C2: Strip Inline -->
-      <article class="vqc vqc--c2" style="grid-column: span 5; min-height: 80px;">
+      <!-- C2: Strip -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 4; min-height: 80px;">
         <div class="vqc-hd">
-          <span class="vqc-eyebrow">Strip C2 · Inline</span>
+          <span class="vqc-eyebrow">Strip C2</span>
           <span class="tag-badge">4×1 inline</span>
         </div>
-        <div class="vqc-bd--strip">
-          <span style="font-size: 13.5px; font-weight: 600; color: var(--vq-text-2);">Total Assets:</span>
-          <div>
-            <span class="vqc-head-val">Rs 989,127</span>
-            <span class="vqc-delta">+12.4%</span>
-          </div>
+        <div class="vqc-head" style="margin: 0;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--vq-text-2);">Total Gross Sales:</span>
+          <span class="vqc-head-val" style="font-size: 18px; margin-left: auto;">Rs 428,910</span>
         </div>
       </article>
 
       <!-- C3: Metric -->
-      <article class="vqc vqc--c3" style="grid-column: span 4; height: 180px;">
-        <div class="vqc-hd" style="display: flex; justify-content: space-between;">
-          <span style="font-size: 11px; font-weight: 700; color: var(--vq-text-3);">Metric C3 · 4×3 Full</span>
+      <article class="vqc vqc--tone-surface" style="grid-column: span 6; height: 180px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">Metric C3</span>
           <span class="tag-badge">4×3 full</span>
         </div>
-        <div style="margin-top: 2px;">
-          <span style="font-family: var(--vq-font-display); font-size: 24px; font-weight: 700;">Rs 1,280,450</span>
-          <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 999px; background: var(--vq-teal-50); color: var(--vq-teal-700); margin-left: 6px;">+18.5%</span>
+        <div class="vqc-head">
+          <span class="vqc-head-val">Rs 1,280,450</span>
+          <span class="vqc-head-delta">+18.5%</span>
         </div>
-        <div style="font-size: 10.5px; color: var(--vq-text-2); margin-bottom: 4px;">Last 30 days revenue pace</div>
-        <div style="flex: 1; display: flex; align-items: flex-end;">
-          <svg viewBox="0 0 200 40" style="width: 100%; height: 50px;">
+        <span class="vqc-head-when">Monthly performance vs target</span>
+        <div class="vqc-chart-area">
+          <svg viewBox="0 0 200 40" style="width: 100%; height: 40px;">
             <path d="M 0 35 Q 50 10 100 25 T 200 5" fill="none" stroke="var(--vq-teal-500)" stroke-width="3"/>
           </svg>
+        </div>
+      </article>
+
+      <!-- C4: Panel -->
+      <article class="vqc vqc--tone-ink" style="grid-column: span 6; height: 220px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">Panel C4</span>
+          <span class="tag-badge">4×4 full</span>
+        </div>
+        <div style="font-family: var(--vq-font-display); font-size: 16px; font-weight: 700; color: #fff;">Operations Hub</div>
+        <div style="font-size: 11px; color: #8b9a93;">Ranked quick actions and order queue</div>
+        <div class="vqc-hub-grid">
+          <button class="vqc-hub-btn" style="background: linear-gradient(135deg, #0baa8f, #076b5e);">Point of Sale</button>
+          <button class="vqc-hub-btn" style="background: linear-gradient(135deg, #f26a47, #b94526);">Purchase Order</button>
+          <button class="vqc-hub-btn" style="background: rgba(255,255,255,0.12); border: 1px dashed rgba(255,255,255,0.3);">+ Quick Actions</button>
+        </div>
+      </article>
+
+      <!-- C5: Board -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 6; height: 220px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">Board C5</span>
+          <span class="tag-badge">6×6 full</span>
+        </div>
+        <div class="vqc-head">
+          <span class="vqc-head-val">3,490 Orders</span>
+          <span class="vqc-head-delta">+24.1%</span>
+        </div>
+        <span class="vqc-head-when">Full Multi-Series Trend</span>
+        <div class="vqc-chart-area">
+          <div class="mock-bar-chart">
+            <div class="mock-bar" style="height: 35%;"></div>
+            <div class="mock-bar" style="height: 60%;"></div>
+            <div class="mock-bar" style="height: 45%;"></div>
+            <div class="mock-bar" style="height: 85%;"></div>
+            <div class="mock-bar" style="height: 70%;"></div>
+            <div class="mock-bar" style="height: 100%;"></div>
+          </div>
         </div>
       </article>
     </div>
@@ -539,6 +746,31 @@ body {
 </main>
 
 <script>
+function updatePadding() {
+  const v = document.getElementById('sliderPadV').value;
+  const h = document.getElementById('sliderPadH').value;
+  document.documentElement.style.setProperty('--card-pad-v', v + 'px');
+  document.documentElement.style.setProperty('--card-pad-h', h + 'px');
+  document.getElementById('valPadV').textContent = v + 'px';
+  document.getElementById('valPadH').textContent = h + 'px';
+
+  document.querySelectorAll('.wb-chip').forEach(c => c.classList.remove('is-active'));
+}
+
+function updateRadius() {
+  const r = document.getElementById('sliderRadius').value;
+  document.documentElement.style.setProperty('--card-radius', r + 'px');
+  document.getElementById('valRadius').textContent = r + 'px';
+}
+
+function setPreset(v, h) {
+  document.getElementById('sliderPadV').value = v;
+  document.getElementById('sliderPadH').value = h;
+  updatePadding();
+
+  event.target.classList.add('is-active');
+}
+
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
