@@ -1706,7 +1706,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   VENQORE V6 DESIGN SYSTEM - CLEAN C2 STRIP & RESPONSIVE PADDING
+   VENQORE V6 DESIGN SYSTEM - BIG NUMBER TYPOGRAPHY & NON-COVERING TOOLTIP
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -2192,12 +2192,12 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   justify-content: center !important;
   overflow: hidden !important;
 }
-.vqc--c3 { padding: 12px 14px !important; }
-.vqc--c4 { padding: 14px 16px !important; }
-.vqc--c5 { padding: 16px 20px !important; }
+.vqc--c3 { padding: 12px 16px !important; }
+.vqc--c4 { padding: 14px 18px !important; }
+.vqc--c5 { padding: 16px 22px !important; }
 .vqc--c6 { padding: 20px 24px !important; }
 
-/* ── STRICT C2 (STRIP) PURE NUMBER LAYOUT (ZERO CLUTTER) ───────────────── */
+/* ── STRICT C2 (STRIP) PURE NUMBER LAYOUT (BIG BOLD TYPOGRAPHY) ────────── */
 .vqc--c2 .vqc-bd--c2 {
   display: flex !important;
   width: 100% !important;
@@ -2214,11 +2214,11 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vqc--c2 .vqc-bd--c2.is-stacked {
   flex-direction: column !important;
   align-items: flex-start !important;
-  gap: 4px !important;
+  gap: 2px !important;
 }
 
 .vqc--c2 .vqc-eyebrow {
-  font-size: 11.5px !important;
+  font-size: 12.5px !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -2234,22 +2234,25 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   margin-left: auto !important;
 }
 
-.vqc--c2 .vqc-head-val {
+.vqc--c2 .vqc-head-val,
+.vqc--c2 .vqc-value {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
+  font-size: 28px !important;
+  font-weight: 800 !important;
   line-height: 1 !important;
+  letter-spacing: -0.02em !important;
   color: var(--vq-text, var(--vq-ink-900)) !important;
 }
 
-[data-theme="dark"] .vqc--c2 .vqc-head-val {
+[data-theme="dark"] .vqc--c2 .vqc-head-val,
+[data-theme="dark"] .vqc--c2 .vqc-value {
   color: #ffffff !important;
 }
 
 .vqc--c2 .vqc-delta {
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
-  padding: 2px 7px !important;
+  padding: 3px 8px !important;
   border-radius: var(--vq-r-full) !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -2297,16 +2300,23 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   margin-bottom: 1px !important;
 }
 
-.vqc-head-val {
+/* Big prominent number styling across all cards */
+.vqc-head-val, .vqc-value {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 24px !important;
+  font-size: 28px !important;
   font-weight: 700 !important;
   line-height: 1.1 !important;
+  letter-spacing: -0.01em !important;
   color: var(--vq-text, var(--vq-ink-900)) !important;
 }
 
+[data-theme="dark"] .vqc-head-val,
+[data-theme="dark"] .vqc-value {
+  color: #ffffff !important;
+}
+
 .vqc-head-when {
-  font-size: 10.5px !important;
+  font-size: 11px !important;
   color: var(--vq-text-2, var(--vq-ink-600)) !important;
   margin: 1px 0 4px 0 !important;
   flex-shrink: 0 !important;
@@ -2334,6 +2344,65 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vqc-host svg.ck {
   display: block !important;
   overflow: visible !important;
+}
+
+/* ── COMPACT SMART TOOLTIP (NEVER COVERS OR FILLS THE CARD) ──────────── */
+.ck-tip {
+  position: absolute !important;
+  top: 4px !important;
+  right: 8px !important;
+  left: auto !important;
+  z-index: 30 !important;
+  pointer-events: none !important;
+  background: var(--vq-surface, #ffffff) !important;
+  border: 1px solid var(--vq-line, var(--vq-ink-200)) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+  padding: 4px 8px !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: 160px !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+[data-theme="dark"] .ck-tip {
+  background: #17201b !important;
+  border-color: #24332c !important;
+}
+
+.ck-tip[hidden] {
+  display: none !important;
+}
+
+.ck-tip-h {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: var(--vq-text-3, var(--vq-ink-500)) !important;
+  margin: 0 0 2px 0 !important;
+  white-space: nowrap !important;
+}
+
+.ck-tip-r {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--vq-text, var(--vq-ink-900)) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 !important;
+}
+
+.ck-tip-v {
+  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: var(--vq-teal-600) !important;
+}
+
+[data-theme="dark"] .ck-tip-v {
+  color: #59dbc0 !important;
 }
 
 /* ── Non-Edit vs Edit Mode Rules ─────────────────────────────────────── */
@@ -3283,13 +3352,6 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   margin: auto !important;
   box-sizing: border-box !important;
 }
-
-.vq-preview-stage .vqc.preview-size-c1 { width: 280px !important; height: 96px !important; }
-.vq-preview-stage .vqc.preview-size-c2 { width: 440px !important; height: 96px !important; max-width: 100% !important; }
-.vq-preview-stage .vqc.preview-size-c3 { width: 440px !important; height: 260px !important; max-width: 100% !important; }
-.vq-preview-stage .vqc.preview-size-c4 { width: 500px !important; height: 320px !important; max-width: 100% !important; }
-.vq-preview-stage .vqc.preview-size-c5 { width: 640px !important; height: 380px !important; max-width: 100% !important; }
-.vq-preview-stage .vqc.preview-size-c6 { width: 100% !important; max-width: 740px !important; height: 440px !important; }
 
 /* Category Pills & Size Grid */
 .vq-category-tabs {

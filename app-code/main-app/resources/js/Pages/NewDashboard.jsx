@@ -1970,42 +1970,42 @@ window.VenQoreCards = {
 // ── ALL POSSIBLE SIZE OPTIONS FOR METRICS (C2 to C6) ─────────────────────
 const METRIC_SIZE_OPTIONS = [
   // Strip C2 (Min 3×2/4×1, Max 6×2)
-  { id: 'c2-4x1', cat: 'C2', fit: 0, w: 4, h: 1, label: '4 × 1 Inline', sub: 'Strip C2', desc: 'Single KPI inline (label left, val right)', previewClass: 'preview-size-c2' },
-  { id: 'c2-3x2', cat: 'C2', fit: 1, w: 3, h: 2, label: '3 × 2 Stacked', sub: 'Strip C2', desc: 'Stacked single KPI headline', previewClass: 'preview-size-c2' },
-  { id: 'c2-6x2', cat: 'C2', fit: 0, w: 6, h: 2, label: '6 × 2 Wide Strip', sub: 'Strip C2 (Max)', desc: 'Max wide single KPI strip', previewClass: 'preview-size-c2' },
+  { id: 'c2-4x1', cat: 'C2', fit: 0, w: 4, h: 1, label: '4 × 1 Inline', sub: 'Strip C2', desc: 'Single KPI inline (label left, val right)' },
+  { id: 'c2-3x2', cat: 'C2', fit: 1, w: 3, h: 2, label: '3 × 2 Stacked', sub: 'Strip C2', desc: 'Stacked single KPI headline' },
+  { id: 'c2-6x2', cat: 'C2', fit: 0, w: 6, h: 2, label: '6 × 2 Wide Strip', sub: 'Strip C2 (Max)', desc: 'Max wide single KPI strip' },
 
   // Metric C3 (Min 2×3, Max 6×4)
-  { id: 'c3-4x3', cat: 'C3', fit: 0, w: 4, h: 3, label: '4 × 3 Full', sub: 'Metric C3', desc: 'KPI with delta & chart (full)', previewClass: 'preview-size-c3' },
-  { id: 'c3-3x2', cat: 'C3', fit: 1, w: 3, h: 2, label: '3 × 2 Standard', sub: 'Metric C3', desc: 'Compact trend card', previewClass: 'preview-size-c3' },
-  { id: 'c3-2x2', cat: 'C3', fit: 2, w: 2, h: 2, label: '2 × 2 Compact', sub: 'Metric C3', desc: 'Tight gauge / stat', previewClass: 'preview-size-c3' },
-  { id: 'c3-2x3', cat: 'C3', fit: 3, w: 2, h: 3, label: '2 × 3 Stacked', sub: 'Metric C3 (Min)', desc: 'Vertical slim metric', previewClass: 'preview-size-c3' },
-  { id: 'c3-6x4', cat: 'C3', fit: 0, w: 6, h: 4, label: '6 × 4 Wide Metric', sub: 'Metric C3 (Max)', desc: 'Max wide trend metric', previewClass: 'preview-size-c3' },
+  { id: 'c3-4x3', cat: 'C3', fit: 0, w: 4, h: 3, label: '4 × 3 Full', sub: 'Metric C3', desc: 'KPI with delta & chart (full)' },
+  { id: 'c3-3x2', cat: 'C3', fit: 1, w: 3, h: 2, label: '3 × 2 Standard', sub: 'Metric C3', desc: 'Compact trend card' },
+  { id: 'c3-2x2', cat: 'C3', fit: 2, w: 2, h: 2, label: '2 × 2 Compact', sub: 'Metric C3', desc: 'Tight gauge / stat' },
+  { id: 'c3-2x3', cat: 'C3', fit: 3, w: 2, h: 3, label: '2 × 3 Stacked', sub: 'Metric C3 (Min)', desc: 'Vertical slim metric' },
+  { id: 'c3-6x4', cat: 'C3', fit: 0, w: 6, h: 4, label: '6 × 4 Wide Metric', sub: 'Metric C3 (Max)', desc: 'Max wide trend metric' },
 
   // Panel C4 (Min 2×6, Max 6×6)
-  { id: 'c4-4x4', cat: 'C4', fit: 0, w: 4, h: 4, label: '4 × 4 Full', sub: 'Panel C4', desc: 'Standard breakdown & lists', previewClass: 'preview-size-c4' },
-  { id: 'c4-3x4', cat: 'C4', fit: 1, w: 3, h: 4, label: '3 × 4 Standard', sub: 'Panel C4', desc: 'Narrow breakdown panel', previewClass: 'preview-size-c4' },
-  { id: 'c4-3x5', cat: 'C4', fit: 2, w: 3, h: 5, label: '3 × 5 Compact', sub: 'Panel C4', desc: 'Vertical list panel', previewClass: 'preview-size-c4' },
-  { id: 'c4-2x6', cat: 'C4', fit: 3, w: 2, h: 6, label: '2 × 6 List', sub: 'Panel C4 (Min)', desc: 'Long vertical table excerpt', previewClass: 'preview-size-c4' },
-  { id: 'c4-6x6', cat: 'C4', fit: 0, w: 6, h: 6, label: '6 × 6 Wide Panel', sub: 'Panel C4 (Max)', desc: 'Max wide panel breakdown', previewClass: 'preview-size-c4' },
+  { id: 'c4-4x4', cat: 'C4', fit: 0, w: 4, h: 4, label: '4 × 4 Full', sub: 'Panel C4', desc: 'Standard breakdown & lists' },
+  { id: 'c4-3x4', cat: 'C4', fit: 1, w: 3, h: 4, label: '3 × 4 Standard', sub: 'Panel C4', desc: 'Narrow breakdown panel' },
+  { id: 'c4-3x5', cat: 'C4', fit: 2, w: 3, h: 5, label: '3 × 5 Compact', sub: 'Panel C4', desc: 'Vertical list panel' },
+  { id: 'c4-2x6', cat: 'C4', fit: 3, w: 2, h: 6, label: '2 × 6 List', sub: 'Panel C4 (Min)', desc: 'Long vertical table excerpt' },
+  { id: 'c4-6x6', cat: 'C4', fit: 0, w: 6, h: 6, label: '6 × 6 Wide Panel', sub: 'Panel C4 (Max)', desc: 'Max wide panel breakdown' },
 
   // Board C5 (Min 4×8, Max 12×9)
-  { id: 'c5-6x6', cat: 'C5', fit: 0, w: 6, h: 6, label: '6 × 6 Full', sub: 'Board C5', desc: 'Full multi-series graph', previewClass: 'preview-size-c5' },
-  { id: 'c5-5x7', cat: 'C5', fit: 1, w: 5, h: 7, label: '5 × 7 Narrow', sub: 'Board C5', desc: 'Tall multi-series chart', previewClass: 'preview-size-c5' },
-  { id: 'c5-4x8', cat: 'C5', fit: 2, w: 4, h: 8, label: '4 × 8 Min', sub: 'Board C5 (Min)', desc: 'Minimum board chart', previewClass: 'preview-size-c5' },
-  { id: 'c5-12x9', cat: 'C5', fit: 0, w: 12, h: 9, label: '12 × 9 Wide Board', sub: 'Board C5 (Max)', desc: 'Max full-width master board', previewClass: 'preview-size-c5' },
+  { id: 'c5-6x6', cat: 'C5', fit: 0, w: 6, h: 6, label: '6 × 6 Full', sub: 'Board C5', desc: 'Full multi-series graph' },
+  { id: 'c5-5x7', cat: 'C5', fit: 1, w: 5, h: 7, label: '5 × 7 Narrow', sub: 'Board C5', desc: 'Tall multi-series chart' },
+  { id: 'c5-4x8', cat: 'C5', fit: 2, w: 4, h: 8, label: '4 × 8 Min', sub: 'Board C5 (Min)', desc: 'Minimum board chart' },
+  { id: 'c5-12x9', cat: 'C5', fit: 0, w: 12, h: 9, label: '12 × 9 Wide Board', sub: 'Board C5 (Max)', desc: 'Max full-width master board' },
 
   // Canvas C6 (Min 4×12, Max 12×16)
-  { id: 'c6-8x8', cat: 'C6', fit: 0, w: 8, h: 8, label: '8 × 8 Full', sub: 'Canvas C6', desc: 'Hero chart & master ledger', previewClass: 'preview-size-c6' },
-  { id: 'c6-6x10', cat: 'C6', fit: 1, w: 6, h: 10, label: '6 × 10 Narrow', sub: 'Canvas C6', desc: 'Tall live feed canvas', previewClass: 'preview-size-c6' },
-  { id: 'c6-4x12', cat: 'C6', fit: 2, w: 4, h: 12, label: '4 × 12 Min', sub: 'Canvas C6 (Min)', desc: 'Minimum hero canvas', previewClass: 'preview-size-c6' },
-  { id: 'c6-12x16', cat: 'C6', fit: 0, w: 12, h: 16, label: '12 × 16 Hero Canvas', sub: 'Canvas C6 (Max)', desc: 'Max comprehensive canvas', previewClass: 'preview-size-c6' }
+  { id: 'c6-8x8', cat: 'C6', fit: 0, w: 8, h: 8, label: '8 × 8 Full', sub: 'Canvas C6', desc: 'Hero chart & master ledger' },
+  { id: 'c6-6x10', cat: 'C6', fit: 1, w: 6, h: 10, label: '6 × 10 Narrow', sub: 'Canvas C6', desc: 'Tall live feed canvas' },
+  { id: 'c6-4x12', cat: 'C6', fit: 2, w: 4, h: 12, label: '4 × 12 Min', sub: 'Canvas C6 (Min)', desc: 'Minimum hero canvas' },
+  { id: 'c6-12x16', cat: 'C6', fit: 0, w: 12, h: 16, label: '12 × 16 Hero Canvas', sub: 'Canvas C6 (Max)', desc: 'Max comprehensive canvas' }
 ];
 
 // ── C1 IS STRICTLY EXCLUSIVE TO SHORTCUTS & ACTION TILES ─────────────────
 const SHORTCUT_SIZE_OPTIONS = [
-  { id: 'c1-2x1', cat: 'C1', fit: 0, w: 2, h: 1, label: '2 × 1 Icon + Label', sub: 'Tile C1 (Standard)', desc: 'Shortcut with title & icon (≥124px)', previewClass: 'preview-size-c1' },
-  { id: 'c1-1x1', cat: 'C1', fit: 1, w: 1, h: 1, label: '1 × 1 Icon Only', sub: 'Tile C1 (Min)', desc: 'Micro square shortcut glyph (≥52px)', previewClass: 'preview-size-c1' },
-  { id: 'c1-3x2', cat: 'C1', fit: 0, w: 3, h: 2, label: '3 × 2 Big Tile', sub: 'Tile C1 (Max)', desc: 'Max tile with subtitle & button', previewClass: 'preview-size-c1' }
+  { id: 'c1-2x1', cat: 'C1', fit: 0, w: 2, h: 1, label: '2 × 1 Icon + Label', sub: 'Tile C1 (Standard)', desc: 'Shortcut with title & icon (≥124px)' },
+  { id: 'c1-1x1', cat: 'C1', fit: 1, w: 1, h: 1, label: '1 × 1 Icon Only', sub: 'Tile C1 (Min)', desc: 'Micro square shortcut glyph (≥52px)' },
+  { id: 'c1-3x2', cat: 'C1', fit: 0, w: 3, h: 2, label: '3 × 2 Big Tile', sub: 'Tile C1 (Max)', desc: 'Max tile with subtitle & button' }
 ];
 
 // 4 V6 Design System Card Background Tones
@@ -2207,7 +2207,17 @@ export default function NewDashboard(props) {
         
         const cardEl = previewRef.current.querySelector(".vqc");
         if (cardEl) {
-          cardEl.classList.add(targetSize.previewClass);
+          // Dynamic live sizing for preview stage reflecting true aspect ratio
+          const baseW = targetSize.w || 4;
+          const baseH = targetSize.h || 3;
+          
+          let previewW = Math.min(680, Math.max(220, baseW * 62));
+          let previewH = baseH === 1 ? 72 : Math.min(420, Math.max(88, baseH * 64));
+          
+          cardEl.style.width = `${previewW}px`;
+          cardEl.style.height = `${previewH}px`;
+          cardEl.style.minHeight = `${previewH}px`;
+          cardEl.style.maxHeight = `${previewH}px`;
         }
         
         requestAnimationFrame(() => {
