@@ -2347,33 +2347,37 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   EXACT DESIGN SPEC: FLOATING OBSIDIAN TOOLTIP & BOTTOM DATE PILL
+   EXACT DESIGN SPEC: COMPACT OBSIDIAN TOOLTIP & BOTTOM DATE PILL
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* 1. Bottom Date Pill (Centered on crosshair at bottom X-axis) */
 .ck-ticker {
   position: absolute !important;
-  bottom: -6px !important;
+  bottom: 0px !important;
   top: auto !important;
+  height: 18px !important;
+  max-height: 18px !important;
   transform: translateX(-50%) !important;
   background: var(--vq-ink-900, #17201b) !important;
   color: #ffffff !important;
   border-radius: var(--vq-r-full, 9999px) !important;
-  padding: 4px 14px !important;
-  font-size: 11px !important;
+  padding: 1px 8px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  line-height: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
   pointer-events: none !important;
   z-index: 25 !important;
   white-space: nowrap !important;
   display: block !important;
+  box-sizing: border-box !important;
   transition: left 380ms cubic-bezier(.22, 1, .36, 1) !important;
 }
 
 [data-theme="dark"] .ck-ticker {
   background: #ffffff !important;
   color: #0d1412 !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45) !important;
 }
 
 .ck-ticker[hidden] {
@@ -2382,7 +2386,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .dt {
   display: inline-flex !important;
-  gap: 4px !important;
+  gap: 3px !important;
   align-items: center !important;
 }
 
@@ -2403,29 +2407,35 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   height: 16px !important;
   line-height: 16px !important;
   font-style: normal !important;
-  font-size: 11px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
 }
 
-/* 2. Floating Obsidian Tooltip Popover */
+/* 2. Floating Obsidian Tooltip Popover (Compact & Auto-Sized to Content) */
 .ck-tip {
   position: absolute !important;
-  top: 10px !important;
+  top: 8px !important;
+  bottom: auto !important;
+  height: auto !important;
+  max-height: max-content !important;
+  min-height: 0 !important;
+  align-self: flex-start !important;
   z-index: 30 !important;
   pointer-events: none !important;
   background: rgba(23, 26, 31, 0.96) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
-  padding: 8px 12px !important;
-  min-width: 120px !important;
-  max-width: 180px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  padding: 6px 10px !important;
+  min-width: 100px !important;
+  max-width: 140px !important;
   width: max-content !important;
   backdrop-filter: blur(14px) !important;
   -webkit-backdrop-filter: blur(14px) !important;
   transition: left 380ms cubic-bezier(.22, 1, .36, 1) !important;
   display: block !important;
+  box-sizing: border-box !important;
 }
 
 .ck-tip[hidden] {
@@ -2434,10 +2444,10 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .ck-tip-h {
   font-family: var(--vq-font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
-  font-size: 11px !important;
+  font-size: 9.5px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
-  margin: 0 0 6px 0 !important;
+  margin: 0 0 4px 0 !important;
   white-space: nowrap !important;
 }
 
@@ -2445,17 +2455,17 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 12px !important;
-  font-size: 11.5px !important;
+  gap: 8px !important;
+  font-size: 10.5px !important;
   color: #94a3b8 !important;
-  padding: 2px 0 !important;
+  padding: 1px 0 !important;
 }
 
 .ck-tip-d {
-  width: 7px !important;
-  height: 7px !important;
+  width: 6px !important;
+  height: 6px !important;
   border-radius: 50% !important;
-  flex: 0 0 7px !important;
+  flex: 0 0 6px !important;
 }
 
 .ck-tip-n {
@@ -2463,29 +2473,29 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  max-width: 80px !important;
-  font-size: 11.5px !important;
+  max-width: 65px !important;
+  font-size: 10px !important;
   color: #94a3b8 !important;
   font-weight: 500 !important;
 }
 
 .ck-tip-v {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 12.5px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   margin-left: auto !important;
 }
 
 .ck-tip--sm {
-  min-width: 100px !important;
+  min-width: 85px !important;
 }
 
 /* 3. Circular Intersection Beads on Series Lines */
 .ck-hd circle {
   stroke: #0d1412 !important;
   stroke-width: 2px !important;
-  r: 4.5px !important;
+  r: 4px !important;
 }
 
 .ck-cross {
