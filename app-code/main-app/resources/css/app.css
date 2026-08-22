@@ -182,6 +182,77 @@
 }
 
 @layer utilities {
+    /* ==========================================================================
+       VenQore Layout Law v2.0 — POS Terminal Core Classes (venqore-pos.html)
+       ========================================================================== */
+    .pane {
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .pane-h {
+        flex: 0 0 44px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        position: relative;
+        z-index: 2;
+    }
+
+    .pane-b {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .pane-f {
+        flex: 0 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .num, .vq-num {
+        font-family: var(--vq-font-numeric, "Space Grotesk", ui-monospace, monospace);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .step {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 9px;
+        overflow: hidden;
+        flex: 0 0 auto;
+    }
+
+    .step button {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.12s ease;
+    }
+
+    .step span {
+        min-width: 32px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: var(--vq-font-numeric, "Space Grotesk", ui-monospace, monospace);
+    }
     /* =====================================================
        MIDNIGHT NEBULA SCROLLBAR - For dark sections
        Use on sidebars, modals, etc with dark backgrounds

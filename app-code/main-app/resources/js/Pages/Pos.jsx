@@ -2228,11 +2228,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             {/* MAIN WORKSPACE */}
             <div className="flex-1 flex gap-0 min-h-0 bg-app rounded-t-3xl rounded-b-none shadow-sm border border-line overflow-hidden z-0 relative">
 
-                {/* LEFT: Transaction List */}
+                {/* LEFT: Catalogue Pane */}
                 <div
-                    className={`w-full flex flex-col min-w-0 relative shrink-0 ${activeMobileTab !== 'catalog' ? 'hidden lg:flex' : ''}`}
+                    className={`w-full flex flex-col min-w-0 relative shrink-0 pane bg-surface border border-line ${activeMobileTab !== 'catalog' ? 'hidden lg:flex' : ''}`}
                     style={{ width: `${catalogWidthPct}%` }}
                 >
+                    {/* Pane Header (Layout Law v2.0) */}
+                    <div className="pane-h bg-sunken/50 dark:bg-surface border-b border-line text-ink-muted">
+                        <span>Catalog</span>
+                        <span className="ml-auto font-mono text-2xs opacity-75">{categoryProducts.length} ITEMS</span>
+                    </div>
                     {/* Search Bar */}
                     <div className="h-14 px-3 border-b border-line flex items-center gap-3 bg-sunken/50 dark:bg-surface relative z-20">
                         <button
@@ -2427,11 +2432,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     <div className="w-1 h-10 rounded-full bg-neutral-400 dark:bg-neutral-600 group-hover:bg-brand-500 group-active:bg-brand-600 transition-colors shadow-sm" />
                 </div>
 
-                {/* RIGHT: Cart & Payment Panel */}
+                {/* RIGHT: Cart Pane */}
                 <div
-                    className={`w-full shrink-0 flex flex-col bg-app border-l border-line ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}
+                    className={`w-full shrink-0 flex flex-col pane bg-app border-l border-line ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}
                     style={{ width: `${100 - catalogWidthPct}%` }}
                 >
+                    {/* Pane Header (Layout Law v2.0) */}
+                    <div className="pane-h bg-sunken/50 dark:bg-surface border-b border-line text-ink-muted">
+                        <span>Cart</span>
+                        <span className="ml-auto font-mono text-2xs opacity-75">{activeSale.cart.length} LINES · {activeSale.cart.reduce((sum, item) => sum + item.qty + (item.freeQuantity || 0), 0)} QTY</span>
+                    </div>
 
                     {/* Cart Header */}
                     <div className="h-14 px-3 bg-sunken/50 dark:bg-surface border-b border-line flex items-center justify-between">
