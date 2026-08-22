@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VenQore V6 — Card System Rules & Padding Laboratory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Dynamic Workbench Customization Variables */
+  --card-pad-v: 14px;
+  --card-pad-h: 16px;
+  --card-head-gap: 4px;
+  --card-radius: 18px;
+
+  /* VenQore V6 Design System Tokens */
+  --vq-teal-50: #E6FBF5;
+  --vq-teal-100: #C6F5E9;
+  --vq-teal-200: #93EBD6;
+  --vq-teal-300: #59DBC0;
+  --vq-teal-400: #23C4A6;
+  --vq-teal-500: #0BAA8F;
+  --vq-teal-600: #088975;
+  --vq-teal-700: #076B5E;
+  --vq-teal-800: #0A5049;
+  --vq-teal-900: #0B3A35;
+  
+  --vq-ink-0: #FFFFFF;
+  --vq-ink-25: #F8FAF8;
+  --vq-ink-50: #F1F5F2;
+  --vq-ink-100: #E6ECE8;
+  --vq-ink-200: #D3DCD7;
+  --vq-ink-300: #B4C0BA;
+  --vq-ink-400: #8B9A93;
+  --vq-ink-500: #6B7A73;
+  --vq-ink-600: #536159;
+  --vq-ink-700: #3C4841;
+  --vq-ink-800: #29332D;
+  --vq-ink-900: #17201B;
+  --vq-ink-950: #0D1412;
+
+  --vq-bg: var(--vq-ink-25);
+  --vq-surface: #FFFFFF;
+  --vq-line: var(--vq-ink-200);
+  --vq-text: var(--vq-ink-900);
+  --vq-text-2: var(--vq-ink-600);
+  --vq-text-3: var(--vq-ink-400);
+
+  --vq-font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --vq-font-display: 'Space Grotesk', sans-serif;
+  --vq-font-mono: 'JetBrains Mono', monospace;
+}
+
+[data-theme="dark"] {
+  --vq-bg: #0A0F0D;
+  --vq-surface: #111815;
+  --vq-line: #1F2B25;
+  --vq-text: #EDF2EF;
+  --vq-text-2: #8B9A93;
+  --vq-text-3: #536159;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--vq-font-sans);
+  background: var(--vq-bg);
+  color: var(--vq-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.wb-header {
+  background: var(--vq-surface);
+  border-bottom: 1px solid var(--vq-line);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.wb-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wb-badge {
+  background: linear-gradient(135deg, var(--vq-teal-500), var(--vq-teal-700));
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(11, 170, 143, 0.3);
+}
+
+.wb-title {
+  font-family: var(--vq-font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.wb-sub {
+  font-size: 12px;
+  color: var(--vq-text-2);
+}
+
+.wb-theme-btn {
+  background: var(--vq-bg);
+  border: 1px solid var(--vq-line);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--vq-text);
+}
+
+/* Control Bar (Padding & Sizing Controls) */
+.wb-controls-bar {
+  background: var(--vq-surface);
+  border-bottom: 1px solid var(--vq-line);
+  padding: 18px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  align-items: center;
+}
+
+.wb-ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wb-ctrl-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vq-text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wb-ctrl-val {
+  color: var(--vq-teal-600);
+  font-weight: 800;
+  font-family: var(--vq-font-mono);
+}
+
+[data-theme="dark"] .wb-ctrl-val { color: #59dbc0; }
+
+.wb-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wb-slider {
+  appearance: none;
+  width: 140px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--vq-line);
+  outline: none;
+}
+
+.wb-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--vq-teal-500);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(11, 170, 143, 0.4);
+}
+
+.wb-btn-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.wb-chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--vq-bg);
+  border: 1px solid var(--vq-line);
+  color: var(--vq-text-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wb-chip:hover {
+  background: var(--vq-teal-50);
+  color: var(--vq-teal-700);
+  border-color: var(--vq-teal-200);
+}
+
+.wb-chip.is-active {
+  background: var(--vq-teal-500);
+  color: #fff;
+  border-color: var(--vq-teal-500);
+  box-shadow: 0 2px 8px rgba(11, 170, 143, 0.3);
+}
+
+/* Layout */
+.wb-main {
+  padding: 32px;
+  max-width: 1560px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.wb-section-title {
+  font-family: var(--vq-font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wb-section-sub {
+  font-size: 13px;
+  color: var(--vq-text-2);
+  margin-bottom: 18px;
+}
+
+/* Live Card Grid */
+.wb-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CARD STYLES (DRIVEN BY DYNAMIC PADDING VARIABLES)
+   ══════════════════════════════════════════════════════════════════════════ */
+.vqc {
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--card-radius);
+  padding: var(--card-pad-v) var(--card-pad-h);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(13, 20, 18, 0.04);
+  min-height: 120px;
+}
+
+.vqc:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(13, 20, 18, 0.08);
+}
+
+/* Card Header */
+.vqc-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--card-head-gap);
+  flex-shrink: 0;
+}
+
+.vqc-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vq-text-3);
+}
+
+.vqc-acts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vqc-nav-link {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vq-text-3);
+  text-decoration: none;
+}
+
+.vqc-nav-link:hover {
+  background: var(--vq-teal-50);
+  color: var(--vq-teal-600);
+}
+
+/* Headline Value */
+.vqc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.vqc-head-val {
+  font-family: var(--vq-font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--vq-text);
+  line-height: 1.1;
+}
+
+.vqc-head-delta {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--vq-teal-50);
+  color: var(--vq-teal-700);
+}
+
+.vqc-head-when {
+  font-size: 11px;
+  color: var(--vq-text-2);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+/* Visual Chart Host Container */
+.vqc-chart-area {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  position: relative;
+}
+
+/* 4 Card Tones */
+.vqc--tone-surface { background: var(--vq-surface); border-color: var(--vq-line); }
+.vqc--tone-accent { background: linear-gradient(135deg, var(--vq-teal-600), var(--vq-teal-800)); color: #fff; border-color: transparent; }
+.vqc--tone-accent .vqc-eyebrow, .vqc--tone-accent .vqc-head-when { color: rgba(255, 255, 255, 0.75); }
+.vqc--tone-accent .vqc-head-val { color: #fff; }
+.vqc--tone-accent .vqc-head-delta { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+.vqc--tone-ink { background: #0D1412; border-color: #1F2B25; color: #EDF2EF; }
+.vqc--tone-ink .vqc-eyebrow, .vqc--tone-ink .vqc-head-when { color: #8B9A93; }
+.vqc--tone-ink .vqc-head-val { color: #fff; }
+
+.vqc--tone-mesh {
+  background: radial-gradient(at 100% 0%, rgba(11, 170, 143, 0.20) 0px, transparent 65%),
+              radial-gradient(at 0% 100%, rgba(43, 165, 209, 0.18) 0px, transparent 65%),
+              var(--vq-surface);
+  border-color: var(--vq-teal-200);
+}
+
+/* Mock Chart Visuals */
+.mock-bar-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 10px;
+}
+.mock-bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--vq-teal-400), var(--vq-teal-600));
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+}
+
+.mock-area-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+}
+
+/* Multi-button Operations Hub */
+.vqc-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.vqc-hub-btn {
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+/* Reference Tables */
+.wb-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--vq-surface);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--vq-line);
+  box-shadow: 0 2px 8px rgba(13, 20, 18, 0.04);
+}
+
+.wb-table th, .wb-table td {
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--vq-line);
+  font-size: 13px;
+}
+
+.wb-table th {
+  background: var(--vq-bg);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vq-text-3);
+}
+
+.wb-table tr:last-child td {
+  border-bottom: none;
+}
+
+.tag-badge {
+  font-family: var(--vq-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--vq-bg);
+  border: 1px solid var(--vq-line);
+}
+</style>
+</head>
+<body>
+
+<header class="wb-header">
+  <div class="wb-brand">
+    <div class="wb-badge">V6</div>
+    <div>
+      <div class="wb-title">VenQore Card System Rules & Padding Laboratory</div>
+      <div class="wb-sub">Complete Matrix: Card Sizes · 13 Chart Engines · Variants · Animations · Padding Rules</div>
+    </div>
+  </div>
+  <button class="wb-theme-btn" onclick="toggleTheme()">🌓 Toggle Light / Dark</button>
+</header>
+
+<!-- Interactive Dynamic Padding Workbench Controls -->
+<section class="wb-controls-bar">
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">
+      <span>CARD VERTICAL PADDING</span>
+      <span id="valPadV" class="wb-ctrl-val">14px</span>
+    </label>
+    <div class="wb-slider-row">
+      <input type="range" min="8" max="28" value="14" class="wb-slider" id="sliderPadV" oninput="updatePadding()">
+    </div>
+  </div>
+
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">
+      <span>CARD HORIZONTAL PADDING</span>
+      <span id="valPadH" class="wb-ctrl-val">16px</span>
+    </label>
+    <div class="wb-slider-row">
+      <input type="range" min="10" max="32" value="16" class="wb-slider" id="sliderPadH" oninput="updatePadding()">
+    </div>
+  </div>
+
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">PADDING PRESETS</label>
+    <div class="wb-btn-chips">
+      <button class="wb-chip" onclick="setPreset(10, 12)">⚡ Ultra-Compact (10×12)</button>
+      <button class="wb-chip is-active" onclick="setPreset(14, 16)">✨ Balanced V6 (14×16)</button>
+      <button class="wb-chip" onclick="setPreset(18, 20)">🛡️ Medium (18×20)</button>
+      <button class="wb-chip" onclick="setPreset(24, 26)">🍃 Spacious (24×26)</button>
+    </div>
+  </div>
+
+  <div class="wb-ctrl-group">
+    <label class="wb-ctrl-label">CORNER RADIUS</label>
+    <div class="wb-slider-row">
+      <input type="range" min="8" max="28" value="18" class="wb-slider" id="sliderRadius" oninput="updateRadius()">
+      <span id="valRadius" class="wb-ctrl-val">18px</span>
+    </div>
+  </div>
+</section>
+
+<main class="wb-main">
+
+  <!-- 1. LIVE CARD SIZES DEMO -->
+  <section>
+    <div class="wb-section-title">1. Live Card Sizes Demo (Responsive Under Current Padding)</div>
+    <div class="wb-section-sub">Adjust the sliders above to see how these different card sizes adapt and maximize charting area without clipping.</div>
+
+    <div class="wb-grid">
+      <!-- C2: Compact 2x1 -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 3; min-height: 96px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">C2 · COMPACT STAT</span>
+          <span class="tag-badge">2 × 1</span>
+        </div>
+        <div class="vqc-head">
+          <span class="vqc-head-val">Rs 142.8k</span>
+          <span class="vqc-head-delta">+12.4%</span>
+        </div>
+        <span class="vqc-head-when">Today vs yesterday</span>
+      </article>
+
+      <!-- C3: Square 3x3 -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 3; height: 260px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">C3 · SQUARE BOX</span>
+          <span class="tag-badge">3 × 3</span>
+        </div>
+        <div class="vqc-head">
+          <span class="vqc-head-val">84.2%</span>
+          <span class="vqc-head-delta">TARGET</span>
+        </div>
+        <span class="vqc-head-when">Monthly sales quota</span>
+        <div class="vqc-chart-area">
+          <svg viewBox="0 0 100 60" style="width: 140px; height: 90px;">
+            <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--vq-line)" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 10 50 A 40 40 0 0 1 76 22" fill="none" stroke="var(--vq-teal-500)" stroke-width="12" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </article>
+
+      <!-- C4: Operations Hub 6x2 -->
+      <article class="vqc vqc--tone-ink" style="grid-column: span 6; height: 160px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">C4 · OPERATIONS HUB</span>
+          <span class="tag-badge">6 × 2</span>
+        </div>
+        <div>
+          <div style="font-family: var(--vq-font-display); font-size: 15px; font-weight: 700; color: #fff;">Quick Operations Fast Lane</div>
+          <div style="font-size: 11px; color: #8b9a93;">1-click direct POS & order dispatch</div>
+        </div>
+        <div class="vqc-hub-grid">
+          <button class="vqc-hub-btn" style="background: linear-gradient(135deg, #0baa8f, #076b5e);">Point of Sale</button>
+          <button class="vqc-hub-btn" style="background: linear-gradient(135deg, #f26a47, #b94526);">Purchase Order</button>
+          <button class="vqc-hub-btn" style="background: rgba(255,255,255,0.12); border: 1px dashed rgba(255,255,255,0.3);">+ Quick Actions</button>
+        </div>
+      </article>
+
+      <!-- C5: Standard Chart 6x4 -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 6; height: 280px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">C5 · STANDARD CHART</span>
+          <span class="tag-badge">6 × 4</span>
+        </div>
+        <div class="vqc-head">
+          <span class="vqc-head-val">Rs 1,280,450</span>
+          <span class="vqc-head-delta">+18.5%</span>
+        </div>
+        <span class="vqc-head-when">Revenue trend · Last 30 Days</span>
+        <div class="vqc-chart-area">
+          <div class="mock-bar-chart">
+            <div class="mock-bar" style="height: 40%;"></div>
+            <div class="mock-bar" style="height: 65%;"></div>
+            <div class="mock-bar" style="height: 45%;"></div>
+            <div class="mock-bar" style="height: 80%;"></div>
+            <div class="mock-bar" style="height: 70%;"></div>
+            <div class="mock-bar" style="height: 95%;"></div>
+            <div class="mock-bar" style="height: 85%;"></div>
+            <div class="mock-bar" style="height: 100%;"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- C5: Wide Trend 6x4 (Accent Tone) -->
+      <article class="vqc vqc--tone-accent" style="grid-column: span 6; height: 280px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">C5 · AURORA ACCENT TONE</span>
+          <span class="tag-badge" style="background: rgba(255,255,255,0.2); color: #fff; border: none;">6 × 4</span>
+        </div>
+        <div class="vqc-head">
+          <span class="vqc-head-val">3,490 Orders</span>
+          <span class="vqc-head-delta">+24.1%</span>
+        </div>
+        <span class="vqc-head-when">Completed sales velocity</span>
+        <div class="vqc-chart-area">
+          <svg class="mock-area-svg" viewBox="0 0 300 100" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,80 Q50,20 100,60 T200,30 T300,10 L300,100 L0,100 Z" fill="url(#accGrad)"/>
+            <path d="M0,80 Q50,20 100,60 T200,30 T300,10" fill="none" stroke="#ffffff" stroke-width="3"/>
+          </svg>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 2. CARD SIZES SPECIFICATION MATRIX -->
+  <section>
+    <div class="wb-section-title">2. Card Sizes Specification Matrix (Layout Law Specs)</div>
+    <div class="wb-section-sub">Standard responsive column and row spans for all cards.</div>
+
+    <table class="wb-table">
+      <thead>
+        <tr>
+          <th>Size Code</th>
+          <th>Name</th>
+          <th>Grid Bounds (Cols × Rows)</th>
+          <th>Pixel Ratio (12-Col Grid)</th>
+          <th>Best Suited For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag-badge">C1</span></td>
+          <td><strong>Mini Indicator</strong></td>
+          <td>1 col × 1 row</td>
+          <td>~140px × 64px</td>
+          <td>Status LEDs, single-word badges, simple pulse indicators</td>
+        </tr>
+        <tr>
+          <td><span class="tag-badge">C2</span></td>
+          <td><strong>Compact Stat</strong></td>
+          <td>2 cols × 1 row</td>
+          <td>~290px × 64px</td>
+          <td>Single headline metric with sparkline & delta badge</td>
+        </tr>
+        <tr>
+          <td><span class="tag-badge">C3</span></td>
+          <td><strong>Medium Square</strong></td>
+          <td>3 cols × 3 rows</td>
+          <td>~440px × 240px</td>
+          <td>Gauges, Radial donuts, circular progress, single category share</td>
+        </tr>
+        <tr>
+          <td><span class="tag-badge">C4</span></td>
+          <td><strong>Wide Hub Strip</strong></td>
+          <td>6 cols × 2 or 3 rows</td>
+          <td>~890px × 152px / 240px</td>
+          <td>Operations Hub (3 buttons), Bank Liquidity strip, Alerts list</td>
+        </tr>
+        <tr>
+          <td><span class="tag-badge">C5</span></td>
+          <td><strong>Standard / Wide Chart</strong></td>
+          <td>6 cols or 8 cols × 4 rows</td>
+          <td>~890px or 1180px × 328px</td>
+          <td>Area charts, Bar graphs, Cartesian trends, Funnel breakdowns, Heatmaps</td>
+        </tr>
+        <tr>
+          <td><span class="tag-badge">C6</span></td>
+          <td><strong>Full-Width Master Hub</strong></td>
+          <td>12 cols × 4 to 6 rows</td>
+          <td>100% width × 328px – 500px</td>
+          <td>Master data tables, live activity feeds, complex Sankey flow paths</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3. 13 CHART ENGINES & VISUAL VARIANTS MATRIX -->
+  <section>
+    <div class="wb-section-title">3. Chart Types & Visual Variants Catalog (13 Engines)</div>
+    <div class="wb-section-sub">Supported chart rendering engines and their available visual variants.</div>
+
+    <table class="wb-table">
+      <thead>
+        <tr>
+          <th>Chart Engine</th>
+          <th>Supported Data Shapes</th>
+          <th>Available Visual Variants</th>
+          <th>Min Dimensions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Area Chart (<code>area</code>)</strong></td>
+          <td><span class="tag-badge">TIMESERIES</span> <span class="tag-badge">SCALAR</span></td>
+          <td><code>gradient</code> (smooth fade), <code>stepped</code> (staircase), <code>stream</code> (wave), <code>solid</code> (flat)</td>
+          <td>4 cols × 3 rows</td>
+        </tr>
+        <tr>
+          <td><strong>2. Bar Graph (<code>bar</code>)</strong></td>
+          <td><span class="tag-badge">BREAKDOWN</span> <span class="tag-badge">TIMESERIES</span></td>
+          <td><code>grouped</code>, <code>stacked</code>, <code>waterfall</code>, <code>thin</code>, <code>thin-columns</code>, <code>square</code></td>
+          <td>4 cols × 3 rows</td>
+        </tr>
+        <tr>
+          <td><strong>3. Line Chart (<code>line</code>)</strong></td>
+          <td><span class="tag-badge">TIMESERIES</span> <span class="tag-badge">SCALAR</span></td>
+          <td><code>smooth</code> (spline), <code>straight</code> (poly), <code>stepped</code>, <code>spark</code> (minimalist)</td>
+          <td>4 cols × 3 rows</td>
+        </tr>
+        <tr>
+          <td><strong>4. Scalar Stat (<code>stat</code>)</strong></td>
+          <td><span class="tag-badge">SCALAR</span></td>
+          <td><code>spark</code> (with background line), <code>delta</code> (bold percent pill), <code>minimal</code> (clean typography)</td>
+          <td>2 cols × 1 row</td>
+        </tr>
+        <tr>
+          <td><strong>5. Circular Gauge (<code>gauge</code>)</strong></td>
+          <td><span class="tag-badge">GAUGE</span> <span class="tag-badge">SCALAR</span></td>
+          <td><code>standard</code> (curved arc), <code>segmented</code> (notched ticks), <code>target</code> (marker needle)</td>
+          <td>3 cols × 3 rows</td>
+        </tr>
+        <tr>
+          <td><strong>6. Radial Ring (<code>ring</code>)</strong></td>
+          <td><span class="tag-badge">BREAKDOWN</span> <span class="tag-badge">GAUGE</span></td>
+          <td><code>donut</code> (thick donut ring), <code>segmented</code> (nested arcs), <code>sunburst</code> (multi-tier)</td>
+          <td>3 cols × 3 rows</td>
+        </tr>
+        <tr>
+          <td><strong>7. Funnel (<code>funnel</code>)</strong></td>
+          <td><span class="tag-badge">RANKING</span> <span class="tag-badge">BREAKDOWN</span></td>
+          <td><code>solid</code> (tapered polygons), <code>ribbon</code> (flowing bands), <code>cards</code> (tiered blocks)</td>
+          <td>4 cols × 3 rows</td>
+        </tr>
+        <tr>
+          <td><strong>8. Table Grid (<code>table</code>)</strong></td>
+          <td><span class="tag-badge">TABLE</span> <span class="tag-badge">RANKING</span></td>
+          <td><code>standard</code> (clean border), <code>compact</code> (dense 28px rows), <code>striped</code> (zebra rows)</td>
+          <td>6 cols × 4 rows</td>
+        </tr>
+        <tr>
+          <td><strong>9. Live Activity Feed (<code>feed</code>)</strong></td>
+          <td><span class="tag-badge">FEED</span></td>
+          <td><code>live</code> (pulse dot + time), <code>timeline</code> (vertical track), <code>compact</code> (single-line items)</td>
+          <td>6 cols × 4 rows</td>
+        </tr>
+        <tr>
+          <td><strong>10. Heatmap Grid (<code>heatmap</code>)</strong></td>
+          <td><span class="tag-badge">HEATMAP</span></td>
+          <td><code>intensity</code> (teal opacity), <code>divergent</code> (red/amber/teal), <code>calendar</code> (day/hour matrix)</td>
+          <td>6 cols × 4 rows</td>
+        </tr>
+        <tr>
+          <td><strong>11. Sankey Flow (<code>sankey</code>)</strong></td>
+          <td><span class="tag-badge">FLOW</span></td>
+          <td><code>flow</code> (bezier ribbons), <code>nodes</code> (hierarchical blocks)</td>
+          <td>8 cols × 4 rows</td>
+        </tr>
+        <tr>
+          <td><strong>12. Scatter Plot (<code>scatter</code>)</strong></td>
+          <td><span class="tag-badge">SCATTER</span></td>
+          <td><code>bubbles</code> (weighted radius), <code>dots</code> (dense coordinate cluster)</td>
+          <td>6 cols × 4 rows</td>
+        </tr>
+        <tr>
+          <td><strong>13. Radar / Spider (<code>radar</code>)</strong></td>
+          <td><span class="tag-badge">BREAKDOWN</span></td>
+          <td><code>polygon</code> (filled radar web), <code>spider</code> (wireframe spider chart)</td>
+          <td>3 cols × 3 rows</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. VISUAL TONES & ANIMATIONS -->
+  <section>
+    <div class="wb-section-title">4. Card Background Tones & Micro-Animations</div>
+    <div class="wb-section-sub">Surface appearances and interactive animations available for all cards.</div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+      <!-- Tones Table -->
+      <table class="wb-table">
+        <thead>
+          <tr>
+            <th>Tone ID</th>
+            <th>Name</th>
+            <th>Visual Treatment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>surface</code></td>
+            <td><strong>Default Surface</strong></td>
+            <td>Clean light white in light mode / dark obsidian in dark mode.</td>
+          </tr>
+          <tr>
+            <td><code>accent</code></td>
+            <td><strong>Mint Accent</strong></td>
+            <td>Vibrant teal gradient (<code>#0baa8f</code> to <code>#076b5e</code>) with crisp white text.</td>
+          </tr>
+          <tr>
+            <td><code>ink</code></td>
+            <td><strong>Obsidian Ink</strong></td>
+            <td>Permanent high-contrast dark slab (<code>#0d1412</code>) across all themes.</td>
+          </tr>
+          <tr>
+            <td><code>mesh</code></td>
+            <td><strong>Aurora Mesh</strong></td>
+            <td>Soft teal & sky-blue radial gradient mesh.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Animations Table -->
+      <table class="wb-table">
+        <thead>
+          <tr>
+            <th>Animation</th>
+            <th>Trigger</th>
+            <th>Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Animated Star Border</strong></td>
+            <td>Toggle switch</td>
+            <td>Luminous gradient edge traveling smoothly around card perimeter.</td>
+          </tr>
+          <tr>
+            <td><strong>Animated Glare Reflex</strong></td>
+            <td>Hover / Toggle</td>
+            <td>Holographic 3D light reflection across the card surface.</td>
+          </tr>
+          <tr>
+            <td><strong>Magnetic 3D Tilt</strong></td>
+            <td>Cursor movement</td>
+            <td>Card elements tilt in 3D perspective tracking cursor coordinates.</td>
+          </tr>
+          <tr>
+            <td><strong>Data Crosshair Snap</strong></td>
+            <td>Chart hover</td>
+            <td>Vertical hairline snaps to closest data point and re-reads headline value.</td>
+          </tr>
+          <tr>
+            <td><strong>Roller Numbers</strong></td>
+            <td>Timeframe change</td>
+            <td>Digits slide vertically like an odometer on data updates.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<script>
+function updatePadding() {
+  const v = document.getElementById('sliderPadV').value;
+  const h = document.getElementById('sliderPadH').value;
+  document.documentElement.style.setProperty('--card-pad-v', v + 'px');
+  document.documentElement.style.setProperty('--card-pad-h', h + 'px');
+  document.getElementById('valPadV').textContent = v + 'px';
+  document.getElementById('valPadH').textContent = h + 'px';
+
+  document.querySelectorAll('.wb-chip').forEach(c => c.classList.remove('is-active'));
+}
+
+function updateRadius() {
+  const r = document.getElementById('sliderRadius').value;
+  document.documentElement.style.setProperty('--card-radius', r + 'px');
+  document.getElementById('valRadius').textContent = r + 'px';
+}
+
+function setPreset(v, h) {
+  document.getElementById('sliderPadV').value = v;
+  document.getElementById('sliderPadH').value = h;
+  updatePadding();
+
+  event.target.classList.add('is-active');
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+}
+</script>
+
+</body>
+</html>
