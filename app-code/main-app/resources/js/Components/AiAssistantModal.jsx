@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { usePage, Link, router } from '@inertiajs/react';
 import {
     Sparkles, X, Send, Loader2, ArrowRight, Minimize2,
@@ -156,7 +157,7 @@ export default function AiAssistantModal({
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
             {/* Backdrop - Midnight Nebula */}
             <div
@@ -334,6 +335,7 @@ export default function AiAssistantModal({
                     </p>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

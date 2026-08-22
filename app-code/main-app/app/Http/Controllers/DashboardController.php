@@ -25,30 +25,13 @@ class DashboardController extends Controller
         // products on every request — a critical data-corruption risk. They must be
         // re-implemented as one-shot Artisan commands and run only under explicit control.
 
-        // ── The one dashboard (2026-08-21) ────────────────────────────────────
-        //
-        // `store.dashboard` renders the unified card dashboard for EVERY role.
-        // The role router is gone: what a cashier, accountant or purchasing
-        // officer sees is now decided by their role's default card set
-        // (config/dashboard_presets.php) and by the Reckoner's gates
-        // (permission → plan → capability → module), not by four separate
-        // pages. The Admin Panel's Executive Dashboard folds into the same
-        // board through permission-gated cards.
-        //
-        // Card data never travels through this controller — the page batch-
-        // reads /api/reckoner/read, and layouts persist via /api/dashboards.
-        // The old server-side prop composition (~50 queries the page no longer
-        // read) survives only behind `store.dashboard-v1`, the unconditional
-        // escape hatch back to the classic dashboard.
-        if (request()->routeIs('store.dashboard')) {
-            return Inertia::render('Dashboard');
-        }
-
         $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
         $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
         $user = auth()->user();
 
-        // ── store.dashboard-v1 only: the classic role-routed dashboard ────────
+        // ── Role Router (V1 Tier 2 — per Master Plan) ─────────────────────────
+        // Resolve role from the current store membership (set by TenantMiddleware).
+        // Falls back to null so existing users on the old schema still work.
         $membership = app()->bound('current.membership') ? app('current.membership') : null;
         $storeRole  = $membership?->role;
 

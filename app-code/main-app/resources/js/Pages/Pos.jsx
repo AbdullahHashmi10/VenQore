@@ -103,13 +103,21 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     // Core POS State
     const [sales, setSales] = useState(() => {
-        return posSessions.length > 0 ? posSessions : [{ id: Date.now(), type: 'pos', cart: [], cashReceived: '', searchTerm: '', customer: null, discountType: 'fixed', discountValue: 0 }];
+        const initial = posSessions.length > 0 ? posSessions : [{ id: Date.now(), type: 'pos', cart: [], cashReceived: '', searchTerm: '', customer: null, discountType: 'fixed', discountValue: 0 }];
+        return initial.map(s => ({
+            ...s,
+            cart: Array.isArray(s?.cart) ? s.cart : []
+        }));
     });
     const [activeSaleId, setActiveSaleId] = useState(() => {
-        return currentPosId || sales[0].id;
+        return currentPosId || sales[0]?.id || Date.now();
     });
 
-    const activeSale = sales.find(s => s.id === activeSaleId) || sales[0];
+    const rawActiveSale = sales.find(s => s.id === activeSaleId) || sales[0] || { id: activeSaleId, type: 'pos', cart: [], cashReceived: '', searchTerm: '', customer: null, discountType: 'fixed', discountValue: 0 };
+    const activeSale = {
+        ...rawActiveSale,
+        cart: Array.isArray(rawActiveSale?.cart) ? rawActiveSale.cart : []
+    };
 
     const updateActiveSale = (updates) => {
         setSales(prev => prev.map(sale =>

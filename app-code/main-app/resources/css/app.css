@@ -122,6 +122,7 @@
     body,
     #app {
         height: 100%;
+        overflow: hidden;
     }
 
     /* Webkit Browsers (Chrome, Safari, Edge) */
@@ -164,6 +165,19 @@
 
     .dark * {
         scrollbar-color: rgb(var(--vq-slate-400) / 0.3) transparent;
+    }
+
+    /* Hide scrollbars for custom-scrollbar and no-scrollbar */
+    .custom-scrollbar::-webkit-scrollbar,
+    .no-scrollbar::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    .custom-scrollbar,
+    .no-scrollbar {
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
     }
 }
 

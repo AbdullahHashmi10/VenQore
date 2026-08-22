@@ -175,7 +175,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
     }, [menuRef, settingsRef]);
 
     return (
-        <div className="bg-neutral-900 text-white rounded-xl p-6 h-full min-h-full flex flex-col relative overflow-visible shadow-2xl ring-1 ring-white/10">
+        <div className="bg-neutral-900 text-white rounded-[20px] p-6 flex flex-col relative overflow-hidden shadow-2xl ring-1 ring-white/10">
             {/* Mesh Gradient Background */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/30 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
@@ -260,7 +260,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
             </div>
 
             {/* Accounts Section */}
-            <div className="relative z-10 mb-8 flex-1 overflow-y-auto custom-scrollbar content-start space-y-3">
+            <div className="relative z-10 mb-8 flex-1 content-start space-y-3">
 
                 {/* 1. Cash in Hand (Protected) */}
                 {canViewBalances && (
@@ -332,7 +332,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
             </div>
 
             {/* Recent Transactions (Bottom) */}
-            <div className="relative z-10 mt-auto bg-black/20 rounded-2xl p-4 backdrop-blur-sm border border-white/5 max-h-48 flex flex-col">
+            <div className="relative z-10 mt-auto bg-black/20 rounded-2xl p-4 backdrop-blur-sm border border-white/5 flex flex-col">
                 <div className="flex justify-between items-center mb-3 shrink-0">
                     <h3 className="font-bold text-xs text-neutral-300 uppercase tracking-wider">Activity</h3>
                     <div className="flex items-center gap-2 text-3xs text-ink-muted">
@@ -340,7 +340,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span>Purchase</span>
                     </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-1 custom-scrollbar space-y-2">
+                <div className="p-1 space-y-2">
                     {recentTransactions && recentTransactions.length > 0 ? recentTransactions.map((tx, i) => {
                         // Determine colors based on activity type
                         const activityType = tx.activityType || (tx.type === 'Sale' ? 'sale' : (tx.type === 'Purchase' ? 'purchase' : 'other'));

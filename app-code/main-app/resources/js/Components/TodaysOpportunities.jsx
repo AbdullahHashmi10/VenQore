@@ -9,10 +9,13 @@ import {
     ChevronRight,
     MessageCircle,
     X,
-    Eye
+    Eye,
+    Sparkles,
+    ArrowUpRight,
+    CheckCircle2
 } from 'lucide-react';
 import axios from 'axios';
-import { usePage } from '@inertiajs/react';
+import { usePage, Link } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
 
 const TodaysOpportunities = ({ className = '' }) => {
@@ -49,7 +52,6 @@ const TodaysOpportunities = ({ className = '' }) => {
 
     useEffect(() => {
         fetchData();
-        // Refresh every 5 minutes
         const interval = setInterval(fetchData, 5 * 60 * 1000);
         return () => clearInterval(interval);
     }, []);
@@ -76,10 +78,20 @@ const TodaysOpportunities = ({ className = '' }) => {
 
     if (loading && !data) {
         return (
-            <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm">
+            <div className={`bg-white dark:bg-slate-900 rounded-[20px] p-5 border border-slate-100 dark:border-slate-800 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none flex flex-col justify-center min-h-[300px] ${className}`}>
                 <div className="animate-pulse space-y-4">
-                    <div className="h-6 bg-sunken rounded w-1/3"></div>
-                    <div className="h-20 bg-sunken rounded"></div>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+                        <div className="space-y-1.5 flex-1">
+                            <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
+                            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                        <div className="h-16 bg-slate-50 dark:bg-slate-800/50 rounded-xl" />
+                        <div className="h-16 bg-slate-50 dark:bg-slate-800/50 rounded-xl" />
+                    </div>
+                    <div className="h-24 bg-slate-50 dark:bg-slate-800/50 rounded-xl" />
                 </div>
             </div>
         );
@@ -87,182 +99,215 @@ const TodaysOpportunities = ({ className = '' }) => {
 
     if (error) {
         return (
-            <div className="bg-surface rounded-2xl p-6 border border-red-200 dark:border-red-800 shadow-sm text-center text-red-500">
-                {error}
-                <button onClick={fetchData} className="ml-2 text-brand-500 hover:underline">Retry</button>
+            <div className={`bg-white dark:bg-slate-900 rounded-[20px] p-6 border border-rose-100 dark:border-rose-900/30 shadow-xs text-center ${className}`}>
+                <AlertTriangle size={24} className="mx-auto text-rose-500 mb-2" />
+                <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mb-3">{error}</p>
+                <button
+                    onClick={() => fetchData(true)}
+                    className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors"
+                >
+                    Retry
+                </button>
             </div>
         );
+    }
+
+    if (data?.forbidden || !data) {
+        return null;
     }
 
     const stats = data?.stats || {};
     const recommendations = data?.recommendations || [];
 
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'urgent': return 'bg-red-500';
-            case 'high': return 'bg-orange-500';
-            case 'medium': return 'bg-yellow-500';
-            default: return 'bg-blue-500';
+    const getTypeIcon = (type) => {
+        switch (type) {
+            case 'retention': return <Users className="text-emerald-500" size={15} />;
+            case 'forecast': return <Package className="text-amber-500" size={15} />;
+            case 'churn': return <AlertTriangle className="text-rose-500" size={15} />;
+            case 'recovery': return <Wallet className="text-blue-500" size={15} />;
+            default: return <Sparkles className="text-indigo-500" size={15} />;
         }
     };
 
-    const getTypeIcon = (type) => {
+    const getTypeBadgeClass = (type) => {
         switch (type) {
-            case 'retention': return <Users className="text-emerald-500" size={18} />;
-            case 'forecast': return <Package className="text-orange-500" size={18} />;
-            case 'churn': return <AlertTriangle className="text-red-500" size={18} />;
-            case 'recovery': return <Wallet className="text-amber-500" size={18} />;
-            default: return <TrendingUp className="text-brand-500" size={18} />;
+            case 'retention': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20';
+            case 'forecast': return 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/50 dark:border-amber-500/20';
+            case 'churn': return 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/50 dark:border-rose-500/20';
+            case 'recovery': return 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20';
+            default: return 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 border-indigo-200/50 dark:border-indigo-500/20';
         }
     };
 
     const getTypeLabel = (type) => {
         switch (type) {
-            case 'retention': return 'Sales Opportunity';
-            case 'forecast': return 'Stock Risk';
-            case 'churn': return 'Churn Risk';
-            case 'recovery': return 'Recovery';
-            default: return 'Tip';
+            case 'retention': return 'Sales Growth';
+            case 'forecast': return 'Stock Alert';
+            case 'churn': return 'Customer Risk';
+            case 'recovery': return 'Cash Recovery';
+            default: return 'Action Tip';
         }
     };
 
-    if (data?.forbidden) {
-        return null;
-    }
-
-    // No data (e.g. feature gated → 403, or empty): render nothing rather than crash.
-    if (!data) {
-        return null;
-    }
-
     return (
-        <div className={`bg-surface rounded-2xl border border-line dark:border-white/5 shadow-sm overflow-hidden flex flex-col h-full ${className}`}>
+        <div className={`bg-white dark:bg-slate-900 rounded-[20px] border border-slate-100 dark:border-slate-800 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none overflow-hidden flex flex-col h-full ${className}`}>
             {/* Header */}
-            <div className="p-6 border-b border-line dark:border-white/5 flex items-center justify-between bg-gradient-to-r from-brand-50 to-purple-50 dark:from-white/5 dark:to-white/5">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl text-white shadow-lg ">
-                        <TrendingUp size={20} />
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 dark:from-slate-800/40 dark:via-slate-900 dark:to-slate-800/20">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                            <Sparkles size={17} />
+                        </div>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                                <h3 className="font-bold text-slate-800 dark:text-white text-sm tracking-tight truncate">Today's Opportunities</h3>
+                                <span className="flex h-2 w-2 relative shrink-0">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                            </div>
+                            <p className="text-3xs text-slate-400 dark:text-slate-500 font-medium truncate">AI-powered actions to grow revenue</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-bold text-ink text-lg">Today's Opportunities</h3>
-                        <p className="text-xs text-ink-muted">AI-powered insights to grow your business</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="text-right">
-                        <p className="text-xl font-bold text-brand-600 dark:text-brand-400">
-                                {formatCurrency(data.total_potential_revenue || 0, store)}
-                        </p>
-                        <p className="text-xs text-ink-muted">Potential Revenue</p>
-                    </div>
-                    <button
-                        onClick={() => fetchData(true)}
-                        className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-interactive-hover text-ink-muted transition-all"
-                        disabled={loading}
-                        title="Run AI Analysis"
-                    >
-                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-                    </button>
-                </div>
-            </div>
 
-            {/* Summary Cards */}
-            <div className="p-6 grid grid-cols-4 gap-4 border-b border-line dark:border-white/5">
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center">
-                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.customers_due || 0}</p>
-                    <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">Customers Due</p>
+                    <div className="flex items-center gap-2 shrink-0">
+                        {data.total_potential_revenue > 0 && (
+                            <div className="text-right hidden sm:block">
+                                <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 leading-tight">
+                                    +{formatCurrency(data.total_potential_revenue || 0, store)}
+                                </p>
+                                <p className="text-3xs font-semibold text-slate-400 uppercase tracking-wider">Potential</p>
+                            </div>
+                        )}
+                        <button
+                            onClick={() => fetchData(true)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700"
+                            disabled={loading}
+                            title="Run AI Analysis"
+                        >
+                            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        </button>
+                    </div>
                 </div>
-                <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-center">
-                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.stock_risks || 0}</p>
-                    <p className="text-xs text-orange-700 dark:text-orange-300 font-medium">Stock Risks</p>
-                </div>
-                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 text-center">
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.churn_risks || 0}</p>
-                    <p className="text-xs text-red-700 dark:text-red-300 font-medium">At Risk</p>
-                </div>
-                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-center">
-                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.overdue_invoices || 0}</p>
-                    <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">Overdue</p>
+
+                {/* 4 Summary Mini-Pills (2x2 Grid) */}
+                <div className="grid grid-cols-2 gap-2 mt-3.5">
+                    <div className="bg-white/80 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                        <div className="min-w-0 pr-1">
+                            <p className="text-3xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">Customers Due</p>
+                            <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">{stats.customers_due || 0}</p>
+                        </div>
+                        <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                            <Users size={12} />
+                        </div>
+                    </div>
+
+                    <div className="bg-white/80 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                        <div className="min-w-0 pr-1">
+                            <p className="text-3xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">Stock Risks</p>
+                            <p className="text-sm font-extrabold text-amber-600 dark:text-amber-400 mt-0.5">{stats.stock_risks || 0}</p>
+                        </div>
+                        <div className="w-6 h-6 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                            <Package size={12} />
+                        </div>
+                    </div>
+
+                    <div className="bg-white/80 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                        <div className="min-w-0 pr-1">
+                            <p className="text-3xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">At Risk</p>
+                            <p className="text-sm font-extrabold text-rose-600 dark:text-rose-400 mt-0.5">{stats.churn_risks || 0}</p>
+                        </div>
+                        <div className="w-6 h-6 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0">
+                            <AlertTriangle size={12} />
+                        </div>
+                    </div>
+
+                    <div className="bg-white/80 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                        <div className="min-w-0 pr-1">
+                            <p className="text-3xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">Overdue</p>
+                            <p className="text-sm font-extrabold text-blue-600 dark:text-blue-400 mt-0.5">{stats.overdue_invoices || 0}</p>
+                        </div>
+                        <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                            <Wallet size={12} />
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Recommendations List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 p-3 space-y-2.5">
                 {recommendations.length === 0 ? (
-                    <div className="p-8 text-center text-ink-muted">
-                        <TrendingUp size={48} className="mx-auto mb-4 opacity-30" />
-                        <p className="font-medium">No opportunities right now!</p>
-                        <p className="text-sm">Check back later or run the AI analysis.</p>
+                    <div className="py-8 px-4 text-center flex flex-col items-center justify-center h-full">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-500 flex items-center justify-center mb-2.5 shadow-xs">
+                            <CheckCircle2 size={24} />
+                        </div>
+                        <h4 className="font-bold text-slate-700 dark:text-slate-200 text-xs tracking-tight">All clear for today!</h4>
+                        <p className="text-3xs text-slate-400 dark:text-slate-500 mt-1 max-w-[220px] leading-relaxed">
+                            No critical alerts or pending customer opportunities detected.
+                        </p>
+                        <button
+                            onClick={() => fetchData(true)}
+                            className="mt-3 inline-flex items-center gap-1 text-3xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 hover:underline"
+                        >
+                            <span>Re-run AI Analysis</span>
+                            <ChevronRight size={11} />
+                        </button>
                     </div>
                 ) : (
-                    recommendations.slice(0, 10).map((rec) => (
+                    recommendations.slice(0, 8).map((rec) => (
                         <div
                             key={rec.id}
-                            className="p-4 border-b border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group"
+                            className="p-3 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800/80 hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-white dark:hover:bg-slate-800/80 transition-all group"
                         >
-                            <div className="flex items-start gap-3">
-                                {/* Priority Dot */}
-                                <div className={`w-2 h-2 rounded-full mt-2 ${getPriorityColor(rec.priority)}`}></div>
-
-                                {/* Icon */}
-                                <div className="p-2 bg-sunken rounded-lg shrink-0">
+                            <div className="flex items-start gap-2.5">
+                                <div className="p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-2xs shrink-0 mt-0.5 border border-slate-100 dark:border-slate-700/50">
                                     {getTypeIcon(rec.type)}
                                 </div>
 
-                                {/* Content */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">
+                                    <div className="flex items-center justify-between gap-1.5 mb-0.5">
+                                        <span className={`px-1.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded-md border ${getTypeBadgeClass(rec.type)}`}>
                                             {getTypeLabel(rec.type)}
                                         </span>
-                                        {rec.priority === 'urgent' && (
-                                            <span className="px-1.5 py-0.5 text-2xs font-bold bg-red-500 text-white rounded">
-                                                URGENT
+                                        {rec.potential_revenue > 0 && (
+                                            <span className="text-3xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                                                +{formatCurrency(rec.potential_revenue || 0, store)}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="font-semibold text-ink text-sm">{rec.title}</p>
-                                    <p className="text-xs text-ink-muted mt-1 line-clamp-2">{rec.message}</p>
+                                    <p className="font-bold text-slate-800 dark:text-slate-200 text-xs truncate mt-1">{rec.title}</p>
+                                    <p className="text-3xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">{rec.message}</p>
 
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {/* Action buttons */}
+                                    <div className="flex items-center gap-1.5 mt-2.5">
                                         {rec.action_type === 'whatsapp' && rec.party && (
                                             <button
                                                 onClick={() => openWhatsApp(rec.id)}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-colors"
+                                                className="flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-3xs font-bold rounded-lg transition-colors shadow-2xs"
                                             >
-                                                <MessageCircle size={12} />
-                                                WhatsApp
+                                                <MessageCircle size={10} />
+                                                <span>WhatsApp</span>
                                             </button>
                                         )}
                                         {rec.action_url && (
                                             <a
                                                 href={rec.action_url}
-                                                className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-colors ${rec.action_type === 'purchase_order' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-brand-500 hover:bg-brand-600'}`}
+                                                className={`flex items-center gap-1 px-2.5 py-1 text-white text-3xs font-bold rounded-lg transition-colors shadow-2xs ${rec.action_type === 'purchase_order' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                                             >
-                                                {rec.action_type === 'purchase_order' ? <Package size={12} /> : <Eye size={12} />}
-                                                {rec.action_type === 'purchase_order' ? 'Order Stock' : 'View'}
+                                                {rec.action_type === 'purchase_order' ? <Package size={10} /> : <Eye size={10} />}
+                                                <span>{rec.action_type === 'purchase_order' ? 'Order Stock' : 'View Details'}</span>
                                             </a>
                                         )}
                                         <button
                                             onClick={() => dismissTip(rec.id)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-sunken hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary text-xs font-bold rounded-lg transition-colors"
+                                            className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-3xs font-bold rounded-lg transition-colors border border-slate-100 dark:border-slate-700 ml-auto"
+                                            title="Dismiss"
                                         >
-                                            <X size={12} />
-                                            Dismiss
+                                            <X size={10} />
+                                            <span>Dismiss</span>
                                         </button>
                                     </div>
                                 </div>
-
-                                {/* Revenue Potential */}
-                                {rec.potential_revenue > 0 && (
-                                    <div className="text-right shrink-0">
-                                        <p className="text-sm font-bold text-brand-600 dark:text-brand-400">
-                                            {formatCurrency(rec.potential_revenue || 0, store)}
-                                        </p>
-                                        <p className="text-2xs text-ink-muted">Potential</p>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     ))
@@ -270,17 +315,15 @@ const TodaysOpportunities = ({ className = '' }) => {
             </div>
 
             {/* Footer */}
-            {recommendations.length > 10 && (
-                <div className="p-3 border-t border-line text-center">
-                    <a
-                        href={route('store.growth-engine.index', { store_slug: store.slug })}
-                        className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 flex items-center justify-center gap-1"
-                    >
-                        View All {recommendations.length} Opportunities
-                        <ChevronRight size={16} />
-                    </a>
-                </div>
-            )}
+            <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 text-center shrink-0">
+                <Link
+                    href={route('store.growth-engine.dashboard', { store_slug: store.slug })}
+                    className="text-3xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 inline-flex items-center justify-center gap-1 hover:underline"
+                >
+                    <span>Open Full Growth Engine</span>
+                    <ArrowUpRight size={12} />
+                </Link>
+            </div>
         </div>
     );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { usePage, router, Link } from '@inertiajs/react';
 import {
     X, Camera, Mic, Upload, Loader2, Sparkles, FileText, CheckCircle2,
@@ -1201,7 +1202,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         </div>
     );
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-toast flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-in fade-in duration-normal font-sans">
             <div className="w-full max-w-4xl bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative">
                 {/* glow blobs */}
@@ -2238,6 +2239,7 @@ function CustomSelect({
                     </div>
                 </div>
             )}
-        </div>
+        </div>,
+        document.body
     );
 }

@@ -11,7 +11,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
+use App\Models\Occupancy;
 use App\Services\StorageService;
 use App\Models\ActivityLog;
 use App\Models\Activity;
@@ -147,16 +148,20 @@ class InventoryController extends Controller
         $stockTotals = $simpleStock->concat($variantStock)->groupBy('product_id');
 
         // Parked Sales
-        $parkedSalesData = DB::table('parked_sales')
-            ->where('tenant_id', $tenantId)
-            ->pluck('cart_data');
+        $parkedSalesData = Schema::hasTable('parked_sales')
+            ? DB::table('parked_sales')->where('tenant_id', $tenantId)->pluck('cart_data')
+            : Occupancy::where('tenant_id', $tenantId)
+                ->where('source_type', 'parked_sale')
+                ->whereNull('closed_at')
+                ->get()
+                ->map(fn($occ) => is_array($occ->session_data) ? json_encode($occ->session_data) : $occ->session_data);
         $parkedProductQtys = [];
         foreach ($parkedSalesData as $cartData) {
-            $cart = json_decode($cartData, true) ?? [];
+            $cart = is_array($cartData) ? $cartData : (json_decode($cartData, true) ?? []);
             foreach ($cart as $item) {
                 if (isset($item['id'])) {
                     $key = $item['id'] . (isset($item['variant_id']) ? '-' . $item['variant_id'] : '');
-                    $parkedProductQtys[$key] = ($parkedProductQtys[$key] ?? 0) + ($item['qty'] ?? 0);
+                    $parkedProductQtys[$key] = ($parkedProductQtys[$key] ?? 0) + ($item['qty'] ?? $item['quantity'] ?? 0);
                 }
             }
         }
@@ -931,16 +936,20 @@ class InventoryController extends Controller
             }
 
             $tenantId = app('current.tenant')->id;
-            $parkedSalesData = DB::table('parked_sales')
-                ->where('tenant_id', $tenantId)
-                ->pluck('cart_data');
+            $parkedSalesData = Schema::hasTable('parked_sales')
+                ? DB::table('parked_sales')->where('tenant_id', $tenantId)->pluck('cart_data')
+                : Occupancy::where('tenant_id', $tenantId)
+                    ->where('source_type', 'parked_sale')
+                    ->whereNull('closed_at')
+                    ->get()
+                    ->map(fn($occ) => is_array($occ->session_data) ? json_encode($occ->session_data) : $occ->session_data);
             $parkedProductQtys = [];
             foreach ($parkedSalesData as $cartData) {
-                $cart = json_decode($cartData, true) ?? [];
+                $cart = is_array($cartData) ? $cartData : (json_decode($cartData, true) ?? []);
                 foreach ($cart as $item) {
                     if (isset($item['id'])) {
                         $key = $item['id'] . (isset($item['variant_id']) ? '-' . $item['variant_id'] : '');
-                        $parkedProductQtys[$key] = ($parkedProductQtys[$key] ?? 0) + ($item['qty'] ?? 0);
+                        $parkedProductQtys[$key] = ($parkedProductQtys[$key] ?? 0) + ($item['qty'] ?? $item['quantity'] ?? 0);
                     }
                 }
             }
@@ -1207,22 +1216,47 @@ class InventoryController extends Controller
             // Parked Sales Reservations
             $tenantId = app('current.tenant')->id;
             $parkedReservations = [];
-            $parkedSales = DB::table('parked_sales')
-                ->where('tenant_id', $tenantId)
-                ->get();
-            foreach ($parkedSales as $parked) {
-                $cart = json_decode($parked->cart_data, true) ?? [];
-                foreach ($cart as $item) {
-                    if (isset($item['id']) && $item['id'] == $id && ($item['qty'] ?? 0) > 0) {
-                        $parkedReservations[] = [
-                            'id' => 'parked-' . $parked->id,
-                            'date' => $parked->created_at,
-                            'order_number' => 'PARKED',
-                            'customer' => $parked->customer_name ?? 'Parked Cart',
-                            'quantity_reserved' => $item['qty'],
-                            'warehouse_id' => 1,
-                            'type' => 'Parked'
-                        ];
+            if (Schema::hasTable('parked_sales')) {
+                $parkedSales = DB::table('parked_sales')
+                    ->where('tenant_id', $tenantId)
+                    ->get();
+                foreach ($parkedSales as $parked) {
+                    $cart = json_decode($parked->cart_data, true) ?? [];
+                    foreach ($cart as $item) {
+                        if (isset($item['id']) && $item['id'] == $id && ($item['qty'] ?? 0) > 0) {
+                            $parkedReservations[] = [
+                                'id' => 'parked-' . $parked->id,
+                                'date' => $parked->created_at,
+                                'order_number' => 'PARKED',
+                                'customer' => $parked->customer_name ?? 'Parked Cart',
+                                'quantity_reserved' => $item['qty'],
+                                'warehouse_id' => 1,
+                                'type' => 'Parked'
+                            ];
+                        }
+                    }
+                }
+            } else {
+                $occupancies = Occupancy::where('tenant_id', $tenantId)
+                    ->where('source_type', 'parked_sale')
+                    ->whereNull('closed_at')
+                    ->get();
+                foreach ($occupancies as $parked) {
+                    $cartData = $parked->session_data ?? [];
+                    $cart = is_array($cartData) ? ($cartData['items'] ?? $cartData) : (json_decode($cartData, true) ?? []);
+                    foreach ($cart as $item) {
+                        $itemQty = $item['qty'] ?? $item['quantity'] ?? 0;
+                        if (isset($item['id']) && $item['id'] == $id && $itemQty > 0) {
+                            $parkedReservations[] = [
+                                'id' => 'parked-' . $parked->id,
+                                'date' => $parked->opened_at,
+                                'order_number' => 'PARKED',
+                                'customer' => $parked->label !== 'Parked Cart' ? $parked->label : 'Parked Cart',
+                                'quantity_reserved' => $itemQty,
+                                'warehouse_id' => 1,
+                                'type' => 'Parked'
+                            ];
+                        }
                     }
                 }
             }

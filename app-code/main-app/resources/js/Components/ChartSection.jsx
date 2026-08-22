@@ -23,7 +23,7 @@ const ChartSection = ({ isDarkMode, salesData }) => {
     const totalProfit = chartData.reduce((sum, item) => sum + (item.profit || 0), 0);
 
     return (
-        <div className="bg-surface rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-line h-full flex flex-col relative group">
+        <div className="bg-surface rounded-[20px] p-5 sm:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-line h-full flex flex-col relative group">
             {/* Single Line Header */}
             <div className="flex items-center justify-between mb-4 z-10">
                 <div className="flex items-center gap-3 flex-wrap">

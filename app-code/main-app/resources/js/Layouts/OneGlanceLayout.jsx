@@ -887,15 +887,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
     return (
         <>
-            <DemoBanner />
             <CommandPalette />
-            <OnboardingDriver />
-            {/* <OnboardingTour /> Legacy Modal Tour */}
-            <PwaInstallPrompt />
             {/* Phase 4.4 — Global plan limit upgrade modal (triggered by axios interceptor) */}
             <UpgradeModal />
             <ImpersonationBanner />
-            <div className={`h-full w-full overflow-hidden flex bg-surface text-ink font-sans transition-colors duration-slow`}>
+            <div className={`fixed inset-0 overflow-hidden flex bg-surface text-ink font-sans transition-colors duration-slow`}>
                 <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           display: none;
@@ -941,7 +937,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         onMouseLeave={handleSidebarMouseLeave}
                         onClick={handleSidebarInteraction}
                         className={`
-                            fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-[100vh] shrink-0 z-drawer lg:z-40
+                            fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer lg:z-40
                             transform lg:transform-none transition-all duration-slow lg:duration-slower lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
                             flex flex-col amd-no-drag
                             ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -1207,6 +1203,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                 {/* --- MAIN CONTENT --- */}
                 <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-[var(--vq-bg)] transition-opacity duration-slower ease-in-out opacity-100`}>
+                    <DemoBanner />
                     
                     {/* Limit Grace Countdown Banner */}
                     <LimitGraceBanner />
@@ -1283,7 +1280,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                     {/* Header */}
                     {!hideHeader && !fullScreen && (
-                        <header className="h-14 px-4 sm:px-8 flex items-center z-50 relative shrink-0">
+                        <header className="h-14 px-4 sm:px-8 flex items-center z-nav relative shrink-0">
                             {/* LEFT SECTION */}
                             <div className="flex-1 flex items-center gap-3 sm:gap-8 text-ink-muted">
                                 <button className="lg:hidden p-2 rounded-lg text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors"
@@ -1387,7 +1384,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  
                                     {/* Growth Engine Dropdown */}
                                     {isGrowthOpen && (
-                                        <div className="absolute right-0 top-full mt-3 w-96 bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden animate-in fade-in zoom-in-95 origin-top-right z-sticky">
+                                        <div className="absolute right-0 top-full mt-3 w-96 bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden animate-in fade-in zoom-in-95 origin-top-right z-dropdown">
                                             <div className="p-5 bg-gradient-to-br from-brand-600 to-violet-700 text-white relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                                                 <h3 className="text-lg font-bold relative z-10 flex items-center gap-2">
@@ -1451,9 +1448,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     >
                                         <Settings2 size={18} />
                                     </button>
- 
+
                                     {isDisplayMenuOpen && (
-                                        <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-2xl shadow-xl border border-line z-sticky overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
+                                        <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
                                             <button
                                                 onClick={() => {
                                                     const newValue = settings?.senior_mode === '1' ? '0' : '1';
@@ -1475,7 +1472,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
                                                 </div>
                                             </button>
- 
+
                                             <button
                                                 onClick={toggleAppTheme}
                                                 className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
@@ -1493,7 +1490,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         </div>
                                     )}
                                 </div>
- 
+
                                 {/* Mobile Options Dropdown (lg:hidden) */}
                                 <div className="lg:hidden relative" ref={mobileMenuRef}>
                                     <button
@@ -1505,9 +1502,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     >
                                         <MoreVertical size={18} />
                                     </button>
- 
+
                                     {isMobileMenuOpen && (
-                                        <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-sticky overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
+                                        <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
                                             {/* Store Switcher & Charity Button Row */}
                                             {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
                                                 <div className="p-2 border-b border-line flex items-end justify-between gap-3">
@@ -1526,9 +1523,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                     )}
                                                 </div>
                                             )}
- 
 
- 
                                             {/* Display Settings */}
                                             <div className="space-y-1">
                                                 <button
@@ -1552,7 +1547,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                         <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
                                                     </div>
                                                 </button>
- 
+
                                                 <button
                                                     onClick={toggleAppTheme}
                                                     className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
@@ -1568,7 +1563,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                     </div>
                                                 </button>
                                             </div>
- 
+
                                             {/* User Settings */}
                                             <div className="border-t border-line pt-2 space-y-1">
                                                 {store && (
@@ -1600,7 +1595,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                                     {/* Notifications Dropdown */}
                                     {isNotificationsOpen && (
-                                        <div className="absolute right-0 top-full mt-2 w-80 bg-surface rounded-2xl shadow-xl border border-line z-sticky overflow-hidden animate-in fade-in zoom-in-95 origin-top-right">
+                                        <div className="absolute right-0 top-full mt-2 w-80 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right">
                                             <div className="p-4 border-b border-line flex justify-between items-center">
                                                 <h3 className="font-bold text-ink">Notifications</h3>
                                                 <button
@@ -1646,7 +1641,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
                     {/* DYNAMIC CONTENT AREA */}
-                    <div className={`flex-1 min-h-0 overflow-y-auto h-full w-full animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-2 sm:px-8 pb-8'}`}>
+                    <div className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-2 sm:px-8 pb-8'}`}>
                         {children}
                         {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
                         {showMobileNavBar && (
