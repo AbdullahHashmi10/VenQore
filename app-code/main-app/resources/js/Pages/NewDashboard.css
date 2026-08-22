@@ -2346,13 +2346,139 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   overflow: visible !important;
 }
 
-/* ── ELIMINATE COVERING POPUP BOX & MOVING PILL (HEADLINE IS ACTIVE READER) ── */
-.ck-tip,
+/* ── VENQORE BOOKLET SPEC: COMPACT TOOLTIP & BOTTOM-ANCHORED DATE TICKER ── */
 .ck-ticker {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
+  position: absolute !important;
+  bottom: 0px !important;
+  top: auto !important;
+  transform: translateX(-50%) !important;
+  background: var(--vq-ink-900, #17201b) !important;
+  color: #ffffff !important;
+  border-radius: var(--vq-r-full, 999px) !important;
+  padding: 1px 7px !important;
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  line-height: 14px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
   pointer-events: none !important;
+  z-index: 5 !important;
+  white-space: nowrap !important;
+  display: block !important;
+}
+
+[data-theme="dark"] .ck-ticker {
+  background: #ffffff !important;
+  color: #0d1412 !important;
+}
+
+.ck-ticker[hidden] {
+  display: none !important;
+}
+
+.dt {
+  display: inline-flex !important;
+  gap: 4px !important;
+  align-items: center !important;
+}
+
+.dt-win {
+  height: 14px !important;
+  overflow: hidden !important;
+}
+
+.dt-col {
+  display: flex !important;
+  flex-direction: column !important;
+  transition: transform 380ms cubic-bezier(.22,1,.36,1) !important;
+  will-change: transform !important;
+}
+
+.dt-col i {
+  display: block !important;
+  height: 14px !important;
+  line-height: 14px !important;
+  font-style: normal !important;
+  white-space: nowrap !important;
+}
+
+.ck-tip {
+  position: absolute !important;
+  top: 4px !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  background: var(--vq-surface, #ffffff) !important;
+  border: 1px solid var(--vq-line, #d3dcd7) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+  padding: 4px 8px !important;
+  min-width: 90px !important;
+  max-width: 135px !important;
+  width: max-content !important;
+  transition: left 380ms cubic-bezier(.22,1,.36,1) !important;
+  display: block !important;
+}
+
+[data-theme="dark"] .ck-tip {
+  background: #17201b !important;
+  border-color: #24332c !important;
+}
+
+.ck-tip[hidden] {
+  display: none !important;
+}
+
+.ck-tip-h {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: var(--vq-text-3, #8b9a93) !important;
+  margin: 0 0 2px 0 !important;
+  white-space: nowrap !important;
+}
+
+.ck-tip-r {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 10px !important;
+  color: var(--vq-text-2, #536159) !important;
+  padding: 1px 0 !important;
+}
+
+[data-theme="dark"] .ck-tip-r {
+  color: #b4c0ba !important;
+}
+
+.ck-tip-d {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  flex: 0 0 6px !important;
+}
+
+.ck-tip-n {
+  flex: 1 1 auto !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 65px !important;
+  font-size: 9.5px !important;
+}
+
+.ck-tip-v {
+  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  color: var(--vq-text, #17201b) !important;
+  margin-left: auto !important;
+}
+
+[data-theme="dark"] .ck-tip-v {
+  color: #ffffff !important;
+}
+
+.ck-tip--sm {
+  min-width: 80px !important;
 }
 
 /* ── Non-Edit vs Edit Mode Rules ─────────────────────────────────────── */
