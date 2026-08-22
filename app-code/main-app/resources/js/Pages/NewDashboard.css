@@ -2347,37 +2347,47 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   EXACT DESIGN SPEC: COMPACT OBSIDIAN TOOLTIP & BOTTOM DATE PILL
+   TOOLTIP POPOVER & BOTTOM DATE PILL (LIGHT & DARK THEMED, NO TRUNCATION)
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* 1. Bottom Date Pill (Centered on crosshair at bottom X-axis) */
+/* 1. Bottom Date Pill (Compact pill centered on crosshair) */
 .ck-ticker {
   position: absolute !important;
-  bottom: 0px !important;
+  bottom: -4px !important;
   top: auto !important;
-  height: 18px !important;
-  max-height: 18px !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: max-content !important;
   transform: translateX(-50%) !important;
-  background: var(--vq-ink-900, #17201b) !important;
-  color: #ffffff !important;
+  padding: 2px 10px !important;
   border-radius: var(--vq-r-full, 9999px) !important;
-  padding: 1px 8px !important;
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  line-height: 16px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
   pointer-events: none !important;
   z-index: 25 !important;
   white-space: nowrap !important;
-  display: block !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   box-sizing: border-box !important;
   transition: left 380ms cubic-bezier(.22, 1, .36, 1) !important;
 }
 
-[data-theme="dark"] .ck-ticker {
+/* Light mode date pill: dark obsidian pill */
+.ck-ticker,
+:root:not([data-theme="dark"]) .ck-ticker,
+[data-theme="light"] .ck-ticker {
+  background: #17201b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Dark mode date pill: crisp white pill */
+[data-theme="dark"] .ck-ticker,
+.dark .ck-ticker {
   background: #ffffff !important;
   color: #0d1412 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
 }
 
 .ck-ticker[hidden] {
@@ -2386,33 +2396,33 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .dt {
   display: inline-flex !important;
-  gap: 3px !important;
+  gap: 4px !important;
   align-items: center !important;
 }
 
 .dt-win {
-  height: 16px !important;
+  height: 20px !important;
   overflow: hidden !important;
 }
 
 .dt-col {
   display: flex !important;
   flex-direction: column !important;
-  transition: transform 380ms cubic-bezier(.22, 1, .36, 1) !important;
+  transition: transform 420ms cubic-bezier(.22, 1, .36, 1) !important;
   will-change: transform !important;
 }
 
 .dt-col i {
   display: block !important;
-  height: 16px !important;
-  line-height: 16px !important;
+  height: 20px !important;
+  line-height: 20px !important;
   font-style: normal !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
 }
 
-/* 2. Floating Obsidian Tooltip Popover (Compact & Auto-Sized to Content) */
+/* 2. Floating Tooltip Popover (Auto-sized, Light for Light Mode, Dark for Dark Mode) */
 .ck-tip {
   position: absolute !important;
   top: 8px !important;
@@ -2423,19 +2433,66 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   align-self: flex-start !important;
   z-index: 30 !important;
   pointer-events: none !important;
-  background: rgba(23, 26, 31, 0.96) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
-  padding: 6px 10px !important;
-  min-width: 100px !important;
-  max-width: 140px !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+  min-width: 190px !important;
   width: max-content !important;
+  max-width: none !important;
   backdrop-filter: blur(14px) !important;
   -webkit-backdrop-filter: blur(14px) !important;
   transition: left 380ms cubic-bezier(.22, 1, .36, 1) !important;
   display: block !important;
   box-sizing: border-box !important;
+}
+
+/* Light mode popover */
+.ck-tip,
+:root:not([data-theme="dark"]) .ck-tip,
+[data-theme="light"] .ck-tip {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.14), 0 4px 8px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.ck-tip,
+:root:not([data-theme="dark"]) .ck-tip .ck-tip-h,
+[data-theme="light"] .ck-tip .ck-tip-h {
+  color: #17201b !important;
+}
+
+.ck-tip,
+:root:not([data-theme="dark"]) .ck-tip .ck-tip-n,
+[data-theme="light"] .ck-tip .ck-tip-n {
+  color: #536159 !important;
+}
+
+.ck-tip,
+:root:not([data-theme="dark"]) .ck-tip .ck-tip-v,
+[data-theme="light"] .ck-tip .ck-tip-v {
+  color: #17201b !important;
+}
+
+/* Dark mode popover */
+[data-theme="dark"] .ck-tip,
+.dark .ck-tip {
+  background: rgba(20, 24, 28, 0.97) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .ck-tip .ck-tip-h,
+.dark .ck-tip .ck-tip-h {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .ck-tip .ck-tip-n,
+.dark .ck-tip .ck-tip-n {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .ck-tip .ck-tip-v,
+.dark .ck-tip .ck-tip-v {
+  color: #ffffff !important;
 }
 
 .ck-tip[hidden] {
@@ -2444,10 +2501,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .ck-tip-h {
   font-family: var(--vq-font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
-  font-size: 9.5px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
-  color: #ffffff !important;
-  margin: 0 0 4px 0 !important;
+  margin: 0 0 6px 0 !important;
   white-space: nowrap !important;
 }
 
@@ -2455,40 +2511,38 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 8px !important;
-  font-size: 10.5px !important;
-  color: #94a3b8 !important;
-  padding: 1px 0 !important;
+  gap: 16px !important;
+  padding: 2px 0 !important;
 }
 
 .ck-tip-d {
-  width: 6px !important;
-  height: 6px !important;
+  width: 7px !important;
+  height: 7px !important;
   border-radius: 50% !important;
-  flex: 0 0 6px !important;
+  flex: 0 0 7px !important;
 }
 
 .ck-tip-n {
   flex: 1 1 auto !important;
   white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  max-width: 65px !important;
-  font-size: 10px !important;
-  color: #94a3b8 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: none !important;
+  font-size: 11.5px !important;
   font-weight: 500 !important;
 }
 
 .ck-tip-v {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
-  color: #ffffff !important;
+  white-space: nowrap !important;
   margin-left: auto !important;
+  display: inline-block !important;
 }
 
 .ck-tip--sm {
-  min-width: 85px !important;
+  min-width: 140px !important;
 }
 
 /* 3. Circular Intersection Beads on Series Lines */
@@ -2504,8 +2558,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   stroke-dasharray: none !important;
 }
 
-[data-theme="light"] .ck-cross {
-  stroke: rgba(13, 20, 18, 0.3) !important;
+[data-theme="light"] .ck-cross,
+:root:not([data-theme="dark"]) .ck-cross {
+  stroke: rgba(13, 20, 18, 0.25) !important;
 }
 
 /* ── Non-Edit vs Edit Mode Rules ─────────────────────────────────────── */
