@@ -76,7 +76,7 @@ import { useTheme } from '@/Contexts/ThemeContext';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import LimitGraceBanner from '@/Components/LimitGraceBanner';
 
-export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false }) {
+export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
     const {
         store
     } = usePage().props;
@@ -931,7 +931,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                 {mobileSidebarOpen && (
                     <div className="fixed inset-0 bg-black/50 z-drawer lg:hidden" onClick={() => setMobileSidebarOpen(false)} />
                 )}
-                {!fullScreen && (
+                {!fullScreen && !hideSidebar && (
                     <aside
                         ref={sidebarRef}
                         onMouseLeave={handleSidebarMouseLeave}

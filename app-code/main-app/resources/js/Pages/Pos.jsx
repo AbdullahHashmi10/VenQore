@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage, router, Link } from '@inertiajs/react';
 import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
@@ -29,7 +29,9 @@ import {
     Warehouse,
     ChevronLeft,
     ChevronRight,
-    History
+    History,
+    ArrowLeft,
+    LayoutGrid
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -252,6 +254,42 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     // Free Quantity Visibility State (default: OFF)
     const [showFreeQty, setShowFreeQty] = useState(false);
+
+    // Resizable Columns State (Layout Law v2)
+    const [catalogWidthPct, setCatalogWidthPct] = useState(() => {
+        const saved = localStorage.getItem('pos_catalog_width_pct');
+        return saved ? parseFloat(saved) : 60;
+    });
+
+    // Icon Rail Toggle State
+    const [showRail, setShowRail] = useState(() => {
+        const saved = localStorage.getItem('pos_show_rail');
+        return saved ? JSON.parse(saved) : false;
+    });
+
+    // Column Splitter Drag Handler
+    const handleSplitterPointerDown = (e) => {
+        e.preventDefault();
+        const container = e.currentTarget.parentElement;
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
+
+        const onPointerMove = (moveEvent) => {
+            const relativeX = moveEvent.clientX - containerRect.left;
+            const newPct = (relativeX / containerRect.width) * 100;
+            const clampedPct = Math.max(30, Math.min(80, newPct));
+            setCatalogWidthPct(clampedPct);
+        };
+
+        const onPointerUp = () => {
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('pointerup', onPointerUp);
+            localStorage.setItem('pos_catalog_width_pct', catalogWidthPct);
+        };
+
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+    };
 
 
     // Item Discount Modal State
@@ -1922,7 +1960,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     }, [cartTotal, paymentMethod, settings?.pos_auto_fill_cash]);
 
     return (
-        <>
+        <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true} noPadding={true} hideSidebar={!showRail}>
+            <Head title="POS" />
             <div className="h-full w-full flex flex-col pl-3 pr-0 pb-0 pt-3 animate-in fade-in zoom-in-95 duration-slow">
             {/* TOP BAR */}
             <div className="h-10 flex items-end gap-1 shrink-0 px-2 select-none">
@@ -1959,6 +1998,33 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                 {/* Parked Sales & Status - Side by Side */}
                 <div className="ml-auto mr-2 relative flex items-center gap-2" ref={parkedDropdownRef}>
+                    {/* Back to Dashboard Button */}
+                    <Link
+                        href={route('store.dashboard', { store_slug: store?.slug })}
+                        className="h-8 px-3 rounded-full bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink font-bold flex items-center gap-1.5 transition-all text-xs border border-line shadow-sm"
+                        title="Back to Dashboard"
+                    >
+                        <ArrowLeft size={14} />
+                        <span className="hidden sm:inline">Dashboard</span>
+                    </Link>
+
+                    {/* Show/Hide Icon Rail Toggle */}
+                    <button
+                        onClick={() => {
+                            const next = !showRail;
+                            setShowRail(next);
+                            localStorage.setItem('pos_show_rail', JSON.stringify(next));
+                        }}
+                        className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
+                            showRail
+                                ? 'bg-brand-50 text-brand-600 border-brand-200 dark:bg-brand-950/40 dark:text-brand-400 dark:border-brand-800'
+                                : 'bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted border-transparent'
+                        }`}
+                        title="Toggle Icon Rail Visibility"
+                    >
+                        <LayoutGrid size={14} />
+                        <span>{showRail ? 'Hide Rail' : 'Show Rail'}</span>
+                    </button>
                     {/* Senior Mode Toggle */}
                     <button
                         onClick={() => setSeniorMode(!seniorMode)}
@@ -2163,7 +2229,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             <div className="flex-1 flex gap-0 min-h-0 bg-app rounded-t-3xl rounded-b-none shadow-sm border border-line overflow-hidden z-0 relative">
 
                 {/* LEFT: Transaction List */}
-                <div className={`w-full lg:w-[40%] flex flex-col min-w-0 relative ${activeMobileTab !== 'catalog' ? 'hidden lg:flex' : ''}`}>
+                <div
+                    className={`w-full flex flex-col min-w-0 relative shrink-0 ${activeMobileTab !== 'catalog' ? 'hidden lg:flex' : ''}`}
+                    style={{ width: `${catalogWidthPct}%` }}
+                >
                     {/* Search Bar */}
                     <div className="h-14 px-3 border-b border-line flex items-center gap-3 bg-sunken/50 dark:bg-surface relative z-20">
                         <button
@@ -2349,8 +2418,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                 </div>
 
+                {/* DRAGGABLE COLUMN SPLITTER HANDLE */}
+                <div
+                    onPointerDown={handleSplitterPointerDown}
+                    className="hidden lg:flex w-2.5 hover:w-3.5 cursor-col-resize select-none relative items-center justify-center bg-line/50 hover:bg-brand-500/20 active:bg-brand-500/30 transition-all z-20 shrink-0 group"
+                    title="Drag left/right to resize columns"
+                >
+                    <div className="w-1 h-10 rounded-full bg-neutral-400 dark:bg-neutral-600 group-hover:bg-brand-500 group-active:bg-brand-600 transition-colors shadow-sm" />
+                </div>
+
                 {/* RIGHT: Cart & Payment Panel */}
-                <div className={`w-full lg:w-[40%] shrink-0 flex flex-col bg-app border-l border-line ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}>
+                <div
+                    className={`w-full shrink-0 flex flex-col bg-app border-l border-line ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}
+                    style={{ width: `${100 - catalogWidthPct}%` }}
+                >
 
                     {/* Cart Header */}
                     <div className="h-14 px-3 bg-sunken/50 dark:bg-surface border-b border-line flex items-center justify-between">
@@ -3734,18 +3815,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
             </div>
         )}
-    </>
+        </OneGlanceLayout>
     );
 };
 
 export default function Pos({ settings, bankAccounts, recalledSale }) {
     const { store } = usePage().props;
     return (
-        <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true} noPadding={true}>
-            <Head title="POS" />
+        <>
             <POSInterface settings={settings} recalledSale={recalledSale} bankAccounts={bankAccounts} />
             <PosTourGuide store={store} />
-        </OneGlanceLayout>
+        </>
     );
 }
 
