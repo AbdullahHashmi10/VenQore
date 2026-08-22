@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VenQore V6 — Card System Rules & Padding Laboratory</title>
+<title>VenQore V6 — Official Card Categories & Padding Rules</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -425,6 +425,26 @@ body {
   cursor: pointer;
 }
 
+/* Official Rule Alert Box */
+.wb-rule-callout {
+  background: var(--vq-teal-50);
+  border: 1px solid var(--vq-teal-200);
+  border-left: 4px solid var(--vq-teal-500);
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--vq-teal-900);
+  margin-top: 18px;
+}
+
+[data-theme="dark"] .wb-rule-callout {
+  background: #0d2922;
+  border-color: #1a5044;
+  border-left-color: #59dbc0;
+  color: #edf2ef;
+}
+
 /* Reference Tables */
 .wb-table {
   width: 100%;
@@ -441,6 +461,7 @@ body {
   text-align: left;
   border-bottom: 1px solid var(--vq-line);
   font-size: 13px;
+  vertical-align: top;
 }
 
 .wb-table th {
@@ -464,6 +485,20 @@ body {
   border-radius: 6px;
   background: var(--vq-bg);
   border: 1px solid var(--vq-line);
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.fit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fit-item {
+  font-family: var(--vq-font-mono);
+  font-size: 12px;
+  color: var(--vq-text);
 }
 </style>
 </head>
@@ -473,8 +508,8 @@ body {
   <div class="wb-brand">
     <div class="wb-badge">V6</div>
     <div>
-      <div class="wb-title">VenQore Card System Rules & Padding Laboratory</div>
-      <div class="wb-sub">Complete Matrix: Card Sizes · 13 Chart Engines · Variants · Animations · Padding Rules</div>
+      <div class="wb-title">VenQore V6 — Official Six Card Categories & Layout Law</div>
+      <div class="wb-sub">Exact specification from VenQore Design System v6</div>
     </div>
   </div>
   <button class="wb-theme-btn" onclick="toggleTheme()">🌓 Toggle Light / Dark</button>
@@ -523,54 +558,159 @@ body {
 
 <main class="wb-main">
 
-  <!-- 1. LIVE CARD SIZES DEMO -->
+  <!-- 1. OFFICIAL SIX CARD CATEGORIES TABLE -->
   <section>
-    <div class="wb-section-title">1. Live Card Sizes Demo (Responsive Under Current Padding)</div>
-    <div class="wb-section-sub">Adjust the sliders above to see how these different card sizes adapt and maximize charting area without clipping.</div>
+    <div class="wb-section-title">Six card categories (Official V6 Design System Rule)</div>
+    <div class="wb-section-sub">Standard layout categories, minimum/maximum bounds, and responsive fit levels.</div>
+
+    <table class="wb-table">
+      <thead>
+        <tr>
+          <th style="width: 140px;">CATEGORY</th>
+          <th style="width: 320px;">ROLE</th>
+          <th style="width: 100px;">MIN</th>
+          <th style="width: 100px;">MAX</th>
+          <th>FITS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Tile <span class="tag-badge">C1</span></strong></td>
+          <td>Shortcut, quick action, custom button, single glyph stat</td>
+          <td><span class="tag-badge">1×1</span></td>
+          <td><span class="tag-badge">3×2</span></td>
+          <td>
+            <div class="fit-list">
+              <span class="fit-item"><strong>2×1</strong> icon+label ≥124px</span>
+              <span class="fit-item"><strong>1×1</strong> icon ≥52px</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Strip <span class="tag-badge">C2</span></strong></td>
+          <td>One KPI on one line - label left, value right</td>
+          <td><span class="tag-badge">3×2</span></td>
+          <td><span class="tag-badge">6×2</span></td>
+          <td>
+            <div class="fit-list">
+              <span class="fit-item"><strong>4×1</strong> inline ≥356px</span>
+              <span class="fit-item"><strong>3×2</strong> stacked ≥200px</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Metric <span class="tag-badge">C3</span></strong></td>
+          <td>KPI with delta, sparkline or period comparison</td>
+          <td><span class="tag-badge">2×3</span></td>
+          <td><span class="tag-badge">6×4</span></td>
+          <td>
+            <div class="fit-list">
+              <span class="fit-item"><strong>4×3</strong> full ≥386px</span>
+              <span class="fit-item"><strong>3×2</strong> standard ≥274px</span>
+              <span class="fit-item"><strong>2×2</strong> compact ≥200px</span>
+              <span class="fit-item"><strong>2×3</strong> stacked ≥163px</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Panel <span class="tag-badge">C4</span></strong></td>
+          <td>Ranked list, breakdown, small chart, table excerpt</td>
+          <td><span class="tag-badge">2×6</span></td>
+          <td><span class="tag-badge">6×6</span></td>
+          <td>
+            <div class="fit-list">
+              <span class="fit-item"><strong>4×4</strong> full ≥492px</span>
+              <span class="fit-item"><strong>3×4</strong> standard ≥356px</span>
+              <span class="fit-item"><strong>3×5</strong> compact ≥200px</span>
+              <span class="fit-item"><strong>2×6</strong> list ≥200px</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Board <span class="tag-badge">C5</span></strong></td>
+          <td>Full chart, multi-series, wide table</td>
+          <td><span class="tag-badge">4×8</span></td>
+          <td><span class="tag-badge">12×9</span></td>
+          <td>
+            <div class="fit-list">
+              <span class="fit-item"><strong>6×6</strong> full ≥593px</span>
+              <span class="fit-item"><strong>5×7</strong> narrow ≥415px</span>
+              <span class="fit-item"><strong>4×8</strong> min ≥295px</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Canvas <span class="tag-badge">C6</span></strong></td>
+          <td>Hero chart, P&L statement, cohort grid, map</td>
+          <td><span class="tag-badge">4×12</span></td>
+          <td><span class="tag-badge">12×16</span></td>
+          <td>
+            <div class="fit-list">
+              <span class="fit-item"><strong>8×8</strong> full ≥733px</span>
+              <span class="fit-item"><strong>6×10</strong> narrow ≥533px</span>
+              <span class="fit-item"><strong>4×12</strong> min ≥295px</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="wb-rule-callout">
+      <strong>Core Layout Law Mechanism:</strong> A card starts at the fit its author designed. If the column is narrow it gets <strong>wider</strong>; only when widening is exhausted does it <strong>degrade to a leaner fit</strong>, which trades a column for a row and re-lays its inside. That is the mechanism that guarantees nobody loses data to their screen size.
+    </div>
+  </section>
+
+  <!-- 2. LIVE CARD SIZES DEMO -->
+  <section>
+    <div class="wb-section-title">Live Demonstration of the 6 Categories</div>
+    <div class="wb-section-sub">Adjust the padding slider in real time to observe the clearance inside each category.</div>
 
     <div class="wb-grid">
-      <!-- C2: Compact 2x1 -->
-      <article class="vqc vqc--tone-surface" style="grid-column: span 3; min-height: 96px;">
-        <div class="vqc-hd">
-          <span class="vqc-eyebrow">C2 · COMPACT STAT</span>
-          <span class="tag-badge">2 × 1</span>
-        </div>
-        <div class="vqc-head">
-          <span class="vqc-head-val">Rs 142.8k</span>
-          <span class="vqc-head-delta">+12.4%</span>
-        </div>
-        <span class="vqc-head-when">Today vs yesterday</span>
+      <!-- C1: Tile -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 2; min-height: 80px; align-items: center; justify-content: center; text-align: center;">
+        <div style="font-size: 20px; margin-bottom: 2px;">⚡</div>
+        <div style="font-size: 11px; font-weight: 700;">Tile C1</div>
+        <span class="tag-badge" style="margin-top: 4px;">2×1 icon+label</span>
       </article>
 
-      <!-- C3: Square 3x3 -->
-      <article class="vqc vqc--tone-surface" style="grid-column: span 3; height: 260px;">
+      <!-- C2: Strip -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 4; min-height: 80px;">
         <div class="vqc-hd">
-          <span class="vqc-eyebrow">C3 · SQUARE BOX</span>
-          <span class="tag-badge">3 × 3</span>
+          <span class="vqc-eyebrow">Strip C2</span>
+          <span class="tag-badge">4×1 inline</span>
+        </div>
+        <div class="vqc-head" style="margin: 0;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--vq-text-2);">Total Gross Sales:</span>
+          <span class="vqc-head-val" style="font-size: 18px; margin-left: auto;">Rs 428,910</span>
+        </div>
+      </article>
+
+      <!-- C3: Metric -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 6; height: 180px;">
+        <div class="vqc-hd">
+          <span class="vqc-eyebrow">Metric C3</span>
+          <span class="tag-badge">4×3 full</span>
         </div>
         <div class="vqc-head">
-          <span class="vqc-head-val">84.2%</span>
-          <span class="vqc-head-delta">TARGET</span>
+          <span class="vqc-head-val">Rs 1,280,450</span>
+          <span class="vqc-head-delta">+18.5%</span>
         </div>
-        <span class="vqc-head-when">Monthly sales quota</span>
+        <span class="vqc-head-when">Monthly performance vs target</span>
         <div class="vqc-chart-area">
-          <svg viewBox="0 0 100 60" style="width: 140px; height: 90px;">
-            <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--vq-line)" stroke-width="12" stroke-linecap="round"/>
-            <path d="M 10 50 A 40 40 0 0 1 76 22" fill="none" stroke="var(--vq-teal-500)" stroke-width="12" stroke-linecap="round"/>
+          <svg viewBox="0 0 200 40" style="width: 100%; height: 40px;">
+            <path d="M 0 35 Q 50 10 100 25 T 200 5" fill="none" stroke="var(--vq-teal-500)" stroke-width="3"/>
           </svg>
         </div>
       </article>
 
-      <!-- C4: Operations Hub 6x2 -->
-      <article class="vqc vqc--tone-ink" style="grid-column: span 6; height: 160px;">
+      <!-- C4: Panel -->
+      <article class="vqc vqc--tone-ink" style="grid-column: span 6; height: 220px;">
         <div class="vqc-hd">
-          <span class="vqc-eyebrow">C4 · OPERATIONS HUB</span>
-          <span class="tag-badge">6 × 2</span>
+          <span class="vqc-eyebrow">Panel C4</span>
+          <span class="tag-badge">4×4 full</span>
         </div>
-        <div>
-          <div style="font-family: var(--vq-font-display); font-size: 15px; font-weight: 700; color: #fff;">Quick Operations Fast Lane</div>
-          <div style="font-size: 11px; color: #8b9a93;">1-click direct POS & order dispatch</div>
-        </div>
+        <div style="font-family: var(--vq-font-display); font-size: 16px; font-weight: 700; color: #fff;">Operations Hub</div>
+        <div style="font-size: 11px; color: #8b9a93;">Ranked quick actions and order queue</div>
         <div class="vqc-hub-grid">
           <button class="vqc-hub-btn" style="background: linear-gradient(135deg, #0baa8f, #076b5e);">Point of Sale</button>
           <button class="vqc-hub-btn" style="background: linear-gradient(135deg, #f26a47, #b94526);">Purchase Order</button>
@@ -578,293 +718,28 @@ body {
         </div>
       </article>
 
-      <!-- C5: Standard Chart 6x4 -->
-      <article class="vqc vqc--tone-surface" style="grid-column: span 6; height: 280px;">
+      <!-- C5: Board -->
+      <article class="vqc vqc--tone-surface" style="grid-column: span 6; height: 220px;">
         <div class="vqc-hd">
-          <span class="vqc-eyebrow">C5 · STANDARD CHART</span>
-          <span class="tag-badge">6 × 4</span>
-        </div>
-        <div class="vqc-head">
-          <span class="vqc-head-val">Rs 1,280,450</span>
-          <span class="vqc-head-delta">+18.5%</span>
-        </div>
-        <span class="vqc-head-when">Revenue trend · Last 30 Days</span>
-        <div class="vqc-chart-area">
-          <div class="mock-bar-chart">
-            <div class="mock-bar" style="height: 40%;"></div>
-            <div class="mock-bar" style="height: 65%;"></div>
-            <div class="mock-bar" style="height: 45%;"></div>
-            <div class="mock-bar" style="height: 80%;"></div>
-            <div class="mock-bar" style="height: 70%;"></div>
-            <div class="mock-bar" style="height: 95%;"></div>
-            <div class="mock-bar" style="height: 85%;"></div>
-            <div class="mock-bar" style="height: 100%;"></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- C5: Wide Trend 6x4 (Accent Tone) -->
-      <article class="vqc vqc--tone-accent" style="grid-column: span 6; height: 280px;">
-        <div class="vqc-hd">
-          <span class="vqc-eyebrow">C5 · AURORA ACCENT TONE</span>
-          <span class="tag-badge" style="background: rgba(255,255,255,0.2); color: #fff; border: none;">6 × 4</span>
+          <span class="vqc-eyebrow">Board C5</span>
+          <span class="tag-badge">6×6 full</span>
         </div>
         <div class="vqc-head">
           <span class="vqc-head-val">3,490 Orders</span>
           <span class="vqc-head-delta">+24.1%</span>
         </div>
-        <span class="vqc-head-when">Completed sales velocity</span>
+        <span class="vqc-head-when">Full Multi-Series Trend</span>
         <div class="vqc-chart-area">
-          <svg class="mock-area-svg" viewBox="0 0 300 100" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.45"/>
-                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
-              </linearGradient>
-            </defs>
-            <path d="M0,80 Q50,20 100,60 T200,30 T300,10 L300,100 L0,100 Z" fill="url(#accGrad)"/>
-            <path d="M0,80 Q50,20 100,60 T200,30 T300,10" fill="none" stroke="#ffffff" stroke-width="3"/>
-          </svg>
+          <div class="mock-bar-chart">
+            <div class="mock-bar" style="height: 35%;"></div>
+            <div class="mock-bar" style="height: 60%;"></div>
+            <div class="mock-bar" style="height: 45%;"></div>
+            <div class="mock-bar" style="height: 85%;"></div>
+            <div class="mock-bar" style="height: 70%;"></div>
+            <div class="mock-bar" style="height: 100%;"></div>
+          </div>
         </div>
       </article>
-    </div>
-  </section>
-
-  <!-- 2. CARD SIZES SPECIFICATION MATRIX -->
-  <section>
-    <div class="wb-section-title">2. Card Sizes Specification Matrix (Layout Law Specs)</div>
-    <div class="wb-section-sub">Standard responsive column and row spans for all cards.</div>
-
-    <table class="wb-table">
-      <thead>
-        <tr>
-          <th>Size Code</th>
-          <th>Name</th>
-          <th>Grid Bounds (Cols × Rows)</th>
-          <th>Pixel Ratio (12-Col Grid)</th>
-          <th>Best Suited For</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="tag-badge">C1</span></td>
-          <td><strong>Mini Indicator</strong></td>
-          <td>1 col × 1 row</td>
-          <td>~140px × 64px</td>
-          <td>Status LEDs, single-word badges, simple pulse indicators</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C2</span></td>
-          <td><strong>Compact Stat</strong></td>
-          <td>2 cols × 1 row</td>
-          <td>~290px × 64px</td>
-          <td>Single headline metric with sparkline & delta badge</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C3</span></td>
-          <td><strong>Medium Square</strong></td>
-          <td>3 cols × 3 rows</td>
-          <td>~440px × 240px</td>
-          <td>Gauges, Radial donuts, circular progress, single category share</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C4</span></td>
-          <td><strong>Wide Hub Strip</strong></td>
-          <td>6 cols × 2 or 3 rows</td>
-          <td>~890px × 152px / 240px</td>
-          <td>Operations Hub (3 buttons), Bank Liquidity strip, Alerts list</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C5</span></td>
-          <td><strong>Standard / Wide Chart</strong></td>
-          <td>6 cols or 8 cols × 4 rows</td>
-          <td>~890px or 1180px × 328px</td>
-          <td>Area charts, Bar graphs, Cartesian trends, Funnel breakdowns, Heatmaps</td>
-        </tr>
-        <tr>
-          <td><span class="tag-badge">C6</span></td>
-          <td><strong>Full-Width Master Hub</strong></td>
-          <td>12 cols × 4 to 6 rows</td>
-          <td>100% width × 328px – 500px</td>
-          <td>Master data tables, live activity feeds, complex Sankey flow paths</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 3. 13 CHART ENGINES & VISUAL VARIANTS MATRIX -->
-  <section>
-    <div class="wb-section-title">3. Chart Types & Visual Variants Catalog (13 Engines)</div>
-    <div class="wb-section-sub">Supported chart rendering engines and their available visual variants.</div>
-
-    <table class="wb-table">
-      <thead>
-        <tr>
-          <th>Chart Engine</th>
-          <th>Supported Data Shapes</th>
-          <th>Available Visual Variants</th>
-          <th>Min Dimensions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>1. Area Chart (<code>area</code>)</strong></td>
-          <td><span class="tag-badge">TIMESERIES</span> <span class="tag-badge">SCALAR</span></td>
-          <td><code>gradient</code> (smooth fade), <code>stepped</code> (staircase), <code>stream</code> (wave), <code>solid</code> (flat)</td>
-          <td>4 cols × 3 rows</td>
-        </tr>
-        <tr>
-          <td><strong>2. Bar Graph (<code>bar</code>)</strong></td>
-          <td><span class="tag-badge">BREAKDOWN</span> <span class="tag-badge">TIMESERIES</span></td>
-          <td><code>grouped</code>, <code>stacked</code>, <code>waterfall</code>, <code>thin</code>, <code>thin-columns</code>, <code>square</code></td>
-          <td>4 cols × 3 rows</td>
-        </tr>
-        <tr>
-          <td><strong>3. Line Chart (<code>line</code>)</strong></td>
-          <td><span class="tag-badge">TIMESERIES</span> <span class="tag-badge">SCALAR</span></td>
-          <td><code>smooth</code> (spline), <code>straight</code> (poly), <code>stepped</code>, <code>spark</code> (minimalist)</td>
-          <td>4 cols × 3 rows</td>
-        </tr>
-        <tr>
-          <td><strong>4. Scalar Stat (<code>stat</code>)</strong></td>
-          <td><span class="tag-badge">SCALAR</span></td>
-          <td><code>spark</code> (with background line), <code>delta</code> (bold percent pill), <code>minimal</code> (clean typography)</td>
-          <td>2 cols × 1 row</td>
-        </tr>
-        <tr>
-          <td><strong>5. Circular Gauge (<code>gauge</code>)</strong></td>
-          <td><span class="tag-badge">GAUGE</span> <span class="tag-badge">SCALAR</span></td>
-          <td><code>standard</code> (curved arc), <code>segmented</code> (notched ticks), <code>target</code> (marker needle)</td>
-          <td>3 cols × 3 rows</td>
-        </tr>
-        <tr>
-          <td><strong>6. Radial Ring (<code>ring</code>)</strong></td>
-          <td><span class="tag-badge">BREAKDOWN</span> <span class="tag-badge">GAUGE</span></td>
-          <td><code>donut</code> (thick donut ring), <code>segmented</code> (nested arcs), <code>sunburst</code> (multi-tier)</td>
-          <td>3 cols × 3 rows</td>
-        </tr>
-        <tr>
-          <td><strong>7. Funnel (<code>funnel</code>)</strong></td>
-          <td><span class="tag-badge">RANKING</span> <span class="tag-badge">BREAKDOWN</span></td>
-          <td><code>solid</code> (tapered polygons), <code>ribbon</code> (flowing bands), <code>cards</code> (tiered blocks)</td>
-          <td>4 cols × 3 rows</td>
-        </tr>
-        <tr>
-          <td><strong>8. Table Grid (<code>table</code>)</strong></td>
-          <td><span class="tag-badge">TABLE</span> <span class="tag-badge">RANKING</span></td>
-          <td><code>standard</code> (clean border), <code>compact</code> (dense 28px rows), <code>striped</code> (zebra rows)</td>
-          <td>6 cols × 4 rows</td>
-        </tr>
-        <tr>
-          <td><strong>9. Live Activity Feed (<code>feed</code>)</strong></td>
-          <td><span class="tag-badge">FEED</span></td>
-          <td><code>live</code> (pulse dot + time), <code>timeline</code> (vertical track), <code>compact</code> (single-line items)</td>
-          <td>6 cols × 4 rows</td>
-        </tr>
-        <tr>
-          <td><strong>10. Heatmap Grid (<code>heatmap</code>)</strong></td>
-          <td><span class="tag-badge">HEATMAP</span></td>
-          <td><code>intensity</code> (teal opacity), <code>divergent</code> (red/amber/teal), <code>calendar</code> (day/hour matrix)</td>
-          <td>6 cols × 4 rows</td>
-        </tr>
-        <tr>
-          <td><strong>11. Sankey Flow (<code>sankey</code>)</strong></td>
-          <td><span class="tag-badge">FLOW</span></td>
-          <td><code>flow</code> (bezier ribbons), <code>nodes</code> (hierarchical blocks)</td>
-          <td>8 cols × 4 rows</td>
-        </tr>
-        <tr>
-          <td><strong>12. Scatter Plot (<code>scatter</code>)</strong></td>
-          <td><span class="tag-badge">SCATTER</span></td>
-          <td><code>bubbles</code> (weighted radius), <code>dots</code> (dense coordinate cluster)</td>
-          <td>6 cols × 4 rows</td>
-        </tr>
-        <tr>
-          <td><strong>13. Radar / Spider (<code>radar</code>)</strong></td>
-          <td><span class="tag-badge">BREAKDOWN</span></td>
-          <td><code>polygon</code> (filled radar web), <code>spider</code> (wireframe spider chart)</td>
-          <td>3 cols × 3 rows</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 4. VISUAL TONES & ANIMATIONS -->
-  <section>
-    <div class="wb-section-title">4. Card Background Tones & Micro-Animations</div>
-    <div class="wb-section-sub">Surface appearances and interactive animations available for all cards.</div>
-
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-      <!-- Tones Table -->
-      <table class="wb-table">
-        <thead>
-          <tr>
-            <th>Tone ID</th>
-            <th>Name</th>
-            <th>Visual Treatment</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>surface</code></td>
-            <td><strong>Default Surface</strong></td>
-            <td>Clean light white in light mode / dark obsidian in dark mode.</td>
-          </tr>
-          <tr>
-            <td><code>accent</code></td>
-            <td><strong>Mint Accent</strong></td>
-            <td>Vibrant teal gradient (<code>#0baa8f</code> to <code>#076b5e</code>) with crisp white text.</td>
-          </tr>
-          <tr>
-            <td><code>ink</code></td>
-            <td><strong>Obsidian Ink</strong></td>
-            <td>Permanent high-contrast dark slab (<code>#0d1412</code>) across all themes.</td>
-          </tr>
-          <tr>
-            <td><code>mesh</code></td>
-            <td><strong>Aurora Mesh</strong></td>
-            <td>Soft teal & sky-blue radial gradient mesh.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Animations Table -->
-      <table class="wb-table">
-        <thead>
-          <tr>
-            <th>Animation</th>
-            <th>Trigger</th>
-            <th>Behavior</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Animated Star Border</strong></td>
-            <td>Toggle switch</td>
-            <td>Luminous gradient edge traveling smoothly around card perimeter.</td>
-          </tr>
-          <tr>
-            <td><strong>Animated Glare Reflex</strong></td>
-            <td>Hover / Toggle</td>
-            <td>Holographic 3D light reflection across the card surface.</td>
-          </tr>
-          <tr>
-            <td><strong>Magnetic 3D Tilt</strong></td>
-            <td>Cursor movement</td>
-            <td>Card elements tilt in 3D perspective tracking cursor coordinates.</td>
-          </tr>
-          <tr>
-            <td><strong>Data Crosshair Snap</strong></td>
-            <td>Chart hover</td>
-            <td>Vertical hairline snaps to closest data point and re-reads headline value.</td>
-          </tr>
-          <tr>
-            <td><strong>Roller Numbers</strong></td>
-            <td>Timeframe change</td>
-            <td>Digits slide vertically like an odometer on data updates.</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </section>
 
