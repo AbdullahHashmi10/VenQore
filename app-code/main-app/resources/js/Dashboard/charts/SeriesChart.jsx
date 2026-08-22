@@ -213,10 +213,12 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
             <ComposedChart
                 {...common}
                 xDataKey="date"
-                margin={plotMargin}
+                aspectRatio="2 / 1"
+                barGap={0}
+                margin={{ top: 8, right: 8, bottom: realDates ? 40 : 8, left: 8 }}
                 maxBarSize={thin ? 10 : 32}
             >
-                <Grid {...GRID_PROPS} />
+                <Grid horizontal />
                 {variant === 'pattern' && (
                     <PatternLines
                         id="vq-composed-pattern"
@@ -236,8 +238,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                                 dataKey={s.key}
                                 fill={variant === 'pattern' && i === 1
                                     ? 'url(#vq-composed-pattern)'
-                                    : seriesColor(i)}
-                                radius={thin ? 2 : 6}
+                                    : (i === 1 ? 'var(--chart-3)' : seriesColor(i))}
+                                radius={thin ? 2 : 4}
                             />
                         );
                     }
@@ -246,10 +248,10 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                             <Area
                                 key={s.key}
                                 dataKey={s.key}
-                                curve={curve}
-                                fill={seriesColor(i)}
-                                stroke={seriesColor(i)}
-                                fillOpacity={0.28}
+                                curve={curveCatmullRom.alpha(0.42)}
+                                fill={i === 0 ? 'var(--chart-4)' : seriesColor(i)}
+                                stroke={i === 0 ? 'var(--chart-4)' : seriesColor(i)}
+                                fillOpacity={0.32}
                                 gradientToOpacity={0}
                                 strokeWidth={2}
                             />
@@ -259,8 +261,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         <Line
                             key={s.key}
                             dataKey={s.key}
-                            curve={curve}
-                            stroke={seriesColor(i)}
+                            curve={curveCatmullRom.alpha(0.42)}
+                            stroke={i === 2 ? 'var(--chart-1)' : seriesColor(i)}
                             strokeWidth={2.5}
                         />
                     );
@@ -270,14 +272,14 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                 {variant === 'bar-trend' && list.length === 1 && (
                     <Line
                         dataKey={list[0].key}
-                        curve={curve}
-                        stroke={seriesColor(2)}
+                        curve={curveCatmullRom.alpha(0.42)}
+                        stroke="var(--chart-1)"
                         strokeWidth={2.5}
                     />
                 )}
-                {xAxis}
+                {realDates ? <XAxis numTicks={8} /> : null}
                 <YAxis formatValue={axisFormatter()} numTicks={4} />
-                {tooltip}
+                <ChartTooltip showCrosshair={false} rows={seriesRows} />
             </ComposedChart>
         );
     }
