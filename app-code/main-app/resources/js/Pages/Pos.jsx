@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Head, usePage, router, Link } from '@inertiajs/react';
 import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import '@/NewPos/newpos.css';
 import {
     ScanBarcode,
     MinusCircle,
@@ -32,7 +33,23 @@ import {
     History,
     ArrowLeft,
     LayoutGrid,
-    Settings
+    Settings,
+    HelpCircle,
+    Sliders,
+    SlidersHorizontal,
+    Layers,
+    Tag,
+    Undo2,
+    Monitor,
+    Maximize2,
+    Minimize2,
+    Percent,
+    DollarSign,
+    Globe,
+    FileText,
+    CheckSquare,
+    Unlock,
+    Eye
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -80,7 +97,32 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const [confirmState, setConfirmState] = useState({ show: false, title: '', message: '', onConfirm: () => { } });
     const [inputState, setInputState] = useState({ show: false, title: '', placeholder: '', onSubmit: () => { } });
     const [activeMobileTab, setActiveMobileTab] = useState('catalog');
-    
+
+    // Layout Law v2.0 & Design System v6 States
+    const [showPosSettings, setShowPosSettings] = useState(false);
+    const [showKeymapModal, setShowKeymapModal] = useState(false);
+    const [lastClearedCart, setLastClearedCart] = useState(null);
+    const [posLayoutVariant, setPosLayoutVariant] = useState(() => {
+        return settings?.pos_layout_variant || localStorage.getItem('pos_layout_variant') || 'scan';
+    });
+    const [catPlacement, setCatPlacement] = useState(() => {
+        return settings?.pos_catalog_placement || localStorage.getItem('pos_catalog_placement') || 'column';
+    });
+    const [uiScale, setUiScale] = useState(() => {
+        return parseInt(settings?.ui_scale || localStorage.getItem('pos_ui_scale') || '100');
+    });
+    const [posAutoPrint, setPosAutoPrint] = useState(() => {
+        return settings?.pos_auto_print === '1' || settings?.pos_auto_print === true || localStorage.getItem('pos_auto_print') === 'true';
+    });
+    const [discountPresets, setDiscountPresets] = useState(() => {
+        try {
+            const stored = localStorage.getItem('pos_discount_presets');
+            return stored ? JSON.parse(stored) : [5, 10, 15, 20];
+        } catch(e) {
+            return [5, 10, 15, 20];
+        }
+    });
+
     // UI Helpers
     const addToast = (message, type = 'info') => {
         const id = Date.now();
@@ -89,6 +131,38 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const showAlert = (title, message, type = 'error') => setAlertState({ show: true, title, message, type });
     const showConfirm = (title, message, onConfirm, isDangerous = false) => setConfirmState({ show: true, title, message, onConfirm, isDangerous });
     const showInput = (title, placeholder, onSubmit) => setInputState({ show: true, title, placeholder, onSubmit });
+
+    // Open Cash Drawer Trigger (Hardware pulse)
+    const handleOpenCashDrawer = () => {
+        try {
+            if (window.AMDStation && typeof window.AMDStation.openDrawer === 'function') {
+                window.AMDStation.openDrawer();
+            }
+            addToast('Cash drawer signal pulse sent', 'success');
+        } catch(e) {
+            addToast('Cash drawer trigger failed: ' + e.message, 'error');
+        }
+    };
+
+    // Cart Clear with 10-Second Undo
+    const handleClearCartWithUndo = () => {
+        if (!activeSale.cart || activeSale.cart.length === 0) return;
+        const currentCart = [...activeSale.cart];
+        updateActiveSale({ cart: [], cashReceived: '' });
+        setLastClearedCart({ cart: currentCart, timestamp: Date.now() });
+        addToast('Cart cleared. Undo available for 10 seconds.', 'info');
+        setTimeout(() => {
+            setLastClearedCart(prev => (prev && Date.now() - prev.timestamp >= 9900 ? null : prev));
+        }, 10000);
+    };
+
+    const handleRestoreClearedCart = () => {
+        if (lastClearedCart && lastClearedCart.cart.length > 0) {
+            updateActiveSale({ cart: lastClearedCart.cart });
+            setLastClearedCart(null);
+            addToast('Cart restored successfully!', 'success');
+        }
+    };
 
     // Categories Scroll Helper
     const categoryScrollRef = useRef(null);
@@ -259,7 +333,26 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Resizable Columns State (Layout Law v2)
     const [catalogWidthPct, setCatalogWidthPct] = useState(() => {
         const saved = localStorage.getItem('pos_catalog_width_pct');
-        return saved ? parseFloat(saved) : 60;
+        return saved ? Math.min(50, Math.max(30, parseFloat(saved))) : 40;
+    });
+
+    // Resizable Payment Column State (Layout Law v2)
+    const [paymentWidthPx, setPaymentWidthPx] = useState(() => {
+        const saved = localStorage.getItem('pos_payment_width_px');
+        return saved ? Math.min(480, Math.max(260, parseFloat(saved))) : 320;
+    });
+
+    const [showTopTillBtn, setShowTopTillBtn] = useState(() => {
+        return localStorage.getItem('pos_show_top_till') === 'true';
+    });
+    const [showTopHardwareBadge, setShowTopHardwareBadge] = useState(() => {
+        return localStorage.getItem('pos_show_top_hardware') === 'true';
+    });
+    const [tenderPlacement, setTenderPlacement] = useState(() => {
+        return settings?.pos_tender_placement || localStorage.getItem('pos_tender_placement') || 'surface';
+    });
+    const [simulatedDevice, setSimulatedDevice] = useState(() => {
+        return localStorage.getItem('pos_simulated_device') || 'auto';
     });
 
     // Icon Rail Toggle State
@@ -268,7 +361,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         return saved ? JSON.parse(saved) : false;
     });
 
-    // Column Splitter Drag Handler
+    // Column Splitter Drag Handler (Catalog)
     const handleSplitterPointerDown = (e) => {
         e.preventDefault();
         const container = e.currentTarget.parentElement;
@@ -278,7 +371,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         const onPointerMove = (moveEvent) => {
             const relativeX = moveEvent.clientX - containerRect.left;
             const newPct = (relativeX / containerRect.width) * 100;
-            const clampedPct = Math.max(30, Math.min(80, newPct));
+            const clampedPct = Math.max(30, Math.min(50, newPct));
             setCatalogWidthPct(clampedPct);
         };
 
@@ -286,6 +379,29 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             window.removeEventListener('pointermove', onPointerMove);
             window.removeEventListener('pointerup', onPointerUp);
             localStorage.setItem('pos_catalog_width_pct', catalogWidthPct);
+        };
+
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+    };
+
+    // Column Splitter Drag Handler (Payment Details)
+    const handlePaymentSplitterPointerDown = (e) => {
+        e.preventDefault();
+        const container = e.currentTarget.parentElement;
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
+
+        const onPointerMove = (moveEvent) => {
+            const relativeX = containerRect.right - moveEvent.clientX;
+            const clamped = Math.max(260, Math.min(480, relativeX));
+            setPaymentWidthPx(clamped);
+        };
+
+        const onPointerUp = () => {
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('pointerup', onPointerUp);
+            localStorage.setItem('pos_payment_width_px', paymentWidthPx);
         };
 
         window.addEventListener('pointermove', onPointerMove);
@@ -302,11 +418,6 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Global Discount Modal State
     const [globalDiscountModal, setGlobalDiscountModal] = useState({ show: false, type: 'fixed', value: '' });
 
-    // Global Discount Preset Custom Values State
-    const [discountPresets, setDiscountPresets] = useState(() => {
-        const saved = localStorage.getItem('pos_discount_presets');
-        return saved ? JSON.parse(saved) : [5, 7, 10];
-    });
 
     // Open Item Discount Modal
     const openItemDiscountModal = (item) => {
@@ -1008,7 +1119,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const taxAmount = taxInclusive 
         ? taxableAmount - (taxableAmount / (1 + taxRate / 100))
         : (taxableAmount * taxRate) / 100;
-    const rawCartTotal = taxInclusive ? taxableAmount : taxableAmount + taxAmount;
+    const additionalCharges = parseFloat(activeSale.additionalCharges || 0);
+    const rawCartTotal = (taxInclusive ? taxableAmount : taxableAmount + taxAmount) + additionalCharges;
     const cartTotal = roundTotal(rawCartTotal, settings);
 
     const changeDue = activeSale.cashReceived ? parseFloat(activeSale.cashReceived) - cartTotal : 0;
@@ -1128,7 +1240,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             tax_rate: taxRate,
             tax_inclusive: taxInclusive,
             discount: globalDiscount,
-            notes: paymentData.notes,
+            additional_charges: additionalCharges,
+            notes: activeSale.remarks || activeSale.notes || paymentData.notes || '',
             add_to_ledger: addToLedger,
             source: 'pos',
             is_dropship: activeSale.is_dropship || false,
@@ -1148,9 +1261,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 finalizeSale(responseData, paymentData);
             }
         } catch (error) {
-            console.log("Online checkout failed, trying offline...", error);
+            console.log("Checkout processing check:", error);
+            
+            // Layout Law fix (errors_as_offline): Differentiate network failure from 4xx API errors
+            if (error.response && error.response.status >= 400 && error.response.status < 500) {
+                const errMsg = error.response.data?.message || error.response.data?.error || 'Validation or authorization error occurred.';
+                showAlert('Checkout Error', errMsg, 'error');
+                setProcessingPayment(false);
+                return;
+            }
 
-            // Save to offline queue
+            // Save to offline queue for network failures
             const offlineSaved = await saveOfflineSale(payload);
 
             if (offlineSaved) {
@@ -1890,7 +2011,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         loadCategories();
     }, []);
 
-    // Global Keyboard Auto-Focus on Search input when not focused elsewhere
+    // Global Keyboard Handler with Layout Law key_guard
     useEffect(() => {
         const handleGlobalKeyDown = (e) => {
             const activeElement = document.activeElement;
@@ -1900,18 +2021,87 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 activeElement.isContentEditable
             );
 
-            // Capture printable keys (length 1) when no input is focused, excluding modifiers/functional keys
-            if (!isInputFocused && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            // Esc always works to close top layers
+            if (e.key === 'Escape') {
+                setShowPosSettings(false);
+                setShowKeymapModal(false);
+                setPaymentModalOpen(false);
+                setShowSyncHub(false);
+                setParkedDropdownOpen(false);
+                setShowRecentInvoices(false);
+                return;
+            }
+
+            // '?' key opens keymap modal when not inside an input field
+            if (!isInputFocused && e.key === '?') {
+                e.preventDefault();
+                setShowKeymapModal(prev => !prev);
+                return;
+            }
+
+            // Key guard: suspend POS functional F-keys and shortcuts if typing in input field
+            if (isInputFocused) return;
+
+            // Functional Keyboard Map
+            if (e.key === 'F1') {
+                e.preventDefault();
                 const searchInput = document.querySelector('#tour-pos-product input');
-                if (searchInput) {
-                    searchInput.focus();
+                if (searchInput) searchInput.focus();
+            } else if (e.key === 'F8') {
+                e.preventDefault();
+                showInput('Additional Charges', 'Enter extra charge amount (e.g. 150)', (val) => {
+                    const charge = parseFloat(val);
+                    if (!isNaN(charge)) {
+                        updateActiveSale({ additionalCharges: charge });
+                        addToast(`Additional charge of ${formatCurrency(charge, store || settings)} added`, 'success');
+                    }
+                });
+            } else if (e.key === 'F9') {
+                e.preventDefault();
+                showInput('Document Discount', 'Enter fixed discount amount', (val) => {
+                    const disc = parseFloat(val);
+                    if (!isNaN(disc)) {
+                        updateActiveSale({ discountType: 'fixed', discountValue: disc });
+                        addToast(`Document discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
+                    }
+                });
+            } else if (e.key === 'F11') {
+                e.preventDefault();
+                setShowQuickPartyModal(true);
+            } else if (e.key === 'F12') {
+                e.preventDefault();
+                showInput('Sale Remarks / Notes', 'Enter notes for this sale', (val) => {
+                    updateActiveSale({ remarks: val, notes: val });
+                    addToast('Sale remarks saved', 'success');
+                });
+            } else if (e.ctrlKey && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                if (activeSale.cart.length > 0) handleParkSale();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 't') {
+                e.preventDefault();
+                createNewSale();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'w') {
+                e.preventDefault();
+                if (sales.length > 1) {
+                    setSales(prev => prev.filter(s => s.id !== activeSaleId));
                 }
+            } else if (e.altKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
+            } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                // Printable single keypress focuses search input
+                const searchInput = document.querySelector('#tour-pos-product input');
+                if (searchInput) searchInput.focus();
             }
         };
 
         document.addEventListener('keydown', handleGlobalKeyDown);
         return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-    }, []);
+    }, [activeSale, activeSaleId, sales, store, settings]);
 
     // Cart Auto-Scroll to Bottom on New Item Addition
     useEffect(() => {
@@ -1962,204 +2152,114 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     return (
         <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true} noPadding={true} hideSidebar={!showRail}>
-            <Head title="POS" />
-            <div className="h-full w-full flex flex-col pl-3 pr-0 pb-0 pt-3 animate-in fade-in zoom-in-95 duration-slow">
+            <React.Fragment>
+                <Head title="POS" />
+                <div className="h-full w-full flex flex-col pl-3 pr-0 pb-0 pt-3 animate-in fade-in zoom-in-95 duration-slow">
             {/* TOP BAR */}
-            <div className="h-10 flex items-end gap-1 shrink-0 px-2 select-none">
-                {sales.map(sale => (
-                    <div
-                        key={sale.id}
-                        onClick={() => setActiveSaleId(sale.id)}
-                        className={`
-                            group relative min-w-[160px] max-w-[240px] h-9 px-4 rounded-t-xl flex items-center justify-between cursor-pointer transition-all duration-normal
-                            ${activeSaleId === sale.id
-                                ? 'bg-surface text-brand-600 font-bold shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-10 h-10 pb-1'
-                                : 'bg-sunken/50 dark:bg-surface text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover mb-1'
-                            }
-`}
-                    >
-                        <span className="text-xs truncate flex-1">Sale #{sale.id}</span>
-                        <button
-                            onClick={(e) => closeSale(e, sale.id)}
-                            className={`ml-1 flex items-center justify-center w-5 h-5 rounded-md transition-all ${activeSaleId === sale.id
-                                    ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 opacity-100'
-                                    : 'opacity-0 group-hover:opacity-100 text-ink-muted hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600'
-                                }`}
-                        >
-                            <X size={10} strokeWidth={3} />
-                        </button>
-                        {activeSaleId === sale.id && (
-                            <div className="absolute -bottom-1 left-0 right-0 h-2 bg-surface z-20"></div>
-                        )}
-                    </div>
-                ))}
-                <button onClick={createNewSale} className="h-8 w-8 mb-1 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center justify-center transition-colors">
-                    <Plus size={18} />
-                </button>
-
-                {/* Parked Sales & Status - Side by Side */}
-                <div className="ml-auto mr-2 relative flex items-center gap-2" ref={parkedDropdownRef}>
-                    {/* Back to Dashboard Button */}
+            <div className="h-10 flex items-center justify-between gap-2 shrink-0 px-2 select-none z-10">
+                {/* Left Section: Pill-Shaped Dashboard Back Arrow + Register Tabs */}
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    {/* Dashboard Back Pill Button (Pill arrow only) */}
                     <Link
                         href={route('store.dashboard', { store_slug: store?.slug })}
-                        className="h-8 px-3 rounded-full bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink font-bold flex items-center gap-1.5 transition-all text-xs border border-line shadow-sm"
+                        className="h-8 w-8 rounded-full bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink font-bold flex items-center justify-center transition-all border border-line shadow-sm shrink-0"
                         title="Back to Dashboard"
                     >
-                        <ArrowLeft size={14} />
-                        <span className="hidden sm:inline">Dashboard</span>
+                        <ArrowLeft size={16} />
                     </Link>
 
-                    {/* Show/Hide Icon Rail Toggle */}
-                    <button
-                        onClick={() => {
-                            const next = !showRail;
-                            setShowRail(next);
-                            localStorage.setItem('pos_show_rail', JSON.stringify(next));
-                        }}
-                        className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
-                            showRail
-                                ? 'bg-brand-50 text-brand-600 border-brand-200 dark:bg-brand-950/40 dark:text-brand-400 dark:border-brand-800'
-                                : 'bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted border-transparent'
-                        }`}
-                        title="Toggle Icon Rail Visibility"
-                    >
-                        <LayoutGrid size={14} />
-                        <span>{showRail ? 'Hide Rail' : 'Show Rail'}</span>
-                    </button>
-                    {/* Senior Mode Toggle */}
-                    <button
-                        onClick={() => setSeniorMode(!seniorMode)}
-                        className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
-                            seniorMode 
-                                ? 'bg-brand-50 text-brand-600 border-brand-200 dark:bg-brand-950/40 dark:text-brand-400 dark:border-brand-800'
-                                : 'bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted border-transparent'
-                        }`}
-                        title="Toggle Senior Mode for larger text"
-                    >
-                        <span className="relative flex h-2 w-2">
-                            {seniorMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>}
-                            <span className={`relative inline-flex rounded-full h-2 w-2 ${seniorMode ? 'bg-brand-500' : 'bg-neutral-400'}`}></span>
-                        </span>
-                        <span>Senior Mode</span>
-                    </button>
-
-                    {/* Return Mode Toggle */}
-                    <button
-                        onClick={() => {
-                            const entering = !returnMode;
-                            setReturnMode(entering);
-                            setReturnSaleRef('');
-                            setReturnSaleId(null);
-                            if (entering && posReturnMode !== 'open') {
-                                updateActiveSale({ cart: [], customer: null });
-                            }
-                        }}
-                        className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
-                            returnMode
-                                ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800'
-                                : 'bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted border-transparent'
-                        }`}
-                        title="Toggle Return Mode"
-                    >
-                        <span className="relative flex h-2 w-2">
-                            {returnMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
-                            <span className={`relative inline-flex rounded-full h-2 w-2 ${returnMode ? 'bg-red-500' : 'bg-neutral-400'}`}></span>
-                        </span>
-                        <span>Return Mode</span>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setParkedDropdownOpen(!parkedDropdownOpen);
-                            if (!parkedDropdownOpen) loadParkedSales();
-                        }}
-                        className="h-8 px-3 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center gap-2 transition-colors text-xs font-bold"
-                    >
-                        <Pause size={14} />
-                        <span>Parked ({parkedSales.length})</span>
-                    </button>
-
-                    {/* Recent Invoices Toggle */}
-                    <div className="relative" ref={recentDropdownRef}>
-                        <button
-                            onClick={() => {
-                                setShowRecentInvoices(!showRecentInvoices);
-                                if (!showRecentInvoices) loadRecentInvoices();
-                            }}
-                            className="h-8 px-3 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted flex items-center gap-2 transition-colors text-xs font-bold"
-                            title="Recent Invoices"
-                        >
-                            <History size={14} />
-                            <span>Recent</span>
-                        </button>
-
-                        {showRecentInvoices && (
-                            <div className="absolute top-full right-0 mt-2 w-80 bg-surface rounded-xl shadow-2xl border border-line z-50 overflow-hidden">
-                                <div className="p-3 border-b border-line bg-app flex justify-between items-center">
-                                    <h3 className="font-bold text-ink text-sm">Recent Invoices</h3>
-                                    {loadingRecent && <div className="animate-spin w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full"></div>}
-                                </div>
-                                {recentInvoices.length === 0 && !loadingRecent ? (
-                                    <div className="p-8 text-center text-ink-muted text-xs">
-                                        No recent invoices found.
-                                    </div>
-                                ) : (
-                                    <div className="max-h-64 overflow-y-auto">
-                                        {recentInvoices.map(sale => (
-                                            <div
-                                                key={sale.id}
-                                                className="p-4 hover:bg-interactive-hover dark:hover:bg-interactive-hover border-b border-line last:border-0 transition-colors flex items-center justify-between"
-                                            >
-                                                <div className="flex-1">
-                                                    <p className="font-bold text-ink text-sm">
-                                                        {sale.customer ? sale.customer.name : 'Walk-in Customer'}
-                                                    </p>
-                                                    <p className="text-xs text-ink-muted">
-                                                        #{sale.reference_number || sale.id} · {new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </p>
-                                                    <p className="text-xs font-bold text-ink-secondary mt-1">
-                                                        {formatCurrency(sale.total || 0, store || settings)}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => {
-                                                        const printType = settings?.default_print_type || 'thermal';
-                                                        PrintService.quickPrint(sale, printType, settings);
-                                                    }}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-800/40 text-brand-600 dark:text-brand-400 transition-colors"
-                                                    title="Print Receipt"
-                                                >
-                                                    <Printer size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
+                    {/* Sales Tabs Container - Shifted slightly right and aligned up */}
+                    <div className="flex items-end gap-1 ml-2 -mb-0.5 overflow-x-auto custom-scrollbar flex-1 min-w-0">
+                        {sales.map(sale => (
+                            <div
+                                key={sale.id}
+                                onClick={() => setActiveSaleId(sale.id)}
+                                className={`
+                                    group relative min-w-[150px] max-w-[220px] h-9 px-3 rounded-t-xl flex items-center justify-between cursor-pointer transition-all duration-normal border-t border-x border-line/50
+                                    ${activeSaleId === sale.id
+                                        ? 'bg-surface text-brand-600 font-bold shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-10 h-9 border-b-transparent'
+                                        : 'bg-sunken/60 dark:bg-surface/50 text-ink-muted hover:bg-interactive-hover mb-0.5'
+                                    }
+                                `}
+                            >
+                                <span className="text-xs truncate flex-1 font-semibold">
+                                    {sale.customer?.name || `Sale #${sale.id}`}
+                                </span>
+                                <button
+                                    onClick={(e) => closeSale(e, sale.id)}
+                                    className={`ml-1 flex items-center justify-center w-4 h-4 rounded-full transition-all ${
+                                        activeSaleId === sale.id
+                                            ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 opacity-100'
+                                            : 'opacity-0 group-hover:opacity-100 text-ink-muted hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600'
+                                    }`}
+                                >
+                                    <X size={10} strokeWidth={3} />
+                                </button>
+                                {activeSaleId === sale.id && (
+                                    <div className="absolute -bottom-1 left-0 right-0 h-1 bg-surface z-20"></div>
                                 )}
                             </div>
-                        )}
+                        ))}
+                        <button 
+                            onClick={createNewSale} 
+                            className="h-8 w-8 rounded-full hover:bg-interactive-hover text-ink-muted flex items-center justify-center transition-colors shrink-0 mb-0.5"
+                            title="New Sale Tab"
+                        >
+                            <Plus size={16} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Right Section: Minimal Status Dot, Shortcuts, Settings, and Optional Hardware Triggers */}
+                <div className="flex items-center gap-2 shrink-0">
+                    {/* Optional Top Till Button */}
+                    {showTopTillBtn && (
+                        <button
+                            onClick={handleOpenCashDrawer}
+                            className="h-8 px-3 rounded-full bg-sunken hover:bg-emerald-50 text-ink-muted hover:text-emerald-700 dark:bg-surface font-bold flex items-center gap-1.5 transition-all text-xs border border-line shadow-sm"
+                            title="Open Cash Drawer (Pulse)"
+                        >
+                            <Unlock size={14} className="text-emerald-600 dark:text-emerald-400" />
+                            <span className="hidden md:inline">Open Till</span>
+                        </button>
+                    )}
+
+                    {/* Optional Top Hardware Badge */}
+                    {showTopHardwareBadge && (
+                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${isStationConnected ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'bg-sunken text-ink-muted dark:bg-surface'}`}>
+                            <Printer size={14} />
+                            <span>{isStationConnected ? 'Hardware Active' : 'No Printer'}</span>
+                        </div>
+                    )}
+
+                    {/* Minimal Online / Offline Status Dot (Glowing dot only) */}
+                    <div 
+                        className="flex items-center justify-center w-8 h-8 rounded-full bg-sunken dark:bg-surface border border-line shadow-2xs shrink-0 cursor-default"
+                        title={isOnline ? 'System Online & Connected' : 'System Offline (Offline mode active)'}
+                    >
+                        <span className="relative flex h-2.5 w-2.5">
+                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isOnline ? 'bg-emerald-400 opacity-75' : 'bg-red-400 opacity-75'}`}></span>
+                            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isOnline ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                        </span>
                     </div>
 
-                    {/* Offline Indicator */}
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isOnline ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                        {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
-                        <span>{isOnline ? 'Online' : 'Offline'}</span>
-                    </div>
-
-                    {/* Hardware Status Badge */}
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isStationConnected ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'bg-sunken text-ink-muted dark:bg-surface dark:text-ink-muted'}`}>
-                        <Printer size={14} />
-                        <span>{isStationConnected ? 'Hardware Active' : 'No Printer Device'}</span>
-                    </div>
-
-                    {/* Settings Gear Icon */}
+                    {/* Keyboard Shortcuts Map Button (?) */}
                     <button
-                        onClick={() => router.visit(route('store.settings.index', { store_slug: store?.slug }))}
+                        onClick={() => setShowKeymapModal(true)}
                         className="h-8 w-8 rounded-full bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted hover:text-ink flex items-center justify-center transition-all border border-line shadow-sm shrink-0"
-                        title="POS & Store Settings"
+                        title="Keyboard Shortcuts Map (?)"
+                    >
+                        <HelpCircle size={15} />
+                    </button>
+
+                    {/* POS Settings & Layout Law Drawer Toggle (Top Right Corner) */}
+                    <button
+                        onClick={() => setShowPosSettings(true)}
+                        className="h-8 w-8 rounded-full bg-brand-50 hover:bg-brand-100 text-brand-600 dark:bg-brand-950/40 dark:hover:bg-brand-900/60 dark:text-brand-400 flex items-center justify-center transition-all border border-brand-200 dark:border-brand-800 shadow-sm shrink-0"
+                        title="POS Register Settings & Layout Law"
                     >
                         <Settings size={15} />
                     </button>
-
                     {/* Sync Indicator */}
                     {pendingCount > 0 && (
                         <button
@@ -2442,10 +2542,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     <div className="w-1 h-10 rounded-full bg-neutral-400 dark:bg-neutral-600 group-hover:bg-brand-500 group-active:bg-brand-600 transition-colors shadow-sm" />
                 </div>
 
-                {/* RIGHT: Cart Pane */}
+                {/* MIDDLE: Cart Pane */}
                 <div
-                    className={`w-full shrink-0 flex flex-col pane bg-app border-l border-line ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}
-                    style={{ width: `${100 - catalogWidthPct}%` }}
+                    className={`flex-1 min-w-0 flex flex-col pane bg-app border-l border-line ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}
                 >
                     {/* Pane Header (Layout Law v2.0) */}
                     <div className="pane-h bg-sunken/50 dark:bg-surface border-b border-line text-ink-muted">
@@ -2698,8 +2797,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     </div>
                 </div>
 
+                {/* DRAGGABLE PAYMENT COLUMN SPLITTER HANDLE */}
+                <div
+                    onPointerDown={handlePaymentSplitterPointerDown}
+                    className="hidden lg:flex w-2.5 hover:w-3.5 cursor-col-resize select-none relative items-center justify-center bg-line/50 hover:bg-brand-500/20 active:bg-brand-500/30 transition-all z-20 shrink-0 group"
+                    title="Drag left/right to resize Payment Details section"
+                >
+                    <div className="w-1 h-10 rounded-full bg-neutral-400 dark:bg-neutral-600 group-hover:bg-brand-500 group-active:bg-brand-600 transition-colors shadow-sm" />
+                </div>
+
                 {/* RIGHT: Payment & Summary Panel */}
-                <div className={`w-full lg:w-[20%] shrink-0 bg-app text-ink flex flex-col shadow-2xl relative overflow-hidden border-l border-line ${activeMobileTab !== 'checkout' ? 'hidden lg:flex' : ''}`}>
+                <div
+                    className={`w-full shrink-0 bg-app text-ink flex flex-col shadow-2xl relative overflow-hidden border-l border-line ${activeMobileTab !== 'checkout' ? 'hidden lg:flex' : ''}`}
+                    style={{ width: `${paymentWidthPx}px` }}
+                >
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none"></div>
 
                     <div className="h-14 px-4 bg-sunken/50 dark:bg-surface border-b border-line flex items-center justify-between">
@@ -3147,7 +3258,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             )}
 
                             <button
-                                onClick={() => updateActiveSale({ cart: [], cashReceived: '' })}
+                                onClick={handleClearCartWithUndo}
                                 className="flex-1 py-3 bg-sunken hover:bg-interactive-hover dark:bg-white/5 dark:hover:bg-white/10 text-ink-secondary rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
                             >
                                 <X size={18} /> Cancel
@@ -3835,7 +3946,366 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
             </div>
         )}
-        </OneGlanceLayout>
+        {/* ── Cart Undo Floating Banner ────────────────────────────────────────────── */}
+        {lastClearedCart && (
+            <div className="fixed bottom-14 left-1/2 -translate-x-1/2 z-toast bg-ink-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-ink-700 flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-300">
+                <span className="text-xs font-bold">Cart cleared ({lastClearedCart.cart.length} items removed)</span>
+                <button
+                    onClick={handleRestoreClearedCart}
+                    className="px-3 py-1 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                    <Undo2 size={14} />
+                    <span>Undo</span>
+                </button>
+            </div>
+        )}
+
+        {/* ── POS Register Settings Drawer (Rank 3 Settings) ────────────────── */}
+        {showPosSettings && (
+            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-line flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+                    <div className="p-6 border-b border-line flex items-center justify-between bg-sunken/40">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-950/50 dark:text-brand-400 flex items-center justify-center">
+                                <Settings size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-ink">POS Terminal Settings & Layout Law</h3>
+                                <p className="text-xs text-ink-muted">Configure layout variants, checkout behavior, return policies & hardware</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setShowPosSettings(false)}
+                            className="w-8 h-8 rounded-full hover:bg-interactive-hover flex items-center justify-center text-ink-muted transition-colors"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        {/* 1. Layout Variants */}
+                        <div className="space-y-3">
+                            <label className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-2">
+                                <Layers size={14} className="text-brand-500" />
+                                <span>Terminal Layout Variant</span>
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {[
+                                    { id: 'scan', label: 'Barcode Grid', desc: 'Default barcode scan & quick cart' },
+                                    { id: 'column', label: 'Classic Column', desc: 'Catalog left, cart right' },
+                                    { id: 'row', label: 'Touch Row', desc: 'Top category strip & tile grid' },
+                                    { id: 'grid', label: 'Tablet Grid', desc: 'Balanced 50/50 tablet split' },
+                                    { id: 'counter', label: 'Quick Counter', desc: 'Dominant 65% cart pane' },
+                                    { id: 'table', label: 'Dining Table', desc: 'Floor plan & order management' },
+                                ].map(v => (
+                                    <button
+                                        key={v.id}
+                                        onClick={() => {
+                                            setPosLayoutVariant(v.id);
+                                            localStorage.setItem('pos_layout_variant', v.id);
+                                            addToast(`Layout variant set to ${v.label}`, 'info');
+                                        }}
+                                        className={`p-3 rounded-2xl border text-left transition-all ${
+                                            posLayoutVariant === v.id
+                                                ? 'bg-brand-50 border-brand-500 text-brand-700 dark:bg-brand-950/40 dark:border-brand-500 dark:text-brand-300 ring-2 ring-brand-500/20'
+                                                : 'bg-app border-line hover:border-brand-200 text-ink'
+                                        }`}
+                                    >
+                                        <p className="text-xs font-bold">{v.label}</p>
+                                        <p className="text-3xs text-ink-muted mt-1 leading-tight">{v.desc}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 2. Display & Scale Controls */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 rounded-2xl border border-line bg-app space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-ink">Senior Mode (Large Text)</span>
+                                    <button
+                                        onClick={() => setSeniorMode(!seniorMode)}
+                                        className={`relative w-11 h-6 rounded-full transition-colors ${seniorMode ? 'bg-brand-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+                                    >
+                                        <div className={`absolute top-1 ${seniorMode ? 'right-1' : 'left-1'} w-4 h-4 rounded-full bg-white transition-all`} />
+                                    </button>
+                                </div>
+                                <p className="text-3xs text-ink-muted">Enlarges fonts and increases element touch targets for high-speed operation</p>
+                            </div>
+
+                            <div className="p-4 rounded-2xl border border-line bg-app space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-ink">Interface Scale</span>
+                                    <select
+                                        value={uiScale}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            setUiScale(val);
+                                            localStorage.setItem('pos_ui_scale', val.toString());
+                                        }}
+                                        className="text-xs font-bold bg-surface border border-line rounded-xl px-2 py-1"
+                                    >
+                                        <option value="90">90% (Compact)</option>
+                                        <option value="100">100% (Standard)</option>
+                                        <option value="110">110% (Large)</option>
+                                        <option value="125">125% (Senior)</option>
+                                    </select>
+                                </div>
+                                <p className="text-3xs text-ink-muted">Adjusts overall scale density of buttons, cards, and text</p>
+                            </div>
+                        </div>
+
+                        {/* 3. Device Viewport Presets & Tender Placement (Layout Law) */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 rounded-2xl border border-line bg-app space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-ink">Device Target Profile</span>
+                                    <select
+                                        value={simulatedDevice}
+                                        onChange={(e) => {
+                                            setSimulatedDevice(e.target.value);
+                                            localStorage.setItem('pos_simulated_device', e.target.value);
+                                            addToast(`Device preset set to ${e.target.value}`, 'info');
+                                        }}
+                                        className="text-xs font-bold bg-surface border border-line rounded-xl px-2 py-1"
+                                    >
+                                        <option value="auto">Auto-detect Display</option>
+                                        <option value="android_360">Android (360x560)</option>
+                                        <option value="iphone_390">iPhone 12-15 (390x745)</option>
+                                        <option value="ipad_768">iPad Portrait (768x950)</option>
+                                        <option value="ipad_1024">iPad Landscape (1024x695)</option>
+                                        <option value="laptop_1265">Laptop (1265x570)</option>
+                                        <option value="fhd_1905">Desktop FHD (1905x940)</option>
+                                        <option value="qhd_2545">Ultrawide (2545x1290)</option>
+                                    </select>
+                                </div>
+                                <p className="text-3xs text-ink-muted">Apply viewport-specific layout laws and budget constraints</p>
+                            </div>
+
+                            <div className="p-4 rounded-2xl border border-line bg-app space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-ink">Tender Placement</span>
+                                    <select
+                                        value={tenderPlacement}
+                                        onChange={(e) => {
+                                            setTenderPlacement(e.target.value);
+                                            localStorage.setItem('pos_tender_placement', e.target.value);
+                                            addToast(`Tender mode set to ${e.target.value}`, 'info');
+                                        }}
+                                        className="text-xs font-bold bg-surface border border-line rounded-xl px-2 py-1"
+                                    >
+                                        <option value="surface">Surface (Right Column)</option>
+                                        <option value="bar">Bottom Bar</option>
+                                        <option value="sheet">Sheet / Modal Drawer</option>
+                                    </select>
+                                </div>
+                                <p className="text-3xs text-ink-muted">Position tendered inputs as a column, bar, or popup</p>
+                            </div>
+                        </div>
+
+                        {/* 4. Top Bar Item Visibility Settings */}
+                        <div className="space-y-3">
+                            <label className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-2">
+                                <Eye size={14} className="text-brand-500" />
+                                <span>Top Bar Items & Shortcuts</span>
+                            </label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3.5 rounded-2xl border border-line bg-app flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-bold text-ink">Show Open Till Button</p>
+                                        <p className="text-3xs text-ink-muted">Display cash drawer pulse button on top bar</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const next = !showTopTillBtn;
+                                            setShowTopTillBtn(next);
+                                            localStorage.setItem('pos_show_top_till', next.toString());
+                                        }}
+                                        className={`relative w-11 h-6 rounded-full shrink-0 transition-colors ${showTopTillBtn ? 'bg-brand-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+                                    >
+                                        <div className={`absolute top-1 ${showTopTillBtn ? 'right-1' : 'left-1'} w-4 h-4 rounded-full bg-white transition-all`} />
+                                    </button>
+                                </div>
+
+                                <div className="p-3.5 rounded-2xl border border-line bg-app flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-bold text-ink">Show Hardware Status Badge</p>
+                                        <p className="text-3xs text-ink-muted">Display printer hardware status badge on top bar</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const next = !showTopHardwareBadge;
+                                            setShowTopHardwareBadge(next);
+                                            localStorage.setItem('pos_show_top_hardware', next.toString());
+                                        }}
+                                        className={`relative w-11 h-6 rounded-full shrink-0 transition-colors ${showTopHardwareBadge ? 'bg-brand-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+                                    >
+                                        <div className={`absolute top-1 ${showTopHardwareBadge ? 'right-1' : 'left-1'} w-4 h-4 rounded-full bg-white transition-all`} />
+                                    </button>
+                                </div>
+
+                                <div className="p-3.5 rounded-2xl border border-line bg-app flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-bold text-ink">Show Icon Rail</p>
+                                        <p className="text-3xs text-ink-muted">Toggle left navigation icon rail</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const next = !showRail;
+                                            setShowRail(next);
+                                            localStorage.setItem('pos_show_rail', JSON.stringify(next));
+                                        }}
+                                        className={`relative w-11 h-6 rounded-full shrink-0 transition-colors ${showRail ? 'bg-brand-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+                                    >
+                                        <div className={`absolute top-1 ${showRail ? 'right-1' : 'left-1'} w-4 h-4 rounded-full bg-white transition-all`} />
+                                    </button>
+                                </div>
+
+                                <div className="p-3.5 rounded-2xl border border-line bg-app flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-bold text-ink">Return Mode Active</p>
+                                        <p className="text-3xs text-ink-muted">Process customer returns according to policy</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setReturnMode(!returnMode)}
+                                        className={`relative w-11 h-6 rounded-full shrink-0 transition-colors ${returnMode ? 'bg-red-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+                                    >
+                                        <div className={`absolute top-1 ${returnMode ? 'right-1' : 'left-1'} w-4 h-4 rounded-full bg-white transition-all`} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Quick Launch Drawer Buttons inside Settings */}
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                                <button
+                                    onClick={() => {
+                                        setShowPosSettings(false);
+                                        loadParkedSales();
+                                        setParkedDropdownOpen(true);
+                                    }}
+                                    className="p-3 rounded-2xl border border-line bg-surface hover:bg-interactive-hover flex items-center justify-between font-bold text-xs text-ink"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Pause size={16} className="text-amber-500" />
+                                        <span>Parked Sales ({parkedSales.length})</span>
+                                    </div>
+                                    <ChevronRight size={14} className="text-ink-muted" />
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setShowPosSettings(false);
+                                        loadRecentInvoices();
+                                        setShowRecentInvoices(true);
+                                    }}
+                                    className="p-3 rounded-2xl border border-line bg-surface hover:bg-interactive-hover flex items-center justify-between font-bold text-xs text-ink"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <History size={16} className="text-brand-500" />
+                                        <span>Recent Invoices History</span>
+                                    </div>
+                                    <ChevronRight size={14} className="text-ink-muted" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 5. Hardware Actions */}
+                        <div className="p-4 rounded-2xl border border-brand-200 dark:border-brand-900/50 bg-brand-50/50 dark:bg-brand-950/20 flex items-center justify-between">
+                            <div>
+                                <h4 className="text-xs font-bold text-brand-900 dark:text-brand-300 flex items-center gap-2">
+                                    <Unlock size={16} />
+                                    <span>Hardware Cash Till Drawer</span>
+                                </h4>
+                                <p className="text-3xs text-brand-700 dark:text-brand-400 mt-0.5">Send a kick-out pulse signal to the physical cash drawer connected via AMDStation or thermal printer</p>
+                            </div>
+                            <button
+                                onClick={handleOpenCashDrawer}
+                                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0"
+                            >
+                                Open Drawer Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-4 border-t border-line bg-sunken/40 flex justify-end">
+                        <button
+                            onClick={() => setShowPosSettings(false)}
+                            className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
+                        >
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* ── Keyboard Shortcuts Guide Modal (`?`) ───────────────────────────── */}
+        {showKeymapModal && (
+            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-line flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+                    <div className="p-6 border-b border-line flex items-center justify-between bg-sunken/40">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400 flex items-center justify-center">
+                                <HelpCircle size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-ink">POS Keyboard Shortcuts Map</h3>
+                                <p className="text-xs text-ink-muted">Master key bindings for rapid cashier checkout</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setShowKeymapModal(false)}
+                            className="w-8 h-8 rounded-full hover:bg-interactive-hover flex items-center justify-center text-ink-muted transition-colors"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                { key: 'F1', desc: 'Focus Search / Barcode Scanner' },
+                                { key: 'F2', desc: 'Set Quantity on Active Line' },
+                                { key: 'F3', desc: 'Set Discount on Active Line' },
+                                { key: 'F4', desc: 'Remove Active Cart Line' },
+                                { key: 'F5', desc: 'Rate / Price Override on Line' },
+                                { key: 'F6', desc: 'Change Item Unit' },
+                                { key: 'F7', desc: 'Document Tax Rate Toggle' },
+                                { key: 'F8', desc: 'Add Additional Document Charges' },
+                                { key: 'F9', desc: 'Set Fixed Document Discount' },
+                                { key: 'F11', desc: 'Open Customer / Party Selector' },
+                                { key: 'F12', desc: 'Add Sale Remarks / Notes' },
+                                { key: 'Ctrl + S', desc: 'Park / Hold Current Sale' },
+                                { key: 'Ctrl + T', desc: 'Open New Sale Register Tab' },
+                                { key: 'Ctrl + W', desc: 'Close Active Sale Register Tab' },
+                                { key: 'Alt + Z', desc: 'Toggle Fullscreen Mode' },
+                                { key: 'Esc', desc: 'Close Active Layer / Modal' },
+                                { key: '?', desc: 'Show / Hide Keyboard Map' },
+                            ].map((k, idx) => (
+                                <div key={idx} className="p-3 rounded-2xl border border-line bg-app flex items-center justify-between">
+                                    <span className="px-2.5 py-1 rounded-lg bg-surface border border-line text-xs font-mono font-bold text-brand-600 dark:text-brand-400 shadow-2xs">
+                                        {k.key}
+                                    </span>
+                                    <span className="text-xs font-bold text-ink-secondary">{k.desc}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-4 border-t border-line bg-sunken/40 flex justify-between items-center">
+                        <span className="text-3xs text-ink-muted font-medium">* Shortcuts are suspended while typing in text inputs</span>
+                        <button
+                            onClick={() => setShowKeymapModal(false)}
+                            className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition-all"
+                        >
+                            Got It
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+    </React.Fragment>
+</OneGlanceLayout>
     );
 };
 
