@@ -4,50 +4,97 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Sale;
+use App\Models\BankAccount;
+use App\Models\Warehouse;
+use App\Models\EcommerceChannel;
+use App\Models\Setting;
+use App\Models\Party;
+use Illuminate\Support\Facades\Storage;
 
-/**
- * ╔═══════════════════════════════════════════════════════════════════════════╗
- * ║  New POS — the composed register                                          ║
- * ╚═══════════════════════════════════════════════════════════════════════════╝
- *
- * This controller is deliberately empty of data.
- *
- * `resources/js/Pages/NewPos.jsx` is a STRUCTURE exercise: the point of it is to
- * settle the register's shape, its composer and its settings before a single
- * product is attached. It runs entirely on `resources/js/NewPos/mock.js`, whose
- * fields are named the way the live payload names them.
- *
- * When the shape is agreed, wiring is:
- *
- *   1. Delete the `mock` import in NewPos.jsx and take these props instead —
- *      the same four PosController@index already assembles:
- *
- *        'recalledSale'      Sale::with(items.product…)->find($request->recall)
- *        'bankAccounts'      BankAccount, non-cash
- *        'warehouses'        Warehouse::all(['id','name','is_default'])
- *        'ecommerceChannels' EcommerceChannel for this tenant
- *        'settings'          Setting::all()->pluck('value','key')
- *
- *   2. Point the catalogue at the endpoints the shipped POS already uses, so
- *      this page inherits the Phase 3.1 timebomb fix rather than re-loading
- *      1,942 products on every open:
- *
- *        GET /api/pos/featured        the initial grid
- *        GET /api/pos/search?q=       debounced search (300ms)
- *        GET /api/pos/barcode/{code}  exact scanner lookup
- *        GET /api/pos/recent-sales    the Recent sheet
- *
- *   3. Move the register's composition out of localStorage and into
- *      `settings` under `pos_composition`, keyed per user and per terminal, so
- *      a cashier's arrangement follows them to another till.
- *
- * Until then this returns nothing on purpose. A page that half-loads real data
- * and half-invents it is the hardest kind to review.
- */
 class NewPosController extends Controller
 {
     public function index(Request $request)
     {
-        return Inertia::render('NewPos');
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $tenantId = $tenant?->id;
+
+        // Recalled sale if recall param is present
+        $recalledSale = null;
+        if ($request->has('recall')) {
+            $recalledSale = Sale::with([
+                'items.product.category',
+                'items.product.stocks',
+                'items.productVariant',
+                'customer'
+            ])->find($request->recall);
+
+            if ($recalledSale) {
+                $recalledSale->items->transform(function ($item) {
+                    if ($item->product && $item->product->image_path) {
+                        $item->product->image_path = Storage::url($item->product->image_path);
+                    }
+                    return $item;
+                });
+            }
+        }
+
+        // Bank accounts: filter out cash accounts
+        $bankAccountsQuery = BankAccount::where(function ($query) {
+                $query->whereNull('account_type')
+                      ->orWhere('account_type', '!=', 'cash');
+            })
+            ->where(function ($query) {
+                $query->whereNull('type')
+                      ->orWhere('type', '!=', 'cash');
+            });
+        
+        if ($tenantId) {
+            $bankAccountsQuery->where('tenant_id', $tenantId);
+        }
+        $bankAccounts = $bankAccountsQuery->get(['id', 'name', 'account_number as code', 'account_number']);
+
+        // Default walk-in customer party
+        $defaultCustomer = null;
+        if ($tenantId) {
+            $defaultCustomer = Party::where('tenant_id', $tenantId)
+                ->where(function ($q) {
+                    $q->where('name', 'LIKE', '%Walk-in%')
+                      ->orWhere('name', 'LIKE', '%Cash Customer%')
+                      ->orWhere('name', 'LIKE', '%Counter Customer%');
+                })
+                ->first();
+        }
+
+        // Warehouses
+        $warehousesQuery = Warehouse::query();
+        if ($tenantId) {
+            $warehousesQuery->where('tenant_id', $tenantId);
+        }
+        $warehouses = $warehousesQuery->get(['id', 'name', 'is_default']);
+        if ($warehouses->isEmpty()) {
+            $warehouses = Warehouse::all(['id', 'name', 'is_default']);
+        }
+
+        // Ecommerce Channels
+        $ecommerceChannels = $tenantId
+            ? EcommerceChannel::where('tenant_id', $tenantId)->get(['id', 'name', 'platform', 'default_fulfillment_type'])
+            : collect();
+
+        // Settings map
+        $settings = Setting::all()->pluck('value', 'key');
+
+        return Inertia::render('NewPos', [
+            'recalledSale'      => $recalledSale,
+            'bankAccounts'      => $bankAccounts,
+            'warehouses'        => $warehouses,
+            'ecommerceChannels' => $ecommerceChannels,
+            'settings'          => $settings,
+            'defaultCustomer'   => $defaultCustomer,
+            'store'             => $tenant,
+            'auth'              => [
+                'user' => $request->user(),
+            ],
+        ]);
     }
 }

@@ -278,16 +278,16 @@ export function Switch({ label, note, value, onChange, ns = 'nqp' }) {
 /* ── Toasts ──────────────────────────────────────────────────────────────────
    Cancel is undoable for ten seconds. No confirmation dialog, and no loss —
    the shipped register wiped the cart with neither. */
-export function Toasts({ items, onAction, onDismiss, ns = 'nqp' }) {
+export function Toasts({ items = [], onAction, onDismiss, ns = 'nqp' } = {}) {
     return (
         <div className={`${ns}-toasts`} aria-live="polite">
-            {items.map((t) => (
+            {(items || []).map((t) => (
                 <div className={`${ns}-toast`} key={t.id} data-tone={t.tone}>
                     <span style={{ minWidth: 0 }}>{t.text}</span>
                     {t.action ? (
-                        <button type="button" onClick={() => onAction(t)}>{t.action}</button>
+                        <button type="button" onClick={() => onAction?.(t)}>{t.action}</button>
                     ) : (
-                        <button type="button" aria-label="Dismiss" onClick={() => onDismiss(t)}>✕</button>
+                        <button type="button" aria-label="Dismiss" onClick={() => onDismiss?.(t)}>✕</button>
                     )}
                 </div>
             ))}
