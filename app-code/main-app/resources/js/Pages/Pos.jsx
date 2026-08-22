@@ -31,7 +31,8 @@ import {
     ChevronRight,
     History,
     ArrowLeft,
-    LayoutGrid
+    LayoutGrid,
+    Settings
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -2149,6 +2150,15 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <Printer size={14} />
                         <span>{isStationConnected ? 'Hardware Active' : 'No Printer Device'}</span>
                     </div>
+
+                    {/* Settings Gear Icon */}
+                    <button
+                        onClick={() => router.visit(route('store.settings.index', { store_slug: store?.slug }))}
+                        className="h-8 w-8 rounded-full bg-sunken hover:bg-interactive-hover dark:bg-surface dark:hover:bg-interactive-hover text-ink-muted hover:text-ink flex items-center justify-center transition-all border border-line shadow-sm shrink-0"
+                        title="POS & Store Settings"
+                    >
+                        <Settings size={15} />
+                    </button>
 
                     {/* Sync Indicator */}
                     {pendingCount > 0 && (
