@@ -1,28 +1,57 @@
 # VenQore — public pages, V6
 
-Ten new public pages built on the V6 design system. They do not touch anything
+Sixteen new public pages built on the V6 design system. They do not touch anything
 that is live: nothing here overwrites an existing route, a Blade view, a
 JSX page or a controller.
 
 ```
 public/v6/
-  index.html        Landing
-  blueprint.html    Product · Blueprint (the AI builder)
-  ledger.html       Product · Core Ledger (the moat)
-  features.html     Everything that ships today, group by group
-  pricing.html      Starter / Growth / Scale, add-ons, AI usage, FAQ
-  about.html        Company, beliefs, vertical coverage, the trade-off
-  contact.html      Form + routes to the right answer
-  signin.html       Auth · sign in
-  register.html     Auth · create an account
-  onboarding.html   The AI onboarding flow, working end to end
+  index.html          Landing — now with the assembly animation
+  blueprint.html      Product · Blueprint (the AI builder)
+
+  ── feature pages, each with a live demo ──
+  pos.html            The register · 7 presets, recomposes live
+  documents.html      Documents · all 13 types on one editor
+  dashboard.html      The dashboard · pick a reading, the card lands
+  smartcapture.html   SmartCapture · photo / voice / screenshot → transaction
+  reckoner.html       The Reckoner · one definition per figure, and history
+  ledger.html         Core Ledger · the seven correctness checks
+  vensynq.html        VenSynQ · five channels, one stock number
+
+  features.html       Everything that ships, group by group + demo index
+  pricing.html        Counter $18 / Starter / Growth / Scale, add-ons, AI, FAQ
+  about.html          Company, beliefs, vertical coverage, the trade-off
+  contact.html        Form + routes to the right answer
+  signin.html         Auth · sign in
+  register.html       Auth · create an account
+  onboarding.html     The AI onboarding flow, working end to end
   assets/
-    venqore.css     Tokens + component library + preserved hero/footer  (77 KB)
-    venqore.js      All page behaviour, no dependencies                 (17 KB)
-    fluid.js        Your WebGL fluid canvas, unchanged
-    fonts/          Bricolage, Plus Jakarta, Space Grotesk, Instrument  (161 KB)
-    logo.png        ICON.png resampled to 256px                          (31 KB)
+    venqore.css       Tokens + components + demo surfaces + hero/footer (109 KB)
+    venqore.js        Shared page behaviour, no dependencies             (17 KB)
+    demos.js          The five live demos, no dependencies               (30 KB)
+    fluid.js          Your WebGL fluid canvas, unchanged
+    fonts/            Bricolage, Plus Jakarta, Space Grotesk, Instrument (161 KB)
+    logo.png          ICON.png resampled to 256px                         (31 KB)
 ```
+
+---
+
+## The five live demos
+
+Every dataset in `demos.js` is lifted from the product's own source of truth.
+Nothing on these pages is invented, and each is commented with where it came from.
+
+| Demo | Page | Source | What it does |
+|---|---|---|---|
+| **The register** | `pos.html` | `LAW.pos.presets` in `extras/Layout Law/venqore-pos.html` | All seven presets with their real compositions. Click one and the panes re-derive — catalogue off / left / top / overlay, tender as column / bar / sheet, floor plan on the Table preset. Auto-cycles once when it scrolls into view, then hands over. |
+| **Documents** | `documents.html` | `DATA.types` in `extras/Layout Law/venqore-document.html` | All thirteen types with their real prefixes, sides, densities, save labels and capability switches. Switching type reconfigures header fields, line columns, totals rows and the on/off capability list. |
+| **The dashboard** | `dashboard.html` | `READINGS` in `extras/Cards/v6/VenQore Card Builder (LIVE).html` | A 22-reading sample of the 108. Tap one and the card lands at its own natural size, headline metric takes the accent fill (M1). |
+| **SmartCapture** | `smartcapture.html` | The old `FeatureDemos.jsx` pattern, rebuilt in V6 | Photo / voice note / screenshot. Scan line, waveform, narrated extraction steps, then matched lines with a deliberate unmatched one flagged as "new item". |
+| **The assembly** | `index.html#assemble` | `config/modules.php` + the reading registry | **The one you asked for.** All 46 modules on screen; the ones the business asked for light up one at a time; everything else drains away; the survivors converge into the frame; the finished system appears with only its cards. Three profiles — pharmacy, café, wholesale — and a replay link. |
+
+The assembly runs about 5.5 seconds. It auto-plays once when scrolled into
+view, respects `prefers-reduced-motion` (all beats collapse to instant), and
+every beat is captioned so a still screenshot still reads.
 
 No build step, no framework, no CDN. Drop the folder in and it works.
 
@@ -68,7 +97,11 @@ Every page is one flat HTML file with no inline `<style>` and no per-page
 `resources/js/Pages/V6/*.jsx` is: copy the `<main>` contents, swap `class=` for
 `className=`, and import `assets/venqore.css` once in `app.css`. The header and
 footer are generated from a single source (`src/shell.js`) so they become one
-shared `V6Layout` component rather than ten copies.
+shared `V6Layout` component rather than sixteen copies.
+
+The five demos live in `assets/demos.js`, which is plain ES5 with no dependencies
+and no framework assumptions — it binds to `data-*` attributes, so it works
+unchanged inside a React page as long as the markup survives the port.
 
 ---
 
@@ -109,7 +142,7 @@ Current state:
 ✓ no font-weight above 700
 ✓ z-index stays on the ladder
 ✓ every hex resolves to a V6 ramp or a preserved hero value
-✓ 10 pages, every local link resolves
+✓ 16 pages, every local link resolves
 ✓ one <h1> and one Instrument Serif italic word per page
 ✓ 0 contrast findings, light and dark
 ```
@@ -141,12 +174,31 @@ The Copy Bible's rule is "no invented proof", so every number here is the
 **conservative** reading of your own audit files. Three of them need your
 confirmation:
 
-| Number | Where it appears | Source | Note |
+| Number | Where it appears | Source | Status |
 |---|---|---|---|
-| **144 shipped features** | landing trust strip, module grid, features hero, register aside | Count of what `features.html` actually enumerates, drawn from `extras/Features/venqore_built.md` | Your marketing elsewhere says **240+**; the build audit supports **142 audited + 39 re-verified = 180 defensible**; the catalogue lists **265** total. I used the number the page can prove line by line. Raise it if you can stand behind a bigger one. |
-| **220 automated tests** | landing proof section | `grep` of `tests/**/*Test.php` — 24 files, 220 test methods | The Copy Bible says "73 tests across 20 modules"; `VENQORE_MASTER_PRODUCT_CATALOG.md` says "1,065+ passing tests". Three different numbers exist in your docs. Pick one and make the others match. |
-| **2 live retail businesses** | landing trust strip and proof, about | Copy Bible §1.6 proof stack | Swap for a customer count at 25+, per the Copy Bible's own plan. |
-| **7 / 7 correctness checks** | landing, ledger, register, features | Copy Bible §1.6 and the Core Ledger page | The seven are named on `ledger.html`. Confirm all seven exist as tests. |
+| **1,610 passing tests** | landing proof, features hero, register aside | `extras/AUDIT_2026-08-13/05_COMPOSABILITY_VERDICT.md`: *"ERP core engine — 8 months, production use, 1,610 passing tests"* | ✅ Verified in your own audit. |
+| **11,000+ assertions** | beside the test count | **You told me this.** | ⚠️ **Confirm before launch.** I searched every `.md` and `.txt` under `extras/` — the highest assertion figure documented anywhere is **4,357**. If 11,000+ comes from a recent full run, paste me the PHPUnit summary line and I'll cite it; otherwise drop to the number you can show. |
+| **46 modules** | landing trust strip, module grid, features, assembly animation | `config/modules.php` — 46 declared (42 live, 2 beta, 2 building) | ✅ Verified by count. |
+| **108 readings** | dashboard, reckoner, features, pricing matrix | `READINGS` array in the LIVE card builder; its own search box says *"Search 108 readings…"* | ✅ Verified by count. This is your "100+ cards". |
+| **13 document types** | documents page, features, pricing | `DATA.types` in `venqore-document.html` | ✅ Verified by count. **Note:** there is no *credit note* type — Sale return plays that role on the sell side, Debit note on the buy side. The copy says so. |
+| **1,944 distinct figures** | dashboard, reckoner | 108 readings × 18 period windows | ✅ Arithmetic from two verified counts. The Reckoner spec's own "~4,500" is against ~250 planned readings — a plan, not a shipped number, so I did not use it. |
+| **35,255 layout checks** | pos page | `venqore-pos.html` verification block | ✅ Verified in the file. |
+| **2 live retail businesses** | landing trust strip and proof, about | Copy Bible §1.6 proof stack | Swap for a customer count at 25+. |
+| **7 / 7 correctness checks** | landing, ledger, register | Copy Bible §1.6, named individually on `ledger.html` | Confirm all seven exist as tests. |
+| **11 seconds / 20 minutes** | smartcapture | Framed on the page as *"our own timings on our own bills, not an industry study"* | Replace with your real measurement, or leave the caveat. |
+
+### Two claims I deliberately softened
+
+- **The 108 readings are a registry, not 108 live cards on a shop's dashboard.**
+  Your own correction spec (12 Aug) found twelve of them returning fabricated
+  data and withdrew them, and notes zero pages currently call the Reckoner.
+  The pages say "108 readings the builder ships" and never "108 cards you can
+  add today". `reckoner.html` tells that whole story as a *trust* asset — the
+  audit is far more persuasive than the count.
+- **Per-business-type starter dashboards do not exist yet.** The card builder
+  has no business-type presets. The assembly animation shows composition by
+  profile because that *is* what Blueprint does with modules — but I did not
+  claim a pre-made dashboard per industry anywhere.
 
 Everything else — plan prices, limits, add-on prices, the module lists, the
 vertical coverage table — comes straight from
@@ -160,8 +212,10 @@ disagree in four places. These pages follow the **Copy Bible for structure and
 the V3 doc for numbers**, because the Copy Bible is the authority for what the
 website says and the V3 doc is the only file with worked margins.
 
-1. **Counter ($18) is not on the public page.** The Copy Bible ships three
-   cards and puts the entry point at $36. Counter still exists in the V3 doc.
+1. **Counter ($18) is now the entry tier**, per your instruction — four cards,
+   1 branch / 1 user, and the copy is explicit that $18 buys the whole system
+   rather than a cut-down edition. The Copy Bible's three-card structure is
+   superseded. The comparison table and the landing preview both show four.
 2. **AI is a hard cap with a top-up, not metered overage.** The V3 doc is
    explicit: *"Hard stop at the cap. Never auto-bill overage."* The Copy Bible's
    "billed as usage" line is not used.
@@ -171,6 +225,17 @@ website says and the V3 doc is the only file with worked margins.
    headline promise is scoped to *"plans differ by how much of it you use."*
 4. **Scale = 10 branches / 50 users** (V3), not "unlimited branches, 25 users"
    (Copy Bible). Two different products at the same $129.
+
+### Where each new page's claims come from
+
+| Page | Primary source |
+|---|---|
+| `pos.html` | `extras/Layout Law/venqore-pos.html` — presets, compositions, `why` strings, the 35,255-check verification, the competitor survey (Toast / Lightspeed / Loyverse / Shopify / Square / D365) |
+| `documents.html` | `extras/Layout Law/venqore-document.html` — the thirteen types, the density table, and the four real posting defects the collapse fixed (debit-note warehouse, sale-return tax/discount, single tax source, per-screen round-off) |
+| `dashboard.html` | `extras/Cards/v6/VenQore Card Builder (LIVE).html` + `CARD_CATALOGUE.md` — 108 readings, C1–C6 with all 18 fits, the three server-side gates, per-role card counts |
+| `reckoner.html` | `VENQORE_RECKONER_BUILD_SPEC.md` + `VENQORE_RECKONER_CORRECTION_SPEC.md` — 18 windows, 8 invalidation events, the signed-metric pairs, `not_applicable`, and the self-audit |
+| `smartcapture.html` | The old `Marketing/Shared/FeatureDemos.jsx` demo, rebuilt on V6 |
+| `vensynq.html` | The channels group in `venqore_built.md` |
 
 Also deliberately **absent**: any lifetime-deal language (Copy Bible Part 0,
 rule 1), eBay and TikTok Shop as purchasable add-ons (only WooCommerce and
@@ -185,6 +250,12 @@ These pages are static. Nothing posts anywhere.
 
 - Every form (`contact`, `signin`, `register`, `onboarding`, footer CTA) shows a
   confirmation state and stops. Wire them to your controllers when you port.
+- The five demos are **client-side renderings**. The register really does
+  recompose from the seven real preset definitions, the document editor really
+  does reconfigure from the thirteen real capability sets, and the assembly
+  really does compose from the 46-module list — but they are drawing the
+  product, not driving it. When the real endpoints exist, each demo's data
+  object is the only thing that needs replacing.
 - `onboarding.html` composes a Blueprint **client-side**, from eleven keyword
   signals against the real module list. It is the honest version of the demo —
   the Copy Bible sanctions exactly this (*"pre-generate Blueprints for common

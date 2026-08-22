@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const dist = '/home/claude/v6/dist';
-const ORDER = ['index', 'blueprint', 'ledger', 'features', 'pricing', 'about', 'contact', 'onboarding', 'register', 'signin'];
+const ORDER = ['index', 'blueprint', 'pos', 'documents', 'dashboard', 'smartcapture', 'reckoner', 'ledger', 'vensynq', 'features', 'pricing', 'about', 'contact', 'onboarding', 'register', 'signin'];
 
 const b64 = (p) => fs.readFileSync(p).toString('base64');
 
@@ -27,7 +27,8 @@ css = css.replace(/url\("fonts\/([^"]+)"\)/g, (_, f) =>
   `url("data:font/woff2;base64,${b64(path.join(dist, 'assets/fonts', f))}")`);
 const logo = `data:image/png;base64,${b64(path.join(dist, 'assets/logo.png'))}`;
 
-const js = fs.readFileSync(path.join(dist, 'assets/venqore.js'), 'utf8');
+const js = fs.readFileSync(path.join(dist, 'assets/venqore.js'), 'utf8') + '\n' +
+           fs.readFileSync(path.join(dist, 'assets/demos.js'), 'utf8');
 const fluid = fs.readFileSync(path.join(dist, 'assets/fluid.js'), 'utf8');
 
 const pages = {};
@@ -68,10 +69,12 @@ const doc = `<title>VenQore Public Pages</title>
 ${ORDER.map(n => `<template data-route="${n}">${asciiHtml(pages[n].body)}</template>`).join('\n')}
 <div id="vq-app"></div>
 <div id="vq-note">
-  <b>Preview · 10 pages</b>
+  <b>Preview · 16 pages</b>
   <select id="vq-jump" aria-label="Jump to a page">
     ${ORDER.map(n => `<option value="${n}">${({
-      index: 'Landing', blueprint: 'Blueprint', ledger: 'Core Ledger', features: 'Features',
+      index: 'Landing', blueprint: 'Blueprint', pos: 'The register', documents: 'Documents',
+      dashboard: 'Dashboard', smartcapture: 'SmartCapture', reckoner: 'The Reckoner',
+      ledger: 'Core Ledger', vensynq: 'VenSynQ', features: 'Features',
       pricing: 'Pricing', about: 'About', contact: 'Contact', onboarding: 'Onboarding flow',
       register: 'Register', signin: 'Sign in' })[n]}</option>`).join('')}
   </select>

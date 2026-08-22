@@ -239,31 +239,38 @@ html.dark .vq-hero-foot p, html.dark .vq-hero-foot a { color: #EDF2EF; }
   --vq-text-3: var(--vq-ink-600);
 }
 
-/* Secondary text on the one filled card. On a solid teal the inverted ink
-   has to run at high alpha or it drops under the floor. */
-.vq-card--accent .vq-eyebrow,
-.vq-card--accent .vq-text-2,
-.vq-card--accent .vq-text-3,
-.vq-card--accent .vq-stat__label,
-.vq-card--accent .vq-stat__unit,
-.vq-card--accent .vq-stat__note,
-.vq-dcard--accent .vq-stat__label,
-.vq-dcard--accent .vq-stat__unit,
-.vq-dcard--accent .vq-stat__note { color: rgb(255 255 255 / .88); }
-:root[data-theme="dark"] .vq-card--accent .vq-eyebrow,
-:root[data-theme="dark"] .vq-card--accent .vq-stat__label,
-:root[data-theme="dark"] .vq-card--accent .vq-stat__unit,
-:root[data-theme="dark"] .vq-card--accent .vq-stat__note,
-:root[data-theme="dark"] .vq-dcard--accent .vq-stat__label,
-:root[data-theme="dark"] .vq-dcard--accent .vq-stat__unit,
-:root[data-theme="dark"] .vq-dcard--accent .vq-stat__note,
-html.dark .vq-card--accent .vq-eyebrow,
-html.dark .vq-card--accent .vq-stat__label,
-html.dark .vq-card--accent .vq-stat__unit,
-html.dark .vq-card--accent .vq-stat__note,
-html.dark .vq-dcard--accent .vq-stat__label,
-html.dark .vq-dcard--accent .vq-stat__unit,
-html.dark .vq-dcard--accent .vq-stat__note { color: rgb(6 36 33 / .90); }
+/* The one filled card is a local theme, not a set of colour overrides.
+   Redefining the text tokens on it means every component inside — titles,
+   bodies, eyebrows, stat labels — resolves against the fill it is actually
+   sitting on, in either theme, without a rule per class. */
+.vq-card--accent, .vq-dcard--accent {
+  --vq-text: var(--vq-on-accent);
+  --vq-text-2: rgb(255 255 255 / .94);
+  --vq-text-3: rgb(255 255 255 / .90);
+  --vq-line: rgb(255 255 255 / .22);
+  --vq-line-soft: rgb(255 255 255 / .14);
+  --vq-sunken: rgb(255 255 255 / .18);
+  --vq-surface: rgb(255 255 255 / .12);
+  --vq-surface-2: rgb(255 255 255 / .14);
+  color: var(--vq-on-accent);
+}
+:root[data-theme="dark"] .vq-card--accent, :root[data-theme="dark"] .vq-dcard--accent,
+html.dark .vq-card--accent, html.dark .vq-dcard--accent {
+  --vq-text-2: rgb(6 36 33 / .94);
+  --vq-text-3: rgb(6 36 33 / .90);
+  --vq-line: rgb(6 36 33 / .22);
+  --vq-line-soft: rgb(6 36 33 / .14);
+  --vq-sunken: rgb(6 36 33 / .16);
+  --vq-surface: rgb(6 36 33 / .10);
+  --vq-surface-2: rgb(6 36 33 / .12);
+}
+.vq-card--accent .vq-tile__title, .vq-card--accent .vq-h2, .vq-card--accent .vq-h3,
+.vq-dcard--accent .vq-dcard__title { color: var(--vq-on-accent); }
+.vq-card--accent .vq-tile__body, .vq-card--accent p { color: var(--vq-text-2); }
+.vq-card--accent .vq-eyebrow, .vq-card--accent .vq-stat__label,
+.vq-card--accent .vq-stat__unit, .vq-card--accent .vq-stat__note,
+.vq-dcard--accent .vq-stat__label, .vq-dcard--accent .vq-stat__unit,
+.vq-dcard--accent .vq-stat__note { color: var(--vq-text-3); }
 
 /* The footer sits on near-black; ink-500 is too quiet on it. */
 .vq-footer .vq-small[style*="ink-500"], .vq-footer p.vq-small { color: var(--vq-ink-400) !important; }

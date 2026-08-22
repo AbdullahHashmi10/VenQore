@@ -1,0 +1,490 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VenQore V6 — live demo surfaces
+   These are marketing renderings of real product screens. They obey the
+   product's own laws (Layout Law geometry, M1–M7, chart ink) because a
+   screenshot that breaks them lies about the product.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── The frame every demo sits in ─────────────────────────────────────── */
+.vq-demo {
+  position: relative;
+  border-radius: var(--vq-r-2xl);
+  border: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+  box-shadow: var(--vq-elev-3);
+  overflow: hidden;
+  isolation: isolate;
+}
+.vq-demo__bar {
+  height: 52px;
+  display: flex; align-items: center; gap: var(--vq-space-4);
+  padding-inline: var(--vq-space-5);
+  border-bottom: 1px solid var(--vq-line);
+  background: var(--vq-surface-2);
+}
+.vq-demo__dots { display: flex; gap: 6px; flex: none; }
+.vq-demo__dots i { width: 10px; height: 10px; border-radius: var(--vq-r-full); background: var(--vq-ink-200); display: block; }
+:root[data-theme="dark"] .vq-demo__dots i, html.dark .vq-demo__dots i { background: rgb(255 255 255 / .14); }
+.vq-demo__url {
+  flex: 1; min-width: 0;
+  display: none; align-items: center; gap: 7px;
+  height: 30px; padding-inline: 12px;
+  max-width: 320px; margin-inline: auto;
+  border-radius: var(--vq-r-full);
+  background: var(--vq-sunken);
+  border: 1px solid var(--vq-line-soft);
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-eyebrow);
+  color: var(--vq-text-3);
+  word-spacing: normal; white-space: nowrap; overflow: hidden;
+}
+@media (min-width: 640px) { .vq-demo__url { display: flex; } }
+.vq-demo__live {
+  display: inline-flex; align-items: center; gap: 7px; flex: none;
+  margin-left: auto;
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-eyebrow);
+  letter-spacing: var(--vq-ls-eyebrow);
+  text-transform: uppercase;
+  font-weight: var(--vq-fw-medium);
+  color: var(--vq-accent-text);
+  word-spacing: normal;
+}
+.vq-demo__live::before {
+  content: ""; width: 7px; height: 7px; border-radius: var(--vq-r-full);
+  background: var(--vq-accent); flex: none;
+  animation: vq-pulse 2s var(--vq-ease-in-out) infinite;
+}
+@keyframes vq-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.vq-demo__body { padding: var(--vq-space-5); }
+.vq-demo__body--flush { padding: 0; }
+
+/* Control strip above a demo: preset chips, tabs, a legend. */
+.vq-demo__controls {
+  display: flex; align-items: center; gap: var(--vq-space-3);
+  flex-wrap: wrap;
+  padding: var(--vq-space-4) var(--vq-space-5);
+  border-bottom: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+}
+.vq-demo__scroller { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.vq-demo__scroller::-webkit-scrollbar { display: none; }
+.vq-tab {
+  flex: none;
+  height: 32px; padding-inline: 13px;
+  border-radius: var(--vq-r-full);
+  border: 1px solid transparent;
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-medium);
+  color: var(--vq-text-3);
+  white-space: nowrap; word-spacing: normal;
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out),
+              color var(--vq-dur-1) var(--vq-ease-out),
+              border-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-tab:hover { color: var(--vq-text); background: var(--vq-sunken); }
+.vq-tab[aria-selected="true"] {
+  background: var(--vq-accent-quiet);
+  border-color: var(--vq-accent-quiet-line);
+  color: var(--vq-accent-text);
+  font-weight: var(--vq-fw-semi);
+}
+
+/* ═══ The register ═══════════════════════════════════════════════════════
+   Seven presets are not seven layouts — they are seeded values for the same
+   eight knobs, and the engine re-derives everything from measured floors.
+   The demo animates the derivation, because that is the actual product. */
+.vq-pos {
+  --rail: 52px;
+  display: grid;
+  grid-template-columns: var(--rail) 1fr;
+  height: 460px;
+  background: var(--vq-bg);
+  font-size: var(--vq-fs-caption);
+}
+@media (max-width: 767px) { .vq-pos { --rail: 0px; height: 420px; } .vq-pos__rail { display: none; } }
+.vq-pos__rail {
+  background: var(--vq-surface);
+  border-right: 1px solid var(--vq-line);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; padding-block: var(--vq-space-3);
+  color: var(--vq-text-3);
+}
+.vq-pos__rail i { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--vq-r-md); }
+.vq-pos__rail i:first-child { background: var(--vq-accent-quiet); color: var(--vq-accent-text); }
+.vq-pos__main { display: flex; flex-direction: column; min-width: 0; }
+
+.vq-pos__top {
+  height: 40px; flex: none;
+  display: flex; align-items: center; gap: 10px;
+  padding-inline: var(--vq-space-4);
+  border-bottom: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+  color: var(--vq-text-3);
+}
+.vq-pos__search {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 8px;
+  height: 30px; padding-inline: 11px;
+  border-radius: var(--vq-r-sm);
+  background: var(--vq-sunken);
+  border: 1px solid var(--vq-line-soft);
+  color: var(--vq-text-3);
+  white-space: nowrap; overflow: hidden;
+}
+.vq-pos__kbd {
+  font-family: var(--vq-font-numeric); font-size: 10px;
+  padding: 2px 6px; border-radius: var(--vq-r-xs);
+  background: var(--vq-surface); border: 1px solid var(--vq-line);
+  color: var(--vq-text-3); word-spacing: normal; flex: none;
+}
+
+/* The pane row. Panes are built once and relocated — nothing a cashier
+   learned in one composition is missing from another. */
+.vq-pos__panes { flex: 1; display: flex; min-height: 0; gap: 1px; background: var(--vq-line); }
+.vq-pos__panes.is-stacked { flex-direction: column; }
+.vq-pane {
+  background: var(--vq-surface);
+  display: flex; flex-direction: column;
+  min-width: 0; min-height: 0;
+  overflow: hidden;
+  transition: flex-basis var(--vq-dur-4) var(--vq-ease-out),
+              flex-grow var(--vq-dur-4) var(--vq-ease-out),
+              opacity var(--vq-dur-3) var(--vq-ease-out);
+}
+.vq-pane[hidden] { display: none; }
+.vq-pane__head {
+  height: 34px; flex: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-inline: 12px;
+  border-bottom: 1px solid var(--vq-line-soft);
+  font-family: var(--vq-font-numeric);
+  font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--vq-text-3); word-spacing: normal; white-space: nowrap;
+}
+.vq-pane__body { flex: 1; overflow: hidden; padding: 10px; }
+.vq-pane__foot { flex: none; padding: 10px; border-top: 1px solid var(--vq-line-soft); }
+
+/* Catalog */
+.vq-pos__tiles { display: grid; gap: 8px; }
+.vq-pos__tiles.up3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.vq-pos__tiles.up2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.vq-pos__tiles.up1 { grid-template-columns: minmax(0,1fr); }
+.vq-tile-p {
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-md);
+  padding: 8px; background: var(--vq-surface);
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.vq-tile-p b { font-size: 11px; font-weight: var(--vq-fw-semi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vq-tile-p span { font-family: var(--vq-font-numeric); font-size: 10px; color: var(--vq-text-3); word-spacing: normal; }
+.vq-tile-p i { display: block; height: 26px; border-radius: var(--vq-r-xs); background: var(--vq-accent-quiet); }
+.vq-pos__tiles.up1 .vq-tile-p { flex-direction: row; align-items: center; gap: 8px; }
+.vq-pos__tiles.up1 .vq-tile-p i { width: 22px; height: 22px; flex: none; }
+.vq-pos__tiles.up1 .vq-tile-p b { flex: 1; }
+
+/* Cart */
+.vq-cart__line {
+  display: grid; align-items: center; gap: 8px;
+  grid-template-columns: 1fr auto auto auto;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--vq-line-soft);
+  font-size: 11px;
+}
+.vq-cart__line b { font-weight: var(--vq-fw-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vq-cart__line span { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: var(--vq-text-2); word-spacing: normal; }
+.vq-cart__line .tot { color: var(--vq-text); font-weight: var(--vq-fw-semi); }
+.vq-cart__step { display: inline-flex; align-items: center; gap: 5px; font-family: var(--vq-font-numeric); word-spacing: normal; }
+.vq-cart__step i { width: 18px; height: 18px; border-radius: var(--vq-r-xs); border: 1px solid var(--vq-line); display: grid; place-items: center; color: var(--vq-text-3); font-style: normal; font-size: 11px; }
+/* Below the relay floor the line wraps to two rows rather than clipping. */
+.vq-pos.is-lean .vq-cart__line { grid-template-columns: 1fr auto; row-gap: 2px; }
+.vq-pos.is-lean .vq-cart__step, .vq-pos.is-minimal .vq-cart__step { display: none; }
+.vq-pos.is-minimal .vq-cart__line { grid-template-columns: 1fr auto; }
+.vq-pos.is-minimal .vq-cart__line .rate { display: none; }
+
+/* Tender — same controls whether it is a column, a bar or a sheet */
+.vq-tender__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; font-size: 11px; }
+.vq-tender__row span:last-child { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; word-spacing: normal; }
+.vq-tender__total {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding-top: 8px; margin-top: 4px; border-top: 1px solid var(--vq-line);
+}
+.vq-tender__total b { font-family: var(--vq-font-numeric); font-size: 22px; font-weight: var(--vq-fw-semi); letter-spacing: -.03em; word-spacing: normal; }
+.vq-tender__chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.vq-tender__chips span {
+  font-size: 10px; padding: 3px 8px; border-radius: var(--vq-r-full);
+  background: var(--vq-sunken); color: var(--vq-text-2); white-space: nowrap;
+}
+.vq-pos__btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  height: 38px; border-radius: var(--vq-r-md);
+  background: var(--vq-accent-fill); color: var(--vq-on-accent);
+  font-size: 12px; font-weight: var(--vq-fw-semi); word-spacing: normal;
+  box-shadow: var(--vq-glow-accent);
+}
+.vq-pos__btn--ghost { background: var(--vq-sunken); color: var(--vq-text-2); box-shadow: none; }
+.vq-pos__acts { display: flex; gap: 6px; }
+.vq-pos__acts .vq-pos__btn:first-child { flex: 2; }
+.vq-pos__acts .vq-pos__btn { flex: 1; }
+
+/* The dock is a real layout row whose height is subtracted before anything
+   else is measured — it is not a floating button. */
+.vq-pos__dock {
+  flex: none; height: 56px;
+  display: flex; align-items: center; gap: 8px;
+  padding-inline: 12px;
+  border-top: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+}
+.vq-pos__dock .vq-pos__btn { flex: 1; height: 40px; }
+
+/* Floor plan — the unit of work is the table, not the sale */
+.vq-floor { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.vq-floor i {
+  aspect-ratio: 1; border-radius: var(--vq-r-md);
+  border: 1px solid var(--vq-line);
+  display: grid; place-items: center;
+  font-family: var(--vq-font-numeric); font-size: 11px; font-style: normal;
+  color: var(--vq-text-3); word-spacing: normal;
+}
+.vq-floor i.on { background: var(--vq-accent-quiet); border-color: var(--vq-accent-quiet-line); color: var(--vq-accent-text); font-weight: var(--vq-fw-semi); }
+
+/* ═══ The document editor ════════════════════════════════════════════════
+   A type is a configuration — a set of capability switches and label
+   overrides — never a different screen. */
+.vq-doc { background: var(--vq-bg); font-size: var(--vq-fs-caption); }
+.vq-doc__zones { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 1px; background: var(--vq-line); min-height: 420px; }
+.vq-doc__zones.no-summary { grid-template-columns: minmax(0,1fr); }
+@media (max-width: 899px) { .vq-doc__zones { grid-template-columns: minmax(0,1fr); } }
+.vq-doc__left, .vq-doc__right { background: var(--vq-surface); padding: var(--vq-space-4); }
+.vq-doc__zone-tag {
+  font-family: var(--vq-font-numeric); font-size: 10px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--vq-text-3); word-spacing: normal;
+  display: block; margin-bottom: 10px;
+}
+.vq-doc__fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 8px; }
+.vq-doc__field {
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-sm);
+  padding: 6px 9px; background: var(--vq-surface); min-width: 0;
+  animation: vq-pop var(--vq-dur-3) var(--vq-ease-spring) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.vq-doc__field b { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .07em; color: var(--vq-text-3); font-family: var(--vq-font-numeric); word-spacing: normal; font-weight: var(--vq-fw-medium); }
+.vq-doc__field span { display: block; font-size: 11px; color: var(--vq-text); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vq-doc__table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.vq-doc__table th {
+  text-align: left; padding: 6px 8px;
+  font-family: var(--vq-font-numeric); font-size: 9px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--vq-text-3); word-spacing: normal;
+  border-bottom: 1px solid var(--vq-line); white-space: nowrap;
+}
+.vq-doc__table td { padding: 8px; font-size: 11px; border-bottom: 1px solid var(--vq-line-soft); white-space: nowrap; }
+.vq-doc__table .n { text-align: right; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; word-spacing: normal; }
+.vq-doc__wrap { overflow-x: auto; }
+
+/* ═══ The dashboard that assembles itself ════════════════════════════════
+   Pick a reading, and the card decides its own smallest honest size. */
+.vq-build { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 1px; background: var(--vq-line); min-height: 520px; }
+@media (max-width: 1023px) { .vq-build { grid-template-columns: minmax(0,1fr); } }
+.vq-build__board { background: var(--vq-bg); padding: var(--vq-space-4); overflow: hidden; }
+.vq-build__lib { background: var(--vq-surface); padding: var(--vq-space-4); display: flex; flex-direction: column; min-height: 0; }
+.vq-build__search {
+  display: flex; align-items: center; gap: 8px;
+  height: 36px; padding-inline: 11px; flex: none;
+  border-radius: var(--vq-r-md);
+  background: var(--vq-sunken); border: 1px solid var(--vq-line-soft);
+  font-size: var(--vq-fs-caption); color: var(--vq-text-3);
+}
+.vq-build__list { margin-top: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; max-height: 380px; }
+.vq-build__row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 9px; border-radius: var(--vq-r-md);
+  text-align: left; width: 100%;
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out), opacity var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-build__row:hover { background: var(--vq-sunken); }
+.vq-build__row b { flex: 1; font-size: var(--vq-fs-caption); font-weight: var(--vq-fw-medium); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vq-build__row em {
+  font-family: var(--vq-font-numeric); font-size: 9px; font-style: normal;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--vq-text-3);
+  word-spacing: normal; flex: none;
+}
+.vq-build__row i {
+  width: 20px; height: 20px; flex: none; border-radius: var(--vq-r-full);
+  border: 1px solid var(--vq-line); display: grid; place-items: center;
+  color: var(--vq-text-3); font-style: normal; font-size: 13px; line-height: 1;
+}
+.vq-build__row.is-on { opacity: .45; }
+.vq-build__row.is-on i { background: var(--vq-success); border-color: var(--vq-success); color: #fff; }
+
+/* A card arriving on the board. It flies from the library to its slot,
+   overshoots once and settles — the same spring the product uses. */
+.vq-build__grid {
+  display: grid; grid-template-columns: repeat(12, minmax(0,1fr));
+  gap: var(--vq-gutter); grid-auto-rows: 44px;
+}
+.vq-build__grid .vq-dcard { padding: 12px; }
+.vq-fly {
+  animation: vq-fly var(--vq-dur-4) var(--vq-ease-spring-soft) backwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes vq-fly {
+  from { opacity: 0; transform: translate3d(28px, 18px, 0) scale(.9); }
+  to   { opacity: 1; transform: none; }
+}
+.vq-build__empty {
+  height: 100%; min-height: 300px;
+  display: grid; place-items: center; text-align: center;
+  border: 1px dashed var(--vq-line-strong); border-radius: var(--vq-r-xl);
+  color: var(--vq-text-3);
+}
+
+/* ═══ "We are building your software" — the assembly sequence ════════════
+   Only what the user chose flies in. That is the whole point of the shot. */
+.vq-assemble { position: relative; min-height: 560px; overflow: hidden; }
+.vq-assemble__stage {
+  position: relative; height: 100%;
+  display: grid; place-items: center; padding: var(--vq-space-8);
+}
+.vq-assemble__cloud {
+  position: absolute; inset: 0;
+  display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
+  gap: 8px; padding: var(--vq-space-8);
+}
+.vq-fleck {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding-inline: 11px;
+  border-radius: var(--vq-r-full);
+  border: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+  font-size: var(--vq-fs-caption); font-weight: var(--vq-fw-medium);
+  color: var(--vq-text-3); word-spacing: normal; white-space: nowrap;
+  transition: opacity var(--vq-dur-3) var(--vq-ease-out),
+              transform var(--vq-dur-4) var(--vq-ease-spring-soft),
+              background-color var(--vq-dur-2) var(--vq-ease-out),
+              border-color var(--vq-dur-2) var(--vq-ease-out),
+              color var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-fleck.is-picked {
+  background: var(--vq-accent-quiet);
+  border-color: var(--vq-accent);
+  color: var(--vq-accent-text);
+  font-weight: var(--vq-fw-semi);
+}
+/* Everything not picked drains away — the shot is what was chosen, and
+   just as importantly what wasn't. */
+.vq-fleck.is-dropped { opacity: 0; transform: translate3d(0, 14px, 0) scale(.86); }
+.vq-fleck.is-flying { opacity: 0; transform: translate3d(var(--tx, 0), var(--ty, 0), 0) scale(.5); }
+
+.vq-assemble__out { position: absolute; inset: 0 0 34px; opacity: 0; pointer-events: none;
+  transition: opacity var(--vq-dur-4) var(--vq-ease-out); padding: var(--vq-space-5); }
+.vq-assemble__out .vq-app { height: 100%; }
+.vq-assemble__out .vq-app__body { min-height: 0; }
+.vq-assemble__out .vq-app__main { overflow: hidden; }
+.vq-assemble__out.is-in { opacity: 1; pointer-events: auto; }
+.vq-assemble__caption {
+  position: absolute; inset-inline: 0; bottom: var(--vq-space-5);
+  text-align: center; font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-caption); color: var(--vq-text-3); word-spacing: normal;
+}
+
+/* ═══ SmartCapture ═══════════════════════════════════════════════════════ */
+.vq-cap { display: grid; grid-template-columns: minmax(0,300px) minmax(0,1fr); gap: 1px; background: var(--vq-line); min-height: 400px; }
+@media (max-width: 899px) { .vq-cap { grid-template-columns: minmax(0,1fr); } }
+.vq-cap__in, .vq-cap__out { background: var(--vq-surface); padding: var(--vq-space-5); display: flex; flex-direction: column; }
+.vq-cap__stage {
+  position: relative; flex: 1;
+  border: 1px dashed var(--vq-line-strong); border-radius: var(--vq-r-lg);
+  background: var(--vq-sunken);
+  display: grid; place-items: center;
+  overflow: hidden; min-height: 210px;
+}
+/* A paper receipt, drawn not photographed. */
+.vq-receipt {
+  width: 116px; padding: 10px 9px;
+  background: #fff; border-radius: 3px;
+  box-shadow: var(--vq-elev-3);
+  transform: rotate(-3deg);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.vq-receipt i { display: block; height: 3px; border-radius: 2px; background: var(--vq-ink-200); }
+.vq-receipt i.hd { height: 6px; width: 46%; background: var(--vq-ink-900); margin-bottom: 3px; }
+.vq-receipt i.tot { height: 5px; width: 40%; margin-left: auto; margin-top: 3px; background: var(--vq-teal-600); }
+.vq-cap__scan {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: var(--vq-accent);
+  box-shadow: 0 0 16px 3px rgb(35 196 166 / .8);
+  animation: vq-scan 1.4s var(--vq-ease-in-out) infinite;
+}
+@keyframes vq-scan { 0%,100% { top: 12%; } 50% { top: 88%; } }
+
+.vq-wave { display: flex; align-items: flex-end; gap: 3px; height: 54px; }
+.vq-wave i {
+  width: 4px; border-radius: var(--vq-r-full);
+  background: var(--vq-line-strong); height: 18%;
+  transition: background-color var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-wave.is-live i { background: var(--vq-accent); animation: vq-bounce 1.1s var(--vq-ease-in-out) infinite; }
+.vq-wave.is-live i:nth-child(7n+1) { animation-delay: 0ms; }
+.vq-wave.is-live i:nth-child(7n+2) { animation-delay: -110ms; }
+.vq-wave.is-live i:nth-child(7n+3) { animation-delay: -220ms; }
+.vq-wave.is-live i:nth-child(7n+4) { animation-delay: -330ms; }
+.vq-wave.is-live i:nth-child(7n+5) { animation-delay: -440ms; }
+.vq-wave.is-live i:nth-child(7n+6) { animation-delay: -550ms; }
+.vq-wave.is-live i:nth-child(7n+7) { animation-delay: -660ms; }
+@keyframes vq-bounce { 0%,100% { height: 18%; } 50% { height: 92%; } }
+
+.vq-cap__rows { display: flex; flex-direction: column; }
+.vq-cap__row {
+  display: grid; align-items: center; gap: 10px;
+  grid-template-columns: 1fr auto auto auto;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--vq-line-soft);
+  font-size: var(--vq-fs-caption);
+  animation: vq-pop var(--vq-dur-3) var(--vq-ease-spring) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.vq-cap__row b { font-weight: var(--vq-fw-medium); }
+.vq-cap__row em { display: block; font-style: normal; font-family: var(--vq-font-numeric); font-size: 10px; color: var(--vq-text-3); word-spacing: normal; }
+.vq-cap__row span { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; word-spacing: normal; color: var(--vq-text-2); }
+.vq-cap__row .m { color: var(--vq-text); font-weight: var(--vq-fw-semi); }
+.vq-cap__match {
+  font-family: var(--vq-font-numeric); font-size: 9px;
+  padding: 2px 7px; border-radius: var(--vq-r-full);
+  background: var(--vq-success-bg); color: var(--vq-success);
+  letter-spacing: .05em; text-transform: uppercase; word-spacing: normal;
+}
+.vq-cap__match--new { background: var(--vq-warning-bg); color: var(--vq-warning); }
+
+/* ═══ Timeline — the history story ═══════════════════════════════════════ */
+.vq-timeline { position: relative; padding-left: 26px; }
+.vq-timeline::before {
+  content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px;
+  background: linear-gradient(to bottom, var(--vq-accent), var(--vq-line));
+  border-radius: var(--vq-r-full);
+}
+.vq-timeline__item { position: relative; padding-bottom: var(--vq-space-8); }
+.vq-timeline__item:last-child { padding-bottom: 0; }
+.vq-timeline__item::before {
+  content: ""; position: absolute; left: -24px; top: 5px;
+  width: 12px; height: 12px; border-radius: var(--vq-r-full);
+  background: var(--vq-surface); border: 2px solid var(--vq-accent);
+}
+.vq-timeline__when {
+  font-family: var(--vq-font-numeric); font-size: var(--vq-fs-eyebrow);
+  letter-spacing: var(--vq-ls-eyebrow); text-transform: uppercase;
+  color: var(--vq-accent-text); word-spacing: normal;
+}
+
+/* ═══ Feature-page index card ════════════════════════════════════════════ */
+.vq-fcard { display: flex; flex-direction: column; gap: var(--vq-space-3); height: 100%; }
+.vq-fcard__meta {
+  margin-top: auto; padding-top: var(--vq-space-4);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--vq-space-3);
+  border-top: 1px solid var(--vq-line-soft);
+}
+.vq-fcard__n {
+  font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+  font-size: var(--vq-fs-metric-sm); font-weight: var(--vq-fw-semi);
+  letter-spacing: -.03em; word-spacing: normal; line-height: 1;
+}
+.vq-fcard__n small { font-size: 12px; font-weight: var(--vq-fw-medium); color: var(--vq-text-3); margin-left: 4px; letter-spacing: 0; }

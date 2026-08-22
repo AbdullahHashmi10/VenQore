@@ -1334,11 +1334,11 @@ function hostDimensions(host, card) {
 
   const selfLabelled = card.chart === "gauge" || card.chart === "ring" || card.chart === "sunburst";
   const showHead = card.chart !== "status" && !selfLabelled;
-  const headerDeduction = showHead ? 110 : 36;
+  const headerDeduction = showHead ? 100 : 32;
   const extraKeysDeduction = (card.extraKeys && card.extraKeys.length > 0) ? 30 : 0;
   
-  const calcW = Math.max(80, Math.round(cardW - 32));
-  const calcH = Math.max(50, Math.round(cardH - 32 - headerDeduction - extraKeysDeduction));
+  const calcW = Math.max(80, Math.round(cardW - 28));
+  const calcH = Math.max(50, Math.round(cardH - 28 - headerDeduction - extraKeysDeduction));
 
   const W = Math.max(80, clientW > 30 ? clientW : calcW);
   const H = Math.max(50, clientH > 30 ? clientH : calcH);
@@ -1363,7 +1363,7 @@ function renderCard(c){
 
   // 1. Quick Actions Hub Card
   if (c.type === 'action_hub') {
-    return `<article class="vqc vqc--action-hub vq-w${w} vq-h${h} vqc--tone-ink" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+    return `<article class="vqc vqc--action-hub vqc--c4 vq-w${w} vq-h${h} vqc--tone-ink" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
       <div class="vqc-hd">
         <span class="vqc-eyebrow">OPERATIONS HUB</span>
         <div class="vqc-acts">
@@ -1398,7 +1398,7 @@ function renderCard(c){
 
   // 2. Bank Accounts & Cash in Hand Liquidity Card
   if (c.type === 'bank_liquidity') {
-    return `<article class="vqc vqc--bank-liquidity vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+    return `<article class="vqc vqc--bank-liquidity vqc--c4 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
       <div class="vqc-hd">
         <span class="vqc-eyebrow">LIQUIDITY & BALANCES</span>
         <div class="vqc-acts">
@@ -1432,7 +1432,7 @@ function renderCard(c){
 
   // 3. Alerts & Action Required Card
   if (c.type === 'alerts_hub') {
-    return `<article class="vqc vqc--alerts-hub vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+    return `<article class="vqc vqc--alerts-hub vqc--c4 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
       <div class="vqc-hd">
         <span class="vqc-eyebrow">ACTIONS REQUIRED</span>
         <div class="vqc-acts">
@@ -1466,7 +1466,7 @@ function renderCard(c){
 
   // 4. Growth Engine Card
   if (c.type === 'growth_engine') {
-    return `<article class="vqc vqc--growth-engine vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+    return `<article class="vqc vqc--growth-engine vqc--c4 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
       <div class="vqc-hd">
         <span class="vqc-eyebrow">GROWTH ENGINE</span>
         <div class="vqc-acts">
@@ -1498,11 +1498,11 @@ function renderCard(c){
     </article>`;
   }
 
-  // 5. Custom Button Card
+  // 5. Custom Button Card (C1 Shortcut)
   if (c.type === 'custom_button') {
-    return `<article class="vqc vqc--custom-btn vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
+    return `<article class="vqc vqc--custom-btn vqc--c1 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
       <div class="vqc-hd">
-        <span class="vqc-eyebrow">CUSTOM SHORTCUT</span>
+        <span class="vqc-eyebrow">SHORTCUT</span>
         <div class="vqc-acts">
           <a href="${c.targetUrl || '/pos'}" class="vqc-nav-link" title="Open Shortcut" target="_self">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
@@ -1539,13 +1539,23 @@ function renderCard(c){
   } else if (c.cat === "C2" && c.chart === "stat"){
     const [cw] = sizeOf(c);
     const inline = c.fit === 0 && !c.h;
-    /* even the one-row strip says what it is and over what window */
-    body = `${tools()}<div class="vqc-bd vqc-bd--strip ${inline ? "is-inline" : ""}">
+    body = `<div class="vqc-hd">
       <span class="vqc-eyebrow" title="${title}">${title}</span>
-      <span class="vqc-head">
+      <div class="vqc-acts">
+        <a href="${deepLink}" class="vqc-nav-link" title="Open ${title}" target="_self">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+        </a>
+        <span class="vqc-hd-r">${PREFS.periodPicker ? periodPicker(c) : ""}</span>
+        ${tools()}
+      </div>
+    </div>
+    <div class="vqc-bd vqc-bd--strip ${inline ? "is-inline" : ""}">
+      <div class="vqc-strip-main">
         <span class="vqc-head-val vqc-value vqc-value--sm">${rollerHTML(hl.value)}</span>
-        <span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span></span>
-      <span class="vqc-head-when vqc-when">${cw >= 6 ? hl.when : c.period}</span></div>`;
+        <span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>
+      </div>
+      <span class="vqc-head-when vqc-when">${cw >= 6 ? hl.when : c.period}</span>
+    </div>`;
   } else {
     /* only suppress the headline when the chart draws the number in its centre */
     const selfLabelled = c.chart === "gauge" || c.chart === "ring" || c.chart === "sunburst"
@@ -1945,14 +1955,45 @@ window.VenQoreCards = {
   }
 }
 
-// Official Six Card Categories from VenQore Layout Law
-const CARD_SIZES = [
-  { id: 'C1', label: 'Tile C1', sub: 'Single Stat / Action', desc: '2×1 icon+label (min 1×1)', cat: 'C1', fit: 0, w: 2, h: 1, previewClass: 'preview-size-c1' },
-  { id: 'C2', label: 'Strip C2', sub: 'One KPI Inline', desc: '4×1 inline (or 3×2 stacked)', cat: 'C2', fit: 0, w: 4, h: 1, previewClass: 'preview-size-c2' },
-  { id: 'C3', label: 'Metric C3', sub: 'KPI with Delta & Spark', desc: '4×3 full (or 3×2 standard)', cat: 'C3', fit: 0, w: 4, h: 3, previewClass: 'preview-size-c3' },
-  { id: 'C4', label: 'Panel C4', sub: 'Breakdown / Ranked List', desc: '4×4 full (or 3×4 standard)', cat: 'C4', fit: 0, w: 4, h: 4, previewClass: 'preview-size-c4' },
-  { id: 'C5', label: 'Board C5', sub: 'Full Multi-Series Trend', desc: '6×6 full (or 5×7 narrow)', cat: 'C5', fit: 0, w: 6, h: 6, previewClass: 'preview-size-c5' },
-  { id: 'C6', label: 'Canvas C6', sub: 'Master Hub & Flow Map', desc: '8×8 full (or 6×10 narrow)', cat: 'C6', fit: 0, w: 8, h: 8, previewClass: 'preview-size-c6' }
+// ── ALL POSSIBLE SIZE OPTIONS FOR METRICS (C2 to C6) ─────────────────────
+const METRIC_SIZE_OPTIONS = [
+  // Strip C2 (Min 3×2/4×1, Max 6×2)
+  { id: 'c2-4x1', cat: 'C2', fit: 0, w: 4, h: 1, label: '4 × 1 Inline', sub: 'Strip C2', desc: 'Single KPI inline (min fit)', previewClass: 'preview-size-c2' },
+  { id: 'c2-3x2', cat: 'C2', fit: 1, w: 3, h: 2, label: '3 × 2 Stacked', sub: 'Strip C2', desc: 'Stacked KPI headline', previewClass: 'preview-size-c2' },
+  { id: 'c2-6x2', cat: 'C2', fit: 0, w: 6, h: 2, label: '6 × 2 Wide Strip', sub: 'Strip C2 (Max)', desc: 'Max wide single KPI strip', previewClass: 'preview-size-c2' },
+
+  // Metric C3 (Min 2×3, Max 6×4)
+  { id: 'c3-4x3', cat: 'C3', fit: 0, w: 4, h: 3, label: '4 × 3 Full', sub: 'Metric C3', desc: 'KPI with delta & chart (full)', previewClass: 'preview-size-c3' },
+  { id: 'c3-3x2', cat: 'C3', fit: 1, w: 3, h: 2, label: '3 × 2 Standard', sub: 'Metric C3', desc: 'Compact trend card', previewClass: 'preview-size-c3' },
+  { id: 'c3-2x2', cat: 'C3', fit: 2, w: 2, h: 2, label: '2 × 2 Compact', sub: 'Metric C3', desc: 'Tight gauge / stat', previewClass: 'preview-size-c3' },
+  { id: 'c3-2x3', cat: 'C3', fit: 3, w: 2, h: 3, label: '2 × 3 Stacked', sub: 'Metric C3 (Min)', desc: 'Vertical slim metric', previewClass: 'preview-size-c3' },
+  { id: 'c3-6x4', cat: 'C3', fit: 0, w: 6, h: 4, label: '6 × 4 Wide Metric', sub: 'Metric C3 (Max)', desc: 'Max wide trend metric', previewClass: 'preview-size-c3' },
+
+  // Panel C4 (Min 2×6, Max 6×6)
+  { id: 'c4-4x4', cat: 'C4', fit: 0, w: 4, h: 4, label: '4 × 4 Full', sub: 'Panel C4', desc: 'Standard breakdown & lists', previewClass: 'preview-size-c4' },
+  { id: 'c4-3x4', cat: 'C4', fit: 1, w: 3, h: 4, label: '3 × 4 Standard', sub: 'Panel C4', desc: 'Narrow breakdown panel', previewClass: 'preview-size-c4' },
+  { id: 'c4-3x5', cat: 'C4', fit: 2, w: 3, h: 5, label: '3 × 5 Compact', sub: 'Panel C4', desc: 'Vertical list panel', previewClass: 'preview-size-c4' },
+  { id: 'c4-2x6', cat: 'C4', fit: 3, w: 2, h: 6, label: '2 × 6 List', sub: 'Panel C4 (Min)', desc: 'Long vertical table excerpt', previewClass: 'preview-size-c4' },
+  { id: 'c4-6x6', cat: 'C4', fit: 0, w: 6, h: 6, label: '6 × 6 Wide Panel', sub: 'Panel C4 (Max)', desc: 'Max wide panel breakdown', previewClass: 'preview-size-c4' },
+
+  // Board C5 (Min 4×8, Max 12×9)
+  { id: 'c5-6x6', cat: 'C5', fit: 0, w: 6, h: 6, label: '6 × 6 Full', sub: 'Board C5', desc: 'Full multi-series graph', previewClass: 'preview-size-c5' },
+  { id: 'c5-5x7', cat: 'C5', fit: 1, w: 5, h: 7, label: '5 × 7 Narrow', sub: 'Board C5', desc: 'Tall multi-series chart', previewClass: 'preview-size-c5' },
+  { id: 'c5-4x8', cat: 'C5', fit: 2, w: 4, h: 8, label: '4 × 8 Min', sub: 'Board C5 (Min)', desc: 'Minimum board chart', previewClass: 'preview-size-c5' },
+  { id: 'c5-12x9', cat: 'C5', fit: 0, w: 12, h: 9, label: '12 × 9 Wide Board', sub: 'Board C5 (Max)', desc: 'Max full-width master board', previewClass: 'preview-size-c5' },
+
+  // Canvas C6 (Min 4×12, Max 12×16)
+  { id: 'c6-8x8', cat: 'C6', fit: 0, w: 8, h: 8, label: '8 × 8 Full', sub: 'Canvas C6', desc: 'Hero chart & master ledger', previewClass: 'preview-size-c6' },
+  { id: 'c6-6x10', cat: 'C6', fit: 1, w: 6, h: 10, label: '6 × 10 Narrow', sub: 'Canvas C6', desc: 'Tall live feed canvas', previewClass: 'preview-size-c6' },
+  { id: 'c6-4x12', cat: 'C6', fit: 2, w: 4, h: 12, label: '4 × 12 Min', sub: 'Canvas C6 (Min)', desc: 'Minimum hero canvas', previewClass: 'preview-size-c6' },
+  { id: 'c6-12x16', cat: 'C6', fit: 0, w: 12, h: 16, label: '12 × 16 Hero Canvas', sub: 'Canvas C6 (Max)', desc: 'Max comprehensive canvas', previewClass: 'preview-size-c6' }
+];
+
+// ── C1 IS STRICTLY EXCLUSIVE TO SHORTCUTS & ACTION TILES ─────────────────
+const SHORTCUT_SIZE_OPTIONS = [
+  { id: 'c1-2x1', cat: 'C1', fit: 0, w: 2, h: 1, label: '2 × 1 Icon + Label', sub: 'Tile C1 (Standard)', desc: 'Shortcut with title & icon (≥124px)', previewClass: 'preview-size-c1' },
+  { id: 'c1-1x1', cat: 'C1', fit: 1, w: 1, h: 1, label: '1 × 1 Icon Only', sub: 'Tile C1 (Min)', desc: 'Micro square shortcut glyph (≥52px)', previewClass: 'preview-size-c1' },
+  { id: 'c1-3x2', cat: 'C1', fit: 0, w: 3, h: 2, label: '3 × 2 Big Tile', sub: 'Tile C1 (Max)', desc: 'Max tile with subtitle & button', previewClass: 'preview-size-c1' }
 ];
 
 // 4 V6 Design System Card Background Tones
@@ -1999,7 +2040,7 @@ const OPERATIONAL_TEMPLATES = [
   }
 ];
 
-// Shortcut Action targets for Custom Button Builder
+// Shortcut Action targets for Custom Button Builder (C1 Exclusive)
 const SHORTCUT_TARGETS = [
   { label: 'Point of Sale (POS)', url: '/pos', icon: 'cart', color: '#0baa8f' },
   { label: 'Create New Invoice', url: '/s/my-business-store-353/sales', icon: 'file', color: '#2ba5d1' },
@@ -2028,6 +2069,7 @@ export default function NewDashboard(props) {
   const [step, setStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArea, setSelectedArea] = useState('All');
+  const [selectedCatFilter, setSelectedCatFilter] = useState('All'); // 'All' | 'C2' | 'C3' | 'C4' | 'C5' | 'C6'
   
   // 3. Quick Actions GlassIcons Popup State
   const [glassModalOpen, setGlassModalOpen] = useState(false);
@@ -2044,7 +2086,7 @@ export default function NewDashboard(props) {
   const [customBtnTarget, setCustomBtnTarget] = useState(SHORTCUT_TARGETS[0]);
 
   // Card Customization Draft State
-  const [selectedSizeId, setSelectedSizeId] = useState('C3');
+  const [selectedSizeId, setSelectedSizeId] = useState('c3-4x3');
   const [draftChart, setDraftChart] = useState('area');
   const [draftVariant, setDraftVariant] = useState('gradient');
   const [draftTone, setDraftTone] = useState('surface');
@@ -2067,13 +2109,31 @@ export default function NewDashboard(props) {
     setStep(1);
     setSelectedReading(null);
     setSelectedTemplate(null);
+    setSelectedCatFilter('All');
+    if (catIndex === 2) {
+      setSelectedSizeId('c1-2x1');
+    } else {
+      setSelectedSizeId('c3-4x3');
+    }
     setStepperModalOpen(true);
   };
+
+  // Active Size Options based on category
+  const activeSizeOptions = useMemo(() => {
+    if (categoryFolderIndex === 2) {
+      return SHORTCUT_SIZE_OPTIONS;
+    }
+    if (selectedCatFilter === 'All') {
+      return METRIC_SIZE_OPTIONS;
+    }
+    return METRIC_SIZE_OPTIONS.filter(s => s.cat === selectedCatFilter);
+  }, [categoryFolderIndex, selectedCatFilter]);
 
   // Update preview in Step 2 whenever configuration changes
   useEffect(() => {
     if (stepperModalOpen && step === 2 && previewRef.current && window.VenQoreCards) {
-      const targetSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
+      const allSizes = categoryFolderIndex === 2 ? SHORTCUT_SIZE_OPTIONS : METRIC_SIZE_OPTIONS;
+      const targetSize = allSizes.find(s => s.id === selectedSizeId) || allSizes[0];
       
       let cardDraft = null;
 
@@ -2082,8 +2142,8 @@ export default function NewDashboard(props) {
           id: 'preview-card',
           key: selectedReading.key,
           cat: targetSize.cat,
-          chart: draftChart,
-          variant: draftVariant,
+          chart: targetSize.cat === 'C2' ? 'stat' : draftChart,
+          variant: targetSize.cat === 'C2' ? 'spark' : draftVariant,
           period: draftPeriod,
           fit: targetSize.fit,
           tone: draftTone,
@@ -2113,8 +2173,9 @@ export default function NewDashboard(props) {
           btnColor: customBtnTarget.color,
           tone: draftTone,
           cat: 'C1',
-          w: 2,
-          h: 1
+          fit: targetSize.fit,
+          w: targetSize.w,
+          h: targetSize.h
         };
       }
 
@@ -2145,41 +2206,41 @@ export default function NewDashboard(props) {
     
     let defaultChart = 'area';
     let defaultVar = 'gradient';
-    let initialSize = 'C3';
+    let initialSizeId = 'c3-4x3';
 
     if (shape === 'SCALAR') {
       defaultChart = 'stat';
       defaultVar = 'spark';
-      initialSize = 'C2';
+      initialSizeId = 'c2-4x1';
     } else if (shape === 'GAUGE') {
       defaultChart = 'gauge';
       defaultVar = 'standard';
-      initialSize = 'C3';
+      initialSizeId = 'c3-4x3';
     } else if (shape === 'TABLE') {
       defaultChart = 'table';
       defaultVar = 'standard';
-      initialSize = 'C6';
+      initialSizeId = 'c6-8x8';
     } else if (shape === 'FEED') {
       defaultChart = 'feed';
       defaultVar = 'live';
-      initialSize = 'C5';
+      initialSizeId = 'c5-6x6';
     } else if (shape === 'BREAKDOWN') {
       defaultChart = 'bar';
       defaultVar = 'grouped';
-      initialSize = 'C4';
+      initialSizeId = 'c4-4x4';
     } else if (shape === 'RANKING') {
       defaultChart = 'funnel';
       defaultVar = 'solid';
-      initialSize = 'C4';
+      initialSizeId = 'c4-4x4';
     } else {
       defaultChart = 'area';
       defaultVar = 'gradient';
-      initialSize = 'C3';
+      initialSizeId = 'c3-4x3';
     }
     
     setDraftChart(defaultChart);
     setDraftVariant(defaultVar);
-    setSelectedSizeId(initialSize);
+    setSelectedSizeId(initialSizeId);
     setDraftTone('surface');
     setDraftPeriod('Month');
     setDraftTitle(rd.label);
@@ -2197,11 +2258,12 @@ export default function NewDashboard(props) {
     setStep(2);
   };
 
-  // Open Step 2 for Custom Button
+  // Open Step 2 for Custom Button (C1 Shortcut)
   const selectCustomBtnForStep2 = (target) => {
     setCustomBtnTarget(target);
     setSelectedReading(null);
     setSelectedTemplate(null);
+    setSelectedSizeId('c1-2x1');
     setDraftTone('surface');
     setDraftTitle(target.label);
     setStep(2);
@@ -2216,10 +2278,10 @@ export default function NewDashboard(props) {
       const mockCard = { chart: chartType, key: selectedReading?.key || 'sales.revenue', extraKeys: [], period: draftPeriod };
       const [minW, minH] = engine.minSizeFor(mockCard);
       
-      const currentSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
+      const currentSize = METRIC_SIZE_OPTIONS.find(s => s.id === selectedSizeId) || METRIC_SIZE_OPTIONS[3];
       
       if (currentSize.w < minW || currentSize.h < minH) {
-        const fittingSize = CARD_SIZES.find(s => s.w >= minW && s.h >= minH) || CARD_SIZES[4];
+        const fittingSize = METRIC_SIZE_OPTIONS.find(s => s.w >= minW && s.h >= minH) || METRIC_SIZE_OPTIONS[3];
         setSelectedSizeId(fittingSize.id);
       }
     }
@@ -2231,31 +2293,18 @@ export default function NewDashboard(props) {
     }
   };
 
-  // Handle user explicitly selecting a size
+  // Handle user selecting a size
   const handleSizeSelect = (sizeId) => {
-    const s = CARD_SIZES.find(x => x.id === sizeId);
+    setSelectedSizeId(sizeId);
+
+    const allSizes = categoryFolderIndex === 2 ? SHORTCUT_SIZE_OPTIONS : METRIC_SIZE_OPTIONS;
+    const s = allSizes.find(x => x.id === sizeId);
     if (!s) return;
     
-    const engine = window.VenQoreCards;
-    if (engine && typeof engine.minSizeFor === 'function') {
-      const mockCard = { chart: draftChart, key: selectedReading?.key || 'sales.revenue', extraKeys: [], period: draftPeriod };
-      const [minW, minH] = engine.minSizeFor(mockCard);
-      
-      if (s.w < minW || s.h < minH) {
-        if (sizeId === 'C1' || sizeId === 'C2') {
-          setDraftChart('stat');
-          setDraftVariant('spark');
-        } else if (sizeId === 'C3') {
-          setDraftChart('gauge');
-          setDraftVariant('standard');
-        } else {
-          setDraftChart('area');
-          setDraftVariant('gradient');
-        }
-      }
+    if (s.cat === 'C2') {
+      setDraftChart('stat');
+      setDraftVariant('spark');
     }
-
-    setSelectedSizeId(sizeId);
   };
 
   // Add customized card to dashboard
@@ -2265,13 +2314,13 @@ export default function NewDashboard(props) {
     let newCard = null;
 
     if (categoryFolderIndex === 0 && selectedReading) {
-      const targetSize = CARD_SIZES.find(s => s.id === selectedSizeId) || CARD_SIZES[2];
+      const targetSize = METRIC_SIZE_OPTIONS.find(s => s.id === selectedSizeId) || METRIC_SIZE_OPTIONS[3];
       newCard = {
         id: 'c-' + Math.random().toString(36).substring(2, 9),
         key: selectedReading.key,
         cat: targetSize.cat,
-        chart: draftChart,
-        variant: draftVariant,
+        chart: targetSize.cat === 'C2' ? 'stat' : draftChart,
+        variant: targetSize.cat === 'C2' ? 'spark' : draftVariant,
         period: draftPeriod,
         fit: targetSize.fit,
         tone: draftTone,
@@ -2293,6 +2342,7 @@ export default function NewDashboard(props) {
         h: selectedTemplate.defaultSize.h
       };
     } else if (categoryFolderIndex === 2) {
+      const targetSize = SHORTCUT_SIZE_OPTIONS.find(s => s.id === selectedSizeId) || SHORTCUT_SIZE_OPTIONS[0];
       newCard = {
         id: 'c-' + Math.random().toString(36).substring(2, 9),
         type: 'custom_button',
@@ -2301,8 +2351,9 @@ export default function NewDashboard(props) {
         btnColor: customBtnTarget.color,
         tone: draftTone,
         cat: 'C1',
-        w: 2,
-        h: 1
+        fit: targetSize.fit,
+        w: targetSize.w,
+        h: targetSize.h
       };
     }
 
@@ -2342,7 +2393,7 @@ export default function NewDashboard(props) {
     });
   }, [readings, selectedArea, searchQuery]);
 
-  // Group filtered readings by area (only populated sections)
+  // Group filtered readings by area
   const groupedSections = useMemo(() => {
     const groups = {};
     filteredReadings.forEach(r => {
@@ -2695,7 +2746,7 @@ export default function NewDashboard(props) {
               <div className="vq-folder-paper-content">
                 <span className="vq-folder-paper-icon">🚀</span>
                 <span className="vq-folder-paper-title">Shortcuts</span>
-                <span className="vq-folder-paper-sub">1-Click Jump</span>
+                <span className="vq-folder-paper-sub">1-Click Jump (C1)</span>
               </div>
             ]}
           />
@@ -2710,7 +2761,7 @@ export default function NewDashboard(props) {
             <div className="vq-modal-top-bar">
               <div>
                 <div className="vq-modal-step-sub">
-                  {categoryFolderIndex === 0 ? 'ANALYTICS READINGS' : categoryFolderIndex === 1 ? 'OPERATIONS & HUBS' : 'CUSTOM SHORTCUT'} · STEP {step} OF 3
+                  {categoryFolderIndex === 0 ? 'ANALYTICS READINGS' : categoryFolderIndex === 1 ? 'OPERATIONS & HUBS' : 'CUSTOM SHORTCUT (C1)'} · STEP {step} OF 3
                 </div>
                 <div className="vq-modal-heading">
                   {step === 1 ? 'Select Card' : step === 2 ? 'Visual Styling & Theme' : 'Preview & Add'}
@@ -2837,9 +2888,9 @@ export default function NewDashboard(props) {
                     </div>
                   </div>
                 ) : (
-                  /* 3. Custom Action Button Shortcuts */
+                  /* 3. Custom Action Button Shortcuts (C1 Exclusive) */
                   <div className="vq-modal-section-group">
-                    <div className="vq-modal-section-title">CREATE YOUR OWN ACTION SHORTCUT</div>
+                    <div className="vq-modal-section-title">CREATE SHORTCUT TILE (C1)</div>
                     <div className="vq-modal-cards-grid">
                       {SHORTCUT_TARGETS.map(target => (
                         <div
@@ -2849,7 +2900,7 @@ export default function NewDashboard(props) {
                         >
                           <div className="vq-item-card-top">
                             <span className="vq-item-card-title">{target.label}</span>
-                            <span className="vq-item-new-badge" style={{ background: 'var(--vq-teal-50)', color: 'var(--vq-teal-700)' }}>1-Click</span>
+                            <span className="vq-item-new-badge" style={{ background: 'var(--vq-teal-50)', color: 'var(--vq-teal-700)' }}>C1 Shortcut</span>
                           </div>
                           
                           <p className="vq-item-card-desc">Direct jump shortcut to {target.label} workflow.</p>
@@ -2884,20 +2935,37 @@ export default function NewDashboard(props) {
 
                     {categoryFolderIndex === 0 && (
                       <>
-                        {/* Official Six Card Categories Selector */}
+                        {/* Category Filter Tabs & All Possible Sizing Bounds */}
                         <div className="vq-form-group">
                           <label className="vq-form-label">
-                            <span>CARD CATEGORY & SIZE (LAYOUT LAW)</span>
-                            <span className="vq-form-sublabel">Auto-scales layout</span>
+                            <span>CARD SIZES & BOUNDS (LAYOUT LAW)</span>
+                            <span className="vq-form-sublabel">{activeSizeOptions.length} Options</span>
                           </label>
-                          <div className="vq-size-grid">
-                            {CARD_SIZES.map(s => (
+
+                          <div className="vq-category-tabs">
+                            {['All', 'C2', 'C3', 'C4', 'C5', 'C6'].map(cat => (
+                              <button
+                                key={cat}
+                                type="button"
+                                className={`vq-cat-tab-btn ${selectedCatFilter === cat ? 'is-active' : ''}`}
+                                onClick={() => setSelectedCatFilter(cat)}
+                              >
+                                {cat === 'All' ? 'All Sizes' : cat === 'C2' ? 'Strip (C2)' : cat === 'C3' ? 'Metric (C3)' : cat === 'C4' ? 'Panel (C4)' : cat === 'C5' ? 'Board (C5)' : 'Canvas (C6)'}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="vq-size-grid" style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                            {activeSizeOptions.map(s => (
                               <div
                                 key={s.id}
                                 className={`vq-size-card ${selectedSizeId === s.id ? 'is-active' : ''}`}
                                 onClick={() => handleSizeSelect(s.id)}
                               >
-                                <div className="vq-size-card-title">{s.label}</div>
+                                <div className="vq-size-card-title">
+                                  <span>{s.label}</span>
+                                  <span style={{ fontSize: '10px', color: 'var(--vq-teal-600)', fontFamily: 'monospace' }}>{s.cat}</span>
+                                </div>
                                 <div className="vq-size-card-desc">{s.desc}</div>
                               </div>
                             ))}
@@ -2908,7 +2976,7 @@ export default function NewDashboard(props) {
                         <div className="vq-form-group">
                           <label className="vq-form-label">
                             <span>CHART TYPE</span>
-                            <span className="vq-form-sublabel">Auto-resizes category if needed</span>
+                            <span className="vq-form-sublabel">Auto-scales size bounds</span>
                           </label>
                           <div className="vq-select-btn-group">
                             {legalCharts.map(ch => (
@@ -2939,6 +3007,28 @@ export default function NewDashboard(props) {
                           </div>
                         </div>
                       </>
+                    )}
+
+                    {categoryFolderIndex === 2 && (
+                      /* C1 Shortcut Size Bounds Options */
+                      <div className="vq-form-group">
+                        <label className="vq-form-label">
+                          <span>SHORTCUT TILE SIZE (C1 EXCLUSIVE)</span>
+                          <span className="vq-form-sublabel">Min 1×1 / Max 3×2</span>
+                        </label>
+                        <div className="vq-size-grid">
+                          {SHORTCUT_SIZE_OPTIONS.map(s => (
+                            <div
+                              key={s.id}
+                              className={`vq-size-card ${selectedSizeId === s.id ? 'is-active' : ''}`}
+                              onClick={() => handleSizeSelect(s.id)}
+                            >
+                              <div className="vq-size-card-title">{s.label}</div>
+                              <div className="vq-size-card-desc">{s.desc}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
 
                     {/* Card Background Tone Selector (V6 Design System) */}

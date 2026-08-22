@@ -60,7 +60,7 @@ const trust = `
   <div class="vq-container">
     <div class="vq-row vq-wrap vq-gap-8" style="justify-content:center;text-align:center">
       <span class="vq-logo-item">${icon('store')} Running two live retail businesses today</span>
-      <span class="vq-logo-item">${icon('layers')} 144 shipped features, no module fees</span>
+      <span class="vq-logo-item">${icon('layers')} 46 modules, 108 readings, no module fees</span>
       <span class="vq-logo-item">${icon('ledger')} Double-entry accounting under every module</span>
     </div>
   </div>
@@ -140,6 +140,82 @@ const blueprint = `
   </div>
 </section>`;
 
+
+/* The shot the whole positioning rests on: every module in the catalogue
+   drifts on screen, the ones this business asked for light up, the rest
+   drain away, and what is left flies into a working system. */
+const assemble = `
+<section class="vq-section vq-band-dark" id="assemble">
+  <div class="vq-amb"><span class="vq-amb__grain"></span></div>
+  <div class="vq-container vq-container--wide" style="position:relative">
+    <div class="vq-section-head vq-reveal" style="max-width:840px">
+      <span class="vq-eyebrow">Watch it happen</span>
+      <h2 class="vq-display">46 modules go in. Only yours come out.</h2>
+      <p class="vq-lede">This is the part nobody else can show you, because nobody else does it. Every module and every
+        dashboard card VenQore ships is on the screen. Watch which ones a pharmacy keeps — and which ones it never has
+        to look at again.</p>
+    </div>
+
+    <div class="vq-demo vq-reveal" data-assemble>
+      <div class="vq-demo__bar">
+        <div class="vq-demo__dots"><i></i><i></i><i></i></div>
+        <div class="vq-demo__url">${icon('lock', 11)} app.venqore.com/build</div>
+        <span class="vq-demo__live">Assembling</span>
+      </div>
+      <div class="vq-demo__controls">
+        <span class="vq-eyebrow" style="flex:none">Build one for</span>
+        <div class="vq-demo__scroller" data-assemble-tabs role="tablist"></div>
+      </div>
+      <div class="vq-assemble">
+        <div class="vq-assemble__cloud" data-assemble-cloud></div>
+        <div class="vq-assemble__out" data-assemble-out></div>
+        <div class="vq-assemble__caption" data-assemble-caption></div>
+      </div>
+    </div>
+
+    <div class="vq-grid vq-grid--4 vq-mt-10">
+      ${[
+        ['Nothing is greyed out', 'A module your business does not need is absent, not locked behind an upsell badge. Your menus are short because your system is yours.'],
+        ['The cards follow the modules', 'Turn on batch tracking and an expiry card becomes available. Turn it off and the card is not offered — not shown empty.'],
+        ['You can change your mind', 'Describe what is different and approve the diff. Adding a branch is a sentence, not a change request.'],
+        ['Every version is snapshotted', 'The composition is versioned and reversible. Nothing about your books changes when your menus do.'],
+      ].map(([t, b]) => `
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi);color:#fff">${t}</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">${b}</p></div>`).join('')}
+    </div>
+  </div>
+</section>`;
+
+const explore = `
+<section class="vq-section">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Look closer</span>
+      <h2 class="vq-display">Six things worth seeing working.</h2>
+      <p class="vq-lede">Each of these is a live demo, not a screenshot. Click through them.</p>
+    </div>
+    <div class="vq-grid vq-grid--3">
+      ${[
+        ['cart', 'The register', 'pos.html', 'A till you compose yourself — seven starting points and a layout engine that stops your arrangement breaking.', '7', 'layouts'],
+        ['file', 'Documents', 'documents.html', 'Sales invoice to stock audit on one editor. A field that renders is a field that posts.', '13', 'types'],
+        ['grid', 'The dashboard', 'dashboard.html', 'Pick what you want to know. The card works out the smallest size it can be read at.', '108', 'readings'],
+        ['scan', 'SmartCapture', 'smartcapture.html', 'Photograph a bill, forward a screenshot, send a voice note. It comes back as a transaction.', '11', 'seconds'],
+        ['ledger', 'The Reckoner', 'reckoner.html', 'One place a number can be defined — and your history survives every rename you ever make.', '18', 'windows'],
+        ['plug', 'VenSynQ', 'vensynq.html', 'One catalogue behind five channels. Orders in as sales, stock counted once, commission isolated.', '5', 'channels'],
+      ].map(([ic, t, href, b, n, u]) => `
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="${href}">
+        <span class="vq-tile__icon">${icon(ic)}</span>
+        <h3 class="vq-tile__title">${t}</h3>
+        <p class="vq-tile__body">${b}</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">${n}<small>${u}</small></span>
+          <span class="vq-link">See it live ${icon('arrow', 15)}</span>
+        </div>
+      </a>`).join('')}
+    </div>
+  </div>
+</section>`;
+
 const ledger = `
 <section class="vq-section vq-band-dark" id="ledger">
   <div class="vq-amb"><span class="vq-amb__beams"><i></i><i></i><i></i></span><span class="vq-amb__grain"></span></div>
@@ -178,7 +254,7 @@ const modules = `
     <div class="vq-section-head vq-reveal">
       <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">What's inside</span>
       <h2 class="vq-display">Everything the business actually runs on.<br>Nothing charged as a module.</h2>
-      <p class="vq-lede">Ten groups, 144 shipped features. Your Blueprint turns on the ones your
+      <p class="vq-lede">Nine groups, 46 modules. Your Blueprint turns on the ones your
         business needs and leaves the rest off — not greyed out with an upsell badge. Off.</p>
     </div>
 
@@ -319,8 +395,8 @@ const proof = `
       </div>
       ${[
         ['Live businesses', '2', '', 'Running on it daily — including the shop it was built for'],
-        ['Automated tests', '220', '', 'Across the suite, run on every release'],
-        ['Features shipped', '144', '', 'Verified against routes, controllers and services'],
+        ['Passing tests', '1610', '', '11,000+ assertions, run on every release'],
+        ['Modules to compose', '46', '', '108 readings, 13 document types, 7 register layouts'],
       ].map(([l, v, u, n]) => `
       <div class="vq-card vq-card--xl vq-stat vq-reveal">
         <span class="vq-stat__label">${l}</span>
@@ -354,7 +430,7 @@ const compare = `
           ['One source of truth', 'No', 'Yes', 'Yes', 'Yes'],
           ['Double-entry everywhere', 'No', 'Yes', 'Yes', 'Yes'],
           ['Changing it later', 'Rebuild the sheet', 'Change request', 'Change request', 'Describe the change'],
-          ['Starting price', 'Free-ish', 'Per-user, per-module', 'Enterprise', '$36/month'],
+          ['Starting price', 'Free-ish', 'Per-user, per-module', 'Enterprise', '$18/month'],
         ].map(r => `<tr>
           <td class="vq-table__row-head">${r[0]}</td>
           <td class="vq-text-3">${r[1]}</td><td class="vq-text-3">${r[2]}</td><td class="vq-text-3">${r[3]}</td>
@@ -377,11 +453,12 @@ const pricing = `
       <p class="vq-lede">Every plan includes the full system. Plans differ by scale, not by unlocking
         the parts you need.</p>
     </div>
-    <div class="vq-grid vq-grid--3">
+    <div class="vq-grid vq-grid--4">
       ${[
-        ['Starter', '$36', 'For a single shop getting everything into one place.', ['1 branch, up to 3 users', 'Point of sale, inventory, purchasing', 'Core Ledger + full financial reports'], false],
-        ['Growth', '$63', 'For a business with more than one of something.', ['Up to 3 branches, 10 users', 'Multi-branch stock &amp; consolidated reporting', 'Signals, Vena, approval chains'], true],
-        ['Scale', '$129', 'For multi-location businesses on more than one channel.', ['Unlimited branches, 25 users', 'VenSynQ multi-channel sync', 'Full API, custom reports'], false],
+        ['Counter', '$18', 'One person, one counter, everything in one place.', ['1 branch, 1 user', 'The complete system, nothing withheld', 'Core Ledger + every financial report'], false],
+        ['Starter', '$36', 'A shop with a couple of people on the till.', ['1 branch, up to 3 users', 'Everything in Counter', 'SmartCapture, 20 pages a month'], false],
+        ['Growth', '$63', 'A business with more than one of something.', ['Up to 3 branches, 10 users', 'Multi-branch stock &amp; consolidated reporting', 'Signals, Vena, approval chains'], true],
+        ['Scale', '$129', 'Multi-location, selling on more than one channel.', ['10 branches, 50 users', 'VenSynQ multi-channel sync', 'Full API, custom reports'], false],
       ].map(([n, p, f, items, hot]) => `
       <div class="vq-plan${hot ? ' vq-plan--featured' : ''} vq-reveal">
         ${hot ? '<span class="vq-plan__flag">Most businesses start here</span>' : ''}
@@ -432,7 +509,7 @@ const faq = `
         ['Can I change my system later?', 'Describe the change. Blueprint shows you a diff — what is added, what changes, what is affected — and you approve it or you don\'t. Adding a branch is a sentence, not a change request.'],
         ['Do you charge to import my data, or to leave?', 'No, and no. Import is included. Export everything, any time, in a format your next system can read.'],
         ['How big is the team?', 'One founder, currently. That is a real trade-off: you get someone who answers your email personally and ships weekly, and you don\'t get a 40-person support org. If that trade doesn\'t work for you, it\'s better we both know now.'],
-        ['What does it cost to get started?', 'Starter is $36 a month. There is no implementation fee, no setup fee, no module fee and no consultant — which is the actual comparison, not the subscription line.'],
+        ['What does it cost to get started?', 'Counter is $18 a month for a single user, and it is the whole system — nothing is withheld. There is no implementation fee, no setup fee, no module fee and no consultant — which is the actual comparison, not the subscription line.'],
       ].map(([q, a]) => `
       <div class="vq-faq__item">
         <button class="vq-faq__q" type="button" aria-expanded="false">${q}<span class="vq-faq__sign"></span></button>
@@ -448,6 +525,7 @@ export default page({
   active: '',
   onHero: true,
   canvas: true,
-  body: hero + `<div class="vq-page">` + trust + problem + how + blueprint + ledger + modules + dashboard + presets + ai + proof + compare + pricing + founder + faq + `</div>`,
+  demos: true,
+  body: hero + `<div class="vq-page">` + trust + problem + how + blueprint + assemble + ledger + explore + modules + dashboard + presets + ai + proof + compare + pricing + founder + faq + `</div>`,
   extraBody: `<script src="assets/fluid.js" defer></script>`,
 });

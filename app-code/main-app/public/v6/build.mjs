@@ -9,7 +9,7 @@ const dist = path.join(root, 'dist');
 fs.mkdirSync(path.join(dist, 'assets'), { recursive: true });
 
 /* ── CSS ─────────────────────────────────────────────────────────────── */
-const cssParts = ['01-tokens.css', '02-base.css', '03-components.css', '04-product.css', '05-hero.css'];
+const cssParts = ['01-tokens.css', '02-base.css', '03-components.css', '04-product.css', '06-demos.css', '05-hero.css'];
 let css = cssParts.map(f => fs.readFileSync(path.join(src, f), 'utf8')).join('\n\n');
 
 /* The viewer has three theme states, not two: an explicit choice stamps
@@ -26,6 +26,7 @@ fs.writeFileSync(path.join(dist, 'assets', 'venqore.css'), css);
 
 /* ── JS ──────────────────────────────────────────────────────────────── */
 fs.copyFileSync(path.join(src, 'venqore.js'), path.join(dist, 'assets', 'venqore.js'));
+fs.copyFileSync(path.join(src, 'demos.js'), path.join(dist, 'assets', 'demos.js'));
 for (const f of ['fluid.js', 'logo.png']) {
   const p = path.join(root, 'assets', f);
   if (fs.existsSync(p)) fs.copyFileSync(p, path.join(dist, 'assets', f));

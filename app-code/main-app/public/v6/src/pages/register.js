@@ -83,7 +83,7 @@ const body = `
       <div class="vq-hr" style="background:rgb(255 255 255 / .10);margin-block:var(--vq-space-10)"></div>
 
       <div class="vq-row vq-wrap vq-gap-6">
-        ${[['7 / 7', 'correctness checks'], ['144', 'features shipped'], ['$0', 'implementation fee']]
+        ${[['46', 'modules to compose'], ['108', 'dashboard readings'], ['1,610', 'passing tests']]
           .map(([v, l]) => `<div>
             <div class="vq-num" style="font-size:var(--vq-fs-metric-sm);font-weight:600;color:#fff;letter-spacing:-.03em">${v}</div>
             <div class="vq-caption" style="color:rgb(237 242 239 / .55)">${l}</div>

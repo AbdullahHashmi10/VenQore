@@ -107,14 +107,9 @@
   color: var(--vq-on-accent);
   box-shadow: var(--vq-glow-accent);
 }
-.vq-dcard--accent .vq-stat__label,
-.vq-dcard--accent .vq-stat__unit,
-.vq-dcard--accent .vq-stat__note { color: rgb(255 255 255 / .72); }
-.vq-dcard--accent .vq-delta { background: rgb(255 255 255 / .18); color: #fff; }
-:root[data-theme="dark"] .vq-dcard--accent .vq-stat__label,
-html.dark .vq-dcard--accent .vq-stat__label { color: rgb(6 36 33 / .70); }
+.vq-dcard--accent .vq-delta { background: rgb(255 255 255 / .20); color: #fff; }
 :root[data-theme="dark"] .vq-dcard--accent .vq-delta,
-html.dark .vq-dcard--accent .vq-delta { background: rgb(6 36 33 / .16); color: #062421; }
+html.dark .vq-dcard--accent .vq-delta { background: rgb(6 36 33 / .18); color: #062421; }
 
 .vq-dcard__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--vq-space-3); }
 .vq-dcard__title { font-size: var(--vq-fs-caption); font-weight: var(--vq-fw-semi); color: var(--vq-text); }

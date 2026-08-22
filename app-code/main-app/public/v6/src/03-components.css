@@ -114,11 +114,6 @@ a.vq-card:hover { color: inherit; border-color: var(--vq-accent-quiet-line); box
   color: var(--vq-on-accent);
   box-shadow: var(--vq-glow-accent);
 }
-.vq-card--accent .vq-eyebrow,
-.vq-card--accent .vq-text-2,
-.vq-card--accent .vq-text-3 { color: rgb(255 255 255 / .72); }
-:root[data-theme="dark"] .vq-card--accent .vq-eyebrow,
-html.dark .vq-card--accent .vq-eyebrow { color: rgb(6 36 33 / .70); }
 :root[data-theme="dark"] .vq-card--accent,
 html.dark .vq-card--accent { box-shadow: var(--vq-glow-accent-strong); }
 
@@ -155,9 +150,6 @@ html.dark .vq-card--accent { box-shadow: var(--vq-glow-accent-strong); }
 .vq-stat__value--sm { font-size: var(--vq-fs-metric-sm); }
 .vq-stat__unit { font-size: 0.5em; font-weight: var(--vq-fw-medium); color: var(--vq-text-3); letter-spacing: 0; }
 .vq-stat__note { font-size: var(--vq-fs-caption); color: var(--vq-text-3); }
-.vq-card--accent .vq-stat__label,
-.vq-card--accent .vq-stat__unit,
-.vq-card--accent .vq-stat__note { color: rgb(255 255 255 / .70); }
 
 .vq-delta {
   display: inline-flex; align-items: center; gap: 4px;

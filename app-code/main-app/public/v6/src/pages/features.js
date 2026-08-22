@@ -82,7 +82,7 @@ const total = GROUPS.reduce((n, g) => n + g.items.length, 0);
 const body = pageHead({
   eyebrow: "What's inside",
   h1: 'Everything the business actually runs on. Nothing charged as a <em class="vq-italic">module</em>.',
-  lede: `Every plan includes the whole system. Your Blueprint turns on the parts your business needs and leaves the rest off — not greyed out behind an upsell badge, off. Below is what ships today, group by group.`,
+  lede: `46 modules, 108 dashboard readings, 13 document types, 33 built reports and 7 register layouts. Every plan includes all of it — your Blueprint turns on the parts your business needs and leaves the rest off. Not greyed out behind an upsell badge. Off.`,
   amb: 'dots',
   cta: `<a class="vq-btn vq-btn--primary vq-btn--lg" href="register.html">Start building <span class="vq-btn__arrow">${icon('arrow', 16)}</span></a>
         <a class="vq-btn vq-btn--secondary vq-btn--lg" href="pricing.html">See pricing</a>`,
@@ -92,10 +92,10 @@ const body = pageHead({
   <div class="vq-container">
     <div class="vq-grid vq-grid--4">
       ${[
-        ['Features shipped', String(total), '', 'Verified against routes, controllers and services — not a marketing count'],
-        ['Groups', String(GROUPS.length), '', 'One taxonomy, no overlap, nothing invented'],
-        ['Built reports', '33', '', 'All reading the same ledger, all with a table view'],
-        ['Correctness checks', '7', '/ 7', 'Passing on every release'],
+        ['Modules to compose', '46', '', 'Turned on by your Blueprint, not bought one at a time'],
+        ['Dashboard readings', '108', '', 'Across 18 period windows — 1,944 distinct figures'],
+        ['Document types', '13', '', 'One editor, one payload builder, one ledger path'],
+        ['Passing tests', '1610', '', '11,000+ assertions, run on every release'],
       ].map(([l, v, u, n], i) => `
       <div class="vq-card vq-card--xl vq-stat vq-reveal${i === 0 ? ' vq-card--accent' : ''}">
         <span class="vq-stat__label">${l}</span>
@@ -107,6 +107,35 @@ const body = pageHead({
     <nav class="vq-row vq-wrap vq-gap-2 vq-mt-10 vq-reveal" aria-label="Jump to a group">
       ${GROUPS.map(g => `<a class="vq-chip" href="#${g.id}">${g.name}</a>`).join('')}
     </nav>
+  </div>
+</section>
+
+
+<section class="vq-section vq-section--tight" style="padding-top:0">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">See them working</span>
+      <h2 class="vq-h1">Six live demos, not six screenshots.</h2>
+    </div>
+    <div class="vq-grid vq-grid--3">
+      ${[
+        ['cart', 'The register', 'pos.html', 'Seven starting points and eight controls. Recompose the till and watch the panes re-derive.', '7', 'layouts'],
+        ['file', 'Documents', 'documents.html', 'Switch between all thirteen types and watch the same editor reconfigure itself.', '13', 'types'],
+        ['grid', 'The dashboard', 'dashboard.html', 'Tap a reading and the card lands, already sized to what it needs.', '108', 'readings'],
+        ['scan', 'SmartCapture', 'smartcapture.html', 'Point it at a bill, a screenshot or a voice note and watch a transaction come back.', '11', 'seconds'],
+        ['ledger', 'The Reckoner', 'reckoner.html', 'One definition per figure, eighteen windows, and a history that survives every rename.', '18', 'windows'],
+        ['plug', 'VenSynQ', 'vensynq.html', 'One catalogue behind five channels, with commission isolated from your margin.', '5', 'channels'],
+      ].map(([ic, t, href, b, n, u]) => `
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="${href}">
+        <span class="vq-tile__icon">${icon(ic)}</span>
+        <h3 class="vq-tile__title">${t}</h3>
+        <p class="vq-tile__body">${b}</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">${n}<small>${u}</small></span>
+          <span class="vq-link">Open ${icon('arrow', 15)}</span>
+        </div>
+      </a>`).join('')}
+    </div>
   </div>
 </section>
 
@@ -159,8 +188,8 @@ ${GROUPS.map((g, i) => `
 </section>`;
 
 export default page({
-  title: `Features — ${total} shipped, none charged as a module | VenQore`,
-  description: `Everything VenQore ships today, grouped and verified against the codebase: selling, stock, buying, money, customers, reports, people, channels, AI and platform. Every plan includes the whole system.`,
+  title: `Features — 46 modules, 108 readings, none charged extra | VenQore`,
+  description: `Everything VenQore ships today: 46 modules, 108 dashboard readings, 13 document types, 33 reports and ${total} verified features across ten groups. Every plan includes the whole system.`,
   active: 'features',
   body,
 });

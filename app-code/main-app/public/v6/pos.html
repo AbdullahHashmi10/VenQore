@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>The register — a POS that composes itself | VenQore</title>
+<meta name="description" content="Seven starting points, eight controls, and a layout engine whose job is to stop your arrangement from breaking. 35,255 checks, zero disagreements.">
+<meta property="og:title" content="The register — a POS that composes itself | VenQore">
+<meta property="og:description" content="Seven starting points, eight controls, and a layout engine whose job is to stop your arrangement from breaking. 35,255 checks, zero disagreements.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VenQore">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0BAA8F">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="assets/venqore.css">
+<script>
+/* Theme before paint — no flash. */
+(function(){try{var r=document.documentElement,t=r.getAttribute('data-theme')||localStorage.getItem('vq-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',t);r.classList.toggle('dark',t==='dark');}catch(e){}})();
+</script>
+
+</head>
+<body>
+
+
+  <a class="vq-skip" href="#main">Skip to content</a>
+  <header class="vq-header" data-header>
+    <div class="vq-header__inner">
+      <a class="vq-brand" href="index.html" aria-label="VenQore home">
+        <img src="assets/logo.png" alt="" width="30" height="30">
+        <span class="vq-brand__word">VenQore</span>
+      </a>
+
+      <nav class="vq-nav" aria-label="Main">
+        <ul class="vq-nav__list">
+          <li class="vq-nav__item">
+            <a href="blueprint.html" class="vq-nav__link" aria-current="page">Product <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:660px">
+              <div class="vq-mega__grid" style="grid-template-columns:1fr 1fr 1fr">
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Build</span>
+                  <a class="vq-mega__link" href="blueprint.html"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
+                  <a class="vq-mega__link" href="onboarding.html"><b>See a build</b><span>Four minutes, start to live.</span></a>
+                  <a class="vq-mega__link" href="index.html#assemble"><b>Watch it assemble</b><span>46 modules in, only yours out.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Run</span>
+                  <a class="vq-mega__link" href="pos.html"><b>The register</b><span>A till you compose yourself.</span></a>
+                  <a class="vq-mega__link" href="documents.html"><b>Documents</b><span>Thirteen types, one editor.</span></a>
+                  <a class="vq-mega__link" href="vensynq.html"><b>VenSynQ</b><span>Sell in five places, count once.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Know</span>
+                  <a class="vq-mega__link" href="dashboard.html"><b>The dashboard</b><span>108 readings, self-assembling.</span></a>
+                  <a class="vq-mega__link" href="reckoner.html"><b>The Reckoner</b><span>One place a number is defined.</span></a>
+                  <a class="vq-mega__link" href="ledger.html"><b>Core Ledger</b><span>One engine. Every number.</span></a>
+                </div>
+              </div>
+              <div class="vq-mega__foot">
+                <a class="vq-link" href="smartcapture.html">SmartCapture — a photo in, a posted transaction out <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              </div>
+            </div>
+          </li>
+          <li class="vq-nav__item">
+            <a href="index.html#presets" class="vq-nav__link">Solutions <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:420px">
+              <div class="vq-mega__grid">
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="index.html#presets"><b>Retail shop</b><span>Fast checkout, real margins.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Wholesale &amp; distribution</b><span>Credit terms and price tiers.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Pharmacy</b><span>Batch and expiry that hold the line.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="index.html#presets"><b>Restaurant &amp; café</b><span>Recipes that draw down ingredients.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Hardware &amp; auto parts</b><span>Deep catalogues, real costing.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Multi-branch</b><span>One truth across every location.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="vq-nav__item"><a href="features.html" class="vq-nav__link">Features</a></li>
+          <li class="vq-nav__item"><a href="pricing.html" class="vq-nav__link">Pricing</a></li>
+          <li class="vq-nav__item">
+            <a href="about.html" class="vq-nav__link">Company <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:320px">
+              <div class="vq-mega__grid" style="grid-template-columns:1fr">
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="about.html"><b>About</b><span>Built on a shop counter in Okara.</span></a>
+                  <a class="vq-mega__link" href="ledger.html"><b>How we prove it</b><span>The checks we publish.</span></a>
+                  <a class="vq-mega__link" href="contact.html"><b>Contact</b><span>A person answers this one.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <div class="vq-header__actions">
+        <button class="vq-theme-btn" data-theme-toggle type="button" aria-label="Switch theme">
+          <span class="vq-icon-sun"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span class="vq-icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        </button>
+        <a href="signin.html" class="vq-nav__link">Sign in</a>
+        <a href="register.html" class="vq-btn vq-btn--primary">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+      </div>
+      <button class="vq-burger" type="button" data-menu-open aria-label="Open menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+    </div>
+  </header>
+  <div class="vq-mobile" data-menu hidden>
+    <button class="vq-burger" type="button" data-menu-close aria-label="Close menu"
+            style="position:absolute;top:24px;right:20px"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <a href="blueprint.html">Blueprint</a>
+    <a href="pos.html">The register</a>
+    <a href="documents.html">Documents</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="smartcapture.html">SmartCapture</a>
+    <a href="reckoner.html">The Reckoner</a>
+    <a href="ledger.html">Core Ledger</a>
+    <a href="vensynq.html">VenSynQ</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <div class="vq-mobile__actions">
+      <a href="signin.html" class="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Sign in</a>
+      <a href="register.html" class="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+    </div>
+  </div>
+<main id="main">
+
+<section class="vq-section" style="padding-top:clamp(140px,15vw,200px);padding-bottom:clamp(48px,6vw,72px)">
+  <div class="vq-amb"><span class="vq-amb__grid"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div style="max-width:820px">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">The register</span>
+      <h1 class="vq-display vq-mt-4">A till is composed by the person <em class="vq-italic">standing</em> at it.</h1>
+      <p class="vq-lede vq-mt-6">Most point-of-sale software ships a fixed layout and hopes it suits you. VenQore ships seven starting points and eight controls, and the layout engine's only job is to stop your arrangement from breaking.</p>
+      <div class="vq-row vq-wrap vq-gap-3 vq-mt-8"><a class="vq-btn vq-btn--primary vq-btn--lg" href="register.html">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+        <a class="vq-btn vq-btn--secondary vq-btn--lg" href="features.html#selling">Everything in Selling</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="vq-section" style="padding-top:0">
+  <div class="vq-container vq-container--wide">
+    <div class="vq-demo vq-reveal" data-pos>
+      <div class="vq-demo__bar">
+        <div class="vq-demo__dots"><i></i><i></i><i></i></div>
+        <div class="vq-demo__url"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> app.venqore.com/pos</div>
+        <span class="vq-demo__live">Live · try it</span>
+      </div>
+      <div class="vq-demo__controls">
+        <span class="vq-eyebrow" style="flex:none">Starting point</span>
+        <div class="vq-demo__scroller" data-pos-tabs role="tablist"></div>
+      </div>
+      <div class="vq-demo__body vq-demo__body--flush" data-pos-stage></div>
+      <div style="padding:var(--vq-space-5);border-top:1px solid var(--vq-line);background:var(--vq-surface-2)" data-pos-why></div>
+    </div>
+    <p class="vq-caption vq-center vq-mt-4" style="max-width:none">
+      Seven presets, and the composition behind each one — from the product's own layout law. Tap a name to recompose the register.
+    </p>
+  </div>
+</section>
+
+<section class="vq-section vq-section--alt">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow">The point</span>
+      <h2 class="vq-display">Nobody else in this category ships resizable panes.</h2>
+      <p class="vq-lede">We checked. Toast lets you set rows and columns. Lightspeed sizes tiles. Loyverse toggles grid or list.
+        Shopify and Square let you edit what is on a tile. The one product with free pane geometry authors it in an admin
+        tool as XML — not at the register, and not by the person using it.</p>
+    </div>
+    <div class="vq-grid vq-grid--3">
+      
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg></span>
+        <h3 class="vq-tile__title">A preset is a starting point, not a cage</h3>
+        <p class="vq-tile__body">Pick the one closest to how you work, then drag a divider. The catalogue can take 20% or 40% of the screen, sit on top, sit on the left, or not exist at all.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <h3 class="vq-tile__title">The engine measures, it does not guess</h3>
+        <p class="vq-tile__body">Every pane declares the width its text actually needs. Drag past that floor and the catalogue becomes a full-screen button rather than a broken column. Nothing is ever deleted to save space.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <h3 class="vq-tile__title">Proven, not eyeballed</h3>
+        <p class="vq-tile__body">35,255 automated checks with zero disagreements. Every arrangement swept every 8 pixels from a 320px phone to a 3440px ultrawide. Zero controls covered, zero content stranded off screen.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="vq-section vq-band-dark">
+  <div class="vq-amb"><span class="vq-amb__beams"><i></i><i></i><i></i></span><span class="vq-amb__grain"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div class="vq-grid vq-grid--2" style="gap:var(--vq-space-16)">
+      <div class="vq-reveal">
+        <span class="vq-eyebrow">The rule that keeps it usable</span>
+        <h2 class="vq-display vq-mt-4">Seven controls on the surface. No more.</h2>
+        <p class="vq-lede vq-mt-6">Seven is the working-memory span. Past it a cashier scans the screen instead of acting on it.
+          So the register carries at most seven rank-one controls on a desktop and five on a phone; everything else is one
+          gesture away, and monthly settings are not on the till at all.</p>
+        <div class="vq-grid vq-grid--3 vq-mt-10" style="gap:var(--vq-space-6)">
+          
+          <div><div class="vq-num" style="font-size:var(--vq-fs-metric);font-weight:600;color:#fff;letter-spacing:-.03em;line-height:1">60</div>
+          <div class="vq-caption vq-mt-1" style="color:rgb(237 242 239 / .55)">capabilities</div></div>
+          <div><div class="vq-num" style="font-size:var(--vq-fs-metric);font-weight:600;color:#fff;letter-spacing:-.03em;line-height:1">15</div>
+          <div class="vq-caption vq-mt-1" style="color:rgb(237 242 239 / .55)">on the surface</div></div>
+          <div><div class="vq-num" style="font-size:var(--vq-fs-metric);font-weight:600;color:#fff;letter-spacing:-.03em;line-height:1">0</div>
+          <div class="vq-caption vq-mt-1" style="color:rgb(237 242 239 / .55)">settings docked</div></div>
+        </div>
+      </div>
+      <div class="vq-reveal vq-stack vq-gap-4">
+        
+        <div class="vq-card"><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Same controls, three shapes</b>
+        <p class="vq-caption vq-mt-2" style="max-width:none">The payment panel is built once and used in three places — a resident column, a full-screen sheet, a 56px docked bar. Nothing a cashier learned in one arrangement is missing from another.</p></div>
+        <div class="vq-card"><b class="vq-small" style="font-weight:var(--vq-fw-semi)">The keypad lives in the sheet</b>
+        <p class="vq-caption vq-mt-2" style="max-width:none">Never in the resident column. A keypad in a narrow column only pushes the things that matter into a scroll.</p></div>
+        <div class="vq-card"><b class="vq-small" style="font-weight:var(--vq-fw-semi)">The dock is a layout row</b>
+        <p class="vq-caption vq-mt-2" style="max-width:none">Not a floating button. Its height is subtracted before anything else is measured, so Complete can never end up below the fold.</p></div>
+        <div class="vq-card"><b class="vq-small" style="font-weight:var(--vq-fw-semi)">A table is a held sale</b>
+        <p class="vq-caption vq-mt-2" style="max-width:none">On the Table preset, hold becomes automatic and back means back to the floor — because the unit of work is the table, not the sale.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="vq-section">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">At the counter</span>
+      <h2 class="vq-display">Seventeen things that matter at 5pm on a Saturday.</h2>
+    </div>
+    <div class="vq-grid vq-grid--3">
+      
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Instant barcode scanner</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Wedge or camera. Unknown codes offer to create the item rather than beeping at you.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Serial &amp; IMEI scanner</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">The serial follows the unit through sale, return and warranty.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Park &amp; recall</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Hold a bill, serve the next customer, bring it back. Also how table service works.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Cart rescue</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Power cut, browser crash, accidental refresh — the cart is still there.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Typo-tolerant search</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Finds "panadol" from "pandol", and the SKU from half of it.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Multi-account split payment</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Part cash, part card, part on account, in one sale.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Automatic cash rounding</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">To your smallest coin, posted to a rounding account so the ledger still ties.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Daily cash register audit</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Counted versus expected, per register, per shift, with the variance explained.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Negative stock alert &amp; lock</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Choose whether selling what you do not have is a warning or a wall.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">In-flight product creation</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Create the item mid-sale without leaving the cart.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Auto-applying customer discounts</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">The tier follows the customer; nobody has to remember it.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Change calculator</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Tendered in, change out, printed on the receipt.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Keyboard-first checkout</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">24 shortcuts. A trained cashier never touches the screen.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Silent thermal printing</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">WebUSB, no print dialog, custom roll widths and cut-line padding.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Tax verification QR</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">On the receipt, where the regulator expects it.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Offline mode</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">The till keeps selling when the internet does not. It reconciles when it returns.</p></div>
+      </div>
+      <div class="vq-reveal vq-row vq-gap-3" style="align-items:flex-start">
+        <span style="color:var(--vq-accent);flex:none;margin-top:3px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><b class="vq-small" style="font-weight:var(--vq-fw-semi)">Cashier PIN login</b>
+        <p class="vq-caption vq-mt-1" style="max-width:none">Fast switching between staff, with an inactivity auto-logout behind it.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="vq-section vq-section--alt">
+  <div class="vq-container vq-container--narrow vq-center vq-reveal">
+    <h2 class="vq-display">Every sale posts to the ledger. All of it.</h2>
+    <p class="vq-lede vq-mt-5" style="margin-inline:auto">Cash in, revenue, tax payable, cost of goods, inventory out —
+      five postings from one barcode scan, with the cost taken from the batch that actually left the shelf.</p>
+    <a class="vq-btn vq-btn--secondary vq-btn--lg vq-mt-8" href="ledger.html">See the Core Ledger <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+  </div>
+</section>
+</main>
+
+  <footer class="vq-footer">
+    <div class="footer-bg"></div>
+    
+    <div class="vq-container" style="position:relative;z-index:10;padding-bottom:var(--vq-space-16)">
+      <div class="mesh-gradient-card" style="border-radius:var(--vq-r-2xl);padding:clamp(32px,5vw,56px);border:1px solid rgb(255 255 255 / .10);box-shadow:var(--vq-elev-3)">
+        <div style="max-width:36rem">
+          <h2 class="vq-h2" style="color:#fff">Describe your business. See what it becomes.</h2>
+          <p class="vq-lede vq-mt-3" style="color:rgb(255 255 255 / .74)">Free to try. No card. You'll see your whole system before you decide anything.</p>
+          <form class="vq-row vq-wrap vq-gap-3 vq-mt-8" data-waitlist style="max-width:520px">
+            <input type="email" class="vq-input" required placeholder="you@company.com" aria-label="Work email"
+                   style="flex:1 1 240px;background:rgb(0 0 0 / .35);border-color:rgb(255 255 255 / .16);color:#fff">
+            <button type="submit" class="vq-btn vq-btn--lg vq-btn--light">Start building</button>
+          </form>
+          <p class="vq-caption vq-mt-4" style="color:rgb(255 255 255 / .55)">Takes about four minutes. Nothing goes live until you approve it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="vq-container" style="position:relative;z-index:10;padding-bottom:var(--vq-space-20)">
+      <div style="display:flex;flex-direction:column;gap:var(--vq-space-12)" class="vq-foot-cols">
+        <div style="display:grid;gap:var(--vq-space-8);grid-template-columns:repeat(auto-fit,minmax(150px,1fr));flex:1">
+          <div>
+            <h3 class="vq-footer__head">Product</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="blueprint.html">Blueprint</a></li>
+              <li><a href="pos.html">The register</a></li>
+              <li><a href="documents.html">Documents</a></li>
+              <li><a href="dashboard.html">Dashboard</a></li>
+              <li><a href="smartcapture.html">SmartCapture</a></li>
+              <li><a href="reckoner.html">The Reckoner</a></li>
+              <li><a href="ledger.html">Core Ledger</a></li>
+              <li><a href="vensynq.html">VenSynQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Company</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="about.html">About</a></li>
+              <li><a href="contact.html">Contact</a></li>
+              <li><a href="/blog">Blog</a></li>
+              <li><a href="/roadmap">Roadmap</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Resources</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/docs">Documentation</a></li>
+              <li><a href="/help">Help centre</a></li>
+              <li><a href="onboarding.html">See a build</a></li>
+              <li><a href="signin.html">Sign in</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Social</h3>
+            <div style="margin-top:var(--vq-space-4);display:flex;gap:var(--vq-space-3)">
+              <a class="vq-footer__social" href="#" aria-label="Facebook"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="X"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="LinkedIn"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:var(--vq-space-12);padding-top:var(--vq-space-8);border-top:1px solid rgb(255 255 255 / .08);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vq-space-4);padding-bottom:14vw">
+        <p class="vq-small" style="color:var(--vq-ink-500);max-width:none">© 2026 VenQore, Inc. The AI ERP builder.</p>
+        <div style="display:flex;gap:var(--vq-space-6)">
+          <a class="vq-small" href="/terms">Terms</a>
+          <a class="vq-small" href="/privacy">Privacy</a>
+          <a class="vq-small" href="/cookies">Cookies</a>
+        </div>
+      </div>
+
+      <div class="watermark-wrapper"><span>VenQore</span></div>
+    </div>
+  </footer>
+<script src="assets/venqore.js" defer></script>
+<script src="assets/demos.js" defer></script>
+
+</body>
+</html>

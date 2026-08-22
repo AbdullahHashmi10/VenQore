@@ -2,16 +2,20 @@ import { page, icon } from '../shell.js';
 import { pageHead } from '../bits.js';
 
 const PLANS = [
-  { name: 'Starter', m: '$36', y: '$360', for: 'For a single shop getting everything into one place.',
-    items: ['<b>1 branch</b>, up to <b>3 users</b>', 'Point of sale, inventory, purchasing',
-            'Core Ledger + every financial report', 'Blueprint builder &amp; presets',
+  { name: 'Counter', m: '$18', y: '$180', for: 'One person, one counter. The whole system, nothing withheld.',
+    items: ['<b>1 branch</b>, <b>1 user</b>', 'Point of sale, inventory, purchasing',
+            'Core Ledger + every financial report', 'All 13 document types',
+            'SmartCapture: 10 pages/month', 'Email support'] },
+  { name: 'Starter', m: '$36', y: '$360', for: 'A shop with a couple of people on the till.',
+    items: ['<b>1 branch</b>, up to <b>3 users</b>', '<b>Everything in Counter, plus:</b>',
+            'Custom roles &amp; permissions', 'Blueprint rebuilds any time',
             'SmartCapture: 20 pages/month', 'Email support'] },
   { name: 'Growth', m: '$63', y: '$630', hot: true, for: 'For a business with more than one of something.',
     items: ['Up to <b>3 branches</b>, <b>10 users</b>', '<b>Everything in Starter, plus:</b>',
             'Multi-branch stock, pricing &amp; consolidated reporting', 'Approval chains &amp; custom roles',
             'Production / BOM', 'Signals (retention &amp; risk) and Vena',
             'SmartCapture: 60 pages/month', 'Priority support'] },
-  { name: 'Scale', m: '$129', y: '$1,290', for: 'For multi-location businesses selling on more than one channel.',
+  { name: 'Scale', m: '$129', y: '$1,290', for: 'Multi-location, selling on more than one channel.',
     items: ['<b>10 branches</b>, <b>50 users</b>', '<b>Everything in Growth, plus:</b>',
             'VenSynQ multi-channel sync', 'Loyalty, gift cards, campaigns',
             'Full API access &amp; white-label', 'SmartCapture: 150 pages/month',
@@ -19,24 +23,27 @@ const PLANS = [
 ];
 
 const MATRIX = [
-  ['Product SKUs',                 '5,000', '20,000', '50,000'],
-  ['Transactions per month',       'Unlimited', 'Unlimited', 'Unlimited'],
-  ['Locations',                    '1', '3', '10'],
-  ['Staff accounts',               '3', '10', '50'],
-  ['AI pages included / month',    '20', '60', '150'],
-  ['AI assistant queries / month', '100', '400', '1,000'],
-  ['SEP', '', '', ''],
-  ['Point of sale, offline mode, barcode, receipts', '✓', '✓', '✓'],
-  ['Core Ledger, P&amp;L, trial balance, balance sheet', '✓', '✓', '✓'],
-  ['Customer &amp; supplier khata, receivables, payables', '✓', '✓', '✓'],
-  ['Purchase orders &amp; supplier management', '✓', '✓', '✓'],
-  ['Expense manager', '✓', '✓', '✓'],
-  ['Reports', 'All 33', 'All 33', 'All 33'],
-  ['Multi-branch &amp; stock transfer', '✗', '✓', '✓'],
-  ['Production / BOM', '✗', '✓', '✓'],
-  ['Loyalty, gift cards, campaigns', '✗', '✗', '✓'],
-  ['API access &amp; white-label', '✗', '✗', '✓'],
-  ['WooCommerce / Amazon sync', '$10/mo each', '$10/mo each', '$10/mo each'],
+  ['Product SKUs',                 '2,000', '5,000', '20,000', '50,000'],
+  ['Transactions per month',       'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+  ['Locations',                    '1', '1', '3', '10'],
+  ['Staff accounts',               '1', '3', '10', '50'],
+  ['AI pages included / month',    '10', '20', '60', '150'],
+  ['AI assistant queries / month', '50', '100', '400', '1,000'],
+  ['SEP', '', '', '', ''],
+  ['Point of sale, offline mode, barcode, receipts', '✓', '✓', '✓', '✓'],
+  ['All 13 document types', '✓', '✓', '✓', '✓'],
+  ['Core Ledger, P&amp;L, trial balance, balance sheet', '✓', '✓', '✓', '✓'],
+  ['Customer &amp; supplier khata, receivables, payables', '✓', '✓', '✓', '✓'],
+  ['Purchase orders &amp; supplier management', '✓', '✓', '✓', '✓'],
+  ['Expense manager', '✓', '✓', '✓', '✓'],
+  ['Dashboard readings', 'All 108', 'All 108', 'All 108', 'All 108'],
+  ['Reports', 'All 33', 'All 33', 'All 33', 'All 33'],
+  ['Custom roles &amp; permissions', '✗', '✓', '✓', '✓'],
+  ['Multi-branch &amp; stock transfer', '✗', '✗', '✓', '✓'],
+  ['Production / BOM', '✗', '✗', '✓', '✓'],
+  ['Loyalty, gift cards, campaigns', '✗', '✗', '✗', '✓'],
+  ['API access &amp; white-label', '✗', '✗', '✗', '✓'],
+  ['WooCommerce / Amazon sync', '$10/mo each', '$10/mo each', '$10/mo each', '$10/mo each'],
 ];
 
 const cell = (v) => v === '✓' ? `<span class="vq-tick">${icon('check', 17)}</span>`
@@ -46,7 +53,7 @@ const cell = (v) => v === '✓' ? `<span class="vq-tick">${icon('check', 17)}</s
 const body = pageHead({
   eyebrow: 'Pricing',
   h1: 'Priced like software. Not like a <em class="vq-italic">project</em>.',
-  lede: 'Every plan is the whole system. Plans differ by how much of it you use — branches, users, channels — not by locking a feature you need behind a tier.',
+  lede: 'From $18 a month for one person at one counter — and that $18 buys the whole system, not a starter edition. Plans differ by how much of it you use: branches, users, channels.',
   amb: 'aurora',
 }) + `
 
@@ -59,7 +66,7 @@ const body = pageHead({
       </div>
     </div>
 
-    <div class="vq-grid vq-grid--3">
+    <div class="vq-grid vq-grid--4">
       ${PLANS.map(p => `
       <div class="vq-plan${p.hot ? ' vq-plan--featured' : ''} vq-reveal">
         ${p.hot ? '<span class="vq-plan__flag">Most businesses start here</span>' : ''}
@@ -108,14 +115,14 @@ const body = pageHead({
     </div>
     <div class="vq-table-wrap vq-reveal">
       <table class="vq-table vq-table--compare">
-        <colgroup><col style="width:38%"><col><col class="is-us"><col></colgroup>
+        <colgroup><col style="width:34%"><col><col><col class="is-us"><col></colgroup>
         <thead><tr>
-          <th></th><th>Starter</th><th style="color:var(--vq-accent-text)">Growth</th><th>Scale</th>
+          <th></th><th>Counter</th><th>Starter</th><th style="color:var(--vq-accent-text)">Growth</th><th>Scale</th>
         </tr></thead>
         <tbody>
         ${MATRIX.map(r => r[0] === 'SEP'
-          ? `<tr><td colspan="4" style="height:14px;background:var(--vq-surface-2);border-bottom:1px solid var(--vq-line)"></td></tr>`
-          : `<tr><td class="vq-table__row-head">${r[0]}</td><td>${cell(r[1])}</td><td>${cell(r[2])}</td><td>${cell(r[3])}</td></tr>`
+          ? `<tr><td colspan="5" style="height:14px;background:var(--vq-surface-2);border-bottom:1px solid var(--vq-line)"></td></tr>`
+          : `<tr><td class="vq-table__row-head">${r[0]}</td><td>${cell(r[1])}</td><td>${cell(r[2])}</td><td>${cell(r[3])}</td><td>${cell(r[4])}</td></tr>`
         ).join('')}
         </tbody>
       </table>
@@ -123,7 +130,7 @@ const body = pageHead({
   </div>
 </section>
 
-<section class="vq-section vq-band-dark">
+<section class="vq-section vq-band-dark" id="ai">
   <div class="vq-amb"><span class="vq-amb__beams"><i></i><i></i><i></i></span><span class="vq-amb__grain"></span></div>
   <div class="vq-container" style="position:relative">
     <div class="vq-section-head vq-reveal" style="max-width:760px">
@@ -187,7 +194,7 @@ const body = pageHead({
         ['Do you charge to import my data?', 'No. Import is included, and so is the help getting it in.'],
         ['Do you charge to leave?', 'No. Export everything, any time, in a format your next system can read.'],
         ['Is there a contract?', 'Monthly is month-to-month. Annual is twelve months at two months off. There is no minimum term and no notice period.'],
-        ['Why is there no per-user pricing on the features?', 'Because a feature you need should not be a negotiation. You pay for the size of your business, not its complexity. The one line we do draw is the ledger — a business that needs to know who owes it money is on Starter or above.'],
+        ['Why does the cheapest plan include everything?', 'Because a feature you need should not be a negotiation. A one-person shop needs a correct trial balance exactly as much as a ten-branch one does — it just needs fewer seats. You pay for the size of your business, not for permission to run it properly.'],
       ].map(([q, a]) => `
       <div class="vq-faq__item">
         <button class="vq-faq__q" type="button" aria-expanded="false">${q}<span class="vq-faq__sign"></span></button>
@@ -198,8 +205,8 @@ const body = pageHead({
 </section>`;
 
 export default page({
-  title: 'Pricing — from $36/month, no implementation fee | VenQore',
-  description: 'Every VenQore plan includes the full system. No module fees, no implementation cost, no consultant. Monthly or annual, from $36/month.',
+  title: 'Pricing — from $18/month, no implementation fee | VenQore',
+  description: 'Every VenQore plan includes the full system — 46 modules, 108 readings, 13 document types, all 33 reports. No module fees, no implementation cost, no consultant. From $18/month.',
   active: 'pricing',
   body,
 });

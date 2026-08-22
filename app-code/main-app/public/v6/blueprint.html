@@ -34,23 +34,29 @@
         <ul class="vq-nav__list">
           <li class="vq-nav__item">
             <a href="blueprint.html" class="vq-nav__link" aria-current="page">Product <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
-            <div class="vq-mega">
-              <div class="vq-mega__grid">
+            <div class="vq-mega" style="min-width:660px">
+              <div class="vq-mega__grid" style="grid-template-columns:1fr 1fr 1fr">
                 <div class="vq-mega__col">
                   <span class="vq-eyebrow vq-eyebrow--accent">Build</span>
-                  <a class="vq-mega__link" href="blueprint.html"><b>Blueprint</b><span>Describe your business. Approve the plan.</span></a>
-                  <a class="vq-mega__link" href="index.html#presets"><b>Industry presets</b><span>Start from a system that already fits.</span></a>
-                  <a class="vq-mega__link" href="onboarding.html"><b>See a build</b><span>Watch the four-minute version.</span></a>
+                  <a class="vq-mega__link" href="blueprint.html"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
+                  <a class="vq-mega__link" href="onboarding.html"><b>See a build</b><span>Four minutes, start to live.</span></a>
+                  <a class="vq-mega__link" href="index.html#assemble"><b>Watch it assemble</b><span>46 modules in, only yours out.</span></a>
                 </div>
                 <div class="vq-mega__col">
                   <span class="vq-eyebrow vq-eyebrow--accent">Run</span>
-                  <a class="vq-mega__link" href="ledger.html"><b>Core Ledger</b><span>One engine. Every number. No exceptions.</span></a>
-                  <a class="vq-mega__link" href="features.html#selling"><b>Point of sale &amp; stock</b><span>The counter, and what is behind it.</span></a>
-                  <a class="vq-mega__link" href="features.html#channels"><b>VenSynQ</b><span>Sell in five places. Count stock once.</span></a>
+                  <a class="vq-mega__link" href="pos.html"><b>The register</b><span>A till you compose yourself.</span></a>
+                  <a class="vq-mega__link" href="documents.html"><b>Documents</b><span>Thirteen types, one editor.</span></a>
+                  <a class="vq-mega__link" href="vensynq.html"><b>VenSynQ</b><span>Sell in five places, count once.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Know</span>
+                  <a class="vq-mega__link" href="dashboard.html"><b>The dashboard</b><span>108 readings, self-assembling.</span></a>
+                  <a class="vq-mega__link" href="reckoner.html"><b>The Reckoner</b><span>One place a number is defined.</span></a>
+                  <a class="vq-mega__link" href="ledger.html"><b>Core Ledger</b><span>One engine. Every number.</span></a>
                 </div>
               </div>
               <div class="vq-mega__foot">
-                <a class="vq-link" href="features.html">See everything inside <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+                <a class="vq-link" href="smartcapture.html">SmartCapture — a photo in, a posted transaction out <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
               </div>
             </div>
           </li>
@@ -71,8 +77,8 @@
               </div>
             </div>
           </li>
-          <li class="vq-nav__item"><a href="pricing.html" class="vq-nav__link">Pricing</a></li>
           <li class="vq-nav__item"><a href="features.html" class="vq-nav__link">Features</a></li>
+          <li class="vq-nav__item"><a href="pricing.html" class="vq-nav__link">Pricing</a></li>
           <li class="vq-nav__item">
             <a href="about.html" class="vq-nav__link">Company <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
             <div class="vq-mega" style="min-width:320px">
@@ -101,7 +107,13 @@
     <button class="vq-burger" type="button" data-menu-close aria-label="Close menu"
             style="position:absolute;top:24px;right:20px"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     <a href="blueprint.html">Blueprint</a>
+    <a href="pos.html">The register</a>
+    <a href="documents.html">Documents</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="smartcapture.html">SmartCapture</a>
+    <a href="reckoner.html">The Reckoner</a>
     <a href="ledger.html">Core Ledger</a>
+    <a href="vensynq.html">VenSynQ</a>
     <a href="features.html">Features</a>
     <a href="pricing.html">Pricing</a>
     <a href="about.html">About</a>
@@ -423,9 +435,13 @@
             <h3 class="vq-footer__head">Product</h3>
             <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
               <li><a href="blueprint.html">Blueprint</a></li>
+              <li><a href="pos.html">The register</a></li>
+              <li><a href="documents.html">Documents</a></li>
+              <li><a href="dashboard.html">Dashboard</a></li>
+              <li><a href="smartcapture.html">SmartCapture</a></li>
+              <li><a href="reckoner.html">The Reckoner</a></li>
               <li><a href="ledger.html">Core Ledger</a></li>
-              <li><a href="features.html">Features</a></li>
-              <li><a href="pricing.html">Pricing</a></li>
+              <li><a href="vensynq.html">VenSynQ</a></li>
             </ul>
           </div>
           <div>
@@ -470,6 +486,7 @@
     </div>
   </footer>
 <script src="assets/venqore.js" defer></script>
+
 
 </body>
 </html>
