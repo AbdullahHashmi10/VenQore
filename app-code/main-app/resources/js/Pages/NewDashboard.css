@@ -105,36 +105,43 @@
   --vq-fs-display: 56px;
   --vq-lh-display: 1.02; /* @kind other */
   --vq-ls-display: -0.032em; /* @kind other */
-  --vq-fs-h1: 40px;
+  --vq-fs-h1: 42px;
   --vq-lh-h1: 1.08; /* @kind other */
   --vq-ls-h1: -0.028em; /* @kind other */
-  --vq-fs-h2: 30px;
+  --vq-fs-h2: 32px;
   --vq-lh-h2: 1.16; /* @kind other */
   --vq-ls-h2: -0.024em; /* @kind other */
-  --vq-fs-h3: 21px;
+  --vq-fs-h3: 23px;
   --vq-lh-h3: 1.30; /* @kind other */
   --vq-ls-h3: -0.016em; /* @kind other */
 
   /* Text voice — Plus Jakarta Sans. */
-  --vq-fs-lede: 19px;
+  --vq-fs-lede: 21px;
   --vq-lh-lede: 1.55; /* @kind other */
   --vq-ls-lede: -0.008em; /* @kind other */
-  --vq-fs-body: 16px;
+  --vq-fs-body: 17px;
   --vq-lh-body: 1.6; /* @kind other */
   --vq-ls-body: -0.002em; /* @kind other */
-  --vq-fs-small: 14px;
+  --vq-fs-small: 15px;
   --vq-lh-small: 1.5; /* @kind other */
   --vq-ls-small: 0em; /* @kind other */
-  --vq-fs-caption: 13px;
+  --vq-fs-caption: 14px;
   --vq-lh-caption: 1.45; /* @kind other */
   --vq-ls-caption: 0em; /* @kind other */
 
-  /* Numeric voice — Space Grotesk, tabular. */
-  --vq-fs-metric: 38px;
+  /* The scale was bumped one to two points on 22 Aug 2026. It was drawn for a
+     marketing site read at arm's length; a cashier reads a POS terminal from
+     further away, standing, often over 50, and the 13px caption and 11px
+     eyebrow were the first things people asked to make bigger. Every step moved
+     up 1–2px and the ratios are unchanged — the same scale, one notch louder.
+     Source of truth: extras/Design System/VenQore Design System/tokens/typography.css
+
+     Numeric voice — Space Grotesk, tabular. */
+  --vq-fs-metric: 40px;
   --vq-lh-metric: 1.0; /* @kind other */
   --vq-ls-metric: -0.03em; /* @kind other */
-  --vq-fs-metric-sm: 26px;
-  --vq-fs-eyebrow: 11px;
+  --vq-fs-metric-sm: 28px;
+  --vq-fs-eyebrow: 12px;
   --vq-lh-eyebrow: 1.2; /* @kind other */
   --vq-ls-eyebrow: 0.12em; /* @kind other */
 
@@ -185,13 +192,24 @@
    inner radius = outer radius − inner padding. */
 :root {
   --vq-r-none: 0px;
-  --vq-r-xs: 8px;    /* checkbox, cell chip */
-  --vq-r-sm: 12px;   /* badge, tag, tooltip, small inner tile */
-  --vq-r-md: 14px;   /* BASE — input, select, menu item */
-  --vq-r-lg: 20px;   /* card, panel, dropdown surface, button */
-  --vq-r-xl: 28px;   /* modal, drawer, big feature tile, KPI card */
-  --vq-r-2xl: 36px;  /* CEILING — hero card, app frame */
-  --vq-r-full: 999px;
+  /* v6 shape — SETTLED 22 Aug 2026. There are TWO shapes in the product:
+       1. 14px — every rectangle. Inputs, buttons, cards, tiles, panels, sheets,
+          modals, drawers, badges, and the small square 1:1 icon buttons, which
+          are squares with a 14px corner and NOT circles.
+       2. pill — only where the shape itself carries meaning: chips, tabs,
+          status dots, avatars, toggle tracks.
+     The old rung names are kept so nothing has to be renamed. Do not
+     reintroduce a ladder: if a corner needs to differ, that is a signal the
+     element is the wrong size, not the wrong radius.
+     Source: extras/Design System/VenQore Design System/tokens/radius.css */
+  --vq-r-none: 0px;
+  --vq-r-xs: 14px;
+  --vq-r-sm: 14px;
+  --vq-r-md: 14px;   /* BASE */
+  --vq-r-lg: 14px;
+  --vq-r-xl: 14px;
+  --vq-r-2xl: 14px;
+  --vq-r-full: 999px; /* pill — meaning-bearing shapes only */
 }
 /* Two-part shadows: a tight contact shadow plus a wide soft bloom. Neutral,
    never teal-tinted — except --vq-glow-accent, which is the one deliberate
@@ -648,13 +666,23 @@ body { margin: 0; background: var(--vq-bg); }
 .vqc--c1-icon .vqc-bd{ justify-content: center; }
 
 /* ══ C2 · Strip ════ 3×2 → 6×2 · one KPI, label left, value right ══════════ */
-.vqc--c2 .vqc-bd{ flex-direction: row; align-items: center; justify-content: space-between; gap: var(--vq-space-3); }
+/* C2 · the strip. The inline form is a three-column grid — label | value |
+   window — because a flex row lets the label push the number off the end. The
+   stacked form is the same three parts in a column. Both are centred in the
+   card: a strip's whole job is one line of value, so leaving it at the top of a
+   two-row box is two thirds of the card doing nothing.
+   (An earlier variant here keyed the stacked form off `.vqc--c2-stacked`, a
+   class no renderer has emitted since; it is folded into `.is-stacked`.) */
 .vqc--c2 .vqc-eyebrow{ white-space: nowrap; }
-/* stacked fit (3x2) — label above value, gains a row */
-.vqc--c2-stacked .vqc-bd{ flex-direction: column; align-items: flex-start;
-  justify-content: center; gap: var(--vq-space-1); }
-.vqc--c2-stacked .vqc-num{ justify-content: flex-start; }
-.vqc--c2 .vqc-num{ justify-content: flex-end; flex-shrink: 0; }
+.vqc-bd--strip{ gap: 2px; }
+.vqc-bd--strip.is-inline{
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, max-content) max-content minmax(0, 1fr);
+  gap: var(--vq-space-4);
+}
+.vqc-bd--strip.is-inline .vqc-head{ flex: 0 0 auto; flex-wrap: nowrap; white-space: nowrap; }
+.vqc-bd--strip.is-inline .vqc-when{ text-align: right; margin: 0; }
 
 /* ══ C3 · Metric ═══ 2×3 → 6×4 · KPI + delta / sparkline / comparison ═════ */
 .vqc--c3 .vqc-bd{ justify-content: center; gap: var(--vq-space-1); }
@@ -1350,9 +1378,7 @@ body.is-reordering{ user-select:none; }
 .vqc-leg-d{ width:9px; height:9px; border-radius: var(--vq-r-full); }
 
 /* ══ page chrome ══════════════════════════════════════════════════════════ */
-.app{ display:grid; grid-template-columns:1fr 384px; gap: var(--vq-space-6);
-  max-width:1760px; margin:0 auto; padding: var(--vq-space-8) var(--vq-space-8) var(--vq-space-20); }
-@media (max-width:1220px){ .app{ grid-template-columns:1fr } }
+.app{ display:block; width:100%; margin:0; padding: var(--vq-space-6) var(--vq-space-6) var(--vq-space-16); }
 .board-h{ display:flex; align-items:flex-end; justify-content:space-between;
   gap: var(--vq-space-4); margin-bottom: var(--vq-space-6); flex-wrap:wrap; }
 .board-h h1{ font-family: var(--vq-font-display); font-size: var(--vq-fs-h1);
@@ -1365,8 +1391,11 @@ body.is-reordering{ user-select:none; }
 .pill-n{ font-family: var(--vq-font-numeric); font-size: var(--vq-fs-eyebrow);
   font-weight: var(--vq-fw-bold); background: var(--vq-sunken); color: var(--vq-text-2);
   padding:3px var(--vq-space-2); border-radius: var(--vq-r-full); }
-.side{ position:sticky; top:84px; align-self:start; display:flex; flex-direction:column;
-  gap: var(--vq-space-4); max-height:calc(100vh - 108px); }
+.side{ position:fixed; top: calc(var(--vq-header-h, 64px) + 12px); right:16px; bottom:16px;
+  width:min(384px, calc(100vw - 32px)); display:flex; flex-direction:column;
+  gap: var(--vq-space-4); z-index:620; pointer-events:none; }
+.side > *{ pointer-events:auto; }
+.side:not(:has(.is-on)){ display:none; }
 
 .panel{ background: var(--vq-surface); border:1px solid var(--vq-line);
   border-radius: var(--vq-r-lg); box-shadow: var(--vq-elev-1);
@@ -1630,30 +1659,19 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 /* ══ ReactBits — GlareHover, adapted to the card surface ══════════════════ */
 .vqc{ position:relative; overflow:hidden; }
-.vqc-glare{ position:absolute; inset:0; pointer-events:none; z-index:5; border-radius:inherit;
-  background: linear-gradient(-38deg,
-    hsla(0,0%,100%,0) 60%, var(--vq-glare, hsla(0,0%,100%,.22)) 70%,
-    hsla(0,0%,100%,0) 78%, hsla(0,0%,100%,0) 100%);
-  background-size: 250% 250%, 100% 100%; background-repeat:no-repeat;
-  background-position: -160% -160%, 0 0;
-  transition: background-position 780ms var(--vq-ease-out); }
-.vqc:hover .vqc-glare{ background-position: 160% 160%, 0 0; }
+/* The glare and the star border both live in the RESOLUTION LAYER at the end
+   of this file. The versions that stood here painted the star with two ::before
+   / ::after pseudo-elements 300% of the card wide and offset -250%: on a card
+   with overflow:hidden that is invisible, and on the board it added up to
+   2,400px of phantom scroll width to every accent card. The replacement is a
+   masked conic ring inside the card's own box. */
 :root[data-theme="dark"]{ --vq-glare: hsla(170,60%,80%,.10); }
 :root[data-bg="mesh"]{ --vq-glare: hsla(186,55%,78%,.14); }
 
-/* ══ ReactBits — StarBorder, on the one accent card ═══════════════════════ */
-.vqc--accent::before, .vqc--accent::after{ content:''; position:absolute; z-index:0;
-  width:300%; height:50%; opacity:.55; border-radius:50%; pointer-events:none;
-  background: radial-gradient(circle, var(--vq-on-accent-text) 0%, transparent 62%); }
-.vqc--accent::before{ top:-13px; left:-250%; animation: starTop 7s linear infinite alternate; }
-.vqc--accent::after{ bottom:-13px; right:-250%; animation: starBottom 7s linear infinite alternate; }
-@keyframes starTop{ 0%{ transform:translate(0,0); opacity:.7 } 100%{ transform:translate(100%,0); opacity:0 } }
-@keyframes starBottom{ 0%{ transform:translate(0,0); opacity:.7 } 100%{ transform:translate(-100%,0); opacity:0 } }
-.vqc--accent > *{ position:relative; z-index:1; }
-
-/* ══ ReactBits — AnimatedContent: cards arrive in sequence ════════════════ */
-.vqc{ animation: cardIn 620ms var(--vq-ease-out) backwards;
-  animation-delay: calc(var(--i, 0) * 45ms); }
+/* Cards arrive in sequence — but the stagger is capped, because a board of
+   sixty cards must not take three seconds to finish appearing. */
+.vqc{ animation: cardIn 480ms var(--vq-ease-out) backwards;
+  animation-delay: calc(min(var(--i, 0), 14) * 32ms); }
 @keyframes cardIn{ from{ opacity:0; transform:translateY(16px) scale(.985) } to{ opacity:1; transform:none } }
 
 .ck-dotstate{ display:inline-flex; align-items:center; gap: var(--vq-space-3);
@@ -1670,7 +1688,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .ed-chip.is-off{ opacity:.34; cursor:not-allowed; }
 
 @media (prefers-reduced-motion: reduce){
-  .vqc, .vqc-glare, .vqc--accent::before, .vqc--accent::after,
+  .vqc, .vqc-glare, .vqc-star, .vqc-star::before,
   .ck-dotstate i::after, .vqc-per-m{ animation:none !important; transition:none !important; }
 }
 
@@ -1746,13 +1764,18 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   --vq-ink-950: #0D1412;
   --vq-ink-1000: #060A09;
 
-  --vq-r-xs: 6px;
-  --vq-r-sm: 8px;
-  --vq-r-md: 12px;
-  --vq-r-lg: 16px;
-  --vq-r-xl: 18px;
-  --vq-r-2xl: 24px;
-  --vq-r-full: 9999px;
+  /* A second radius ladder was declared here, 1,500 lines after the first, with
+     different values — so the card that the token block above said was 20px
+     rendered at 16px, and nothing on the page agreed with the design system.
+     Both are now the one V6 shape. */
+  --vq-r-none: 0px;
+  --vq-r-xs: 14px;
+  --vq-r-sm: 14px;
+  --vq-r-md: 14px;
+  --vq-r-lg: 14px;
+  --vq-r-xl: 14px;
+  --vq-r-2xl: 14px;
+  --vq-r-full: 999px;
 
   --vq-elev-1: 0 1px 2px rgba(13, 20, 18, 0.04), 0 1px 3px rgba(13, 20, 18, 0.06);
   --vq-elev-2: 0 4px 12px rgba(13, 20, 18, 0.08), 0 2px 4px rgba(13, 20, 18, 0.04);
@@ -1771,28 +1794,106 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   --vq-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   THE SHELL — Layout Law §1 and §2
+
+   The application stylesheet locks html/body/#app to `height:100%;
+   overflow:hidden` for the POS terminal, which is right for a register and
+   fatal for a dashboard: the canvas had nowhere to scroll. Rather than unlock
+   the document — which would change every other page — the shell becomes its
+   own scroll container. One viewport tall, chrome pinned, canvas scrolls.
+   ══════════════════════════════════════════════════════════════════════════ */
 .vq-shell {
   display: flex;
-  min-height: 100vh;
-  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  width: 100%;
   background: var(--vq-bg, var(--vq-ink-25));
   color: var(--vq-text, var(--vq-ink-900));
   font-family: var(--vq-font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-  overflow-x: hidden;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
 }
 
+/* The nav ramps rather than steps, so the canvas never loses width for a
+   pixel of window growth (§3 RAMP). Below the push threshold it costs zero. */
+.vq-shell { --vq-nav-w: 264px; }
+.vq-shell[data-nav="rail"]    { --vq-nav-w: 72px; }
+.vq-shell[data-nav="overlay"] { --vq-nav-w: 0px; }
+
 .vq-sidebar {
-  width: var(--vq-sidebar-w);
-  flex-shrink: 0;
+  width: var(--vq-nav-w);
+  flex: 0 0 var(--vq-nav-w);
   background: var(--vq-surface, #ffffff);
   border-right: 1px solid var(--vq-line, var(--vq-ink-100));
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
   z-index: 300;
-  transition: width 0.25s var(--vq-ease-out);
+  overflow: hidden;
+  transition: width var(--vq-dur-3, 240ms) var(--vq-ease-out),
+              flex-basis var(--vq-dur-3, 240ms) var(--vq-ease-out),
+              transform var(--vq-dur-3, 240ms) var(--vq-ease-out);
+}
+
+/* Overlay mode: zero width in the flow, a drawer over a scrim when opened.
+   Esc, the scrim and choosing an item all close it. */
+.vq-shell[data-nav="overlay"] .vq-sidebar {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: min(264px, calc(100vw - 56px));
+  flex-basis: 0;
+  transform: translateX(-102%);
+  box-shadow: var(--vq-elev-4, 0 24px 64px rgba(0,0,0,.35));
+  z-index: 640;
+}
+.vq-shell[data-nav="overlay"] .vq-sidebar.is-open { transform: none; }
+
+.vq-nav-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgb(9 11 20 / .56);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--vq-dur-2, 180ms) var(--vq-ease-out);
+  z-index: 630;
+}
+.vq-nav-scrim.is-on { opacity: 1; pointer-events: auto; }
+
+/* In the rail the labels are gone but the icons stay centred and the tooltip
+   carries the name — nothing is unreachable, it is only quieter. */
+.vq-shell[data-nav="rail"] .vq-nav-text,
+.vq-shell[data-nav="rail"] .vq-nav-badge,
+.vq-shell[data-nav="rail"] .vq-nav-group-title,
+.vq-shell[data-nav="rail"] .vq-brand-info,
+.vq-shell[data-nav="rail"] .vq-user-info,
+.vq-shell[data-nav="rail"] .vq-store-switcher { display: none !important; }
+.vq-shell[data-nav="rail"] .vq-nav-item { justify-content: center; padding-inline: 0; }
+.vq-shell[data-nav="rail"] .vq-sidebar-top,
+.vq-shell[data-nav="rail"] .vq-sidebar-footer { justify-content: center; padding-inline: 8px; }
+
+/* The stage: header pinned, one scroll region beneath it. */
+.vq-main-stage {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.vq-scroll-region {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
 }
 
 [data-theme="dark"] .vq-sidebar {
@@ -1823,7 +1924,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 16px;
+  font-size: var(--vq-fs-small);
   box-shadow: var(--vq-glow-accent);
   flex-shrink: 0;
 }
@@ -1837,7 +1938,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vq-brand-name {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif);
   font-weight: 700;
-  font-size: 15.5px;
+  font-size: 15.5px;;
   color: var(--vq-text, var(--vq-ink-900));
   line-height: 1.1;
   display: flex;
@@ -1846,7 +1947,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-brand-sub {
-  font-size: 11px;
+  font-size: var(--vq-fs-eyebrow);
   color: var(--vq-text-3, var(--vq-ink-500));
   font-weight: 500;
   text-transform: uppercase;
@@ -1887,7 +1988,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-store-name {
-  font-size: 12.5px;
+  font-size: var(--vq-fs-caption);
   font-weight: 600;
   color: var(--vq-text, var(--vq-ink-900));
   white-space: nowrap;
@@ -1905,7 +2006,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-nav-group-title {
-  font-size: 10.5px;
+  font-size: var(--vq-fs-eyebrow);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1925,7 +2026,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   gap: 10px;
   padding: 8px 10px;
   border-radius: var(--vq-r-sm);
-  font-size: 13px;
+  font-size: var(--vq-fs-caption);
   font-weight: 500;
   color: var(--vq-text-2, var(--vq-ink-600));
   text-decoration: none;
@@ -1969,7 +2070,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-nav-badge {
   margin-left: auto;
-  font-size: 10px;
+  font-size: var(--vq-fs-eyebrow);
   font-weight: 700;
   padding: 2px 6px;
   border-radius: var(--vq-r-full);
@@ -2001,7 +2102,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--vq-fs-eyebrow);
   flex-shrink: 0;
 }
 
@@ -2013,7 +2114,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-user-name {
-  font-size: 12.5px;
+  font-size: var(--vq-fs-caption);
   font-weight: 600;
   color: var(--vq-text, var(--vq-ink-900));
   white-space: nowrap;
@@ -2022,7 +2123,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-user-role {
-  font-size: 11px;
+  font-size: var(--vq-fs-eyebrow);
   color: var(--vq-text-3, var(--vq-ink-500));
 }
 
@@ -2041,12 +2142,13 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  position: sticky;
-  top: 0;
+  padding: 0 clamp(12px, 2vw, 24px);
   z-index: 200;
   backdrop-filter: blur(12px);
   width: 100%;
+  flex: 0 0 var(--vq-header-h);
+  gap: 12px;
+  min-width: 0;
 }
 
 [data-theme="dark"] .vq-main-header {
@@ -2064,7 +2166,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--vq-fs-caption);
   color: var(--vq-text-2, var(--vq-ink-600));
 }
 
@@ -2077,7 +2179,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: var(--vq-fs-eyebrow);
   font-weight: 600;
   padding: 4px 10px;
   border-radius: var(--vq-r-full);
@@ -2136,187 +2238,89 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   color: #59dbc0;
 }
 
-/* ── Full Space Canvas & Grid ────────────────────────────────────────── */
+/* ── The canvas and the grid — Layout Law §5 ──────────────────────────────
+   The column COUNT floats with the viewport; the column WIDTH stays in a tight
+   band around 112px, so a wider screen fits more cards rather than fatter
+   ones. The breakpoints below are the widths at which the legal count nearest
+   112px changes, measured against the content region the nav leaves behind —
+   which is why they are stated per nav state rather than once.
+   Legal counts: mobile 4 · tablet 6, 8 · desktop 8, 10, 12, 14, 16, 18, 20, 24
+   ──────────────────────────────────────────────────────────────────────── */
 .vq-shell .app {
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: 20px 24px 64px !important;
-  box-sizing: border-box !important;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  /* the margin ramps rather than steps, so the canvas never loses width for a
+     pixel of window growth (§3 RAMP) */
+  padding: 20px clamp(14px, calc(14px + (100vw - 600px) / 60), 26px) 72px;
+  box-sizing: border-box;
 }
 
-.vq-canvas {
-  width: 100% !important;
-  max-width: 100% !important;
-}
+.vq-canvas { width: 100%; max-width: 100%; }
 
 .vq-grid {
-  display: grid !important;
-  grid-template-columns: repeat(var(--vq-cols, 12), minmax(0, 1fr)) !important;
-  grid-auto-rows: var(--vq-row, 64px) !important;
-  gap: var(--vq-gutter, 20px) !important;
-  width: 100% !important;
-  align-content: start !important;
+  display: grid;
+  grid-template-columns: repeat(var(--vq-cols, 12), minmax(0, 1fr));
+  grid-auto-rows: var(--vq-unit, 64px);
+  gap: var(--vq-gutter, 24px);
+  width: 100%;
+  align-content: start;
+  /* Belt and braces: if anything ever asks for a span wider than the grid,
+     the implicit tracks it mints are zero-width, so the page cannot be pushed
+     sideways by one bad card. The JS clamp is the primary defence. */
+  grid-auto-columns: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
-@media (max-width: 599px) {
-  :root { --vq-cols: 4; --vq-margin: 16px; }
-  .vq-shell .app { padding: 16px 14px 48px !important; }
-}
-@media (min-width: 600px) and (max-width: 1023px) { :root { --vq-cols: 6; } }
-@media (min-width: 1024px) and (max-width: 1439px) { :root { --vq-cols: 8; } }
-@media (min-width: 1440px) and (max-width: 1799px) { :root { --vq-cols: 10; } }
-@media (min-width: 1800px) { :root { --vq-cols: 12; } }
-@media (min-width: 2400px) { :root { --vq-cols: 16; } }
+/* The ladder, taken at the CONTENT width rather than the window width, so the
+   nav's own state cannot push a screen onto the wrong rung. */
+.vq-shell                     { --vq-cols: 12; }
+@media (max-width: 599px)     { .vq-shell { --vq-cols: 4;  } }
+@media (min-width: 600px) and (max-width: 899px)   { .vq-shell { --vq-cols: 6;  } }
+@media (min-width: 900px) and (max-width: 1215px)  { .vq-shell { --vq-cols: 8;  } }
+/* from here the nav takes its cut, so each nav state has its own rungs */
+@media (min-width: 1216px) { .vq-shell[data-nav="rail"]     { --vq-cols: 8;  } }
+@media (min-width: 1560px) { .vq-shell[data-nav="rail"]     { --vq-cols: 10; } }
+@media (min-width: 1880px) { .vq-shell[data-nav="rail"]     { --vq-cols: 12; } }
+@media (min-width: 2480px) { .vq-shell[data-nav="rail"]     { --vq-cols: 16; } }
+@media (min-width: 3280px) { .vq-shell[data-nav="rail"]     { --vq-cols: 24; } }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE DYNAMIC PADDING BY CARD SIZE CATEGORY
-   ══════════════════════════════════════════════════════════════════════════ */
-.vqc {
-  border-radius: var(--vq-r-xl, 18px) !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  position: relative !important;
-  transition: all var(--vq-dur-2) var(--vq-ease-out) !important;
-}
+@media (min-width: 1216px) { .vq-shell[data-nav="expanded"] { --vq-cols: 8;  } }
+@media (min-width: 1752px) { .vq-shell[data-nav="expanded"] { --vq-cols: 10; } }
+@media (min-width: 2072px) { .vq-shell[data-nav="expanded"] { --vq-cols: 12; } }
+@media (min-width: 2672px) { .vq-shell[data-nav="expanded"] { --vq-cols: 16; } }
+@media (min-width: 3472px) { .vq-shell[data-nav="expanded"] { --vq-cols: 24; } }
 
-/* Category-specific responsive padding */
-.vqc--c1 { padding: 8px 12px !important; }
-.vqc--c2 {
-  padding: 0 20px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  overflow: hidden !important;
-}
-.vqc--c3 { padding: 12px 16px !important; }
-.vqc--c4 { padding: 14px 18px !important; }
-.vqc--c5 { padding: 16px 22px !important; }
-.vqc--c6 { padding: 20px 24px !important; }
+/* The gutter is 24px on BOTH axes at every width, and it is not decoration —
+   it is the pitch. Row height is n·64 + (n−1)·24, so a 2-row card is 152px and
+   two stacked 1-row cards are 64+24+64 = 152px, and they line up exactly.
+   Tightening it on a phone breaks that identity: the card spans across a
+   24px gutter it no longer has, and every multi-row card drifts. */
+.vq-shell { --vq-gutter: 24px; --vq-unit: 64px; }
 
-/* ── STRICT C2 (STRIP) PURE NUMBER LAYOUT (BIG BOLD TYPOGRAPHY) ────────── */
-.vqc--c2 .vqc-bd--c2 {
-  display: flex !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
+/* [removed — this block held three named bugs, each with !important so that
+   nothing downstream could correct them:
 
-.vqc--c2 .vqc-bd--c2.is-inline {
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 16px !important;
-}
+     justify-content: space-between   A column laid space-between pushes the
+                                      header up and the body down, so a card
+                                      holding one number stretched it across
+                                      whatever height the grid gave it. §6 of
+                                      the card system calls this out by name:
+                                      "the fit decides the box; the content
+                                      sits at the top of it."
+     border-radius: --vq-r-xl (18px)  The shape law settled on ONE radius, 14px.
+     transition: all                  Transitioning `all` animates layout
+                                      properties, so every reflow of a card
+                                      became a 180ms slide.
 
-.vqc--c2 .vqc-bd--c2.is-stacked {
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 2px !important;
-}
+   .vqc, .vqc-hd and .vqc-head are all defined by the V6 card CSS above. ] */
 
-.vqc--c2 .vqc-eyebrow {
-  font-size: 12.5px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.06em !important;
-  text-transform: uppercase !important;
-  color: var(--vq-text-3, var(--vq-ink-500)) !important;
-  margin: 0 !important;
-  white-space: nowrap !important;
-}
-
-.vqc--c2 .vqc-c2-val-group {
-  display: flex !important;
-  align-items: baseline !important;
-  gap: 10px !important;
-  margin-left: auto !important;
-}
-
-.vqc--c2 .vqc-head-val,
-.vqc--c2 .vqc-value {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 28px !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-  letter-spacing: -0.02em !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-}
-
-[data-theme="dark"] .vqc--c2 .vqc-head-val,
-[data-theme="dark"] .vqc--c2 .vqc-value {
-  color: #ffffff !important;
-}
-
-.vqc--c2 .vqc-delta {
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  padding: 3px 8px !important;
-  border-radius: var(--vq-r-full) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 3px !important;
-}
-
-.vqc--c2 .vqc-delta--up {
-  background: var(--vq-teal-50, #e6fbf5) !important;
-  color: var(--vq-teal-700, #076b5e) !important;
-}
-
-.vqc--c2 .vqc-delta--down {
-  background: #fff1f0 !important;
-  color: #cf1322 !important;
-}
-
-[data-theme="dark"] .vqc--c2 .vqc-delta--up {
-  background: #0d2922 !important;
-  color: #59dbc0 !important;
-}
-
-/* Hide header arrows and duplicate date labels in C2 */
-.vqc--c2 .vqc-nav-link,
-.vqc--c2 .vqc-per,
-.vqc--c2 .vqc-head-when {
-  display: none !important;
-}
-
-.vqc-hd {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 8px !important;
-  flex-shrink: 0 !important;
-  min-height: 20px !important;
-  margin-bottom: 2px !important;
-}
-
-.vqc-head {
-  display: flex !important;
-  align-items: baseline !important;
-  gap: 8px !important;
-  flex-shrink: 0 !important;
-  margin-top: 1px !important;
-  margin-bottom: 1px !important;
-}
-
-/* Big prominent number styling across all cards */
-.vqc-head-val, .vqc-value {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 28px !important;
-  font-weight: 700 !important;
-  line-height: 1.1 !important;
-  letter-spacing: -0.01em !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-}
-
-[data-theme="dark"] .vqc-head-val,
-[data-theme="dark"] .vqc-value {
-  color: #ffffff !important;
-}
+/* [superseded — see the RESOLUTION LAYER at the end of this file: fixed headline size] */
 
 .vqc-head-when {
-  font-size: 11px !important;
+  font-size: var(--vq-fs-eyebrow) !important;
   color: var(--vq-text-2, var(--vq-ink-600)) !important;
   margin: 1px 0 4px 0 !important;
   flex-shrink: 0 !important;
@@ -2327,7 +2331,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 [data-theme="dark"] .vqc-head-when {
-  color: #8b9a93 !important;
+  /* not !important — a card tone has to be able to overrule the page theme,
+     which is the whole point of an ink or accent card */
+  color: #8b9a93;
 }
 
 .vqc-host {
@@ -2428,7 +2434,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   max-height: 20px !important;
   line-height: 20px !important;
   font-style: normal !important;
-  font-size: 11px !important;
+  font-size: var(--vq-fs-eyebrow) !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
   box-sizing: border-box !important;
@@ -2513,7 +2519,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .ck-tip-h {
   font-family: var(--vq-font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
-  font-size: 11px !important;
+  font-size: var(--vq-fs-eyebrow) !important;
   font-weight: 700 !important;
   margin: 0 0 6px 0 !important;
   white-space: nowrap !important;
@@ -2540,13 +2546,13 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   overflow: visible !important;
   text-overflow: clip !important;
   max-width: none !important;
-  font-size: 11.5px !important;
+  font-size: var(--vq-fs-eyebrow) !important;
   font-weight: 500 !important;
 }
 
 .ck-tip-v {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 12px !important;
+  font-size: var(--vq-fs-eyebrow) !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
   margin-left: auto !important;
@@ -2575,508 +2581,10 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   stroke: rgba(13, 20, 18, 0.25) !important;
 }
 
-/* ── Non-Edit vs Edit Mode Rules ─────────────────────────────────────── */
-.vq-shell:not(.is-editing) .vqc-grip,
-.vq-shell:not(.is-editing) .vqc-edit,
-.vq-shell:not(.is-editing) .vqc-del,
-.vq-shell:not(.is-editing) .vqc-tools,
-.vq-shell:not(.is-editing) .vqc::after {
-  display: none !important;
-}
+/* [superseded — see the RESOLUTION LAYER at the end of this file: edit-mode + tone variants] */
 
-.vq-shell.is-editing .vqc {
-  cursor: grab !important;
-  outline: 1px dashed rgba(11, 170, 143, 0.4) !important;
-  outline-offset: -1px !important;
-}
+/* [superseded — see the RESOLUTION LAYER at the end of this file: interactive card types] */
 
-.vq-shell.is-editing .vqc:hover {
-  outline-color: var(--vq-teal-500) !important;
-  box-shadow: 0 8px 24px rgba(11, 170, 143, 0.15) !important;
-}
-
-.vq-shell.is-editing .vqc-tools {
-  opacity: 1 !important;
-  display: flex !important;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   CARD BACKGROUND TONE VARIANTS
-   ══════════════════════════════════════════════════════════════════════════ */
-.vqc--tone-surface {
-  background: var(--vq-surface, #ffffff) !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-  border-color: var(--vq-line, var(--vq-ink-200)) !important;
-}
-
-[data-theme="dark"] .vqc--tone-surface {
-  background: #151d18 !important;
-  border-color: #24332c !important;
-  color: #ffffff !important;
-}
-
-.vqc--tone-accent, .vqc--accent {
-  background: linear-gradient(135deg, var(--vq-teal-600, #088975) 0%, var(--vq-teal-800, #0a5049) 100%) !important;
-  border-color: transparent !important;
-  color: #FFFFFF !important;
-  box-shadow: var(--vq-glow-accent, 0 8px 24px rgba(11, 170, 143, 0.35)) !important;
-}
-
-.vqc--tone-accent .vqc-eyebrow,
-.vqc--tone-accent .vqc-when,
-.vqc--tone-accent .vqc-unit,
-.vqc--tone-accent .vqc-ctx {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-.vqc--tone-accent .vqc-value,
-.vqc--tone-accent .vqc-head-val {
-  color: #FFFFFF !important;
-}
-
-.vqc--tone-ink {
-  background: #0D1412 !important;
-  border-color: #1F2B25 !important;
-  color: #EDF2EF !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
-}
-
-.vqc--tone-ink .vqc-eyebrow,
-.vqc--tone-ink .vqc-when {
-  color: #8B9A93 !important;
-}
-
-.vqc--tone-ink .vqc-value,
-.vqc--tone-ink .vqc-head-val {
-  color: #FFFFFF !important;
-}
-
-.vqc--tone-mesh {
-  background: radial-gradient(at 100% 0%, rgba(11, 170, 143, 0.20) 0px, transparent 65%),
-              radial-gradient(at 0% 100%, rgba(43, 165, 209, 0.18) 0px, transparent 65%),
-              var(--vq-surface, #ffffff) !important;
-  border-color: var(--vq-teal-200, #93ebd6) !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-  box-shadow: 0 8px 24px rgba(11, 170, 143, 0.12) !important;
-}
-
-[data-theme="dark"] .vqc--tone-mesh {
-  background: radial-gradient(at 100% 0%, rgba(11, 170, 143, 0.28) 0px, transparent 65%),
-              radial-gradient(at 0% 100%, rgba(43, 165, 209, 0.22) 0px, transparent 65%),
-              #111815 !important;
-  border-color: #1a5044 !important;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   INTERACTIVE CARD TYPES (BALANCED UNCLIPPED STYLES)
-   ══════════════════════════════════════════════════════════════════════════ */
-
-/* 1. Quick Operations Hub Card */
-.vqc--action-hub {
-  padding: 14px 16px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-}
-
-.vqc-action-hub-title {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 15.5px !important;
-  font-weight: 700 !important;
-  color: #ffffff !important;
-  margin-top: 1px !important;
-  line-height: 1.15 !important;
-}
-
-.vqc-action-hub-sub {
-  font-size: 11px !important;
-  color: #8b9a93 !important;
-  margin-bottom: 6px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-.vqc-action-hub-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 8px !important;
-  margin-top: auto !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.vqc-hub-btn {
-  height: 40px !important;
-  border-radius: var(--vq-r-md, 12px) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  text-decoration: none !important;
-  cursor: pointer !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  border: none !important;
-  box-sizing: border-box !important;
-  white-space: nowrap !important;
-}
-
-.vqc-hub-btn--sales {
-  background: linear-gradient(135deg, #0baa8f, #076b5e) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(11, 170, 143, 0.35) !important;
-}
-
-.vqc-hub-btn--sales:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(11, 170, 143, 0.5) !important;
-}
-
-.vqc-hub-btn--purchase {
-  background: linear-gradient(135deg, #f26a47, #b94526) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(242, 106, 71, 0.35) !important;
-}
-
-.vqc-hub-btn--purchase:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(242, 106, 71, 0.5) !important;
-}
-
-.vqc-hub-btn--actions {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1.5px dashed rgba(255, 255, 255, 0.3) !important;
-  color: #ffffff !important;
-  backdrop-filter: blur(8px) !important;
-}
-
-.vqc-hub-btn--actions:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: var(--vq-teal-400) !important;
-  transform: translateY(-2px) !important;
-}
-
-.vqc-hub-plus {
-  font-size: 15px !important;
-  font-weight: 800 !important;
-  color: var(--vq-teal-300) !important;
-}
-
-/* 2. Bank Accounts & Cash in Hand Liquidity Card */
-.vqc--bank-liquidity {
-  box-sizing: border-box !important;
-}
-
-.vqc-bank-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 10px !important;
-  margin-top: 6px !important;
-}
-
-.vqc-bank-box {
-  background: var(--vq-sunken, var(--vq-ink-50)) !important;
-  border: 1px solid var(--vq-line, var(--vq-ink-100)) !important;
-  border-radius: var(--vq-r-md) !important;
-  padding: 8px 12px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 2px !important;
-}
-
-[data-theme="dark"] .vqc-bank-box {
-  background: #17201b !important;
-  border-color: #24332c !important;
-}
-
-.vqc-bank-box.is-total {
-  background: var(--vq-teal-50) !important;
-  border-color: var(--vq-teal-200) !important;
-}
-
-[data-theme="dark"] .vqc-bank-box.is-total {
-  background: #0d2922 !important;
-  border-color: #1a5044 !important;
-}
-
-.vqc-bank-label {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.04em !important;
-  color: var(--vq-text-3, var(--vq-ink-500)) !important;
-}
-
-.vqc-bank-val {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-}
-
-[data-theme="dark"] .vqc-bank-val {
-  color: #ffffff !important;
-}
-
-.vqc-bank-sub {
-  font-size: 10px !important;
-  color: var(--vq-text-2, var(--vq-ink-600)) !important;
-}
-
-/* 3. Alerts & Action Required Card */
-.vqc--alerts-hub {
-  box-sizing: border-box !important;
-}
-
-.vqc-alerts-list {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 6px !important;
-  margin-top: 6px !important;
-}
-
-.vqc-alert-item {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  padding: 7px 10px !important;
-  border-radius: var(--vq-r-md) !important;
-  text-decoration: none !important;
-  font-size: 11.5px !important;
-  transition: transform 0.15s ease !important;
-}
-
-.vqc-alert-item:hover {
-  transform: translateX(3px) !important;
-}
-
-.vqc-alert-item--warning {
-  background: #fff8e6 !important;
-  border: 1px solid #ffd666 !important;
-  color: #874d00 !important;
-}
-[data-theme="dark"] .vqc-alert-item--warning {
-  background: #2b210c !important;
-  border-color: #594212 !important;
-  color: #ffcd5b !important;
-}
-
-.vqc-alert-item--danger {
-  background: #fff1f0 !important;
-  border: 1px solid #ffa39e !important;
-  color: #a8071a !important;
-}
-[data-theme="dark"] .vqc-alert-item--danger {
-  background: #2b1111 !important;
-  border-color: #591b1b !important;
-  color: #ff7875 !important;
-}
-
-.vqc-alert-item--info {
-  background: #e6f7ff !important;
-  border: 1px solid #91d5ff !important;
-  color: #0050b3 !important;
-}
-[data-theme="dark"] .vqc-alert-item--info {
-  background: #0d2238 !important;
-  border-color: #17426b !important;
-  color: #69c0ff !important;
-}
-
-.vqc-alert-dot {
-  width: 6px !important;
-  height: 6px !important;
-  border-radius: 50% !important;
-  background: currentColor !important;
-  flex-shrink: 0 !important;
-}
-
-.vqc-alert-msg {
-  flex: 1 1 auto !important;
-}
-
-.vqc-alert-btn {
-  font-weight: 700 !important;
-  font-size: 10.5px !important;
-}
-
-/* 4. Growth Engine Card */
-.vqc--growth-engine {
-  box-sizing: border-box !important;
-}
-
-.vqc-growth-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 10px !important;
-  margin-top: 6px !important;
-}
-
-.vqc-growth-stat {
-  background: var(--vq-sunken, var(--vq-ink-50)) !important;
-  border: 1px solid var(--vq-line, var(--vq-ink-100)) !important;
-  border-radius: var(--vq-r-md) !important;
-  padding: 8px 12px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 2px !important;
-}
-
-[data-theme="dark"] .vqc-growth-stat {
-  background: #17201b !important;
-  border-color: #24332c !important;
-}
-
-.vqc-growth-label {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  color: var(--vq-text-3, var(--vq-ink-500)) !important;
-}
-
-.vqc-growth-val {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 18px !important;
-  font-weight: 800 !important;
-  color: var(--vq-teal-600) !important;
-}
-
-[data-theme="dark"] .vqc-growth-val {
-  color: #59dbc0 !important;
-}
-
-.vqc-growth-sub {
-  font-size: 10px !important;
-  color: var(--vq-text-2, var(--vq-ink-600)) !important;
-}
-
-/* 5. Custom Button Card (C1 Shortcut) */
-.vqc--custom-btn {
-  padding: 8px 12px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  box-sizing: border-box !important;
-}
-
-.vqc-custom-action-anchor {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 3px !important;
-  text-decoration: none !important;
-  padding: 2px 0 !important;
-  cursor: pointer !important;
-  transition: transform 0.2s ease !important;
-}
-
-.vqc-custom-action-anchor:hover {
-  transform: translateY(-2px) !important;
-}
-
-.vqc-custom-icon-ring {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
-}
-
-.vqc-custom-btn-title {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-}
-
-[data-theme="dark"] .vqc-custom-btn-title {
-  color: #ffffff !important;
-}
-
-.vqc-custom-btn-sub {
-  font-size: 9.5px !important;
-  color: var(--vq-text-3, var(--vq-ink-500)) !important;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   GLASS ICONS ACTION POPUP MODAL (CENTER OVERLAY FIX)
-   ══════════════════════════════════════════════════════════════════════════ */
-.vq-glass-modal-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(13, 20, 18, 0.72) !important;
-  backdrop-filter: blur(18px) !important;
-  -webkit-backdrop-filter: blur(18px) !important;
-  z-index: 9999 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 24px !important;
-  margin: 0 !important;
-  box-sizing: border-box !important;
-  animation: vqFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) both !important;
-}
-
-.vq-glass-modal-card {
-  background: var(--vq-surface, #ffffff) !important;
-  border: 1px solid var(--vq-line, var(--vq-ink-200)) !important;
-  border-radius: 24px !important;
-  width: 100% !important;
-  max-width: 660px !important;
-  padding: 28px 32px 36px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  box-shadow: 0 24px 64px -12px rgba(13, 20, 18, 0.35) !important;
-  animation: vqPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
-  margin: auto !important;
-  position: relative !important;
-  box-sizing: border-box !important;
-}
-
-[data-theme="dark"] .vq-glass-modal-card {
-  background: #111815 !important;
-  border-color: #24332c !important;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8) !important;
-}
-
-.vq-glass-modal-header {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  border-bottom: 1px solid var(--vq-line, var(--vq-ink-100)) !important;
-  padding-bottom: 14px !important;
-  margin-bottom: 8px !important;
-  width: 100% !important;
-}
-
-[data-theme="dark"] .vq-glass-modal-header {
-  border-bottom-color: #1f2b25 !important;
-}
-
-.vq-glass-modal-title {
-  font-family: var(--vq-font-display, "Space Grotesk", sans-serif) !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  color: var(--vq-text, var(--vq-ink-900)) !important;
-}
-
-[data-theme="dark"] .vq-glass-modal-title {
-  color: #ffffff !important;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   STEPPER MODAL DIALOG (STRICT V6 DESIGN SYSTEM)
-   ══════════════════════════════════════════════════════════════════════════ */
 .vq-modal-overlay {
   position: fixed !important;
   inset: 0 !important;
@@ -3122,7 +2630,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-modal-step-sub {
-  font-size: 11px;
+  font-size: var(--vq-fs-eyebrow);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -3132,7 +2640,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-modal-heading {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif);
-  font-size: 23px;
+  font-size: var(--vq-fs-h3);
   font-weight: 700;
   color: var(--vq-text, var(--vq-ink-900));
   line-height: 1.15;
@@ -3189,7 +2697,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   border: 1px solid var(--vq-line, var(--vq-ink-200));
   border-radius: var(--vq-r-full);
   padding: 0 18px 0 44px;
-  font-size: 13.5px;
+  font-size: var(--vq-fs-caption);
   font-weight: 500;
   color: var(--vq-text, var(--vq-ink-900));
   box-sizing: border-box;
@@ -3270,7 +2778,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-modal-section-title {
-  font-size: 11px;
+  font-size: var(--vq-fs-eyebrow);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3335,7 +2843,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-item-card-title {
   font-family: var(--vq-font-display, "Space Grotesk", sans-serif);
-  font-size: 15px;
+  font-size: var(--vq-fs-small);
   font-weight: 700;
   color: var(--vq-text, var(--vq-ink-900));
   line-height: 1.2;
@@ -3346,7 +2854,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-item-new-badge {
-  font-size: 10px;
+  font-size: var(--vq-fs-eyebrow);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: var(--vq-r-full);
@@ -3367,7 +2875,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-item-card-desc {
-  font-size: 12.5px;
+  font-size: var(--vq-fs-caption);
   color: var(--vq-text-2, var(--vq-ink-600));
   line-height: 1.5;
   margin: 8px 0 14px;
@@ -3383,14 +2891,14 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   align-items: center;
   gap: 8px;
   margin-top: auto;
-  font-size: 11px;
+  font-size: var(--vq-fs-eyebrow);
 }
 
 .vq-item-shape-tag {
   background: var(--vq-sunken, var(--vq-ink-50));
   color: var(--vq-text-2, var(--vq-ink-600));
   font-family: var(--vq-font-mono, monospace);
-  font-size: 10px;
+  font-size: var(--vq-fs-eyebrow);
   font-weight: 700;
   padding: 3px 7px;
   border-radius: var(--vq-r-xs);
@@ -3409,7 +2917,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vq-item-card-key {
   color: var(--vq-text-3, var(--vq-ink-500));
   font-family: var(--vq-font-numeric, monospace);
-  font-size: 11px;
+  font-size: var(--vq-fs-eyebrow);
   flex: 1 1 auto;
   white-space: nowrap;
   overflow: hidden;
@@ -3438,7 +2946,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 .vq-modal-bottom-desc {
-  font-size: 12.5px;
+  font-size: var(--vq-fs-caption);
   color: var(--vq-text-2, var(--vq-ink-600));
   line-height: 1.4;
   max-width: 640px;
@@ -3452,7 +2960,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   border: 1px solid var(--vq-line, var(--vq-ink-200));
   border-radius: var(--vq-r-full);
   padding: 9px 24px;
-  font-size: 13px;
+  font-size: var(--vq-fs-caption);
   font-weight: 600;
   color: var(--vq-text, var(--vq-ink-900));
   background: var(--vq-surface, #ffffff);
@@ -3471,340 +2979,1338 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   color: #ffffff;
 }
 
+/* [superseded — the wizard control styles now live in the RESOLUTION LAYER
+   below, which restates all of them in one place. The versions that stood
+   here set flex-direction:column on .vq-size-card, which the replacement did
+   not re-declare, so every size chip stacked its diagram above its label.] */
+
 /* ══════════════════════════════════════════════════════════════════════════
-   STEP 2 CONTROLS PANE & PREVIEW
+   ██  VENQORE COMMAND CENTRE — RESOLUTION LAYER  ██
+   ══════════════════════════════════════════════════════════════════════════
+   Everything below is authoritative and supersedes the exploratory blocks
+   above it. Three jobs, in order:
+
+     1. NOTHING BLEEDS.  Every card is a closed box: min-width:0 on every flex
+        and grid child, one scroll owner per axis, and text that truncates
+        rather than pushing its container.
+     2. EVERY SIZE READS.  A card knows its own span through --vqw / --vqh, so
+        its interior thins out at two rows and fills out at eight instead of
+        being drawn once for one shape and clipped everywhere else.
+     3. EVERY GROUND WORKS.  Four card tones × two themes × three page
+        backgrounds = twenty-four combinations, and each one is stated rather
+        than inherited by luck.
    ══════════════════════════════════════════════════════════════════════════ */
-.vq-step2-layout {
-  display: grid;
-  grid-template-columns: 430px 1fr;
-  gap: 24px;
-  height: 100%;
-  min-height: 0;
-}
 
-@media (max-width: 900px) {
-  .vq-step2-layout {
-    grid-template-columns: 1fr;
-  }
-}
+/* ── 0. The closed box ─────────────────────────────────────────────────── */
+.vq-shell *, .vq-shell *::before, .vq-shell *::after { box-sizing: border-box; }
+.vq-shell :where(.vqc, .vqc *) { min-width: 0; }
+.vq-grid > * { min-width: 0; max-width: 100%; }
 
-.vq-controls-pane {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-  padding: 6px 12px 24px 6px;
-  box-sizing: border-box;
+/* The V6 card CSS earlier in this file is the law: 20px padding (C1 16px,
+   C2 0/16px), 14px radius, the metric/eyebrow/caption type scale. This layer
+   used to restate all of it with clamp()-based sizes of its own invention,
+   which is how a 12px eyebrow shipped at 10px and a 40px metric at 15px.
+   It no longer touches type, padding or radius. It adds three things the
+   reference does not cover: containment, size-awareness, and the families. */
+.vqc {
+  isolation: isolate;
+  contain: paint;
 }
+/* the chart body is the only element allowed to take the slack */
+.vqc-host { overflow: hidden; }
+.vqc-host > svg, .vqc-host > .ck-geo-c { max-width: 100%; }
 
-.vq-preview-stage {
-  background: var(--vq-bg, var(--vq-ink-25));
-  border: 1px solid var(--vq-line, var(--vq-ink-200));
-  border-radius: var(--vq-r-xl);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 440px;
-  position: relative;
-  overflow: auto;
-}
-
-[data-theme="dark"] .vq-preview-stage {
-  background: #0d1412;
-  border-color: #1f2b25;
-}
-
-.vq-preview-stage .vqc {
-  transition: all var(--vq-dur-2) var(--vq-ease-out) !important;
-  box-shadow: var(--vq-elev-2) !important;
-  margin: auto !important;
-  box-sizing: border-box !important;
-}
-
-/* Category Pills & Size Grid */
-.vq-category-tabs {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-
-.vq-cat-tab-btn {
-  padding: 6px 12px;
-  border-radius: var(--vq-r-full);
-  font-size: 11.5px;
-  font-weight: 700;
-  border: 1px solid var(--vq-line, var(--vq-ink-200));
-  background: var(--vq-surface, #ffffff);
-  color: var(--vq-text-2, var(--vq-ink-600));
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.vq-cat-tab-btn.is-active {
-  background: var(--vq-teal-500);
-  color: #ffffff;
-  border-color: var(--vq-teal-500);
-  box-shadow: var(--vq-glow-accent);
-}
-
-.vq-size-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  padding: 2px;
-}
-
-.vq-size-card {
-  padding: 10px 12px;
-  border-radius: var(--vq-r-md);
-  border: 1px solid var(--vq-line, var(--vq-ink-200));
-  background: var(--vq-surface, #ffffff);
-  cursor: pointer;
-  transition: all var(--vq-dur-1) var(--vq-ease-out);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-align: left;
-  box-sizing: border-box;
-}
-
-[data-theme="dark"] .vq-size-card {
-  background: #17201b;
-  border-color: #24332c;
-}
-
-.vq-size-card:hover {
-  border-color: var(--vq-teal-500);
-}
-
-.vq-size-card.is-active {
-  background: var(--vq-teal-50);
-  border-color: var(--vq-teal-500);
-  box-shadow: 0 0 0 1.5px var(--vq-teal-500);
-}
-
-[data-theme="dark"] .vq-size-card.is-active {
-  background: #0d2922;
-  border-color: #59dbc0;
-  box-shadow: 0 0 0 1.5px #59dbc0;
-}
-
-.vq-size-card-title {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--vq-text, var(--vq-ink-900));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.vq-size-card.is-active .vq-size-card-title {
-  color: var(--vq-teal-800);
-}
-
-[data-theme="dark"] .vq-size-card.is-active .vq-size-card-title {
-  color: #59dbc0;
-}
-
-.vq-size-card-desc {
-  font-size: 10.5px;
-  color: var(--vq-text-3, var(--vq-ink-500));
-}
-
-/* Tone Options Grid */
-.vq-tone-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  padding: 2px;
-}
-
-.vq-tone-card {
-  padding: 8px 10px;
-  border-radius: var(--vq-r-md);
-  border: 1px solid var(--vq-line, var(--vq-ink-200));
-  background: var(--vq-surface, #ffffff);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all var(--vq-dur-1) var(--vq-ease-out);
-  box-sizing: border-box;
-}
-
-[data-theme="dark"] .vq-tone-card {
-  background: #17201b;
-  border-color: #24332c;
-}
-
-.vq-tone-card:hover {
-  border-color: var(--vq-teal-500);
-}
-
-.vq-tone-card.is-active {
-  border-color: var(--vq-teal-500);
-  background: var(--vq-teal-50);
-  box-shadow: 0 0 0 1.5px var(--vq-teal-500);
-}
-
-[data-theme="dark"] .vq-tone-card.is-active {
-  background: #0d2922;
-  border-color: #59dbc0;
-  box-shadow: 0 0 0 1.5px #59dbc0;
-}
-
-.vq-tone-swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: var(--vq-r-xs);
-  flex-shrink: 0;
-  border: 1px solid var(--vq-line, var(--vq-ink-200));
-}
-
-.vq-tone-info {
-  display: flex;
-  flex-direction: column;
+/* Every label truncates; none of them may widen its row.
+   These are all <span>s, and `overflow`/`text-overflow` do nothing on an
+   inline box — so each is blockified first. That single missing declaration is
+   what let a long reading name push a stacked strip 180px past its own frame. */
+.vqc-eyebrow, .vqc-label, .vqc-when, .vqc-head-when,
+.vqc-action-hub-title, .vqc-action-hub-sub,
+.vqc-bank-label, .vqc-bank-sub, .vqc-growth-label, .vqc-growth-sub,
+.vqc-custom-btn-title, .vqc-custom-btn-sub, .vqc-alert-msg,
+.vqc-bank-val, .vqc-growth-val, .vqc-hub-btn > span {
+  display: block;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+/* a column flex lays its children on the cross axis by content width unless
+   told otherwise — stretch them, or the ellipsis never gets a chance */
+.vqc-bd--c2.is-stacked > *, .vqc-custom-text > *,
+.vqc-bank-box > *, .vqc-growth-stat > *, .vqc-hub-title-wrap > * { align-self: stretch; }
+.vqc-head, .vqc-hd, .vqc-c2-val-group { min-width: 0; }
+.vqc-head-val, .vqc-value { min-width: 0; overflow: hidden; }
 
-.vq-tone-name {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--vq-text, var(--vq-ink-900));
-}
-
-.vq-tone-desc {
-  font-size: 10px;
-  color: var(--vq-text-3, var(--vq-ink-500));
-}
-
-.vq-form-group {
+/* ── 1. Card chrome — one contract for every family ────────────────────── */
+/* .vqc-hd, .vqc-hd-r, .vqc-tools and .vqc-act are defined by the V6 card CSS
+   above (26px pill controls on an accent-quiet ground, 26px header row). Only
+   the alias for the new families is declared here. */
+.vqc-acts {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.vq-form-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--vq-text-3, var(--vq-ink-500));
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
   align-items: center;
-  justify-content: space-between;
+  opacity: 0;
+  transition: opacity var(--vq-dur-2) var(--vq-ease-out);
 }
+.vqc:hover .vqc-acts, .vqc:focus-within .vqc-acts { opacity: 1; }
+/* Out of edit mode the card shows only its open arrow, and only on approach,
+   so a board at rest is data and not buttons.
 
-.vq-form-sublabel {
-  font-size: 10.5px;
-  font-weight: 500;
-  text-transform: none;
-  color: var(--vq-teal-600);
-}
+   The container itself is kept at full opacity so the arrow inside it can fade
+   in on its own — but on C1 and C2 that container carries an opaque pill
+   background, and holding it visible painted a white lozenge over the right
+   end of every strip. It had eaten the last three letters of "Today". The
+   ground arrives with the controls, not before them. */
+.vq-shell:not(.is-editing) .vqc-grip,
+.vq-shell:not(.is-editing) .vqc-edit,
+.vq-shell:not(.is-editing) .vqc-del { display: none !important; }
+.vq-shell:not(.is-editing) .vqc-tools,
+.vq-shell:not(.is-editing) .vqc-acts { display: flex; opacity: 1; }
+.vqc--c1 .vqc-tools, .vqc--c2 .vqc-tools,
+.vqc--custom-btn .vqc-tools { background: transparent; }
+.vqc--c1:hover .vqc-tools, .vqc--c1:focus-within .vqc-tools,
+.vqc--c2:hover .vqc-tools, .vqc--c2:focus-within .vqc-tools,
+.vqc--custom-btn:hover .vqc-tools, .vqc--custom-btn:focus-within .vqc-tools,
+.vq-shell.is-editing .vqc--c1 .vqc-tools,
+.vq-shell.is-editing .vqc--c2 .vqc-tools,
+.vq-shell.is-editing .vqc--custom-btn .vqc-tools { background: var(--vq-surface); }
+.vqc--c2.vqc--accent .vqc-tools, .vqc--c2.vqc--tone-ink .vqc-tools,
+.vqc--custom-btn.vqc--tone-ink .vqc-tools { background: transparent !important; }
 
-.vq-select-btn-group {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
+.vqc-nav-link { opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out); }
+.vqc:hover .vqc-nav-link, .vqc:focus-within .vqc-nav-link { opacity: 1; }
+.vq-shell.is-editing .vqc-tools,
+.vq-shell.is-editing .vqc-acts { opacity: 1; display: flex; }
 
-.vq-choice-btn {
-  padding: 6px 12px;
+/* The open arrow is one of the tools, not a special case — same 26px pill,
+   same ground, so a card's controls read as one set. */
+.vqc-nav-link {
+  display: grid; place-items: center;
+  width: 26px; height: 26px; flex-shrink: 0;
+  border: 0; padding: 0; cursor: pointer; text-decoration: none;
   border-radius: var(--vq-r-full);
-  font-size: 11.5px;
-  font-weight: 600;
-  border: 1px solid var(--vq-line, var(--vq-ink-200));
-  background: var(--vq-surface, #ffffff);
-  color: var(--vq-text, var(--vq-ink-900));
-  cursor: pointer;
-  transition: all var(--vq-dur-1) var(--vq-ease-out);
+  background: var(--vq-accent-quiet);
+  color: var(--vq-accent-text);
+  transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqc-nav-link:hover { background: var(--vq-accent-quiet-line); color: var(--vq-accent-text); }
+.vqc--accent .vqc-nav-link {
+  background: var(--vq-on-accent-quiet); color: var(--vq-on-accent-text);
+}
+.vqc--accent .vqc-nav-link:hover { background: var(--vq-on-accent-quiet-2); }
+
+/* the resize handle — present on every card, visible only in edit mode */
+.vqc-resize {
+  position: absolute; right: 3px; bottom: 3px;
+  width: 20px; height: 20px;
+  border: 0; background: transparent; padding: 0;
+  cursor: nwse-resize; opacity: 0; z-index: 6;
+  transition: opacity var(--vq-dur-2,180ms) var(--vq-ease-out);
+}
+.vqc-resize::after {
+  content: ''; position: absolute; right: 5px; bottom: 5px;
+  width: 8px; height: 8px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  border-bottom-right-radius: 3px; color: var(--vq-text-3); opacity: .8;
+}
+.vq-shell:not(.is-editing) .vqc-resize { display: none !important; }
+.vq-shell.is-editing .vqc:hover .vqc-resize,
+.vq-shell.is-editing .vqc:focus-within .vqc-resize { opacity: 1; }
+
+.vqc-size-hint {
+  position: absolute; right: 8px; bottom: 8px; z-index: 8;
+  font: 700 11px/1 var(--vq-font-numeric, ui-monospace, monospace);
+  background: var(--vq-ink-900, #17201b); color: #fff;
+  padding: 5px 9px; border-radius: var(--vq-r-full, 999px);
+  pointer-events: none; white-space: nowrap;
+  box-shadow: 0 4px 12px rgb(0 0 0 / .28);
 }
 
-[data-theme="dark"] .vq-choice-btn {
-  background: #17201b;
-  border-color: #24332c;
-  color: #ffffff;
+.vqc.is-resizing { z-index: 12; outline: 2px solid var(--vq-teal-500); outline-offset: -2px; }
+.vqc.is-dragging { opacity: .55; z-index: 14; }
+.vqc.is-over     { outline: 2px dashed var(--vq-teal-500); outline-offset: -2px; }
+.vqc.is-going    { opacity: 0; transform: scale(.96); transition: opacity 180ms, transform 180ms; }
+
+/* a card the grid had to narrow says so, quietly, in edit mode only */
+.vq-shell.is-editing .vqc.is-clamped::before {
+  content: 'narrowed to fit';
+  position: absolute; top: 6px; right: 6px; z-index: 7;
+  font: 700 9px/1 var(--vq-font-sans); letter-spacing: .06em; text-transform: uppercase;
+  background: var(--vq-butter-100, #fff8e6); color: var(--vq-butter-700, #a6690a);
+  padding: 3px 6px; border-radius: var(--vq-r-full, 999px);
 }
 
-.vq-choice-btn:hover {
-  border-color: var(--vq-teal-500);
+/* ── 2. Emphasis: glare and the star border ────────────────────────────── */
+.vqc-glare {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  border-radius: inherit; opacity: 0;
+  background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / .22) 46%, transparent 62%);
+  background-size: 260% 100%; background-position: 120% 0;
+  transition: opacity var(--vq-dur-2,180ms) var(--vq-ease-out);
 }
+.vqc--glared:hover .vqc-glare { opacity: 1; animation: vqGlare 900ms var(--vq-ease-out) 1; }
+@keyframes vqGlare { from { background-position: 120% 0 } to { background-position: -40% 0 } }
+.vqc:not(.vqc--glared) .vqc-glare { display: none; }
 
-.vq-choice-btn.is-active {
-  background: var(--vq-teal-500);
-  color: #ffffff;
-  border-color: var(--vq-teal-500);
-  box-shadow: var(--vq-glow-accent);
+/* The star border is a rotating conic ring behind the card, masked to the
+   1.5px the frame does not cover — so it never eats interior width. */
+.vqc--starred { border-color: transparent !important; }
+.vqc-star {
+  position: absolute; inset: -1.5px; border-radius: inherit;
+  pointer-events: none; overflow: hidden;
 }
+.vqc-star::before {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 210%; aspect-ratio: 1; translate: -50% -50%;
+  background: conic-gradient(from 0deg,
+    transparent 0deg, var(--vq-teal-400, #23c4a6) 40deg,
+    var(--vq-teal-200, #93ebd6) 70deg, transparent 130deg,
+    transparent 180deg, var(--vq-teal-500, #0baa8f) 220deg,
+    var(--vq-sky-400, #8fd9f5) 250deg, transparent 310deg);
+  animation: vqStarSpin 4.5s linear infinite;
+}
+/* The ring sits behind the card's content but above its background, so it has
+   to be masked back down to the 1.5px the frame does not cover. `inherit` does
+   not work here — a pseudo-element inherits from .vqc-star, which is
+   transparent, and the whole card turned into a spinning green swirl. The mask
+   restates each tone's own ground instead. */
+.vqc-star::after {
+  content: ''; position: absolute; inset: 1.5px;
+  border-radius: inherit; background: var(--vq-surface);
+}
+.vqc--tone-ink .vqc-star::after { background: #0d1412; }
+.vqc--tone-accent .vqc-star::after {
+  background: linear-gradient(135deg, var(--vq-teal-700) 0%, var(--vq-teal-900) 100%);
+}
+.vqc--tone-mesh .vqc-star::after {
+  background:
+    radial-gradient(at 100% 0%, rgb(11 170 143 / .20) 0, transparent 62%),
+    radial-gradient(at 0% 100%, rgb(43 165 209 / .18) 0, transparent 62%),
+    var(--vq-surface);
+}
+[data-theme="dark"] .vqc-star::after { background: #151d18; }
+[data-theme="dark"] .vqc--tone-ink .vqc-star::after { background: #0d1412; }
+[data-theme="dark"] .vqc--tone-mesh .vqc-star::after {
+  background:
+    radial-gradient(at 100% 0%, rgb(11 170 143 / .3) 0, transparent 62%),
+    radial-gradient(at 0% 100%, rgb(43 165 209 / .24) 0, transparent 62%),
+    #111815;
+}
+:root[data-bg="mesh"] .vqc--tone-surface .vqc-star::after { background: #141a18; }
+:root[data-bg="mesh"] .vqc--tone-mesh .vqc-star::after { background: #141a18; }
+@keyframes vqStarSpin { to { rotate: 360deg } }
+@media (prefers-reduced-motion: reduce) { .vqc-star::before { animation: none } }
+/* The ring paints behind the card's own content. `isolation:isolate` on .vqc
+   keeps a negative z-index inside the card, so this goes above the card's
+   background and below everything it draws — without having to make every
+   other child positioned, which is what previously knocked the resize handle
+   out of its corner. */
+.vqc-star { z-index: -1; }
 
-/* V6 Design System Switch */
-.vq-v6-switch-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--vq-surface, #ffffff);
-  border: 1px solid var(--vq-line, var(--vq-ink-200));
+/* ── 3. Size-aware interiors ───────────────────────────────────────────── */
+/* A one-row card has room for one line. A two-row card gains the caption. Four
+   rows and up gain the chart. This is the §6 "degrade to the next leaner fit"
+   rule expressed where it belongs — in the stylesheet, not in a branch. */
+.vqc-head-when, .vqc-when { display: block; }
+.vqc[data-h="1"] .vqc-head-when,
+.vqc[data-h="2"] .vqc-head-when,
+.vqc[data-h="3"] .vqc-head-when { display: none !important; }
+.vqc[data-h="1"] .vqc-host { display: none !important; }
+.vqc[data-h="1"] .vqc-hd { margin-bottom: 0; }
+
+/* Type comes from the V6 scale and nowhere else. What changes with the card's
+   span is which RUNG the number takes — 40 → 28 → 23 — never an arbitrary
+   interpolated size. §5 of the card system allows exactly three. */
+.vqc[data-w="1"] .vqc-value,
+.vqc[data-w="2"] .vqc-value { font-size: var(--vq-fs-metric-sm); }
+.vqc[data-w="1"] .vqc-value--sm,
+.vqc[data-w="2"] .vqc-value--sm { font-size: var(--vq-fs-h3); }
+.vqc[data-h="1"]:not(.vqc--c2) .vqc-value { font-size: var(--vq-fs-metric-sm); }
+/* a one-column card has no room for a pill beside the number */
+.vqc[data-w="1"] .vqc-delta { display: none; }
+
+/* the period picker steps out of the way when the header runs out of room */
+.vqc[data-w="2"] .vqc-per, .vqc[data-w="1"] .vqc-per { display: none !important; }
+
+/* ── 4. C2 · the strip ─────────────────────────────────────────────────────
+   The reference lays the inline strip as a three-column grid — label | value |
+   window — because a flex row lets the label push the number off the end. The
+   priority when space runs short is stated there and honoured here: the value
+   never shrinks, the window truncates next, the label gives way first. */
+.vqc--c1 { padding: var(--vq-space-4); }
+.vqc--c1 .vqc-bd { justify-content: center; gap: 1px; }
+.vqc--c2 { padding: 0 var(--vq-space-4); justify-content: center; }
+.vqc--c2 .vqc-bd { flex: 0 1 auto; justify-content: center; min-width: 0; }
+/* the tile and the strip have no header row, so their window line takes the
+   eyebrow size rather than the caption size */
+.vqc--c1 .vqc-when, .vqc--c2 .vqc-when { font-size: var(--vq-fs-eyebrow); }
+.vqc-bd--strip.is-inline > *,
+.vqc-bd--strip.is-stacked > * { min-width: 0; }
+.vqc-bd--strip.is-stacked {
+  display: flex; flex-direction: column; justify-content: center;
+  align-items: stretch; gap: 2px;
+}
+.vqc-bd--strip.is-stacked .vqc-head { flex-wrap: nowrap; }
+/* the tools float over the face, so the window line steps aside on approach */
+.vqc--c2:hover .vqc-bd--strip.is-stacked .vqc-when,
+.vqc--c2:focus-within .vqc-bd--strip.is-stacked .vqc-when { opacity: 0; }
+.vqc-bd--strip.is-stacked .vqc-when { transition: opacity var(--vq-dur-1) var(--vq-ease-out); }
+
+/* ── 5. C1 · the tile and the shortcut ─────────────────────────────────── */
+.vqc--custom-btn { justify-content: center; }
+.vqc-custom-action-anchor {
+  display: flex; align-items: center; gap: var(--vq-space-3);
+  flex: 1 1 auto; width: 100%; min-width: 0; min-height: 0;
+  text-decoration: none; color: inherit;
   border-radius: var(--vq-r-md);
-  cursor: pointer;
+  transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqc-custom-action-anchor:hover { background: var(--vq-accent-quiet); }
+.vqc--tone-ink .vqc-custom-action-anchor:hover,
+.vqc--tone-accent .vqc-custom-action-anchor:hover { background: rgb(255 255 255 / .1); }
+.vqc-custom-action-anchor.is-icon { justify-content: center; gap: 0; }
+
+/* The glyph plate is a square with a 14px corner, per the shape law — not a
+   circle, and not an interpolated size. */
+.vqc-custom-icon-ring {
+  flex: 0 0 auto; display: grid; place-items: center;
+  width: 34px; height: 34px;
+  border-radius: var(--vq-r-md); color: #fff;
+  box-shadow: var(--vq-elev-1);
+}
+.vqc[data-w="1"] .vqc-custom-icon-ring { width: 30px; height: 30px; }
+.vqc-custom-text { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.vqc-custom-btn-title {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-small);
+  font-weight: var(--vq-fw-semi);
+  line-height: 1.25;
+  color: var(--vq-text);
+}
+.vqc-custom-btn-sub {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-eyebrow);
+  font-weight: var(--vq-fw-medium);
+  line-height: 1.35;
+  color: var(--vq-text-2);
+}
+.vqc--tone-ink .vqc-custom-btn-title, .vqc--tone-accent .vqc-custom-btn-title { color: #fff; }
+.vqc--tone-ink .vqc-custom-btn-sub { color: var(--vq-text-2); }
+.vqc--tone-accent .vqc-custom-btn-sub { color: var(--vq-on-accent-muted); }
+
+/* ── 6. The operations hubs ────────────────────────────────────────────── */
+.vqc--special { justify-content: flex-start; }
+.vqc--special .vqc-hd { margin-bottom: var(--vq-space-2); }
+.vqc-hub-title-wrap { flex: 0 0 auto; min-width: 0; margin-bottom: var(--vq-space-3); }
+.vqc[data-h="2"] .vqc-hub-title-wrap { display: none; }
+.vqc-action-hub-title {
+  font-family: var(--vq-font-display);
+  font-size: var(--vq-fs-h3);
+  font-weight: var(--vq-fw-semi);
+  letter-spacing: var(--vq-ls-h3);
+  line-height: 1.25;
+  color: var(--vq-text);
+}
+.vqc[data-w="2"] .vqc-action-hub-title,
+.vqc[data-w="3"] .vqc-action-hub-title { font-size: var(--vq-fs-body); }
+.vqc-action-hub-sub {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-medium);
+  line-height: 1.4;
+  color: var(--vq-text-2);
+  margin-top: 2px;
+}
+.vqc--tone-ink .vqc-action-hub-title, .vqc--tone-accent .vqc-action-hub-title { color: #fff; }
+.vqc--tone-accent .vqc-action-hub-sub { color: var(--vq-on-accent-muted); }
+
+/* The lane grid wraps on its own rather than being told to at three specific
+   widths, so it is right at every width — including the ones nobody tested. */
+.vqc-action-hub-grid {
+  display: grid; gap: var(--vq-space-2);
+  /* the column count is set inline by the renderer, which knows the card's
+     span; this is the fallback for anything that does not set it */
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  align-items: stretch;
+  flex: 1 1 auto; min-height: 0;
+}
+.vqc-hub-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--vq-space-2);
+  min-width: 0; min-height: var(--vq-control-sm);
+  max-height: 72px;
+  padding: var(--vq-space-2) var(--vq-space-3);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md);
+  background: var(--vq-sunken);
+  color: var(--vq-text);
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-semi);
+  line-height: 1.2;
+  text-decoration: none; cursor: pointer;
+  transition: background var(--vq-dur-1) var(--vq-ease-out),
+              border-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqc-hub-btn > svg { flex: 0 0 auto; }
+.vqc[data-w="2"] .vqc-hub-btn > span, .vqc[data-h="1"] .vqc-hub-btn > span { display: none; }
+.vqc-hub-btn--sales    { background: var(--vq-success-bg); color: var(--vq-success-ink); border-color: var(--vq-success-line); }
+.vqc-hub-btn--purchase { background: var(--vq-danger-bg);  color: var(--vq-danger-ink);  border-color: var(--vq-danger-line); }
+.vqc-hub-btn--actions  { background: var(--vq-accent-quiet); color: var(--vq-accent-text); border-color: var(--vq-accent-quiet-line); }
+.vqc-hub-btn--quiet    { background: var(--vq-sunken); color: var(--vq-text-2); }
+.vqc-hub-btn:hover     { border-color: var(--vq-line-strong); }
+.vqc-hub-btn--quiet:hover { color: var(--vq-text); }
+.vqc--tone-ink .vqc-hub-btn, .vqc--tone-accent .vqc-hub-btn {
+  background: rgb(255 255 255 / .1); border-color: rgb(255 255 255 / .16); color: #fff;
+}
+.vqc--tone-ink .vqc-hub-btn--sales    { background: rgb(11 170 143 / .2);  color: #7bead1; }
+.vqc--tone-ink .vqc-hub-btn--purchase { background: rgb(242 106 71 / .2);  color: #ffb59a; }
+
+/* bank & growth — a row of equal boxes that becomes a column when narrow */
+.vqc-bank-grid, .vqc-growth-grid {
+  display: grid; gap: var(--vq-space-2);
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  grid-auto-rows: minmax(0, auto);
+  align-content: start;
+  flex: 1 1 auto; min-height: 0;
+}
+.vqc-bank-box, .vqc-growth-stat {
+  display: flex; flex-direction: column; justify-content: center; gap: 1px;
+  min-width: 0; min-height: 0; overflow: hidden;
+  padding: var(--vq-space-2) var(--vq-space-3);
+  border-radius: var(--vq-r-md);
+  background: var(--vq-sunken);
+  border: 1px solid transparent;
+}
+.vqc-bank-box.is-total { background: var(--vq-accent-quiet); border-color: var(--vq-accent-quiet-line); }
+.vqc--tone-ink .vqc-bank-box, .vqc--tone-ink .vqc-growth-stat,
+.vqc--tone-accent .vqc-bank-box, .vqc--tone-accent .vqc-growth-stat {
+  background: rgb(255 255 255 / .1); border-color: rgb(255 255 255 / .12);
+}
+.vqc-bank-label, .vqc-growth-label {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-eyebrow);
+  line-height: var(--vq-lh-eyebrow);
+  letter-spacing: var(--vq-ls-eyebrow);
+  text-transform: uppercase;
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-text-2);
+}
+.vqc-bank-val, .vqc-growth-val {
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-metric-sm);
+  font-weight: var(--vq-fw-bold);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--vq-text);
+}
+/* three figures across a narrow card step down one rung of the same scale */
+.vqc[data-w="2"] .vqc-bank-val, .vqc[data-w="2"] .vqc-growth-val,
+.vqc[data-w="3"] .vqc-bank-val, .vqc[data-w="3"] .vqc-growth-val,
+.vqc[data-w="4"] .vqc-bank-val, .vqc[data-w="4"] .vqc-growth-val,
+.vqc[data-w="5"] .vqc-bank-val, .vqc[data-w="5"] .vqc-growth-val { font-size: var(--vq-fs-h3); }
+.vqc-bank-sub, .vqc-growth-sub {
+  font-family: var(--vq-font-sans); font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-medium); line-height: 1.35; color: var(--vq-text-2);
+}
+.vqc--tone-ink .vqc-bank-val, .vqc--tone-ink .vqc-growth-val,
+.vqc--tone-accent .vqc-bank-val, .vqc--tone-accent .vqc-growth-val { color: #fff; }
+.vqc--tone-accent .vqc-bank-label, .vqc--tone-accent .vqc-growth-label,
+.vqc--tone-accent .vqc-bank-sub, .vqc--tone-accent .vqc-growth-sub { color: var(--vq-on-accent-muted); }
+/* a short box has room for a label and a figure, not a caption as well */
+.vqc[data-h="2"] .vqc-bank-sub, .vqc[data-h="2"] .vqc-growth-sub,
+.vqc[data-h="3"] .vqc-bank-sub, .vqc[data-h="3"] .vqc-growth-sub { display: none; }
+
+/* alerts — a list that shows exactly as many rows as it has room for */
+.vqc-alerts-list {
+  display: flex; flex-direction: column; gap: var(--vq-space-2);
+  flex: 1 1 auto; min-height: 0; overflow: hidden;
+}
+.vqc-alert-item {
+  display: flex; align-items: center; gap: var(--vq-space-3); min-width: 0;
+  padding: var(--vq-space-2) var(--vq-space-3); border-radius: var(--vq-r-md);
+  text-decoration: none; color: var(--vq-text);
+  background: var(--vq-sunken);
+  border: 1px solid transparent;
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-caption); line-height: 1.35;
   transition: border-color var(--vq-dur-1) var(--vq-ease-out);
 }
+.vqc-alert-item:hover { border-color: var(--vq-line-strong); }
+.vqc--tone-ink .vqc-alert-item, .vqc--tone-accent .vqc-alert-item {
+  background: rgb(255 255 255 / .1); color: #fff;
+}
+.vqc-alert-dot { flex: 0 0 8px; width: 8px; height: 8px; border-radius: var(--vq-r-full); }
+.vqc-alert-item--warning .vqc-alert-dot { background: var(--vq-butter-500, #f5b32e); }
+.vqc-alert-item--danger  .vqc-alert-dot { background: var(--vq-danger); }
+.vqc-alert-item--info    .vqc-alert-dot { background: var(--vq-sky-500, #2ba5d1); }
+.vqc-alert-msg { flex: 1 1 auto; }
+.vqc-alert-btn {
+  flex: 0 0 auto;
+  font-family: var(--vq-font-sans); font-size: var(--vq-fs-eyebrow);
+  font-weight: var(--vq-fw-bold); line-height: 1;
+  color: var(--vq-accent-text); white-space: nowrap;
+}
+.vqc--tone-ink .vqc-alert-btn, .vqc--tone-accent .vqc-alert-btn { color: #7bead1; }
+.vqc[data-w="2"] .vqc-alert-btn, .vqc[data-w="3"] .vqc-alert-btn { display: none; }
 
-[data-theme="dark"] .vq-v6-switch-wrapper {
-  background: #17201b;
-  border-color: #24332c;
+/* ── 7. Tones × themes × page backgrounds ──────────────────────────────── */
+/* The four tones are stated once each, then corrected per theme. Nothing here
+   relies on inheritance from the page — a card looks the same on white, on
+   obsidian and on the mesh, which is the whole point of a tone. */
+.vqc--tone-surface {
+  background: var(--vq-surface, #fff);
+  color: var(--vq-text, var(--vq-ink-900));
+  border: 1px solid var(--vq-line, var(--vq-ink-200));
+}
+[data-theme="dark"] .vqc--tone-surface { background: #151d18; border-color: #24332c; color: #edf2ef; }
+
+.vqc--tone-accent {
+  background: linear-gradient(135deg, var(--vq-teal-700, #076b5e) 0%, var(--vq-teal-900, #04302b) 100%);
+  border: 1px solid transparent; color: #fff;
+  box-shadow: 0 10px 28px rgb(7 107 94 / .28);
+}
+.vqc--tone-ink {
+  background: #0d1412; border: 1px solid #1f2b25; color: #edf2ef;
+  box-shadow: 0 12px 32px rgb(0 0 0 / .34);
+}
+.vqc--tone-mesh {
+  background:
+    radial-gradient(at 100% 0%, rgb(11 170 143 / .20) 0, transparent 62%),
+    radial-gradient(at 0% 100%, rgb(43 165 209 / .18) 0, transparent 62%),
+    var(--vq-surface, #fff);
+  border: 1px solid var(--vq-teal-200, #93ebd6);
+  color: var(--vq-text, var(--vq-ink-900));
+  box-shadow: 0 8px 24px rgb(11 170 143 / .12);
+}
+[data-theme="dark"] .vqc--tone-mesh {
+  background:
+    radial-gradient(at 100% 0%, rgb(11 170 143 / .3) 0, transparent 62%),
+    radial-gradient(at 0% 100%, rgb(43 165 209 / .24) 0, transparent 62%),
+    #111815;
+  border-color: #1a5044; color: #edf2ef;
 }
 
-.vq-v6-switch-wrapper:hover {
-  border-color: var(--vq-teal-500);
+/* text tiers on the dark tones, in both themes */
+.vqc--tone-ink, .vqc--tone-accent { --vq-text: #fff; --vq-text-2: rgb(255 255 255 / .82); --vq-text-3: rgb(255 255 255 / .66); }
+.vqc--tone-ink   { --vq-sunken: rgb(255 255 255 / .07); --vq-line: rgb(255 255 255 / .12); --vq-line-strong: rgb(255 255 255 / .24); }
+.vqc--tone-accent{ --vq-sunken: rgb(255 255 255 / .14); --vq-line: rgb(255 255 255 / .22); --vq-line-strong: rgb(255 255 255 / .36); }
+.vqc--tone-ink .vqc-act, .vqc--tone-accent .vqc-act,
+.vqc--tone-ink .vqc-nav-link, .vqc--tone-accent .vqc-nav-link { color: rgb(255 255 255 / .72); }
+.vqc--tone-ink .vqc-act:hover, .vqc--tone-accent .vqc-act:hover,
+.vqc--tone-ink .vqc-nav-link:hover, .vqc--tone-accent .vqc-nav-link:hover {
+  background: rgb(255 255 255 / .16); color: #fff;
+}
+.vqc--tone-ink .vqc-delta--up, .vqc--tone-accent .vqc-delta--up {
+  background: rgb(0 0 0 / .28); color: #7bead1;
+}
+.vqc--tone-ink .vqc-delta--down, .vqc--tone-accent .vqc-delta--down {
+  background: rgb(0 0 0 / .28); color: #ffb3ac;
+}
+/* the chart layer follows the tone, not the page */
+.vqc--tone-ink, .vqc--tone-accent {
+  --vq-chart-track: rgb(255 255 255 / .14);
+  --vq-chart-track-data: rgb(255 255 255 / .42);
+  --vq-series-1-ink: #59dbc0;
+}
+.vqc--tone-ink .ck-ax, .vqc--tone-accent .ck-ax,
+.vqc--tone-ink .ck-gr, .vqc--tone-accent .ck-gr { stroke: rgb(255 255 255 / .18); }
+.vqc--tone-ink text, .vqc--tone-accent text { fill: rgb(255 255 255 / .74); }
+
+/* the mesh page ground must show through the shell, not be painted over */
+:root[data-bg="mesh"] .vq-shell { background: transparent; }
+:root[data-bg="mesh"] .vq-sidebar,
+:root[data-bg="mesh"] .vq-main-header { background: rgb(10 11 15 / .74); backdrop-filter: blur(14px); }
+:root[data-bg="mesh"] .vqc--tone-surface { background: rgb(255 255 255 / .06); border-color: rgb(255 255 255 / .1); color: #edf2ef; }
+:root[data-bg="mesh"] .vqc--tone-mesh { background: rgb(255 255 255 / .08); border-color: rgb(11 170 143 / .34); color: #edf2ef; }
+:root[data-bg="mesh"] .vqc--tone-surface,
+:root[data-bg="mesh"] .vqc--tone-mesh {
+  --vq-text: #edf2ef; --vq-text-2: #9fb0a8; --vq-text-3: #8b9a93;
+  --vq-sunken: rgb(255 255 255 / .06); --vq-line: rgb(255 255 255 / .1);
+}
+:root[data-bg="mesh"] body::before { z-index: -1; }
+
+/* ── 8. Nav, header, canvas chrome ─────────────────────────────────────── */
+.vq-nav-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px 10px; }
+.vq-nav-item {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+  padding: 8px 10px; border-radius: var(--vq-r-md, 12px);
+  color: var(--vq-text-2); text-decoration: none;
+  font: 600 var(--vq-fs-caption)/1.2 var(--vq-font-sans);
+  transition: background var(--vq-dur-1,120ms) var(--vq-ease-out), color var(--vq-dur-1,120ms) var(--vq-ease-out);
+}
+.vq-nav-item > svg { flex: 0 0 18px; }
+.vq-nav-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vq-nav-item:hover { background: var(--vq-sunken); color: var(--vq-text); }
+.vq-nav-item.is-active { background: var(--vq-teal-50, #e6fbf5); color: var(--vq-teal-800, #0a5049); }
+[data-theme="dark"] .vq-nav-item.is-active { background: #0d2922; color: #59dbc0; }
+.vq-nav-badge {
+  margin-left: auto; flex: 0 0 auto;
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 6px; border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-teal-500); color: #fff;
+}
+.vq-nav-group-title {
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--vq-text-3); padding: 14px 10px 6px;
+}
+.vq-brand-tag { font-size: 10px; background: var(--vq-teal-500); color: #fff; padding: 1px 5px; border-radius: 4px; }
+.vq-brand-info, .vq-user-info { min-width: 0; display: flex; flex-direction: column; }
+.vq-brand-name, .vq-brand-sub, .vq-user-name, .vq-user-role,
+.vq-store-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vq-sidebar-footer { display: flex; align-items: center; gap: 10px; padding: 12px 14px; flex: 0 0 auto; }
+
+.vq-icon-btn {
+  width: 34px; height: 34px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 1px solid transparent; cursor: pointer;
+  color: var(--vq-text-2); border-radius: var(--vq-r-full, 999px);
+  transition: background var(--vq-dur-1,120ms) var(--vq-ease-out), color var(--vq-dur-1,120ms) var(--vq-ease-out);
+}
+.vq-icon-btn:hover { background: var(--vq-sunken); color: var(--vq-text); }
+.vq-quick-btn {
+  display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  height: 34px; padding: 0 14px; cursor: pointer;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-surface); color: var(--vq-text);
+  font: 700 var(--vq-fs-caption)/1 var(--vq-font-sans);
+}
+.vq-quick-btn:hover { border-color: var(--vq-teal-400); color: var(--vq-teal-700); }
+[data-theme="dark"] .vq-quick-btn { background: #17201b; border-color: #24332c; color: #edf2ef; }
+.vq-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--vq-teal-500); }
+.vq-status-pill.is-editing .vq-status-dot { background: var(--vq-butter-500, #f5b32e); }
+.vq-header-left, .vq-header-right { min-width: 0; }
+.vq-header-left { flex: 1 1 auto; overflow: hidden; }
+.vq-header-right { flex: 0 0 auto; }
+
+.vq-edit-banner {
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 9px clamp(12px, 2vw, 24px);
+  background: var(--vq-butter-100, #fff8e6); color: var(--vq-butter-700, #a6690a);
+  border-bottom: 1px solid var(--vq-butter-400, #ffd666);
+  font: 600 var(--vq-fs-caption)/1.3 var(--vq-font-sans);
+}
+[data-theme="dark"] .vq-edit-banner { background: #2a200a; color: #ffcd5b; border-bottom-color: #61440b; }
+.vq-edit-banner-text { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.vq-edit-banner-text > svg { flex: 0 0 16px; }
+.vq-edit-banner-btn {
+  flex: 0 0 auto; cursor: pointer; border: 1px solid currentColor; background: transparent;
+  color: inherit; border-radius: var(--vq-r-full, 999px); padding: 5px 14px;
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans);
 }
 
-.vq-v6-switch-label {
+.board-h { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.board-h-text { min-width: 0; }
+.board-actions { flex: 0 0 auto; }
+.board-empty { grid-column: 1 / -1; }
+
+@media (max-width: 900px) {
+  .vq-breadcrumbs { display: none; }
+  .vq-btn-text, .vq-desktop-folder-label { display: none; }
+}
+@media (max-width: 599px) {
+  .vq-status-pill { display: none; }
+  .vq-header-right { gap: 4px; }
+}
+
+/* ── 9. The wizard ─────────────────────────────────────────────────────── */
+.vq-modal-card { height: min(88vh, 880px); max-height: calc(100vh - 32px); }
+.vq-modal-stepper { padding: 0 clamp(16px, 3vw, 32px) 12px; flex: 0 0 auto; }
+.vq-modal-scroll-area { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px clamp(16px, 3vw, 32px) 24px; }
+/* step 2 owns its own two panes and does not scroll as a whole */
+.vq-modal-scroll-area.is-step2 { overflow: hidden; padding-bottom: 16px; }
+.vq-modal-empty { color: var(--vq-text-2); text-align: center; padding: 48px 0; }
+
+.vq-step2-layout {
+  display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+  gap: 20px; height: 100%; min-height: 0;
+}
+.vq-controls-pane {
+  display: flex; flex-direction: column; gap: 16px;
+  min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 4px 12px 20px 2px;
+}
+@media (max-width: 1000px) {
+  .vq-step2-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0,1fr) minmax(220px, 40%); }
+  .vq-modal-scroll-area.is-step2 { overflow: hidden; }
+}
+
+.vq-form-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.vq-form-label {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  font: 700 var(--vq-fs-eyebrow)/1.2 var(--vq-font-sans); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--vq-text-2);
+}
+.vq-form-sublabel { text-transform: none; letter-spacing: 0; font-weight: 500; opacity: .8; font-size: var(--vq-fs-eyebrow); }
+.vq-form-note {
+  margin: 0; font-size: var(--vq-fs-eyebrow); line-height: 1.45; color: var(--vq-text-2);
+  background: var(--vq-sunken); border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md, 12px); padding: 9px 12px; max-width: none;
+}
+.vq-form-note.is-warn {
+  background: var(--vq-butter-100, #fff8e6); color: var(--vq-butter-700, #a6690a);
+  border-color: var(--vq-butter-400, #ffd666);
+}
+[data-theme="dark"] .vq-form-note { background: #17201b; border-color: #24332c; color: #9fb0a8; }
+[data-theme="dark"] .vq-form-note.is-warn { background: #2a200a; color: #ffcd5b; border-color: #61440b; }
+
+.vq-field {
+  width: 100%; height: 38px; padding: 0 14px;
+  background: var(--vq-surface); border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md, 12px); color: var(--vq-text);
+  font: 500 var(--vq-fs-caption)/1 var(--vq-font-sans); outline: none;
+  transition: border-color var(--vq-dur-1,120ms) var(--vq-ease-out), box-shadow var(--vq-dur-2,180ms) var(--vq-ease-out);
+}
+.vq-field:focus { border-color: var(--vq-teal-500); box-shadow: var(--vq-ring-focus, 0 0 0 3px rgb(11 170 143 / .22)); }
+.vq-field--mono { font-family: var(--vq-font-mono, ui-monospace, monospace); font-size: var(--vq-fs-eyebrow); }
+[data-theme="dark"] .vq-field { background: #17201b; border-color: #24332c; color: #fff; }
+
+.vq-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.vq-cat-tab-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border-radius: var(--vq-r-full, 999px);
+  border: 1px solid var(--vq-line); background: var(--vq-surface);
+  color: var(--vq-text-2); cursor: pointer;
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans);
+  transition: all var(--vq-dur-1, 120ms) var(--vq-ease-out);
+}
+.vq-cat-tab-btn .vq-cat-tab-code { font-family: var(--vq-font-mono, monospace); opacity: .7; }
+.vq-cat-tab-btn:hover:not(:disabled) { border-color: var(--vq-teal-400); color: var(--vq-text); }
+.vq-cat-tab-btn.is-active { background: var(--vq-teal-500); color: #fff; border-color: var(--vq-teal-500); }
+.vq-cat-tab-btn.is-active .vq-cat-tab-code { opacity: .85; }
+.vq-cat-tab-btn:disabled, .vq-cat-tab-btn.is-off { opacity: .38; cursor: not-allowed; }
+[data-theme="dark"] .vq-cat-tab-btn { background: #17201b; border-color: #24332c; }
+
+.vq-size-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.vq-size-card {
+  display: flex; flex-direction: row; align-items: center; gap: 10px; text-align: left;
+  min-height: 54px;
+  padding: 9px 11px; cursor: pointer; min-width: 0;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-md, 12px);
+  background: var(--vq-surface); color: var(--vq-text);
+  transition: all var(--vq-dur-1, 120ms) var(--vq-ease-out);
+}
+.vq-size-card:hover { border-color: var(--vq-teal-400); }
+.vq-size-card.is-active { border-color: var(--vq-teal-500); background: var(--vq-teal-50, #e6fbf5); }
+[data-theme="dark"] .vq-size-card { background: #17201b; border-color: #24332c; }
+[data-theme="dark"] .vq-size-card.is-active { background: #0d2922; border-color: #1a5044; }
+.vq-size-glyph { flex: 0 0 auto; color: var(--vq-teal-600, #088975); }
+.vq-size-card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vq-size-card-title {
+  /* the dimensions never break across lines; the fit name wraps under them */
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px;
+  white-space: nowrap;
+  font: 700 var(--vq-fs-caption)/1.1 var(--vq-font-numeric, monospace); color: var(--vq-text);
+}
+.vq-size-card-fit {
+  font: 600 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); text-transform: uppercase; letter-spacing: .05em;
+  color: var(--vq-text-3); background: var(--vq-sunken);
+  padding: 2px 5px; border-radius: var(--vq-r-full, 999px);
+}
+.vq-size-card-desc {
+  font: 500 var(--vq-fs-eyebrow)/1.35 var(--vq-font-sans); color: var(--vq-text-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.vq-size-stepper {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 10px 12px; border: 1px dashed var(--vq-line-strong, rgb(0 0 0 / .18));
+  border-radius: var(--vq-r-md, 12px); background: var(--vq-sunken);
+}
+[data-theme="dark"] .vq-size-stepper { background: #17201b; border-color: #2c3b33; }
+.vq-step-axis { display: flex; flex-direction: column; gap: 5px; }
+.vq-step-axis-label { font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--vq-text-3); }
+.vq-step-ctl {
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-surface); overflow: hidden;
+}
+[data-theme="dark"] .vq-step-ctl { background: #101713; border-color: #24332c; }
+.vq-step-ctl button {
+  width: 28px; height: 28px; border: 0; background: transparent; cursor: pointer;
+  color: var(--vq-text); font: 700 var(--vq-fs-small)/1 var(--vq-font-sans);
+}
+.vq-step-ctl button:hover:not(:disabled) { background: var(--vq-teal-50, #e6fbf5); color: var(--vq-teal-700); }
+.vq-step-ctl button:disabled { opacity: .3; cursor: not-allowed; }
+.vq-step-val {
+  min-width: 30px; text-align: center;
+  font: 700 var(--vq-fs-caption)/1 var(--vq-font-numeric, monospace); color: var(--vq-text);
+}
+.vq-step-readout {
+  display: flex; align-items: center; gap: 8px; margin-left: auto;
+  font: 600 var(--vq-fs-eyebrow)/1.3 var(--vq-font-numeric, monospace); color: var(--vq-text-2);
+}
+.vq-step-readout em { display: block; font-style: normal; font-family: var(--vq-font-sans); color: var(--vq-text-3); }
+
+.vq-icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
+.vq-icon-swatch {
+  aspect-ratio: 1; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-md, 12px);
+  background: var(--vq-surface); color: var(--vq-text-2); cursor: pointer;
+  transition: all var(--vq-dur-1,120ms) var(--vq-ease-out);
+}
+.vq-icon-swatch:hover { border-color: var(--vq-teal-400); color: var(--vq-text); }
+.vq-icon-swatch.is-active { border-color: var(--vq-teal-500); background: var(--vq-teal-50, #e6fbf5); color: var(--vq-teal-700); }
+[data-theme="dark"] .vq-icon-swatch { background: #17201b; border-color: #24332c; }
+[data-theme="dark"] .vq-icon-swatch.is-active { background: #0d2922; border-color: #1a5044; color: #59dbc0; }
+
+.vq-color-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.vq-color-swatch {
+  width: 30px; height: 30px; border-radius: var(--vq-r-full, 999px);
+  border: 2px solid transparent; cursor: pointer; padding: 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .12);
+}
+.vq-color-swatch.is-active { border-color: var(--vq-text); outline: 2px solid var(--vq-teal-500); outline-offset: 2px; }
+
+.vq-tone-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.vq-tone-card {
+  display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer;
+  padding: 8px 10px; min-width: 0;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-md, 12px);
+  background: var(--vq-surface); color: var(--vq-text);
+  transition: all var(--vq-dur-1,120ms) var(--vq-ease-out);
+}
+.vq-tone-card:hover { border-color: var(--vq-teal-400); }
+.vq-tone-card.is-active { border-color: var(--vq-teal-500); box-shadow: 0 0 0 2px rgb(11 170 143 / .2); }
+[data-theme="dark"] .vq-tone-card { background: #17201b; border-color: #24332c; }
+.vq-tone-swatch { flex: 0 0 30px; width: 30px; height: 30px; border-radius: var(--vq-r-sm, 8px); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .12); }
+.vq-tone-info { display: flex; flex-direction: column; min-width: 0; }
+.vq-tone-name { font: 700 var(--vq-fs-eyebrow)/1.2 var(--vq-font-sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vq-tone-desc { font: 500 var(--vq-fs-eyebrow)/1.3 var(--vq-font-sans); color: var(--vq-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.vq-select-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.vq-choice-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; cursor: pointer;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-surface); color: var(--vq-text-2);
+  font: 600 var(--vq-fs-caption)/1 var(--vq-font-sans);
+  transition: all var(--vq-dur-1,120ms) var(--vq-ease-out);
+}
+.vq-choice-btn:hover:not(:disabled) { border-color: var(--vq-teal-400); color: var(--vq-text); }
+.vq-choice-btn.is-active { background: var(--vq-teal-500); border-color: var(--vq-teal-500); color: #fff; }
+.vq-choice-btn:disabled, .vq-choice-btn.is-off { opacity: .38; cursor: not-allowed; }
+[data-theme="dark"] .vq-choice-btn { background: #17201b; border-color: #24332c; }
+
+.vq-v6-switch-wrapper {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  width: 100%; text-align: left; cursor: pointer;
+  padding: 10px 12px; border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md, 12px); background: var(--vq-surface); color: var(--vq-text);
+}
+[data-theme="dark"] .vq-v6-switch-wrapper { background: #17201b; border-color: #24332c; }
+.vq-v6-switch-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vq-v6-switch-title { font: 700 var(--vq-fs-caption)/1.2 var(--vq-font-sans); }
+.vq-v6-switch-sub { font: 500 var(--vq-fs-eyebrow)/1.3 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-v6-switch-track {
+  flex: 0 0 40px; width: 40px; height: 22px; border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-line-strong, rgb(0 0 0 / .2)); position: relative;
+  transition: background var(--vq-dur-2,180ms) var(--vq-ease-out);
+}
+.vq-v6-switch-track.is-on { background: var(--vq-teal-500); }
+.vq-v6-switch-knob {
+  position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .3);
+  transition: transform var(--vq-dur-2,180ms) var(--vq-ease-spring, cubic-bezier(.34,1.56,.64,1));
+}
+.vq-v6-switch-track.is-on .vq-v6-switch-knob { transform: translateX(18px); }
+
+/* the preview stage — a real card at real geometry, scaled to fit */
+.vq-preview-stage {
+  display: flex; flex-direction: column; gap: 10px; min-height: 0; min-width: 0;
+  padding: 14px; border-radius: var(--vq-r-xl, 18px);
+  border: 1px solid var(--vq-line); background: var(--vq-bg, #f6f8f7);
+  overflow: hidden;
+}
+[data-theme="dark"] .vq-preview-stage { background: #0d1412; border-color: #1f2b25; }
+.vq-preview-bar { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; min-width: 0; }
+.vq-preview-title { font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--vq-text-3); }
+.vq-preview-meta {
+  font: 600 var(--vq-fs-eyebrow)/1 var(--vq-font-numeric, monospace); color: var(--vq-text-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vq-preview-zoom { margin-left: auto; display: inline-flex; gap: 2px; flex: 0 0 auto; padding: 2px; border-radius: var(--vq-r-full, 999px); background: var(--vq-sunken); }
+.vq-preview-zoom button {
+  border: 0; background: transparent; cursor: pointer; color: var(--vq-text-2);
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); padding: 5px 10px; border-radius: var(--vq-r-full, 999px);
+}
+.vq-preview-zoom button.is-on { background: var(--vq-surface); color: var(--vq-text); box-shadow: var(--vq-elev-1, 0 1px 2px rgb(0 0 0 / .1)); }
+[data-theme="dark"] .vq-preview-zoom button.is-on { background: #1f2b25; color: #fff; }
+.vq-preview-frame {
+  flex: 1 1 auto; min-height: 200px; min-width: 0;
+  display: grid; place-items: center; overflow: auto;
+  border-radius: var(--vq-r-lg, 16px);
+  background:
+    linear-gradient(var(--vq-line) 1px, transparent 1px) 0 0 / 100% 88px,
+    linear-gradient(90deg, var(--vq-line) 1px, transparent 1px) 0 0 / 136px 100%;
+  background-color: var(--vq-surface);
+  box-shadow: inset 0 0 0 1px var(--vq-line);
+}
+[data-theme="dark"] .vq-preview-frame { background-color: #101713; }
+.vq-preview-card-host { display: block; flex: 0 0 auto; }
+.vq-preview-card-host > .vqc { position: relative; }
+.vq-preview-foot { margin: 0; font: 500 var(--vq-fs-eyebrow)/1.4 var(--vq-font-sans); color: var(--vq-text-3); flex: 0 0 auto; max-width: none; }
+
+.vq-modal-bottom-bar {
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 14px clamp(16px, 3vw, 32px);
+  border-top: 1px solid var(--vq-line);
+}
+.vq-modal-bottom-actions { display: flex; gap: 10px; flex: 0 0 auto; }
+.vq-modal-close-btn {
+  padding: 9px 18px; cursor: pointer; border-radius: var(--vq-r-full, 999px);
+  border: 1px solid var(--vq-line); background: transparent; color: var(--vq-text-2);
+  font: 600 var(--vq-fs-caption)/1 var(--vq-font-sans);
+}
+.vqb--primary {
+  padding: 9px 24px; border: 0; cursor: pointer; border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-teal-500); color: #fff; font: 700 var(--vq-fs-caption)/1 var(--vq-font-sans);
+  box-shadow: var(--vq-glow-accent, 0 6px 18px rgb(11 170 143 / .3));
+}
+.vqb--primary:hover { background: var(--vq-teal-600, #088975); }
+
+.vq-item-card {
+  display: flex; flex-direction: column; gap: 7px; text-align: left; cursor: pointer;
+  padding: 13px 15px; min-width: 0; width: 100%;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-lg, 16px);
+  background: var(--vq-surface); color: var(--vq-text);
+  transition: all var(--vq-dur-1,120ms) var(--vq-ease-out);
+}
+.vq-item-card:hover { border-color: var(--vq-teal-400); box-shadow: var(--vq-elev-2, 0 6px 18px rgb(0 0 0 / .1)); }
+[data-theme="dark"] .vq-item-card { background: #17201b; border-color: #24332c; }
+.vq-item-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; min-width: 0; }
+.vq-item-card-title { font: 700 var(--vq-fs-caption)/1.3 var(--vq-font-sans); min-width: 0; }
+.vq-item-new-badge {
+  flex: 0 0 auto; font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); letter-spacing: .05em; text-transform: uppercase;
+  padding: 4px 7px; border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-teal-50, #e6fbf5); color: var(--vq-teal-700, #076b5e);
+}
+.vq-item-card-desc {
+  font: 500 var(--vq-fs-eyebrow)/1.45 var(--vq-font-sans); color: var(--vq-text-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.vq-item-card-foot { display: flex; align-items: center; gap: 8px; min-width: 0; margin-top: auto; }
+.vq-item-shape-tag {
+  flex: 0 0 auto; font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-mono, monospace); letter-spacing: .04em;
+  padding: 4px 6px; border-radius: 5px; background: var(--vq-sunken); color: var(--vq-text-2);
+}
+.vq-item-card-key {
+  font: 500 var(--vq-fs-eyebrow)/1 var(--vq-font-mono, monospace); color: var(--vq-text-3);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vq-item-card-arrow { flex: 0 0 auto; margin-left: auto; color: var(--vq-text-3); }
+
+.vq-glass-modal-eyebrow {
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--vq-teal-600, #088975);
+}
+
+/* ── 10. Motion respect ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .vqc, .vq-sidebar, .vq-nav-scrim, .vqc-glare { transition: none !important; }
+  .vqc--glared:hover .vqc-glare { animation: none !important; }
+}
+
+/* ── 11. Late corrections found by the headless sweep ──────────────────── */
+
+/* Edit mode needs a visible affordance on the card itself, not only in the
+   banner — the old rule for this lived in a block the resolution layer
+   replaced, so it is restated here where it belongs. */
+.vq-shell.is-editing .vqc {
+  cursor: grab;
+  outline: 1px dashed rgb(11 170 143 / .45);
+  outline-offset: -1px;
+}
+.vq-shell.is-editing .vqc:hover {
+  outline-color: var(--vq-teal-500);
+  box-shadow: 0 8px 24px rgb(11 170 143 / .16);
+}
+.vq-shell.is-editing .vqc:active { cursor: grabbing; }
+
+/* The hub's button row wraps on its own rather than being told to at three
+   specific widths — auto-fit means it is right at every width, including the
+   ones nobody thought to test. */
+.vqc-action-hub-grid {
+  grid-template-columns: repeat(auto-fit, minmax(clamp(84px, calc(var(--vqw, 6) * 18px), 150px), 1fr));
+  align-content: center;
+}
+.vqc[data-w="2"] .vqc-action-hub-grid,
+.vqc[data-w="3"] .vqc-action-hub-grid,
+.vqc[data-h="2"] .vqc-action-hub-grid,
+.vqc[data-w="2"][data-h="2"] .vqc-action-hub-grid,
+.vqc[data-w="3"][data-h="2"] .vqc-action-hub-grid {
+  grid-template-columns: repeat(auto-fit, minmax(clamp(84px, calc(var(--vqw, 6) * 18px), 150px), 1fr));
+}
+/* a tall hub gets breathing room, not gigantic buttons */
+.vqc-hub-btn { max-height: 76px; }
+.vqc-bank-box, .vqc-growth-stat { max-height: 96px; }
+.vqc[data-h="2"] .vqc-hub-btn,
+.vqc[data-h="2"] .vqc-bank-box,
+.vqc[data-h="2"] .vqc-growth-stat { max-height: none; }
+
+/* The add-card button — a small folder that opens on hover. It carries the
+   label above 900px and becomes a square icon button below it. */
+.vq-desktop-folder-btn {
+  display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto;
+  height: 34px; padding: 0 14px 0 10px; cursor: pointer;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-surface); color: var(--vq-text);
+  font: 700 var(--vq-fs-caption)/1 var(--vq-font-sans);
+  transition: border-color var(--vq-dur-1,120ms) var(--vq-ease-out),
+              background var(--vq-dur-1,120ms) var(--vq-ease-out);
+}
+.vq-desktop-folder-btn:hover { border-color: var(--vq-teal-400); background: var(--vq-teal-50, #e6fbf5); }
+[data-theme="dark"] .vq-desktop-folder-btn { background: #17201b; border-color: #24332c; color: #edf2ef; }
+[data-theme="dark"] .vq-desktop-folder-btn:hover { background: #0d2922; border-color: #1a5044; }
+.vq-desktop-folder-icon { position: relative; width: 20px; height: 16px; flex: 0 0 20px; display: block; }
+.vq-desktop-folder-icon::before {
+  content: ''; position: absolute; inset: 3px 0 0; border-radius: 3px 4px 4px 4px;
+  background: var(--vq-teal-500);
+}
+.vq-desktop-folder-icon::after {
+  content: ''; position: absolute; left: 0; top: 0; width: 9px; height: 4px;
+  border-radius: 2px 2px 0 0; background: var(--vq-teal-600, #088975);
+}
+.vq-desktop-folder-papers {
+  position: absolute; left: 3px; right: 3px; top: 1px; height: 8px;
+  background: #fff; border-radius: 2px;
+  transition: transform var(--vq-dur-2,180ms) var(--vq-ease-out);
+}
+.vq-desktop-folder-btn:hover .vq-desktop-folder-papers { transform: translateY(-2px); }
+.vq-desktop-folder-front {
+  position: absolute; inset: 6px 0 0; border-radius: 3px;
+  background: linear-gradient(160deg, var(--vq-teal-400, #23c4a6), var(--vq-teal-600, #088975));
+}
+@media (max-width: 900px) {
+  .vq-desktop-folder-btn { width: 34px; padding: 0; justify-content: center; }
+}
+
+/* The mesh ground is painted on <body>; the shell and its regions must let it
+   through rather than each painting their own opaque copy of --vq-bg. */
+:root[data-bg="mesh"] body { background: #0A0B0F; }
+:root[data-bg="mesh"] body::before {
+  content: ''; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(45% 45% at 18% 12%, rgb(35 196 166 / .30), transparent 68%),
+    radial-gradient(42% 42% at 82% 78%, rgb(43 165 209 / .24), transparent 68%),
+    radial-gradient(38% 38% at 62% 22%, rgb(11 170 143 / .18), transparent 70%);
+  animation: vqDrift 26s var(--vq-ease-out) infinite alternate;
+}
+:root[data-bg="mesh"] .vq-scroll-region,
+:root[data-bg="mesh"] .app,
+:root[data-bg="mesh"] .vq-canvas { background: transparent; }
+:root[data-bg="mesh"] .vq-edit-banner { backdrop-filter: blur(14px); }
+@media (prefers-reduced-motion: reduce) { :root[data-bg="mesh"] body::before { animation: none; } }
+
+/* The library and editor drawers sit above the canvas, and the scrim behind
+   them belongs to the shell rather than the page. */
+.vq-scrim {
+  position: fixed; inset: 0; background: var(--vq-scrim, rgb(13 20 18 / .4));
+  opacity: 0; pointer-events: none; z-index: 610;
+  transition: opacity var(--vq-dur-2,180ms) var(--vq-ease-out);
+}
+.vq-scrim.is-on { opacity: 1; pointer-events: auto; }
+#edit.is-on, #lib.is-on { max-height: 100%; }
+
+/* the hub's extra lanes are quieter than its three primaries */
+.vqc-hub-btn--quiet {
+  background: var(--vq-sunken, rgb(0 0 0 / .04));
+  color: var(--vq-text-2);
+  border-color: var(--vq-line, rgb(0 0 0 / .1));
+}
+.vqc-hub-btn--quiet:hover { color: var(--vq-text); }
+[data-theme="dark"] .vqc-hub-btn--quiet { background: #1a231e; color: #9fb0a8; border-color: #26332c; }
+.vqc--tone-ink .vqc-hub-btn--quiet,
+.vqc--tone-accent .vqc-hub-btn--quiet { background: rgb(255 255 255 / .06); color: rgb(255 255 255 / .78); }
+/* with more lanes on the board the row can breathe again */
+.vqc[data-h="3"] .vqc-hub-btn, .vqc[data-h="4"] .vqc-hub-btn { max-height: 92px; }
+.vqc[data-h="5"] .vqc-hub-btn, .vqc[data-h="6"] .vqc-hub-btn { max-height: 110px; }
+.vqc[data-h="3"] .vqc-bank-box, .vqc[data-h="3"] .vqc-growth-stat,
+.vqc[data-h="4"] .vqc-bank-box, .vqc[data-h="4"] .vqc-growth-stat { max-height: 130px; }
+.vqc[data-h="5"] .vqc-bank-box, .vqc[data-h="5"] .vqc-growth-stat,
+.vqc[data-h="6"] .vqc-bank-box, .vqc[data-h="6"] .vqc-growth-stat { max-height: none; }
+
+/* the preview's two boxes: outer is the painted (scaled) size, inner is true */
+.vq-preview-card-host { position: relative; overflow: visible; }
+.vq-preview-scaler { position: absolute; inset: 0; }
+.vq-preview-scaler > .vqc { animation: none !important; }
+.vq-preview-scale { font-style: normal; opacity: .75; }
+
+/* An earlier rule centred the preview stage's children with align-items,
+   which made the frame shrink to its content — so "fit" measured a 160px box
+   and every card, from 4×3 to 12×16, was scaled to the same 160px width. The
+   stage stretches; the CARD is what gets centred, inside the frame. */
+.vq-preview-stage { align-items: stretch !important; }
+.vq-preview-frame { width: 100%; }
+.vq-size-glyph { flex: 0 0 46px; }
+
+/* ── 12. Contrast corrections ──────────────────────────────────────────── */
+/* A gradient is a background IMAGE: the element's background COLOR stays
+   transparent, so anything compositing against it — a translucent chip, a
+   contrast check, a printed page — resolves against whatever is behind the
+   card instead of the card. Each gradient tone therefore also states the solid
+   colour it sits on. */
+.vqc--tone-accent { background-color: var(--vq-teal-800, #0a5049); }
+.vqc--tone-mesh   { background-color: var(--vq-surface, #fff); }
+[data-theme="dark"] .vqc--tone-mesh { background-color: #111815; }
+:root[data-bg="mesh"] .vqc--tone-mesh { background-color: #141a18; }
+
+/* 10px uppercase labels sat on --vq-text-3, which measures 3.76:1 on a white
+   card — under the 4.5:1 floor for text this size. One tier up clears it. */
+.vqc-bank-label, .vqc-growth-label { color: var(--vq-text-2, var(--vq-ink-600)); }
+.vqc--tone-ink .vqc-bank-label, .vqc--tone-ink .vqc-growth-label { color: #a9b8b1; }
+.vqc--tone-accent .vqc-bank-label, .vqc--tone-accent .vqc-growth-label { color: rgb(255 255 255 / .88); }
+/* The caption under a headline is 11px. An earlier rule dimmed it with
+   `opacity:.85` on top of an already-muted colour, which lands at 3.16:1 on the
+   accent fill — under the floor. Opacity is not a colour tier; state the colour. */
+.vqc--tone-accent .vqc-head-when,
+.vqc--tone-accent .vqc-when,
+.vqc--accent .vqc-when { color: rgb(255 255 255 / .92); opacity: 1; }
+
+/* A stacked bank or growth panel puts its boxes in a column, and three boxes
+   of label + value + caption need about 58px each. Below roughly four rows
+   there is not that much height, so the caption goes and the boxes compress
+   rather than pushing past the frame. */
+.vqc-bank-grid, .vqc-growth-grid { grid-auto-rows: minmax(0, 1fr); min-height: 0; }
+.vqc-bank-box, .vqc-growth-stat { min-height: 0; overflow: hidden; }
+.vqc[data-w="2"] .vqc-bank-sub,  .vqc[data-w="3"] .vqc-bank-sub,
+.vqc[data-w="2"] .vqc-growth-sub,.vqc[data-w="3"] .vqc-growth-sub { display: none; }
+.vqc[data-w="2"][data-h="5"] .vqc-bank-sub,  .vqc[data-w="3"][data-h="5"] .vqc-bank-sub,
+.vqc[data-w="2"][data-h="6"] .vqc-bank-sub,  .vqc[data-w="3"][data-h="6"] .vqc-bank-sub,
+.vqc[data-w="2"][data-h="5"] .vqc-growth-sub,.vqc[data-w="3"][data-h="5"] .vqc-growth-sub,
+.vqc[data-w="2"][data-h="6"] .vqc-growth-sub,.vqc[data-w="3"][data-h="6"] .vqc-growth-sub { display: block; }
+.vqc[data-w="2"] .vqc-bank-box, .vqc[data-w="3"] .vqc-bank-box,
+.vqc[data-w="2"] .vqc-growth-stat, .vqc[data-w="3"] .vqc-growth-stat { padding: 5px 9px; }
+
+/* The board heading: the copy takes the slack, the action stays put, and the
+   line length is capped by the heading rather than by the global <p> measure. */
+.board-h { align-items: flex-end; }
+.board-h-text { flex: 1 1 420px; min-width: 0; }
+.board-sub { max-width: 78ch; margin-top: 6px; }
+.board-actions { flex: 0 0 auto; }
+
+/* ── 13. The header menu ───────────────────────────────────────────────────
+   This had no stylesheet at all. The markup rendered as three inline buttons
+   with their icons floating above the words, over whatever happened to be
+   behind them — which is the "edit section is all messed up" in the report.
+   It is a popover: it needs a positioning context, a surface, and rows. */
+.vq-menu-container { position: relative; flex: 0 0 auto; }
+
+.vq-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: var(--vq-z-dropdown, 400);
+  min-width: 208px;
   display: flex;
   flex-direction: column;
+  padding: var(--vq-space-1);
+  background: var(--vq-raised, var(--vq-surface));
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md);
+  box-shadow: var(--vq-elev-3);
+  animation: vqc-menu-in var(--vq-dur-2) var(--vq-ease-out);
 }
 
-.vq-v6-switch-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--vq-text, var(--vq-ink-900));
+.vq-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--vq-space-3);
+  width: 100%;
+  padding: var(--vq-space-2) var(--vq-space-3);
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: var(--vq-r-sm);
+  color: var(--vq-text);
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-medium);
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-dropdown-item > svg { flex: 0 0 15px; color: var(--vq-text-2); }
+.vq-dropdown-item:hover { background: var(--vq-sunken); }
+.vq-dropdown-item:hover > svg { color: var(--vq-accent-text); }
+
+.vq-dropdown-divider {
+  height: 1px;
+  margin: var(--vq-space-1) var(--vq-space-2);
+  background: var(--vq-line-soft, var(--vq-line));
 }
 
-.vq-v6-switch-sub {
-  font-size: 10.5px;
-  color: var(--vq-text-3, var(--vq-ink-500));
+/* ── 14. The wizard's identity block and destination tiles ─────────────── */
+/* The card is named by what it shows, so step 2 opens by stating what it is
+   rather than offering a text field that lets two people name the same
+   reading two different things. */
+.vq-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--vq-space-3) var(--vq-space-4);
+  border: 1px solid var(--vq-accent-quiet-line);
+  border-radius: var(--vq-r-md);
+  background: var(--vq-accent-quiet);
+  min-width: 0;
+}
+.vq-identity-eyebrow {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-eyebrow);
+  line-height: var(--vq-lh-eyebrow);
+  letter-spacing: var(--vq-ls-eyebrow);
+  text-transform: uppercase;
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-accent-text);
+}
+.vq-identity-name {
+  font-family: var(--vq-font-display);
+  font-size: var(--vq-fs-h3);
+  font-weight: var(--vq-fw-semi);
+  letter-spacing: var(--vq-ls-h3);
+  line-height: 1.2;
+  color: var(--vq-text);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vq-identity-meta {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-caption);
+  color: var(--vq-text-2);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vq-identity-meta code {
+  font-family: var(--vq-font-mono, monospace);
+  font-size: var(--vq-fs-eyebrow);
+  background: var(--vq-surface);
+  border-radius: var(--vq-r-sm);
+  padding: 1px 5px;
 }
 
-.vq-v6-switch-track {
-  width: 40px;
-  height: 22px;
-  border-radius: 999px;
-  background: var(--vq-line, var(--vq-ink-200));
-  padding: 2px;
-  position: relative;
-  flex-shrink: 0;
-  transition: background-color var(--vq-dur-2) var(--vq-ease-out);
-  box-sizing: border-box;
+/* Destination is chosen from the pages that exist, never typed as a URL. */
+.vq-dest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--vq-space-2); }
+.vq-dest-tile {
+  display: flex; align-items: center; gap: var(--vq-space-2);
+  min-width: 0; padding: var(--vq-space-2);
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-md);
+  background: var(--vq-surface); color: var(--vq-text); cursor: pointer;
+  text-align: left;
+  transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+              background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-dest-tile:hover { border-color: var(--vq-line-strong); }
+.vq-dest-tile.is-active { border-color: var(--vq-accent); background: var(--vq-accent-quiet); }
+.vq-dest-glyph {
+  flex: 0 0 28px; width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border-radius: var(--vq-r-sm); color: #fff;
+}
+.vq-dest-name {
+  font-family: var(--vq-font-sans); font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-semi); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-.vq-v6-switch-track.is-on {
-  background: var(--vq-teal-500);
-  box-shadow: var(--vq-glow-accent);
+/* ── 15. The face switches ─────────────────────────────────────────────── */
+.vq-switch-stack {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md);
+  overflow: hidden;
+}
+.vq-switch-stack .vq-v6-switch-wrapper {
+  border: 0; border-radius: 0; background: var(--vq-surface);
+  border-bottom: 1px solid var(--vq-line-soft, var(--vq-line));
+}
+.vq-switch-stack .vq-v6-switch-wrapper:last-child { border-bottom: 0; }
+.vq-switch-stack .vq-v6-switch-wrapper:hover { background: var(--vq-sunken); }
+.vq-v6-switch-hint {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-eyebrow);
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-butter-700, #a6690a);
+  margin-top: 2px;
 }
 
-.vq-v6-switch-knob {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: transform var(--vq-dur-2) var(--vq-ease-spring);
-  transform: translateX(0);
+/* ── 16. Preview and canvas corrections ────────────────────────────────── */
+/* A stacked strip centres its content in the card, the way the reference does.
+   Left top-aligned it left two thirds of a 3×2 card empty. */
+.vq-preview-scaler > .vqc { height: 100%; }
+
+/* One "Add card" affordance in the header is enough; the canvas heading keeps
+   its own only where there is room for it to sit beside the copy. */
+.board-actions { display: flex; align-items: center; gap: var(--vq-space-3); }
+@media (max-width: 1100px) { .board-h .board-actions { display: none; } }
+
+/* The V6 card CSS gives .vqc `height:100%`, which the grid needs; the preview
+   card is absolutely sized instead, so it is restated there. */
+.vq-grid > .vqc { height: 100%; }
+
+/* ── 17. The accent card on the mesh ground ────────────────────────────────
+   An earlier rule flattened the accent card to `--vq-accent` (teal-500) under
+   [data-bg="mesh"]. White text on teal-500 measures 2.2:1 — the card became
+   unreadable on exactly one of the three page backgrounds. The accent tone
+   keeps its own gradient on every ground; that is what a tone is for. */
+:root[data-bg="mesh"] .vqc--accent,
+:root[data-bg="mesh"] .vqc--tone-accent {
+  background: linear-gradient(135deg, var(--vq-teal-700) 0%, var(--vq-teal-900) 100%);
+  background-color: var(--vq-teal-800);
+  backdrop-filter: none;
+  border-color: var(--vq-teal-600);
 }
 
-.vq-v6-switch-track.is-on .vq-v6-switch-knob {
-  transform: translateX(18px);
+/* ── 18. Label and hint polish ─────────────────────────────────────────── */
+/* A section label and its note share one line; the label never wraps, the
+   note gives way. Without this "ON THE CARD FACE" broke across two lines
+   while its note sat beside the orphan. */
+.vq-form-label > span:first-child { white-space: nowrap; flex: 0 0 auto; }
+.vq-form-sublabel { min-width: 0; text-align: right; }
+
+/* A hint that merely describes behaviour is a note; a hint that contradicts
+   the switch beside it is a warning. Only the second one is amber. */
+.vq-v6-switch-hint { color: var(--vq-text-3); font-weight: var(--vq-fw-medium); }
+.vq-v6-switch-hint.is-warn { color: var(--vq-butter-700, #a6690a); font-weight: var(--vq-fw-semi); }
+[data-theme="dark"] .vq-v6-switch-hint.is-warn { color: #ffcd5b; }
+
+/* ── 19. Controls on the dark tones ────────────────────────────────────────
+   The reference gives the accent card its own control ground
+   (--vq-on-accent-*). The ink and mesh tones are new here and had none, so
+   their controls fell back to the light-theme accent wash: four white discs
+   with invisible glyphs on an obsidian card. */
+.vqc--tone-ink .vqc-act,
+.vqc--tone-ink .vqc-nav-link,
+:root[data-bg="mesh"] .vqc--tone-surface .vqc-act,
+:root[data-bg="mesh"] .vqc--tone-surface .vqc-nav-link,
+:root[data-bg="mesh"] .vqc--tone-mesh .vqc-act,
+:root[data-bg="mesh"] .vqc--tone-mesh .vqc-nav-link {
+  background: rgb(255 255 255 / .12);
+  color: #edf2ef;
 }
+.vqc--tone-ink .vqc-act:hover,
+.vqc--tone-ink .vqc-nav-link:hover,
+:root[data-bg="mesh"] .vqc--tone-surface .vqc-act:hover,
+:root[data-bg="mesh"] .vqc--tone-mesh .vqc-act:hover {
+  background: rgb(255 255 255 / .22);
+  color: #fff;
+}
+.vqc--tone-ink .vqc-act.vqc-del {
+  background: rgb(214 69 65 / .22); color: #ffb0ab;
+}
+.vqc--tone-ink .vqc-act.vqc-del:hover { background: rgb(214 69 65 / .34); color: #fff; }
+
+/* In edit mode every control is on the face, the open arrow included — the
+   author is looking at the card's plumbing, not reading its number. */
+.vq-shell.is-editing .vqc-nav-link { opacity: 1; }
+
+/* The period picker on a dark tone follows the same rule. */
+.vqc--tone-ink .vqc-per-b {
+  background: rgb(255 255 255 / .12); border-color: rgb(255 255 255 / .16); color: #edf2ef;
+}
+.vqc--tone-ink .vqc-per-b:hover { background: rgb(255 255 255 / .2); color: #fff; }

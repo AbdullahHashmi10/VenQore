@@ -24,6 +24,9 @@ class AccountSeeder extends Seeder
             // LIABILITIES (2000)
             ['code' => '2000', 'name' => 'Accounts Payable', 'type' => 'liability'],
             ['code' => '2100', 'name' => 'Sales Tax Payable', 'type' => 'liability'],
+            // Money held for staff, not earned by the business. Credited on every
+            // sale that carries a tip and cleared when the staff are paid out.
+            ['code' => '2150', 'name' => 'Tips Payable', 'type' => 'liability'],
 
             // EQUITY (3000)
             ['code' => '3000', 'name' => 'Owner\'s Capital', 'type' => 'equity'],

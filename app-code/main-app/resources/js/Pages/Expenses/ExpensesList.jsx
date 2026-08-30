@@ -564,7 +564,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
             if (editingExpense) {
                 // Axios put with FormData needs _method spoofing
                 data.append('_method', 'PUT');
-                await axios.post(route('store.expenses.update', editingExpense.id), data, {
+                await axios.post(route('store.expenses.update', { store_slug: store.slug, expense: editingExpense.id }), data, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             } else {

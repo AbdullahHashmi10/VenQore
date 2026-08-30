@@ -18,8 +18,8 @@ use Carbon\Carbon;
 use Inertia\Inertia;
 
 
-// ── Public Marketing Pages ──────────────────────────────────────────────
-Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
+// ── V6 Public Production Pages ──────────────────────────────────────────
+Route::get('/features', fn() => response()->file(public_path('v6/features.html')))->name('marketing.features');
 Route::get('/features/{slug}', [\App\Http\Controllers\Marketing\FeaturesController::class, 'show'])->name('marketing.features.show');
 
 Route::get('/roadmap', [\App\Http\Controllers\Marketing\RoadmapController::class, 'index'])->name('marketing.roadmap');
@@ -27,22 +27,7 @@ Route::get('/solutions', [\App\Http\Controllers\Marketing\SolutionsController::c
 Route::get('/solutions/{slug}', [\App\Http\Controllers\Marketing\SolutionsController::class, 'show'])->name('marketing.solutions.show');
 Route::get('/compare', [\App\Http\Controllers\Marketing\CompareController::class, 'index'])->name('marketing.compare.index');
 Route::get('/compare/{slug}', [\App\Http\Controllers\Marketing\CompareController::class, 'show'])->name('marketing.compare.show');
-Route::get('/pricing', function () {
-    try {
-        $plans = \App\Models\Plan::with(['limits', 'features'])
-            ->where('is_active', true)
-            ->where('is_visible', true)
-            ->where('slug', 'not like', 'ltd%')
-            ->orderBy('sort_order')
-            ->get();
-    } catch (\Throwable $e) {
-        $plans = collect();
-    }
-
-    return Inertia::render('Marketing/Pricing', [
-        'plans' => $plans,
-    ]);
-})->name('marketing.pricing');
+Route::get('/pricing', fn() => response()->file(public_path('v6/pricing.html')))->name('marketing.pricing');
 Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $request) {
     $request->validate(['country' => 'required|string|size:2']);
     $country = strtoupper($request->country);
@@ -55,13 +40,67 @@ Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $re
     
     return back()->with('success', 'Region updated successfully.');
 })->name('marketing.pricing.override');
-Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marketing.about');
-Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
+Route::get('/about',    fn() => response()->file(public_path('v6/about.html')))->name('marketing.about');
+Route::get('/contact',  fn() => response()->file(public_path('v6/contact.html')))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->name('marketing.contact.submit');
 
-// Coming-soon product lines — SEO/GEO landing pages with newsletter capture (2026-07-03)
-Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('marketing.vensynq');
-Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('marketing.smartcapture');
+// Coming-soon product lines & V6 product showcases
+Route::get('/vensynq', fn() => response()->file(public_path('v6/vensynq.html')))->name('marketing.vensynq');
+Route::get('/smartcapture', fn() => response()->file(public_path('v6/smartcapture.html')))->name('marketing.smartcapture');
+Route::get('/documents', fn() => response()->file(public_path('v6/documents.html')))->name('marketing.documents');
+Route::get('/reckoner', fn() => response()->file(public_path('v6/reckoner.html')))->name('marketing.reckoner');
+Route::get('/ledger', fn() => response()->file(public_path('v6/ledger.html')))->name('marketing.ledger');
+Route::get('/blueprint', fn() => response()->file(public_path('v6/blueprint.html')))->name('marketing.blueprint');
+Route::get('/onboarding', fn() => response()->file(public_path('v6/onboarding.html')))->name('marketing.onboarding');
+Route::get('/dashboard-preview', fn() => response()->file(public_path('v6/dashboard.html')))->name('marketing.dashboard-preview');
+
+// ── V6 Static Page & Direct .html Dispatcher ────────────────────────────
+Route::get('/v6/{page?}', function (?string $page = 'index') {
+    $page = preg_replace('/[^a-z0-9\-]/', '', strtolower($page));
+    $file = public_path("v6/{$page}.html");
+    abort_unless(is_file($file), 404);
+    return response()->file($file);
+})->where('page', '[A-Za-z0-9\-]+')->name('v6.page');
+
+Route::get('/{page}.html', function (string $page) {
+    $cleanPage = preg_replace('/[^a-z0-9\-]/', '', strtolower($page));
+    $file = public_path("v6/{$cleanPage}.html");
+    if (is_file($file)) {
+        return response()->file($file);
+    }
+    abort(404);
+})->where('page', '[A-Za-z0-9\-]+');
+
+// ── Legacy Marketing Pages (Comparison Routes) ───────────────────────────
+Route::prefix('legacy')->group(function () {
+    Route::get('/', fn() => Inertia::render('LandingPage'))->name('legacy.home');
+    Route::get('/landing', fn() => Inertia::render('LandingPage'))->name('legacy.landing');
+    Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('legacy.features');
+    Route::get('/pricing', function () {
+        try {
+            $plans = \App\Models\Plan::with(['limits', 'features'])
+                ->where('is_active', true)
+                ->where('is_visible', true)
+                ->where('slug', 'not like', 'ltd%')
+                ->orderBy('sort_order')
+                ->get();
+        } catch (\Throwable $e) {
+            $plans = collect();
+        }
+        return Inertia::render('Marketing/Pricing', ['plans' => $plans]);
+    })->name('legacy.pricing');
+    Route::get('/about', fn() => Inertia::render('Marketing/About'))->name('legacy.about');
+    Route::get('/contact', fn() => Inertia::render('Marketing/Contact'))->name('legacy.contact');
+    Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('legacy.vensynq');
+    Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('legacy.smartcapture');
+    Route::get('/digital-products', [\App\Http\Controllers\Marketing\DigitalProductsPublicController::class, 'index'])->name('legacy.digital-products');
+    Route::get('/partner-support', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'index'])->name('legacy.partner-support');
+    Route::get('/roadmap', [\App\Http\Controllers\Marketing\RoadmapController::class, 'index'])->name('legacy.roadmap');
+    Route::get('/solutions', [\App\Http\Controllers\Marketing\SolutionsController::class, 'index'])->name('legacy.solutions');
+    Route::get('/compare', [\App\Http\Controllers\Marketing\CompareController::class, 'index'])->name('legacy.compare');
+    Route::get('/blog', [\App\Http\Controllers\Marketing\BlogController::class, 'index'])->name('legacy.blog');
+    Route::get('/demo', fn() => Inertia::render('Demo/Landing'))->name('legacy.demo');
+});
 
 // Newsletter subscription
 Route::get('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'index'])->name('marketing.newsletter');
@@ -394,6 +433,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/pos/categories',          [\App\Http\Controllers\Api\PosSearchController::class, 'categories'])->name('pos.categories');
         Route::get('/pos/barcode/{code}',      [\App\Http\Controllers\Api\PosSearchController::class, 'findByBarcode'])->name('pos.barcode');
         Route::get('/pos/recent-sales',        [\App\Http\Controllers\Api\PosSearchController::class, 'recentSales'])->name('pos.recent-sales');
+        // Modifier groups for one product, fetched when the line is added rather
+        // than shipped with the catalog — same reason nothing else here is
+        // pre-loaded: a 2,000-product menu's modifiers is a payload nobody reads.
+        Route::get('/pos/modifiers',           [\App\Http\Controllers\Api\PosSearchController::class, 'modifiers'])->name('pos.modifiers');
         // pos.open / pos.close removed 2026-08-02 — see PosController note above.
 
         // Staff management (within this store)
@@ -460,6 +503,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
         Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
         Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->name('restaurant.kitchen');
+        // The same queue as JSON. A pass screen is left open all service, so it
+        // polls rather than reloading an Inertia page every few seconds.
+        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->name('restaurant.kitchen.state');
         Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->name('restaurant.table.status');
 
         // Occupancy API endpoints
@@ -467,6 +513,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/api/occupancies/occupy', [\App\Http\Controllers\RestaurantDashboardController::class, 'occupyPosition'])->middleware('permission:pos.checkout')->name('api.occupancies.occupy');
         Route::post('/api/occupancies/release', [\App\Http\Controllers\RestaurantDashboardController::class, 'releasePosition'])->middleware('permission:pos.checkout')->name('api.occupancies.release');
         Route::post('/restaurant/order/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateOrderStatus'])->name('restaurant.order.status');
+        // Bump and recall, so the pass never has to name a status. One button
+        // forward, one back — which is the whole vocabulary of a kitchen screen.
+        Route::post('/restaurant/order/{id}/bump',   [\App\Http\Controllers\RestaurantDashboardController::class, 'bump'])->name('restaurant.order.bump');
+        Route::post('/restaurant/order/{id}/recall', [\App\Http\Controllers\RestaurantDashboardController::class, 'recall'])->name('restaurant.order.recall');
 
         // Trial expired landing (within store context)
         Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
@@ -815,9 +865,9 @@ Route::get('/', function () {
         }
     }
 
-    // 4. Show the marketing landing page to unauthenticated visitors
-    // On subdomain tenant installs, this still shows the setup welcome — see TenantMiddleware
-    return Inertia::render('LandingPage');
+    // 4. Show the new V6 landing page to unauthenticated visitors
+    // (Legacy landing page remains available at /legacy or /legacy/landing)
+    return response()->file(public_path('v6/index.html'));
 })->name('welcome');
 
 
@@ -1101,6 +1151,70 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     Route::get('/pos', [\App\Http\Controllers\PosController::class, 'index'])->middleware('permission:pos.checkout')->name('pos');
 
+    /* ── TABLE SERVICE ───────────────────────────────────────────────────
+       A separate screen from the register, on purpose: the unit of work is
+       the table, not the sale, and for most of a table's life there is no
+       sale yet. Separate screens, ONE engine -- settling hands the table's
+       cart to /pos so there is a single tender path, a single journal
+       posting and a single offline queue.
+
+       Backed by the `positions` and `occupancies` tables that already
+       existed. The POS's old in-register floor ran on six hard-coded mock
+       tables and wrote nowhere. */
+    Route::prefix('tables')->name('tables.')->middleware('permission:pos.checkout')->group(function () {
+        Route::get('/',            [\App\Http\Controllers\TableServiceController::class, 'index'])->name('index');
+        Route::get('/state',       [\App\Http\Controllers\TableServiceController::class, 'state'])->name('state');
+        Route::post('/open',       [\App\Http\Controllers\TableServiceController::class, 'open'])->name('open');
+        Route::post('/order',      [\App\Http\Controllers\TableServiceController::class, 'saveOrder'])->name('order');
+        Route::post('/send',       [\App\Http\Controllers\TableServiceController::class, 'sendToKitchen'])->name('send');
+        Route::post('/transfer',   [\App\Http\Controllers\TableServiceController::class, 'transfer'])->name('transfer');
+        Route::post('/merge',      [\App\Http\Controllers\TableServiceController::class, 'merge'])->name('merge');
+        Route::post('/close',      [\App\Http\Controllers\TableServiceController::class, 'close'])->name('close');
+        Route::post('/status',     [\App\Http\Controllers\TableServiceController::class, 'setStatus'])->name('status');
+        /* Splitting a bill. The split is a claim on part of the table's cart,
+           held ON the table so a second device sees the lock -- it never becomes
+           a second order. Settling the part still goes through /pos like every
+           other tender; tables.settled just learns to close half a bill. */
+        Route::post('/split',        [\App\Http\Controllers\TableServiceController::class, 'split'])->name('split');
+        Route::post('/split/cancel', [\App\Http\Controllers\TableServiceController::class, 'splitCancel'])->name('split.cancel');
+        Route::post('/settled',    [\App\Http\Controllers\TableServiceController::class, 'settled'])->name('settled');
+        Route::post('/service-mode', [\App\Http\Controllers\TableServiceController::class, 'setServiceMode'])
+            ->middleware('permission:admin.settings_manage')->name('service-mode');
+        // Store-wide, same as service-mode and gated the same way: what the house
+        // charges is not a per-till decision.
+        Route::post('/service-charge', [\App\Http\Controllers\TableServiceController::class, 'setServiceCharge'])
+            ->middleware('permission:admin.settings_manage')->name('service-charge');
+
+        /* Takeaway and delivery. An occupancy with NO position: a bag on the
+           counter is an open bill with a cart, a server and a kitchen ticket
+           and no place, and giving it a fake table would put phantom seats on
+           the floor plan and break every covers number on it. */
+        Route::post('/lane/open', [\App\Http\Controllers\TableServiceController::class, 'laneOpen'])->name('lane.open');
+
+        /* "The bill is printed and they have not paid yet." A stamp, not a
+           status: the escalation state on the floor is derived from it. */
+        Route::post('/check',     [\App\Http\Controllers\TableServiceController::class, 'check'])->name('check');
+
+        /* ── THE FLOOR BUILDER ────────────────────────────────────────────
+           Until this, Position::create existed in exactly one place in the
+           whole application -- the demo seeder -- so a restaurant could look
+           at its floor and never change it. Gated on admin.settings_manage on
+           top of the group's pos.checkout, like service-mode: rearranging the
+           building is not a decision a till makes mid-service. */
+        Route::middleware('permission:admin.settings_manage')->group(function () {
+            Route::get('/plan',                [\App\Http\Controllers\TableServiceController::class, 'plan'])->name('plan');
+            Route::post('/plan/zone/add',      [\App\Http\Controllers\TableServiceController::class, 'planZoneAdd'])->name('plan.zone.add');
+            Route::post('/plan/zone/rename',   [\App\Http\Controllers\TableServiceController::class, 'planZoneRename'])->name('plan.zone.rename');
+            Route::post('/plan/zone/remove',   [\App\Http\Controllers\TableServiceController::class, 'planZoneRemove'])->name('plan.zone.remove');
+            Route::post('/plan/tables/bulk',   [\App\Http\Controllers\TableServiceController::class, 'planTablesBulk'])->name('plan.tables.bulk');
+            Route::post('/plan/table',         [\App\Http\Controllers\TableServiceController::class, 'planTableAdd'])->name('plan.table.add');
+            Route::post('/plan/table/update',  [\App\Http\Controllers\TableServiceController::class, 'planTableUpdate'])->name('plan.table.update');
+            Route::post('/plan/table/remove',  [\App\Http\Controllers\TableServiceController::class, 'planTableRemove'])->name('plan.table.remove');
+            Route::post('/plan/reorder',       [\App\Http\Controllers\TableServiceController::class, 'planReorder'])->name('plan.reorder');
+            Route::post('/plan/lanes',         [\App\Http\Controllers\TableServiceController::class, 'planLanes'])->name('plan.lanes');
+        });
+    });
+
     // New POS — the composed register. Layout Law v2.0 geometry, V6 tokens, and a
     // settings drawer that composes the terminal per user and per device.
     // STRUCTURE ONLY for now: it runs on resources/js/NewPos/mock.js and posts
@@ -1337,6 +1451,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // Expenses
     Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.index');
+    Route::get('/expenses/create', [\App\Http\Controllers\ExpenseController::class, 'create'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.create');
     Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.store');
     Route::post('/expenses/category', [\App\Http\Controllers\ExpenseController::class, 'storeCategory'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.category.store');
     Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.update');
@@ -1644,6 +1759,21 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->name('api.bank-accounts');
 
+    /* A party's position with the shop, read from the ledger rather than from
+       the cached `parties.current_balance` — which several code paths write,
+       which means the opposite thing for a customer and a supplier, and which
+       is why a purchase from a customer showed their balance going the wrong
+       way. Every document screen reads this one. */
+    Route::get('/api/parties/{party}/balance', \App\Http\Controllers\Api\PartyBalanceController::class)->name('api.party-balance');
+
+    /* What is still returnable against a sale. A cap enforced only in a browser
+       is not a cap, so the screen loads from here and the server checks it
+       again on save. */
+    /* The bills a debit note can be raised against. */
+    Route::get('/api/parties/{party}/purchases', [\App\Http\Controllers\Api\PurchaseLookupController::class, 'forParty'])->name('api.purchases.for-party');
+    Route::get('/api/sales/returnable', [\App\Http\Controllers\Api\SaleReturnLookupController::class, 'index'])->name('api.sales.returnable');
+    Route::get('/api/sales/{sale}/returnable', [\App\Http\Controllers\Api\SaleReturnLookupController::class, 'show'])->name('api.sales.returnable.show');
+
     // Custom Charges
     Route::post('/settings/charges', [\App\Http\Controllers\SettingsController::class, 'storeCharge'])->name('settings.charges.store');
     Route::put('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'updateCharge'])->name('settings.charges.update');
@@ -1893,8 +2023,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/payments/in/create', fn() => \abort(501, 'Implement payment-in.create'))->name('payment-in.create');
     Route::get('/payments/out/create', fn() => \abort(501, 'Implement payment-out.create'))->name('payment-out.create');
     Route::get('/sales/pre-sales/{order}/print', fn() => \abort(501, 'Implement pre-sales.print'))->name('pre-sales.print');
-    Route::get('/debit-notes/{id}/print', fn() => \abort(501, 'Implement debit-notes.print'))->name('debit-notes.print');
-    Route::put('/debit-notes/{id}', fn() => \abort(501, 'Implement debit-notes.update'))->name('debit-notes.update');
+    /* Both of these were abort(501) closures, so a debit note could be raised
+       and then neither corrected nor printed. */
+    Route::get('/debit-notes/{id}/print', [\App\Http\Controllers\DebitNoteController::class, 'print'])->name('debit-notes.print');
+    Route::put('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'update'])->name('debit-notes.update');
     Route::get('/purchases/{purchase}/print', fn() => \abort(501, 'Implement purchases.print'))->name('purchases.print');
     Route::get('/sales/create', fn() => \abort(501, 'Implement sales.create'))->name('sales.create');
     Route::get('/inventory/production/{run}/edit', fn() => \abort(501, 'Implement production.edit'))->name('production.edit');

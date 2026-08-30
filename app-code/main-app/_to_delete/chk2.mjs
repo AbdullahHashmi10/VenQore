@@ -1,0 +1,11 @@
+import { parse } from '@babel/parser';
+import _traverse from '@babel/traverse';
+import fs from 'fs';
+const traverse = _traverse.default || _traverse;
+const code = fs.readFileSync('resources/js/Pages/Pos.jsx','utf8');
+const ast = parse(code, { sourceType:'module', plugins:['jsx','classProperties','optionalChaining','nullishCoalescingOperator','dynamicImport'] });
+let globals = {};
+traverse(ast, { Program(p){ globals = p.scope.globals; } });
+const allowed = new Set(['window','document','localStorage','sessionStorage','console','navigator','route','Date','JSON','Math','Number','String','Boolean','Array','Object','parseInt','parseFloat','isNaN','setTimeout','clearTimeout','setInterval','clearInterval','requestAnimationFrame','cancelAnimationFrame','Promise','Intl','URL','Blob','FormData','fetch','alert','confirm','ResizeObserver','process','structuredClone','Set','Map','Error','crypto']);
+const bad = Object.keys(globals).filter(g => !allowed.has(g)).sort();
+console.log(bad.length ? 'UNBOUND: ' + bad.join(', ') : 'NO UNBOUND IDENTIFIERS');

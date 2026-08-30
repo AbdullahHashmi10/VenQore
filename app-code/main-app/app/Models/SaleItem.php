@@ -45,7 +45,11 @@ class SaleItem extends Model
         'tax_amount',
         'line_total',
         'subtotal',
-        'returned_quantity'
+        'returned_quantity',
+        /* Which line of the original sale a return line gives back. Without it
+           on this list the column was never written, so the cap on how much
+           could be returned had nothing to measure against and never fired. */
+        'original_sale_item_id',
     ];
 
     protected $casts = [

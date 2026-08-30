@@ -118,11 +118,30 @@
        DEFAULT SCROLLBAR (All elements)
        ===================================================== */
 
+    /*
+       This lock is for the POS / app shell: a fixed-viewport layout where
+       every screen scrolls internally (see .pane-b below), not the document
+       itself. It must NOT apply to the public marketing site, which is a
+       normal long-scrolling page with no internal scroll container of its
+       own — locking it here made every public page unscrollable.
+
+       MarketingLayout.jsx sets data-vq-shell="marketing" on <html> for the
+       lifetime of every public page and removes it on unmount, so returning
+       to the authenticated app restores the POS lock automatically.
+    */
     html,
     body,
     #app {
         height: 100%;
         overflow: hidden;
+    }
+
+    html[data-vq-shell="marketing"],
+    html[data-vq-shell="marketing"] body,
+    html[data-vq-shell="marketing"] #app {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
     }
 
     /* Webkit Browsers (Chrome, Safari, Edge) */

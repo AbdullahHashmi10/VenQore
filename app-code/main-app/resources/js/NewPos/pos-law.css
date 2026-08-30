@@ -1,0 +1,997 @@
+/* ==========================================================================
+   VenQore POS — Layout Law v2.0, production stylesheet
+   ==========================================================================
+   Companion to resources/js/Layout/venqoreLayoutEngine.js and to
+   resources/js/Layout/usePosLayout.js.
+
+   The division of labour, which is the whole point:
+
+     the ENGINE decides   how many pixels each pane gets, which panes are
+                          resident at all, what a demoted pane becomes, and
+                          how tall the dock row is;
+     this STYLESHEET      only knows how to *be* those things.
+
+   Nothing here reads the viewport. There is not one media query that changes
+   the terminal's composition, because a media query cannot see the sidebar,
+   the dock or the drag the cashier just did — and every one of the layout
+   bugs this replaces came from a breakpoint that disagreed with the actual
+   content box. The engine measures the real element and writes:
+
+     --vq-pane-cols    the grid template for the resident panes
+     --vq-catband-h    the height of a top/bottom catalog band, if any
+     --vq-dock-h       the height of the dock row, 0 when nothing is docked
+     data-regime       columns | stacked | phone
+     data-senior       "1" when large-text mode is on
+
+   Governed by VENQORE_LAYOUT_LAW.md v2.0 (geometry) → the V6 token files
+   (values) → DESIGN-RULES.md v3.0 (structure).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. TOKENS THE TERMINAL OWNS
+   Values only, all of them derived from the law's constants or the V6 tokens.
+   -------------------------------------------------------------------------- */
+.vq-term {
+    --vq-gutter: 12px;
+    --vq-margin: 12px;
+    --vq-pad: 12px;
+    --vq-bar-h: 56px;
+    --vq-dock-h: 0px;
+    --vq-catband-h: 0px;
+
+    /* The terminal's own type ramp. Every font-size inside the register reads
+       from these six and nothing else, so senior mode is one override rather
+       than ninety. Base sizes track the bumped V6 scale.
+
+       --vq-ui-scale is the operator's interface-scale setting, written on the
+       element by the page. It multiplies the ramp and the targets, and the
+       layout engine is handed a box divided by the same number — so raising it
+       demotes a pane that no longer fits rather than clipping its contents.
+       Deliberately NOT a transform: a scaled transform blurs text and lies to
+       every measurement the engine makes. */
+    --vq-ui-scale: 1;
+    --vq-t-xs: calc(12px * var(--vq-ui-scale));
+    --vq-t-sm: calc(13px * var(--vq-ui-scale));
+    --vq-t-md: calc(15px * var(--vq-ui-scale));
+    --vq-t-lg: calc(17px * var(--vq-ui-scale));
+    --vq-t-num: calc(21px * var(--vq-ui-scale));
+    --vq-t-total: calc(30px * var(--vq-ui-scale));
+
+    --vq-touch: calc(44px * var(--vq-ui-scale));   /* nothing on a register is shorter */
+    --vq-line-h: calc(56px * var(--vq-ui-scale));  /* LAW.terminal.cart_line */
+    --vq-r: var(--vq-radius-lg, 14px);
+}
+
+/* Senior mode. It is a TYPE and TARGET change, not a zoom: zooming a fixed
+   height terminal just pushes the total off the bottom of the screen, which
+   is exactly what the old `transform: scale()` approach did. Here the ramp
+   grows, the touch targets grow, and the engine re-composes around the
+   larger floors on the next measurement — so a pane demotes to a button
+   rather than crushing its contents. */
+.vq-term[data-senior='1'] {
+    --vq-t-xs: calc(14px * var(--vq-ui-scale));
+    --vq-t-sm: calc(15px * var(--vq-ui-scale));
+    --vq-t-md: calc(17px * var(--vq-ui-scale));
+    --vq-t-lg: calc(20px * var(--vq-ui-scale));
+    --vq-t-num: calc(25px * var(--vq-ui-scale));
+    --vq-t-total: calc(36px * var(--vq-ui-scale));
+    --vq-touch: calc(52px * var(--vq-ui-scale));
+    --vq-line-h: calc(68px * var(--vq-ui-scale));
+}
+
+/* --------------------------------------------------------------------------
+   1. THE SHELL — exactly one viewport tall, and the page never scrolls
+   -------------------------------------------------------------------------- */
+.vq-term {
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--vq-gutter);
+    padding: var(--vq-margin);
+    overflow: hidden;                 /* the PAGE never scrolls sideways */
+    font-size: var(--vq-t-md);
+    background: var(--vq-bg, #f1f5f2);
+    font-family: var(--vq-font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+}
+
+.vq-term-bar {
+    min-height: var(--vq-bar-h);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+/* The working surface. In `columns` the engine hands us a real template; in
+   `stacked` and `phone` the panes become rows and the catalog band, if any,
+   sits above the cart. */
+.vq-term-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vq-gutter);
+    min-height: 0;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    /* The band's resize grip is an absolutely positioned child of THIS element,
+       sitting in the gutter between the band and the panes. It cannot live
+       inside the band: a pane clips its own overflow, which is what sliced the
+       vertical handles in half before they were moved out too. */
+    position: relative;
+}
+
+.vq-panes-grid {
+    display: grid;
+    gap: var(--vq-gutter);
+    min-height: 0;
+    min-width: 0;
+    flex: 1 1 0%;
+    grid-template-columns: var(--vq-pane-cols, minmax(0, 1fr));
+    /* The dividers are absolutely positioned children of THIS element, sitting
+       in the gutter between two panes. They used to be children of the pane
+       itself, which clips its own overflow -- so the handle was sliced in half
+       and its read-out badge could not be seen at all. A divider belongs to the
+       gap, not to either side of it. */
+    position: relative;
+}
+
+.vq-term[data-regime='stacked'] .vq-panes-grid,
+.vq-term[data-regime='phone'] .vq-panes-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(0, 1fr);
+}
+
+/* A catalog band is a whole number of tile rows — never a part of one, and
+   never a scrap of empty band. */
+.vq-catband {
+    flex: 0 0 auto;
+    min-height: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--vq-surface, #ffffff);
+    border: 1px solid var(--vq-line, #e2e8e4);
+    box-shadow: 0 1px 3px rgba(13, 20, 18, 0.04), 0 6px 18px -6px rgba(13, 20, 18, 0.07);
+}
+
+/* --------------------------------------------------------------------------
+   2. A PANE
+   A pane pins its header and its actions and scrolls only its body. That one
+   rule is why a Complete Sale button can never be scrolled out of reach, and
+   why a long cart cannot push the total off the screen.
+   -------------------------------------------------------------------------- */
+.vq-pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    background: var(--vq-surface, #ffffff);
+    border: 1px solid var(--vq-line, #e2e8e4);
+    box-shadow: 0 1px 3px rgba(13, 20, 18, 0.04), 0 8px 24px -8px rgba(13, 20, 18, 0.08);
+}
+
+.vq-pane-h {
+    flex: 0 0 auto;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    font-size: var(--vq-t-xs);
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    background: var(--vq-ink-25, #f8faf8);
+    border-bottom: 1px solid var(--vq-line-soft, #e6ece8);
+    color: var(--vq-ink-600, #536159);
+}
+.vq-term[data-senior='1'] .vq-pane-h { height: 48px; }
+
+.vq-pane-fixed { flex: 0 0 auto; min-width: 0; }
+
+.vq-pane-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* The pinned action foot. Never a floating button over the panes — that is
+   how the previous build managed to cover the payment panel with a Browse
+   catalog control. */
+.vq-pane-actions {
+    flex: 0 0 auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--vq-ink-25, #f8faf8);
+    border-top: 1px solid var(--vq-line-soft, #e6ece8);
+}
+
+/* UNDERFLOW. Below the designed minimum a pane does not break its contents,
+   it SCROLLS them inside its own border — the page still never scrolls
+   sideways, only the one pane that could not fit. A 320px viewport leaves
+   288px of content and the leanest cart line needs 305. */
+.vq-pane[data-underflow='1'] .vq-pane-body {
+    overflow-x: auto;
+}
+.vq-pane[data-underflow='1'] .vq-pane-body > * {
+    min-width: var(--vq-pane-min, 305px);
+}
+
+/* --------------------------------------------------------------------------
+   3. NOTHING BLEEDS
+   Two failure modes, and they need opposite treatments.
+
+     TEXT that is prose — a product name, a customer — wraps and then
+     ellipses. It must never widen its container.
+     NUMBERS never wrap and never ellipse: half a total is worse than no
+     total. They shrink through the numeric ladder instead (formatToFit),
+     and the cell reserves the tabular advance so the layout does not jump
+     as digits change.
+   -------------------------------------------------------------------------- */
+.vq-term :where(h1, h2, h3, h4, p, span, label, button, a) {
+    overflow-wrap: anywhere;
+}
+
+.vq-clip {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Two lines, then stop. Used for product and line names, which are the only
+   strings long enough to matter and the ones that were overflowing their
+   cards. */
+.vq-clip-2 {
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.vq-num {
+    font-family: var(--vq-font-numeric, "Space Grotesk", ui-monospace, monospace);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. CART LINES — a table that becomes cards, on the pane's own width
+   Container queries, not media queries: the cart cares how wide the CART is,
+   which is not a fact about the window. This is the same relay a card runs.
+   -------------------------------------------------------------------------- */
+.vq-cart-lines { container-type: inline-size; container-name: cart; }
+
+.vq-line {
+    display: grid;
+    align-items: center;
+    gap: 12px;
+    min-height: var(--vq-line-h);
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--vq-line, #e2e8e4);
+    background: var(--vq-surface, #ffffff);
+    box-shadow: 0 1px 3px rgba(13, 20, 18, 0.03), 0 3px 8px -2px rgba(13, 20, 18, 0.05);
+    transition: all 140ms cubic-bezier(.22, 1, .36, 1);
+    /* index | name | price | qty | total | bin */
+    grid-template-columns: 30px minmax(160px, 1fr) auto auto auto auto;
+}
+
+.vq-line:hover {
+    border-color: var(--vq-teal-400, #23c4a6);
+    box-shadow: 0 4px 16px -2px rgba(11, 170, 143, 0.12);
+    transform: translateY(-1px);
+}
+
+/* relay: the price cell folds into the name block */
+@container cart (max-width: 620px) {
+    .vq-line { grid-template-columns: 26px minmax(0, 1fr) auto auto auto; }
+    .vq-line .vq-line-price { display: none; }
+    .vq-line .vq-line-price-inline { display: inline-block; }
+}
+
+/* minimal: two rows, name over controls. Still one line per item, still
+   every control reachable — nothing moves into a menu. */
+@container cart (max-width: 440px) {
+    .vq-line {
+        grid-template-columns: 26px minmax(0, 1fr) auto;
+        grid-template-areas: 'idx name total' '. ctl bin';
+        row-gap: 8px;
+        padding: 10px 12px;
+    }
+    .vq-line .vq-line-idx { grid-area: idx; }
+    .vq-line .vq-line-name-cell { grid-area: name; }
+    .vq-line .vq-line-total { grid-area: total; }
+    .vq-line .vq-line-ctl { grid-area: ctl; justify-self: start; }
+    .vq-line .vq-line-del { grid-area: bin; justify-self: end; }
+}
+
+.vq-line-price-inline { display: none; }
+
+/* --------------------------------------------------------------------------
+   5. THE CATALOG BAND & TILES
+   -------------------------------------------------------------------------- */
+.vq-tiles {
+    display: grid;
+    gap: var(--vq-gutter);
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+/* A strip is a WHOLE number of tile rows that scrolls sideways. It was a
+   single flex row, so a two- or three-row band the engine had granted still
+   drew one row of tiles stretched to fill the whole band -- the tile art grew,
+   the tile COUNT did not, and the extra height bought nothing. A column-flow
+   grid gives the rows their tiles and keeps the sideways scroll. */
+.vq-tiles-band {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(var(--vq-band-rows, 1), minmax(0, 1fr));
+    grid-auto-columns: minmax(150px, 200px);
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px;
+    min-height: 0;
+    scrollbar-width: thin;
+}
+.vq-tiles-band[data-rows='2'] { --vq-band-rows: 2; }
+.vq-tiles-band[data-rows='3'] { --vq-band-rows: 3; }
+
+/* --------------------------------------------------------------------------
+   A PILL — the third catalog shape
+   --------------------------------------------------------------------------
+   Cards and rows both spend a fixed height per product, which is right when
+   there are hundreds of them and wrong when there are twenty-five: a cafe's
+   whole menu should be on screen at once, because a picker you can see is a
+   picker you point at rather than search.
+
+   So a pill carries the name and the price and gives up everything else --
+   the picture, the SKU, the stock number. It keeps exactly two states, and
+   both are there because losing them costs money rather than polish: the
+   in-cart count, so a tap that did register looks different from one that did
+   not, and out-of-stock, which no layout is allowed to hide.
+   -------------------------------------------------------------------------- */
+.vq-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+    gap: 8px;
+}
+
+/* As a band: one line of pills that scrolls sideways, or two or three when the
+   operator has bought the rows. Same contract as the tile band -- whole rows
+   only, because half a row of pills reads as a rendering fault. */
+.vq-pills-band {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(var(--vq-band-rows, 1), minmax(0, 1fr));
+    grid-auto-columns: max-content;
+    align-content: center;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px;
+    min-height: 0;
+    scrollbar-width: thin;
+}
+.vq-pills-band[data-rows='2'] { --vq-band-rows: 2; }
+.vq-pills-band[data-rows='3'] { --vq-band-rows: 3; }
+
+.vq-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    min-height: var(--vq-touch, 44px);
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #fff);
+    color: var(--vq-text, #0d1412);
+    font-size: var(--vq-t-sm);
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgb(13 20 18 / .05);
+    transition: border-color var(--vq-dur-1, 120ms) var(--vq-ease-out, ease),
+                background-color var(--vq-dur-1, 120ms) var(--vq-ease-out, ease),
+                transform var(--vq-dur-1, 120ms) var(--vq-ease-out, ease);
+}
+.vq-pill:hover { border-color: var(--vq-teal-300, #59dbc0); background: var(--vq-teal-50, #e6fbf5); }
+.vq-pill:active { transform: translateY(1px); }
+.vq-pill:focus-visible { outline: none; box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30)); }
+
+.vq-pill-name { min-width: 0; }
+
+.vq-pill-price {
+    flex: 0 0 auto;
+    color: var(--vq-accent-text, #076b5e);
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.vq-pill-n {
+    flex: 0 0 auto;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--vq-teal-600, #12a58c);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+}
+.vq-pill[data-incart='1'] { border-color: var(--vq-teal-300, #59dbc0); }
+
+/* Out of stock is a state, not a disabled control: the operator may still have
+   a reason to ring it (a backorder, a kitchen that can make one), and the
+   register already asks before it lets that through. Struck through and quiet
+   says "there are none" without taking the decision away. */
+.vq-pill[data-out='1'] { opacity: .55; }
+.vq-pill[data-out='1'] .vq-pill-name { text-decoration: line-through; }
+
+/* --------------------------------------------------------------------------
+   A TILE
+   Every value here is a V6 token. The previous tile was written in Tailwind
+   utilities that mostly do not exist in this theme -- text-3xs at one size in
+   the grid and another in the band, rounded-xl against the panes' 18px, a
+   hand-picked 76px min-height -- so the catalog was visibly a different
+   product from the panes around it. One rule, one ramp, one radius.
+   -------------------------------------------------------------------------- */
+.vq-tile {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px;
+    text-align: left;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 14px;                        /* --vq-r-md */
+    border: 1px solid var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #fff);
+    box-shadow: 0 1px 2px rgb(13 20 18 / .05);
+    transition: border-color var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1)),
+                box-shadow var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1)),
+                transform var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1));
+}
+
+.vq-tile-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.vq-tile-thumb {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    border-radius: 8px;                          /* --vq-r-xs */
+    background: var(--vq-sunken, #e6ece8);
+    border: 1px solid var(--vq-line-soft, #e6ece8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: var(--vq-text-3, #6b7a73);
+}
+.vq-tile-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.vq-tile-id { min-width: 0; flex: 1 1 auto; display: block; }
+
+.vq-tile-name {
+    display: block;
+    font-size: var(--vq-t-sm);
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--vq-text, #17201b);
+    letter-spacing: -.006em;
+}
+.vq-tile:hover .vq-tile-name { color: var(--vq-accent-text, #076b5e); }
+
+.vq-tile-meta {
+    display: block;
+    margin-top: 2px;
+    font-size: calc(var(--vq-t-xs) - 1px);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--vq-text-3, #6b7a73);
+}
+
+.vq-tile-dot {
+    width: 7px; height: 7px; margin-top: 3px;
+    flex: 0 0 auto; border-radius: 999px;
+    background: var(--vq-teal-500, #0baa8f);
+}
+
+.vq-tile-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--vq-line-soft, #e6ece8);
+    min-width: 0;
+}
+
+.vq-tile-stock {
+    font-size: calc(var(--vq-t-xs) - 1px);
+    font-weight: 600;
+    color: var(--vq-text-3, #6b7a73);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vq-tile-stock.is-out { color: var(--vq-danger, #c4443a); font-weight: 700; }
+
+.vq-tile-price {
+    flex: 0 0 auto;
+    font-size: var(--vq-t-sm);
+    font-weight: 800;
+    color: var(--vq-accent-text, #076b5e);
+    letter-spacing: -.01em;
+}
+
+/* Already in the order, and how many. */
+.vq-tile-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--vq-teal-600, #088975);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 22px;
+    text-align: center;
+    box-shadow: 0 2px 6px -1px rgb(6 10 9 / .35);
+}
+.vq-tile[data-incart='1'] { border-color: var(--vq-teal-300, #59dbc0); }
+
+.vq-tile:hover {
+    border-color: var(--vq-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   6. THE DOCK — a real layout row, never a floating overlay
+   Anything the engine demoted gets a genuine row of the grid. It is why a
+   Pay button can never sit on top of the thing you were reading.
+   -------------------------------------------------------------------------- */
+.vq-dock {
+    min-height: var(--vq-dock-h);
+    display: flex;
+    align-items: stretch;
+    gap: var(--vq-gutter);
+}
+.vq-dock:empty { display: none; }
+
+.vq-dock-btn {
+    min-height: var(--vq-touch);
+    border-radius: var(--vq-r);
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: var(--vq-t-md);
+    white-space: nowrap;
+}
+.vq-dock-btn[data-primary='1'] { flex: 1 1 auto; font-size: var(--vq-t-lg); }
+.vq-dock-btn[data-primary='0'] { flex: 0 0 auto; }
+
+/* The tender bar — what a Tender pane becomes when it is stacked. The total
+   is printed INSIDE the pay control, so the amount is on screen in every
+   composition the law can produce. */
+.vq-tender-bar {
+    min-height: 88px;
+    display: flex;
+    align-items: center;
+    gap: var(--vq-gutter);
+    padding: 0 var(--vq-pad);
+    border-radius: var(--vq-r);
+}
+.vq-term[data-senior='1'] .vq-tender-bar { min-height: 104px; }
+
+/* --------------------------------------------------------------------------
+   7. SHEETS — a slide-over that keeps its state
+   A sheet is not a modal. The surface behind stays live and Esc or a tap
+   outside returns you to it with the cart exactly as you left it.
+   -------------------------------------------------------------------------- */
+.vq-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 390;
+    background: rgb(0 0 0 / .45);
+    backdrop-filter: blur(2px);
+    animation: vq-fade 160ms ease-out;
+}
+@keyframes vq-fade { from { opacity: 0 } to { opacity: 1 } }
+
+.vq-sheet {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 400;
+    width: min(var(--vq-sheet-w, 480px), calc(100vw - 56px));
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--vq-r) 0 0 var(--vq-r);
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: transform 260ms cubic-bezier(.16, 1, .3, 1);
+}
+.vq-sheet[data-open='true'] { transform: none; }
+
+.vq-sheet[data-full='1'] {
+    width: 100vw;
+    border-radius: 0;
+}
+
+/* On a phone a sheet comes from the bottom, because the thumb is at the
+   bottom. */
+@media (max-width: 599px) {
+    .vq-sheet {
+        inset: auto 0 0 0;
+        width: 100%;
+        max-height: 88dvh;
+        border-radius: var(--vq-r) var(--vq-r) 0 0;
+        transform: translateY(100%);
+    }
+    .vq-sheet[data-open='true'] { transform: none; }
+    .vq-sheet[data-full='1'] { max-height: 100dvh; height: 100dvh; border-radius: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vq-sheet { transition: none; }
+    .vq-scrim { animation: none; }
+}
+
+/* --------------------------------------------------------------------------
+   8. THE SPLITTER
+   The user may move the boundary; they may not move it somewhere illegal.
+   The handle simply stops at the pane's measured floor, so a drag can never
+   produce a composition the engine would reject.
+   -------------------------------------------------------------------------- */
+.vq-split {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 14px;                       /* the HIT area, not the mark */
+    z-index: 6;
+    cursor: col-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;                /* a drag must not scroll the pane */
+    border-radius: var(--vq-r);
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: var(--vq-ink-400, #8b9a93);
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* The mark. Short and quiet at rest so it reads as an edge rather than a
+   control competing for attention; tall and solid the moment it is aimed at,
+   so the target is unmistakable before the pointer commits. */
+.vq-split::after {
+    content: '';
+    width: 3px;
+    height: 40px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: .28;
+    transition: height 140ms var(--vq-ease-out, cubic-bezier(.22,1,.36,1)),
+                opacity 140ms ease-out,
+                width 140ms ease-out,
+                background-color 140ms ease-out;
+}
+.vq-split:hover::after,
+.vq-split:focus-visible::after {
+    height: 72px;
+    opacity: .85;
+}
+.vq-split[data-dragging='1']::after {
+    height: 100%;
+    width: 3px;
+    opacity: 1;
+    background: var(--vq-teal-500, #0baa8f);
+}
+
+/* Keyboard focus gets a real ring: this is a control, and a control you can
+   Tab to but cannot see is worse than one you cannot Tab to. */
+.vq-split:focus-visible {
+    outline: none;
+    box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30));
+}
+
+/* At its floor the handle stays put and SAYS so. It does not travel and snap
+   back -- a snap-back reads as a bug, a stop reads as a rule. */
+.vq-split[data-atfloor='1']::after {
+    background: var(--vq-butter-500, #f5b32e);
+}
+
+/* The live read-out. Anchored to the handle, never to the cursor, so it does
+   not sit under the finger on a touchscreen. */
+.vq-split-readout {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 9px;
+    border-radius: 8px;
+    background: var(--vq-ink-900, #17201b);
+    color: #fff;
+    font-family: var(--vq-font-numeric, ui-monospace, monospace);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 7;
+    box-shadow: 0 6px 18px -6px rgb(6 10 9 / .5);
+}
+.vq-split-readout b { color: var(--vq-teal-300, #59dbc0); font-weight: 800; }
+
+/* While a drag is live the whole terminal takes the resize cursor and stops
+   selecting text, so a fast drag past the pane edge does not highlight the
+   cart behind it. */
+.vq-term[data-resizing='1'],
+.vq-term[data-resizing='1'] * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+/* Nothing to drag when nothing is side by side. */
+.vq-term[data-regime='phone'] .vq-split,
+.vq-term[data-regime='stacked'] .vq-split { display: none; }
+
+/* Coarse pointers get a wider grab area — a 14px target is a mouse target. */
+@media (pointer: coarse) {
+    .vq-split { width: 24px; }
+    .vq-split::after { opacity: .45; height: 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vq-split::after { transition: none; }
+}
+
+/* --------------------------------------------------------------------------
+   9. TOUCH TARGETS
+   A register is used with a finger, at speed, sometimes in gloves.
+   -------------------------------------------------------------------------- */
+.vq-term :where(button, [role='button'], input, select) {
+    min-height: var(--vq-touch);
+}
+/* …except the controls that live inside a line, where a 44px stepper would
+   make the line taller than the law's row track. Those get 36px and sit
+   inside a 44px-tall row, which is the same finger target in practice. */
+.vq-term .vq-line :where(button, input) {
+    min-height: 36px;
+}
+.vq-term[data-senior='1'] .vq-line :where(button, input) {
+    min-height: 44px;
+}
+/* Chips and tabs are their own case: they are pills by design and they sit
+   in a scrolling strip, not on the working surface. */
+.vq-term .vq-chip { min-height: 32px; }
+.vq-term[data-senior='1'] .vq-chip { min-height: 38px; }
+
+/* --------------------------------------------------------------------------
+   10. SCROLL CUE
+   A pane that continues must not read as a clipped one. Without this, the
+   cart looked "done" at the fold and cashiers missed lines.
+   -------------------------------------------------------------------------- */
+.vq-pane-body {
+    background:
+        linear-gradient(var(--vq-cue-bg, transparent) 30%, rgb(0 0 0 / 0)) top / 100% 24px no-repeat,
+        linear-gradient(rgb(0 0 0 / 0), var(--vq-cue-bg, transparent) 70%) bottom / 100% 24px no-repeat,
+        radial-gradient(farthest-side at 50% 0, rgb(0 0 0 / .10), rgb(0 0 0 / 0)) top / 100% 10px no-repeat,
+        radial-gradient(farthest-side at 50% 100%, rgb(0 0 0 / .10), rgb(0 0 0 / 0)) bottom / 100% 10px no-repeat;
+    background-attachment: local, local, scroll, scroll;
+}
+
+/* --------------------------------------------------------------------------
+   11. SALE-COMPLETE MOMENT
+   A one-shot pop on the Amount Paid figure when a sale closes -- the number
+   is confirmed, not still loading, so it does not read as a pulsing spinner.
+   Respects reduced-motion; the number is fully legible even without it.
+   -------------------------------------------------------------------------- */
+.vq-success-pop {
+    animation: vqSuccessPop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes vqSuccessPop {
+    0%   { transform: scale(0.92); opacity: 0; }
+    60%  { transform: scale(1.02); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vq-success-pop { animation: none; }
+}
+
+
+/* --------------------------------------------------------------------------
+   10. ENTRANCES
+   The page was written against `animate-in fade-in` and
+   `slide-in-from-bottom-4`, which come from the tailwindcss-animate plugin —
+   and that plugin is not installed here, so every one of those classes
+   compiled to nothing. Three modals appeared with no transition at all, and
+   the undo bar snapped into place. Two keyframes, owned by the terminal.
+   -------------------------------------------------------------------------- */
+@keyframes vq-anim-fade-kf {
+    from { opacity: 0 }
+    to   { opacity: 1 }
+}
+@keyframes vq-anim-rise-kf {
+    from { opacity: 0; transform: translate(-50%, 16px) }
+    to   { opacity: 1; transform: translate(-50%, 0) }
+}
+
+.vq-anim-fade { animation: vq-anim-fade-kf 160ms var(--vq-ease-out, cubic-bezier(.22,1,.36,1)) both; }
+.vq-anim-rise { animation: vq-anim-rise-kf 260ms var(--vq-ease-out, cubic-bezier(.22,1,.36,1)) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .vq-anim-fade, .vq-anim-rise { animation: none; }
+}
+
+
+/* --------------------------------------------------------------------------
+   11. THE BAND GRIP
+   A catalog strip is a whole number of tile rows, so this handle is continuous
+   to the hand and discrete in its effect: drag and it steps 1 -> 2 -> 3, with
+   the count printed while you drag. Same stop-at-the-floor contract as the
+   vertical dividers -- it does not travel somewhere illegal and snap back.
+   -------------------------------------------------------------------------- */
+.vq-split-y {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 14px;
+    z-index: 6;
+    cursor: row-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: var(--vq-ink-400, #8b9a93);
+    -webkit-tap-highlight-color: transparent;
+}
+.vq-split-y::after {
+    content: '';
+    height: 3px;
+    width: 40px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: .28;
+    transition: width 140ms var(--vq-ease-out, cubic-bezier(.22,1,.36,1)),
+                opacity 140ms ease-out,
+                background-color 140ms ease-out;
+}
+.vq-split-y:hover::after,
+.vq-split-y:focus-visible::after { width: 96px; opacity: .85; }
+.vq-split-y[data-dragging='1']::after {
+    width: 100%;
+    opacity: 1;
+    background: var(--vq-teal-500, #0baa8f);
+}
+.vq-split-y[data-atfloor='1']::after { background: var(--vq-butter-500, #f5b32e); }
+.vq-split-y:focus-visible {
+    outline: none;
+    box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30));
+}
+.vq-split-y .vq-split-readout { top: 50%; transform: translate(-50%, -50%); }
+
+.vq-term[data-resizing-y='1'],
+.vq-term[data-resizing-y='1'] * {
+    cursor: row-resize !important;
+    user-select: none !important;
+}
+
+.vq-term[data-regime='phone'] .vq-split-y { display: none; }
+
+@media (pointer: coarse) { .vq-split-y { height: 24px; } }
+@media (prefers-reduced-motion: reduce) { .vq-split-y::after { transition: none; } }
+
+
+/* --------------------------------------------------------------------------
+   12. WHERE THE PAYMENT PANEL COMES FROM
+   It was hard-wired to the right in three places at once: the column order,
+   the sheet's transform and the dock. A left-handed counter, or a till whose
+   customer display sits on the left, had no say. One setting now, honoured by
+   all three.
+   -------------------------------------------------------------------------- */
+.vq-sheet[data-side='right'] { inset: 0 0 0 auto; border-left: 1px solid var(--vq-line); border-radius: var(--vq-r) 0 0 var(--vq-r); transform: translateX(100%); }
+.vq-sheet[data-side='left']  { inset: 0 auto 0 0; border-right: 1px solid var(--vq-line); border-radius: 0 var(--vq-r) var(--vq-r) 0; transform: translateX(-100%); }
+.vq-sheet[data-side='bottom'] {
+    inset: auto 0 0 0;
+    width: 100%;
+    max-height: 88%;
+    border-top: 1px solid var(--vq-line);
+    border-radius: var(--vq-r) var(--vq-r) 0 0;
+    transform: translateY(100%);
+}
+.vq-sheet[data-side][data-open='true'] { transform: none; }
+
+/* Payment as a full-width row. Its body lays the tender fields out in columns
+   instead of a single stack, because a 1600px-wide panel that stacks its
+   fields is 1400px of nothing next to a scrollbar. */
+.vq-tender-row { flex: 0 0 auto; min-height: 0; }
+.vq-tender-row-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    align-content: start;
+}
+.vq-tender-row .vq-pane-actions { display: flex; gap: 10px; }
+.vq-tender-row .vq-pane-actions > * { flex: 1 1 auto; }
+
+
+/* A secondary trigger, living in a pane header rather than in a dock row. */
+.vq-pane-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    margin-left: 8px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    border: 1px solid var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #fff);
+    color: var(--vq-text-2, #536159);
+    font-size: calc(var(--vq-t-xs) - 1px);
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 120ms ease-out, color 120ms ease-out, background-color 120ms ease-out;
+}
+.vq-pane-trigger:hover {
+    border-color: var(--vq-teal-300, #59dbc0);
+    color: var(--vq-accent-text, #076b5e);
+    background: var(--vq-teal-50, #e6fbf5);
+}
+.vq-pane-trigger:focus-visible { outline: none; box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30)); }
+.vq-pane-trigger-n {
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--vq-sunken, #e6ece8);
+    color: var(--vq-text-3, #6b7a73);
+    font-size: 10px;
+    font-weight: 800;
+}

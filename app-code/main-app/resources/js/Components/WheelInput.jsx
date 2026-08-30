@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
 
 /**
  * WheelInput - A number input that correctly supports onWheel scroll
@@ -9,8 +9,12 @@ import React, { useRef, useEffect } from 'react';
  *
  * Usage: Same as <input type="number"> but pass onWheel as a prop.
  */
-export default function WheelInput({ onWheel, style, className, ...props }) {
+/* forwardRef so a caller can move focus into the box — the quick-add row
+   hands the cursor from the search straight to the quantity, and without a ref
+   there is nothing to hand it to. */
+const WheelInput = forwardRef(function WheelInput({ onWheel, style, className, ...props }, forwarded) {
     const ref = useRef(null);
+    useImperativeHandle(forwarded, () => ref.current, []);
     // Keep the handler in a ref so the effect closure never goes stale
     const onWheelRef = useRef(onWheel);
 
@@ -40,4 +44,6 @@ export default function WheelInput({ onWheel, style, className, ...props }) {
             {...props}
         />
     );
-}
+});
+
+export default WheelInput;

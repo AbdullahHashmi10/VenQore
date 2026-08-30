@@ -39,7 +39,10 @@ class SaleController extends Controller
     }
     public function store(Request $request)
     {
-        $date = Carbon::parse($request->input('sale_date', Carbon::now()->toDateString()));
+        /* The invoice screen calls this field `date`; the till sends nothing and
+           means today. Reading only `sale_date` meant a back-dated invoice was
+           counted against the wrong month's transaction allowance. */
+        $date = Carbon::parse($request->input('sale_date', $request->input('date', Carbon::now()->toDateString())));
         $start = $date->copy()->startOfMonth();
         $end = $date->copy()->endOfMonth();
 
@@ -65,9 +68,23 @@ class SaleController extends Controller
             'delivery_charge'       => 'nullable|numeric|min:0',
             'extra_charge_value'    => 'nullable|numeric|min:0',
             'extra_charge_label'    => 'nullable|string',
+            // Restaurant money. Both are added to what the customer owes, and
+            // they are the same number on the bill — but not the same money in
+            // the books. See postSaleJournal().
+            'service_charge'        => 'nullable|numeric|min:0',
+            'tip_amount'            => 'nullable|numeric|min:0',
             'add_to_ledger'         => 'nullable|boolean',
             'payment_account_id'    => 'nullable',
             'idempotency_key'       => 'nullable|string|max:100',
+            // Written on the sale, not merely accepted and dropped.
+            'notes'                 => 'nullable|string|max:2000',
+            'date'                  => 'nullable|date',
+            'sale_date'             => 'nullable|date',
+            'tax_inclusive'         => 'nullable|boolean',
+            'tax_exempt'            => 'nullable|boolean',
+            'bank_account_id'       => 'nullable',
+            'payment_reference'     => 'nullable|string|max:120',
+            'cheque_date'           => 'nullable|date',
         ]);
 
         // ── L038: Idempotency protection ────────────────────────────────────
@@ -125,7 +142,12 @@ class SaleController extends Controller
                 // net = line revenue after item-level discount (before global discount)
                 $net = max(0, $gross - $itemDiscount);
 
-                $taxRate = ($product->tax_rate !== null) ? (float)$product->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate());
+                /* "No tax on this sale" has to beat a product's own rate, or the
+                   switch on the invoice screen would hide a tax the server still
+                   charged. Nothing sends tax_exempt unless the operator asked. */
+                $taxRate = $request->boolean('tax_exempt')
+                    ? 0.0
+                    : (($product->tax_rate !== null) ? (float)$product->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate()));
 
                 $subtotalGross += $gross + $freeValue;
                 $totalItemDiscounts += $itemDiscount + $freeValue;
@@ -183,16 +205,24 @@ class SaleController extends Controller
 
             $deliveryCharge = (float)($request->delivery_charge ?? 0);
             $extraCharge    = (float)($request->extra_charge_value ?? 0);
+            // Both ride on top of the taxable base, exactly like the two charges
+            // above: they are not goods, they are not discounted, and they do not
+            // move net_sales. A tip is on the invoice because the customer hands
+            // it over with the bill — where it goes in the LEDGER is a different
+            // question, answered in postSaleJournal().
+            $serviceCharge  = (float)($request->service_charge ?? 0);
+            $tipAmount      = (float)($request->tip_amount ?? 0);
+            $addOnCharges   = $deliveryCharge + $extraCharge + $serviceCharge + $tipAmount;
             
             if ($taxInclusive) {
                 $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount - $totalTax);
-                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($subtotalGross - $totalItemDiscounts - $globalDiscount + $deliveryCharge + $extraCharge, 2));
+                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($subtotalGross - $totalItemDiscounts - $globalDiscount + $addOnCharges, 2));
             } else {
                 $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $deliveryCharge + $extraCharge, 2));
+                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $addOnCharges, 2));
             }
             
-            $roundOff     = $invoiceTotal - ($netSales + $totalTax + $deliveryCharge + $extraCharge);
+            $roundOff     = $invoiceTotal - ($netSales + $totalTax + $addOnCharges);
 
             // ── Credit Limit Check ──
             if ($request->customer_id) {
@@ -274,7 +304,7 @@ class SaleController extends Controller
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
             $changeReturn = (!$addToLedger && $tendered > $invoiceTotal) ? ($tendered - $invoiceTotal) : 0;
 
-            $sale = Sale::withoutEvents(function () use ($request, $subtotalGross, $totalTax, $globalDiscount, $invoiceTotal, $totalItemDiscounts, $netSales, $deliveryCharge, $extraCharge, $tendered, $changeReturn, $roundOff) {
+            $sale = Sale::withoutEvents(function () use ($request, $subtotalGross, $totalTax, $globalDiscount, $invoiceTotal, $totalItemDiscounts, $netSales, $deliveryCharge, $extraCharge, $serviceCharge, $tipAmount, $tendered, $changeReturn, $roundOff) {
                 return Sale::create([
                     'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
                     'tenant_id'            => app('current.tenant')->id,
@@ -297,16 +327,37 @@ class SaleController extends Controller
                     'shipping_charges'     => $deliveryCharge,
                     'extra_charge_value'   => $extraCharge,
                     'extra_charge_label'   => $request->extra_charge_label,
+                    'service_charge'       => $serviceCharge,
+                    'tip_amount'           => $tipAmount,
                     'invoice_total'        => $invoiceTotal,
                     'tendered_amount'      => $tendered,
                     'change_return'        => $changeReturn,
                     'round_off'            => $roundOff,
                     'status'               => 'posted',
-                    'posted_at'            => now(),
+                    /* `created_at` is when the sale was entered; `posted_at` is the
+                       date it belongs to, and it is what every report groups by. An
+                       invoice dated last Friday has to land in last Friday's takings,
+                       so the operator's date wins here - keeping the clock so two
+                       sales on one day still sort in the order they were rung up. */
+                    'posted_at'            => (function () use ($request) {
+                        $d = $request->input('sale_date', $request->input('date'));
+                        if (!$d) return now();
+                        try {
+                            $parsed = Carbon::parse($d);
+                            return $parsed->isSameDay(now())
+                                ? now()
+                                : $parsed->setTimeFrom(now());
+                        } catch (\Throwable $e) {
+                            return now();
+                        }
+                    })(),
                     'payment_status'       => $tendered >= $invoiceTotal ? 'paid' : ($tendered > 0 ? 'partial' : 'unpaid'),
                     'payment_method'       => $request->payment_method,
                     'due_date'             => \App\Services\PlanRepository::canUseFeature(app('current.tenant'), 'payment_due_dates') ? $request->input('due_date') : null,
                     'is_dropship'          => $request->input('is_dropship', false),
+                    /* Both screens have had a note field for as long as they have
+                       existed and neither one was ever stored. */
+                    'notes'                => $request->input('notes'),
                 ]);
             });
 
@@ -1290,10 +1341,14 @@ class SaleController extends Controller
                 DB::table('sale_item_batches')->where('sale_item_id', $item->id)->delete();
 
                 // (b) Aggregate mirror restore.
+                /* Whatever left the shelf for this line comes back: the
+                   quantity sold AND the free units, or an edit quietly
+                   manufactured stock out of the difference. */
+                $backOnShelf = (float) $item->quantity + (float) ($item->free_quantity ?? 0);
                 if ($item->product_variant_id) {
-                    \App\Models\ProductVariant::find($item->product_variant_id)?->increment('stock', $item->quantity);
+                    \App\Models\ProductVariant::find($item->product_variant_id)?->increment('stock', $backOnShelf);
                 } elseif ($item->product_id) {
-                    \App\Models\Stock::where('product_id', $item->product_id)->first()?->increment('quantity', $item->quantity);
+                    \App\Models\Stock::where('product_id', $item->product_id)->first()?->increment('quantity', $backOnShelf);
                 }
                 // Note: Product.stock_quantity aggregate is restored by the re-deduct step below.
             }
@@ -1308,16 +1363,42 @@ class SaleController extends Controller
             $totalTax           = 0;
             $lineValues         = [];
 
+            /* Two passes, the same way store() does it. The bill-level
+               discount comes off each line in proportion to what that line is
+               worth, and tax is worked out on what is LEFT — because that is
+               what the customer was actually asked to pay tax on.
+
+               This did it in one pass and taxed the undiscounted line, so an
+               invoice for 1,000 with a 100 discount at 18% was printed at 1,062
+               and, the moment anybody edited it, re-saved at 1,080. The screen
+               and the printed bill agreed with each other and the books
+               disagreed with both. */
+            $prepared = [];
+            $discountPool = 0.0;
             foreach ($request->items as $item) {
                 $qty          = (float) $item['quantity'];
                 $unitPrice    = (float) $item['price'];
                 $itemDiscount = (float) ($item['discount'] ?? 0);
                 $grossAmount  = $unitPrice * $qty;
                 $netAmount    = max(0, $grossAmount - $itemDiscount);
+                $discountPool += $netAmount;
 
                 $productRecord = Product::find($item['product_id']);
-                $lineTaxRate   = ($productRecord->tax_rate !== null) ? (float)$productRecord->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate());
-                $lineTaxAmount = round($netAmount * ($lineTaxRate / 100), 4);
+                $lineTaxRate   = $request->boolean('tax_exempt')
+                    ? 0.0
+                    : (($productRecord->tax_rate !== null) ? (float)$productRecord->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate()));
+
+                $prepared[] = compact('item', 'qty', 'unitPrice', 'itemDiscount', 'grossAmount', 'netAmount', 'lineTaxRate');
+            }
+
+            foreach ($prepared as $p) {
+                ['item' => $item, 'qty' => $qty, 'unitPrice' => $unitPrice,
+                 'itemDiscount' => $itemDiscount, 'grossAmount' => $grossAmount,
+                 'netAmount' => $netAmount, 'lineTaxRate' => $lineTaxRate] = $p;
+
+                $share         = $discountPool > 0 ? $globalDiscount * ($netAmount / $discountPool) : 0.0;
+                $taxable       = max(0, $netAmount - $share);
+                $lineTaxAmount = round($taxable * ($lineTaxRate / 100), 4);
 
                 $subtotalGross      += $grossAmount;
                 $totalItemDiscounts += $itemDiscount;
@@ -1327,6 +1408,10 @@ class SaleController extends Controller
                     'product_id'         => $item['product_id'],
                     'product_variant_id' => $item['variant_id'] ?? null,
                     'quantity'           => $qty,
+                    /* Goods given away still leave the shelf, and store() has
+                       always deducted them. An edit that dropped the free units
+                       put them back into stock and never took them out again. */
+                    'free_quantity'      => (float) ($item['free_quantity'] ?? 0),
                     'unit_price'      => $unitPrice,
                     'gross_amount'    => $grossAmount,
                     'discount'        => $itemDiscount,
@@ -1342,9 +1427,17 @@ class SaleController extends Controller
             $netSales            = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
             $deliveryCharge      = (float) ($request->delivery_charge ?? 0);
             $extraCharge         = (float) ($request->extra_charge_value ?? 0);
+            // MUST be recomputed here, not just in store(). postSaleJournal()
+            // credits these two off the SALE ROW, so an edit that left them out
+            // of the invoice total while the row still carried them would post an
+            // unbalanced entry — and AccountingService::createEntry() throws on
+            // that, which would turn "edit this sale" into a 500.
+            $serviceCharge       = (float) ($request->service_charge ?? 0);
+            $tipAmount           = (float) ($request->tip_amount ?? 0);
+            $addOnCharges        = $deliveryCharge + $extraCharge + $serviceCharge + $tipAmount;
 
-            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $deliveryCharge + $extraCharge, 2));
-            $roundOff            = $roundedInvoiceTotal - ($netSales + $totalTax + $deliveryCharge + $extraCharge);
+            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $addOnCharges, 2));
+            $roundOff            = $roundedInvoiceTotal - ($netSales + $totalTax + $addOnCharges);
 
             // 3. Update Sale Header with Phase 1.1 Columns
             $sale->update([
@@ -1355,6 +1448,8 @@ class SaleController extends Controller
                 'shipping_charges'     => $deliveryCharge,
                 'extra_charge_value'   => $extraCharge,
                 'extra_charge_label'   => $request->extra_charge_label,
+                'service_charge'       => $serviceCharge,
+                'tip_amount'           => $tipAmount,
                 'invoice_total'        => $roundedInvoiceTotal,
                 'total'                => $roundedInvoiceTotal, // Legacy sync
                 'subtotal'             => $netSales,            // Legacy sync
@@ -1388,7 +1483,8 @@ class SaleController extends Controller
 
                 // 4.3 Deduct Stock via FIFO (mirrors store() flow exactly)
                 if ($isStockEnabled && $product->type !== 'service') {
-                    $qty = $line['quantity'];
+                    /* Sold plus given away — the same total store() deducts. */
+                    $qty = $line['quantity'] + (float) ($line['free_quantity'] ?? 0);
 
                     // Check availability if negative stock is blocked (mirrors store() path)
                     if ($stopNegative) {
@@ -1508,6 +1604,26 @@ class SaleController extends Controller
         }
     }
 
+    /* An uncleared cheque is an asset, but it is not the till. The screens send
+       the sentinel 'CHEQUE' because the shop's chart of accounts may not have
+       an account for it yet; this opens 1020 the first time one is needed
+       rather than quietly banking the cheque as cash. */
+    private function resolvePaymentAccount($accountId, string $method): ?\App\Models\Account
+    {
+        $isCheque = is_string($accountId) && strtoupper($accountId) === 'CHEQUE';
+        if (!$isCheque && $method === 'cheque') $isCheque = true;
+
+        if (!$isCheque && !empty($accountId)) {
+            $acc = \App\Models\Account::find($accountId);
+            if ($acc) return $acc;
+        }
+
+        if ($isCheque) {
+            return $this->accounting->getAccountByCode('1020', 'Cheques in Hand', 'asset');
+        }
+        return null;
+    }
+
     private function postSaleJournal(
         Sale $sale, 
         Request $request, 
@@ -1533,6 +1649,7 @@ class SaleController extends Controller
                             'method'          => $pMethod,
                             'type'            => 'in',
                             'bank_account_id' => $p['account_id'] ?? $p['bank_account_id'] ?? null,
+                            'reference'       => $p['reference'] ?? null,
                             'date'            => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
                         ]);
                     }
@@ -1545,6 +1662,12 @@ class SaleController extends Controller
                     'method'          => $pmMethod,
                     'type'            => 'in',
                     'bank_account_id' => $request->bank_account_id ?? null,
+                    /* "Deposited to HBL" or a cheque number. The column has always
+                       been there; nothing was ever written into it. */
+                    'reference'       => $request->input('payment_reference'),
+                    /* When the cheque is dated for later, that date is the whole
+                       point of taking it - it says when the money actually lands. */
+                    'cheque_date'     => $request->input('cheque_date'),
                     'date'            => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
                 ]);
             }
@@ -1563,10 +1686,7 @@ class SaleController extends Controller
                 if ($pAmt <= 0) continue;
                 $pMethod = strtolower($p['method'] ?? 'cash');
                 
-                $acc = null;
-                if (!empty($p['account_id'])) {
-                    $acc = \App\Models\Account::find($p['account_id']);
-                }
+                $acc = $this->resolvePaymentAccount($p['account_id'] ?? null, $pMethod);
                 
                 if (!$acc) {
                     if ($pMethod === 'credit') {
@@ -1592,10 +1712,7 @@ class SaleController extends Controller
             if ($cashDebitAmount > 0) {
                 $pMethod = strtolower($request->payment_method);
                 
-                $acc = null;
-                if ($request->payment_account_id) {
-                    $acc = \App\Models\Account::find($request->payment_account_id);
-                }
+                $acc = $this->resolvePaymentAccount($request->payment_account_id, $pMethod);
                 
                 // Fallback if account not found (e.g. legacy numeric ID 1 passed instead of V3 UUID)
                 if (!$acc) {
@@ -1673,6 +1790,50 @@ class SaleController extends Controller
                 'debit'       => 0,
                 'credit'      => $extraCharge,
                 'description' => "Extra charges from Sale #{$sale->reference_number}",
+                'party_id'    => $sale->party_id
+            ];
+        }
+
+        // CR: Service Charge
+        //
+        // The house's money, so it is posted exactly like the two charges above
+        // it: Other Income, credited, outside net_sales. It is turnover the
+        // business earned for serving the table.
+        $serviceCharge = (float)($sale->service_charge ?? 0);
+        if ($serviceCharge > 0) {
+            $serviceAcc = $this->accounting->getAccountByCode('4100', 'Other Income', 'income');
+            $journalItems[] = [
+                'account_id'  => $serviceAcc->id,
+                'debit'       => 0,
+                'credit'      => $serviceCharge,
+                'description' => "Service charge from Sale #{$sale->reference_number}",
+                'party_id'    => $sale->party_id
+            ];
+        }
+
+        // CR: Tips — A LIABILITY, NOT INCOME
+        //
+        // This is the one line on the bill that is not the restaurant's money.
+        // The business collects a tip on behalf of its staff and owes it on from
+        // the moment it is taken, so it is credited to a payable and never
+        // touches the P&L. Booking it to 4100 with the service charge would
+        // overstate turnover, overstate taxable income, and — in most
+        // jurisdictions — be the exact thing that gets a restaurant assessed.
+        //
+        // 2150 sits in the liability band next to 2100 Sales Tax Payable and is
+        // resolved through the same getAccountByCode() firstOrCreate every other
+        // account on this entry uses (see 2050 above, which is created the same
+        // way on first overpayment). It is also seeded by name in
+        // TenantDefaultSeeder so a real chart of accounts has it from day one.
+        // Paying the staff out is a separate entry: DR 2150, CR 1000.
+        $tipAmount = (float)($sale->tip_amount ?? 0);
+        if ($tipAmount > 0) {
+            $tipsAcc = $this->accounting->getAccountByCode('2150', 'Tips Payable', 'liability');
+            $journalItems[] = [
+                'account_id'  => $tipsAcc->id,
+                'debit'       => 0,
+                'credit'      => $tipAmount,
+                'description' => "Tips held for staff — #{$sale->reference_number}",
                 'party_id'    => $sale->party_id
             ];
         }

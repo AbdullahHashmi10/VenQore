@@ -1,252 +1,394 @@
-import React, { useState, useEffect } from 'react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { usePage, Head, useForm, Link } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    Save,
-    Plus,
-    Trash2,
-    ClipboardList,
-    Calendar,
-    AlertCircle
-} from 'lucide-react';
-import Swal from 'sweetalert2';
-import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { router, usePage } from '@inertiajs/react';
+import { Plus, CheckCircle2, Zap, ScanBarcode, AlertTriangle } from 'lucide-react';
 
-export default function Create({ warehouses, products, stocks }) {
-    const { store } = usePage().props;
-    const { data, setData, post, processing, errors } = useForm({
-        warehouse_id: '',
-        date: new Date().toISOString().split('T')[0],
+import { formatCurrency } from '@/Utils/format';
+import { useAlert } from '@/Contexts/AlertContext';
+import DocumentShell, { Zone, Field } from '@/Documents/DocumentShell';
+import DocumentLines from '@/Documents/DocumentLines';
+import { DocumentCounts } from '@/Documents/DocumentTotals';
+import DocumentSettings from '@/Documents/DocumentSettings';
+import DocumentScan from '@/Documents/DocumentScan';
+import VqSelect from '@/Documents/VqSelect';
+import useDocumentChrome from '@/Documents/useDocumentChrome';
+import computeTotals from '@/Documents/documentMoney';
+import { documentType } from '@/Documents/documentTypes';
+
+const DOC = documentType('stock-audit');
+const today = () => new Date().toISOString().split('T')[0];
+const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+const blankLine = () => ({ id: uid(), product: null, counted_quantity: 0 });
+
+/**
+ * Stock audit.
+ *
+ * The counted figure is not a quantity being moved: it is a correction, and
+ * whatever is written here becomes the truth. So the interesting number is the
+ * DIFFERENCE, and the interesting question is what that difference is worth —
+ * shrinkage costs money even though nothing on this document is priced.
+ *
+ * The expected figure comes from the stock records for the warehouse being
+ * counted, not from the product's overall total: counting one shelf against
+ * every shelf in the business would flag a discrepancy on every line.
+ */
+export default function StockTakeCreate({ warehouses = [], products = [], stocks = {} }) {
+    const { settings, store } = usePage().props;
+    const { showAlert, showConfirm } = useAlert();
+    const money = (n) => formatCurrency(n, store || settings);
+
+    const [d, setD] = useState(() => ({
+        id: 'audit',
+        warehouse_id: warehouses.find((w) => w.is_default)?.id || warehouses[0]?.id || '',
+        date: today(),
         status: 'draft',
         notes: '',
-        items: [
-            { product_id: '', counted_quantity: 0 }
-        ]
+    }));
+    const patch = useCallback((p) => setD((prev) => ({ ...prev, ...p })), []);
+
+    const [items, setItems] = useState(() => [blankLine()]);
+    const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [scanning, setScanning] = useState(false);
+    const [draggedIndex, setDraggedIndex] = useState(null);
+    const saveRef = useRef(null);
+
+    const chrome = useDocumentChrome({
+        doc: DOC,
+        activeId: d.id,
+        seniorMode: settings?.senior_mode === '1',
+        onSave: () => saveRef.current?.(),
+        canFold: !!d.warehouse_id,
     });
 
-    // Helper to get expected stock from props
-    const getExpectedStock = (warehouseId, productId) => {
-        if (!warehouseId || !productId || !stocks[warehouseId]) return 0;
-        const stockRecord = stocks[warehouseId].find(s => s.product_id == productId);
-        return stockRecord ? Number(stockRecord.quantity) : 0;
-    };
+    /* What the records say is on THIS warehouse's shelves. */
+    const onHand = useCallback((productId) => {
+        const rows = stocks?.[d.warehouse_id] || [];
+        const row = rows.find?.((r) => String(r.product_id) === String(productId));
+        return num(row?.quantity);
+    }, [stocks, d.warehouse_id]);
 
-    const addItem = () => {
-        setData('items', [...data.items, { product_id: '', counted_quantity: 0 }]);
-    };
+    const totals = useMemo(
+        () => computeTotals({ doc: DOC, items, document: d, settings, fields: chrome.fields }),
+        [items, d, settings, chrome.fields],
+    );
 
-    const removeItem = (index) => {
-        if (data.items.length === 1) return;
-        const newItems = [...data.items];
-        newItems.splice(index, 1);
-        setData('items', newItems);
-    };
-
-    const updateItem = (index, field, value) => {
-        const newItems = [...data.items];
-        newItems[index][field] = value;
-        setData('items', newItems);
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        post(route('store.stock-takes.store', { store_slug: store.slug }), {
-            onSuccess: () => {
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Stock Audit saved successfully.',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            }
+    /* What the count is about to change, and what that is worth. A short shelf
+       is money that has already gone; saying so before the corrections are
+       written is the whole point of counting. */
+    const drift = useMemo(() => {
+        let short = 0; let over = 0; let value = 0; let lines = 0;
+        items.forEach((i) => {
+            if (!i.product) return;
+            const diff = num(i.counted_quantity) - onHand(i.product.id);
+            if (Math.abs(diff) < 0.0001) return;
+            lines += 1;
+            if (diff < 0) short += -diff; else over += diff;
+            value += diff * num(i.product.cost_price ?? i.product.cost);
         });
+        return { short, over, value, lines };
+    }, [items, onHand]);
+
+    const update = useCallback((id, key, value) => {
+        setItems((prev) => prev.map((i) => (i.id === id ? { ...i, [key]: value } : i)));
+    }, []);
+    const remove = useCallback((id) => {
+        setItems((prev) => (prev.length > 1 ? prev.filter((i) => i.id !== id) : [blankLine()]));
+    }, []);
+    const addLine = useCallback(() => setItems((prev) => [...prev, blankLine()]), []);
+    const onPickProduct = useCallback((product, id) => {
+        if (!product) return;
+        setItems((prev) => prev.map((i) => (i.id === id ? {
+            ...i, product,
+            /* Seeded with what the records say, so a shelf that agrees needs no
+               typing at all — the operator only touches the ones that differ. */
+            counted_quantity: onHand(product.id),
+            available_stock: onHand(product.id),
+        } : i)));
+    }, [onHand]);
+
+    const validLines = items.filter((i) => i.product);
+
+    const post = () => {
+        setSaving(true);
+        router.post(
+            route('store.stock-takes.store', { store_slug: store?.slug }),
+            {
+                warehouse_id: d.warehouse_id,
+                date: d.date,
+                status: d.status,
+                notes: d.notes || null,
+                items: validLines.map((i) => ({
+                    product_id: i.product.id,
+                    counted_quantity: num(i.counted_quantity),
+                })),
+            },
+            { onError: (e) => { setErrors(e); setSaving(false); }, onFinish: () => setSaving(false) },
+        );
+    };
+
+    const save = () => {
+        if (!d.warehouse_id) {
+            setErrors({ warehouse_id: 'Say which warehouse is being counted.' });
+            return;
+        }
+        if (!validLines.length) {
+            showAlert({ title: 'Nothing counted', message: 'Add at least one item.', type: 'warning' });
+            return;
+        }
+        setErrors({});
+
+        /* Completing an audit rewrites stock. It is worth saying out loud what
+           it is about to change, because the corrections cannot be un-made
+           without another count. */
+        if (d.status === 'completed' && drift.lines > 0) {
+            showConfirm({
+                title: 'Write these corrections to stock?',
+                message: `${drift.lines} line${drift.lines === 1 ? '' : 's'} differ from the records`
+                    + `${drift.short ? ` — ${drift.short} short` : ''}${drift.over ? `${drift.short ? ',' : ' —'} ${drift.over} over` : ''}.`
+                    + ` Stock will be adjusted to match what you counted.`,
+                type: 'warning',
+                confirmLabel: 'Yes, correct the stock',
+                onConfirm: post,
+            });
+            return;
+        }
+        post();
+    };
+    saveRef.current = save;
+
+    const wh = warehouses.find((w) => String(w.id) === String(d.warehouse_id));
+
+    const ctx = {
+        locked: false, showStock: false,
+        freeOn: false, canDiscount: false,
+        itemPlaceholder: 'Search for what you are counting',
+        defaultProducts: products,
+        update, remove, addLine, onPickProduct,
+        money, currency: '',
+        draggedIndex,
+        onDragStart: (e, idx) => { setDraggedIndex(idx); e.dataTransfer.effectAllowed = 'move'; },
+        onDragOver: (e, idx) => {
+            e.preventDefault();
+            if (draggedIndex === null || draggedIndex === idx) return;
+            setItems((prev) => { const n = [...prev]; const [m] = n.splice(draggedIndex, 1); n.splice(idx, 0, m); return n; });
+            setDraggedIndex(idx);
+        },
+        onDragEnd: () => setDraggedIndex(null),
     };
 
     return (
-        <OneGlanceLayout title="New Stock Audit" activeMenu="Stock">
-            <Head title="New Stock Audit" />
-
-            <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href={route('store.stock-takes.index', { store_slug: store.slug })}
-                            className="p-2 rounded-xl bg-surface border border-line hover:bg-interactive-hover transition-colors"
-                        >
-                            <ArrowLeft size={20} className="text-ink-muted" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold text-ink">New Stock Audit</h1>
-                            <p className="text-sm text-ink-muted">Verify and adjust inventory levels</p>
-                        </div>
-                    </div>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* General Info Card */}
-                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
-                        <h2 className="text-lg font-bold text-ink mb-4 flex items-center gap-2">
-                            <ClipboardList size={20} className="text-brand-500" /> Audit Details
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Warehouse */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-ink-secondary">Warehouse</label>
-                                <select
-                                    className="w-full text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500"
-                                    value={data.warehouse_id}
-                                    onChange={e => setData('warehouse_id', e.target.value)}
-                                >
-                                    <option value="" className="text-ink">Select Warehouse...</option>
-                                    {warehouses.map(w => (
-                                        <option key={w.id} value={w.id} className="text-ink">{w.name}</option>
-                                    ))}
-                                </select>
-                                {errors.warehouse_id && <p className="text-red-500 text-xs">{errors.warehouse_id}</p>}
-                            </div>
-
-                            {/* Date */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-ink-secondary">Audit Date</label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
-                                    <input
-                                        type="date"
-                                        className="w-full pl-10 text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500"
-                                        value={data.date}
-                                        onChange={e => setData('date', e.target.value)}
-                                    />
-                                </div>
-                                {errors.date && <p className="text-red-500 text-xs">{errors.date}</p>}
-                            </div>
-
-                            {/* Status */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-ink-secondary">Status</label>
-                                <select
-                                    className="w-full text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500"
-                                    value={data.status}
-                                    onChange={e => setData('status', e.target.value)}
-                                >
-                                    <option value="draft" className="text-ink">Draft (Save & Continue later)</option>
-                                    <option value="completed" className="text-ink">Completed (Adjust Stock)</option>
-                                </select>
-                                {errors.status && <p className="text-red-500 text-xs">{errors.status}</p>}
-                            </div>
-                        </div>
-
-                        {/* Notes */}
-                        <div className="mt-6 space-y-2">
-                            <label className="text-sm font-semibold text-ink-secondary">Notes / Remarks</label>
-                            <textarea
-                                className="w-full text-sm rounded-xl border-line bg-app text-ink focus:ring-brand-500 min-h-[60px]"
-                                placeholder="Any additional details..."
-                                value={data.notes}
-                                onChange={e => setData('notes', e.target.value)}
+        <DocumentShell
+            doc={DOC}
+            chrome={chrome}
+            subtitle={wh ? `${wh.name} · ${d.date}` : 'Choose a warehouse'}
+            tools={(
+                <>
+                    <button type="button" className="vqdoc-icon" aria-pressed={chrome.showQuickEntry}
+                        title="Quick add row — Alt+Q, then just type"
+                        onClick={() => chrome.setShowQuickEntry(!chrome.showQuickEntry)}>
+                        <Zap size={17} />
+                    </button>
+                    {/* Counting a shelf with a scanner IS a stock audit. */}
+                    <button type="button" className="vqdoc-icon" title="Scan the shelf" onClick={() => setScanning(true)}>
+                        <ScanBarcode size={17} />
+                    </button>
+                </>
+            )}
+            header={(
+                <Zone
+                    title={DOC.zone}
+                    actions={(
+                        <>
+                            {chrome.hasHiddenFields && (
+                                <button type="button" className="togg" onClick={() => chrome.setShowAllFields((p) => !p)}>
+                                    {chrome.showAllFields ? 'Fewer fields' : 'All fields'}
+                                </button>
+                            )}
+                            <button type="button" className="togg" onClick={() => chrome.setFold('collapsed')}>Fold away</button>
+                        </>
+                    )}
+                >
+                    <div className="vqdoc-hdr">
+                        <Field label="Warehouse" span={4} required error={errors.warehouse_id}>
+                            <VqSelect
+                                ariaLabel="Which warehouse is being counted"
+                                value={d.warehouse_id}
+                                placeholder="Which shelves are being counted"
+                                onChange={(v) => {
+                                    /* Counts belong to a warehouse; changing it
+                                       would silently re-point every line. */
+                                    if (validLines.length) {
+                                        showConfirm({
+                                            title: 'Start again in another warehouse?',
+                                            message: 'The lines already counted belong to this warehouse and will be cleared.',
+                                            type: 'warning',
+                                            confirmLabel: 'Yes, start again',
+                                            onConfirm: () => { patch({ warehouse_id: v }); setItems([blankLine()]); },
+                                        });
+                                        return;
+                                    }
+                                    patch({ warehouse_id: v });
+                                }}
+                                options={warehouses.map((w) => ({ value: w.id, label: w.name }))}
                             />
-                        </div>
+                        </Field>
+
+                        {chrome.field('date') && (
+                            <Field label="Count date" span={4} error={errors.date}>
+                                <input type="date" className="vqdoc-in" value={d.date}
+                                    onChange={(e) => patch({ date: e.target.value })} />
+                            </Field>
+                        )}
+
+                        {chrome.field('status') && (
+                            <Field label="Count" span={4}>
+                                <VqSelect
+                                    ariaLabel="Whether the count is finished"
+                                    value={d.status}
+                                    onChange={(v) => patch({ status: v })}
+                                    options={[
+                                        { value: 'draft', label: 'Still counting', hint: 'Saved as you go — stock is not touched' },
+                                        { value: 'completed', label: 'Finished', hint: 'Stock is corrected to match what you counted' },
+                                    ]}
+                                />
+                            </Field>
+                        )}
+
+                        {chrome.field('notes') && (
+                            <Field label="Note" span={12}>
+                                <textarea className="vqdoc-in" rows={2} value={d.notes}
+                                    placeholder="Who counted, which aisles, anything that explains a difference"
+                                    onChange={(e) => patch({ notes: e.target.value })} />
+                            </Field>
+                        )}
                     </div>
+                </Zone>
+            )}
+            strip={(
+                <button type="button" className="vqdoc-strip" onClick={() => chrome.setFold('open')} title="Open the details">
+                    <span className="chev">▾</span>
+                    <span className="who">{wh?.name || 'No warehouse chosen'}</span>
+                    <span className="meta">{d.date} · {d.status === 'completed' ? 'Finished' : 'Still counting'}</span>
+                    <span className="amt" data-owed={drift.value < -0.005 ? 'true' : undefined}>
+                        <span className="tag">{drift.lines ? 'Differences' : 'All agree'}</span>
+                        {drift.lines || '0'}
+                    </span>
+                </button>
+            )}
+            lines={(
+                <Zone title="Counted" count={validLines.length || 'none yet'} onFocusCapture={chrome.onLinesFocus}>
+                    <DocumentLines
+                        doc={DOC} chrome={chrome} items={items} ctx={ctx}
+                        onQuickAdd={(line) => setItems((prev) => {
+                            const next = {
+                                id: uid(), product: line.product,
+                                counted_quantity: num(line.quantity),
+                                available_stock: onHand(line.product?.id),
+                            };
+                            const only = prev.length === 1 && !prev[0].product;
+                            return only ? [next] : [...prev, next];
+                        })}
+                    />
+                    <button type="button" className="vqdoc-addline" onClick={addLine}>
+                        <Plus size={16} /> Add an item
+                    </button>
+                </Zone>
+            )}
+            totals={(
+                <DocumentCounts
+                    doc={DOC} chrome={chrome} totals={totals}
+                    ctx={{
+                        unitLabel: 'Units counted',
+                        extraRows: (
+                            <div className="vqdoc-ledger">
+                                <div className="vqdoc-sum-row">
+                                    <span className="k">Lines that differ</span>
+                                    <span className="v" data-owed={drift.lines ? 'true' : undefined}>{drift.lines}</span>
+                                </div>
+                                {drift.short > 0 && (
+                                    <div className="vqdoc-sum-row">
+                                        <span className="k">Short on the shelf</span>
+                                        <span className="v" data-owed="true">{drift.short}</span>
+                                    </div>
+                                )}
+                                {drift.over > 0 && (
+                                    <div className="vqdoc-sum-row">
+                                        <span className="k">More than recorded</span>
+                                        <span className="v">{drift.over}</span>
+                                    </div>
+                                )}
+                                {Math.abs(drift.value) > 0.005 && (
+                                    <div className="vqdoc-sum-row strong">
+                                        <span className="k">{drift.value < 0 ? 'Value written off' : 'Value found'}</span>
+                                        <span className="v" data-owed={drift.value < 0 ? 'true' : undefined}>
+                                            {money(Math.abs(drift.value))}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        ),
+                        actions: (
+                            <div className="vqdoc-actions">
+                                <button type="button" className="vqdoc-btn pri" disabled={saving} onClick={save}>
+                                    <CheckCircle2 size={17} /> {saving ? 'Saving' : (d.status === 'completed' ? 'Finish the count' : 'Save the count')}
+                                </button>
+                                <button type="button" className="vqdoc-btn"
+                                    onClick={() => router.visit(route('store.stock-takes.index', { store_slug: store?.slug }))}>
+                                    Cancel
+                                </button>
+                            </div>
+                        ),
+                    }}
+                />
+            )}
+            dock={{
+                total: String(totals.units),
+                totalLabel: 'Units counted',
+                balance: String(drift.lines),
+                balanceLabel: drift.lines ? 'Lines that differ' : 'All agree',
+                actions: (
+                    <button type="button" className="vqdoc-btn" disabled={saving} onClick={save}>
+                        <CheckCircle2 size={17} /> {saving ? 'Saving' : (d.status === 'completed' ? 'Finish' : 'Save')}
+                    </button>
+                ),
+            }}
+        >
+            {chrome.settingsOpen && (
+                <DocumentSettings
+                    doc={DOC} open onClose={() => chrome.setSettingsOpen(false)}
+                    comp={chrome.comp} setComp={chrome.setComp} applyLayout={chrome.applyLayout}
+                    textSize={chrome.textSize} setTextSize={chrome.setTextSize}
+                    fields={chrome.fields} setField={chrome.setField}
+                    showRail={chrome.showRail} setShowRail={chrome.setShowRail}
+                    showQuickEntry={chrome.showQuickEntry} setShowQuickEntry={chrome.setShowQuickEntry}
+                    canSeeMargin={false}
+                />
+            )}
 
-                    {/* Items Card */}
-                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-bold text-ink flex items-center gap-2">
-                                <ClipboardList size={20} className="text-brand-500" /> Counted Items
-                            </h2>
-                            <button
-                                type="button"
-                                onClick={addItem}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-sm font-bold hover:bg-brand-100 transition-colors"
-                            >
-                                <Plus size={16} /> Add Item
-                            </button>
-                        </div>
-
-                        <div>
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-app text-ink-muted font-bold uppercase text-xs">
-                                    <tr>
-                                        <th className="px-4 py-3 rounded-l-xl">Product</th>
-                                        <th className="px-4 py-3 text-right">Expected</th>
-                                        <th className="px-4 py-3 text-right w-32">Counted</th>
-                                        <th className="px-4 py-3 text-right">Difference</th>
-                                        <th className="px-4 py-3 rounded-r-xl"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-line">
-                                    {data.items.map((item, index) => {
-                                        const expected = getExpectedStock(data.warehouse_id, item.product_id);
-                                        const diff = (item.counted_quantity || 0) - expected;
-                                        const diffColor = diff === 0 ? 'text-ink-muted' : diff > 0 ? 'text-emerald-500' : 'text-red-500';
-
-                                        return (
-                                            <tr key={index}>
-                                                <td className="px-4 py-3">
-                                                    <AsyncProductCombobox
-                                                        value={item.product_id}
-                                                        onSelect={(p) => updateItem(index, 'product_id', p ? p.id : '')}
-                                                        defaultOptions={products}
-                                                        placeholder="Search product..."
-                                                        className="min-w-[200px]"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3 text-right font-medium text-ink-muted">
-                                                    {data.warehouse_id && item.product_id ? expected : '-'}
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        className="w-full text-sm text-right rounded-lg border-line bg-surface text-ink focus:ring-brand-500"
-                                                        value={item.counted_quantity}
-                                                        onChange={e => updateItem(index, 'counted_quantity', e.target.value)}
-                                                    />
-                                                </td>
-                                                <td className={`px-4 py-3 text-right font-bold ${diffColor}`}>
-                                                    {data.warehouse_id && item.product_id ? (diff > 0 ? `+${diff}` : diff) : '-'}
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeItem(index)}
-                                                        className="p-2 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                        disabled={data.items.length === 1}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                        {errors.items && <p className="text-red-500 text-xs mt-2">{errors.items}</p>}
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="flex items-center justify-end gap-4 pt-4">
-                        <Link
-                            href={route('store.stock-takes.index', { store_slug: store.slug })}
-                            className="px-6 py-3 text-sm font-bold text-ink-muted hover:text-ink transition-colors"
-                        >
-                            Cancel
-                        </Link>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="flex items-center gap-2 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-lg disabled:opacity-70 disabled:"
-                        >
-                            <Save size={18} />
-                            {processing ? 'Processing...' : 'Save Audit'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </OneGlanceLayout>
+            <DocumentScan
+                doc={DOC}
+                open={scanning}
+                onClose={() => setScanning(false)}
+                onConfirm={(rows) => setItems((prev) => {
+                    const made = rows.map((r) => ({
+                        id: uid(), product: r.product,
+                        counted_quantity: num(r.counted_quantity),
+                        available_stock: onHand(r.product.id),
+                    }));
+                    /* A product scanned twice on one shelf is one line with a
+                       bigger count, not two lines that disagree. */
+                    const base = (prev.length === 1 && !prev[0].product) ? [] : prev;
+                    const out = [...base];
+                    made.forEach((m) => {
+                        const at = out.findIndex((x) => x.product?.id === m.product.id);
+                        if (at >= 0) {
+                            out[at] = { ...out[at], counted_quantity: num(out[at].counted_quantity) + m.counted_quantity };
+                        } else out.push(m);
+                    });
+                    return out.length ? out : [blankLine()];
+                })}
+            />
+        </DocumentShell>
     );
 }

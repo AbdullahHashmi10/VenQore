@@ -1008,6 +1008,11 @@ class InventoryController extends Controller
                         'reserved_quantity' => $reservedQty,
                         'available_stock' => $availableStock,
                         'cost' => $product->cost_price,
+                        /* The sale screens have to charge the same tax the server
+                           will charge, and the server charges a product's own rate
+                           whenever it has one. Without this field the screen could
+                           only guess with the shop default. */
+                        'tax_rate' => $product->tax_rate,
                         'image_path' => $product->image_path ? Storage::url($product->image_path) : null,
                         'category' => $product->category,
                         'variants' => $product->variants->map(function ($variant) use ($product, $parkedProductQtys) {

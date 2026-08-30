@@ -91,6 +91,59 @@ export const DEFAULT_PERMS = {
     'pos.open_drawer': true,
 };
 
+export const BUSINESS_SUGGESTIONS = [
+    {
+        id: 'retail',
+        title: 'General Retail & Mart',
+        tag: 'Standard',
+        icon: '🛍️',
+        desc: 'Product catalog on side, fast cart, instant payment. Best for general retail, grocery, mini-marts, apparel.',
+        profile: 'retail',
+        preset: 'column',
+        ops: { senior: false, autoPrint: true },
+    },
+    {
+        id: 'scan',
+        title: 'Barcode / High-Speed Counter',
+        tag: 'High Speed',
+        icon: '⚡',
+        desc: 'No catalog clutter. 100% focused on barcode scanning and keyboard speed. Best for pharmacy, busy checkout, wholesale.',
+        profile: 'scan',
+        preset: 'scan',
+        ops: { senior: false, autoPrint: true, autoFillCash: true },
+    },
+    {
+        id: 'visual',
+        title: 'Cafe, Bakery & Food',
+        tag: 'Visual Touch',
+        icon: '☕',
+        desc: 'Touch grid with prominent categories and item tiles. Built for touchscreens, cafes, bakeries, fast food.',
+        profile: 'visual',
+        preset: 'grid',
+        ops: { senior: false, autoPrint: true },
+    },
+    {
+        id: 'simple',
+        title: 'Simple / Non-Techie Counter',
+        tag: 'Easy & Clear',
+        icon: '✨',
+        desc: 'Large text, extra clear buttons, simple 2-step checkout without complex data. Perfect for single counters or non-technical staff.',
+        profile: 'retail',
+        preset: 'column',
+        ops: { senior: true, autoPrint: true, autoFillCash: true },
+    },
+    {
+        id: 'table',
+        title: 'Restaurant & Table Service',
+        tag: 'Dine-In',
+        icon: '🍽️',
+        desc: 'Table floor plan management, hold/recall orders by table, and bill splitting. Best for dine-in restaurants & salons.',
+        profile: 'table',
+        preset: 'table',
+        ops: { senior: false, autoPrint: true },
+    },
+];
+
 export const DEFAULTS = {
     auto: true,
     profile: 'retail',
@@ -99,6 +152,7 @@ export const DEFAULTS = {
     ops: { ...DEFAULT_OPS },
     perms: { ...DEFAULT_PERMS },
     rail: true,
+    wizardCompleted: false,
 };
 
 /* ── Which band of screen is this? ───────────────────────────────────────── */

@@ -641,19 +641,19 @@
     --vq-text-xs--line-height: 1rem;
     --vq-text-sm: 0.875rem;
     --vq-text-sm--line-height: 1.5rem;
-    --vq-text-base: 16px;
+    --vq-text-base: 17px;
     --vq-text-base--line-height: 1.6;
     --vq-text-lg: 1.125rem;
     --vq-text-lg--line-height: 1.75rem;
-    --vq-text-xl: 21px;
+    --vq-text-xl: 23px;
     --vq-text-xl--line-height: 1.30;
     --vq-text-2xl: 1.5rem;
     --vq-text-2xl--line-height: 1.25;
-    --vq-text-3xl: 30px;
+    --vq-text-3xl: 32px;
     --vq-text-3xl--line-height: 1.16;
-    --vq-text-4xl: 38px;
+    --vq-text-4xl: 40px;
     --vq-text-4xl--line-height: 1.0;
-    --vq-text-5xl: 40px;
+    --vq-text-5xl: 42px;
     --vq-text-5xl--line-height: 1.08;
 
     /* weights */
@@ -1386,19 +1386,19 @@
     --vq-text-xs--line-height: 1rem;
     --vq-text-sm: 0.875rem;
     --vq-text-sm--line-height: 1.5rem;
-    --vq-text-base: 16px;
+    --vq-text-base: 17px;
     --vq-text-base--line-height: 1.6;
     --vq-text-lg: 1.125rem;
     --vq-text-lg--line-height: 1.75rem;
-    --vq-text-xl: 21px;
+    --vq-text-xl: 23px;
     --vq-text-xl--line-height: 1.30;
     --vq-text-2xl: 1.5rem;
     --vq-text-2xl--line-height: 1.25;
-    --vq-text-3xl: 30px;
+    --vq-text-3xl: 32px;
     --vq-text-3xl--line-height: 1.16;
-    --vq-text-4xl: 38px;
+    --vq-text-4xl: 40px;
     --vq-text-4xl--line-height: 1.0;
-    --vq-text-5xl: 40px;
+    --vq-text-5xl: 42px;
     --vq-text-5xl--line-height: 1.08;
 
     /* weights */

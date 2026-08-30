@@ -1,248 +1,323 @@
-import React, { useState } from 'react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Head, useForm, Link } from '@inertiajs/react';
-import { usePage } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    Save,
-    Plus,
-    Trash2,
-    Box,
-    ArrowRight,
-    Calendar,
-    FileText,
-    Truck
-} from 'lucide-react';
-import Swal from 'sweetalert2';
-import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { router, usePage } from '@inertiajs/react';
+import { Plus, CheckCircle2, Zap, ScanBarcode, ArrowLeftRight } from 'lucide-react';
 
-export default function Create({ warehouses, products }) {
-    const { store } = usePage().props;
-    const { data, setData, post, processing, errors } = useForm({
-        from_warehouse_id: '',
+import { useAlert } from '@/Contexts/AlertContext';
+import DocumentShell, { Zone, Field } from '@/Documents/DocumentShell';
+import DocumentLines, { availableOf } from '@/Documents/DocumentLines';
+import { DocumentCounts } from '@/Documents/DocumentTotals';
+import DocumentSettings from '@/Documents/DocumentSettings';
+import DocumentScan from '@/Documents/DocumentScan';
+import VqSelect from '@/Documents/VqSelect';
+import useDocumentChrome from '@/Documents/useDocumentChrome';
+import computeTotals, { linePayload } from '@/Documents/documentMoney';
+import { documentType } from '@/Documents/documentTypes';
+
+const DOC = documentType('stock-transfer');
+const today = () => new Date().toISOString().split('T')[0];
+const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+const blankLine = () => ({ id: uid(), product: null, quantity: 1 });
+
+/**
+ * Stock transfer.
+ *
+ * The shop is on both ends of this one, so there is no party and not one figure
+ * of money anywhere: the same goods are worth the same after the van ride, and
+ * a total would be a number with no meaning. What it needs instead is two
+ * warehouses and an honest answer to "has this actually moved yet".
+ */
+export default function StockTransferCreate({ warehouses = [], products = [] }) {
+    const { settings, store } = usePage().props;
+    const { showAlert } = useAlert();
+
+    const [d, setD] = useState(() => ({
+        id: 'transfer',
+        from_warehouse_id: warehouses.find((w) => w.is_default)?.id || warehouses[0]?.id || '',
         to_warehouse_id: '',
-        transfer_date: new Date().toISOString().split('T')[0],
-        status: 'pending',
+        transfer_date: today(),
+        status: 'completed',
         notes: '',
-        items: [
-            { product_id: '', quantity: 1 }
-        ]
+        reference: '',
+    }));
+    const patch = useCallback((p) => setD((prev) => ({ ...prev, ...p })), []);
+
+    const [items, setItems] = useState(() => [blankLine()]);
+    const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [scanning, setScanning] = useState(false);
+    const [draggedIndex, setDraggedIndex] = useState(null);
+    const saveRef = useRef(null);
+
+    const chrome = useDocumentChrome({
+        doc: DOC,
+        activeId: d.id,
+        seniorMode: settings?.senior_mode === '1',
+        onSave: () => saveRef.current?.(),
+        canFold: !!(d.from_warehouse_id && d.to_warehouse_id),
     });
 
-    const addItem = () => {
-        setData('items', [...data.items, { product_id: '', quantity: 1 }]);
-    };
+    const totals = useMemo(
+        () => computeTotals({ doc: DOC, items, document: d, settings, fields: chrome.fields }),
+        [items, d, settings, chrome.fields],
+    );
 
-    const removeItem = (index) => {
-        if (data.items.length === 1) return;
-        const newItems = [...data.items];
-        newItems.splice(index, 1);
-        setData('items', newItems);
-    };
+    const update = useCallback((id, key, value) => {
+        setItems((prev) => prev.map((i) => (i.id === id ? { ...i, [key]: value } : i)));
+    }, []);
+    const remove = useCallback((id) => {
+        setItems((prev) => (prev.length > 1 ? prev.filter((i) => i.id !== id) : [blankLine()]));
+    }, []);
+    const addLine = useCallback(() => setItems((prev) => [...prev, blankLine()]), []);
+    const onPickProduct = useCallback((product, id) => {
+        if (!product) return;
+        setItems((prev) => prev.map((i) => (i.id === id
+            ? { ...i, product, available_stock: availableOf(product) } : i)));
+    }, []);
 
-    const updateItem = (index, field, value) => {
-        const newItems = [...data.items];
-        newItems[index][field] = value;
-        setData('items', newItems);
-    };
+    const validLines = items.filter((i) => i.product);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        post(route('store.stock-transfers.store', { store_slug: store.slug }), {
-            onSuccess: () => {
-                // Global Sync Trigger (Transfers affect availability in warehouses)
-                window.dispatchEvent(new CustomEvent('amd:product-updated'));
-                localStorage.setItem('amd_product_latest_change', Date.now().toString());
-
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Stock transfer created successfully.',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
+    const save = () => {
+        const next = {};
+        if (!d.from_warehouse_id) next.from = 'Say where the goods are now.';
+        if (!d.to_warehouse_id) next.to = 'Say where they are going.';
+        if (d.from_warehouse_id && d.from_warehouse_id === d.to_warehouse_id) {
+            next.to = 'A transfer has to go somewhere else.';
+        }
+        if (!validLines.length) {
+            showAlert({ title: 'Nothing to move', message: 'Add at least one item.', type: 'warning' });
+            return;
+        }
+        /* Only a completed transfer moves stock, so only a completed transfer
+           is checked against what is on the shelf. */
+        if (d.status === 'completed') {
+            const short = validLines.find((i) => num(i.quantity) > availableOf(i.product, i.available_stock));
+            if (short) {
+                showAlert({
+                    title: 'Not enough on the shelf',
+                    message: `There are ${availableOf(short.product, short.available_stock)} of ${short.product.name} in the warehouse it is leaving.`,
+                    type: 'error',
                 });
+                return;
             }
-        });
+        }
+        setErrors(next);
+        if (Object.keys(next).length) return;
+
+        setSaving(true);
+        router.post(
+            route('store.stock-transfers.store', { store_slug: store?.slug }),
+            {
+                from_warehouse_id: d.from_warehouse_id,
+                to_warehouse_id: d.to_warehouse_id,
+                transfer_date: d.transfer_date,
+                status: d.status,
+                notes: d.notes || null,
+                items: linePayload({ doc: DOC, items, totals }),
+            },
+            {
+                onError: (e) => { setErrors(e); setSaving(false); },
+                onFinish: () => setSaving(false),
+            },
+        );
+    };
+    saveRef.current = save;
+
+    const whOptions = warehouses.map((w) => ({ value: w.id, label: w.name }));
+    const from = warehouses.find((w) => String(w.id) === String(d.from_warehouse_id));
+    const to = warehouses.find((w) => String(w.id) === String(d.to_warehouse_id));
+
+    const ctx = {
+        locked: false, showStock: chrome.showStock,
+        stockMode: DOC.stock.badge, stockWord: 'in that warehouse',
+        freeOn: false, canDiscount: false,
+        itemPlaceholder: 'Search for what is moving',
+        defaultProducts: products,
+        update, remove, addLine, onPickProduct,
+        money: () => '', currency: '',
+        draggedIndex,
+        onDragStart: (e, idx) => { setDraggedIndex(idx); e.dataTransfer.effectAllowed = 'move'; },
+        onDragOver: (e, idx) => {
+            e.preventDefault();
+            if (draggedIndex === null || draggedIndex === idx) return;
+            setItems((prev) => { const n = [...prev]; const [m] = n.splice(draggedIndex, 1); n.splice(idx, 0, m); return n; });
+            setDraggedIndex(idx);
+        },
+        onDragEnd: () => setDraggedIndex(null),
     };
 
     return (
-        <OneGlanceLayout title="New Stock Transfer" activeMenu="Stock">
-            <Head title="New Stock Transfer" />
-
-            <div className="max-w-5xl mx-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href={route('store.stock-transfers.index', { store_slug: store.slug })}
-                            className="p-2 rounded-xl bg-surface border border-line hover:bg-interactive-hover transition-colors"
-                        >
-                            <ArrowLeft size={20} className="text-ink-muted" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold text-ink">New Stock Transfer</h1>
-                            <p className="text-sm text-ink-muted">Move inventory between warehouses</p>
-                        </div>
-                    </div>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* General Info Card */}
-                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
-                        <h2 className="text-lg font-bold text-ink mb-4 flex items-center gap-2">
-                            <Truck size={20} className="text-brand-500" /> Transfer Details
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Source Warehouse */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-ink-secondary">From Warehouse</label>
-                                <select
-                                    className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500"
-                                    value={data.from_warehouse_id}
-                                    onChange={e => setData('from_warehouse_id', e.target.value)}
-                                >
-                                    <option value="">Select Source...</option>
-                                    {warehouses.map(w => (
-                                        <option key={w.id} value={w.id} disabled={w.id == data.to_warehouse_id}>{w.name}</option>
-                                    ))}
-                                </select>
-                                {errors.from_warehouse_id && <p className="text-red-500 text-xs">{errors.from_warehouse_id}</p>}
-                            </div>
-
-                            {/* Destination Warehouse */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-ink-secondary">To Warehouse</label>
-                                <select
-                                    className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500"
-                                    value={data.to_warehouse_id}
-                                    onChange={e => setData('to_warehouse_id', e.target.value)}
-                                >
-                                    <option value="">Select Destination...</option>
-                                    {warehouses.map(w => (
-                                        <option key={w.id} value={w.id} disabled={w.id == data.from_warehouse_id}>{w.name}</option>
-                                    ))}
-                                </select>
-                                {errors.to_warehouse_id && <p className="text-red-500 text-xs">{errors.to_warehouse_id}</p>}
-                            </div>
-
-                            {/* Date */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-ink-secondary">Transfer Date</label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
-                                    <input
-                                        type="date"
-                                        className="w-full pl-10 text-sm rounded-xl border-line bg-app focus:ring-brand-500"
-                                        value={data.transfer_date}
-                                        onChange={e => setData('transfer_date', e.target.value)}
-                                    />
-                                </div>
-                                {errors.transfer_date && <p className="text-red-500 text-xs">{errors.transfer_date}</p>}
-                            </div>
-
-                            {/* Status */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-ink-secondary">Status</label>
-                                <select
-                                    className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500"
-                                    value={data.status}
-                                    onChange={e => setData('status', e.target.value)}
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed (Move Stock Now)</option>
-                                </select>
-                                {errors.status && <p className="text-red-500 text-xs">{errors.status}</p>}
-                            </div>
-                        </div>
-
-                        {/* Notes */}
-                        <div className="mt-6 space-y-2">
-                            <label className="text-sm font-semibold text-ink-secondary">Notes / Remarks</label>
-                            <textarea
-                                className="w-full text-sm rounded-xl border-line bg-app focus:ring-brand-500 min-h-[80px]"
-                                placeholder="Any additional details..."
-                                value={data.notes}
-                                onChange={e => setData('notes', e.target.value)}
+        <DocumentShell
+            doc={DOC}
+            chrome={chrome}
+            subtitle={from && to ? `${from.name} → ${to.name}` : 'Choose where it moves from and to'}
+            tools={(
+                <>
+                    <button type="button" className="vqdoc-icon" aria-pressed={chrome.showQuickEntry}
+                        title="Quick add row — Alt+Q, then just type"
+                        onClick={() => chrome.setShowQuickEntry(!chrome.showQuickEntry)}>
+                        <Zap size={17} />
+                    </button>
+                    <button type="button" className="vqdoc-icon" title="Scan barcodes" onClick={() => setScanning(true)}>
+                        <ScanBarcode size={17} />
+                    </button>
+                </>
+            )}
+            header={(
+                <Zone
+                    title={DOC.zone}
+                    actions={(
+                        <>
+                            {chrome.hasHiddenFields && (
+                                <button type="button" className="togg" onClick={() => chrome.setShowAllFields((p) => !p)}>
+                                    {chrome.showAllFields ? 'Fewer fields' : 'All fields'}
+                                </button>
+                            )}
+                            <button type="button" className="togg" onClick={() => chrome.setFold('collapsed')}>Fold away</button>
+                        </>
+                    )}
+                >
+                    <div className="vqdoc-hdr">
+                        <Field label="From warehouse" span={5} required error={errors.from || errors.from_warehouse_id}>
+                            <VqSelect
+                                ariaLabel="Where the goods are now"
+                                value={d.from_warehouse_id}
+                                placeholder="Where they are now"
+                                onChange={(v) => patch({ from_warehouse_id: v })}
+                                options={whOptions}
                             />
-                        </div>
-                    </div>
+                        </Field>
 
-                    {/* Items Card */}
-                    <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-bold text-ink flex items-center gap-2">
-                                <Box size={20} className="text-brand-500" /> Items to Transfer
-                            </h2>
+                        <div className="vqdoc-f" data-span="2" data-nolabel="true">
                             <button
-                                type="button"
-                                onClick={addItem}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-sm font-bold hover:bg-brand-100 transition-colors"
+                                type="button" className="vqdoc-icon"
+                                title="Swap the two warehouses round"
+                                onClick={() => patch({ from_warehouse_id: d.to_warehouse_id, to_warehouse_id: d.from_warehouse_id })}
                             >
-                                <Plus size={16} /> Add Item
+                                <ArrowLeftRight size={17} />
                             </button>
                         </div>
 
-                        <div className="space-y-3">
-                            {data.items.map((item, index) => (
-                                <div key={index} className="flex gap-4 items-start p-3 bg-app rounded-xl border border-line group">
-                                    <div className="flex-1 space-y-1">
-                                        <label className="text-xs font-bold text-ink-muted ml-1">Product</label>
-                                        <AsyncProductCombobox
-                                            value={item.product_id}
-                                            onSelect={(p) => updateItem(index, 'product_id', p ? p.id : '')}
-                                            defaultOptions={products}
-                                            placeholder="Search product..."
-                                        />
-                                    </div>
+                        <Field label="To warehouse" span={5} required error={errors.to || errors.to_warehouse_id}>
+                            <VqSelect
+                                ariaLabel="Where they are going"
+                                value={d.to_warehouse_id}
+                                placeholder="Where they are going"
+                                onChange={(v) => patch({ to_warehouse_id: v })}
+                                options={whOptions.filter((o) => String(o.value) !== String(d.from_warehouse_id))}
+                            />
+                        </Field>
 
-                                    <div className="w-32 space-y-1">
-                                        <label className="text-xs font-bold text-ink-muted ml-1">Quantity</label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            className="w-full text-sm rounded-lg border-line focus:ring-brand-500"
-                                            value={item.quantity}
-                                            onChange={e => updateItem(index, 'quantity', e.target.value)}
-                                        />
-                                    </div>
+                        {chrome.field('date') && (
+                            <Field label="Transfer date" span={4} error={errors.transfer_date}>
+                                <input type="date" className="vqdoc-in" value={d.transfer_date}
+                                    onChange={(e) => patch({ transfer_date: e.target.value })} />
+                            </Field>
+                        )}
 
-                                    <div className="pt-6">
-                                        <button
-                                            type="button"
-                                            onClick={() => removeItem(index)}
-                                            className="p-2 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                            disabled={data.items.length === 1}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        {errors.items && <p className="text-red-500 text-xs mt-2">{errors.items}</p>}
+                        {chrome.field('status') && (
+                            <Field label="Stock" span={4}>
+                                <VqSelect
+                                    ariaLabel="Whether the stock has moved yet"
+                                    value={d.status}
+                                    onChange={(v) => patch({ status: v })}
+                                    options={[
+                                        { value: 'completed', label: 'Moved now', hint: 'Stock leaves one shelf and lands on the other today' },
+                                        { value: 'in_progress', label: 'On its way', hint: 'Written down, but nothing moves until it is completed' },
+                                        { value: 'pending', label: 'Planned', hint: 'A note of intent — no stock moves' },
+                                    ]}
+                                />
+                            </Field>
+                        )}
+
+                        {chrome.field('notes') && (
+                            <Field label="Note" span={12}>
+                                <textarea className="vqdoc-in" rows={2} value={d.notes}
+                                    placeholder="Who is carrying it, which van, anything worth remembering"
+                                    onChange={(e) => patch({ notes: e.target.value })} />
+                            </Field>
+                        )}
                     </div>
+                </Zone>
+            )}
+            strip={(
+                <button type="button" className="vqdoc-strip" onClick={() => chrome.setFold('open')} title="Open the details">
+                    <span className="chev">▾</span>
+                    <span className="who">{from?.name || 'From?'} → {to?.name || 'To?'}</span>
+                    <span className="meta">{d.transfer_date} · {d.status === 'completed' ? 'Moved now' : d.status === 'in_progress' ? 'On its way' : 'Planned'}</span>
+                    <span className="amt"><span className="tag">Units</span>{totals.units}</span>
+                </button>
+            )}
+            lines={(
+                <Zone title="Items" count={validLines.length || 'none yet'} onFocusCapture={chrome.onLinesFocus}>
+                    <DocumentLines
+                        doc={DOC} chrome={chrome} items={items} ctx={ctx}
+                        onQuickAdd={(line) => setItems((prev) => {
+                            const next = { ...blankLine(), product: line.product, quantity: num(line.quantity) };
+                            const only = prev.length === 1 && !prev[0].product;
+                            return only ? [next] : [...prev, next];
+                        })}
+                    />
+                    <button type="button" className="vqdoc-addline" onClick={addLine}>
+                        <Plus size={16} /> Add an item
+                    </button>
+                </Zone>
+            )}
+            totals={(
+                <DocumentCounts
+                    doc={DOC} chrome={chrome} totals={totals}
+                    ctx={{
+                        unitLabel: 'Units moving',
+                        actions: (
+                            <div className="vqdoc-actions">
+                                <button type="button" className="vqdoc-btn pri" disabled={saving} onClick={save}>
+                                    <CheckCircle2 size={17} /> {saving ? 'Saving' : 'Record transfer'}
+                                </button>
+                                <button type="button" className="vqdoc-btn"
+                                    onClick={() => router.visit(route('store.stock-transfers.index', { store_slug: store?.slug }))}>
+                                    Cancel
+                                </button>
+                            </div>
+                        ),
+                    }}
+                />
+            )}
+            dock={{
+                total: String(totals.units),
+                totalLabel: 'Units moving',
+                actions: (
+                    <button type="button" className="vqdoc-btn" disabled={saving} onClick={save}>
+                        <CheckCircle2 size={17} /> {saving ? 'Saving' : 'Record transfer'}
+                    </button>
+                ),
+            }}
+        >
+            {chrome.settingsOpen && (
+                <DocumentSettings
+                    doc={DOC} open onClose={() => chrome.setSettingsOpen(false)}
+                    comp={chrome.comp} setComp={chrome.setComp} applyLayout={chrome.applyLayout}
+                    textSize={chrome.textSize} setTextSize={chrome.setTextSize}
+                    fields={chrome.fields} setField={chrome.setField}
+                    showRail={chrome.showRail} setShowRail={chrome.setShowRail}
+                    showQuickEntry={chrome.showQuickEntry} setShowQuickEntry={chrome.setShowQuickEntry}
+                    showStock={chrome.showStock} setShowStock={chrome.setShowStock}
+                    canSeeMargin={false}
+                />
+            )}
 
-                    {/* Footer Actions */}
-                    <div className="flex items-center justify-end gap-4 pt-4">
-                        <Link
-                            href={route('store.stock-transfers.index', { store_slug: store.slug })}
-                            className="px-6 py-3 text-sm font-bold text-ink-muted hover:text-ink transition-colors"
-                        >
-                            Cancel
-                        </Link>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="flex items-center gap-2 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-lg disabled:opacity-70 disabled:"
-                        >
-                            <Save size={18} />
-                            {processing ? 'Processing...' : 'Create Transfer'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </OneGlanceLayout>
+            <DocumentScan
+                doc={DOC}
+                open={scanning}
+                onClose={() => setScanning(false)}
+                onConfirm={(rows) => setItems((prev) => {
+                    const made = rows.map((r) => ({
+                        id: uid(), product: r.product, quantity: num(r.quantity),
+                        available_stock: availableOf(r.product),
+                    }));
+                    const only = prev.length === 1 && !prev[0].product;
+                    return only ? made : [...prev, ...made];
+                })}
+            />
+        </DocumentShell>
     );
 }

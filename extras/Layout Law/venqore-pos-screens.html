@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VenQore POS — 6 layouts × 2 densities</title>
+<style>
+:root{
+  --bg:#0A0B0F; --surface:#12141A; --raised:#1A1D25; --sunken:#0E1015;
+  --line:#252932; --line-soft:#1C2028;
+  --text:#EDEFF2; --text-2:#A8AEB8; --text-3:#6B7280;
+  --accent:#327882; --accent-400:#5DA5B0; --accent-quiet:rgba(50,120,130,.14);
+  --ok:#54CC8E; --warn:#EFB146; --bad:#F17070;
+  --sales:#8C69CD; --inv:#BB5798;
+  --sans:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --num:"Space Grotesk",ui-monospace,"SF Mono",monospace;
+  --vq-sidebar:264px; --vq-rail:72px; --vq-header:64px;
+  --vq-gutter:24px; --vq-row:64px; --vq-margin:24px; --vq-cols:12;
+  --pad:20px; --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--sans);
+  -webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
+.n{font-family:var(--num);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--num);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-3);font-weight:500}
+
+/* ============ CHROME ============ */
+.bar{position:sticky;top:0;z-index:900;background:rgba(10,11,15,.94);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);padding:12px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:600;font-size:15px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent-400)}
+.seg{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{background:none;border:0;color:var(--text-3);font:500 11px/1 var(--num);letter-spacing:.02em;
+  padding:8px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.seg button:hover{color:var(--text-2)}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.ro{display:flex;flex-direction:column;gap:2px}
+.ro b{font:600 14px/1 var(--num);color:var(--accent-400)}
+input[type=range]{width:190px;accent-color:var(--accent)}
+.stage{padding:22px 20px 70px}
+.frame{margin:0 auto;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface);
+  transition:width .28s cubic-bezier(.16,1,.3,1);box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.fbar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--raised)}
+.fbar i{width:9px;height:9px;border-radius:50%;background:#33373f;display:block}
+.fbar span{margin-left:8px;font:500 11px/1 var(--num);color:var(--text-3)}
+
+/* ============ SHELL ============ */
+.shell{display:grid;grid-template-columns:var(--nav-w,0px) 1fr;grid-template-rows:var(--vq-header) 1fr;
+  grid-template-areas:"nav head" "nav main";height:760px;position:relative}
+.shell[data-nav=hidden]{--nav-w:0px;grid-template-columns:1fr;grid-template-areas:"head" "main"}
+.shell[data-nav=rail]{--nav-w:var(--vq-rail)}
+.shell[data-nav=expanded]{--nav-w:var(--vq-sidebar)}
+.nav{grid-area:nav;background:var(--sunken);border-right:1px solid var(--line);padding:12px 10px;
+  display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.shell[data-nav=hidden] .nav{display:none}
+.navitem{display:flex;align-items:center;gap:11px;height:40px;padding:0 10px;border-radius:10px;
+  color:var(--text-2);font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;cursor:pointer}
+.navitem .g{width:20px;height:20px;flex:none;border-radius:6px;background:var(--line)}
+.navitem.on{background:var(--accent-quiet);color:var(--accent-400);font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+[data-nav=rail] .navitem span{display:none}
+[data-nav=rail] .navitem{justify-content:center;padding:0}
+/* PEEK — overlay, never reflows content */
+.peek{position:absolute;inset:0 auto 0 0;width:var(--vq-sidebar);background:var(--sunken);
+  border-right:1px solid var(--line);padding:12px 10px;display:flex;flex-direction:column;gap:3px;
+  transform:translateX(-100%);transition:transform .24s cubic-bezier(.16,1,.3,1);z-index:520}
+.shell[data-peek=true] .peek{transform:none}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;
+  transition:opacity .24s;z-index:519}
+.shell[data-peek=true] .scrim{opacity:1;pointer-events:auto}
+
+.head{grid-area:head;height:var(--vq-header);border-bottom:1px solid var(--line);display:flex;
+  align-items:center;gap:10px;padding:0 16px;background:var(--surface);position:relative;z-index:400}
+.main{grid-area:main;min-width:0;min-height:0;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+
+.ico{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--raised);
+  display:grid;place-items:center;color:var(--text-2);cursor:pointer;flex:none;font-size:15px}
+.ico:hover{color:var(--text);border-color:var(--accent)}
+.ico.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.pill{height:34px;border-radius:999px;background:var(--raised);border:1px solid var(--line);display:flex;
+  align-items:center;gap:7px;padding:0 13px;color:var(--text-2);font-size:12.5px;cursor:pointer;white-space:nowrap}
+.pill.on{background:var(--accent-quiet);border-color:var(--accent);color:var(--accent-400)}
+.pill.ghost{background:none}
+
+/* ============ POS BODY ============ */
+.pos{flex:1;min-height:0;display:grid;gap:var(--vq-gutter);padding:var(--vq-margin);
+  grid-template-columns:repeat(var(--vq-cols),minmax(0,1fr))}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);
+  display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.ptitle{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line-soft);flex:none}
+.pbody{flex:1;min-height:0;overflow:auto;padding:12px 14px}
+.pfoot{flex:none;padding:12px 14px;border-top:1px solid var(--line-soft)}
+
+/* search */
+.search{display:flex;align-items:center;gap:9px;height:44px;border-radius:11px;background:var(--sunken);
+  border:1px solid var(--line);padding:0 13px;color:var(--text-3);font-size:13.5px;flex:1;min-width:0}
+.search.hero{height:60px;font-size:16px;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-quiet)}
+
+/* product tiles + rows */
+.tiles{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(var(--tile,116px),1fr))}
+.tile{background:var(--raised);border:1px solid var(--line);border-radius:11px;padding:10px;cursor:pointer;
+  display:flex;flex-direction:column;gap:5px;min-height:78px;justify-content:flex-end}
+.tile:hover{border-color:var(--accent)}
+.tile b{font-size:12.5px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile s{font-family:var(--num);font-size:11.5px;color:var(--accent-400);text-decoration:none}
+.tile .sw{width:100%;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--sales),transparent);opacity:.3}
+.rows{display:flex;flex-direction:column;gap:6px}
+.prow{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:10px;background:var(--raised);
+  border:1px solid var(--line);cursor:pointer}
+.prow:hover{border-color:var(--accent)}
+.prow .th{width:34px;height:34px;border-radius:8px;background:var(--line);flex:none}
+.prow .nm{flex:1;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .st{font:500 11px/1 var(--num);color:var(--text-3)}
+.prow .pr{font:600 13px/1 var(--num);color:var(--accent-400)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:7px 11px;border-radius:999px;background:var(--raised);border:1px solid var(--line);
+  font-size:12px;color:var(--text-2);cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--accent-quiet);border-color:var(--accent);color:var(--accent-400)}
+
+/* cart */
+.line{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px;border-radius:10px;
+  background:var(--raised);border:1px solid var(--line);margin-bottom:8px}
+.line .nm{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.line .tot{font:600 14px/1 var(--num);text-align:right}
+.line .meta{display:flex;align-items:center;gap:8px;font:500 11.5px/1 var(--num);color:var(--text-3)}
+.step{display:flex;align-items:center;gap:1px;background:var(--sunken);border:1px solid var(--line);border-radius:8px}
+.step b{width:24px;height:24px;display:grid;place-items:center;cursor:pointer;color:var(--text-2);font-size:13px}
+.step s{min-width:26px;text-align:center;font:600 12px/1 var(--num);text-decoration:none}
+.line .adv{grid-column:1/-1;display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.mini{font:500 10.5px/1 var(--num);padding:4px 7px;border-radius:6px;background:var(--sunken);
+  border:1px solid var(--line);color:var(--text-3);cursor:pointer}
+.mini:hover{color:var(--accent-400);border-color:var(--accent)}
+
+/* pay */
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;color:var(--text-2)}
+.kv b{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
+.kv.big{padding-top:11px;border-top:1px solid var(--line);font-size:15px}
+.kv.big b{font-size:22px;letter-spacing:-.02em}
+.btn{height:46px;border-radius:11px;border:1px solid var(--line);background:var(--raised);color:var(--text);
+  font:600 14px/1 var(--sans);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;width:100%}
+.btn.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.go:hover{background:#3d8b96}
+.btn.lg{height:56px;font-size:15px}
+.tender{height:52px;border-radius:11px;background:var(--sunken);border:1px solid var(--line);
+  display:flex;align-items:center;padding:0 14px;font:600 22px/1 var(--num);color:var(--text);width:100%}
+
+/* more-drawer (progressive disclosure) */
+.more{border-top:1px solid var(--line-soft);margin-top:10px;padding-top:10px}
+.morebtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:0;
+  color:var(--text-3);font:500 12px/1 var(--sans);cursor:pointer;padding:5px 0}
+.morebtn:hover{color:var(--accent-400)}
+.morewrap{display:none;padding-top:10px;gap:7px;flex-wrap:wrap}
+.more.open .morewrap{display:flex}
+.more.open .morebtn{color:var(--accent-400)}
+
+/* tabs (compact variant) */
+.mtabs{display:flex;gap:2px;padding:8px;background:var(--surface);border-bottom:1px solid var(--line);flex:none}
+.mtabs button{flex:1;background:none;border:0;color:var(--text-3);font:600 12px/1 var(--num);letter-spacing:.05em;
+  padding:11px;border-radius:9px;cursor:pointer}
+.mtabs button[aria-pressed=true]{background:var(--accent-quiet);color:var(--accent-400)}
+
+/* coverage panel */
+.cov{max-width:1180px;margin:0 auto}
+.covgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.covcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.covcard h4{font-size:13px;font-weight:600;margin-bottom:3px}
+.covcard p{font-size:11.5px;color:var(--text-3);margin-bottom:11px;line-height:1.5}
+.covrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-soft);
+  font-size:12px;color:var(--text-2)}
+.covrow:last-child{border:0}
+.covrow s{text-decoration:none;font:500 10.5px/1 var(--num);color:var(--text-3);text-align:right;flex:none}
+.tag{font:500 9.5px/1 var(--num);padding:3px 6px;border-radius:5px;letter-spacing:.05em}
+.tag.e{background:rgba(84,204,142,.14);color:var(--ok)}
+.tag.p{background:rgba(239,177,70,.14);color:var(--warn)}
+.tag.x{background:rgba(241,112,112,.14);color:var(--bad)}
+.hide{display:none}
+.note{max-width:1180px;margin:0 auto 18px;background:var(--surface);border:1px solid var(--line);
+  border-left:3px solid var(--accent);border-radius:var(--r);padding:16px 18px;font-size:13px;
+  color:var(--text-2);line-height:1.65}
+.note b{color:var(--text)}
+.note.warn{border-left-color:var(--bad)}
+h2.sec{font-size:19px;font-weight:600;letter-spacing:-.02em;margin-bottom:5px}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="brand"><span class="dot"></span>VenQore POS</div>
+  <div class="seg" id="variants"></div>
+  <div class="seg" id="density">
+    <button data-d="essential" aria-pressed="true">Essential</button>
+    <button data-d="pro">Pro</button>
+  </div>
+  <input type="range" id="vw" min="360" max="2560" value="1905" step="1">
+  <div style="display:flex;gap:14px;margin-left:auto">
+    <div class="ro"><span class="eyebrow">viewport</span><b id="r-vw">1905</b></div>
+    <div class="ro"><span class="eyebrow">nav</span><b id="r-nav" style="font-size:12px">hidden</b></div>
+    <div class="ro"><span class="eyebrow">controls</span><b id="r-ctl">—</b></div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="note" id="blurb"></div>
+  <div class="frame" id="frame">
+    <div class="fbar"><i></i><i></i><i></i><span id="fb"></span></div>
+    <div class="shell" id="shell" data-nav="hidden" data-peek="false">
+      <aside class="nav" id="nav"></aside>
+      <div class="scrim" id="scrim"></div>
+      <aside class="peek" id="peekNav"></aside>
+      <header class="head" id="head"></header>
+      <main class="main" id="main"></main>
+    </div>
+  </div>
+
+  <div style="height:34px"></div>
+  <div class="cov">
+    <h2 class="sec">Functionality coverage</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:18px;max-width:760px">
+      Every control from the current 3,743-line <code style="font-family:var(--num);font-size:11.5px">Pos.jsx</code>,
+      and where it lives in the selected layout at the selected density.
+      <span class="tag e">visible</span> on screen ·
+      <span class="tag p">one tap</span> behind a disclosure ·
+      <span class="tag x">removed</span> deliberately, with the reason.
+      Nothing is dropped silently.</p>
+    <div class="covgrid" id="cov"></div>
+  </div>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const PRODUCTS=[["Cement 50kg",1250,"Building"],["Steel rod 12mm",980,"Building"],["Paint 4L Ivory",3400,"Finish"],
+["Tiles 2x2 Matt",210,"Finish"],["Sand (cu ft)",95,"Building"],["Bricks (1000)",18500,"Building"],
+["Nails 3in (kg)",340,"Hardware"],["Wire 2.5mm (roll)",7600,"Electrical"],["PVC pipe 4in",890,"Plumbing"],
+["Silicone tube",450,"Finish"],["Hinges (pair)",260,"Hardware"],["Door lock",2100,"Hardware"]];
+const CART=[["Cement 50kg",12,1250],["Steel rod 12mm",40,980],["Paint 4L Ivory",3,3400]];
+const CATS=["All","Building","Finish","Hardware","Electrical","Plumbing"];
+const NAVITEMS=["Dashboard","Sell","Purchase","Stock","Contacts","Money","Insights","Settings"];
+
+const VARIANTS={
+ counter:{name:"Counter",blurb:`<b>Counter — picker in a left column.</b> Closest to what you have today, rebuilt on the Layout Law.
+   Best when the cashier browses as often as they scan, and the catalogue is a few hundred items.
+   Picker 4 columns · cart 5 · payment 3.`},
+ shelf:{name:"Shelf",blurb:`<b>Shelf — picker as rows across the top.</b> For a small, stable inventory the cashier knows by sight.
+   Two rows of large touch tiles sit above the cart, so the whole catalogue is reachable without scrolling
+   and the cart gets the full width beneath. This is the layout you described seeing people use.`},
+ scan:{name:"Scan",blurb:`<b>Scan — no picker at all.</b> For large inventories where nobody browses.
+   A single hero scan/search field owns the top; the cart takes the full width; payment docks right.
+   The product list still exists — it appears <em>only</em> as search results, so it costs zero pixels when idle.`},
+ touch:{name:"Touch",blurb:`<b>Touch — picker dominant.</b> Big tiles, 7 columns of grid against a 5-column cart.
+   Built for a tablet on a counter with gloves or wet hands: every target is ≥64px and the keyboard is optional.`},
+ ledger:{name:"Ledger",blurb:`<b>Ledger — cart first.</b> The cart takes 8 columns with full per-line detail visible
+   (discount, tax, margin, batch), picker squeezed to 4. For wholesale and B2B where one sale is 40 lines
+   and every line gets negotiated.`},
+ compact:{name:"Compact",blurb:`<b>Compact — one column, three steps.</b> Phone and small tablet.
+   Catalogue → Cart → Pay as tabs, with a persistent total bar. This is what every layout collapses to below 600px.`}
+};
+
+/* control inventory: [label, essential, pro, note]  where value = e|p|x */
+const COVERAGE=[
+ {g:"Product picking",note:"All seven mechanisms from Pos.jsx survive.",items:[
+  ["Barcode scan (Enter, ≥4 chars)","e","e"],["Text search (300ms debounce)","e","e"],
+  ["Category filter strip","e","e",""],["Product list / tile grid","e","e"],
+  ["Variant picker modal","p","p"],["Quick Add Product (7-tab modal)","p","e"],
+  ["Combobox dropdown w/ ↑↓","e","e"],
+  ["Favourites / quick keys","p","p","NEW — was absent; earns its place at Essential density"],
+  ["Weight scale (useWeightScale)","p","p","NEW — hook existed in AMDStation.js, never called"]]},
+ {g:"Cart line",note:"Per-line controls collapse into one row menu at Essential.",items:[
+  ["Qty ± stepper","e","e"],["Qty exact entry (F2)","p","e"],["Price override (F5)","p","e"],
+  ["Total-driven entry (converter)","p","e"],["Line discount fixed / %","p","e"],
+  ["Free quantity (BOGO)","p","e"],["Delete line","e","e"],["Over-stock badge","e","e"],
+  ["Margin %","x","e","Essential hides it — cashiers should not see cost. Pro + permission only"],
+  ["Wholesale auto-price","e","e","silent, no control"],
+  ["Per-line note","p","e","NEW — was absent from every screen"],
+  ["Batch / expiry select","p","e","NEW — existed only in Goods Receipt, never in POS"]]},
+ {g:"Payment",note:"One payment path. The split modal's vocabulary wins.",items:[
+  ["Amount tendered + Exact","e","e"],["Change due / shortage","e","e"],
+  ["Tender: cash / card / bank / online / UPI / credit","e","e","was 5 inline vs 6 in modal — now one list"],
+  ["Split payment","p","e"],["Deposit-to account","p","e"],["Overpayment → change vs ledger","p","p","modal on demand"],
+  ["Tax inclusive / exclusive","p","e"],["Tax rate select","p","e"],["Global discount","p","e"],
+  ["Dropship toggle","x","e","moved to Pro — irrelevant to >95% of sales"],
+  ["Auto-print toggle","p","e"],["Rounding","e","e","silent, from settings"]]},
+ {g:"Session",note:"",items:[
+  ["Multi-tab parallel sales","e","e"],["Hold / park bill","e","e"],["Recall parked","e","e"],
+  ["Recent invoices + reprint","p","e"],["Return mode (3 sub-modes)","p","e"],
+  ["Offline queue + sync hub","e","e","badge only when count > 0"],
+  ["Cart rescue (crash airbag)","e","e","silent"],["Senior mode 125%","p","p","moves to Settings"],
+  ["Customer select / walk-in","e","e"],["Quick add customer","p","e"]]},
+ {g:"Removed on purpose",note:"These are current bugs, not features. Carrying them forward would carry the bug.",items:[
+  ["F6 'Change Unit — coming soon'","x","x","Dead toast. Replaced by a real unit-conversion control at Pro"],
+  ["F10 'Loyalty not configured'","x","x","Dead toast. Ship loyalty or don't advertise the key"],
+  ["F8 Additional Charges","x","x","Accepts input, toasts success, is NEVER summed into any total (Pos.jsx:942). A confirmation that lies"],
+  ["F9 Bill Discount","x","x","Writes `discount`, but globalDiscount reads `discountValue` first — silently ignored"],
+  ["Ctrl+R / Ctrl+F / Ctrl+P / Ctrl+D hijack","x","x","Browser reload, find, print and bookmark stolen. Moved to Alt+ combos"],
+  ["Type-anywhere → search box","x","x","Swallowed keystrokes page-wide (Pos.jsx:1856). Now only when picker has focus"],
+  ["Invisible F2–F5 target","x","x","Acted on lastAddedItemId with no selection indicator. Now a visible selected row"],
+  ["Cancel with no confirm","x","x","Sat beside Hold and wiped the cart silently. Now confirms"],
+  ["Long-press discount presets","x","x","500ms undiscoverable gesture. Now an explicit edit affordance"]]}
+];
+
+/* ===================== LAYOUT LAW (subset) ===================== */
+const LAW={gutter:24,row:64,margin:24,sidebar:264,rail:72,header:64,
+  nav:{expanded_min:1280,rail_min:1024,mobile_max:599},
+  N:{desk:[8,10,12,14,16,18,20,24],tab:[6,8,10,12],mob:[4]},target:112};
+function geo(vw,navState){
+  const mob=vw<=LAW.nav.mobile_max;
+  const navW={hidden:0,rail:LAW.rail,expanded:LAW.sidebar}[navState]??0;
+  const m=mob?16:LAW.margin, avail=vw-navW-2*m;
+  const legal=mob?LAW.N.mob:(vw<LAW.nav.rail_min?LAW.N.tab:LAW.N.desk);
+  let best=null;
+  for(const n of legal){const col=(avail-(n-1)*LAW.gutter)/n; if(col<=0)continue;
+    const d=Math.abs(col-LAW.target); if(!best||d<best.d)best={n,col,d};}
+  return {avail,cols:best.n,col:best.col,navW};
+}
+/* SIDEBAR LAW — pin pushes, peek overlays. Pin only where content survives. */
+function navStates(vw){
+  const s=["hidden"];
+  if(vw>=LAW.nav.rail_min) s.push("rail");
+  if(vw>=LAW.nav.expanded_min) s.push("expanded");
+  return s;
+}
+function posDefaultNav(vw){ return vw>=LAW.nav.rail_min?"hidden":"hidden"; } // POS defaults hidden at every width
+
+/* ===================== RENDER ===================== */
+const $=s=>document.querySelector(s);
+const money=n=>n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+let VAR="counter", DENS="essential", NAV="hidden", PEEK=false, MTAB="cart";
+
+$("#variants").innerHTML=Object.entries(VARIANTS).map(([k,v])=>
+  `<button data-v="${k}"${k===VAR?' aria-pressed="true"':''}>${v.name}</button>`).join("");
+
+const navHTML=items=>items.map((n,i)=>
+  `<div class="navitem${i===1?' on':''}"><i class="g"></i><span>${n}</span></div>`).join("");
+$("#nav").innerHTML=navHTML(NAVITEMS); $("#peekNav").innerHTML=navHTML(NAVITEMS);
+
+const cartTotal=CART.reduce((a,[,q,p])=>a+q*p,0);
+const tax=cartTotal*0.17, grand=cartTotal+tax;
+
+/* ---- building blocks ---- */
+function picker(mode,g){
+  const isTile=mode==="tile"||mode==="big";
+  const tileW=mode==="big"?150:116;
+  const body=isTile
+    ? `<div class="tiles" style="--tile:${tileW}px">${PRODUCTS.map(([n,p])=>
+        `<div class="tile"><div class="sw"></div><b>${n}</b><s>${money(p)}</s></div>`).join("")}</div>`
+    : `<div class="rows">${PRODUCTS.map(([n,p,c])=>
+        `<div class="prow"><i class="th"></i><span class="nm">${n}</span>
+         <span class="st">${c}</span><span class="pr">${money(p)}</span></div>`).join("")}</div>`;
+  return `<div class="ptitle">
+      <div class="search"><span>⌕</span><span>Scan barcode or search item…</span></div>
+      ${DENS==="pro"?'<div class="ico" title="Quick add product">＋</div>':''}
+    </div>
+    <div style="padding:10px 14px 0"><div class="chips">${CATS.map((c,i)=>
+      `<div class="chip${i===0?' on':''}">${c}</div>`).join("")}</div></div>
+    <div class="pbody">${body}</div>`;
+}
+function cart(detail){
+  const adv=DENS==="pro"||detail;
+  return `<div class="ptitle">
+      <span class="eyebrow">Cart</span>
+      <span class="pill ghost n" style="height:26px;font-size:11px">${CART.length} items · 55 qty</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        ${DENS==="pro"?'<div class="pill ghost" style="height:28px;font-size:11px">Free qty</div>':''}
+        <div class="pill ghost" style="height:28px;font-size:11px">Walk-in ▾</div></div>
+    </div>
+    <div class="pbody">${CART.map(([n,q,p])=>`
+      <div class="line">
+        <span class="nm">${n}</span><span class="tot n">${money(q*p)}</span>
+        <span class="meta"><span class="step"><b>−</b><s>${q}</s><b>+</b></span>
+          <span>× ${money(p)}</span>${adv?'<span style="color:var(--ok)">−5%</span>':''}</span>
+        <span class="meta" style="justify-content:flex-end">${DENS==="pro"?'<span class="mini">⇄ edit</span>':''}<span class="mini">✕</span></span>
+        ${adv?`<div class="adv"><span class="mini">Discount</span><span class="mini">Price</span>
+          <span class="mini">Note</span><span class="mini">Batch</span>${DENS==="pro"?'<span class="mini">Tax</span><span class="mini">Unit</span>':''}</div>`:''}
+      </div>`).join("")}</div>`;
+}
+function pay(compact){
+  const pro=DENS==="pro";
+  return `<div class="pbody" style="display:flex;flex-direction:column;gap:2px">
+      <div class="kv"><span>Subtotal</span><b>${money(cartTotal)}</b></div>
+      ${pro?`<div class="kv"><span>Discount</span><b>0.00</b></div>
+      <div class="kv"><span>Tax 17% <span class="mini">incl</span></span><b>${money(tax)}</b></div>`
+      :`<div class="kv"><span>Tax 17%</span><b>${money(tax)}</b></div>`}
+      <div class="kv big"><span>Total</span><b>${money(grand)}</b></div>
+      <div style="height:12px"></div>
+      <span class="eyebrow">Amount tendered</span>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <div class="tender">${money(grand)}</div>
+        <div class="ico" style="height:52px;width:60px;font-size:12px;font-weight:600">Exact</div></div>
+      <div class="kv" style="color:var(--ok)"><span>Change due</span><b style="color:var(--ok)">0.00</b></div>
+      <div style="height:10px"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${["Cash","Card","Bank","Credit"].concat(pro?["Online","UPI"]:[]).map((t,i)=>
+          `<div class="pill${i===0?' on':''}" style="height:32px;font-size:12px">${t}</div>`).join("")}</div>
+      <div class="more${pro?' open':''}">
+        <button class="morebtn"><span>${pro?"All options":"More options"}</span><span>${pro?"▴":"▾"}</span></button>
+        <div class="morewrap">${["Split payment","Deposit to…","Global discount","Tax rate","Dropship",
+          "Auto-print","Return mode","Recent invoices"].map(x=>`<span class="mini">${x}</span>`).join("")}</div>
+      </div>
+    </div>
+    <div class="pfoot" style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn go lg">Complete sale · ${money(grand)}</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="height:40px;font-size:13px">Hold</button>
+        <button class="btn" style="height:40px;font-size:13px">Cancel</button></div>
+    </div>`;
+}
+
+/* ---- variant layouts ---- */
+function layout(g,vw){
+  const N=g.cols, mobile=vw<=LAW.nav.mobile_max||VAR==="compact";
+  if(mobile){
+    const p={catalog:picker("row",g),cart:cart(false),pay:pay(true)}[MTAB];
+    return `<div class="mtabs">
+      ${[["catalog","CATALOGUE"],["cart","CART"],["pay","PAY"]].map(([k,l])=>
+        `<button data-m="${k}"${k===MTAB?' aria-pressed="true"':''}>${l}</button>`).join("")}</div>
+      <div class="pos" style="--vq-cols:1;flex:1"><div class="panel" style="grid-column:span 1">${p}</div></div>
+      <div style="flex:none;padding:12px var(--vq-margin);border-top:1px solid var(--line);background:var(--surface);
+        display:flex;align-items:center;gap:12px">
+        <div><div class="eyebrow">Total</div><div class="n" style="font:600 19px/1.2 var(--num)">${money(grand)}</div></div>
+        <button class="btn go" style="width:auto;flex:1">Pay</button></div>`;
+  }
+  const S=(a,b,c)=>{ // proportional 3-pane split of N columns
+    const t=a+b+c; let A=Math.max(2,Math.round(N*a/t)), B=Math.max(2,Math.round(N*b/t));
+    let C=N-A-B; if(C<2){C=2;B=N-A-C;} return [A,B,C];};
+  if(VAR==="counter"){const[a,b,c]=S(4,5,3);
+    return `<div class="pos"><div class="panel" style="grid-column:span ${a}">${picker("row",g)}</div>
+      <div class="panel" style="grid-column:span ${b}">${cart(false)}</div>
+      <div class="panel" style="grid-column:span ${c}">${pay()}</div></div>`;}
+  if(VAR==="touch"){const[a,b]=[Math.max(4,Math.round(N*7/12)),0]; const rest=N-a;
+    return `<div class="pos"><div class="panel" style="grid-column:span ${a}">${picker("big",g)}</div>
+      <div class="panel" style="grid-column:span ${rest};display:flex">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column">${cart(false)}</div>
+        <div style="flex:none;border-top:1px solid var(--line-soft)">${pay(true)}</div></div></div>`;}
+  if(VAR==="ledger"){const a=Math.max(4,Math.round(N*8/12)), rest=N-a;
+    return `<div class="pos"><div class="panel" style="grid-column:span ${a}">${cart(true)}</div>
+      <div class="panel" style="grid-column:span ${rest};display:flex;flex-direction:column">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column">${picker("row",g)}</div>
+        <div style="flex:none;border-top:1px solid var(--line-soft)">${pay(true)}</div></div></div>`;}
+  if(VAR==="shelf"){const c=Math.max(3,Math.round(N*3/12)), b=N-c;
+    return `<div class="pos" style="grid-template-rows:auto 1fr">
+      <div class="panel" style="grid-column:1/-1">
+        <div class="ptitle"><div class="search"><span>⌕</span><span>Scan barcode or search item…</span></div>
+          <div class="chips" style="max-width:46%">${CATS.map((x,i)=>
+            `<div class="chip${i===0?' on':''}">${x}</div>`).join("")}</div></div>
+        <div style="padding:12px 14px"><div class="tiles" style="--tile:124px;
+          grid-template-rows:repeat(2,1fr);grid-auto-flow:column;grid-auto-columns:124px;overflow-x:auto">
+          ${PRODUCTS.map(([n,p])=>`<div class="tile"><div class="sw"></div><b>${n}</b><s>${money(p)}</s></div>`).join("")}
+        </div></div></div>
+      <div class="panel" style="grid-column:span ${b}">${cart(false)}</div>
+      <div class="panel" style="grid-column:span ${c}">${pay()}</div></div>`;}
+  /* scan */
+  const c=Math.max(3,Math.round(N*3/12)), b=N-c;
+  return `<div class="pos" style="grid-template-rows:auto 1fr">
+    <div style="grid-column:1/-1;display:flex;gap:12px;align-items:center">
+      <div class="search hero"><span style="font-size:20px">⌗</span>
+        <span>Scan a barcode, or type to search…</span>
+        <span style="margin-left:auto;font:500 11px/1 var(--num);color:var(--text-3)">F1</span></div>
+      ${DENS==="pro"?'<div class="ico" style="height:60px;width:60px;font-size:19px">＋</div>':''}
+    </div>
+    <div class="panel" style="grid-column:span ${b}">${cart(true)}</div>
+    <div class="panel" style="grid-column:span ${c}">${pay()}</div></div>`;
+}
+
+function header(vw){
+  const states=navStates(vw), canPin=states.length>1;
+  return `<div class="ico" id="navBtn" title="${canPin?'Toggle navigation':'Open navigation'}">☰</div>
+    <div class="pill ghost" style="gap:9px"><b style="font:600 13px/1 var(--sans)">Sale #1042</b>
+      <span style="color:var(--text-3)">·</span><span>Rana Traders</span></div>
+    <div class="ico" title="New sale tab">＋</div>
+    ${DENS==="pro"?'<div class="pill ghost">Return mode</div><div class="pill ghost">Parked · 2</div>':''}
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <span class="pill ghost" style="color:var(--ok)">● Online</span>
+      ${DENS==="pro"?'<span class="pill ghost">Hardware ready</span>':''}
+      <div class="ico" title="Exit POS">⎋</div></div>`;
+}
+
+function coverage(){
+  return COVERAGE.map(sec=>`<div class="covcard"><h4>${sec.g}</h4>
+    <p>${sec.note||"&nbsp;"}</p>
+    ${sec.items.map(([lbl,e,p,note])=>{
+      const v=DENS==="essential"?e:p;
+      const tag=v==="e"?'<span class="tag e">visible</span>':v==="p"?'<span class="tag p">one tap</span>':'<span class="tag x">removed</span>';
+      return `<div class="covrow"><span>${lbl}${note?`<br><s style="text-align:left;display:block;margin-top:2px">${note}</s>`:""}</span>${tag}</div>`;
+    }).join("")}</div>`).join("");
+}
+
+function render(){
+  const vw=+$("#vw").value;
+  const states=navStates(vw);
+  if(!states.includes(NAV)) NAV="hidden";
+  const g=geo(vw,NAV);
+  const sh=$("#shell");
+  sh.dataset.nav=NAV; sh.dataset.peek=PEEK?"true":"false";
+  sh.style.setProperty("--vq-cols",g.cols);
+  $("#frame").style.width=Math.min(vw,window.innerWidth-40)+"px";
+  $("#head").innerHTML=header(vw);
+  $("#main").innerHTML=layout(g,vw);
+  // compact / mobile set their own single-column track — never override it
+  const posEl=$("#main").querySelector(".pos");
+  if(posEl && !posEl.style.getPropertyValue("--vq-cols")) posEl.style.setProperty("--vq-cols",g.cols);
+  $("#blurb").innerHTML=VARIANTS[VAR].blurb+
+    `<br><br><b>Sidebar:</b> ${states.length>1
+      ? `pin available here (${states.slice(1).join(" / ")}) — pinning <em>pushes</em> and is remembered.`
+      : `too narrow to pin — the button peeks instead, which <em>overlays</em> and never moves your cards.`}
+      POS defaults to hidden at every width, with an explicit exit control top-right.`;
+  $("#fb").textContent=`${vw} × auto · ${g.cols} columns · ${g.col.toFixed(1)}px · nav ${NAV}${PEEK?" + peek":""}`;
+  $("#r-vw").textContent=vw; $("#r-nav").textContent=NAV+(PEEK?"+peek":"");
+  $("#r-ctl").textContent=$("#main").querySelectorAll(".ico,.pill,.chip,.tile,.prow,.mini,.btn,.step b,.morebtn,.search").length;
+  $("#cov").innerHTML=coverage();
+  document.querySelectorAll("#variants button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===VAR));
+  document.querySelectorAll("#density button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.d===DENS));
+
+  $("#navBtn").onclick=()=>{
+    const st=navStates(vw);
+    if(st.length>1){ const i=st.indexOf(NAV); NAV=st[(i+1)%st.length]; PEEK=false; }
+    else PEEK=!PEEK;
+    render();
+  };
+  $("#main").querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{MTAB=b.dataset.m;render();});
+  $("#main").querySelectorAll(".morebtn").forEach(b=>b.onclick=e=>{
+    e.currentTarget.parentElement.classList.toggle("open");});
+}
+$("#scrim").onclick=()=>{PEEK=false;render();};
+$("#vw").addEventListener("input",render);
+$("#variants").onclick=e=>{const b=e.target.closest("button");if(b){VAR=b.dataset.v;render();}};
+$("#density").onclick=e=>{const b=e.target.closest("button");if(b){DENS=b.dataset.d;render();}};
+addEventListener("keydown",e=>{if(e.key==="Escape"&&PEEK){PEEK=false;render();}});
+addEventListener("resize",render);
+render();
+</script>
+</body>
+</html>

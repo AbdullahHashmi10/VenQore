@@ -5,10 +5,18 @@ import './NewDashboard.css';
 // React Bits Components
 import Folder from '@/Components/ReactBits/Folder';
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
-import StarBorder from '@/Components/ReactBits/StarBorder';
 import Stepper from '@/Components/ReactBits/Stepper';
 
-function runCardBuilder() {
+function runCardBuilder(opts) {
+  /* Inertia remounts this page on every client-side navigation back to it. The
+     engine registers document-level listeners, so running it twice would double
+     every pointerup and leak a listener per visit. Re-boot the board instead. */
+  if (typeof window !== "undefined" && window.VenQoreCards && window.__vqCardEngine){
+    window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
+    window.VenQoreCards.boot();
+    return;
+  }
+  if (typeof window !== "undefined") window.__vqCardEngine = true;
 
 const READINGS = [{"key":"accounting.assets","label":"Assets","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Assets","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.liabilities","label":"Liabilities","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Liabilities","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.income_ytd","label":"Income (YTD)","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Income (YTD)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.expense_ytd","label":"Expense (YTD)","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Expense (YTD)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.total_balance","label":"Total Balance","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Total Balance","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.cash_on_hand","label":"Cash on Hand","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Cash on Hand","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.money_in_today","label":"Money In (Today)","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Money In (Today)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.money_out_today","label":"Money Out (Today)","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Money Out (Today","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.total_txns","label":"Total Txns","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Total Txns","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.matched","label":"Matched","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Matched","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.unmatched","label":"Unmatched","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Unmatched","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"batch_tracking.total_batches","label":"Total Batches","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Total Batches","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.expiring_soon","label":"Expiring Soon","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Expiring Soon","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.expired","label":"Expired","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Expired","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.total_qty","label":"Total Qty","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Total Qty","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"debit_notes.total_notes","label":"Total Notes","shape":"SCALAR","unit":"count","area":"Purchasing","module":"DebitNotes","short":"Total Notes","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.spend","label":"Total Value","shape":"SCALAR","unit":"currency","area":"Purchasing","module":"DebitNotes","short":"Total Value","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"debit_notes.open_credits","label":"Open Credits","shape":"SCALAR","unit":"currency","area":"Purchasing","module":"DebitNotes","short":"Open Credits","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"finance.expenses_total","label":"Today's Expenses","shape":"SCALAR","unit":"currency","area":"Finance","module":"Expenses","short":"Today's Expenses","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.payables","label":"Total Payable","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Total Payable","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"party.supplier_count","label":"Active Creditors","shape":"SCALAR","unit":"count","area":"Finance","module":"Finance","short":"Active Creditors","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.avg_balance","label":"Avg Balance","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Avg Balance","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.receivables","label":"Total Receivable","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Total Receivable","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"party.customer_count","label":"Active Debtors","shape":"SCALAR","unit":"count","area":"Finance","module":"Finance","short":"Active Debtors","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"inventory.total_categories","label":"Total Categories","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Total Categories","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.main_categories","label":"Main Categories","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Main Categories","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.products_linked","label":"Products Linked","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Products Linked","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.product_count","label":"Total Products","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Total Products","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.low_stock_count","label":"Low Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Low Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.stock_value","label":"Inventory Value","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Inventory","short":"Inventory Value","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"production.run_count","label":"Active Runs","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Active Runs","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.completed_today","label":"Completed Today","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Completed Today","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"production.total_cost","label":"Cost (Month)","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Inventory","short":"Cost (Month)","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.out_of_stock_count","label":"Out of Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Out of Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"pre_sales.total_quotes","label":"Total Quotes","shape":"SCALAR","unit":"count","area":"Sales","module":"PreSales","short":"Total Quotes","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"pre_sales.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"PreSales","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.total_proposals","label":"Total Proposals","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Total Proposals","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.accepted","label":"Accepted","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Accepted","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"purchasing.count","label":"Total Orders","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Total Orders","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchase_orders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Pending","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchase_orders.received","label":"Received","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Received","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"recurring_invoices.total","label":"Total","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Total","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.active","label":"Active","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Active","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.paused","label":"Paused","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Paused","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.monthly_revenue","label":"Monthly Revenue","shape":"SCALAR","unit":"currency","area":"Sales","module":"RecurringInvoices","short":"Monthly Revenue","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.total_scheduled","label":"Total Scheduled","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Total Scheduled","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.sent","label":"Sent","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Sent","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.overdue","label":"Overdue","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Overdue","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.total_returns","label":"Total Returns","shape":"SCALAR","unit":"count","area":"Sales","module":"Returns","short":"Total Returns","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.items_returned","label":"Items Returned","shape":"SCALAR","unit":"count","area":"Sales","module":"Returns","short":"Items Returned","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.total_refunded","label":"Total Refunded","shape":"SCALAR","unit":"currency","area":"Sales","module":"Returns","short":"Total Refunded","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.revenue","label":"Total Sale","shape":"SCALAR","unit":"currency","area":"Sales","module":"Sales","short":"Total Sale","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales_orders.confirmed","label":"Confirmed","shape":"SCALAR","unit":"count","area":"Sales","module":"SalesOrders","short":"Confirmed","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales_orders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"SalesOrders","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"serial_tracking.total_serials","label":"Total Serials","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Total Serials","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.in_stock","label":"In Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"In Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.sold","label":"Sold","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Sold","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.returned","label":"Returned","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Returned","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"staff.member_count","label":"Total Staff","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Total Staff","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.on_shift_count","label":"Present","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Present","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.absent","label":"Absent","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Absent","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.pending_gaps","label":"Pending Gaps","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Pending Gaps","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.hours_today","label":"Hours Today","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Hours Today","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"sales.revenue_trend","label":"Revenue trend","shape":"SERIES","unit":"currency","area":"Sales","module":"Extra","short":"Revenue trend","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.payment_breakdown","label":"Payment breakdown","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Payment breakdow","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.top_products","label":"Top products","shape":"RANKING","unit":"currency","area":"Sales","module":"Extra","short":"Top products","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.top_customers","label":"Top customers","shape":"RANKING","unit":"currency","area":"Sales","module":"Extra","short":"Top customers","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.hourly_heatmap","label":"Sales by hour and day","shape":"TABLE","unit":"count","area":"Sales","module":"Extra","short":"Sales by hour an","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.live_feed","label":"Live sales feed","shape":"FEED","unit":"currency","area":"Sales","module":"Extra","short":"Live sales feed","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.avg_order_value","label":"Average order value","shape":"SCALAR","unit":"currency","area":"Sales","module":"Extra","short":"Average order va","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.basket_size","label":"Average basket size","shape":"SCALAR","unit":"count","area":"Sales","module":"Extra","short":"Average basket s","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.discount_given","label":"Discount given","shape":"SCALAR","unit":"currency","area":"Sales","module":"Extra","short":"Discount given","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.return_rate","label":"Return rate","shape":"SCALAR","unit":"percent","area":"Sales","module":"Extra","short":"Return rate","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.conversion_funnel","label":"Sales funnel","shape":"RANKING","unit":"count","area":"Sales","module":"Extra","short":"Sales funnel","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.channel_split","label":"Sales by channel","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Sales by channel","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.region_split","label":"Sales by region","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Sales by region","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"finance.profit_trend","label":"Profit trend","shape":"SERIES","unit":"currency","area":"Finance","module":"Extra","short":"Profit trend","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.cash_flow_trend","label":"Cash in vs out","shape":"MULTI_SERIES","unit":"currency","area":"Finance","module":"Extra","short":"Cash in vs out","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.expenses_by_category","label":"Expenses by category","shape":"BREAKDOWN","unit":"currency","area":"Finance","module":"Extra","short":"Expenses by cate","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.receivables_aging","label":"Receivables ageing","shape":"BREAKDOWN","unit":"currency","area":"Finance","module":"Extra","short":"Receivables agei","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.balance_sheet_ok","label":"Books balanced","shape":"STATUS","unit":"count","area":"Finance","module":"Extra","short":"Books balanced","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.cash_runway","label":"Cash runway","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Cash runway","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.dso","label":"Days sales outstanding","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Days sales outst","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.dpo","label":"Days payable outstanding","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Days payable out","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.quick_ratio","label":"Quick ratio","shape":"SCALAR","unit":"percent","area":"Finance","module":"Extra","short":"Quick ratio","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.expense_ratio","label":"Expense ratio","shape":"SCALAR","unit":"percent","area":"Finance","module":"Extra","short":"Expense ratio","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.tax_liability","label":"Tax liability","shape":"SCALAR","unit":"currency","area":"Finance","module":"Extra","short":"Tax liability","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"inventory.low_stock_list","label":"Low stock list","shape":"TABLE","unit":"count","area":"Inventory","module":"Extra","short":"Low stock list","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.turnover","label":"Inventory turnover","shape":"SCALAR","unit":"percent","area":"Inventory","module":"Extra","short":"Inventory turnov","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.days_of_cover","label":"Days of cover","shape":"SCALAR","unit":"count","area":"Inventory","module":"Extra","short":"Days of cover","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.sell_through","label":"Sell-through rate","shape":"SCALAR","unit":"percent","area":"Inventory","module":"Extra","short":"Sell-through rat","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.dead_stock_value","label":"Dead stock value","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Extra","short":"Dead stock value","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.value_trend","label":"Stock value trend","shape":"SERIES","unit":"currency","area":"Inventory","module":"Extra","short":"Stock value tren","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.by_warehouse","label":"Stock by warehouse","shape":"BREAKDOWN","unit":"currency","area":"Inventory","module":"Extra","short":"Stock by warehou","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.expiry_window","label":"Expiring in 30 days","shape":"RANKING","unit":"count","area":"Inventory","module":"Extra","short":"Expiring in 30 d","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"purchasing.spend_trend","label":"Purchase spend trend","shape":"SERIES","unit":"currency","area":"Purchasing","module":"Extra","short":"Purchase spend t","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.by_supplier","label":"Spend by supplier","shape":"BREAKDOWN","unit":"currency","area":"Purchasing","module":"Extra","short":"Spend by supplie","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.supplier_concentration","label":"Supplier concentration","shape":"SCALAR","unit":"percent","area":"Purchasing","module":"Extra","short":"Supplier concent","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.lead_time","label":"Average lead time","shape":"SCALAR","unit":"count","area":"Purchasing","module":"Extra","short":"Average lead tim","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.on_time_rate","label":"On-time delivery","shape":"SCALAR","unit":"percent","area":"Purchasing","module":"Extra","short":"On-time delivery","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"operations.plan_usage","label":"Plan usage","shape":"GAUGE","unit":"percent","area":"Operations","module":"Extra","short":"Plan usage","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.sales_per_head","label":"Sales per staff member","shape":"SCALAR","unit":"currency","area":"Operations","module":"Extra","short":"Sales per staff ","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.attendance_rate","label":"Attendance rate","shape":"SCALAR","unit":"percent","area":"Operations","module":"Extra","short":"Attendance rate","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"operations.open_tickets","label":"Open tickets","shape":"SCALAR","unit":"count","area":"Operations","module":"Extra","short":"Open tickets","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"party.new_vs_returning","label":"New vs returning","shape":"BREAKDOWN","unit":"count","area":"Operations","module":"Extra","short":"New vs returning","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"party.retention_rate","label":"Customer retention","shape":"SCALAR","unit":"percent","area":"Operations","module":"Extra","short":"Customer retenti","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]}];
 /* ══ time, scales, formatting ══════════════════════════════════════════════
@@ -1109,6 +1117,172 @@ const FITS = {
 };
 const DEFAULT_FIT = { C1:0, C2:0, C3:0, C4:0, C5:2, C6:1 };
 
+/* ══ Layout Law §6 — the allowed-size system ═══════════════════════════════
+   A category is a list of FITS (the interiors) plus a MAX rectangle. A size is
+   legal for a category when it is at least as large as one of that category's
+   fits and no larger than the category's maximum. Everything the UI offers is
+   generated from this — no hand-written size list may exist anywhere else,
+   because a hand-written list is how a card ends up wider than the grid. */
+const CAT_MAX = {
+  C1: [3, 2],    /* Tile   — shortcut, quick action, single glyph        */
+  C2: [6, 2],    /* Strip  — one KPI on one line                         */
+  C3: [6, 4],    /* Metric — KPI with delta, sparkline or comparison     */
+  C4: [6, 6],    /* Panel  — ranked list, breakdown, small chart         */
+  C5: [12, 9],   /* Board  — full chart, multi-series, wide table        */
+  C6: [12, 16],  /* Canvas — hero chart, statement, cohort grid, map     */
+};
+const CAT_DESC = {
+  C1: "Shortcut, quick action, single glyph",
+  C2: "One KPI on one line",
+  C3: "KPI with delta, sparkline or comparison",
+  C4: "Ranked list, breakdown, small chart",
+  C5: "Full chart, multi-series, wide table",
+  C6: "Hero chart, statement, cohort grid",
+};
+/* What each fit changes inside the card — shown against every size so the
+   choice is never blind. Straight out of the Law's own tables. */
+const FIT_INSIDE = {
+  "icon+label":"icon left, label right", "icon":"icon only, label in tooltip",
+  "inline":"label and value share one line", "stacked":"label above value",
+  "full":"the richest interior this category has",
+  "standard":"value and delta, no sparkline",
+  "compact":"abbreviated value, no sparkline",
+  "list":"narrow list, one item per row",
+  "narrow":"legend or controls move below",
+  "min":"the leanest interior — chart only",
+};
+
+/** The smallest rectangle any fit in this category will accept. */
+function catFloor(cat, T){
+  const f = (T || FITS)[cat] || [];
+  return [Math.min(...f.map(x => x[0])), Math.min(...f.map(x => x[1]))];
+}
+/** Is [w,h] a legal size for `cat`? At least one fit must sit inside it. */
+function sizeLegal(cat, w, h, T){
+  const [MW, MH] = CAT_MAX[cat] || [12, 16];
+  if (w > MW || h > MH || w < 1 || h < 1) return false;
+  return ((T || FITS)[cat] || []).some(([fw, fh]) => w >= fw && h >= fh);
+}
+/** The richest fit that fits inside [w,h] — fits are ordered richest first. */
+function resolveFit(cat, w, h, T){
+  const list = (T || FITS)[cat] || [];
+  for (let i = 0; i < list.length; i++){
+    if (w >= list[i][0] && h >= list[i][1]) return i;
+  }
+  return null;
+}
+/** The lowest legal height for a given width in this category. */
+function minHeightAt(cat, w, T){
+  const hs = ((T || FITS)[cat] || []).filter(([fw]) => w >= fw).map(([, fh]) => fh);
+  return hs.length ? Math.min(...hs) : null;
+}
+/** The lowest legal width for a given height in this category. */
+function minWidthAt(cat, h, T){
+  const ws = ((T || FITS)[cat] || []).filter(([, fh]) => h >= fh).map(([fw]) => fw);
+  return ws.length ? Math.min(...ws) : null;
+}
+/** Every legal size in a category, as {w,h,fit,fitName,inside,isFit,isMax}. */
+function sizesFor(cat, T){
+  const tbl = T || FITS;
+  const [MW, MH] = CAT_MAX[cat] || [12, 16];
+  const out = [];
+  for (let w = 1; w <= MW; w++){
+    for (let h = 1; h <= MH; h++){
+      if (!sizeLegal(cat, w, h, tbl)) continue;
+      const fit = resolveFit(cat, w, h, tbl);
+      const nm = tbl[cat][fit][2];
+      out.push({
+        cat, w, h, fit, fitName: nm, inside: FIT_INSIDE[nm] || "",
+        isFit: tbl[cat][fit][0] === w && tbl[cat][fit][1] === h,
+        isMax: w === MW && h === MH,
+      });
+    }
+  }
+  return out;
+}
+/** The presets a category offers: every canonical fit, each fit widened to the
+    category's full width, and the category maximum. That is a ladder a person
+    can actually choose from — the exhaustive set is reachable through the
+    stepper, which walks the same legality rules one column at a time. */
+function presetsFor(cat, T){
+  const tbl = T || FITS;
+  const list = tbl[cat] || [];
+  if (!list.length) return [];
+  const [MW, MH] = CAT_MAX[cat] || [12, 16];
+  const mk = (w, h) => {
+    const fit = resolveFit(cat, w, h, tbl) ?? 0;
+    const nm = tbl[cat][fit][2];
+    return { cat, w, h, fit, fitName: nm, inside: FIT_INSIDE[nm] || "",
+             isFit: tbl[cat][fit][0] === w && tbl[cat][fit][1] === h,
+             isMax: w === MW && h === MH };
+  };
+  const out = [];
+  list.forEach(([w, h]) => {
+    out.push(mk(w, h));
+    if (MW > w) out.push(mk(MW, h));                 /* the same interior, full width */
+    const mid = Math.round((w + MW) / 2);
+    if (mid > w && mid < MW) out.push(mk(mid, h));
+  });
+  out.push(mk(MW, MH));
+  return out
+    .filter(s => sizeLegal(cat, s.w, s.h, tbl))
+    .filter((s, i, a) => a.findIndex(x => x.w === s.w && x.h === s.h) === i)
+    .sort((a, b) => (a.w * a.h) - (b.w * b.h) || a.w - b.w);
+}
+
+/* ── the live grid ────────────────────────────────────────────────────────
+   The Law picks the legal column count whose width lands nearest 112px. The
+   stylesheet does the same thing in media queries; this reads the answer back
+   out of the DOM so JS and CSS can never disagree about how wide the grid is. */
+const LEGAL_COLS = { desktop:[8,10,12,14,16,18,20,24], tablet:[6,8,10,12], mobile:[4] };
+function boardCols(el){
+  const board = el || document.getElementById("board");
+  if (board){
+    const cs = getComputedStyle(board);
+    /* Read the DECLARED count, never the used track list. A card that spans
+       more columns than exist makes CSS Grid mint implicit tracks, so the used
+       value reports the overflow back as the grid's width — and the clamp that
+       is supposed to prevent the overflow would read its own bug as the truth
+       and hold it in place. --vq-cols is what the stylesheet meant. */
+    const v = parseInt(cs.getPropertyValue("--vq-cols"), 10);
+    if (v > 0 && v <= 24) return v;
+    const tpl = cs.gridTemplateColumns;
+    if (tpl && tpl !== "none"){
+      const n = tpl.trim().split(/\s+/).length;
+      if (n > 0 && n <= 24) return n;
+    }
+  }
+  /* No board in the document yet — fall back to the ladder, and only ever to
+     a count the Law actually allows. */
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1920;
+  const band = vw < 600 ? "mobile" : vw < 1024 ? "tablet" : "desktop";
+  const want = vw < 600 ? 4 : vw < 900 ? 6 : vw < 1560 ? 8 : vw < 1880 ? 10 : vw < 2480 ? 12 : vw < 3280 ? 16 : 24;
+  const legal = LEGAL_COLS[band];
+  return legal.reduce((best, n) => Math.abs(n - want) < Math.abs(best - want) ? n : best, legal[0]);
+}
+/** The board's real column width in px. The Law's fit floors are pixel
+    measurements — "4×1 inline ≥ 356px" — so a fit cannot be chosen from column
+    counts alone: four columns is 520px on a desktop and 330px on a phone, and
+    only one of those can hold an inline strip. */
+function boardColW(el){
+  const board = el || document.getElementById("board");
+  const cols = boardCols(board);
+  if (board && board.clientWidth > 0)
+    return Math.max(24, (board.clientWidth - GRID.gutter * (cols - 1)) / cols);
+  return 112;
+}
+/** How wide this card actually is, in px, on this board. */
+function pxWidth(w, colW){ return w * (colW || 112) + (w - 1) * GRID.gutter; }
+
+/* A card may never be wider than the grid it sits in. When the grid narrows
+   the card keeps its authored width in state and only *renders* narrower, so
+   widening the window restores it exactly — §6 step 2, in reverse. */
+function fitToGrid(w, h, cols){
+  const c = cols || boardCols();
+  if (w <= c) return [w, h];
+  return [Math.max(1, c), h];
+}
+
 /* The smallest [cols, rows] a chart can be drawn in and still be read.
    Nothing may be placed below this — it is a property of the card, not a
    suggestion, so no card can ever clip its own content. */
@@ -1123,9 +1297,53 @@ const MIN_SIZE = {
 /* A card in C1 or C2 has no chart host — only a stat or a status can live
    there. Everything else needs a body, so it starts at C3. */
 const HOSTLESS = new Set(["stat","status"]);
+
+/* ══ the non-reading card families ═════════════════════════════════════════
+   An operations hub and a shortcut tile are cards like any other: they sit on
+   the same grid, obey the same category bounds and carry the same options. The
+   only thing that differs is what is drawn inside, so that is the only thing
+   this registry describes. Everything else — sizing, tones, emphasis, deep
+   link, title — comes from the shared card contract below. */
+const SPECIAL = {
+  action_hub:     { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
+                    eyebrow:"OPERATIONS HUB", name:"Quick Operations Hub",
+                    sub:"Point of sale, purchases and quick dispatch" },
+  bank_liquidity: { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
+                    eyebrow:"LIQUIDITY & BALANCES", name:"Bank & Liquid Net Balances",
+                    sub:"Accounts, drawer and total liquid net" },
+  alerts_hub:     { cat:"C4", min:[3,3], cats:["C3","C4","C5","C6"], family:"hub",
+                    eyebrow:"ACTIONS REQUIRED", name:"Actions Required & Alerts",
+                    sub:"Everything waiting on someone" },
+  growth_engine:  { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
+                    eyebrow:"GROWTH ENGINE", name:"Growth Engine & Target Pace",
+                    sub:"Velocity, target pace and retention" },
+  custom_button:  { cat:"C1", min:[1,1], cats:["C1"], family:"shortcut",
+                    eyebrow:"SHORTCUT", name:"Shortcut", sub:"One-click jump" },
+};
+const isSpecial = c => !!(c && c.type && SPECIAL[c.type]);
+/* Hubs are laid out on their own ladder rather than the reading ladder: a hub
+   is a row of items, so its fits trade columns for rows exactly like C4's. */
+const SPECIAL_FITS = {
+  C1: [[2,1,"icon+label"],[1,1,"icon"]],
+  C2: [[4,1,"inline"],[3,2,"stacked"]],
+  C3: [[4,2,"full"],[3,2,"standard"],[2,3,"stacked"]],
+  C4: [[4,2,"full"],[3,3,"standard"],[3,4,"compact"],[2,5,"list"]],
+  C5: [[6,3,"full"],[5,4,"narrow"],[4,5,"min"]],
+  C6: [[8,4,"full"],[6,6,"narrow"],[4,8,"min"]],
+};
+/** The fit ladder a card resolves against — hubs stack shallower than charts. */
+const fitsTable = c => (isSpecial(c) ? SPECIAL_FITS : FITS);
+
 /** A stat showing only its number — no chart body to make room for. */
 const isBare = c => c.chart === "stat" && c.variant === "number";
 function minSizeFor(card){
+  if (isSpecial(card)) return SPECIAL[card.type].min.slice();
+  /* A tile and a strip have no chart body — renderCard draws the reading and
+     nothing else there — so the chart's own floor does not apply. Measuring a
+     C2 strip against a sparkline's three-row minimum is what made every strip
+     size illegal and left the size picker empty. */
+  if (card.cat === "C1") return [1, 1];
+  if (card.cat === "C2") return [3, 1];
   let [w, h] = MIN_SIZE[card.chart] || [3,3];
   if (!HOSTLESS.has(card.chart) && !isBare(card)) h = Math.max(h, 3);
   if (card.chart === "stat"){
@@ -1147,12 +1365,48 @@ function minSizeFor(card){
 }
 /* the fits a chart is allowed to take, as [index, cols, rows, name] */
 function fitsFor(card, cat){
-  const [mw, mh] = minSizeFor(card);
-  return FITS[cat].map((f,i) => [i, f[0], f[1], f[2]]).filter(([,w,h]) => w >= mw && h >= mh);
+  const T = fitsTable(card);
+  /* A tile or a strip can only hold something that draws no chart. That is the
+     categorical rule; the pixel floors below are the dimensional one. */
+  if (!isSpecial(card) && (cat === "C1" || cat === "C2") && !HOSTLESS.has(card.chart)) return [];
+  const [mw, mh] = minSizeFor({ ...card, cat });
+  return (T[cat] || []).map((f,i) => [i, f[0], f[1], f[2]]).filter(([,w,h]) => w >= mw && h >= mh);
 }
-function catsFor(card){ return CATS.filter(k => fitsFor(card, k).length); }
+function catsFor(card){
+  if (isSpecial(card)) return SPECIAL[card.type].cats.filter(k => fitsFor(card, k).length);
+  return CATS.filter(k => fitsFor(card, k).length);
+}
 /* smallest category that can actually hold this chart */
-function fitCat(card){ return catsFor(card)[0] || "C6"; }
+function fitCat(card){ return catsFor(card)[0] || (isSpecial(card) ? SPECIAL[card.type].cat : "C6"); }
+
+/* ── the one place a card's rendered geometry is decided ─────────────────
+   Authored size wins; below it, the card's own floor; above it, the category
+   max and the live grid. A card can therefore never be smaller than it can
+   draw, nor wider than the screen it is on. */
+function geometryOf(card, cols, colW){
+  const cat = card.cat || fitCat(card);
+  const T = fitsTable(card);
+  const [MW, MH] = CAT_MAX[cat] || [12, 16];
+  const [mw, mh] = minSizeFor({ ...card, cat });
+  let w, h;
+  if (card.w && card.h){ w = card.w; h = card.h; }
+  else {
+    const list = T[cat] || T.C4;
+    const f = list[Math.min(card.fit || 0, list.length - 1)];
+    w = f[0]; h = f[1];
+  }
+  w = Math.max(mw, Math.min(MW, w));
+  h = Math.max(mh, Math.min(MH, h));
+  /* a size the category will not accept is raised to the nearest one it will */
+  if (!sizeLegal(cat, w, h, T)){
+    const needH = minHeightAt(cat, w, T);
+    if (needH != null) h = Math.max(h, needH);
+    else { const needW = minWidthAt(cat, h, T); if (needW != null) w = Math.max(w, needW); }
+  }
+  const [gw, gh] = fitToGrid(w, h, cols);
+  return { w: gw, h: gh, authoredW: w, authoredH: h, cat, colW: colW || COL_W,
+           fit: resolveFit(cat, gw, gh, T) ?? 0, clamped: gw !== w };
+}
 /* dial charts need a legend under the dial; the rest are fine in a panel */
 const TALL = new Set(["pie","ring","sunburst","gauge"]);
 const MULTI_OK = new Set(["line","area","bar","composed"]);
@@ -1225,15 +1479,17 @@ function resizeForChart(c){
   clampFit(c);
 }
 function clampFit(c, wanted){
+  const T = fitsTable(c);
   if (c.w && c.h){
-    const [mw, mh] = minSizeFor(c);
-    c.w = Math.max(c.w, mw); c.h = Math.max(c.h, mh);
+    const g = geometryOf(c, 24);          /* 24 = the widest legal grid; no clamp here */
+    c.w = g.authoredW; c.h = g.authoredH; c.cat = g.cat; c.fit = g.fit;
     return;
   }
   let legal = fitsFor(c, c.cat);
   if (!legal.length){ c.cat = fitCat(c); legal = fitsFor(c, c.cat); }
-  const want = wanted ?? DEFAULT_FIT[c.cat];
+  const want = wanted ?? (isSpecial(c) ? 0 : DEFAULT_FIT[c.cat]);
   c.fit = legal.some(([i]) => i === want) ? want : legal[0][0];
+  void T;
 }
 function legalFor(key){ const rd = readingOf(key); return LEGAL[rd.shape] || ["stat"]; }
 
@@ -1287,325 +1543,465 @@ function tools(){
 /* The grid's own geometry — resize snaps to this, nothing else. */
 const GRID = { cols: 12, unit: 64, gutter: 24 };
 
-function sizeOf(c){
-  if (c.w && c.h) return [c.w, c.h];              /* hand-resized */
-  if (c.type === 'action_hub') return [6, 2];
-  if (c.type === 'bank_liquidity') return [6, 2];
-  if (c.type === 'alerts_hub') return [6, 3];
-  if (c.type === 'growth_engine') return [6, 2];
-  if (c.type === 'custom_button') return [2, 1];
-  if (c.cat && FITS[c.cat]) {
-    const f = FITS[c.cat][Math.min(c.fit || 0, FITS[c.cat].length - 1)];
-    return [f[0], f[1]];
-  }
-  return [4, 3];
+/** The rendered [cols, rows] — clamped to the card's floor, its category max
+    and the live grid. Nothing else in the file may compute a card's size. */
+function sizeOf(c, cols, colW){
+  const g = geometryOf(c, cols, colW);
+  return [g.w, g.h];
+}
+/** The size the author chose, before the grid clamp — what the editor shows. */
+function authoredSizeOf(c){
+  const g = geometryOf(c, 24);
+  return [g.authoredW, g.authoredH];
 }
 
+/* ── measuring the chart host ─────────────────────────────────────────────
+   Measure first, and only fall back to arithmetic when the host is not in the
+   document yet. The old fallback subtracted a fixed 100px for the header, which
+   is right for exactly one card shape and wrong for every other — a gauge in a
+   2-row card came out with a negative body and drew on top of its own label. */
 function hostDimensions(host, card) {
+  /* clientWidth/Height are LAYOUT sizes. getBoundingClientRect() is the painted
+     rect, which includes any transform — and cards animate in under
+     `scale(.985)`, so measuring the rect during that animation drew every chart
+     1.5% narrow. The SVG has no viewBox, so a mis-measure is not a soft error:
+     the drawing stays at its original scale inside a stretched element and ends
+     up squashed against the left edge. Measure layout, not paint. */
+  if (host && host.clientWidth > 30 && host.clientHeight > 24)
+    return { W: host.clientWidth, H: host.clientHeight };
+
   const cardEl = host ? host.closest(".vqc") : null;
-  const isPreview = host && host.closest(".vq-preview-stage");
-  
-  // Measure direct client dimensions if already rendered in DOM
-  const clientW = host ? host.clientWidth : 0;
-  const clientH = host ? host.clientHeight : 0;
-
-  if (clientW > 30 && clientH > 30) {
-    return { W: Math.round(clientW), H: Math.round(clientH) };
+  let cardW = 0, cardH = 0;
+  if (cardEl){
+    cardW = cardEl.clientWidth; cardH = cardEl.clientHeight;
+  }
+  if (cardW < 30 || cardH < 30){
+    const board = (host && host.closest(".vq-grid")) || document.getElementById("board");
+    const cols = boardCols(board);
+    const [wCols, hRows] = sizeOf(card, cols);
+    let colW = 112;
+    if (board && board.clientWidth > 0)
+      colW = Math.max(36, (board.clientWidth - GRID.gutter * (cols - 1)) / cols);
+    cardW = wCols * colW + (wCols - 1) * GRID.gutter;
+    cardH = hRows * GRID.unit + (hRows - 1) * GRID.gutter;
   }
 
-  // Calculate from card / grid bounds
-  let [wCols, hRows] = sizeOf(card);
-  const board = (host && host.closest(".vq-preview-stage")) || (host && host.closest(".vq-grid")) || document.getElementById("board") || document.body;
-  let colW = 140;
-  if (board && board.clientWidth > 0) {
-    const computedCols = getComputedStyle(board).getPropertyValue("--vq-cols") || 12;
-    const cols = parseInt(computedCols, 10) || 12;
-    colW = Math.max(36, (board.clientWidth - 24 * (cols - 1)) / cols);
+  /* Everything above the host, measured rather than guessed where we can. */
+  let above = 0;
+  if (cardEl){
+    const cs = getComputedStyle(cardEl);
+    above += parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    [...cardEl.children].forEach(ch => {
+      if (ch === host || ch.classList.contains("vqc-glare")
+          || ch.classList.contains("vqc-star")
+          || ch.classList.contains("vqc-resize")) return;
+      if (ch.offsetHeight) above += ch.offsetHeight;
+    });
   }
-  
-  let cardW = Math.round(wCols * colW + (wCols - 1) * 24);
-  let cardH = Math.round(hRows * 64 + (hRows - 1) * 24);
-
-  if (isPreview && cardEl) {
-    const cardRect = cardEl.getBoundingClientRect();
-    if (cardRect.width > 30) cardW = cardRect.width;
-    if (cardRect.height > 30) cardH = cardRect.height;
+  if (!above){
+    const selfLabelled = card.chart === "gauge" || card.chart === "ring" || card.chart === "sunburst";
+    above = (card.chart !== "status" && !selfLabelled) ? 92 : 30;
+    if (card.extraKeys && card.extraKeys.length) above += 26;
+    above += 28;
   }
-
-  const selfLabelled = card.chart === "gauge" || card.chart === "ring" || card.chart === "sunburst";
-  const showHead = card.chart !== "status" && !selfLabelled;
-  const headerDeduction = showHead ? 100 : 32;
-  const extraKeysDeduction = (card.extraKeys && card.extraKeys.length > 0) ? 30 : 0;
-  
-  const calcW = Math.max(80, Math.round(cardW - 28));
-  const calcH = Math.max(50, Math.round(cardH - 28 - headerDeduction - extraKeysDeduction));
-
-  const W = Math.max(80, clientW > 30 ? clientW : calcW);
-  const H = Math.max(50, clientH > 30 ? clientH : calcH);
-  return { W: Math.round(W), H: Math.round(H) };
+  return {
+    W: Math.max(60, Math.round(cardW - 28)),
+    H: Math.max(40, Math.round(cardH - above)),
+  };
 }
 
+/* The store slug the page was rendered for — never a literal. */
+let STORE_SLUG = "";
+const storePath = p => STORE_SLUG ? `/s/${STORE_SLUG}${p}` : p;
 function getDeepLinkForCard(key) {
   if (!key) return '/pos';
-  if (key.startsWith('sales')) return '/s/my-business-store-353/sales';
-  if (key.startsWith('purchase')) return '/s/my-business-store-353/purchase-orders';
-  if (key.startsWith('inventory')) return '/s/my-business-store-353/inventory';
-  if (key.startsWith('accounting') || key.startsWith('finance') || key.startsWith('bank')) return '/s/my-business-store-353/finance';
-  if (key.startsWith('parties') || key.startsWith('contacts')) return '/s/my-business-store-353/parties';
-  return '/s/my-business-store-353/reports';
+  if (key.startsWith('sales') || key.startsWith('pre_sales') || key.startsWith('proposals')
+      || key.startsWith('recurring') || key.startsWith('returns')) return storePath('/sales');
+  if (key.startsWith('purchase') || key.startsWith('debit_notes')) return storePath('/purchase-orders');
+  if (key.startsWith('inventory') || key.startsWith('batch') || key.startsWith('serial')
+      || key.startsWith('production')) return storePath('/inventory');
+  if (key.startsWith('accounting') || key.startsWith('finance') || key.startsWith('bank'))
+    return storePath('/finance');
+  if (key.startsWith('party') || key.startsWith('parties') || key.startsWith('contacts'))
+    return storePath('/parties');
+  if (key.startsWith('staff') || key.startsWith('operations')) return storePath('/reports');
+  return storePath('/reports');
 }
 
-function renderCard(c){
+/* ══ the card face ═════════════════════════════════════════════════════════
+   One function, one chrome contract, every family. A reading card, an
+   operations hub and a shortcut tile differ only in their interior; the frame,
+   the tools, the tone, the emphasis and the resize handle are identical, so
+   they are written once here and never per-family. */
+
+const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+const TONE_CLASS = {
+  surface:"vqc--tone-surface", accent:"vqc--tone-accent vqc--accent",
+  ink:"vqc--tone-ink", mesh:"vqc--tone-mesh",
+};
+
+/* Shortcut glyphs — one path set, drawn at whatever size the tile resolves to */
+const SHORTCUT_ICONS = {
+  cart:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+  box:'<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  truck:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  dollar:'<line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/>',
+  chart:'<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
+  bolt:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  plus:'<path d="M12 5v14"/><path d="M5 12h14"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V4.5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.5.6.87 1.15 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+};
+const shortcutIcon = (n, s = 20) =>
+  `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SHORTCUT_ICONS[n] || SHORTCUT_ICONS.bolt}</svg>`;
+
+/** The control cluster every card carries: open, drag, edit, remove.
+    The open arrow is one of the acts rather than a special case, so a card's
+    controls read as one set — and it is the only one the author can turn off. */
+function cardTools(c, link){
+  const arrow = c.showOpenArrow !== false && link;
+  return `<span class="vqc-tools">
+    ${arrow ? `<a href="${esc(link)}" class="vqc-nav-link" title="Open ${esc(destinationName(link))}" aria-label="Open ${esc(destinationName(link))}">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>` : ""}
+    <button type="button" class="vqc-act vqc-grip" title="Drag to reorder" aria-label="Drag to reorder">${ic("grip",13)}</button>
+    <button type="button" class="vqc-act vqc-edit" title="Edit card" aria-label="Edit card">${ic("pencil",12)}</button>
+    <button type="button" class="vqc-act vqc-del" title="Remove card" aria-label="Remove card">${ic("trash",12)}</button>
+  </span>`;
+}
+
+/** What the open arrow's tooltip says it will open. */
+function destinationName(path){
+  if (!path) return "";
+  const tail = String(path).replace(/\/$/, "").split("/").pop() || "";
+  const named = {
+    pos: "Point of Sale", sales: "Sales & Invoices", inventory: "Inventory & Stock",
+    "purchase-orders": "Purchasing", finance: "Finance & Accounts",
+    parties: "Parties & CRM", reports: "Reports & Intel", settings: "Settings",
+  };
+  return named[tail] || tail.replace(/-/g, " ");
+}
+
+/** The frame. Nothing may build an <article class="vqc"> except this. */
+function cardFrame(c, opts){
+  const { w, h, cat, clamped } = opts.geo;
   const tone = c.tone || (c.accent ? "accent" : "surface");
-  const toneClass = tone === "accent" ? "vqc--tone-accent vqc--accent" : tone === "ink" ? "vqc--tone-ink" : tone === "mesh" ? "vqc--tone-mesh" : "vqc--tone-surface";
-  const [w, h] = sizeOf(c);
-  const deepLink = c.link || getDeepLinkForCard(c.key);
-  const cTitle = c.title || (readingOf(c.key)?.label) || 'Card';
-  const showPicker = c.cat !== 'C2' && c.cat !== 'C1' && (c.showPeriodPicker !== false);
-
-  // 1. Quick Actions Hub Card
-  if (c.type === 'action_hub') {
-    return `<article class="vqc vqc--action-hub vqc--c4 vq-w${w} vq-h${h} vqc--tone-ink" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
-      <div class="vqc-hd">
-        <span class="vqc-eyebrow">OPERATIONS HUB</span>
-        <div class="vqc-acts">
-          <a href="${deepLink}" class="vqc-nav-link" title="Open Operations Hub" target="_self">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-          </a>
-          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-        </div>
-      </div>
-      <div>
-        <div class="vqc-action-hub-title">${c.title || 'Quick Operations Hub'}</div>
-        <div class="vqc-action-hub-sub">Point of sale, purchases & quick dispatch</div>
-      </div>
-      <div class="vqc-action-hub-grid">
-        <a href="/pos" class="vqc-hub-btn vqc-hub-btn--sales">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-          <span>Point of Sale</span>
-        </a>
-        <a href="/s/my-business-store-353/purchase-orders" class="vqc-hub-btn vqc-hub-btn--purchase">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          <span>Purchase Order</span>
-        </a>
-        <button type="button" class="vqc-hub-btn vqc-hub-btn--actions" onclick="window.VenQoreCards?.openGlassActions?.()">
-          <span class="vqc-hub-plus">+</span>
-          <span>Quick Actions</span>
-        </button>
-      </div>
-      <div class="vqc-grip"></div>
-    </article>`;
-  }
-
-  // 2. Bank Accounts & Cash in Hand Liquidity Card
-  if (c.type === 'bank_liquidity') {
-    return `<article class="vqc vqc--bank-liquidity vqc--c4 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
-      <div class="vqc-hd">
-        <span class="vqc-eyebrow">LIQUIDITY & BALANCES</span>
-        <div class="vqc-acts">
-          <a href="/s/my-business-store-353/finance" class="vqc-nav-link" title="Open Finance" target="_self">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-          </a>
-          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-        </div>
-      </div>
-      <div class="vqc-bank-grid">
-        <div class="vqc-bank-box">
-          <span class="vqc-bank-label">Bank Accounts</span>
-          <span class="vqc-bank-val">Rs 4,820,400</span>
-          <span class="vqc-bank-sub">3 accounts active</span>
-        </div>
-        <div class="vqc-bank-box">
-          <span class="vqc-bank-label">Cash on Hand</span>
-          <span class="vqc-bank-val">Rs 1,816,149</span>
-          <span class="vqc-bank-sub">Drawer & safe</span>
-        </div>
-        <div class="vqc-bank-box is-total">
-          <span class="vqc-bank-label">Total Liquid Net</span>
-          <span class="vqc-bank-val">Rs 6,636,549</span>
-          <span class="vqc-bank-sub" style="color:var(--vq-teal-600)">+8.2% vs last mo</span>
-        </div>
-      </div>
-      <div class="vqc-grip"></div>
-    </article>`;
-  }
-
-  // 3. Alerts & Action Required Card
-  if (c.type === 'alerts_hub') {
-    return `<article class="vqc vqc--alerts-hub vqc--c4 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
-      <div class="vqc-hd">
-        <span class="vqc-eyebrow">ACTIONS REQUIRED</span>
-        <div class="vqc-acts">
-          <a href="/s/my-business-store-353/reports" class="vqc-nav-link" title="Open Alerts" target="_self">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-          </a>
-          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-        </div>
-      </div>
-      <div class="vqc-alerts-list">
-        <a href="/s/my-business-store-353/inventory" class="vqc-alert-item vqc-alert-item--warning">
-          <span class="vqc-alert-dot"></span>
-          <span class="vqc-alert-msg"><strong>4 products</strong> reached safety reorder limit</span>
-          <span class="vqc-alert-btn">Reorder →</span>
-        </a>
-        <a href="/s/my-business-store-353/finance" class="vqc-alert-item vqc-alert-item--danger">
-          <span class="vqc-alert-dot"></span>
-          <span class="vqc-alert-msg"><strong>Rs 10,260</strong> customer dues overdue (>30 days)</span>
-          <span class="vqc-alert-btn">Follow up →</span>
-        </a>
-        <a href="/s/my-business-store-353/purchase-orders" class="vqc-alert-item vqc-alert-item--info">
-          <span class="vqc-alert-dot"></span>
-          <span class="vqc-alert-msg"><strong>2 purchase orders</strong> awaiting warehouse receipt</span>
-          <span class="vqc-alert-btn">Receive →</span>
-        </a>
-      </div>
-      <div class="vqc-grip"></div>
-    </article>`;
-  }
-
-  // 4. Growth Engine Card
-  if (c.type === 'growth_engine') {
-    return `<article class="vqc vqc--growth-engine vqc--c4 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
-      <div class="vqc-hd">
-        <span class="vqc-eyebrow">GROWTH ENGINE</span>
-        <div class="vqc-acts">
-          <a href="/s/my-business-store-353/reports" class="vqc-nav-link" title="Open Growth Engine" target="_self">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-          </a>
-          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-        </div>
-      </div>
-      <div class="vqc-growth-grid">
-        <div class="vqc-growth-stat">
-          <span class="vqc-growth-label">Revenue Velocity</span>
-          <span class="vqc-growth-val">+18.4%</span>
-          <span class="vqc-growth-sub">Pace vs prev month</span>
-        </div>
-        <div class="vqc-growth-stat">
-          <span class="vqc-growth-label">Target On-Track</span>
-          <span class="vqc-growth-val">94.2%</span>
-          <span class="vqc-growth-sub">Rs 2.8M / 3.0M Goal</span>
-        </div>
-        <div class="vqc-growth-stat">
-          <span class="vqc-growth-label">Customer Retention</span>
-          <span class="vqc-growth-val">68.5%</span>
-          <span class="vqc-growth-sub">Repeat shoppers</span>
-        </div>
-      </div>
-      <div class="vqc-grip"></div>
-    </article>`;
-  }
-
-  // 5. Custom Button Card (C1 Shortcut)
-  if (c.type === 'custom_button') {
-    return `<article class="vqc vqc--custom-btn vqc--c1 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
-      <div class="vqc-hd">
-        <span class="vqc-eyebrow">SHORTCUT</span>
-        <div class="vqc-acts">
-          <a href="${c.targetUrl || '/pos'}" class="vqc-nav-link" title="Open Shortcut" target="_self">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-          </a>
-          <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-          <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-        </div>
-      </div>
-      <a href="${c.targetUrl || '/pos'}" class="vqc-custom-action-anchor">
-        <div class="vqc-custom-icon-ring" style="background: ${c.btnColor || 'var(--vq-teal-500)'}">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        <span class="vqc-custom-btn-title">${c.title || 'Launch Action'}</span>
-        <span class="vqc-custom-btn-sub">${c.sub || 'Instant one-click dispatch'}</span>
-      </a>
-      <div class="vqc-grip"></div>
-    </article>`;
-  }
-
-  // 6. C2 Strip (Strictly Pure Number: Label Left, Value Right - NO arrow, NO picker dropdown)
-  if (c.cat === 'C2' || (c.chart === 'stat' && (c.w === 4 || c.w === 3 || c.w === 6) && (c.h === 1 || c.h === 2))) {
-    const hl = headlineOf(c);
-    const isStacked = c.h === 2 && c.w === 3;
-    return `<article class="vqc vqc--c2 vq-w${w} vq-h${h} ${toneClass}" data-id="${c.id}" style="grid-column: span ${w}; grid-row: span ${h};">
-      <div class="vqc-bd vqc-bd--c2 ${isStacked ? 'is-stacked' : 'is-inline'}">
-        <span class="vqc-eyebrow" title="${cTitle}">${cTitle}</span>
-        <div class="vqc-c2-val-group">
-          <span class="vqc-head-val vqc-value">${rollerHTML(hl.value)}</span>
-          ${hl.pct ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ''}
-        </div>
-      </div>
-      <div class="vqc-tools">
-        <button class="vqc-act vqc-edit" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-      </div>
-      <div class="vqc-grip"></div>
-    </article>`;
-  }
-
-  const rd = readingOf(c.key);
-  const title = c.title || rd.label;
-  const hl = headlineOf(c);
-  const keys = [c.key, ...c.extraKeys];
-  const legend = (keys.length > 1 && CARTESIAN.has(c.chart))
-    ? `<div class="vqc-leg">${keys.map((k,i) => `<button class="vqc-leg-i" data-i="${i}">
-        <span class="vqc-leg-d" style="background:var(--vq-series-${(i%8)+1})"></span>${readingOf(k).label}</button>`).join("")}</div>`
-    : "";
-
-  let body;
-  if (c.cat === "C1" && c.chart === "stat"){
-    body = `${tools()}<div class="vqc-bd vqc-bd--tile">
-      <span class="vqc-label">${title}</span>
-      <span class="vqc-value vqc-value--xs">${rollerHTML(hl.value)}</span></div>`;
-  } else if (c.cat === "C2" && c.chart === "stat"){
-    const [cw] = sizeOf(c);
-    const inline = c.fit === 0 && !c.h;
-    /* even the one-row strip says what it is and over what window */
-    body = `${tools()}<div class="vqc-bd vqc-bd--strip ${inline ? "is-inline" : ""}">
-      <span class="vqc-eyebrow" title="${title}">${title}</span>
-      <span class="vqc-head">
-        <span class="vqc-head-val vqc-value vqc-value--sm">${rollerHTML(hl.value)}</span>
-        <span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span></span>
-      <span class="vqc-head-when vqc-when">${cw >= 6 ? hl.when : c.period}</span></div>`;
-  } else {
-    /* only suppress the headline when the chart draws the number in its centre */
-    const selfLabelled = c.chart === "gauge" || c.chart === "ring" || c.chart === "sunburst"
-      || (c.chart === "pie" && c.variant === "donut");
-    const showHead = c.chart !== "status" && !selfLabelled;
-    body = `<div class="vqc-hd"><span class="vqc-eyebrow">${title}</span>
-      <span class="vqc-hd-r">${PREFS.periodPicker ? periodPicker(c) : ""}${tools()}</span></div>
-      ${showHead ? `<div class="vqc-head">
-        <span class="vqc-head-val vqc-value">${rollerHTML(hl.value)}</span>
-        <span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>
-      </div>` : ""}
-      ${c.chart === "status" ? "" : `<p class="vqc-head-when vqc-when">${hl.when}</p>`}
-      ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}`;
-  }
-  return `<article class="vqc vqc--${c.cat.toLowerCase()} vq-w${w} vq-h${h} ${toneClass}"
-    data-id="${c.id}" tabindex="0" draggable="false" style="--i:${CARDS.indexOf(c)}">${body}
+  const cls = [
+    "vqc", `vqc--${String(cat).toLowerCase()}`, `vq-w${w}`, `vq-h${h}`,
+    TONE_CLASS[tone] || TONE_CLASS.surface,
+    opts.extraClass || "",
+    c.starBorder ? "vqc--starred" : "",
+    c.glare === false ? "" : (c.accent || c.glare ? "vqc--glared" : ""),
+    clamped ? "is-clamped" : "",
+    `vqc--fit-${opts.geo.fit}`,
+  ].filter(Boolean).join(" ");
+  /* --vqw / --vqh let the stylesheet reason about a card's own span without a
+     container query, so an interior can thin out at 2 rows and fill out at 6. */
+  return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${w}" data-h="${h}"
+    tabindex="0" draggable="false"
+    style="--i:${CARDS.indexOf(c)};--vqw:${w};--vqh:${h}">
+    ${c.starBorder ? `<span class="vqc-star" aria-hidden="true"></span>` : ""}
+    ${opts.body}
     <span class="vqc-glare" aria-hidden="true"></span>
-    <button class="vqc-resize" aria-label="Resize card" title="Drag to resize"></button></article>`;
+    <button type="button" class="vqc-resize" aria-label="Resize card" title="Drag to resize"></button>
+  </article>`;
+}
+
+/* ── the interiors ─────────────────────────────────────────────────────── */
+
+function hubHead(c, eyebrow, link){
+  return `<div class="vqc-hd">
+    <span class="vqc-eyebrow" title="${esc(eyebrow)}">${esc(eyebrow)}</span>
+    <span class="vqc-hd-r">${cardTools(c, link)}</span>
+  </div>`;
+}
+
+function bodyActionHub(c, geo){
+  const link = c.targetUrl || c.link || '/pos';
+  /* §6 in miniature: a card that gets bigger does not get emptier, it changes
+     shape. The hub offers three lanes at its floor and grows to eight, so the
+     space a larger card buys is spent on more of the product rather than on
+     more air around the same three buttons. */
+  const ALL = [
+    { href:'/pos',                          mod:'sales',    icon:'cart',   label:'Point of Sale' },
+    { href: storePath('/purchase-orders'),  mod:'purchase', icon:'truck',  label:'Purchase Order' },
+    { href:null,                            mod:'actions',  icon:'plus',   label:'Quick Actions' },
+    { href: storePath('/sales'),            mod:'quiet',    icon:'file',   label:'New Invoice' },
+    { href: storePath('/inventory'),        mod:'quiet',    icon:'box',    label:'Add Product' },
+    { href: storePath('/parties'),          mod:'quiet',    icon:'users',  label:'New Customer' },
+    { href: storePath('/finance'),          mod:'quiet',    icon:'dollar', label:'Add Expense' },
+    { href: storePath('/reports'),          mod:'quiet',    icon:'chart',  label:'Reports' },
+  ];
+  /* How many lanes fit, in pixels rather than by eye: the card's own height,
+     less its padding, its header row and its title block, divided by a lane
+     plus a gutter. Counting rows instead left a 3-row hub with one row of
+     buttons and a dead band underneath. */
+  const cardH  = geo.h * 64 + (geo.h - 1) * 24;
+  const titleH = geo.h >= 3 ? 61 : 0;                 /* h3 line + sub + margin */
+  const free   = cardH - 40 /* padding */ - 34 /* header */ - titleH;
+  const rows   = Math.max(1, Math.floor((free + 8) / (40 + 8)));
+  /* A lane needs about two grid columns to hold an icon and a readable label,
+     so the column count comes from the card's span and the row count from its
+     measured height. The grid is then told that number outright rather than
+     being left to auto-fit into a different one — the two disagreeing is how a
+     six-column hub ended up with eight 113px lanes, each too narrow to read. */
+  const perRow = Math.max(1, Math.floor(geo.w / 2));
+  const items  = ALL.slice(0, Math.max(3, Math.min(ALL.length, perRow * rows)));
+  return hubHead(c, SPECIAL.action_hub.eyebrow, link) +
+    `<div class="vqc-hub-title-wrap">
+       <div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
+       <div class="vqc-action-hub-sub">${esc(SPECIAL.action_hub.sub)}</div>
+     </div>
+     <div class="vqc-action-hub-grid" style="grid-template-columns:repeat(${Math.min(perRow, items.length)},minmax(0,1fr))">${items.map(i => i.href
+       ? `<a href="${esc(i.href)}" class="vqc-hub-btn vqc-hub-btn--${i.mod}">${shortcutIcon(i.icon,15)}<span>${esc(i.label)}</span></a>`
+       : `<button type="button" class="vqc-hub-btn vqc-hub-btn--${i.mod}" data-glass="1">${shortcutIcon(i.icon,15)}<span>${esc(i.label)}</span></button>`
+     ).join("")}</div>`;
+}
+
+function bodyBankLiquidity(c, geo){
+  const link = c.targetUrl || c.link || storePath('/finance');
+  const boxes = [
+    { l:'Bank Accounts',   v:'Rs 4,820,400', s:'3 accounts active' },
+    { l:'Cash on Hand',    v:'Rs 1,816,149', s:'Drawer & safe' },
+    { l:'Total Liquid Net',v:'Rs 6,636,549', s:'+8.2% vs last mo', total:true },
+  ];
+  return hubHead(c, SPECIAL.bank_liquidity.eyebrow, link) +
+    `<div class="vqc-hub-title-wrap"><div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
+      <div class="vqc-action-hub-sub">${esc(SPECIAL.bank_liquidity.sub)}</div></div>` +
+    `<div class="vqc-bank-grid">${boxes.map(b => `
+      <div class="vqc-bank-box${b.total ? ' is-total' : ''}">
+        <span class="vqc-bank-label">${esc(b.l)}</span>
+        <span class="vqc-bank-val">${esc(b.v)}</span>
+        <span class="vqc-bank-sub">${esc(b.s)}</span>
+      </div>`).join("")}</div>`;
+}
+
+function bodyAlertsHub(c, geo){
+  const link = c.targetUrl || c.link || storePath('/reports');
+  const rows = [
+    { k:'warning', href: storePath('/inventory'),       msg:'<strong>4 products</strong> reached safety reorder limit', cta:'Reorder' },
+    { k:'danger',  href: storePath('/finance'),         msg:'<strong>Rs 10,260</strong> customer dues overdue (>30 days)', cta:'Follow up' },
+    { k:'info',    href: storePath('/purchase-orders'), msg:'<strong>2 purchase orders</strong> awaiting warehouse receipt', cta:'Receive' },
+    { k:'warning', href: storePath('/inventory'),       msg:'<strong>6 batches</strong> expire within 30 days', cta:'Review' },
+    { k:'info',    href: storePath('/sales'),           msg:'<strong>3 quotations</strong> waiting on customer reply', cta:'Chase' },
+  ];
+  /* one row per row-track above the header — never more than will fit */
+  const room = Math.max(1, Math.min(rows.length, Math.floor((geo.h - 1) * 88 / 46)));
+  return hubHead(c, SPECIAL.alerts_hub.eyebrow, link) +
+    `<div class="vqc-alerts-list">${rows.slice(0, room).map(r => `
+      <a href="${esc(r.href)}" class="vqc-alert-item vqc-alert-item--${r.k}">
+        <span class="vqc-alert-dot"></span>
+        <span class="vqc-alert-msg">${r.msg}</span>
+        <span class="vqc-alert-btn">${esc(r.cta)} &rarr;</span>
+      </a>`).join("")}</div>`;
+}
+
+function bodyGrowthEngine(c, geo){
+  const link = c.targetUrl || c.link || storePath('/reports');
+  const stats = [
+    { l:'Revenue Velocity',   v:'+18.4%', s:'Pace vs prev month' },
+    { l:'Target On-Track',    v:'94.2%',  s:'Rs 2.8M / 3.0M goal' },
+    { l:'Customer Retention', v:'68.5%',  s:'Repeat shoppers' },
+  ];
+  return hubHead(c, SPECIAL.growth_engine.eyebrow, link) +
+    `<div class="vqc-hub-title-wrap"><div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
+      <div class="vqc-action-hub-sub">${esc(SPECIAL.growth_engine.sub)}</div></div>` +
+    `<div class="vqc-growth-grid">${stats.map(s => `
+      <div class="vqc-growth-stat">
+        <span class="vqc-growth-label">${esc(s.l)}</span>
+        <span class="vqc-growth-val">${esc(s.v)}</span>
+        <span class="vqc-growth-sub">${esc(s.s)}</span>
+      </div>`).join("")}</div>`;
+}
+
+function bodyCustomButton(c, geo){
+  const href = c.targetUrl || c.link || '/pos';
+  const colour = c.btnColor || 'var(--vq-teal-500)';
+  /* 1×1 is the icon fit: glyph only, name in the tooltip. Everything wider
+     shows the label; two rows and up also show the sub-line. §6 C1. */
+  const iconOnly = geo.w < 2;
+  const label = titleOf(c);
+  return `<a href="${esc(href)}" class="vqc-custom-action-anchor${iconOnly ? ' is-icon' : ''}"
+      title="${esc(label)}">
+      <span class="vqc-custom-icon-ring" style="background:${esc(colour)}">${shortcutIcon(c.icon || 'bolt', 18)}</span>
+      ${iconOnly ? "" : `<span class="vqc-custom-text">
+        <span class="vqc-custom-btn-title">${esc(label)}</span>
+        ${geo.h >= 2 ? `<span class="vqc-custom-btn-sub">Open ${esc(destinationName(href))}</span>` : ""}
+      </span>`}
+    </a>${cardTools(c, href)}`;
+}
+
+const SPECIAL_BODY = {
+  action_hub: bodyActionHub, bank_liquidity: bodyBankLiquidity,
+  alerts_hub: bodyAlertsHub, growth_engine: bodyGrowthEngine,
+  custom_button: bodyCustomButton,
+};
+
+/* ── the reading interiors ─────────────────────────────────────────────── */
+
+/* C2 · the strip. The reference lays the inline form as a three-column grid —
+   label | value | window — because a flex row lets the label push the number
+   off the end. The value never shrinks; the window truncates next; the label
+   gives way first. */
+function bodyStrip(c, geo, link){
+  const hl = headlineOf(c);
+  const title = titleOf(c);
+  /* §6, verbatim: the inline strip has a 356px floor. Below it the card does
+     not truncate its way through — it degrades to the leaner fit, which trades
+     a column for a row. That only works if the card has a second row to trade
+     into; a one-row strip has nowhere to go and drops the label instead. */
+  const px = pxWidth(geo.w, geo.colW);
+  const stacked = geo.h >= 2 && (geo.fit === 1 || geo.w <= 3 || px < 356);
+  const delta = c.showDelta === false ? "" :
+    `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>`;
+  const when = c.showWhen === false ? "" : `<span class="vqc-when">${esc(c.period)}</span>`;
+  return `<div class="vqc-bd vqc-bd--strip ${stacked ? "is-stacked" : "is-inline"}">
+      <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
+      <span class="vqc-head">
+        <span class="vqc-value vqc-value--sm">${rollerHTML(hl.value)}</span>
+        ${delta}
+      </span>
+      ${when}
+    </div>${cardTools(c, link)}`;
+}
+
+/* C1 · the tile. Icon-and-label at 2×1, the label in a tooltip at 1×1. */
+function bodyTile(c, geo, link){
+  const hl = headlineOf(c);
+  const title = titleOf(c);
+  return `<div class="vqc-bd vqc-bd--tile">
+      ${geo.w > 1 ? `<span class="vqc-label" title="${esc(title)}">${esc(title)}</span>` : ""}
+      <span class="vqc-value vqc-value--xs">${rollerHTML(hl.value)}</span>
+    </div>${cardTools(c, link)}`;
+}
+
+/** A card is named by what it shows, never by what someone typed. A reading
+    card takes the reading's label, a hub its template's name, a shortcut its
+    destination — so two boards of the same data read the same way. */
+function titleOf(c){
+  if (isSpecial(c)) return c.title || SPECIAL[c.type].name;
+  return readingOf(c.key).label;
+}
+
+function bodyChartCard(c, geo, link){
+  const title = titleOf(c);
+  const hl = headlineOf(c);
+  const keys = [c.key, ...(c.extraKeys || [])];
+  const legend = (keys.length > 1 && CARTESIAN.has(c.chart))
+    ? `<div class="vqc-leg">${keys.map((k,i) => `<button type="button" class="vqc-leg-i" data-i="${i}">
+        <span class="vqc-leg-d" style="background:var(--vq-series-${(i%8)+1})"></span>${esc(readingOf(k).label)}</button>`).join("")}</div>`
+    : "";
+  /* the number is suppressed only when the chart already draws it in its centre */
+  const selfLabelled = c.chart === "gauge" || c.chart === "ring" || c.chart === "sunburst"
+    || (c.chart === "pie" && c.variant === "donut");
+  const showHead = c.chart !== "status" && !selfLabelled;
+  /* The author's four switches, each additionally gated by whether the card is
+     actually big enough to carry the thing. A switch says "I want this"; the
+     geometry says "there is room" — a card never overflows because of a
+     preference. */
+  const room = geo.h;
+  const showWhen   = c.showWhen !== false && c.chart !== "status" && room >= 4;
+  const showDelta  = c.showDelta !== false && geo.w >= 2;
+  const showPicker = c.showPeriodPicker !== false && PREFS.periodPicker
+                     && room >= 2 && geo.w >= 3;
+  return `<div class="vqc-hd">
+      <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
+      <span class="vqc-hd-r">${showPicker ? periodPicker(c) : ""}${cardTools(c, link)}</span>
+    </div>
+    <div class="vqc-bd">
+      ${showHead ? `<div class="vqc-head">
+        <span class="vqc-value">${rollerHTML(hl.value)}</span>
+        ${showDelta ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
+      </div>` : ""}
+      ${showWhen ? `<p class="vqc-when">${esc(hl.when)}</p>` : ""}
+      ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}
+    </div>`;
+}
+
+function renderCard(c, cols, colW){
+  const geo = geometryOf(c, cols, colW);
+  const link = c.targetUrl || c.link || getDeepLinkForCard(c.key);
+
+  if (isSpecial(c)){
+    const fn = SPECIAL_BODY[c.type];
+    return cardFrame(c, {
+      geo, body: fn(c, geo),
+      extraClass: `vqc--${c.type.replace(/_/g,"-")} vqc--special vqc--fam-${SPECIAL[c.type].family}`,
+    });
+  }
+
+  const body =
+      geo.cat === "C1" ? bodyTile(c, geo, link)
+    : geo.cat === "C2" ? bodyStrip(c, geo, link)
+    : bodyChartCard(c, geo, link);
+
+  return cardFrame(c, { geo, body, extraClass: `vqc--chart-${c.chart}` });
 }
 
 /* ── draw ──────────────────────────────────────────────────────────────── */
-let RESIZE_T = null;
+/* Measured once per draw and read by geometryOf, so every card in a pass
+   resolves against the same column width rather than each re-measuring. */
+let COL_W = 112;
+let RESIZE_T = null, LAST_COLS = 0;
+
+/* One observer for every chart host on the board. A chart is a raster of its
+   host's size, so it has to be re-cut whenever that size changes — and a host
+   can change size without the window doing so: the nav pushes, a card is
+   resized by hand, a font finishes loading, an ancestor animates. Watching the
+   element rather than the window is the only version of this that is always
+   right. Sizes are compared before re-mounting, so a settled board does no
+   work at all. */
+const HOST_SIZES = new WeakMap();
+const HOST_RO = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(entries => {
+  for (const entry of entries){
+    const host = entry.target;
+    const w = host.clientWidth, h = host.clientHeight;
+    if (w < 20 || h < 16) continue;
+    const was = HOST_SIZES.get(host);
+    if (was && Math.abs(was.w - w) < 2 && Math.abs(was.h - h) < 2) continue;
+    HOST_SIZES.set(host, { w, h });
+    const el = host.closest(".vqc");
+    const card = el && cardOf(el.dataset.id);
+    if (card) mountChart(host, card);
+  }
+});
 function draw(){
   const board = document.getElementById("board");
-  board.innerHTML = CARDS.map(renderCard).join("")
-    || `<p class="board-empty">No cards yet — open <strong>Add cards</strong> and pick what you want to see.</p>`;
-  document.getElementById("count").textContent = CARDS.length;
+  if (!board) return;
+  const cols = boardCols(board);
+  COL_W = boardColW(board);
+  LAST_COLS = cols;
+  /* innerHTML discards the old hosts, but a ResizeObserver keeps a strong
+     reference to everything it observes — so without this the observer would
+     accumulate one dead host per redraw for the life of the page. */
+  HOST_RO?.disconnect();
+  board.innerHTML = CARDS.map(c => renderCard(c, cols)).join("")
+    || `<p class="board-empty">No cards yet — open <strong>Add card</strong> and pick what you want to see.</p>`;
+  const count = document.getElementById("count");
+  if (count) count.textContent = CARDS.length;
 
   board.querySelectorAll(".vqc").forEach(el => {
     const c = cardOf(el.dataset.id); if (!c) return;
     const host = el.querySelector(".vqc-host");
-    if (host) mountChart(host, c);
-    el.querySelector(".vqc-edit")?.addEventListener("click", e => { e.stopPropagation(); openEdit(c.id); });
+    if (host){ mountChart(host, c); HOST_RO?.observe(host); }
+    el.querySelector(".vqc-edit")?.addEventListener("click", e => {
+      e.stopPropagation();
+      if (typeof window !== "undefined" && window._vqEditCard) window._vqEditCard(c.id);
+      else openEdit(c.id);
+    });
     el.querySelector(".vqc-del") ?.addEventListener("click", e => {
       e.stopPropagation();
       el.classList.add("is-going");
       setTimeout(() => { CARDS = CARDS.filter(x => x.id !== c.id); if (EDIT === c.id) closeEdit(); draw(); }, 200);
     });
+    /* the hub's own "quick actions" button opens the React popup */
+    el.querySelectorAll('[data-glass]').forEach(b => b.addEventListener("click", e => {
+      e.preventDefault(); e.stopPropagation();
+      if (window._vqOpenGlassActions) window._vqOpenGlassActions();
+    }));
     /* legend hover dims the other series, same as the reference */
     el.querySelectorAll(".vqc-leg-i").forEach(btn => {
       const i = +btn.dataset.i;
@@ -1622,12 +2018,20 @@ function draw(){
   });
   renderLibrary();
 }
-addEventListener("resize", () => { clearTimeout(RESIZE_T); RESIZE_T = setTimeout(() => {
-  document.querySelectorAll(".vqc").forEach(el => {
+/* Re-measure on resize. When the grid changes column count the cards have to
+   be re-laid, not just re-drawn — a 12-wide board card is an 8-wide one at
+   1280 and its interior resolves to a different fit. Same column count and we
+   only re-mount the charts, so the board never flickers for nothing. */
+function relayout(){
+  const board = document.getElementById("board");
+  if (!board) return;
+  if (boardCols(board) !== LAST_COLS) { draw(); return; }
+  board.querySelectorAll(".vqc").forEach(el => {
     const c = cardOf(el.dataset.id), host = el.querySelector(".vqc-host");
     if (c && host) mountChart(host, c);
   });
-}, 180); });
+}
+addEventListener("resize", () => { clearTimeout(RESIZE_T); RESIZE_T = setTimeout(relayout, 150); });
 
 /* ── on-card period menu ───────────────────────────────────────────────── */
 function wirePeriod(el, c){
@@ -1664,24 +2068,47 @@ function wireResize(el, c){
   const grip = el.querySelector(".vqc-resize"); if (!grip) return;
   grip.addEventListener("pointerdown", e => {
     e.preventDefault(); e.stopPropagation();
+    grip.setPointerCapture?.(e.pointerId);
     const board = document.getElementById("board");
-    const cols = getComputedStyle(board).gridTemplateColumns.split(" ").length;
+    const cols = boardCols(board);
     const colW = (board.clientWidth - GRID.gutter * (cols - 1)) / cols;
     const pitchX = colW + GRID.gutter, pitchY = GRID.unit + GRID.gutter;
     const start = el.getBoundingClientRect();
-    const [minW, minH] = minSizeFor(c);
+    const T = fitsTable(c);
+    const cat = c.cat || fitCat(c);
+    const [MW, MH] = CAT_MAX[cat] || [12, 16];
+    const [floorW, floorH] = minSizeFor(c);
+    const capW = Math.min(cols, MW);
     el.classList.add("is-resizing");
     document.body.classList.add("is-reordering");
     const hint = document.createElement("span");
     hint.className = "vqc-size-hint"; el.appendChild(hint);
+    let lastW = 0, lastH = 0;
 
     const move = ev => {
-      const w = Math.round((ev.clientX - start.left + GRID.gutter) / pitchX);
-      const h = Math.round((ev.clientY - start.top + GRID.gutter) / pitchY);
-      c.w = Math.max(minW, Math.min(cols, w));
-      c.h = Math.max(minH, Math.min(16, h));
-      el.className = el.className.replace(/vq-w\d+/, "vq-w" + c.w).replace(/vq-h\d+/, "vq-h" + c.h);
-      hint.textContent = `${c.w} × ${c.h}`;
+      let w = Math.round((ev.clientX - start.left + GRID.gutter) / pitchX);
+      let h = Math.round((ev.clientY - start.top + GRID.gutter) / pitchY);
+      w = Math.max(floorW, Math.min(capW, w));
+      h = Math.max(floorH, Math.min(MH, h));
+      /* the category will not accept every rectangle — raise to the nearest
+         one it will, so a drag can never leave a card in an illegal shape */
+      if (!sizeLegal(cat, w, h, T)){
+        const needH = minHeightAt(cat, w, T);
+        if (needH != null) h = Math.max(h, needH);
+        else { const needW = minWidthAt(cat, h, T); if (needW != null) w = Math.max(w, needW); }
+        h = Math.min(h, MH); w = Math.min(w, capW);
+      }
+      if (w === lastW && h === lastH) return;
+      lastW = w; lastH = h;
+      c.w = w; c.h = h;
+      c.fit = resolveFit(cat, w, h, T) ?? c.fit;
+      el.className = el.className
+        .replace(/vq-w\d+/, "vq-w" + w).replace(/vq-h\d+/, "vq-h" + h)
+        .replace(/vqc--fit-\d+/, "vqc--fit-" + c.fit);
+      el.style.setProperty("--vqw", w); el.style.setProperty("--vqh", h);
+      el.dataset.w = w; el.dataset.h = h;
+      const fitName = (T[cat][c.fit] || [])[2];
+      hint.textContent = `${w} × ${h}${fitName ? " · " + fitName : ""}`;
       const host = el.querySelector(".vqc-host"); if (host) mountChart(host, c);
     };
     const up = () => {
@@ -1689,6 +2116,7 @@ function wireResize(el, c){
       el.classList.remove("is-resizing");
       document.body.classList.remove("is-reordering");
       hint.remove();
+      draw();                       /* the interior may resolve to a new fit */
       if (EDIT === c.id) openEdit(c.id);
     };
     addEventListener("pointermove", move); addEventListener("pointerup", up);
@@ -1842,6 +2270,10 @@ function closeEdit(){ EDIT = null; document.getElementById("edit").classList.rem
 /* ── library ───────────────────────────────────────────────────────────── */
 function renderLibrary(){
   const box = document.getElementById("lib-body"); if (!box) return;
+  /* The panel is a slide-over that starts closed. Rebuilding a hundred rows
+     into a hidden element on every single draw is work nobody sees. */
+  const panel = document.getElementById("lib");
+  if (panel && !panel.classList.contains("is-on")) return;
   const on = new Set(CARDS.map(c => c.key));
   const areas = ["All", ...new Set(READINGS.map(r => r.area))];
   const q = LIB_Q.trim().toLowerCase();
@@ -1870,6 +2302,7 @@ function renderLibrary(){
 
 /* ── boot ──────────────────────────────────────────────────────────────── */
 function boot(){
+  CARDS = []; EDIT = null;          /* a reset replaces the board, never doubles it */
   const has = k => READINGS.some(r => r.key === k);
   const pick = (...ks) => ks.find(has);
   const rev  = pick("sales.revenue_trend","sales.revenue");
@@ -1917,788 +2350,1216 @@ function boot(){
 // Expose engines and chart constraint helpers to React component
 window.VenQoreCards = {
   getCards: () => CARDS,
-  setCards: (newCards) => { CARDS = newCards; draw(); },
+  setCards: (newCards) => { CARDS = newCards.map(normaliseCard); draw(); },
+  addCardObject: (card) => { CARDS.push(normaliseCard(card)); draw(); return card; },
+  updateCard: (id, patch) => {
+    const c = cardOf(id); if (!c) return null;
+    Object.assign(c, patch); normaliseCard(c); draw(); return c;
+  },
   getReadings: () => READINGS,
   getCats: () => CATS,
   getCatNames: () => CAT_NAME,
+  getCatDescs: () => CAT_DESC,
+  getCatMax: () => CAT_MAX,
   getFits: () => FITS,
-  getCharts: () => CHARTS,
+  getSpecialFits: () => SPECIAL_FITS,
+  getSpecials: () => SPECIAL,
   getLegalCharts: () => LEGAL,
   getChartNames: () => CHART_NAME,
   getVariants: () => VARIANTS,
-  minSizeFor: minSizeFor,
-  fitCat: fitCat,
-  sizeOf: sizeOf,
+  getVariantsFor: (card) => variantsFor(normaliseCard({ ...card })),
+  getShortcutIcons: () => Object.keys(SHORTCUT_ICONS),
+  iconMarkup: (n, s) => shortcutIcon(n, s || 18),
+  /* the Layout Law, as the UI needs it */
+  sizesFor, presetsFor, sizeLegal, resolveFit, minHeightAt, minWidthAt, catFloor,
+  catsFor: (card) => catsFor(normaliseCard({ ...card })),
+  geometryOf: (card, cols, colW) => geometryOf(normaliseCard({ ...card }), cols, colW),
+  boardCols,
+  fitsTable: (card) => fitsTable(card),
+  isSpecial,
+  minSizeFor: (card) => minSizeFor(normaliseCard({ ...card })),
+  fitCat: (card) => fitCat(normaliseCard({ ...card })),
+  sizeOf,
+  authoredSizeOf,
   getReadingOf: readingOf,
   getHeadlineOf: headlineOf,
   renderCard: renderCard,
+  /* the Law's own column width — the preview draws at it rather than at
+     whatever the board behind the modal happens to be showing */
+  REFERENCE_COL_W: 112,
   mountChart: mountChart,
   draw: draw,
+  relayout: relayout,
   openEdit: openEdit,
   closeEdit: closeEdit,
   addCard: addCard,
   boot: boot,
+  setStoreSlug: (s) => { STORE_SLUG = s || ""; },
+  deepLinkFor: getDeepLinkForCard,
+  destinationName,
+  titleOf,
+  getPrefs: () => PREFS,
+  setPref: (k, v) => { PREFS[k] = v; draw(); },
   openGlassActions: () => {
     if (window._vqOpenGlassActions) window._vqOpenGlassActions();
   }
 };
 
-
-  // Boot the engine
-  if (typeof boot === 'function') {
-    boot();
+/** Fill in whatever a caller left out, then snap the card onto a legal size.
+    Every entry point into the engine goes through this, so a card built by the
+    React wizard and a card built by the library are the same object. */
+function normaliseCard(c){
+  if (!c) return c;
+  if (!c.id) c.id = newId();
+  if (isSpecial(c)){
+    const S = SPECIAL[c.type];
+    if (!c.cat || !S.cats.includes(c.cat)) c.cat = S.cat;
+  } else {
+    if (!c.chart) c.chart = legalFor(c.key)[0];
+    if (!c.variant) c.variant = defaultVariant(c.chart);
+    if (!Array.isArray(c.extraKeys)) c.extraKeys = [];
+    if (!c.period) c.period = "Month";
+    if (!c.cat || !FITS[c.cat] || !fitsFor(c, c.cat).length) c.cat = fitCat(c);
+    /* The bare number is the TILE and STRIP interior — those categories have no
+       chart host at all. A stat that lands in C3 or above has a body to fill,
+       and leaving it on `number` there is how a 3×3 card ended up as one figure
+       floating in 240px of nothing. */
+    if (c.chart === "stat"){
+      const chartless = c.cat === "C1" || c.cat === "C2";
+      if (chartless && c.variant !== "number") c.variant = "number";
+      if (!chartless && c.variant === "number") c.variant = "spark";
+    }
+    fixVariant(c);
   }
+  if (c.tone == null) c.tone = c.accent ? "accent" : "surface";
+  if (c.tone === "accent") c.accent = true;
+  const g = geometryOf(c, 24);
+  c.cat = g.cat; c.fit = g.fit;
+  if (c.w || c.h){ c.w = g.authoredW; c.h = g.authoredH; }
+  return c;
+}
 
-  // Set up resize observer to keep charts responsive
+
+  STORE_SLUG = (opts && opts.storeSlug) || "";
+  boot();
+
+  /* The board can change width without the window doing so — the nav pushes,
+     the editor drawer opens. Watch the element, not just the viewport. */
   const board = document.getElementById("board");
   if (board && typeof ResizeObserver !== "undefined") {
-    let timer = null;
+    let timer = null, lastW = board.clientWidth;
     const ro = new ResizeObserver(() => {
+      if (Math.abs(board.clientWidth - lastW) < 2) return;
+      lastW = board.clientWidth;
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        board.querySelectorAll(".vqc").forEach(el => {
-          const c = cardOf(el.dataset.id); if (!c) return;
-          const host = el.querySelector(".vqc-host");
-          if (host) mountChart(host, c);
-        });
-      }, 80);
+      timer = setTimeout(relayout, 90);
     });
     ro.observe(board);
   }
 }
 
-// ── ALL POSSIBLE SIZE OPTIONS FOR METRICS (C2 to C6) ─────────────────────
-const METRIC_SIZE_OPTIONS = [
-  // Strip C2 (Min 3×2/4×1, Max 6×2)
-  { id: 'c2-4x1', cat: 'C2', fit: 0, w: 4, h: 1, label: '4 × 1 Inline', sub: 'Strip C2', desc: 'Single KPI inline (label left, val right)' },
-  { id: 'c2-3x2', cat: 'C2', fit: 1, w: 3, h: 2, label: '3 × 2 Stacked', sub: 'Strip C2', desc: 'Stacked single KPI headline' },
-  { id: 'c2-6x2', cat: 'C2', fit: 0, w: 6, h: 2, label: '6 × 2 Wide Strip', sub: 'Strip C2 (Max)', desc: 'Max wide single KPI strip' },
+/* ══ what the wizard offers ════════════════════════════════════════════════
+   Nothing here lists a size. Sizes come out of the Layout Law resolver in the
+   engine above (sizesFor / presetsFor / CAT_MAX), so the wizard, the drag
+   handle and the board can never disagree about what is allowed. */
 
-  // Metric C3 (Min 2×3, Max 6×4)
-  { id: 'c3-4x3', cat: 'C3', fit: 0, w: 4, h: 3, label: '4 × 3 Full', sub: 'Metric C3', desc: 'KPI with delta & chart (full)' },
-  { id: 'c3-3x2', cat: 'C3', fit: 1, w: 3, h: 2, label: '3 × 2 Standard', sub: 'Metric C3', desc: 'Compact trend card' },
-  { id: 'c3-2x2', cat: 'C3', fit: 2, w: 2, h: 2, label: '2 × 2 Compact', sub: 'Metric C3', desc: 'Tight gauge / stat' },
-  { id: 'c3-2x3', cat: 'C3', fit: 3, w: 2, h: 3, label: '2 × 3 Stacked', sub: 'Metric C3 (Min)', desc: 'Vertical slim metric' },
-  { id: 'c3-6x4', cat: 'C3', fit: 0, w: 6, h: 4, label: '6 × 4 Wide Metric', sub: 'Metric C3 (Max)', desc: 'Max wide trend metric' },
-
-  // Panel C4 (Min 2×6, Max 6×6)
-  { id: 'c4-4x4', cat: 'C4', fit: 0, w: 4, h: 4, label: '4 × 4 Full', sub: 'Panel C4', desc: 'Standard breakdown & lists' },
-  { id: 'c4-3x4', cat: 'C4', fit: 1, w: 3, h: 4, label: '3 × 4 Standard', sub: 'Panel C4', desc: 'Narrow breakdown panel' },
-  { id: 'c4-3x5', cat: 'C4', fit: 2, w: 3, h: 5, label: '3 × 5 Compact', sub: 'Panel C4', desc: 'Vertical list panel' },
-  { id: 'c4-2x6', cat: 'C4', fit: 3, w: 2, h: 6, label: '2 × 6 List', sub: 'Panel C4 (Min)', desc: 'Long vertical table excerpt' },
-  { id: 'c4-6x6', cat: 'C4', fit: 0, w: 6, h: 6, label: '6 × 6 Wide Panel', sub: 'Panel C4 (Max)', desc: 'Max wide panel breakdown' },
-
-  // Board C5 (Min 4×8, Max 12×9)
-  { id: 'c5-6x6', cat: 'C5', fit: 0, w: 6, h: 6, label: '6 × 6 Full', sub: 'Board C5', desc: 'Full multi-series graph' },
-  { id: 'c5-5x7', cat: 'C5', fit: 1, w: 5, h: 7, label: '5 × 7 Narrow', sub: 'Board C5', desc: 'Tall multi-series chart' },
-  { id: 'c5-4x8', cat: 'C5', fit: 2, w: 4, h: 8, label: '4 × 8 Min', sub: 'Board C5 (Min)', desc: 'Minimum board chart' },
-  { id: 'c5-12x9', cat: 'C5', fit: 0, w: 12, h: 9, label: '12 × 9 Wide Board', sub: 'Board C5 (Max)', desc: 'Max full-width master board' },
-
-  // Canvas C6 (Min 4×12, Max 12×16)
-  { id: 'c6-8x8', cat: 'C6', fit: 0, w: 8, h: 8, label: '8 × 8 Full', sub: 'Canvas C6', desc: 'Hero chart & master ledger' },
-  { id: 'c6-6x10', cat: 'C6', fit: 1, w: 6, h: 10, label: '6 × 10 Narrow', sub: 'Canvas C6', desc: 'Tall live feed canvas' },
-  { id: 'c6-4x12', cat: 'C6', fit: 2, w: 4, h: 12, label: '4 × 12 Min', sub: 'Canvas C6 (Min)', desc: 'Minimum hero canvas' },
-  { id: 'c6-12x16', cat: 'C6', fit: 0, w: 12, h: 16, label: '12 × 16 Hero Canvas', sub: 'Canvas C6 (Max)', desc: 'Max comprehensive canvas' }
-];
-
-// ── C1 IS STRICTLY EXCLUSIVE TO SHORTCUTS & ACTION TILES ─────────────────
-const SHORTCUT_SIZE_OPTIONS = [
-  { id: 'c1-2x1', cat: 'C1', fit: 0, w: 2, h: 1, label: '2 × 1 Icon + Label', sub: 'Tile C1 (Standard)', desc: 'Shortcut with title & icon (≥124px)' },
-  { id: 'c1-1x1', cat: 'C1', fit: 1, w: 1, h: 1, label: '1 × 1 Icon Only', sub: 'Tile C1 (Min)', desc: 'Micro square shortcut glyph (≥52px)' },
-  { id: 'c1-3x2', cat: 'C1', fit: 0, w: 3, h: 2, label: '3 × 2 Big Tile', sub: 'Tile C1 (Max)', desc: 'Max tile with subtitle & button' }
-];
-
-// 4 V6 Design System Card Background Tones
 const CARD_TONES = [
-  { id: 'surface', name: 'Default Surface', desc: 'Adapts to theme', swatchBg: 'var(--vq-surface, #ffffff)' },
-  { id: 'accent', name: 'Mint Accent', desc: 'Teal brand gradient', swatchBg: 'linear-gradient(135deg, #0baa8f, #076b5e)' },
-  { id: 'ink', name: 'Obsidian Ink', desc: 'Always dark obsidian', swatchBg: '#0d1412' },
-  { id: 'mesh', name: 'Aurora Mesh', desc: 'Teal / sky gradient mesh', swatchBg: 'radial-gradient(circle at 100% 0%, #93ebd6 0%, #8fd9f5 100%)' }
+  { id: 'surface', name: 'Default Surface', desc: 'Follows the page theme',
+    swatchBg: 'var(--vq-surface, #ffffff)' },
+  { id: 'accent',  name: 'Mint Accent',     desc: 'Teal brand gradient',
+    swatchBg: 'linear-gradient(135deg, #0baa8f, #076b5e)' },
+  { id: 'ink',     name: 'Obsidian Ink',    desc: 'Always dark, both themes',
+    swatchBg: '#0d1412' },
+  { id: 'mesh',    name: 'Aurora Mesh',     desc: 'Teal / sky gradient mesh',
+    swatchBg: 'radial-gradient(circle at 100% 0%, #93ebd6 0%, #8fd9f5 100%)' },
 ];
 
-// Pre-packaged Operations & Command Cards
+/* The operations & command cards. `type` keys into the engine's SPECIAL
+   registry, which owns their category, floor and legal categories. */
 const OPERATIONAL_TEMPLATES = [
-  {
-    type: 'action_hub',
-    title: 'Quick Operations Hub',
-    desc: '3-button fast lane: Point of Sale (Green), Purchase Orders (Red), and Quick Actions (+).',
-    category: 'Operations',
-    defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Wide Hub (6 × 2)' },
-    tone: 'ink'
-  },
-  {
-    type: 'bank_liquidity',
-    title: 'Bank & Liquid Net Balances',
-    desc: 'Live breakdown of active bank accounts, cash drawer holdings, and total liquid net balance.',
-    category: 'Finance',
-    defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Wide Tile (6 × 2)' },
-    tone: 'surface'
-  },
-  {
-    type: 'alerts_hub',
-    title: 'Actions Required & Alerts',
-    desc: 'Live operational alerts: low stock reorders, overdue receivables, and warehouse shipments.',
-    category: 'Operations',
-    defaultSize: { w: 6, h: 3, cat: 'C4', label: 'Alert Box (6 × 3)' },
-    tone: 'surface'
-  },
-  {
-    type: 'growth_engine',
-    title: 'Growth Engine & Target Pace',
-    desc: 'Revenue velocity, target progress on-track indicator, and repeat customer retention rate.',
-    category: 'Sales',
-    defaultSize: { w: 6, h: 2, cat: 'C4', label: 'Growth Strip (6 × 2)' },
-    tone: 'surface'
-  }
+  { type: 'action_hub', title: 'Quick Operations Hub', category: 'Operations',
+    desc: 'Three-button fast lane — Point of Sale, Purchase Orders and the Quick Actions launcher.',
+    tone: 'ink' },
+  { type: 'bank_liquidity', title: 'Bank & Liquid Net Balances', category: 'Finance',
+    desc: 'Live breakdown of bank accounts, cash drawer holdings and total liquid net balance.',
+    tone: 'surface' },
+  { type: 'alerts_hub', title: 'Actions Required & Alerts', category: 'Operations',
+    desc: 'Operational alerts — low-stock reorders, overdue receivables, warehouse receipts. Shows more rows as the card grows.',
+    tone: 'surface' },
+  { type: 'growth_engine', title: 'Growth Engine & Target Pace', category: 'Sales',
+    desc: 'Revenue velocity, target progress and repeat-customer retention.',
+    tone: 'surface' },
 ];
 
-// Shortcut Action targets for Custom Button Builder (C1 Exclusive)
+/* Shortcut destinations. `url` is a path under the active store unless it
+   starts with a slash and a known root, so the store slug is applied at build
+   time rather than baked into the file. */
 const SHORTCUT_TARGETS = [
-  { label: 'Point of Sale (POS)', url: '/pos', icon: 'cart', color: '#0baa8f' },
-  { label: 'Create New Invoice', url: '/s/my-business-store-353/sales', icon: 'file', color: '#2ba5d1' },
-  { label: 'Inventory & Stock List', url: '/s/my-business-store-353/inventory', icon: 'box', color: '#8ccb2e' },
-  { label: 'Create Purchase Order', url: '/s/my-business-store-353/purchase-orders', icon: 'truck', color: '#f26a47' },
-  { label: 'Financial Accounts & Ledgers', url: '/s/my-business-store-353/finance', icon: 'dollar', color: '#5227ff' },
-  { label: 'Parties & Customers CRM', url: '/s/my-business-store-353/parties', icon: 'users', color: '#e0b4e0' },
-  { label: 'Business Intel Reports', url: '/s/my-business-store-353/reports', icon: 'chart', color: '#f5b32e' }
+  { label: 'Point of Sale',            path: '/pos',             absolute: true,  icon: 'cart',     color: '#0baa8f' },
+  { label: 'Create New Invoice',       path: '/sales',           icon: 'file',     color: '#2ba5d1' },
+  { label: 'Inventory & Stock List',   path: '/inventory',       icon: 'box',      color: '#8ccb2e' },
+  { label: 'Create Purchase Order',    path: '/purchase-orders', icon: 'truck',    color: '#f26a47' },
+  { label: 'Accounts & Ledgers',       path: '/finance',         icon: 'dollar',   color: '#5227ff' },
+  { label: 'Parties & Customers',      path: '/parties',         icon: 'users',    color: '#e0b4e0' },
+  { label: 'Business Intel Reports',   path: '/reports',         icon: 'chart',    color: '#f5b32e' },
+  { label: 'Settings',                 path: '/settings',        icon: 'settings', color: '#7b8a83' },
 ];
+
+/* The shortcut swatch set — every one clears 4.5:1 against white glyphs. */
+const SHORTCUT_COLORS = [
+  '#0baa8f', '#2ba5d1', '#5227ff', '#8c4bd6',
+  '#c2417a', '#f26a47', '#b8860b', '#4c5f57',
+];
+const SHORTCUT_ICON_NAMES = ['cart','file','box','truck','dollar','users','chart','bolt','plus','settings'];
+
+const PERIOD_LABELS = ['Today', 'Week', 'Month', 'Quarter', 'Year'];
+
+/* Used only before the engine has booted, so the first paint of the wizard is
+   never wrong. The engine's own CAT_MAX is authoritative from then on. */
+const CAT_MAX_FALLBACK = { C1:[3,2], C2:[6,2], C3:[6,4], C4:[6,6], C5:[12,9], C6:[12,16] };
+
+/* One small proportional diagram of a w×h card, so a size is chosen by eye and
+   not by arithmetic. Drawn against the category's own maximum. */
+function SizeGlyph({ w, h, max = [12, 16] }) {
+  /* One fixed frame per glyph, whatever the category's maximum happens to be,
+     so a C1 tile's diagram is as legible as a C6 canvas's. The filled rectangle
+     is the card as a fraction of its own category's maximum. */
+  const [MW, MH] = max;
+  const BOX = 46, BOXH = 30, PAD = 0.75;
+  const cw = (BOX - PAD * 2) / MW, ch = (BOXH - PAD * 2) / MH;
+  const fw = Math.max(3, Math.min(BOX - PAD * 2, w * cw));
+  const fh = Math.max(3, Math.min(BOXH - PAD * 2, h * ch));
+  return (
+    <svg className="vq-size-glyph" width={BOX} height={BOXH} viewBox={`0 0 ${BOX} ${BOXH}`} aria-hidden="true">
+      <rect x={PAD / 2} y={PAD / 2} width={BOX - PAD} height={BOXH - PAD} rx="3"
+            fill="none" stroke="currentColor" strokeOpacity=".22" strokeDasharray="2.5 2.5" />
+      <rect x={PAD} y={PAD} width={fw} height={fh} rx="2.5"
+            fill="currentColor" fillOpacity=".85" />
+    </svg>
+  );
+}
+
+const isReadingCardIdx = i => i === 0;
 
 export default function NewDashboard(props) {
   const containerRef = useRef(null);
   const previewRef = useRef(null);
-  
-  // Dashboard & Navigation State
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const previewFrameRef = useRef(null);
+
+  const store = props?.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs', slug: '' };
+  const user = props?.auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
+  /* The store route is /s/{slug}/new-dashboard and does not pass the slug as a
+     prop, so read it off the path when it is not supplied. Every deep link on
+     every card is built from this — the alternative is the literal store slug
+     that used to be typed into forty href strings in this file. */
+  const storeSlug = useMemo(() => {
+    if (props?.store?.slug) return props.store.slug;
+    if (props?.store_slug) return props.store_slug;
+    if (typeof window !== 'undefined') {
+      const m = window.location.pathname.match(/^\/s\/([^/]+)/);
+      if (m) return decodeURIComponent(m[1]);
+    }
+    return '';
+  }, [props?.store?.slug, props?.store_slug]);
+  const storePath = (p) => (storeSlug ? `/s/${storeSlug}${p}` : p);
+
+  /* ── shell ───────────────────────────────────────────────────────────── */
+  /* The Layout Law §2: the hamburger exists at every width; below 1216 it
+     overlays because an automatic push can never be free, and from 1280 the
+     dashboard shows the nav expanded because cards absorb the loss. The user's
+     own choice, once made, is sticky and only demoted by the viewport. */
+  const [navIntent, setNavIntent] = useState('auto');   // 'auto' | 'expanded' | 'rail'
+  const [navOverlayOpen, setNavOverlayOpen] = useState(false);
+  const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1920));
   const [isEditMode, setIsEditMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  
-  // 1. Center 3D Floating Folder Stage State
-  const [folderLauncherOpen, setFolderLauncherOpen] = useState(false);
+  const [engineReady, setEngineReady] = useState(false);
 
-  // 2. Stepper Modal Dialog State
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const canPush = vw >= 1216;                 // §2 — push threshold
+  const navMode = !canPush ? 'overlay' : (
+    navIntent === 'rail' ? 'rail'
+      : navIntent === 'expanded' ? 'expanded'
+      : (vw >= 1280 ? 'expanded' : 'rail')    // dashboard archetype default
+  );
+  const toggleNav = () => {
+    if (!canPush) { setNavOverlayOpen(o => !o); return; }
+    setNavIntent(navMode === 'expanded' ? 'rail' : 'expanded');
+  };
+  useEffect(() => { if (canPush) setNavOverlayOpen(false); }, [canPush]);
+  useEffect(() => {
+    if (!navOverlayOpen) return;
+    const onKey = e => { if (e.key === 'Escape') setNavOverlayOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navOverlayOpen]);
+
+  const railOnly = navMode === 'rail';
+
+  /* ── the add-card wizard ─────────────────────────────────────────────── */
+  const [folderLauncherOpen, setFolderLauncherOpen] = useState(false);
   const [stepperModalOpen, setStepperModalOpen] = useState(false);
-  const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0: Metric Readings, 1: Operations Hubs, 2: Custom Shortcuts
+  const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0 readings · 1 hubs · 2 shortcuts
   const [step, setStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArea, setSelectedArea] = useState('All');
-  const [selectedCatFilter, setSelectedCatFilter] = useState('All'); // 'All' | 'C2' | 'C3' | 'C4' | 'C5' | 'C6'
-  
-  // 3. Quick Actions GlassIcons Popup State
   const [glassModalOpen, setGlassModalOpen] = useState(false);
+  const [editingCardId, setEditingCardId] = useState(null);
 
-  // Expose global opener for GlassIcons popup
+  /* the draft — one shape for all three families */
+  const [selectedReading, setSelectedReading] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [customBtnTarget, setCustomBtnTarget] = useState(SHORTCUT_TARGETS[0]);
+
+  const [draftCat, setDraftCat] = useState('C3');
+  const [draftW, setDraftW] = useState(4);
+  const [draftH, setDraftH] = useState(3);
+  const [draftChart, setDraftChart] = useState('area');
+  const [draftVariant, setDraftVariant] = useState('gradient');
+  const [draftTone, setDraftTone] = useState('surface');
+  const [draftPeriod, setDraftPeriod] = useState('Month');
+  /* The four things the author may put on, or take off, the card face. All
+     four default ON; each is additionally gated at render by whether the card
+     is big enough to carry it, so a preference can never cause an overflow. */
+  const [draftShowPeriodPicker, setDraftShowPeriodPicker] = useState(true);
+  const [draftShowWhen, setDraftShowWhen] = useState(true);
+  const [draftShowDelta, setDraftShowDelta] = useState(true);
+  const [draftOpenArrow, setDraftOpenArrow] = useState(true);
+  const [draftGlare, setDraftGlare] = useState(false);
+  const [draftStarBorder, setDraftStarBorder] = useState(false);
+  const [draftIcon, setDraftIcon] = useState('cart');
+  const [draftColor, setDraftColor] = useState('#0baa8f');
+  const [draftLink, setDraftLink] = useState('');
+  const [previewZoom, setPreviewZoom] = useState('fit');   // 'fit' | 'actual'
+  const [previewScale, setPreviewScale] = useState(100);
+
+  const engine = () => (typeof window !== 'undefined' ? window.VenQoreCards : null);
+
   useEffect(() => {
     window._vqOpenGlassActions = () => setGlassModalOpen(true);
     return () => { window._vqOpenGlassActions = null; };
   }, []);
 
-  // Selected Card Draft
-  const [selectedReading, setSelectedReading] = useState(null);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [customBtnTarget, setCustomBtnTarget] = useState(SHORTCUT_TARGETS[0]);
+  useEffect(() => {
+    runCardBuilder({ storeSlug });
+    setEngineReady(true);
+  }, [storeSlug]);
 
-  // Card Customization Draft State
-  const [selectedSizeId, setSelectedSizeId] = useState('c3-4x3');
-  const [draftChart, setDraftChart] = useState('area');
-  const [draftVariant, setDraftVariant] = useState('gradient');
-  const [draftTone, setDraftTone] = useState('surface');
-  const [draftPeriod, setDraftPeriod] = useState('Month');
-  const [draftShowPeriodPicker, setDraftShowPeriodPicker] = useState(true);
-  const [draftAccent, setDraftAccent] = useState(false);
-  const [draftStarBorder, setDraftStarBorder] = useState(false);
-  const [draftTitle, setDraftTitle] = useState('');
+  /* Edit mode is a page state; the engine paints from a class on the shell. */
+  useEffect(() => {
+    document.documentElement.classList.toggle('vq-editing', isEditMode);
+  }, [isEditMode]);
 
-  const store = props?.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs' };
-  const user = props?.auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
+  /* The board reflows when the nav pushes — tell the engine, not the window. */
+  useEffect(() => {
+    const t = setTimeout(() => engine()?.relayout?.(), 280);
+    return () => clearTimeout(t);
+  }, [navMode]);
 
   useEffect(() => {
-    runCardBuilder();
-  }, []);
+    if (!menuOpen) return;
+    const close = () => setMenuOpen(false);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [menuOpen]);
 
-  // Launch Category Choice from 3D Floating Folder
+  /* ── the draft, as a card object ─────────────────────────────────────── */
+  const draftCard = useMemo(() => {
+    const base = {
+      id: editingCardId || 'preview-card',
+      tone: draftTone,
+      accent: draftTone === 'accent',
+      glare: draftGlare,
+      starBorder: draftStarBorder,
+      showOpenArrow: draftOpenArrow,
+      cat: draftCat, w: draftW, h: draftH,
+    };
+    if (categoryFolderIndex === 0 && selectedReading) {
+      const chartless = draftCat === 'C1' || draftCat === 'C2';
+      return {
+        ...base,
+        key: selectedReading.key,
+        chart: chartless ? 'stat' : draftChart,
+        variant: chartless ? 'number' : draftVariant,
+        period: draftPeriod,
+        showPeriodPicker: draftShowPeriodPicker,
+        showWhen: draftShowWhen,
+        showDelta: draftShowDelta,
+        extraKeys: [],
+      };
+    }
+    if (categoryFolderIndex === 1 && selectedTemplate) {
+      return { ...base, type: selectedTemplate.type, title: selectedTemplate.title };
+    }
+    if (categoryFolderIndex === 2) {
+      const url = draftLink
+        || (customBtnTarget.absolute ? customBtnTarget.path : storePath(customBtnTarget.path));
+      return { ...base, type: 'custom_button', cat: 'C1',
+               title: customBtnTarget.label,
+               targetUrl: url, icon: draftIcon, btnColor: draftColor };
+    }
+    return null;
+  }, [categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, editingCardId,
+      draftCat, draftW, draftH, draftChart, draftVariant, draftTone, draftPeriod,
+      draftShowPeriodPicker, draftShowWhen, draftShowDelta, draftOpenArrow,
+      draftGlare, draftStarBorder, draftIcon, draftColor, draftLink, storeSlug]);
+
+  /* What the card will be called, and where its arrow goes — both derived. */
+  const draftName = useMemo(() => {
+    if (isReadingCardIdx(categoryFolderIndex) && selectedReading) return selectedReading.label;
+    if (categoryFolderIndex === 1 && selectedTemplate) return selectedTemplate.title;
+    if (categoryFolderIndex === 2) return customBtnTarget.label;
+    return '—';
+  }, [categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget]);
+
+  const draftDest = useMemo(() => {
+    if (categoryFolderIndex === 2)
+      return draftLink || (customBtnTarget.absolute ? customBtnTarget.path : storePath(customBtnTarget.path));
+    const e = engine();
+    if (!e || !draftCard) return '/pos';
+    if (draftCard.targetUrl || draftCard.link) return draftCard.targetUrl || draftCard.link;
+    try { return e.deepLinkFor(draftCard.key); } catch { return '/pos'; }
+  }, [categoryFolderIndex, draftCard, draftLink, customBtnTarget, storeSlug, engineReady]);
+
+  const destLabel = useMemo(() => {
+    const e = engine();
+    try { return e?.destinationName?.(draftDest) || draftDest; } catch { return draftDest; }
+  }, [draftDest, engineReady]);
+
+  /* ── which categories and sizes this draft may take ──────────────────── */
+  const legalCats = useMemo(() => {
+    const e = engine();
+    if (!e || !draftCard) return ['C3'];
+    try { return e.catsFor(draftCard); } catch { return ['C3']; }
+  }, [draftCard, engineReady]);
+
+  const catMax = engine()?.getCatMax?.() || CAT_MAX_FALLBACK;
+  const catNames = engine()?.getCatNames?.() || {};
+  const catDescs = engine()?.getCatDescs?.() || {};
+
+  const draftFloor = useMemo(() => {
+    const e = engine();
+    if (!e || !draftCard) return [1, 1];
+    try { return e.minSizeFor({ ...draftCard, cat: draftCat }); } catch { return [1, 1]; }
+  }, [draftCard, draftCat, engineReady]);
+
+  const sizePresets = useMemo(() => {
+    const e = engine();
+    if (!e || !draftCard) return [];
+    const T = e.fitsTable(draftCard);
+    const [fw, fh] = draftFloor;
+    return e.presetsFor(draftCat, T)
+      .filter(s => s.w >= fw && s.h >= fh)
+      .sort((a, b) => (a.w * a.h) - (b.w * b.h));
+  }, [draftCat, draftCard, draftFloor, engineReady]);
+
+  /* the resolved geometry of the draft, on the live grid */
+  const draftGeo = useMemo(() => {
+    const e = engine();
+    if (!e || !draftCard) return { w: draftW, h: draftH, fit: 0, cat: draftCat, clamped: false };
+    try { return e.geometryOf(draftCard, 24, e.REFERENCE_COL_W || 112); }
+    catch { return { w: draftW, h: draftH, fit: 0, cat: draftCat, clamped: false }; }
+  }, [draftCard, engineReady]);
+
+  /* the name of the interior this size resolves to — the Law's own word for it */
+  const resolvedFitName = useMemo(() => {
+    const e = engine();
+    if (!e || !draftCard) return '—';
+    try {
+      const T = e.fitsTable(draftCard);
+      const i = e.resolveFit(draftCat, draftW, draftH, T);
+      return (T[draftCat] && T[draftCat][i] && T[draftCat][i][2]) || '—';
+    } catch { return '—'; }
+  }, [draftCard, draftCat, draftW, draftH, engineReady]);
+
+  const boardColCount = useMemo(() => {
+    const e = engine();
+    return e?.boardCols ? e.boardCols() : (vw < 600 ? 4 : vw < 1024 ? 6 : vw < 1440 ? 8 : vw < 1800 ? 10 : vw < 2400 ? 12 : 16);
+  }, [vw, engineReady]);
+
+  /* step a dimension, staying inside the law */
+  const stepSize = (axis, delta) => {
+    const e = engine(); if (!e || !draftCard) return;
+    const T = e.fitsTable(draftCard);
+    const [MW, MH] = catMax[draftCat] || [12, 16];
+    const [fw, fh] = draftFloor;
+    let w = draftW, h = draftH;
+    if (axis === 'w') w += delta; else h += delta;
+    w = Math.max(1, Math.min(MW, w));
+    h = Math.max(1, Math.min(MH, h));
+    if (w < fw || h < fh) return;
+    if (!e.sizeLegal(draftCat, w, h, T)) {
+      if (axis === 'w') {
+        const need = e.minHeightAt(draftCat, w, T);
+        if (need == null || need > MH) return;
+        h = Math.max(h, need);
+      } else {
+        const need = e.minWidthAt(draftCat, h, T);
+        if (need == null || need > MW) return;
+        w = Math.max(w, need);
+      }
+    }
+    setDraftW(w); setDraftH(h);
+  };
+  const canStep = (axis, delta) => {
+    const e = engine(); if (!e || !draftCard) return false;
+    const T = e.fitsTable(draftCard);
+    const [MW, MH] = catMax[draftCat] || [12, 16];
+    const [fw, fh] = draftFloor;
+    let w = draftW, h = draftH;
+    if (axis === 'w') w += delta; else h += delta;
+    if (w < Math.max(1, fw) || h < Math.max(1, fh) || w > MW || h > MH) return false;
+    if (e.sizeLegal(draftCat, w, h, T)) return true;
+    if (axis === 'w') { const n = e.minHeightAt(draftCat, w, T); return n != null && n <= MH; }
+    const n = e.minWidthAt(draftCat, h, T); return n != null && n <= MW;
+  };
+
+  /* changing category re-seats the size on that category's richest legal fit */
+  const chooseCat = (cat) => {
+    const e = engine(); if (!e) { setDraftCat(cat); return; }
+    setDraftCat(cat);
+    /* A tile and a strip draw no chart, so a stat there is the plain number.
+       Moving up to a category that HAS a body gives the sparkline back rather
+       than leaving the card looking emptier than the one it grew out of. */
+    let variant = draftVariant;
+    if (isReadingCard && draftChart === 'stat') {
+      if ((cat === 'C1' || cat === 'C2') && variant !== 'number') variant = 'number';
+      if (cat !== 'C1' && cat !== 'C2' && variant === 'number') variant = 'spark';
+      setDraftVariant(variant);
+    }
+    const probe = { ...draftCard, cat, variant };
+    let T, floor;
+    try { T = e.fitsTable(probe); floor = e.minSizeFor(probe); } catch { T = null; floor = [1, 1]; }
+    const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
+    const keep = list.find(s => s.w === draftW && s.h === draftH);
+    const pick = keep || list.find(s => s.isFit) || list[0];
+    if (pick) { setDraftW(pick.w); setDraftH(pick.h); }
+  };
+
+  const chooseSize = (s) => { setDraftCat(s.cat); setDraftW(s.w); setDraftH(s.h); };
+
+  /* ── live preview ────────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (!stepperModalOpen || step !== 2) return;
+    const e = engine();
+    const host = previewRef.current, frame = previewFrameRef.current;
+    if (!e || !host || !frame || !draftCard) return;
+
+    /* Draw the card at true board geometry, then scale the whole thing to fit
+       the stage. Scaling — rather than squeezing the card into whatever space
+       is left — is what makes 12×16 actually look like four times 6×8 instead
+       of landing on the same clamped rectangle. */
+    const COLW = e.REFERENCE_COL_W || 112, UNIT = 64, GUT = 24;   /* the Law's own numbers */
+    const geo = e.geometryOf(draftCard, 24, COLW);
+    const cardW = geo.w * COLW + (geo.w - 1) * GUT;
+    const cardH = geo.h * UNIT + (geo.h - 1) * GUT;
+
+    const avail = frame.getBoundingClientRect();
+    const padded = { w: Math.max(160, avail.width - 32), h: Math.max(140, avail.height - 32) };
+    const scale = previewZoom === 'actual'
+      ? 1
+      : Math.min(1, padded.w / cardW, padded.h / cardH);
+
+    /* Two boxes, because a transform does not change layout. The outer one is
+       the SCALED size, so the frame centres and scrolls around what is actually
+       painted; the inner one is the TRUE size, scaled from its top-left corner.
+       Scaling rather than squeezing is what makes 12×16 look four times 6×8
+       instead of landing on the same clamped rectangle. */
+    host.style.width = `${Math.round(cardW * scale)}px`;
+    host.style.height = `${Math.round(cardH * scale)}px`;
+
+    host.innerHTML = `<div class="vq-preview-scaler"></div>`;
+    const scaler = host.firstElementChild;
+    scaler.style.width = `${cardW}px`;
+    scaler.style.height = `${cardH}px`;
+    scaler.style.transform = `scale(${scale})`;
+    scaler.style.transformOrigin = 'top left';
+    scaler.innerHTML = e.renderCard(draftCard, 24, COLW);
+
+    const cardEl = scaler.querySelector('.vqc');
+    if (cardEl) {
+      cardEl.style.width = '100%';
+      cardEl.style.height = '100%';
+      cardEl.style.gridColumn = 'auto';
+      cardEl.style.gridRow = 'auto';
+      cardEl.style.animation = 'none';
+    }
+    frame.dataset.size = `${geo.w} × ${geo.h} · ${cardW}×${cardH}px · ${Math.round(scale * 100)}%`;
+    setPreviewScale(Math.round(scale * 100));
+
+    const raf = requestAnimationFrame(() => {
+      const chartHost = scaler.querySelector('.vqc-host');
+      if (chartHost) e.mountChart(chartHost, draftCard);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [stepperModalOpen, step, draftCard, previewZoom, vw, engineReady]);
+
+  /* ── opening the wizard ──────────────────────────────────────────────── */
+  const resetDraftChrome = () => {
+    setDraftTone('surface'); setDraftGlare(false); setDraftStarBorder(false);
+    setDraftLink(''); setPreviewZoom('fit');
+    setDraftOpenArrow(true); setDraftShowWhen(true);
+    setDraftShowDelta(true); setDraftShowPeriodPicker(true);
+  };
+
   const launchCategoryModal = (catIndex) => {
     setCategoryFolderIndex(catIndex);
     setFolderLauncherOpen(false);
     setStep(1);
+    setEditingCardId(null);
     setSelectedReading(null);
     setSelectedTemplate(null);
-    setSelectedCatFilter('All');
+    resetDraftChrome();
     if (catIndex === 2) {
-      setSelectedSizeId('c1-2x1');
+      setDraftCat('C1'); setDraftW(2); setDraftH(1);
       setDraftShowPeriodPicker(false);
+    } else if (catIndex === 1) {
+      setDraftCat('C4'); setDraftW(4); setDraftH(2);
     } else {
-      setSelectedSizeId('c3-4x3');
+      setDraftCat('C3'); setDraftW(4); setDraftH(3);
       setDraftShowPeriodPicker(true);
     }
     setStepperModalOpen(true);
   };
 
-  // Active Size Options based on category
-  const activeSizeOptions = useMemo(() => {
-    if (categoryFolderIndex === 2) {
-      return SHORTCUT_SIZE_OPTIONS;
-    }
-    if (selectedCatFilter === 'All') {
-      return METRIC_SIZE_OPTIONS;
-    }
-    return METRIC_SIZE_OPTIONS.filter(s => s.cat === selectedCatFilter);
-  }, [categoryFolderIndex, selectedCatFilter]);
+  const seatDraftOn = (card) => {
+    const e = engine(); if (!e) return;
+    const T = e.fitsTable(card);
+    const cat = card.cat;
+    const floor = e.minSizeFor(card);
+    const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
+    const pick = list.find(s => s.isFit) || list[0];
+    setDraftCat(cat);
+    if (pick) { setDraftW(pick.w); setDraftH(pick.h); }
+  };
 
-  // Check if current selected size is C2 (Strip)
-  const isSelectedSizeC2 = useMemo(() => {
-    const s = METRIC_SIZE_OPTIONS.find(x => x.id === selectedSizeId);
-    return s && s.cat === 'C2';
-  }, [selectedSizeId]);
-
-  // Update preview in Step 2 whenever configuration changes
-  useEffect(() => {
-    if (stepperModalOpen && step === 2 && previewRef.current && window.VenQoreCards) {
-      const allSizes = categoryFolderIndex === 2 ? SHORTCUT_SIZE_OPTIONS : METRIC_SIZE_OPTIONS;
-      const targetSize = allSizes.find(s => s.id === selectedSizeId) || allSizes[0];
-      
-      let cardDraft = null;
-
-      if (categoryFolderIndex === 0 && selectedReading) {
-        cardDraft = {
-          id: 'preview-card',
-          key: selectedReading.key,
-          cat: targetSize.cat,
-          chart: targetSize.cat === 'C2' ? 'stat' : draftChart,
-          variant: targetSize.cat === 'C2' ? 'spark' : draftVariant,
-          period: draftPeriod,
-          showPeriodPicker: targetSize.cat !== 'C2' && draftShowPeriodPicker,
-          fit: targetSize.fit,
-          tone: draftTone,
-          accent: draftTone === 'accent' || draftAccent,
-          starBorder: draftStarBorder,
-          title: draftTitle || selectedReading.label,
-          w: targetSize.w,
-          h: targetSize.h,
-          extraKeys: []
-        };
-      } else if (categoryFolderIndex === 1 && selectedTemplate) {
-        cardDraft = {
-          id: 'preview-card',
-          type: selectedTemplate.type,
-          title: draftTitle || selectedTemplate.title,
-          tone: draftTone || selectedTemplate.tone,
-          cat: selectedTemplate.defaultSize.cat,
-          w: selectedTemplate.defaultSize.w,
-          h: selectedTemplate.defaultSize.h
-        };
-      } else if (categoryFolderIndex === 2) {
-        cardDraft = {
-          id: 'preview-card',
-          type: 'custom_button',
-          title: draftTitle || customBtnTarget.label,
-          targetUrl: customBtnTarget.url,
-          btnColor: customBtnTarget.color,
-          tone: draftTone,
-          cat: 'C1',
-          fit: targetSize.fit,
-          w: targetSize.w,
-          h: targetSize.h
-        };
-      }
-
-      if (cardDraft) {
-        const cardHtml = window.VenQoreCards.renderCard(cardDraft);
-        previewRef.current.innerHTML = cardHtml;
-        
-        const cardEl = previewRef.current.querySelector(".vqc");
-        if (cardEl) {
-          // Dynamic live sizing for preview stage reflecting true aspect ratio
-          const baseW = targetSize.w || 4;
-          const baseH = targetSize.h || 3;
-          
-          let previewW = Math.min(680, Math.max(220, baseW * 62));
-          let previewH = baseH === 1 ? 72 : Math.min(420, Math.max(88, baseH * 64));
-          
-          cardEl.style.width = `${previewW}px`;
-          cardEl.style.height = `${previewH}px`;
-          cardEl.style.minHeight = `${previewH}px`;
-          cardEl.style.maxHeight = `${previewH}px`;
-        }
-        
-        requestAnimationFrame(() => {
-          const host = previewRef.current?.querySelector(".vqc-host");
-          if (host) {
-            window.VenQoreCards.mountChart(host, cardDraft);
-          }
-        });
-      }
-    }
-  }, [stepperModalOpen, step, categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, selectedSizeId, draftChart, draftVariant, draftTone, draftPeriod, draftShowPeriodPicker, draftAccent, draftStarBorder, draftTitle]);
-
-  // Open Step 2 for a selected reading
   const selectMetricForStep2 = (rd) => {
     setSelectedReading(rd);
     setSelectedTemplate(null);
-    const shape = rd.shape;
-    
-    let defaultChart = 'area';
-    let defaultVar = 'gradient';
-    let initialSizeId = 'c3-4x3';
-
-    if (shape === 'SCALAR') {
-      defaultChart = 'stat';
-      defaultVar = 'spark';
-      initialSizeId = 'c2-4x1';
-    } else if (shape === 'GAUGE') {
-      defaultChart = 'gauge';
-      defaultVar = 'standard';
-      initialSizeId = 'c3-4x3';
-    } else if (shape === 'TABLE') {
-      defaultChart = 'table';
-      defaultVar = 'standard';
-      initialSizeId = 'c6-8x8';
-    } else if (shape === 'FEED') {
-      defaultChart = 'feed';
-      defaultVar = 'live';
-      initialSizeId = 'c5-6x6';
-    } else if (shape === 'BREAKDOWN') {
-      defaultChart = 'bar';
-      defaultVar = 'grouped';
-      initialSizeId = 'c4-4x4';
-    } else if (shape === 'RANKING') {
-      defaultChart = 'funnel';
-      defaultVar = 'solid';
-      initialSizeId = 'c4-4x4';
-    } else {
-      defaultChart = 'area';
-      defaultVar = 'gradient';
-      initialSizeId = 'c3-4x3';
-    }
-    
-    setDraftChart(defaultChart);
-    setDraftVariant(defaultVar);
-    setSelectedSizeId(initialSizeId);
-    setDraftTone('surface');
+    const byShape = {
+      SCALAR:       ['stat',   'spark',    'C2'],
+      GAUGE:        ['gauge',  'standard', 'C4'],
+      TABLE:        ['table',  'standard', 'C5'],
+      FEED:         ['feed',   'live',     'C4'],
+      BREAKDOWN:    ['bar',    'grouped',  'C4'],
+      RANKING:      ['bar',    'solid',    'C4'],
+      STATUS:       ['status', 'standard', 'C2'],
+      MULTI_SERIES: ['composed','bar-line-area','C5'],
+      SERIES:       ['area',   'gradient', 'C5'],
+    };
+    let [chart, variant, cat] = byShape[rd.shape] || ['area', 'gradient', 'C5'];
+    /* a strip has no chart body, so the sparkline variant would be a lie */
+    if (cat === 'C2' || cat === 'C1') variant = 'number';
+    setDraftChart(chart);
+    setDraftVariant(variant);
     setDraftPeriod('Month');
-    setDraftShowPeriodPicker(initialSizeId !== 'c2-4x1');
-    setDraftTitle(rd.label);
-    setDraftAccent(false);
-    setDraftStarBorder(false);
+    resetDraftChrome();
+    seatDraftOn({ key: rd.key, chart, variant, extraKeys: [], period: 'Month', cat });
     setStep(2);
   };
 
-  // Open Step 2 for an Operational Template
   const selectTemplateForStep2 = (tmpl) => {
     setSelectedTemplate(tmpl);
     setSelectedReading(null);
+    const specials = engine()?.getSpecials?.() || {};
+    const S = specials[tmpl.type] || { cat: 'C4' };
+    resetDraftChrome();
     setDraftTone(tmpl.tone || 'surface');
-    setDraftTitle(tmpl.title);
+    seatDraftOn({ type: tmpl.type, cat: S.cat });
     setStep(2);
   };
 
-  // Open Step 2 for Custom Button (C1 Shortcut)
   const selectCustomBtnForStep2 = (target) => {
     setCustomBtnTarget(target);
     setSelectedReading(null);
     setSelectedTemplate(null);
-    setSelectedSizeId('c1-2x1');
-    setDraftTone('surface');
-    setDraftTitle(target.label);
+    setDraftCat('C1'); setDraftW(2); setDraftH(1);
+    setDraftIcon(target.icon);
+    setDraftColor(target.color);
+    resetDraftChrome();
+    setDraftLink(target.absolute ? target.path : storePath(target.path));
     setStep(2);
   };
 
-  // Helper: auto-resize card when chart type changes
+  /* ── editing a card already on the board ─────────────────────────────── */
+  const openCardEditor = (id) => {
+    const e = engine(); if (!e) return;
+    const c = (e.getCards() || []).find(x => x.id === id);
+    if (!c) return;
+    setEditingCardId(id);
+    const special = e.isSpecial(c);
+    setCategoryFolderIndex(special ? (c.type === 'custom_button' ? 2 : 1) : 0);
+    if (special && c.type !== 'custom_button') {
+      setSelectedTemplate(OPERATIONAL_TEMPLATES.find(t => t.type === c.type) || OPERATIONAL_TEMPLATES[0]);
+      setSelectedReading(null);
+    } else if (special) {
+      setSelectedTemplate(null); setSelectedReading(null);
+      setDraftIcon(c.icon || 'cart'); setDraftColor(c.btnColor || '#0baa8f');
+    } else {
+      setSelectedReading(e.getReadingOf(c.key));
+      setSelectedTemplate(null);
+      setDraftChart(c.chart); setDraftVariant(c.variant);
+      setDraftPeriod(c.period || 'Month');
+      setDraftShowPeriodPicker(c.showPeriodPicker !== false);
+      setDraftShowWhen(c.showWhen !== false);
+      setDraftShowDelta(c.showDelta !== false);
+    }
+    const g = e.geometryOf(c, 24);
+    setDraftCat(g.cat); setDraftW(g.authoredW ?? g.w); setDraftH(g.authoredH ?? g.h);
+    setDraftTone(c.tone || (c.accent ? 'accent' : 'surface'));
+    setDraftGlare(!!c.glare); setDraftStarBorder(!!c.starBorder);
+    setDraftOpenArrow(c.showOpenArrow !== false);
+    setDraftLink(c.targetUrl || c.link || '');
+    setPreviewZoom('fit');
+    setStep(2);
+    setStepperModalOpen(true);
+  };
+
+  useEffect(() => {
+    window._vqEditCard = openCardEditor;
+    return () => { window._vqEditCard = null; };
+  });
+
+  /* ── chart + variant selection ───────────────────────────────────────── */
   const handleChartSelect = (chartType) => {
+    const e = engine();
     setDraftChart(chartType);
-    
-    const engine = window.VenQoreCards;
-    if (engine && typeof engine.minSizeFor === 'function') {
-      const mockCard = { chart: chartType, key: selectedReading?.key || 'sales.revenue', extraKeys: [], period: draftPeriod };
-      const [minW, minH] = engine.minSizeFor(mockCard);
-      
-      const currentSize = METRIC_SIZE_OPTIONS.find(s => s.id === selectedSizeId) || METRIC_SIZE_OPTIONS[3];
-      
-      if (currentSize.w < minW || currentSize.h < minH) {
-        const fittingSize = METRIC_SIZE_OPTIONS.find(s => s.w >= minW && s.h >= minH) || METRIC_SIZE_OPTIONS[3];
-        setSelectedSizeId(fittingSize.id);
-      }
-    }
-
-    const variants = window.VenQoreCards?.getVariants?.() || {};
-    const chartVars = variants[chartType];
-    if (chartVars && chartVars.length > 0) {
-      setDraftVariant(chartVars[0][0]);
-    }
+    const variants = e?.getVariants?.() || {};
+    const first = (variants[chartType] || [['standard']])[0][0];
+    setDraftVariant(first);
+    if (!e || !selectedReading) return;
+    const probe = { key: selectedReading.key, chart: chartType, variant: first,
+                    extraKeys: [], period: draftPeriod, cat: draftCat };
+    const cats = e.catsFor(probe);
+    const cat = cats.includes(draftCat) ? draftCat : (cats[0] || 'C5');
+    const T = e.fitsTable(probe);
+    const floor = e.minSizeFor({ ...probe, cat });
+    const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
+    setDraftCat(cat);
+    const keep = list.find(s => s.w === draftW && s.h === draftH);
+    const pick = keep || list.find(s => s.isFit) || list[0];
+    if (pick) { setDraftW(pick.w); setDraftH(pick.h); }
   };
 
-  // Handle user selecting a size
-  const handleSizeSelect = (sizeId) => {
-    setSelectedSizeId(sizeId);
-
-    const allSizes = categoryFolderIndex === 2 ? SHORTCUT_SIZE_OPTIONS : METRIC_SIZE_OPTIONS;
-    const s = allSizes.find(x => x.id === sizeId);
-    if (!s) return;
-    
-    if (s.cat === 'C2') {
-      setDraftChart('stat');
-      setDraftVariant('spark');
-    }
-  };
-
-  // Add customized card to dashboard
+  /* ── commit ──────────────────────────────────────────────────────────── */
   const handleAddCardConfirm = () => {
-    if (!window.VenQoreCards) return;
-    
-    let newCard = null;
-
-    if (categoryFolderIndex === 0 && selectedReading) {
-      const targetSize = METRIC_SIZE_OPTIONS.find(s => s.id === selectedSizeId) || METRIC_SIZE_OPTIONS[3];
-      newCard = {
-        id: 'c-' + Math.random().toString(36).substring(2, 9),
-        key: selectedReading.key,
-        cat: targetSize.cat,
-        chart: targetSize.cat === 'C2' ? 'stat' : draftChart,
-        variant: targetSize.cat === 'C2' ? 'spark' : draftVariant,
-        period: draftPeriod,
-        showPeriodPicker: targetSize.cat !== 'C2' && draftShowPeriodPicker,
-        fit: targetSize.fit,
-        tone: draftTone,
-        accent: draftTone === 'accent' || draftAccent,
-        starBorder: draftStarBorder,
-        title: draftTitle || selectedReading.label,
-        w: targetSize.w,
-        h: targetSize.h,
-        extraKeys: []
-      };
-    } else if (categoryFolderIndex === 1 && selectedTemplate) {
-      newCard = {
-        id: 'c-' + Math.random().toString(36).substring(2, 9),
-        type: selectedTemplate.type,
-        title: draftTitle || selectedTemplate.title,
-        tone: draftTone || selectedTemplate.tone,
-        cat: selectedTemplate.defaultSize.cat,
-        w: selectedTemplate.defaultSize.w,
-        h: selectedTemplate.defaultSize.h
-      };
-    } else if (categoryFolderIndex === 2) {
-      const targetSize = SHORTCUT_SIZE_OPTIONS.find(s => s.id === selectedSizeId) || SHORTCUT_SIZE_OPTIONS[0];
-      newCard = {
-        id: 'c-' + Math.random().toString(36).substring(2, 9),
-        type: 'custom_button',
-        title: draftTitle || customBtnTarget.label,
-        targetUrl: customBtnTarget.url,
-        btnColor: customBtnTarget.color,
-        tone: draftTone,
-        cat: 'C1',
-        fit: targetSize.fit,
-        w: targetSize.w,
-        h: targetSize.h
-      };
+    const e = engine(); if (!e || !draftCard) return;
+    const card = { ...draftCard };
+    if (editingCardId) {
+      delete card.id;
+      e.updateCard(editingCardId, card);
+    } else {
+      card.id = 'c-' + Math.random().toString(36).substring(2, 9);
+      e.addCardObject(card);
     }
-
-    if (newCard) {
-      const current = window.VenQoreCards.getCards();
-      window.VenQoreCards.setCards([...current, newCard]);
-      setStepperModalOpen(false);
-      setStep(1);
-    }
+    setStepperModalOpen(false);
+    setEditingCardId(null);
+    setStep(1);
   };
 
-  // Reset to initial cards
-  const handleResetLayout = () => {
-    if (window.VenQoreCards && typeof window.VenQoreCards.boot === 'function') {
-      window.VenQoreCards.boot();
-    }
-    setMenuOpen(false);
-  };
+  const handleResetLayout = () => { engine()?.boot?.(); setMenuOpen(false); };
 
-  // Catalog data
-  const readings = window.VenQoreCards?.getReadings() || [];
-  
-  // Dynamically derive populated areas from readings
-  const availableAreas = useMemo(() => {
-    const rawAreas = Array.from(new Set(readings.map(r => r.area).filter(Boolean)));
-    return ['All', ...rawAreas];
-  }, [readings]);
-  
+  /* ── catalogue ───────────────────────────────────────────────────────── */
+  const readings = engineReady ? (engine()?.getReadings?.() || []) : [];
+
+  const availableAreas = useMemo(
+    () => ['All', ...Array.from(new Set(readings.map(r => r.area).filter(Boolean)))],
+    [readings]);
+
   const filteredReadings = useMemo(() => {
-    return readings.filter(r => {
-      const matchesArea = selectedArea === 'All' || r.area === selectedArea;
-      const matchesQuery = !searchQuery || 
-        r.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.module.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.key.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesArea && matchesQuery;
-    });
+    const q = searchQuery.trim().toLowerCase();
+    return readings.filter(r =>
+      (selectedArea === 'All' || r.area === selectedArea) &&
+      (!q || r.label.toLowerCase().includes(q) || r.module.toLowerCase().includes(q) || r.key.toLowerCase().includes(q)));
   }, [readings, selectedArea, searchQuery]);
 
-  // Group filtered readings by area
   const groupedSections = useMemo(() => {
     const groups = {};
-    filteredReadings.forEach(r => {
-      const area = r.area || 'General';
-      if (!groups[area]) groups[area] = [];
-      groups[area].push(r);
-    });
+    filteredReadings.forEach(r => { (groups[r.area || 'General'] ||= []).push(r); });
     return groups;
   }, [filteredReadings]);
 
-  // Legal chart types for current reading
-  const legalMap = window.VenQoreCards?.getLegalCharts?.() || {};
-  const legalCharts = (selectedReading ? legalMap[selectedReading.shape] : null) || ['area', 'bar', 'line', 'stat', 'gauge', 'funnel', 'table', 'feed', 'heatmap'];
-  const chartNames = window.VenQoreCards?.getChartNames?.() || {};
+  const legalMap = engine()?.getLegalCharts?.() || {};
+  const legalCharts = (selectedReading ? legalMap[selectedReading.shape] : null)
+    || ['area', 'bar', 'line', 'stat', 'gauge', 'funnel', 'table', 'feed', 'heatmap'];
+  const chartNames = engine()?.getChartNames?.() || {};
 
-  // Variants for current chart
-  const variantsMap = window.VenQoreCards?.getVariants?.() || {};
-  const currentVariants = variantsMap[draftChart] || [['standard', 'Standard']];
+  const currentVariants = useMemo(() => {
+    const e = engine();
+    if (!e || !selectedReading) return [['standard', 'Standard', true, '']];
+    try {
+      return e.getVariantsFor({ key: selectedReading.key, chart: draftChart,
+                                variant: draftVariant, extraKeys: [], period: draftPeriod });
+    } catch { return (e.getVariants?.()[draftChart] || [['standard', 'Standard']]).map(v => [v[0], v[1], true, '']); }
+  }, [selectedReading, draftChart, draftVariant, draftPeriod, engineReady]);
 
-  // GlassIcons items for the center action popup
+  const isReadingCard = categoryFolderIndex === 0;
+  const isHubCard = categoryFolderIndex === 1;
+  const isShortcutCard = categoryFolderIndex === 2;
+  const hasDraft = !!draftCard;
+  const chartlessCat = draftCat === 'C1' || draftCat === 'C2';
+
+  const familyLabel = isReadingCard ? 'ANALYTICS READING'
+    : isHubCard ? 'OPERATIONS & HUBS' : 'CUSTOM SHORTCUT';
+  // The Quick Actions launcher — the same destinations the shortcut family offers
   const glassActionItems = [
-    {
-      label: 'POS Register',
-      color: 'teal',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
-      href: '/pos'
-    },
-    {
-      label: 'New Invoice',
-      color: 'blue',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>,
-      href: '/s/my-business-store-353/sales'
-    },
-    {
-      label: 'Add Product',
-      color: 'orange',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>,
-      href: '/s/my-business-store-353/inventory'
-    },
-    {
-      label: 'Stock Intake',
-      color: 'purple',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/></svg>,
-      href: '/s/my-business-store-353/purchase-orders'
-    },
-    {
-      label: 'New Customer',
-      color: 'sky',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>,
-      href: '/s/my-business-store-353/parties'
-    },
-    {
-      label: 'Add Expense',
-      color: 'coral',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
-      href: '/s/my-business-store-353/finance'
-    }
+    { label: 'POS Register',  color: 'teal',   href: '/pos',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> },
+    { label: 'New Invoice',   color: 'blue',   href: storePath('/sales'),
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg> },
+    { label: 'Add Product',   color: 'orange', href: storePath('/inventory'),
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg> },
+    { label: 'Stock Intake',  color: 'purple', href: storePath('/purchase-orders'),
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/></svg> },
+    { label: 'New Customer',  color: 'sky',    href: storePath('/parties'),
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> },
+    { label: 'Add Expense',   color: 'coral',  href: storePath('/finance'),
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
   ];
 
+  const navGroups = [
+    { title: 'Main', items: [
+      { label: 'Dashboard v6',      href: '/new-dashboard', active: true, badge: 'Live',
+        d: <><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></> },
+      { label: 'Point of Sale',     href: '/pos',
+        d: <><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></> },
+    ]},
+    { title: 'Operations', items: [
+      { label: 'Inventory & Stock', href: storePath('/inventory'),
+        d: <><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></> },
+      { label: 'Sales & Invoices',  href: storePath('/sales'),
+        d: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></> },
+      { label: 'Purchasing',        href: storePath('/purchase-orders'),
+        d: <><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></> },
+    ]},
+    { title: 'Financials', items: [
+      { label: 'Finance & Accounts', href: storePath('/finance'),
+        d: <><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></> },
+      { label: 'Reports & Intel',    href: storePath('/reports'),
+        d: <><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></> },
+      { label: 'Parties & CRM',      href: storePath('/parties'),
+        d: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
+    ]},
+    { title: 'System', items: [
+      { label: 'Settings', href: storePath('/settings'),
+        d: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V4.5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.5.6.87 1.15 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></> },
+    ]},
+  ];
+
+  /* ── the shared styling panel — every family gets all of it ──────────── */
+  /* `hint` states what the geometry will do regardless of the switch. It is
+     amber only when it CONTRADICTS the switch — otherwise it is just a note. */
+  const SwitchRow = ({ on, set, title, sub, hint, warn }) => (
+    <button type="button" className="vq-v6-switch-wrapper" role="switch" aria-checked={on}
+            onClick={() => set(v => !v)}>
+      <span className="vq-v6-switch-label">
+        <span className="vq-v6-switch-title">{title}</span>
+        <span className="vq-v6-switch-sub">{sub}</span>
+        {hint && <span className={`vq-v6-switch-hint ${warn ? 'is-warn' : ''}`}>{hint}</span>}
+      </span>
+      <span className={`vq-v6-switch-track ${on ? 'is-on' : ''}`}>
+        <span className="vq-v6-switch-knob" />
+      </span>
+    </button>
+  );
+
+  const StylePanel = (
+    <>
+      {/* What this card is — stated, not typed. A card is named by what it
+          shows, so two boards of the same data read the same way. */}
+      <div className="vq-identity">
+        <span className="vq-identity-eyebrow">{familyLabel}</span>
+        <span className="vq-identity-name">{draftName}</span>
+        <span className="vq-identity-meta">
+          {isReadingCard && selectedReading
+            ? <><code>{selectedReading.key}</code> · {selectedReading.module} · opens {destLabel}</>
+            : <>opens {destLabel}</>}
+        </span>
+      </div>
+
+      {/* ── Size: category, presets, and a stepper for everything between ── */}
+      <div className="vq-form-group">
+        <label className="vq-form-label">
+          <span>Size &amp; category</span>
+          <span className="vq-form-sublabel">
+            floor {draftFloor[0]}×{draftFloor[1]} · max {(catMax[draftCat] || [12,16])[0]}×{(catMax[draftCat] || [12,16])[1]}
+          </span>
+        </label>
+
+        <div className="vq-category-tabs" role="tablist" aria-label="Card category">
+          {['C1','C2','C3','C4','C5','C6'].map(cat => {
+            const ok = legalCats.includes(cat);
+            return (
+              <button key={cat} type="button" role="tab" aria-selected={draftCat === cat}
+                disabled={!ok}
+                title={ok ? `${catNames[cat] || cat} — ${catDescs[cat] || ''}` : 'Too small for this card'}
+                className={`vq-cat-tab-btn ${draftCat === cat ? 'is-active' : ''} ${ok ? '' : 'is-off'}`}
+                onClick={() => ok && chooseCat(cat)}>
+                <span className="vq-cat-tab-code">{cat}</span>
+                <span className="vq-cat-tab-name">{catNames[cat] || cat}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="vq-size-grid">
+          {sizePresets.map(s => (
+            <button key={`${s.w}x${s.h}`} type="button"
+              className={`vq-size-card ${draftW === s.w && draftH === s.h ? 'is-active' : ''}`}
+              onClick={() => chooseSize(s)}>
+              <SizeGlyph w={s.w} h={s.h} max={catMax[s.cat] || [12,16]} />
+              <span className="vq-size-card-text">
+                <span className="vq-size-card-title">
+                  {s.w} × {s.h}
+                  <span className="vq-size-card-fit">{s.isMax ? 'max' : s.fitName}</span>
+                </span>
+                <span className="vq-size-card-desc">{s.isMax ? 'The largest this category allows' : s.inside}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="vq-size-stepper" role="group" aria-label="Custom size">
+          <div className="vq-step-axis">
+            <span className="vq-step-axis-label">Columns</span>
+            <div className="vq-step-ctl">
+              <button type="button" aria-label="Narrower" disabled={!canStep('w', -1)}
+                      onClick={() => stepSize('w', -1)}>−</button>
+              <span className="vq-step-val">{draftW}</span>
+              <button type="button" aria-label="Wider" disabled={!canStep('w', 1)}
+                      onClick={() => stepSize('w', 1)}>+</button>
+            </div>
+          </div>
+          <div className="vq-step-axis">
+            <span className="vq-step-axis-label">Rows</span>
+            <div className="vq-step-ctl">
+              <button type="button" aria-label="Shorter" disabled={!canStep('h', -1)}
+                      onClick={() => stepSize('h', -1)}>−</button>
+              <span className="vq-step-val">{draftH}</span>
+              <button type="button" aria-label="Taller" disabled={!canStep('h', 1)}
+                      onClick={() => stepSize('h', 1)}>+</button>
+            </div>
+          </div>
+          <div className="vq-step-readout">
+            <SizeGlyph w={draftW} h={draftH} max={catMax[draftCat] || [12,16]} />
+            <span>
+              {draftW * 112 + (draftW - 1) * 24} × {draftH * 64 + (draftH - 1) * 24}px
+              <em>interior: {resolvedFitName}</em>
+            </span>
+          </div>
+        </div>
+
+        {draftW > boardColCount && (
+          <p className="vq-form-note is-warn">
+            This screen shows {boardColCount} columns, so the card renders {boardColCount} wide
+            here and takes its full {draftW} on a wider display. Nothing is lost — it re-lays itself.
+          </p>
+        )}
+      </div>
+
+      {/* ── Reading-only: chart type and variant ── */}
+      {isReadingCard && !chartlessCat && (
+        <>
+          <div className="vq-form-group">
+            <label className="vq-form-label">
+              <span>Chart type</span>
+              <span className="vq-form-sublabel">Re-seats the size on this chart's floor</span>
+            </label>
+            <div className="vq-select-btn-group">
+              {legalCharts.map(ch => (
+                <button key={ch} type="button"
+                  className={`vq-choice-btn ${draftChart === ch ? 'is-active' : ''}`}
+                  onClick={() => handleChartSelect(ch)}>
+                  {chartNames[ch] || ch}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="vq-form-group">
+            <label className="vq-form-label">
+              <span>Visual variant</span>
+              <span className="vq-form-sublabel">{chartNames[draftChart] || draftChart}</span>
+            </label>
+            <div className="vq-select-btn-group">
+              {currentVariants.map(([v, n, ok, why]) => (
+                <button key={v} type="button" disabled={ok === false} title={ok === false ? why : undefined}
+                  className={`vq-choice-btn ${draftVariant === v ? 'is-active' : ''} ${ok === false ? 'is-off' : ''}`}
+                  onClick={() => ok !== false && setDraftVariant(v)}>
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {isReadingCard && chartlessCat && (
+        <p className="vq-form-note">
+          <strong>{catNames[draftCat] || draftCat} rule:</strong> a {draftCat === 'C1' ? 'tile' : 'strip'} carries
+          the reading and nothing else — label and value only. Charts start at Metric (C3).
+        </p>
+      )}
+
+      {/* ── Shortcut-only: where it goes, and how it looks ── */}
+      {isShortcutCard && (
+        <>
+          <div className="vq-form-group">
+            <label className="vq-form-label">
+              <span>Where it goes</span>
+              <span className="vq-form-sublabel">The tile is named after its destination</span>
+            </label>
+            <div className="vq-dest-grid">
+              {SHORTCUT_TARGETS.map(t => {
+                const url = t.absolute ? t.path : storePath(t.path);
+                const on = draftLink === url;
+                return (
+                  <button key={t.path} type="button"
+                    className={`vq-dest-tile ${on ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setCustomBtnTarget(t); setDraftLink(url);
+                      setDraftIcon(t.icon); setDraftColor(t.color);
+                    }}>
+                    <span className="vq-dest-glyph" style={{ background: t.color }}
+                          dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(t.icon, 16) || '' }} />
+                    <span className="vq-dest-name">{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="vq-form-group">
+            <label className="vq-form-label">
+              <span>Glyph</span>
+              <span className="vq-form-sublabel">Defaults to the destination's own</span>
+            </label>
+            <div className="vq-icon-grid">
+              {SHORTCUT_ICON_NAMES.map(n => (
+                <button key={n} type="button" aria-label={n}
+                  className={`vq-icon-swatch ${draftIcon === n ? 'is-active' : ''}`}
+                  onClick={() => setDraftIcon(n)}
+                  dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(n, 18) || '' }} />
+              ))}
+            </div>
+          </div>
+
+          <div className="vq-form-group">
+            <label className="vq-form-label">Glyph colour</label>
+            <div className="vq-color-grid">
+              {SHORTCUT_COLORS.map(col => (
+                <button key={col} type="button" aria-label={col}
+                  className={`vq-color-swatch ${draftColor === col ? 'is-active' : ''}`}
+                  style={{ background: col }} onClick={() => setDraftColor(col)} />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Tone: all four, all families ── */}
+      <div className="vq-form-group">
+        <label className="vq-form-label">
+          <span>Card background</span>
+          <span className="vq-form-sublabel">Readable on every page background</span>
+        </label>
+        <div className="vq-tone-grid">
+          {CARD_TONES.map(t => (
+            <button key={t.id} type="button"
+              className={`vq-tone-card ${draftTone === t.id ? 'is-active' : ''}`}
+              onClick={() => setDraftTone(t.id)}>
+              <span className="vq-tone-swatch" style={{ background: t.swatchBg }} />
+              <span className="vq-tone-info">
+                <span className="vq-tone-name">{t.name}</span>
+                <span className="vq-tone-desc">{t.desc}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Reading-only: which window the number covers ── */}
+      {isReadingCard && (
+        <div className="vq-form-group">
+          <label className="vq-form-label">
+            <span>Default timeframe</span>
+            <span className="vq-form-sublabel">What the card reads when it loads</span>
+          </label>
+          <div className="vq-select-btn-group">
+            {PERIOD_LABELS.map(p => (
+              <button key={p} type="button"
+                className={`vq-choice-btn ${draftPeriod === p ? 'is-active' : ''}`}
+                onClick={() => setDraftPeriod(p)}>{p}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── What the card face carries ── */}
+      <div className="vq-form-group">
+        <label className="vq-form-label">
+          <span>On the card face</span>
+          <span className="vq-form-sublabel">Each is hidden automatically when the card is too small</span>
+        </label>
+        <div className="vq-switch-stack">
+          <SwitchRow on={draftOpenArrow} set={setDraftOpenArrow}
+            title="Open arrow"
+            sub={`Jumps to ${destLabel}`}
+            hint="Appears on hover, in the card's top-right corner" />
+          {isReadingCard && (
+            <SwitchRow on={draftShowDelta} set={setDraftShowDelta}
+              title="Change pill"
+              sub="The ↗ 18.7% chip beside the number"
+              hint={draftW < 2 ? 'Needs 2 columns — hidden at this width' : null} warn />
+          )}
+          {isReadingCard && (
+            <SwitchRow on={draftShowWhen} set={setDraftShowWhen}
+              title="Timeframe caption"
+              sub="The “Month · Jul 30 – Aug 28” line under the number"
+              hint={draftH < 4 ? 'Needs 4 rows — hidden at this height' : null} warn />
+          )}
+          {isReadingCard && !chartlessCat && (
+            <SwitchRow on={draftShowPeriodPicker} set={setDraftShowPeriodPicker}
+              title="Timeframe picker"
+              sub="Readers can change the window without editing"
+              hint={draftW < 3 ? 'Needs 3 columns — hidden at this width' : null} warn />
+          )}
+          <SwitchRow on={draftStarBorder} set={setDraftStarBorder}
+            title="Animated star border"
+            sub="Marks a card as high priority" />
+          <SwitchRow on={draftGlare} set={setDraftGlare}
+            title="Glare reflex"
+            sub="Light sweeps the card on hover" />
+        </div>
+      </div>
+    </>
+  );
+
   return (
-    <div ref={containerRef} className={`vq-shell ${isEditMode ? 'is-editing' : ''}`} style={{ minHeight: '100vh', background: 'var(--vq-bg)' }}>
+    <div ref={containerRef}
+         className={`vq-shell ${isEditMode ? 'is-editing' : ''} vq-nav-${navMode} ${navOverlayOpen ? 'is-nav-open' : ''}`}
+         data-nav={navMode}>
       <Head title="Command Center — New Dashboard" />
 
-      {/* Slide-over scrim */}
-      <div id="vq-scrim" className="vq-scrim" onClick={() => {
-        document.getElementById("lib")?.classList.remove("is-on");
-        document.getElementById("edit")?.classList.remove("is-on");
-        document.getElementById("vq-scrim")?.classList.remove("is-on");
-      }}></div>
+      {/* Nav scrim — only ever painted when the nav overlays (§2) */}
+      <div className={`vq-nav-scrim ${navOverlayOpen ? 'is-on' : ''}`}
+           onClick={() => setNavOverlayOpen(false)} aria-hidden="true" />
 
-      {/* Enterprise Sidebar */}
-      <aside className={`vq-sidebar ${sidebarCollapsed ? 'is-collapsed' : ''}`} style={sidebarCollapsed ? { width: '72px' } : {}}>
+      {/* ── Nav ─────────────────────────────────────────────────────────── */}
+      <aside className={`vq-sidebar ${railOnly ? 'is-collapsed' : ''} ${navOverlayOpen ? 'is-open' : ''}`}
+             aria-label="Main navigation">
         <div className="vq-sidebar-top">
           <div className="vq-brand-badge">V</div>
-          {!sidebarCollapsed && (
-            <div className="vq-brand-info">
-              <div className="vq-brand-name">
-                VenQore <span style={{ fontSize: '10px', background: 'var(--vq-teal-500)', color: '#fff', padding: '1px 5px', borderRadius: '4px' }}>v6</span>
+          <div className="vq-brand-info">
+            <div className="vq-brand-name">
+              VenQore <span className="vq-brand-tag">v6</span>
+            </div>
+            <div className="vq-brand-sub">Enterprise POS</div>
+          </div>
+        </div>
+
+        <div className="vq-store-switcher" title="Switch store location">
+          <div className="vq-store-details">
+            <span className="vq-store-dot" />
+            <span className="vq-store-name">{store?.name || 'Main Showroom'}</span>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+
+        <nav className="vq-nav-scroll">
+          {navGroups.map(g => (
+            <div className="vq-nav-group" key={g.title}>
+              <div className="vq-nav-group-title">{g.title}</div>
+              <div className="vq-nav-list">
+                {g.items.map(it => (
+                  <a key={it.label} href={it.href} title={it.label}
+                     className={`vq-nav-item ${it.active ? 'is-active' : ''}`}
+                     onClick={() => setNavOverlayOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{it.d}</svg>
+                    <span className="vq-nav-text">{it.label}</span>
+                    {it.badge && <span className="vq-nav-badge">{it.badge}</span>}
+                  </a>
+                ))}
               </div>
-              <div className="vq-brand-sub">Enterprise POS</div>
             </div>
-          )}
-        </div>
-
-        {!sidebarCollapsed && (
-          <div className="vq-store-switcher" title="Switch Store Location">
-            <div className="vq-store-details">
-              <span className="vq-store-dot"></span>
-              <span className="vq-store-name">{store?.name || 'Main Showroom'}</span>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
-          </div>
-        )}
-
-        <div className="vq-nav-scroll">
-          <div className="vq-nav-group">
-            {!sidebarCollapsed && <div className="vq-nav-group-title">Main</div>}
-            <div className="vq-nav-list">
-              <a href="/new-dashboard" className="vq-nav-item is-active">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-                {!sidebarCollapsed && <span>Dashboard v6</span>}
-                {!sidebarCollapsed && <span className="vq-nav-badge">Live</span>}
-              </a>
-
-              <a href="/pos" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                {!sidebarCollapsed && <span>Point of Sale</span>}
-              </a>
-            </div>
-          </div>
-
-          <div className="vq-nav-group">
-            {!sidebarCollapsed && <div className="vq-nav-group-title">Operations</div>}
-            <div className="vq-nav-list">
-              <a href="/s/my-business-store-353/inventory" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                {!sidebarCollapsed && <span>Inventory & Stock</span>}
-              </a>
-
-              <a href="/s/my-business-store-353/sales" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 8 9"/></svg>
-                {!sidebarCollapsed && <span>Sales & Invoices</span>}
-              </a>
-
-              <a href="/s/my-business-store-353/purchase-orders" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                {!sidebarCollapsed && <span>Purchasing</span>}
-              </a>
-            </div>
-          </div>
-
-          <div className="vq-nav-group">
-            {!sidebarCollapsed && <div className="vq-nav-group-title">Financials</div>}
-            <div className="vq-nav-list">
-              <a href="/s/my-business-store-353/finance" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                {!sidebarCollapsed && <span>Finance & Accounts</span>}
-              </a>
-
-              <a href="/s/my-business-store-353/reports" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                {!sidebarCollapsed && <span>Reports & Intel</span>}
-              </a>
-
-              <a href="/s/my-business-store-353/parties" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                {!sidebarCollapsed && <span>Parties & CRM</span>}
-              </a>
-            </div>
-          </div>
-
-          <div className="vq-nav-group">
-            {!sidebarCollapsed && <div className="vq-nav-group-title">System</div>}
-            <div className="vq-nav-list">
-              <a href="/s/my-business-store-353/settings" className="vq-nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                {!sidebarCollapsed && <span>Settings</span>}
-              </a>
-            </div>
-          </div>
-        </div>
+          ))}
+        </nav>
 
         <div className="vq-sidebar-footer">
-          <div className="vq-user-avatar">
-            {user?.name ? user.name.slice(0, 2).toUpperCase() : 'SO'}
+          <div className="vq-user-avatar">{user?.name ? user.name.slice(0, 2).toUpperCase() : 'SO'}</div>
+          <div className="vq-user-info">
+            <span className="vq-user-name">{user?.name || 'Store Owner'}</span>
+            <span className="vq-user-role">{user?.email || 'business@venqore.com'}</span>
           </div>
-          {!sidebarCollapsed && (
-            <div className="vq-user-info">
-              <span className="vq-user-name">{user?.name || 'Store Owner'}</span>
-              <span className="vq-user-role">{user?.email || 'business@venqore.com'}</span>
-            </div>
-          )}
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* ── Stage ───────────────────────────────────────────────────────── */}
       <div className="vq-main-stage">
         <header className="vq-main-header">
           <div className="vq-header-left">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vq-text-2)', padding: '6px', borderRadius: '6px' }}
-              title="Toggle Sidebar"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <button type="button" className="vq-icon-btn" onClick={toggleNav}
+                    title={navMode === 'overlay' ? 'Open navigation' : navMode === 'expanded' ? 'Collapse navigation' : 'Expand navigation'}
+                    aria-label="Toggle navigation" aria-expanded={navMode === 'expanded' || navOverlayOpen}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <div className="vq-breadcrumbs">
-              <span>VenQore</span>
-              <span>/</span>
+              <span>VenQore</span><span aria-hidden="true">/</span>
               <span className="active">Command Center</span>
             </div>
             <div className={`vq-status-pill ${isEditMode ? 'is-editing' : ''}`}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isEditMode ? 'var(--vq-butter-500)' : 'var(--vq-teal-500)' }}></span>
-              <span>{isEditMode ? 'Edit Mode Active' : 'Live System'}</span>
+              <span className="vq-status-dot" />
+              <span>{isEditMode ? 'Edit mode' : 'Live'}</span>
             </div>
           </div>
 
           <div className="vq-header-right">
-            <button
-              onClick={() => setGlassModalOpen(true)}
-              className="vq-choice-btn"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600 }}
-            >
-              <span style={{ color: 'var(--vq-teal-500)', fontSize: '15px' }}>⚡</span>
-              <span>Quick Actions</span>
+            <button type="button" onClick={() => setGlassModalOpen(true)} className="vq-quick-btn">
+              <span aria-hidden="true">⚡</span><span className="vq-btn-text">Quick Actions</span>
             </button>
 
-            {/* Desktop / Windows Style Add Card Folder Trigger */}
-            <button
-              onClick={() => setFolderLauncherOpen(true)}
-              className="vq-desktop-folder-btn"
-              title="Add New Card"
-            >
-              <div className="vq-desktop-folder-icon">
-                <div className="vq-desktop-folder-papers"></div>
-                <div className="vq-desktop-folder-front"></div>
-              </div>
+            <button type="button" onClick={() => setFolderLauncherOpen(true)}
+                    className="vq-desktop-folder-btn" title="Add a card">
+              <span className="vq-desktop-folder-icon">
+                <span className="vq-desktop-folder-papers" />
+                <span className="vq-desktop-folder-front" />
+              </span>
               <span className="vq-desktop-folder-label">Add Card</span>
             </button>
 
-            <button id="vq-theme" className="pg-theme" aria-label="Toggle light and dark theme">
-              <span className="pg-theme-l">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
-              </span>
-              <span className="pg-theme-d">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-              </span>
+            <button type="button" id="vq-theme" className="pg-theme vq-icon-btn" aria-label="Toggle theme">
+              <span className="pg-theme-l"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></span>
+              <span className="pg-theme-d"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
             </button>
 
-            <div className="vq-menu-container">
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="vq-dots-btn"
-                title="Dashboard Options"
-                aria-label="Dashboard Options"
-              >
+            <div className="vq-menu-container" onClick={e => e.stopPropagation()}>
+              <button type="button" onClick={() => setMenuOpen(o => !o)} className="vq-icon-btn"
+                      title="Dashboard options" aria-label="Dashboard options" aria-expanded={menuOpen}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
               </button>
 
               {menuOpen && (
-                <div className="vq-dropdown-menu">
-                  <button
-                    className="vq-dropdown-item"
-                    onClick={() => {
-                      setIsEditMode(!isEditMode);
-                      setMenuOpen(false);
-                    }}
-                  >
+                <div className="vq-dropdown-menu" role="menu">
+                  <button type="button" className="vq-dropdown-item" role="menuitem"
+                          onClick={() => { setIsEditMode(v => !v); setMenuOpen(false); }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                    <span>{isEditMode ? 'Done Editing' : 'Edit Layout'}</span>
+                    <span>{isEditMode ? 'Done editing' : 'Edit layout'}</span>
                   </button>
-
-                  <button
-                    className="vq-dropdown-item"
-                    onClick={() => {
-                      setFolderLauncherOpen(true);
-                      setMenuOpen(false);
-                    }}
-                  >
+                  <button type="button" className="vq-dropdown-item" role="menuitem"
+                          onClick={() => { setFolderLauncherOpen(true); setMenuOpen(false); }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>Add New Card</span>
+                    <span>Add a card</span>
                   </button>
-
-                  <div className="vq-dropdown-divider"></div>
-
-                  <button
-                    className="vq-dropdown-item"
-                    onClick={handleResetLayout}
-                  >
+                  <div className="vq-dropdown-divider" />
+                  <button type="button" className="vq-dropdown-item" role="menuitem" onClick={handleResetLayout}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                    <span>Reset Layout</span>
+                    <span>Reset layout</span>
                   </button>
                 </div>
               )}
@@ -2708,516 +3569,231 @@ export default function NewDashboard(props) {
 
         {isEditMode && (
           <div className="vq-edit-banner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="vq-edit-banner-text">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-              <span>Edit Mode Active — Drag cards to rearrange, drag corner to resize, or click pencil to edit.</span>
-            </div>
-            <button className="vq-edit-banner-btn" onClick={() => setIsEditMode(false)}>
-              Done Editing
-            </button>
+              Drag by the grip to reorder · drag the bottom-right corner to resize · click the pencil to open the full editor.
+            </span>
+            <button type="button" className="vq-edit-banner-btn" onClick={() => setIsEditMode(false)}>Done</button>
           </div>
         )}
 
-        <main className="app">
+        <main className="vq-scroll-region">
           <div className="vq-canvas">
             <div className="board-h">
-              <div>
+              <div className="board-h-text">
                 <h1>Your dashboard</h1>
                 <p className="board-sub">
-                  <span id="count" className="pill-n">0</span> cards.
-                  Hover a chart to read any point — the crosshair snaps to the nearest one and the
-                  headline re-reads to it.
+                  <span id="count" className="pill-n">0</span> cards on a {boardColCount}-column grid.
+                  Hover any chart to read a point — the crosshair snaps to the nearest one and the headline re-reads to it.
                 </p>
               </div>
-              <div className="board-actions">
-                <button
-                  onClick={() => setFolderLauncherOpen(true)}
-                  className="vq-desktop-folder-btn"
-                  title="Add New Card"
-                >
-                  <div className="vq-desktop-folder-icon">
-                    <div className="vq-desktop-folder-papers"></div>
-                    <div className="vq-desktop-folder-front"></div>
-                  </div>
-                  <span className="vq-desktop-folder-label">Add Card</span>
-                </button>
-              </div>
+
             </div>
 
-            <div className="vq-grid" id="board"></div>
+            <div className="vq-grid" id="board" />
           </div>
         </main>
       </div>
 
-      {/* ── 1. CENTER 3D FLOATING FOLDER CATEGORY LAUNCHER (PURE FLOATING FOLDER) ── */}
+      {/* ── Category launcher ───────────────────────────────────────────── */}
       {folderLauncherOpen && (
         <div className="vq-folder-portal-overlay" onClick={() => setFolderLauncherOpen(false)}>
-          <button
-            className="vq-folder-portal-floating-close"
-            onClick={() => setFolderLauncherOpen(false)}
-            aria-label="Close"
-          >
+          <button type="button" className="vq-folder-portal-floating-close"
+                  onClick={() => setFolderLauncherOpen(false)} aria-label="Close">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
-
           <Folder
-            size={1.75}
-            color="#0baa8f"
-            selectedIndex={categoryFolderIndex}
-            autoAnimateOpen={true}
-            onSelectCategory={(i) => launchCategoryModal(i)}
+            size={1.75} color="#0baa8f" selectedIndex={categoryFolderIndex}
+            autoAnimateOpen={true} onSelectCategory={(i) => launchCategoryModal(i)}
             items={[
-              <div className="vq-folder-paper-content">
+              <div className="vq-folder-paper-content" key="r">
                 <span className="vq-folder-paper-icon">📊</span>
                 <span className="vq-folder-paper-title">Readings</span>
-                <span className="vq-folder-paper-sub">108 Metrics</span>
+                <span className="vq-folder-paper-sub">{readings.length || '—'} metrics</span>
               </div>,
-              <div className="vq-folder-paper-content">
+              <div className="vq-folder-paper-content" key="o">
                 <span className="vq-folder-paper-icon">⚡</span>
                 <span className="vq-folder-paper-title">Operations</span>
-                <span className="vq-folder-paper-sub">Hubs & Live</span>
+                <span className="vq-folder-paper-sub">{OPERATIONAL_TEMPLATES.length} hubs</span>
               </div>,
-              <div className="vq-folder-paper-content">
+              <div className="vq-folder-paper-content" key="s">
                 <span className="vq-folder-paper-icon">🚀</span>
                 <span className="vq-folder-paper-title">Shortcuts</span>
-                <span className="vq-folder-paper-sub">1-Click Jump (C1)</span>
-              </div>
+                <span className="vq-folder-paper-sub">One-click tiles</span>
+              </div>,
             ]}
           />
         </div>
       )}
 
-      {/* ── 2. STEPPER MODAL DIALOG (STRICT V6 DESIGN SYSTEM) ── */}
+      {/* ── The wizard ──────────────────────────────────────────────────── */}
       {stepperModalOpen && (
-        <div className="vq-modal-overlay" onClick={() => setStepperModalOpen(false)}>
+        <div className="vq-modal-overlay" onClick={() => setStepperModalOpen(false)} role="dialog" aria-modal="true">
           <div className="vq-modal-card" onClick={e => e.stopPropagation()}>
-            {/* Top Bar with Stepper */}
             <div className="vq-modal-top-bar">
               <div>
                 <div className="vq-modal-step-sub">
-                  {categoryFolderIndex === 0 ? 'ANALYTICS READINGS' : categoryFolderIndex === 1 ? 'OPERATIONS & HUBS' : 'CUSTOM SHORTCUT (C1)'} · STEP {step} OF 3
+                  {familyLabel} · {editingCardId ? 'EDITING' : `STEP ${step} OF 2`}
                 </div>
                 <div className="vq-modal-heading">
-                  {step === 1 ? 'Select Card' : step === 2 ? 'Visual Styling & Theme' : 'Preview & Add'}
+                  {step === 1 ? 'Choose a card' : editingCardId ? 'Edit this card' : 'Shape it'}
                 </div>
               </div>
-              <button
-                className="vq-modal-close-x"
-                onClick={() => setStepperModalOpen(false)}
-                aria-label="Close modal"
-              >
+              <button type="button" className="vq-modal-close-x" onClick={() => setStepperModalOpen(false)} aria-label="Close">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
 
-            {/* Stepper Navigation Bar */}
-            <div style={{ padding: '0 32px 12px' }}>
-              <Stepper
-                steps={[
-                  { label: 'Select Card' },
-                  { label: 'Visual Styling' },
-                  { label: 'Preview & Place' }
-                ]}
-                currentStep={step}
-                onStepClick={(s) => {
-                  if (s <= step || (s === 2 && (selectedReading || selectedTemplate || customBtnTarget))) {
-                    setStep(s);
-                  }
-                }}
-              />
-            </div>
+            {!editingCardId && (
+              <div className="vq-modal-stepper">
+                <Stepper
+                  steps={[{ label: 'Choose' }, { label: 'Shape & style' }]}
+                  currentStep={step}
+                  onStepClick={(s) => { if (s === 1 || hasDraft) setStep(s); }}
+                />
+              </div>
+            )}
 
-            {/* Step 1 Filters for Metrics */}
-            {step === 1 && categoryFolderIndex === 0 && (
+            {step === 1 && isReadingCard && (
               <div className="vq-modal-filter-zone">
                 <div className="vq-modal-search-wrapper">
                   <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                  <input
-                    type="text"
-                    className="vq-modal-search-input"
-                    placeholder={`Search ${readings.length} readings...`}
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    autoFocus
-                  />
+                  <input type="text" className="vq-modal-search-input"
+                         placeholder={`Search ${readings.length} readings…`}
+                         value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
                 </div>
-
                 <div className="vq-modal-chips-row">
                   {availableAreas.map(a => (
-                    <button
-                      key={a}
+                    <button key={a} type="button"
                       className={`vq-modal-chip ${selectedArea === a ? 'is-active' : ''}`}
-                      onClick={() => setSelectedArea(a)}
-                    >
-                      {a}
-                    </button>
+                      onClick={() => setSelectedArea(a)}>{a}</button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Scrollable Content Body */}
-            <div className="vq-modal-scroll-area">
+            <div className={`vq-modal-scroll-area ${step === 2 ? 'is-step2' : ''}`}>
               {step === 1 ? (
-                categoryFolderIndex === 0 ? (
-                  /* 1. Metric Readings */
-                  Object.keys(groupedSections).map(area => (
+                isReadingCard ? (
+                  Object.keys(groupedSections).length === 0 ? (
+                    <p className="vq-modal-empty">Nothing matches “{searchQuery}”.</p>
+                  ) : Object.keys(groupedSections).map(area => (
                     <div key={area} className="vq-modal-section-group">
                       <div className="vq-modal-section-title">{area}</div>
                       <div className="vq-modal-cards-grid">
                         {groupedSections[area].map(r => (
-                          <div
-                            key={r.key}
-                            className="vq-item-card"
-                            onClick={() => selectMetricForStep2(r)}
-                          >
-                            <div className="vq-item-card-top">
+                          <button type="button" key={r.key} className="vq-item-card"
+                                  onClick={() => selectMetricForStep2(r)}>
+                            <span className="vq-item-card-top">
                               <span className="vq-item-card-title">{r.label}</span>
-                              {r.extra && (
-                                <span className="vq-item-new-badge">✨ NEW</span>
-                              )}
-                            </div>
-                            
-                            <p className="vq-item-card-desc">
-                              Real-time metric monitoring for {r.label.toLowerCase()}.
-                            </p>
-
-                            <div className="vq-item-card-foot">
-                              <span className="vq-item-shape-tag">
-                                {r.shape || 'NUMBER'}
-                              </span>
+                              {r.extra && <span className="vq-item-new-badge">✨ new</span>}
+                            </span>
+                            <span className="vq-item-card-desc">{r.module} · live {String(r.unit)} reading</span>
+                            <span className="vq-item-card-foot">
+                              <span className="vq-item-shape-tag">{r.shape || 'NUMBER'}</span>
                               <span className="vq-item-card-key">{r.key}</span>
                               <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                            </div>
-                          </div>
+                            </span>
+                          </button>
                         ))}
                       </div>
                     </div>
                   ))
-                ) : categoryFolderIndex === 1 ? (
-                  /* 2. Operational & Command Hub Cards */
+                ) : isHubCard ? (
                   <div className="vq-modal-section-group">
-                    <div className="vq-modal-section-title">OPERATIONAL & COMMAND CARDS</div>
+                    <div className="vq-modal-section-title">Operations &amp; command cards</div>
                     <div className="vq-modal-cards-grid">
                       {OPERATIONAL_TEMPLATES.map(tmpl => (
-                        <div
-                          key={tmpl.type}
-                          className="vq-item-card"
-                          onClick={() => selectTemplateForStep2(tmpl)}
-                        >
-                          <div className="vq-item-card-top">
+                        <button type="button" key={tmpl.type} className="vq-item-card"
+                                onClick={() => selectTemplateForStep2(tmpl)}>
+                          <span className="vq-item-card-top">
                             <span className="vq-item-card-title">{tmpl.title}</span>
-                            <span className="vq-item-new-badge">⚡ Interactive</span>
-                          </div>
-                          
-                          <p className="vq-item-card-desc">{tmpl.desc}</p>
-
-                          <div className="vq-item-card-foot">
-                            <span className="vq-item-shape-tag">{tmpl.defaultSize.label}</span>
+                            <span className="vq-item-new-badge">⚡ interactive</span>
+                          </span>
+                          <span className="vq-item-card-desc">{tmpl.desc}</span>
+                          <span className="vq-item-card-foot">
+                            <span className="vq-item-shape-tag">
+                              {(engine()?.getSpecials?.()[tmpl.type]?.cat) || 'C4'}
+                            </span>
                             <span className="vq-item-card-key">{tmpl.category}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                          </div>
-                        </div>
+                          </span>
+                        </button>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  /* 3. Custom Action Button Shortcuts (C1 Exclusive) */
                   <div className="vq-modal-section-group">
-                    <div className="vq-modal-section-title">CREATE SHORTCUT TILE (C1)</div>
+                    <div className="vq-modal-section-title">Create a shortcut tile</div>
                     <div className="vq-modal-cards-grid">
                       {SHORTCUT_TARGETS.map(target => (
-                        <div
-                          key={target.url}
-                          className="vq-item-card"
-                          onClick={() => selectCustomBtnForStep2(target)}
-                        >
-                          <div className="vq-item-card-top">
+                        <button type="button" key={target.path} className="vq-item-card"
+                                onClick={() => selectCustomBtnForStep2(target)}>
+                          <span className="vq-item-card-top">
                             <span className="vq-item-card-title">{target.label}</span>
-                            <span className="vq-item-new-badge" style={{ background: 'var(--vq-teal-50)', color: 'var(--vq-teal-700)' }}>C1 Shortcut</span>
-                          </div>
-                          
-                          <p className="vq-item-card-desc">Direct jump shortcut to {target.label} workflow.</p>
-
-                          <div className="vq-item-card-foot">
-                            <span className="vq-item-shape-tag" style={{ background: target.color, color: '#fff' }}>SHORTCUT</span>
-                            <span className="vq-item-card-key">{target.url}</span>
+                            <span className="vq-item-new-badge">C1 tile</span>
+                          </span>
+                          <span className="vq-item-card-desc">One-click jump to the {target.label.toLowerCase()} workflow.</span>
+                          <span className="vq-item-card-foot">
+                            <span className="vq-item-shape-tag" style={{ background: target.color, color: '#fff' }}>shortcut</span>
+                            <span className="vq-item-card-key">{target.absolute ? target.path : storePath(target.path)}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                          </div>
-                        </div>
+                          </span>
+                        </button>
                       ))}
                     </div>
                   </div>
                 )
               ) : (
-                /* Step 2: Visual Styling & Controls Pane with Live Preview */
                 <div className="vq-step2-layout">
-                  {/* Left Controls Pane */}
-                  <div className="vq-controls-pane">
-                    {/* Title */}
-                    <div className="vq-form-group">
-                      <label className="vq-form-label">CUSTOM CARD TITLE</label>
-                      <input
-                        type="text"
-                        className="vq-modal-search-input"
-                        style={{ height: '38px', padding: '0 14px' }}
-                        value={draftTitle}
-                        onChange={e => setDraftTitle(e.target.value)}
-                        placeholder="Enter card display title..."
-                      />
-                    </div>
+                  <div className="vq-controls-pane">{StylePanel}</div>
 
-                    {categoryFolderIndex === 0 && (
-                      <>
-                        {/* Category Filter Tabs & All Possible Sizing Bounds */}
-                        <div className="vq-form-group">
-                          <label className="vq-form-label">
-                            <span>CARD SIZES & BOUNDS (LAYOUT LAW)</span>
-                            <span className="vq-form-sublabel">{activeSizeOptions.length} Options</span>
-                          </label>
-
-                          <div className="vq-category-tabs">
-                            {['All', 'C2', 'C3', 'C4', 'C5', 'C6'].map(cat => (
-                              <button
-                                key={cat}
-                                type="button"
-                                className={`vq-cat-tab-btn ${selectedCatFilter === cat ? 'is-active' : ''}`}
-                                onClick={() => setSelectedCatFilter(cat)}
-                              >
-                                {cat === 'All' ? 'All Sizes' : cat === 'C2' ? 'Strip (C2)' : cat === 'C3' ? 'Metric (C3)' : cat === 'C4' ? 'Panel (C4)' : cat === 'C5' ? 'Board (C5)' : 'Canvas (C6)'}
-                              </button>
-                            ))}
-                          </div>
-
-                          <div className="vq-size-grid" style={{ maxHeight: '220px', overflowY: 'auto' }}>
-                            {activeSizeOptions.map(s => (
-                              <div
-                                key={s.id}
-                                className={`vq-size-card ${selectedSizeId === s.id ? 'is-active' : ''}`}
-                                onClick={() => handleSizeSelect(s.id)}
-                              >
-                                <div className="vq-size-card-title">
-                                  <span>{s.label}</span>
-                                  <span style={{ fontSize: '10px', color: 'var(--vq-teal-600)', fontFamily: 'monospace' }}>{s.cat}</span>
-                                </div>
-                                <div className="vq-size-card-desc">{s.desc}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Chart Type Selector (Hidden for C2 Strip) */}
-                        {!isSelectedSizeC2 ? (
-                          <>
-                            <div className="vq-form-group">
-                              <label className="vq-form-label">
-                                <span>CHART TYPE</span>
-                                <span className="vq-form-sublabel">Auto-scales size bounds</span>
-                              </label>
-                              <div className="vq-select-btn-group">
-                                {legalCharts.map(ch => (
-                                  <button
-                                    key={ch}
-                                    className={`vq-choice-btn ${draftChart === ch ? 'is-active' : ''}`}
-                                    onClick={() => handleChartSelect(ch)}
-                                  >
-                                    {chartNames[ch] || ch}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Visual Variant Selector */}
-                            <div className="vq-form-group">
-                              <label className="vq-form-label">VISUAL VARIANT</label>
-                              <div className="vq-select-btn-group">
-                                {currentVariants.map(([v, n]) => (
-                                  <button
-                                    key={v}
-                                    className={`vq-choice-btn ${draftVariant === v ? 'is-active' : ''}`}
-                                    onClick={() => setDraftVariant(v)}
-                                  >
-                                    {n}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <div style={{ background: 'var(--vq-teal-50)', border: '1px solid var(--vq-teal-200)', borderRadius: '12px', padding: '10px 14px', fontSize: '12px', color: 'var(--vq-teal-900)' }}>
-                            <strong>Strip C2 Rule:</strong> Dedicated to pure single-line KPI readings (label on left, number on right). Visual charts start at Metric C3.
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {categoryFolderIndex === 2 && (
-                      /* C1 Shortcut Size Bounds Options */
-                      <div className="vq-form-group">
-                        <label className="vq-form-label">
-                          <span>SHORTCUT TILE SIZE (C1 EXCLUSIVE)</span>
-                          <span className="vq-form-sublabel">Min 1×1 / Max 3×2</span>
-                        </label>
-                        <div className="vq-size-grid">
-                          {SHORTCUT_SIZE_OPTIONS.map(s => (
-                            <div
-                              key={s.id}
-                              className={`vq-size-card ${selectedSizeId === s.id ? 'is-active' : ''}`}
-                              onClick={() => handleSizeSelect(s.id)}
-                            >
-                              <div className="vq-size-card-title">{s.label}</div>
-                              <div className="vq-size-card-desc">{s.desc}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Card Background Tone Selector (V6 Design System) */}
-                    <div className="vq-form-group">
-                      <label className="vq-form-label">CARD BACKGROUND TONE</label>
-                      <div className="vq-tone-grid">
-                        {CARD_TONES.map(t => (
-                          <div
-                            key={t.id}
-                            className={`vq-tone-card ${draftTone === t.id ? 'is-active' : ''}`}
-                            onClick={() => setDraftTone(t.id)}
-                          >
-                            <div className="vq-tone-swatch" style={{ background: t.swatchBg }}></div>
-                            <div className="vq-tone-info">
-                              <span className="vq-tone-name">{t.name}</span>
-                              <span className="vq-tone-desc">{t.desc}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Default Timeframe */}
-                    {categoryFolderIndex === 0 && (
-                      <div className="vq-form-group">
-                        <label className="vq-form-label">DEFAULT TIMEFRAME</label>
-                        <div className="vq-select-btn-group">
-                          {['Today', 'Week', 'Month', 'Quarter', 'Year'].map(p => (
-                            <button
-                              key={p}
-                              className={`vq-choice-btn ${draftPeriod === p ? 'is-active' : ''}`}
-                              onClick={() => setDraftPeriod(p)}
-                            >
-                              {p}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Show Timeframe Picker Dropdown Option (C3 to C6) */}
-                    {!isSelectedSizeC2 && categoryFolderIndex === 0 && (
-                      <div
-                        className="vq-v6-switch-wrapper"
-                        onClick={() => setDraftShowPeriodPicker(!draftShowPeriodPicker)}
-                        role="switch"
-                        aria-checked={draftShowPeriodPicker}
-                      >
-                        <div className="vq-v6-switch-label">
-                          <span className="vq-v6-switch-title">Timeframe Dropdown Button</span>
-                          <span className="vq-v6-switch-sub">Show timeframe switch in card header</span>
-                        </div>
-                        <div className={`vq-v6-switch-track ${draftShowPeriodPicker ? 'is-on' : ''}`}>
-                          <div className="vq-v6-switch-knob"></div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* StarBorder Glowing Edge Option */}
-                    <div
-                      className="vq-v6-switch-wrapper"
-                      onClick={() => setDraftStarBorder(!draftStarBorder)}
-                      role="switch"
-                      aria-checked={draftStarBorder}
-                    >
-                      <div className="vq-v6-switch-label">
-                        <span className="vq-v6-switch-title">Animated Star Border</span>
-                        <span className="vq-v6-switch-sub">High-priority highlighted card glow</span>
-                      </div>
-                      <div className={`vq-v6-switch-track ${draftStarBorder ? 'is-on' : ''}`}>
-                        <div className="vq-v6-switch-knob"></div>
-                      </div>
-                    </div>
-
-                    {/* Glare Shine Switch */}
-                    <div
-                      className="vq-v6-switch-wrapper"
-                      onClick={() => setDraftAccent(!draftAccent)}
-                      role="switch"
-                      aria-checked={draftAccent}
-                    >
-                      <div className="vq-v6-switch-label">
-                        <span className="vq-v6-switch-title">Animated Glare Reflex</span>
-                        <span className="vq-v6-switch-sub">Holographic light reflection</span>
-                      </div>
-                      <div className={`vq-v6-switch-track ${draftAccent ? 'is-on' : ''}`}>
-                        <div className="vq-v6-switch-knob"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Live Dashboard Preview */}
                   <div className="vq-preview-stage">
-                    <div style={{ position: 'absolute', top: '14px', left: '18px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--vq-text-3)', letterSpacing: '0.06em' }}>
-                      LIVE PREVIEW
+                    <div className="vq-preview-bar">
+                      <span className="vq-preview-title">Live preview</span>
+                      <span className="vq-preview-meta">
+                        {draftGeo.w} × {draftGeo.h} · {draftW * 112 + (draftW - 1) * 24}×{draftH * 64 + (draftH - 1) * 24}px
+                        {previewScale < 100 && <em className="vq-preview-scale"> · shown at {previewScale}%</em>}
+                      </span>
+                      <span className="vq-preview-zoom">
+                        <button type="button" className={previewZoom === 'fit' ? 'is-on' : ''}
+                                onClick={() => setPreviewZoom('fit')}>Fit</button>
+                        <button type="button" className={previewZoom === 'actual' ? 'is-on' : ''}
+                                onClick={() => setPreviewZoom('actual')}>100%</button>
+                      </span>
                     </div>
-                    {draftStarBorder ? (
-                      <StarBorder color="rgba(11, 170, 143, 0.95)" speed="4s">
-                        <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}></div>
-                      </StarBorder>
-                    ) : (
-                      <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}></div>
-                    )}
+                    <div className="vq-preview-frame" ref={previewFrameRef}>
+                      <div className="vq-preview-card-host" ref={previewRef} />
+                    </div>
+                    <p className="vq-preview-foot">
+                      Drawn at the board's own geometry — {draftW} column{draftW === 1 ? '' : 's'} of 112px
+                      and {draftH} row{draftH === 1 ? '' : 's'} of 64px, gutters included.
+                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Bottom Bar */}
             <div className="vq-modal-bottom-bar">
               {step === 1 ? (
-                <button
-                  className="vq-choice-btn"
-                  onClick={() => {
-                    setStepperModalOpen(false);
-                    setFolderLauncherOpen(true);
-                  }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                >
+                <button type="button" className="vq-choice-btn"
+                        onClick={() => { setStepperModalOpen(false); setFolderLauncherOpen(true); }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                  <span>Change Category</span>
+                  <span>Change category</span>
                 </button>
               ) : (
-                <button
-                  className="vq-choice-btn"
-                  onClick={() => setStep(1)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                >
+                <button type="button" className="vq-choice-btn"
+                        onClick={() => { if (editingCardId) { setStepperModalOpen(false); setEditingCardId(null); } else setStep(1); }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                  <span>Change Card</span>
+                  <span>{editingCardId ? 'Cancel' : 'Change card'}</span>
                 </button>
               )}
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  className="vq-modal-close-btn"
-                  onClick={() => setStepperModalOpen(false)}
-                >
-                  Close
-                </button>
+              <div className="vq-modal-bottom-actions">
+                <button type="button" className="vq-modal-close-btn" onClick={() => setStepperModalOpen(false)}>Close</button>
                 {step === 2 && (
-                  <button
-                    className="vqb vqb--primary"
-                    onClick={handleAddCardConfirm}
-                    style={{ padding: '9px 24px', borderRadius: 'var(--vq-r-full)', fontSize: '13px', fontWeight: 700 }}
-                  >
-                    Add to Dashboard
+                  <button type="button" className="vqb vqb--primary" onClick={handleAddCardConfirm}>
+                    {editingCardId ? 'Save changes' : 'Add to dashboard'}
                   </button>
                 )}
               </div>
@@ -3226,48 +3802,38 @@ export default function NewDashboard(props) {
         </div>
       )}
 
-      {/* ── 3. REACT BITS GLASS ICONS CENTER POPUP ── */}
+      {/* ── Quick actions ───────────────────────────────────────────────── */}
       {glassModalOpen && (
-        <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)}>
+        <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)} role="dialog" aria-modal="true">
           <div className="vq-glass-modal-card" onClick={e => e.stopPropagation()}>
             <div className="vq-glass-modal-header">
               <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--vq-teal-600)' }}>
-                  COMMAND CENTER FAST LANE
-                </div>
+                <div className="vq-glass-modal-eyebrow">Command centre fast lane</div>
                 <div className="vq-glass-modal-title">Quick Actions</div>
               </div>
-              <button
-                className="vq-modal-close-x"
-                onClick={() => setGlassModalOpen(false)}
-                aria-label="Close Quick Actions"
-              >
+              <button type="button" className="vq-modal-close-x" onClick={() => setGlassModalOpen(false)} aria-label="Close">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
-
-            <GlassIcons
-              items={glassActionItems}
-              onActionClick={(item) => {
-                setGlassModalOpen(false);
-                if (item.href) window.location.href = item.href;
-              }}
-            />
+            <GlassIcons items={glassActionItems} onActionClick={(item) => {
+              setGlassModalOpen(false);
+              if (item.href) window.location.href = item.href;
+            }} />
           </div>
         </div>
       )}
 
-      {/* Slide-over Drawer Layer */}
+      {/* Engine-owned drawers — the library and the deep editor */}
       <aside className="side">
-        <div id="edit"></div>
+        <div id="edit" />
         <div className="panel" id="lib">
           <div className="panel-h">
             <h2 className="panel-t">Card library</h2>
-            <button className="vqc-act" id="lib-close" aria-label="Close library">
+            <button type="button" className="vqc-act" id="lib-close" aria-label="Close library">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </div>
-          <div className="panel-b" id="lib-body"></div>
+          <div className="panel-b" id="lib-body" />
         </div>
       </aside>
     </div>

@@ -241,6 +241,53 @@ class PosSearchController extends Controller
     }
 
     /**
+     * Modifier groups for one product: size, toppings, cooked-to.
+     *
+     * Fetched per product when the line is added, not shipped with the catalog,
+     * for the same reason nothing else on this controller is pre-loaded — the
+     * modifiers of a 2,000-item menu are a payload the register reads three of.
+     *
+     * Unavailable modifiers are dropped rather than returned with a flag: a
+     * modifier is 86'd because the kitchen has run out, and an option the guest
+     * can see and choose is an option the kitchen will be asked for.
+     *
+     * GET /pos/modifiers?product_id=
+     */
+    public function modifiers(Request $request): JsonResponse
+    {
+        $productId = $request->get('product_id');
+        if (!$productId) {
+            return response()->json(['groups' => []]);
+        }
+
+        $product = Product::with(['modifierGroups' => function ($q) {
+            $q->with(['modifiers' => fn ($m) => $m->where('available', true)
+                ->orderBy('sort_order')->orderBy('id')]);
+        }])->find($productId);
+
+        if (!$product) {
+            return response()->json(['groups' => []]);
+        }
+
+        $groups = $product->modifierGroups->map(fn ($g) => [
+            'id'         => $g->id,
+            'name'       => $g->name,
+            'min_select' => (int) $g->min_select,
+            'max_select' => (int) $g->max_select,
+            'required'   => (bool) $g->required,
+            'modifiers'  => $g->modifiers->map(fn ($m) => [
+                'id'          => $m->id,
+                'name'        => $m->name,
+                // Signed — a modifier may take money off the line.
+                'price_delta' => (float) $m->price_delta,
+                'is_default'  => (bool) $m->is_default,
+            ])->values(),
+        ])->values();
+
+        return response()->json(['groups' => $groups]);
+    }
+
+    /**
      * Initial 50 products for POS grid on open (no search term).
      * Sorted by most-sold recent for better UX.
      *

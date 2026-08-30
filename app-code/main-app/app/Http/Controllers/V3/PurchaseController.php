@@ -208,19 +208,32 @@ class PurchaseController extends Controller
     {
         $tenantId = app('current.tenant')->id;
 
+        /* Joined to the party so the edit screen can show WHO this purchase is
+           from. Without it the supplier box came up empty on every edit. The
+           paid figure comes along for the same reason: the screen has to know
+           what was already settled or re-saving would post it all to payables. */
         $purchase = DB::table('purchases')
-            ->where('tenant_id', $tenantId)
-            ->where('id', $id)
+            ->where('purchases.tenant_id', $tenantId)
+            ->leftJoin('parties', 'purchases.party_id', '=', 'parties.id')
+            ->where('purchases.id', $id)
+            ->select('purchases.*', 'parties.name as supplier_name', 'parties.current_balance as supplier_balance')
             ->firstOrFail();
+
+        $purchase->amount_paid = $this->paidAmount($id, $tenantId);
 
         if ($purchase->workflow_status === 'cancelled') {
             return $this->redirectTo('show', ['purchase' => $id])
                 ->with('error', 'A cancelled purchase cannot be edited.');
         }
 
+        /* Joined to products, because the edit screen shows the item's NAME and
+            unit and `purchase_items` carries neither. Without this every line
+            on an edit came up as an empty search box. */
         $items = DB::table('purchase_items')
-            ->where('tenant_id', $tenantId)
-            ->where('purchase_id', $id)
+            ->where('purchase_items.tenant_id', $tenantId)
+            ->leftJoin('products', 'purchase_items.product_id', '=', 'products.id')
+            ->where('purchase_items.purchase_id', $id)
+            ->select('purchase_items.*', 'products.name as product_name', 'products.sku', 'products.base_unit')
             ->get();
 
         $landedCosts = DB::table('expenses')
@@ -315,6 +328,21 @@ class PurchaseController extends Controller
     {
         try {
             $result = $this->purchaseService->receive($id, $request->validated()['items']);
+
+            /* "Two cartons crushed, driver noted it" — validated since the day
+               the request class was written and then dropped on the floor,
+               because only the items were passed on. It is the one thing about
+               a delivery nobody can reconstruct later. */
+            $note = trim((string) ($request->validated()['notes'] ?? ''));
+            if ($note !== '') {
+                $purchase = \App\Models\Purchase::find($id);
+                if ($purchase) {
+                    $stamp = now()->format('d M Y') . ' receipt: ' . $note;
+                    $purchase->update([
+                        'notes' => $purchase->notes ? $purchase->notes . "\n" . $stamp : $stamp,
+                    ]);
+                }
+            }
         } catch (\DomainException | \InvalidArgumentException $e) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -373,7 +401,11 @@ class PurchaseController extends Controller
             'products' => DB::table('products')
                 ->where('tenant_id', $tenantId)
                 ->orderBy('name')
-                ->get(['id', 'name', 'sku', 'base_unit', 'tax_rate', 'cost_price']),
+                /* `stock_quantity` and the unit as well: the line table's
+                   stock badge and its Unit column read them off the product,
+                   so a product picked from this seeded list read "0 in stock"
+                   with a hundred on the shelf, and showed no unit at all. */
+                ->get(['id', 'name', 'sku', 'base_unit', 'base_unit as unit', 'tax_rate', 'cost_price', 'stock_quantity']),
 
             'warehouses' => DB::table('warehouses')
                 ->where('tenant_id', $tenantId)
@@ -393,9 +425,19 @@ class PurchaseController extends Controller
      * Paid amount is DERIVED from the ledger, never stored. Sums AP debits on
      * non-reversed purchase_payment entries for this purchase.
      */
+    /**
+     * How much of this purchase has been settled, counting BOTH kinds of
+     * payment: money handed over at the counter when the purchase was entered,
+     * and payments recorded against it afterwards.
+     *
+     * Only the second was counted before, which was right when a purchase was
+     * paid in full or not at all. Now that part of a bill can be settled on the
+     * spot, missing the first meant an edit read back "nothing paid" and
+     * re-posted the whole bill to the supplier's account.
+     */
     private function paidAmount(string $purchaseId, string $tenantId): float
     {
-        return (float) (DB::table('journal_items as ji')
+        $later = (float) (DB::table('journal_items as ji')
             ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
             ->join('accounts as a', 'ji.account_id', '=', 'a.id')
             ->where('je.tenant_id', $tenantId)
@@ -404,5 +446,25 @@ class PurchaseController extends Controller
             ->where('je.reference', $purchaseId)
             ->where('a.code', '2000')
             ->sum('ji.debit') ?? 0);
+
+        /* What was put ON ACCOUNT when the purchase was posted. Anything of the
+           bill that was not put on account was paid there and then. */
+        $onAccount = (float) (DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('je.tenant_id', $tenantId)
+            ->where('je.is_reversed', 0)
+            ->where('je.reference_type', 'purchase')
+            ->where('je.reference', $purchaseId)
+            ->where('a.code', '2000')
+            ->whereNotNull('ji.party_id')
+            ->sum('ji.credit') ?? 0);
+
+        $total = (float) (DB::table('purchases')
+            ->where('tenant_id', $tenantId)->where('id', $purchaseId)->value('total') ?? 0);
+
+        $atCounter = max(0.0, round($total - $onAccount, 2));
+
+        return round(min($atCounter + $later, $total), 2);
     }
 }

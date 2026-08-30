@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/colors.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/typography.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/radius.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/motion.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/theme.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/base.css">
+<link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/styles.css">
+<script src="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/_ds_bundle.js"></script>
+<style>
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--vq-bg); color: var(--vq-text); overflow-x: hidden; }
+a { color: var(--vq-accent-text); text-decoration: none; }
+a:hover { color: var(--vq-teal-500); }
+::selection { background: var(--vq-teal-200); color: var(--vq-ink-950); }
+@keyframes vqDrift { from { transform: translate3d(-2%,-1%,0) scale(1.04); } to { transform: translate3d(3%,2%,0) scale(1.14); } }
+@keyframes vqRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+@keyframes vqBlink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+@keyframes vqSheen { from { transform: translateX(-120%); } to { transform: translateX(220%); } }
+@keyframes vqFloat { from { transform: translateY(-6px); } to { transform: translateY(6px); } }
+@keyframes vqPulseRing { 0% { box-shadow: 0 0 0 0 rgb(35 196 166 / .45); } 70% { box-shadow: 0 0 0 14px rgb(35 196 166 / 0); } 100% { box-shadow: 0 0 0 0 rgb(35 196 166 / 0); } }
+@keyframes vqDash { from { stroke-dashoffset: 240; } to { stroke-dashoffset: 0; } }
+@keyframes vqScan { from { transform: translateY(-100%); } to { transform: translateY(400%); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } html { scroll-behavior: auto; } }
+</style>
+</helmet>
+
+<div data-vq-root="1" style="position: relative; background: var(--vq-bg); font-family: var(--vq-font-sans);">
+
+  <div data-prog="1" style="position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: linear-gradient(90deg, #0BAA8F, #59DBC0); z-index: 400; box-shadow: 0 0 18px rgb(35 196 166 / .6);"></div>
+
+  <nav data-nav="1" style="position: fixed; top: 0; left: 0; right: 0; z-index: 300; display: flex; align-items: center; gap: 26px; padding: 16px 32px; background: rgb(6 36 33 / .48); backdrop-filter: blur(18px); border-bottom: 1px solid rgb(255 255 255 / .1); transition: background var(--vq-dur-3) var(--vq-ease-out), border-color var(--vq-dur-3) var(--vq-ease-out);">
+    <a href="#top" style="display: flex; align-items: center; gap: 10px;">
+      <img src="assets/logo-mark.png" alt="" width="28" height="28">
+      <span data-navtext="1" style="font: 600 20px/1 var(--vq-font-display); letter-spacing: -0.03em; color: #EAFBF5;">VenQore</span>
+    </a>
+    <div style="display: flex; gap: 22px; margin-left: 14px;">
+      <a data-navlink="1" href="#compiler" style="font: 500 14px/1 var(--vq-font-sans); color: rgb(234 251 245 / .74);">Compiler</a>
+      <a data-navlink="1" href="#extremes" style="font: 500 14px/1 var(--vq-font-sans); color: rgb(234 251 245 / .74);">Why it holds</a>
+      <a data-navlink="1" href="#tailored" style="font: 500 14px/1 var(--vq-font-sans); color: rgb(234 251 245 / .74);">Zero bloat</a>
+      <a data-navlink="1" href="#day2" style="font: 500 14px/1 var(--vq-font-sans); color: rgb(234 251 245 / .74);">Day 2</a>
+      <a data-navlink="1" href="#ledger" style="font: 500 14px/1 var(--vq-font-sans); color: rgb(234 251 245 / .74);">Core Ledger</a>
+    </div>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 14px;">
+      <a data-navlink="1" href="#start" style="font: 600 14px/1 var(--vq-font-sans); color: #EAFBF5;">Sign in</a>
+      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" size="sm" hint-size="140px,36px">Start building</x-import>
+    </div>
+  </nav>
+
+  <aside data-rail="1" style="position: fixed; right: 22px; top: 50%; transform: translateY(-50%); z-index: 250; display: flex; flex-direction: column; gap: 14px; align-items: flex-end;">
+    <a data-dot="1" data-for="top" href="#top" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">Intent</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+    <a data-dot="1" data-for="compiler" href="#compiler" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">Compiler</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+    <a data-dot="1" data-for="extremes" href="#extremes" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">Extremes</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+    <a data-dot="1" data-for="tailored" href="#tailored" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">Zero bloat</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+    <a data-dot="1" data-for="tenx" href="#tenx" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">10x</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+    <a data-dot="1" data-for="day2" href="#day2" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">Day 2</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+    <a data-dot="1" data-for="ledger" href="#ledger" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">Ledger</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+    <a data-dot="1" data-for="start" href="#start" style="display: flex; align-items: center; gap: 10px;"><span data-dotlabel="1" style="font: 600 10px/1 var(--vq-font-numeric); letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity var(--vq-dur-2) var(--vq-ease-out);">Start</span><span data-dotmark="1" style="width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .3; transition: all var(--vq-dur-3) var(--vq-ease-spring);"></span></a>
+  </aside>
+
+  <header id="top" data-sec="top" style="position: relative; overflow: hidden; background: var(--vq-grad-hero); min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+    <div data-px="0.18" data-amb="1" style="position: absolute; inset: -10%; background: var(--vq-grad-spot); animation: vqDrift var(--vq-dur-amb) ease-in-out infinite alternate;"></div>
+    <div style="position: absolute; inset: 0; background: radial-gradient(60% 45% at 50% 8%, rgb(35 196 166 / .22), transparent 70%);"></div>
+    <div style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
+      <sc-for list="{{ floaters }}" as="fl" hint-placeholder-count="5">
+        <span data-px="{{ fl.px }}" data-amb="1" style="{{ fl.style }}">
+          <span style="width: 5px; height: 5px; border-radius: 999px; background: #23C4A6;"></span>{{ fl.t }}
+        </span>
+      </sc-for>
+    </div>
+    <div data-cursor="1" style="position: absolute; width: 420px; height: 420px; left: 0; top: 0; margin: -210px 0 0 -210px; border-radius: 999px; background: radial-gradient(circle, rgb(198 245 233 / .16), transparent 66%); pointer-events: none; opacity: 0; transition: opacity 320ms var(--vq-ease-out);"></div>
+
+    <div style="position: relative; max-width: 1080px; margin: 0 auto; padding: 88px 24px 60px; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center;">
+      <span style="display: inline-flex; align-items: center; gap: 9px; height: 30px; padding: 0 14px; border-radius: 999px; background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .22); backdrop-filter: blur(8px); font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #C6F5E9; animation: vqRise 620ms var(--vq-ease-out) both;">
+        <span data-amb="1" style="width: 6px; height: 6px; border-radius: 999px; background: #23C4A6; animation: vqPulseRing 2600ms ease-out infinite;"></span>
+        THE AI BUSINESS COMPILER
+      </span>
+
+      <h1 data-px="-0.08" style="margin: 0; max-width: 940px; font: 600 clamp(44px, 7.4vw, 84px)/0.98 var(--vq-font-display); letter-spacing: -0.04em; color: #F4FFFB; text-wrap: balance;">
+        <span style="display: block; animation: vqRise 700ms var(--vq-ease-out) 60ms both;">Tell us how you operate.</span>
+        <span style="display: block; animation: vqRise 700ms var(--vq-ease-out) 180ms both;">We <span style="position: relative; color: #93EBD6;">assemble<span style="position: absolute; left: 0; right: 0; bottom: 6px; height: 6px; border-radius: 999px; background: rgb(35 196 166 / .34);"></span></span> your system.</span>
+      </h1>
+
+      <p style="margin: 0; max-width: 660px; font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans); color: rgb(234 251 245 / .8); animation: vqRise 760ms var(--vq-ease-out) 280ms both;">
+        VenQore takes your requirements and snaps together battle-tested modules into a custom platform that never breaks. Generative intent, deterministic execution.
+      </p>
+
+      <div style="width: min(700px, 100%); display: flex; align-items: center; gap: 10px; padding: 9px 9px 9px 22px; background: rgb(255 255 255 / .1); border: 1px solid rgb(255 255 255 / .26); border-radius: 999px; backdrop-filter: blur(12px); box-shadow: 0 24px 60px -24px rgb(3 20 18 / .8); animation: vqRise 800ms var(--vq-ease-out) 360ms both;">
+        <input value="{{ prompt }}" onInput="{{ onPrompt }}" placeholder="I run a 3-branch pharmacy with batch expiry and 30-day distributor credit…" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #F4FFFB; font: 500 16px/1.2 var(--vq-font-sans);">
+        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" size="lg" hint-size="132px,48px">Compile it</x-import>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; animation: vqRise 840ms var(--vq-ease-out) 440ms both;">
+        <sc-for list="{{ examples }}" as="ex" hint-placeholder-count="4">
+          <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Chip" onClick="{{ ex.pick }}" hint-size="150px,30px">{{ ex.label }}</x-import>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; justify-content: center; margin-top: 8px; font: 500 12.5px/1 var(--vq-font-sans); color: rgb(234 251 245 / .62);">
+        <span>1,600+ automated tests</span><span style="opacity: .4;">·</span>
+        <span>11,000+ assertions</span><span style="opacity: .4;">·</span>
+        <span>7 correctness checks on every post</span>
+      </div>
+    </div>
+
+    <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 34px; color: rgb(234 251 245 / .5);">
+      <span style="font: 700 10px/1 var(--vq-font-numeric); letter-spacing: .16em;">SCROLL TO COMPILE</span>
+      <span style="width: 1px; height: 42px; background: linear-gradient(180deg, rgb(198 245 233 / .7), transparent);"></span>
+    </div>
+  </header>
+
+  <section id="compiler" data-sec="compiler" data-theater="1" style="position: relative; height: 620vh; background: #0C1211;">
+    <div style="position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="position: absolute; inset: 0; background: radial-gradient(70% 60% at 50% 0%, rgb(11 170 143 / .16), transparent 70%);"></div>
+      <div style="position: absolute; inset: 0; background-image: linear-gradient(rgb(255 255 255 / .028) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / .028) 1px, transparent 1px); background-size: 64px 64px;"></div>
+
+      <div data-thgrid="1" style="position: relative; flex: 1; max-width: 1240px; width: 100%; margin: 0 auto; padding: 96px 28px 40px; display: grid; grid-template-columns: 250px 1fr; gap: 40px; align-items: start; min-height: 0;">
+
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px;">
+          <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #23C4A6; margin-bottom: 16px;">COMPILATION PASS</span>
+          <sc-for list="{{ stages }}" as="st" hint-placeholder-count="5">
+            <div data-stagerow="{{ st.i }}" style="display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 10px 0; opacity: .34; transition: opacity var(--vq-dur-3) var(--vq-ease-out);">
+              <span style="font: 600 12px/1.6 var(--vq-font-numeric); color: #8B9A93;">{{ st.n }}</span>
+              <span style="display: flex; flex-direction: column; gap: 3px;">
+                <span style="font: 600 15px/1.2 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">{{ st.title }}</span>
+                <span style="font: 500 12.5px/1.45 var(--vq-font-sans); color: #8B9A93;">{{ st.sub }}</span>
+                <span data-stagebar="{{ st.i }}" style="height: 2px; width: 0%; margin-top: 5px; border-radius: 999px; background: linear-gradient(90deg, #0BAA8F, #59DBC0);"></span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="position: relative; height: min(620px, 66vh); border-radius: var(--vq-r-2xl); border: 1px solid rgb(255 255 255 / .1); background: #141B19; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .9); overflow: hidden;">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid rgb(255 255 255 / .07);">
+            <span style="width: 9px; height: 9px; border-radius: 999px; background: #FF8A6B;"></span>
+            <span style="width: 9px; height: 9px; border-radius: 999px; background: #FFCD5B;"></span>
+            <span style="width: 9px; height: 9px; border-radius: 999px; background: #A9E34B;"></span>
+            <span data-frametitle="1" style="margin-left: 12px; font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .12em; color: #8B9A93;">BLUEPRINT · READING INTENT</span>
+            <span style="margin-left: auto; font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .1em; color: #23C4A6;">LIVE</span>
+          </div>
+
+          <div style="position: relative; height: calc(100% - 45px);">
+
+            <div data-layer="0" style="position: absolute; inset: 0; padding: 44px 48px; display: flex; flex-direction: column; justify-content: center; gap: 24px; opacity: 1;">
+              <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">THE OWNER TYPES</span>
+              <p style="margin: 0; font: 600 clamp(22px, 2.5vw, 34px)/1.32 var(--vq-font-display); letter-spacing: -.028em; color: #EDF2EF; max-width: 30ch;"><span data-typed="1"></span><span style="display: inline-block; width: 3px; height: 1em; margin-left: 4px; vertical-align: -0.12em; background: #23C4A6; animation: vqBlink 1s steps(1) infinite;"></span></p>
+              <span style="font: 500 14px/1.5 var(--vq-font-sans); color: #8B9A93;">No forms. No implementation consultant. One paragraph in your own words.</span>
+            </div>
+
+            <div data-layer="1" style="position: absolute; inset: 0; padding: 40px 48px; display: flex; flex-direction: column; justify-content: center; gap: 22px; opacity: 0;">
+              <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">DOMAIN PARSE</span>
+              <sc-for list="{{ parseGroups }}" as="g" hint-placeholder-count="3">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <span style="font: 600 12.5px/1 var(--vq-font-sans); color: #EDF2EF;">{{ g.label }}</span>
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+                      <span data-token="{{ it.k }}" style="display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; border: 1px solid rgb(35 196 166 / .28); background: rgb(35 196 166 / .1); font: 500 13px/1 var(--vq-font-sans); color: #C6F5E9; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);">
+                        <span style="width: 5px; height: 5px; border-radius: 999px; background: {{ it.dot }};"></span>{{ it.t }}
+                      </span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div data-layer="2" style="position: absolute; inset: 0; padding: 36px 44px; display: flex; flex-direction: column; justify-content: center; gap: 18px; opacity: 0;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+                <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">ENGINE SELECTION</span>
+                <span style="font: 500 12px/1 var(--vq-font-sans); color: #8B9A93;"><span data-selcount="1" style="font-family: var(--vq-font-numeric); color: #23C4A6;">0</span> of 24 engines wired · the rest never ship to you</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                <sc-for list="{{ engines }}" as="en" hint-placeholder-count="12">
+                  <div data-engine="{{ en.i }}" data-on="{{ en.on }}" style="padding: 14px 14px 16px; border-radius: var(--vq-r-md); border: 1px solid rgb(255 255 255 / .08); background: #1A2220; opacity: .28; transition: all 380ms var(--vq-ease-spring);">
+                    <span style="display: block; font: 600 13px/1.25 var(--vq-font-display); letter-spacing: -.015em; color: #EDF2EF;">{{ en.name }}</span>
+                    <span style="display: block; margin-top: 5px; font: 500 11px/1.3 var(--vq-font-numeric); letter-spacing: .04em; color: #8B9A93;">{{ en.tag }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div data-layer="3" style="position: absolute; inset: 0; padding: 34px 44px; opacity: 0;">
+              <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">TOPOLOGY · ROUTES BOUND TO CORE LEDGER</span>
+              <div style="position: relative; height: calc(100% - 26px); margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr 1.15fr; gap: 40px; align-items: center;">
+                <svg data-wires="1" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible;">
+                  <path data-wire="1" fill="none" stroke="#0BAA8F" stroke-width="2.2" stroke-linecap="round"></path>
+                  <path data-wire="1" fill="none" stroke="#0BAA8F" stroke-width="2.2" stroke-linecap="round"></path>
+                  <path data-wire="1" fill="none" stroke="#0BAA8F" stroke-width="2.2" stroke-linecap="round"></path>
+                  <path data-wire="1" fill="none" stroke="#59DBC0" stroke-width="2.6" stroke-linecap="round"></path>
+                  <path data-wire="1" fill="none" stroke="#59DBC0" stroke-width="2.6" stroke-linecap="round"></path>
+                </svg>
+                <div style="display: flex; flex-direction: column; gap: 14px; position: relative;">
+                  <sc-for list="{{ nodesIn }}" as="nd" hint-placeholder-count="3">
+                    <div data-node="in" style="position: relative; padding: 13px 16px; border-radius: var(--vq-r-md); border: 1px solid rgb(255 255 255 / .12); background: #1A2220; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">
+                      {{ nd.t }}
+                      <span style="display: block; margin-top: 4px; font: 500 10.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: #8B9A93;">{{ nd.s }}</span>
+                      <span style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #0BAA8F; border: 2px solid #1A2220; box-shadow: 0 0 8px #0BAA8F;"></span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 18px; position: relative;">
+                  <sc-for list="{{ nodesMid }}" as="nd" hint-placeholder-count="2">
+                    <div data-node="mid" style="position: relative; padding: 15px 18px; border-radius: var(--vq-r-md); border: 1px solid rgb(35 196 166 / .35); background: rgb(35 196 166 / .1); font: 600 13px/1.25 var(--vq-font-display); color: #C6F5E9;">
+                      <span style="position: absolute; left: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #0BAA8F; border: 2px solid #1A2220;"></span>
+                      {{ nd.t }}
+                      <span style="display: block; margin-top: 4px; font: 500 10.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: rgb(198 245 233 / .66);">{{ nd.s }}</span>
+                      <span style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #59DBC0; border: 2px solid #1A2220; box-shadow: 0 0 8px #59DBC0;"></span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="position: relative;">
+                  <div data-node="core" style="position: relative; padding: 22px 20px; border-radius: var(--vq-r-lg); background: var(--vq-grad-mint); box-shadow: var(--vq-glow-accent-strong); color: #fff;">
+                    <span style="position: absolute; left: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #fff; border: 2px solid #088975; box-shadow: 0 0 10px #fff;"></span>
+                    <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: rgb(255 255 255 / .75);">THE ENGINE</span>
+                    <span style="display: block; margin-top: 8px; font: 600 20px/1.1 var(--vq-font-display); letter-spacing: -.03em;">Core Ledger</span>
+                    <span style="display: block; margin-top: 8px; font: 500 12px/1.45 var(--vq-font-sans); color: rgb(255 255 255 / .84);">Every module posts here. Debits equal credits or the post is refused.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div data-layer="4" style="position: absolute; inset: 0; padding: 30px 34px; opacity: 0;">
+              <div style="height: 100%; display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px;">
+                <div style="border-radius: var(--vq-r-lg); border: 1px solid rgb(255 255 255 / .08); background: #101715; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+                  <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font: 600 13px/1 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">Checkout · Branch 2</span>
+                    <span style="font: 600 10.5px/1 var(--vq-font-numeric); letter-spacing: .1em; color: #4BD99B;">BATCH EXPIRY ON</span>
+                  </div>
+                  <sc-for list="{{ cartLines }}" as="ln" hint-placeholder-count="3">
+                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 0; border-bottom: 1px solid rgb(255 255 255 / .06);">
+                      <span style="display: flex; flex-direction: column; gap: 3px;">
+                        <span style="font: 500 13px/1 var(--vq-font-sans); color: #EDF2EF;">{{ ln.item }}</span>
+                        <span style="font: 500 11px/1 var(--vq-font-numeric); letter-spacing: .05em; color: #8B9A93;">{{ ln.batch }}</span>
+                      </span>
+                      <span style="font: 600 13px/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: #EDF2EF; align-self: center;">{{ ln.amt }}</span>
+                    </div>
+                  </sc-for>
+                  <div style="margin-top: auto; display: flex; align-items: baseline; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgb(255 255 255 / .16);">
+                    <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">TOTAL</span>
+                    <span style="font: 600 26px/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: #EDF2EF;">Rs 4,318.00</span>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+                  <div style="border-radius: var(--vq-r-lg); border: 1px solid rgb(75 217 155 / .28); background: rgb(75 217 155 / .1); padding: 14px 16px;">
+                    <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #4BD99B;">POSTED · 7 CHECKS PASSED</span>
+                    <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; font: 500 12px/1.5 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: #EDF2EF;">
+                      <span>Debits</span><span>Rs 4,318.00</span>
+                      <span>Credits</span><span>Rs 4,318.00</span>
+                    </div>
+                  </div>
+                  <div style="flex: 1; border-radius: var(--vq-r-lg); border: 1px solid rgb(255 255 255 / .08); background: #101715; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0;">
+                    <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">EXPIRING IN 45 DAYS</span>
+                    <sc-for list="{{ expiring }}" as="ex" hint-placeholder-count="3">
+                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 500 12px/1.4 var(--vq-font-sans); color: #A8B4AE;">
+                        <span>{{ ex.t }}</span>
+                        <span style="font: 600 11px/1 var(--vq-font-numeric); color: #F7C05A;">{{ ex.d }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="extremes" data-sec="extremes" style="position: relative; background: var(--vq-bg-alt); padding: 112px 24px;">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <div data-r="1" style="display: flex; flex-direction: column; gap: 14px; max-width: 720px; opacity: 0; transform: translateY(28px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out);">
+        <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text);">THE TWO BROKEN EXTREMES</span>
+        <h2 data-split="1" style="margin: 0; font: 600 var(--vq-fs-display)/var(--vq-lh-display) var(--vq-font-display); letter-spacing: var(--vq-ls-display); color: var(--vq-text); text-wrap: balance;">Rigid software, or hallucinated software.</h2>
+        <p style="margin: 0; max-width: 62ch; font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans); color: var(--vq-text-2);">For thirty years those were the only two options. One asks your business to change shape. The other invents your numbers.</p>
+      </div>
+
+      <div style="margin-top: 52px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: stretch;">
+        <div data-r="1" data-d="0" style="opacity: 0; transform: translateY(30px); filter: grayscale(.6); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out), filter 900ms var(--vq-ease-out); padding: 28px; border-radius: var(--vq-r-xl); background: var(--vq-surface); border: 1px solid var(--vq-line); display: flex; flex-direction: column; gap: 14px;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">LEGACY ERP / POS</span>
+          <h3 style="margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3); color: var(--vq-text);">Clunky and inflexible</h3>
+          <p style="margin: 0; font: 400 15px/1.6 var(--vq-font-sans); color: var(--vq-text-2);">Five hundred pre-built menus and rigid settings. A bakery gets buried in wholesale manufacturing screens. A pharmacy finds batch expiry was never part of checkout.</p>
+          <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--vq-line-soft);">
+            <span style="display: flex; align-items: center; gap: 8px; font: 500 13px/1.4 var(--vq-font-sans); color: var(--vq-text-3);"><span style="color: var(--vq-danger); font-family: var(--vq-font-numeric);">−</span> 3 to 6 months of implementation</span>
+            <span style="display: flex; align-items: center; gap: 8px; font: 500 13px/1.4 var(--vq-font-sans); color: var(--vq-text-3);"><span style="color: var(--vq-danger); font-family: var(--vq-font-numeric);">−</span> Menus you will never open</span>
+          </div>
+        </div>
+
+        <div data-r="1" data-d="90" style="opacity: 0; transform: translateY(30px); filter: grayscale(.6); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out), filter 900ms var(--vq-ease-out); padding: 28px; border-radius: var(--vq-r-xl); background: var(--vq-surface); border: 1px solid var(--vq-line); display: flex; flex-direction: column; gap: 14px;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">GENERIC AI APP BUILDERS</span>
+          <h3 style="margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3); color: var(--vq-text);">Hallucinated books</h3>
+          <p style="margin: 0; font: 400 15px/1.6 var(--vq-font-sans); color: var(--vq-text-2);">A prompt generates raw code from scratch. Raw code breaks accounting rules, invents totals and cracks under load. You cannot run real money on it.</p>
+          <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--vq-line-soft);">
+            <span style="display: flex; align-items: center; gap: 8px; font: 500 13px/1.4 var(--vq-font-sans); color: var(--vq-text-3);"><span style="color: var(--vq-danger); font-family: var(--vq-font-numeric);">−</span> No ledger invariants</span>
+            <span style="display: flex; align-items: center; gap: 8px; font: 500 13px/1.4 var(--vq-font-sans); color: var(--vq-text-3);"><span style="color: var(--vq-danger); font-family: var(--vq-font-numeric);">−</span> A rewrite every time you grow</span>
+          </div>
+        </div>
+
+        <div data-r="1" data-d="180" style="position: relative; overflow: hidden; opacity: 0; transform: translateY(30px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-spring); padding: 28px; border-radius: var(--vq-r-xl); background: var(--vq-grad-mint); box-shadow: var(--vq-glow-accent-strong); color: #fff; display: flex; flex-direction: column; gap: 14px;">
+          <span data-amb="1" style="position: absolute; top: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .16), transparent); animation: vqSheen 4200ms var(--vq-ease-in-out) infinite;"></span>
+          <span style="position: relative; font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: rgb(255 255 255 / .78);">VENQORE · THE AI COMPILER</span>
+          <h3 style="position: relative; margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3);">Both, without the trade</h3>
+          <p style="position: relative; margin: 0; font: 400 15px/1.6 var(--vq-font-sans); color: rgb(255 255 255 / .9);">AI compiles your intent into parameterized, battle-tested financial modules. The agility of natural language, the arithmetic of hardened double-entry accounting.</p>
+          <div style="position: relative; margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid rgb(255 255 255 / .24);">
+            <span style="display: flex; align-items: center; gap: 8px; font: 500 13px/1.4 var(--vq-font-sans); color: rgb(255 255 255 / .92);"><span style="font-family: var(--vq-font-numeric);">+</span> 100% custom, 0% hallucinated</span>
+            <span style="display: flex; align-items: center; gap: 8px; font: 500 13px/1.4 var(--vq-font-sans); color: rgb(255 255 255 / .92);"><span style="font-family: var(--vq-font-numeric);">+</span> Live in minutes, not quarters</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tailored" data-sec="tailored" style="position: relative; background: var(--vq-bg); padding: 112px 24px;">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <div data-r="1" style="display: flex; flex-direction: column; gap: 14px; max-width: 760px; opacity: 0; transform: translateY(28px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out);">
+        <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text);">ZERO BLOAT</span>
+        <h2 data-split="1" style="margin: 0; font: 600 var(--vq-fs-display)/var(--vq-lh-display) var(--vq-font-display); letter-spacing: var(--vq-ls-display); color: var(--vq-text); text-wrap: balance;">Same compiler. A different system every time.</h2>
+        <p style="margin: 0; max-width: 62ch; font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans); color: var(--vq-text-2);">Pick a business below and watch the engine set change. Everything that goes dim is software you never have to look at.</p>
+      </div>
+
+      <div data-r="1" data-d="120" style="margin-top: 34px; display: flex; flex-wrap: wrap; gap: 10px; opacity: 0; transform: translateY(20px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out);">
+        <sc-for list="{{ industries }}" as="ind" hint-placeholder-count="4">
+          <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Chip" selected="{{ ind.on }}" onClick="{{ ind.pick }}" hint-size="130px,32px">{{ ind.label }}</x-import>
+        </sc-for>
+      </div>
+
+      <div data-r="1" data-d="200" data-indgrid="1" style="margin-top: 26px; display: grid; grid-template-columns: 1.55fr 1fr; gap: 20px; align-items: start; opacity: 0; transform: translateY(28px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out);">
+        <div style="padding: 24px; border-radius: var(--vq-r-xl); background: var(--vq-surface); border: 1px solid var(--vq-line); box-shadow: var(--vq-elev-1);">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+            <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">COMPILED ENGINE SET</span>
+            <span style="font: 600 12px/1 var(--vq-font-numeric); color: var(--vq-accent-text);">{{ indCount }} of 24 shipped</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px;">
+            <sc-for list="{{ modules }}" as="m" hint-placeholder-count="24">
+              <span style="{{ m.style }}">{{ m.name }}</span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px; padding: 24px; border-radius: var(--vq-r-xl); background: var(--vq-ink-950); color: #EDF2EF;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #23C4A6;">{{ indEyebrow }}</span>
+          <h3 style="margin: 0; font: 600 21px/1.25 var(--vq-font-display); letter-spacing: -.02em;">{{ indTitle }}</h3>
+          <p style="margin: 0; font: 400 15px/1.62 var(--vq-font-sans); color: #A8B4AE;">{{ indBlurb }}</p>
+          <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid rgb(255 255 255 / .1);">
+            <sc-for list="{{ indPoints }}" as="pt" hint-placeholder-count="3">
+              <span style="display: flex; gap: 10px; font: 500 13.5px/1.5 var(--vq-font-sans); color: #EDF2EF;"><span style="color: #4BD99B; font-family: var(--vq-font-numeric);">+</span>{{ pt.t }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div data-dark="1" class="vq-dark" style="position: relative; overflow: hidden; background: var(--vq-ink-950); padding: 26px 0; border-top: 1px solid rgb(255 255 255 / .07); border-bottom: 1px solid rgb(255 255 255 / .07);">
+    <div data-marquee="1" style="display: flex; gap: 46px; white-space: nowrap; will-change: transform;">
+      <sc-for list="{{ marquee }}" as="mq" hint-placeholder-count="14">
+        <span style="display: inline-flex; align-items: center; gap: 46px; font: 600 clamp(20px, 2.4vw, 34px)/1 var(--vq-font-display); letter-spacing: -.03em; color: {{ mq.c }};">{{ mq.t }}<span style="width: 6px; height: 6px; border-radius: 999px; background: #23C4A6;"></span></span>
+      </sc-for>
+    </div>
+  </div>
+
+  <section id="tenx" data-sec="tenx" data-track="1" style="position: relative; height: 420vh; background: var(--vq-bg);">
+    <div style="position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
+      <div style="max-width: 1240px; width: 100%; margin: 0 auto; padding: 0 24px 26px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text);">WHAT CHANGES ON MONDAY</span>
+          <h2 data-split="1" style="margin: 0; max-width: 22ch; font: 600 var(--vq-fs-h1)/var(--vq-lh-h1) var(--vq-font-display); letter-spacing: var(--vq-ls-h1); color: var(--vq-text);">Four things a compiler does that software cannot.</h2>
+        </div>
+        <span style="display: flex; align-items: center; gap: 10px; font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .12em; color: var(--vq-text-3); padding-bottom: 6px;">KEEP SCROLLING<span style="width: 46px; height: 1px; background: var(--vq-line-strong); position: relative; overflow: hidden;"><span data-trackbar="1" style="position: absolute; inset: 0; width: 0%; background: var(--vq-accent);"></span></span></span>
+      </div>
+      <div data-trackrow="1" style="display: flex; gap: 20px; padding: 0 24px; will-change: transform;">
+        <sc-for list="{{ tenx }}" as="tx" hint-placeholder-count="4">
+          <div data-panel="1" style="flex: 0 0 auto; width: clamp(300px, 38vw, 520px); padding: 30px; border-radius: var(--vq-r-2xl); background: var(--vq-surface); border: 1px solid var(--vq-line); box-shadow: var(--vq-elev-1); display: flex; flex-direction: column; gap: 16px;">
+            <span style="font: 600 44px/1 var(--vq-font-numeric); letter-spacing: -.03em; color: var(--vq-accent-quiet-line);">{{ tx.n }}</span>
+            <h3 style="margin: 0; font: 600 var(--vq-fs-h2)/var(--vq-lh-h2) var(--vq-font-display); letter-spacing: var(--vq-ls-h2); color: var(--vq-text); text-wrap: balance;">{{ tx.title }}</h3>
+            <p style="margin: 0; font: 400 15.5px/1.62 var(--vq-font-sans); color: var(--vq-text-2);">{{ tx.body }}</p>
+            <div style="margin-top: auto; display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; padding-top: 18px; border-top: 1px solid var(--vq-line-soft); font: 500 13px/1.5 var(--vq-font-sans);">
+              <span style="font: 700 10px/1.5 var(--vq-font-numeric); letter-spacing: .12em; color: var(--vq-text-3);">BEFORE</span><span style="color: var(--vq-text-3);">{{ tx.before }}</span>
+              <span style="font: 700 10px/1.5 var(--vq-font-numeric); letter-spacing: .12em; color: var(--vq-accent-text);">AFTER</span><span style="color: var(--vq-text);">{{ tx.after }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="day2" data-sec="day2" style="position: relative; background: var(--vq-bg-alt); padding: 112px 24px;">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <div data-r="1" style="display: flex; flex-direction: column; gap: 14px; max-width: 760px; opacity: 0; transform: translateY(28px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out);">
+        <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text);">DAY 2 ONWARD</span>
+        <h2 data-split="1" style="margin: 0; font: 600 var(--vq-fs-display)/var(--vq-lh-display) var(--vq-font-display); letter-spacing: var(--vq-ls-display); color: var(--vq-text); text-wrap: balance;">The compiler becomes an operating partner.</h2>
+        <p style="margin: 0; max-width: 62ch; font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans); color: var(--vq-text-2);">Once your system is running, the same intelligence that built it starts working inside it.</p>
+      </div>
+
+      <div style="margin-top: 52px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div data-r="1" data-d="0" style="opacity: 0; transform: translateY(30px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-spring); padding: 26px; border-radius: var(--vq-r-xl); background: var(--vq-surface); border: 1px solid var(--vq-line); box-shadow: var(--vq-elev-1); display: flex; flex-direction: column; gap: 16px;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">PREDICTIVE REPLENISHMENT</span>
+          <h3 style="margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3); color: var(--vq-text);">Purchase orders before the stockout</h3>
+          <p style="margin: 0; font: 400 14.5px/1.6 var(--vq-font-sans); color: var(--vq-text-2);">Sales velocity, supplier lead times and seasonality read together, then drafted into a PO you approve.</p>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+            <sc-for list="{{ replen }}" as="rp" hint-placeholder-count="3">
+              <span style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="display: flex; justify-content: space-between; font: 500 12.5px/1 var(--vq-font-sans); color: var(--vq-text-2);"><span>{{ rp.t }}</span><span style="font-family: var(--vq-font-numeric); color: var(--vq-text-3);">{{ rp.d }}</span></span>
+                <span style="height: 6px; border-radius: 999px; background: var(--vq-chart-track); overflow: hidden;"><span style="{{ rp.bar }}"></span></span>
+              </span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div data-r="1" data-d="110" style="opacity: 0; transform: translateY(30px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-spring); padding: 26px; border-radius: var(--vq-r-xl); background: var(--vq-surface); border: 1px solid var(--vq-line); box-shadow: var(--vq-elev-1); display: flex; flex-direction: column; gap: 16px;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">AUTONOMOUS RECONCILIATION</span>
+          <h3 style="margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3); color: var(--vq-text);">Bank feed, card receipts, POS logs</h3>
+          <p style="margin: 0; font: 400 14.5px/1.6 var(--vq-font-sans); color: var(--vq-text-2);">Matched line by line against the ledger. What matches is closed. What does not is flagged with the reason.</p>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <sc-for list="{{ recon }}" as="rc" hint-placeholder-count="4">
+              <span style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--vq-r-sm); background: var(--vq-sunken); font: 500 12.5px/1 var(--vq-font-sans); color: var(--vq-text-2);">
+                <span style="display: flex; align-items: center; gap: 8px;"><span style="{{ rc.dot }}"></span>{{ rc.t }}</span>
+                <span style="{{ rc.tag }}">{{ rc.s }}</span>
+              </span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div data-r="1" data-d="220" style="opacity: 0; transform: translateY(30px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-spring); padding: 26px; border-radius: var(--vq-r-xl); background: var(--vq-ink-950); color: #EDF2EF; display: flex; flex-direction: column; gap: 16px;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #23C4A6;">VENA · ASK IN PLAIN WORDS</span>
+          <h3 style="margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3);">Answers straight off the ledger</h3>
+          <div style="padding: 14px 16px; border-radius: var(--vq-r-md); background: rgb(255 255 255 / .06); font: 500 14px/1.5 var(--vq-font-sans); color: #EDF2EF;">“What was our gross margin at branch 2 this weekend?”</div>
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; font: 500 13px/1.6 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: #A8B4AE;">
+            <span>Revenue</span><span style="color: #EDF2EF;">Rs 1,284,900.00</span>
+            <span>Cost of goods</span><span style="color: #EDF2EF;">Rs 861,883.00</span>
+            <span style="color: #4BD99B;">Gross margin</span><span style="color: #4BD99B;">32.9%</span>
+          </div>
+          <span style="font: 500 12px/1.5 var(--vq-font-sans); color: #8B9A93;">Every figure traceable to the journal entries behind it.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ledger" data-sec="ledger" data-dark="1" class="vq-dark" style="position: relative; overflow: hidden; background: #0C1211; padding: 120px 24px;">
+    <div data-px="0.12" style="position: absolute; inset: -10%; background: var(--vq-grad-spot); opacity: .8;"></div>
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div data-r="1" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; opacity: 0; transform: translateY(28px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-out);">
+        <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #23C4A6;">CORE LEDGER · THE PART AI NEVER TOUCHES</span>
+        <h2 data-split="1" style="margin: 0; max-width: 22ch; font: 600 var(--vq-fs-display)/var(--vq-lh-display) var(--vq-font-display); letter-spacing: var(--vq-ls-display); color: #F4FFFB; text-wrap: balance;">AI decides what your system looks like. It never decides what your numbers say.</h2>
+      </div>
+
+      <div data-r="1" data-d="120" style="margin: 48px auto 0; max-width: 760px; display: flex; align-items: center; justify-content: center; gap: clamp(16px, 4vw, 48px); padding: 34px 28px; border-radius: var(--vq-r-2xl); border: 1px solid rgb(255 255 255 / .12); background: rgb(20 27 25 / .72); backdrop-filter: blur(18px); opacity: 0; transform: translateY(24px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-spring);">
+        <span style="display: flex; flex-direction: column; gap: 8px; text-align: right;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">TOTAL DEBITS</span>
+          <span style="font: 600 clamp(22px, 3vw, 34px)/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: #EDF2EF;">Rs 6,636,549.20</span>
+        </span>
+        <span style="font: 600 34px/1 var(--vq-font-numeric); color: #23C4A6;">=</span>
+        <span style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">TOTAL CREDITS</span>
+          <span style="font: 600 clamp(22px, 3vw, 34px)/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: #EDF2EF;">Rs 6,636,549.20</span>
+        </span>
+      </div>
+
+      <div style="margin-top: 44px; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;">
+        <sc-for list="{{ proof }}" as="pf" hint-placeholder-count="4">
+          <div data-r="1" style="opacity: 0; transform: translateY(26px); transition: opacity 620ms var(--vq-ease-out), transform 620ms var(--vq-ease-spring); padding: 22px; border-radius: var(--vq-r-xl); border: 1px solid rgb(255 255 255 / .1); background: #141B19;">
+            <span style="display: block; font: 600 38px/1 var(--vq-font-numeric); letter-spacing: -.03em; color: #59DBC0;">{{ pf.n }}</span>
+            <span style="display: block; margin-top: 12px; font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">{{ pf.label }}</span>
+            <span style="display: block; margin-top: 8px; font: 500 13px/1.55 var(--vq-font-sans); color: #A8B4AE;">{{ pf.sub }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section data-sec="ledger" data-dark="1" class="vq-dark" style="position: relative; overflow: hidden; background: var(--vq-ink-1000); padding: 120px 24px;">
+    <div style="max-width: 940px; margin: 0 auto;">
+      <blockquote data-r="1" style="margin: 0; opacity: 0; transform: translateY(28px); transition: opacity 720ms var(--vq-ease-out), transform 720ms var(--vq-ease-out);">
+        <p data-split="1" style="margin: 0; font: 600 clamp(28px, 4vw, 46px)/1.18 var(--vq-font-display); letter-spacing: -.032em; color: #F4FFFB; text-wrap: pretty;">Software should conform to how a business works — not the other way around.</p>
+        <p style="margin: 26px 0 0; max-width: 68ch; font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans); color: rgb(234 251 245 / .74);">By separating generative intent from deterministic execution, we deliver fully custom software with none of the hallucination — giving millions of businesses the exact tools they need to run, grow and thrive.</p>
+        <footer style="margin-top: 26px; display: flex; align-items: center; gap: 12px; font: 500 13px/1 var(--vq-font-sans); color: #8B9A93;">
+          <img src="assets/logo-mark.png" alt="" width="22" height="22">
+          <span>VenQore · the AI Business Compiler</span>
+        </footer>
+      </blockquote>
+    </div>
+  </section>
+
+  <section id="start" data-sec="start" style="position: relative; background: var(--vq-bg); padding: 112px 24px 96px;">
+    <div data-r="1" style="position: relative; overflow: hidden; max-width: 1080px; margin: 0 auto; padding: clamp(36px, 6vw, 72px); border-radius: var(--vq-r-2xl); background: var(--vq-grad-mint); box-shadow: var(--vq-glow-accent-strong); color: #fff; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 22px; opacity: 0; transform: translateY(30px); transition: opacity 680ms var(--vq-ease-out), transform 680ms var(--vq-ease-spring);">
+      <span style="position: absolute; inset: 0; background: radial-gradient(60% 70% at 20% 0%, rgb(255 255 255 / .22), transparent 70%);"></span>
+      <span style="position: relative; font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: rgb(255 255 255 / .8);">DESCRIBE YOUR BUSINESS IN PLAIN WORDS</span>
+      <h2 style="position: relative; margin: 0; max-width: 20ch; font: 600 clamp(32px, 5vw, 56px)/1.02 var(--vq-font-display); letter-spacing: -.034em;">Watch your system compile live.</h2>
+      <p style="position: relative; margin: 0; max-width: 54ch; font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans); color: rgb(255 255 255 / .88);">One paragraph about how you operate. A working operating system on the other side of it.</p>
+      <div style="position: relative; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px;">
+        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" size="lg" variant="secondary" hint-size="180px,48px">Compile my system</x-import>
+        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" size="lg" variant="ghost" style="{{ ctaGhost }}" hint-size="150px,48px">See a live blueprint</x-import>
+      </div>
+      <span style="position: relative; font: 500 12.5px/1 var(--vq-font-sans); color: rgb(255 255 255 / .74);">Every module posts through Core Ledger from the first minute.</span>
+    </div>
+
+    <footer style="max-width: 1080px; margin: 56px auto 0; padding-top: 26px; border-top: 1px solid var(--vq-line); display: flex; flex-wrap: wrap; align-items: center; gap: 16px;">
+      <span style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/logo-mark.png" alt="" width="24" height="24">
+        <span style="font: 600 17px/1 var(--vq-font-display); letter-spacing: -.03em; color: var(--vq-text);">VenQore</span>
+      </span>
+      <span style="font: 500 13px/1 var(--vq-font-sans); color: var(--vq-text-3);">Blueprint · Core Ledger · SmartCapture · VenSynQ · Vena · Signals</span>
+      <span style="margin-left: auto; font: 500 13px/1 var(--vq-font-sans); color: var(--vq-text-3);">The AI Business Compiler for ERP and point of sale.</span>
+    </footer>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+const MODULES = [
+  ["POS checkout", "pharmacy bakery boutique"],
+  ["Stock ledger", "pharmacy bakery wholesale boutique"],
+  ["Core Ledger", "pharmacy bakery wholesale boutique"],
+  ["Tax invoicing", "pharmacy bakery wholesale boutique"],
+  ["Batch & expiry", "pharmacy"],
+  ["Prescription log", "pharmacy"],
+  ["Branch transfers", "pharmacy"],
+  ["Purchases & credit", "pharmacy wholesale"],
+  ["Recipe costing", "bakery"],
+  ["Central kitchen", "bakery"],
+  ["Wastage & yield", "bakery"],
+  ["Loyalty & customers", "bakery boutique"],
+  ["Payroll & shifts", "bakery boutique"],
+  ["Tier pricing matrix", "wholesale"],
+  ["Partial dispatch", "wholesale"],
+  ["Container logistics", "wholesale"],
+  ["Credit aging", "wholesale"],
+  ["Route delivery", "wholesale"],
+  ["Reps & commission", "wholesale"],
+  ["Size · colour variants", "boutique"],
+  ["Channel sync", "boutique"],
+  ["Returns & exchanges", "boutique"],
+  ["Manufacturing BOM", ""],
+  ["Table service", ""]
+];
+
+const IND = {
+  pharmacy: {
+    label: "3-branch pharmacy",
+    eyebrow: "PHARMACY · 3 BRANCHES",
+    title: "Batch expiry lives inside checkout",
+    blurb: "Not in a settings page, not in a separate module. The counter picks the nearest-expiry batch first, and the write-off posts itself.",
+    points: ["Distributor invoices on 30-day terms, aged automatically", "Expiry watchlist at 45, 30 and 15 days", "Stock moves between branches without a spreadsheet"]
+  },
+  bakery: {
+    label: "Bakery, central kitchen",
+    eyebrow: "BAKERY · CENTRAL KITCHEN",
+    title: "Production costed the way you bake",
+    blurb: "A recipe consumes ingredients, produces trays and posts the cost of goods the moment the batch comes out.",
+    points: ["Yield and wastage tracked per production run", "Counter sales draw down finished goods, not flour", "No wholesale manufacturing screens anywhere"]
+  },
+  wholesale: {
+    label: "Auto parts wholesale",
+    eyebrow: "WHOLESALE · TIER PRICING",
+    title: "Customer-specific pricing, partial dispatch",
+    blurb: "Each customer sits on a tier. Each order can ship in pieces, and the receivable follows the pieces.",
+    points: ["Pick, pack and ship tracked per line, not per order", "Credit accounts aged by customer and by rep", "Margin visible on every tier before you quote"]
+  },
+  boutique: {
+    label: "Boutique + online",
+    eyebrow: "BOUTIQUE · MULTI-CHANNEL",
+    title: "One stock pool, three storefronts",
+    blurb: "Size and colour variants at the counter, on Amazon and on your own store — reconciled through one ledger.",
+    points: ["Variant matrix built from your own size names", "Channel orders land as invoices, not as CSV files", "Returns reverse the entry they came from"]
+  }
+};
+
+class Component extends DCLogic {
+  state = { prompt: "", industry: "pharmacy" };
+
+  renderVals() {
+    const set = (t) => () => this.setState({ prompt: t });
+    return {
+      prompt: this.state.prompt,
+      onPrompt: (e) => this.setState({ prompt: e.target.value }),
+      examples: [
+        "3-branch pharmacy, batch expiry",
+        "Auto parts wholesale, tier pricing",
+        "Bakery with a central kitchen",
+        "Boutique + Amazon and Woo"
+      ].map((label) => ({ label, pick: set(label) })),
+      stages: [
+        { i: 0, n: "01", title: "Intent", sub: "You describe how you operate" },
+        { i: 1, n: "02", title: "Parse", sub: "Entities, workflows, financial routes" },
+        { i: 2, n: "03", title: "Select", sub: "Proven engines, parameterized" },
+        { i: 3, n: "04", title: "Wire", sub: "Routes bound to the double-entry core" },
+        { i: 4, n: "05", title: "Live", sub: "Your system, running" }
+      ],
+      parseGroups: [
+        { label: "Entities", items: [
+          { k: 0, t: "Drugs & SKUs", dot: "#23C4A6" }, { k: 1, t: "Batches", dot: "#23C4A6" },
+          { k: 2, t: "Expiry dates", dot: "#23C4A6" }, { k: 3, t: "Branches", dot: "#23C4A6" },
+          { k: 4, t: "Distributors", dot: "#23C4A6" } ] },
+        { label: "Workflows", items: [
+          { k: 5, t: "Counter checkout", dot: "#55C4EC" }, { k: 6, t: "Batch-first picking", dot: "#55C4EC" },
+          { k: 7, t: "Branch transfers", dot: "#55C4EC" }, { k: 8, t: "Expiry write-off", dot: "#55C4EC" } ] },
+        { label: "Financial routes", items: [
+          { k: 9, t: "Accounts payable · 30-day terms", dot: "#FFCD5B" },
+          { k: 10, t: "Sales tax on invoice", dot: "#FFCD5B" },
+          { k: 11, t: "Inventory valuation", dot: "#FFCD5B" } ] }
+      ],
+      engines: [
+        { i: 0, name: "POS checkout", tag: "SELECTED", on: 1 },
+        { i: 1, name: "Batch & expiry", tag: "SELECTED", on: 1 },
+        { i: 2, name: "Stock ledger", tag: "SELECTED", on: 1 },
+        { i: 3, name: "Manufacturing BOM", tag: "not needed", on: 0 },
+        { i: 4, name: "Purchases & credit", tag: "SELECTED", on: 1 },
+        { i: 5, name: "Branch transfers", tag: "SELECTED", on: 1 },
+        { i: 6, name: "Payroll", tag: "not needed", on: 0 },
+        { i: 7, name: "Container logistics", tag: "not needed", on: 0 },
+        { i: 8, name: "Core Ledger", tag: "ALWAYS ON", on: 1 },
+        { i: 9, name: "Table service", tag: "not needed", on: 0 },
+        { i: 10, name: "Tier pricing matrix", tag: "not needed", on: 0 },
+        { i: 11, name: "Channel sync", tag: "not needed", on: 0 }
+      ],
+      nodesIn: [
+        { t: "POS terminals", s: "3 BRANCHES" },
+        { t: "Purchase receipts", s: "DISTRIBUTORS" },
+        { t: "SmartCapture", s: "PHOTO · VOICE" }
+      ],
+      nodesMid: [
+        { t: "Stock & batch engine", s: "FEFO · EXPIRY GUARD" },
+        { t: "Payables & terms", s: "30-DAY AGING" }
+      ],
+      cartLines: [
+        { item: "Amoxicillin 500mg × 2", batch: "BATCH A-2291 · EXP 03/2027", amt: "1,240.00" },
+        { item: "Insulin pen refill", batch: "BATCH C-0417 · EXP 11/2026", amt: "2,660.00" },
+        { item: "Paracetamol strip × 4", batch: "BATCH P-8802 · EXP 08/2028", amt: "418.00" }
+      ],
+      expiring: [
+        { t: "Batch C-0417 · Insulin", d: "18 DAYS" },
+        { t: "Batch V-1120 · Vitamin D", d: "31 DAYS" },
+        { t: "Batch A-9043 · Syrup", d: "44 DAYS" }
+      ],
+      industries: Object.keys(IND).map((k) => ({
+        label: IND[k].label,
+        on: this.state.industry === k,
+        pick: () => this.setState({ industry: k })
+      })),
+      modules: MODULES.map(([name, tags]) => {
+        const on = tags.indexOf(this.state.industry) >= 0;
+        return {
+          name,
+          style: on
+            ? "padding: 11px 13px; border-radius: var(--vq-r-sm); border: 1px solid var(--vq-accent-quiet-line); background: var(--vq-accent-quiet); color: var(--vq-accent-text); font: 600 12.5px/1.3 var(--vq-font-sans); transition: all 420ms var(--vq-ease-spring);"
+            : "padding: 11px 13px; border-radius: var(--vq-r-sm); border: 1px dashed var(--vq-line); background: transparent; color: var(--vq-text-3); opacity: .4; font: 500 12.5px/1.3 var(--vq-font-sans); transition: all 420ms var(--vq-ease-spring);"
+        };
+      }),
+      indCount: MODULES.filter(([, t]) => t.indexOf(this.state.industry) >= 0).length,
+      indEyebrow: IND[this.state.industry].eyebrow,
+      indTitle: IND[this.state.industry].title,
+      indBlurb: IND[this.state.industry].blurb,
+      indPoints: IND[this.state.industry].points.map((t) => ({ t })),
+      replen: [
+        { t: "Amoxicillin 500mg", d: "reorder in 4 days", w: 82 },
+        { t: "Insulin pen refill", d: "reorder in 9 days", w: 58 },
+        { t: "Vitamin D 60k", d: "reorder in 21 days", w: 31 }
+      ].map((r) => ({
+        t: r.t, d: r.d,
+        bar: "display: block; height: 100%; width: " + r.w + "%; border-radius: 999px; background: var(--vq-grad-mint);"
+      })),
+      recon: [
+        { t: "Bank feed · 142 lines", s: "MATCHED", ok: 1 },
+        { t: "Card settlement · 38 lines", s: "MATCHED", ok: 1 },
+        { t: "POS drawer · branch 2", s: "SHORT 240.00", ok: 0 },
+        { t: "Supplier credit note", s: "MATCHED", ok: 1 }
+      ].map((r) => ({
+        t: r.t, s: r.s,
+        dot: "width: 6px; height: 6px; border-radius: 999px; background: " + (r.ok ? "var(--vq-success)" : "var(--vq-warning)") + ";",
+        tag: "font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .06em; color: " + (r.ok ? "var(--vq-success)" : "var(--vq-warning)") + ";"
+      })),
+      proof: [
+        { n: "7", label: "CORRECTNESS CHECKS", sub: "Run on every post before it is allowed into the ledger." },
+        { n: "73", label: "TESTS ACROSS 20 MODULES", sub: "The engines are tested; only the arrangement is generated." },
+        { n: "240+", label: "FEATURES COMPILED", sub: "Already built, already proven, waiting to be wired." },
+        { n: "2", label: "BUSINESSES LIVE TODAY", sub: "Running their real money through Core Ledger." }
+      ],
+      ctaGhost: { color: "#fff", background: "rgb(255 255 255 / .16)", border: "1px solid rgb(255 255 255 / .34)" },
+      floaters: [
+        { t: "Batch & expiry", px: "0.5", top: "22%", left: "5%", dur: "7200ms" },
+        { t: "Core Ledger", px: "0.34", top: "62%", left: "9%", dur: "8400ms" },
+        { t: "Branch transfers", px: "0.46", top: "78%", left: "68%", dur: "6600ms" },
+        { t: "Payables · 30 days", px: "0.3", top: "18%", left: "76%", dur: "9200ms" },
+        { t: "POS checkout", px: "0.6", top: "44%", left: "84%", dur: "7800ms" }
+      ].map((f) => ({
+        t: f.t, px: f.px,
+        style: "position: absolute; top: " + f.top + "; left: " + f.left + "; display: inline-flex; align-items: center; gap: 8px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgb(255 255 255 / .2); background: rgb(255 255 255 / .08); backdrop-filter: blur(8px); font: 500 12.5px/1 var(--vq-font-sans); color: rgb(234 251 245 / .82); white-space: nowrap; animation: vqFloat " + f.dur + " var(--vq-ease-in-out) infinite alternate;"
+      })),
+      marquee: ["Blueprint", "Core Ledger", "SmartCapture", "VenSynQ", "Vena", "Signals", "Blueprint", "Core Ledger", "SmartCapture", "VenSynQ", "Vena", "Signals"].map((t, i) => ({
+        t, c: i % 3 === 1 ? "#59DBC0" : "rgb(237 242 239 / .5)"
+      })),
+      tenx: [
+        { n: "01", title: "Minutes instead of months", body: "No implementers, no custom-field mapping, no database chart to draw. You write how you operate and the system exists.", before: "3–6 months of implementation", after: "Scanning barcodes on day one" },
+        { n: "02", title: "Only the software you use", body: "A boutique gets variant matrixes and fast checkout. A wholesaler gets container logistics and credit aging. Neither sees the other's screens.", before: "500 menus, 40 of them yours", after: "Every screen earns its place" },
+        { n: "03", title: "The books cannot drift", body: "The interface is generated. The ledger underneath is immutable double-entry, checked seven ways before anything posts.", before: "Reconciliation is archaeology", after: "Debits equal credits, always" },
+        { n: "04", title: "Growth is a sentence", body: "“Add wholesale distribution with warehouse transfer workflows.” The compiler re-wires your topology without downtime.", before: "A new project, a new quote", after: "A new module, same afternoon" }
+      ]
+    };
+  }
+
+  componentDidMount() {
+    this.reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.root = document.querySelector("[data-vq-root]");
+    if (!this.root) return;
+    this.INTENT = "I run a 3-branch pharmacy with batch expiry tracking and distributor 30-day credit terms.";
+    this.splitHeadings();
+    this.setupReveal();
+    this.setupPointer();
+    this.setupTilt();
+    this.setupAmbient();
+    this.cache();
+    this.onScroll = () => {
+      if (this.raf) return;
+      this.raf = requestAnimationFrame(() => { this.raf = 0; this.tick(); });
+    };
+    this.onResize = () => { this.measure(); this.onScroll(); };
+    addEventListener("scroll", this.onScroll, { passive: true });
+    addEventListener("resize", this.onResize);
+    this.tick();
+  }
+
+  componentWillUnmount() {
+    removeEventListener("scroll", this.onScroll);
+    removeEventListener("resize", this.onResize);
+    if (this.io) this.io.disconnect();
+  }
+
+  setupReveal() {
+    const items = [...this.root.querySelectorAll("[data-r]")];
+    if (this.reduce) {
+      items.forEach((el) => { el.style.opacity = 1; el.style.transform = "none"; });
+      return;
+    }
+    this.io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        const d = parseInt(el.getAttribute("data-d") || "0", 10);
+        setTimeout(() => { el.style.opacity = 1; el.style.transform = "none"; el.style.filter = "none"; }, d);
+        this.io.unobserve(el);
+      });
+    }, { threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
+    items.forEach((el) => this.io.observe(el));
+  }
+
+  cache() {
+    const q = (s) => [...this.root.querySelectorAll(s)];
+    this.el = {
+      bar: this.root.querySelector("[data-prog]"),
+      nav: this.root.querySelector("[data-nav]"),
+      navText: this.root.querySelector("[data-navtext]"),
+      navLinks: q("[data-navlink]"),
+      rail: this.root.querySelector("[data-rail]"),
+      hero: this.root.querySelector('[data-sec="top"]'),
+      theater: this.root.querySelector("[data-theater]"),
+      beam: this.root.querySelector("[data-beam]"),
+      mq: this.root.querySelector("[data-marquee]"),
+      track: this.root.querySelector("[data-track]"),
+      row: this.root.querySelector("[data-trackrow]"),
+      trackbar: this.root.querySelector("[data-trackbar]"),
+      secs: q("[data-sec]"),
+      dots: q("[data-dot]").map((d) => ({ d, on: d.getAttribute("data-for"), mark: d.querySelector("[data-dotmark]"), label: d.querySelector("[data-dotlabel]") })),
+      px: q("[data-px]").map((e) => ({ e, f: parseFloat(e.getAttribute("data-px")) })),
+      layers: q("[data-layer]").map((e) => ({ e, i: +e.getAttribute("data-layer") })),
+      rows: q("[data-stagerow]").map((e) => ({ e, i: +e.getAttribute("data-stagerow"), bar: e.querySelector("[data-stagebar]") })),
+      typed: this.root.querySelector("[data-typed]"),
+      tokens: q("[data-token]"),
+      engines: q("[data-engine]").map((e) => ({ e, i: +e.getAttribute("data-engine"), on: e.getAttribute("data-on") === "1" })),
+      selcount: this.root.querySelector("[data-selcount]"),
+      wires: q("[data-wire]"),
+      wiresSvg: this.root.querySelector("[data-wires]"),
+      nodesIn: q('[data-node="in"]'),
+      nodesMid: q('[data-node="mid"]'),
+      nodeCore: this.root.querySelector('[data-node="core"]'),
+      frametitle: this.root.querySelector("[data-frametitle]"),
+      darks: q("[data-dark]"),
+      floaters: q("[data-amb][data-px]"),
+      thGrid: this.root.querySelector("[data-theater] [data-thgrid]"),
+      indGrid: this.root.querySelector("[data-indgrid]")
+    };
+    this.measure();
+  }
+
+  updateWires() {
+    const svg = this.el.wiresSvg;
+    if (!svg) return;
+    const svgRect = svg.getBoundingClientRect();
+    if (svgRect.width === 0 || svgRect.height === 0) return;
+
+    const inNodes = this.el.nodesIn;
+    const midNodes = this.el.nodesMid;
+    const coreNode = this.el.nodeCore;
+    if (!inNodes || inNodes.length < 3 || !midNodes || midNodes.length < 2 || !coreNode) return;
+
+    svg.setAttribute("viewBox", "0 0 " + svgRect.width.toFixed(0) + " " + svgRect.height.toFixed(0));
+
+    const getRightPort = (el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        x: r.right - svgRect.left,
+        y: r.top + r.height / 2 - svgRect.top
+      };
+    };
+
+    const getLeftPort = (el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        x: r.left - svgRect.left,
+        y: r.top + r.height / 2 - svgRect.top
+      };
+    };
+
+    const connections = [
+      { from: getRightPort(inNodes[0]), to: getLeftPort(midNodes[0]) },
+      { from: getRightPort(inNodes[1]), to: getLeftPort(midNodes[0]) },
+      { from: getRightPort(inNodes[2]), to: getLeftPort(midNodes[1]) },
+      { from: getRightPort(midNodes[0]), to: getLeftPort(coreNode) },
+      { from: getRightPort(midNodes[1]), to: getLeftPort(coreNode) }
+    ];
+
+    this.el.wires.forEach((w, i) => {
+      const conn = connections[i];
+      if (!conn) return;
+      const x1 = conn.from.x;
+      const y1 = conn.from.y;
+      const x2 = conn.to.x;
+      const y2 = conn.to.y;
+      const dx = Math.max(20, (x2 - x1) * 0.52);
+      const d = "M " + x1.toFixed(1) + " " + y1.toFixed(1) + " C " + (x1 + dx).toFixed(1) + " " + y1.toFixed(1) + ", " + (x2 - dx).toFixed(1) + " " + y2.toFixed(1) + ", " + x2.toFixed(1) + " " + y2.toFixed(1);
+      w.setAttribute("d", d);
+      const len = Math.hypot(x2 - x1, y2 - y1) * 1.25;
+      w.style.strokeDasharray = len.toFixed(1);
+    });
+  }
+
+  responsive() {
+    const w = innerWidth;
+    const narrow = w < 960;
+    const E = this.el;
+    if (E.thGrid) E.thGrid.style.gridTemplateColumns = narrow ? "1fr" : "250px 1fr";
+    if (E.thGrid && E.thGrid.firstElementChild) E.thGrid.firstElementChild.style.display = narrow ? "none" : "flex";
+    if (E.indGrid) E.indGrid.style.gridTemplateColumns = w < 900 ? "1fr" : "1.55fr 1fr";
+    if (E.rail) E.rail.style.display = w < 1180 ? "none" : "flex";
+    E.floaters.forEach((f) => { f.style.display = w < 1100 ? "none" : "inline-flex"; });
+  }
+
+  measure() {
+    this.responsive();
+    this.updateWires();
+    this.m = {
+      heroH: this.el.hero ? this.el.hero.offsetHeight : innerHeight,
+      mqHalf: this.el.mq ? this.el.mq.scrollWidth / 2 : 1,
+      trackMax: this.el.row ? Math.max(0, this.el.row.scrollWidth - innerWidth + 48) : 0
+    };
+  }
+
+  tick() {
+    const vh = innerHeight;
+    const E = this.el;
+    const p = clamp(scrollY / Math.max(1, document.documentElement.scrollHeight - vh), 0, 1);
+    const bar = E.bar;
+    if (bar) bar.style.width = (p * 100).toFixed(2) + "%";
+
+    const nav = E.nav;
+    const hero = E.hero;
+    const overHero = scrollY < this.m.heroH - 80;
+    const theater = E.theater;
+    const tRect = theater ? theater.getBoundingClientRect() : null;
+    const inTheater = tRect ? tRect.top < 80 && tRect.bottom > 80 : false;
+    const darkNav = overHero || inTheater || this.darkBandAt(80);
+    if (nav) {
+      nav.style.background = darkNav ? "rgb(6 36 33 / .48)" : "rgb(255 255 255 / .76)";
+      nav.style.borderBottomColor = darkNav ? "rgb(255 255 255 / .1)" : "var(--vq-line)";
+    }
+    const navText = E.navText;
+    if (navText) navText.style.color = darkNav ? "#EAFBF5" : "var(--vq-ink-900)";
+    E.navLinks.forEach((a) => {
+      a.style.color = darkNav ? "rgb(234 251 245 / .74)" : "var(--vq-text-2)";
+    });
+
+    const rail = E.rail;
+    if (rail) rail.style.color = darkNav ? "#C6F5E9" : "var(--vq-ink-700)";
+
+    let active = null;
+    E.secs.forEach((s) => {
+      const r = s.getBoundingClientRect();
+      if (r.top <= vh * 0.42 && r.bottom > vh * 0.42) active = s.getAttribute("data-sec");
+    });
+    E.dots.forEach((dd) => {
+      const on = dd.on === active;
+      const mark = dd.mark;
+      const label = dd.label;
+      if (mark) {
+        mark.style.opacity = on ? "1" : ".3";
+        mark.style.transform = on ? "scale(1.5)" : "none";
+        mark.style.background = on ? "#23C4A6" : "currentColor";
+      }
+      if (label) label.style.opacity = on ? ".85" : "0";
+    });
+
+    if (!this.reduce) {
+      E.px.forEach((o) => {
+        const r = o.e.getBoundingClientRect();
+        if (r.bottom < -200 || r.top > vh + 200) return;
+        const off = (r.top + r.height / 2 - vh / 2) / vh;
+        o.e.style.transform = "translate3d(0," + (off * o.f * 130).toFixed(1) + "px,0)";
+      });
+    }
+
+    if (theater && tRect) this.theater(theater, tRect, vh);
+
+    const beam = E.beam;
+    if (beam && !this.reduce) {
+      const hp = clamp(scrollY / this.m.heroH, 0, 1);
+      beam.style.transform = "rotate(" + (hp * 10 - 3).toFixed(2) + "deg)";
+      beam.style.opacity = (0.9 - hp * 0.75).toFixed(2);
+    }
+
+    const mq = E.mq;
+    if (mq) {
+      const off = -(((scrollY * 0.16) % (this.m.mqHalf || 1)));
+      mq.style.transform = "translate3d(" + off.toFixed(1) + "px,0,0)";
+    }
+
+    const track = E.track;
+    if (track) {
+      const r = track.getBoundingClientRect();
+      const tp = clamp(-r.top / Math.max(1, track.offsetHeight - vh), 0, 1);
+      if (E.row) E.row.style.transform = "translate3d(" + (-tp * this.m.trackMax).toFixed(1) + "px,0,0)";
+      if (E.trackbar) E.trackbar.style.width = (tp * 100).toFixed(1) + "%";
+    }
+  }
+
+  splitHeadings() {
+    this.root.querySelectorAll("[data-split]").forEach((el) => {
+      const words = (el.textContent || "").trim().split(/\s+/);
+      el.textContent = "";
+      words.forEach((w, i) => {
+        const s = document.createElement("span");
+        s.textContent = w;
+        s.setAttribute("data-r", "1");
+        s.setAttribute("data-d", String(i * 42));
+        s.style.cssText = "display: inline-block; opacity: 0; transform: translateY(.42em); filter: blur(7px); transition: opacity 560ms var(--vq-ease-out), transform 620ms var(--vq-ease-spring), filter 560ms var(--vq-ease-out);";
+        el.appendChild(s);
+        el.appendChild(document.createTextNode(" "));
+      });
+    });
+  }
+
+  setupAmbient() {
+    const amb = [...this.root.querySelectorAll("[data-amb]")];
+    if (this.reduce) {
+      amb.forEach((el) => { el.style.animationPlayState = "paused"; });
+      return;
+    }
+    this.ambIo = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        en.target.style.animationPlayState = en.isIntersecting ? "running" : "paused";
+      });
+    }, { rootMargin: "10% 0px" });
+    amb.forEach((el) => this.ambIo.observe(el));
+  }
+
+  setupPointer() {
+    if (this.reduce) return;
+    const hero = this.root.querySelector('[data-sec="top"]');
+    const glow = this.root.querySelector("[data-cursor]");
+    if (!hero || !glow) return;
+    hero.addEventListener("pointermove", (e) => {
+      const r = hero.getBoundingClientRect();
+      glow.style.opacity = "1";
+      glow.style.transform = "translate3d(" + (e.clientX - r.left) + "px," + (e.clientY - r.top) + "px,0)";
+    });
+    hero.addEventListener("pointerleave", () => { glow.style.opacity = "0"; });
+  }
+
+  setupTilt() {
+    this.root.querySelectorAll("[data-panel]").forEach((el) => {
+      el.addEventListener("pointerenter", () => {
+        el.style.transform = "translateY(-3px)";
+        el.style.boxShadow = "var(--vq-elev-2)";
+      });
+      el.addEventListener("pointerleave", () => {
+        el.style.transform = "none";
+        el.style.boxShadow = "var(--vq-elev-1)";
+      });
+      el.style.transition = "transform var(--vq-dur-3) var(--vq-ease-spring), box-shadow var(--vq-dur-3) var(--vq-ease-out)";
+    });
+  }
+
+  darkBandAt(y) {
+    for (const b of this.el.darks) {
+      const r = b.getBoundingClientRect();
+      if (r.top < y && r.bottom > y) return true;
+    }
+    return false;
+  }
+
+  theater(el, rect, vh) {
+    const total = Math.max(1, el.offsetHeight - vh);
+    const prog = clamp(-rect.top / total, 0, 1);
+    const N = 5;
+    const local = prog * N * 0.999;
+    const idx = clamp(Math.floor(local), 0, N - 1);
+    const frac = clamp(local - idx, 0, 1);
+
+    const titles = ["BLUEPRINT · READING INTENT", "BLUEPRINT · PARSING DOMAIN", "COMPILER · SELECTING ENGINES", "COMPILER · WIRING ROUTES", "YOUR SYSTEM · RUNNING"];
+    const ft = this.el.frametitle;
+    if (ft && ft.textContent !== titles[idx]) ft.textContent = titles[idx];
+
+    this.el.layers.forEach((o2) => {
+      const L = o2.e, i = o2.i;
+      let o = 0, ty = 0, sc = 1;
+      if (i === idx) {
+        o = clamp(frac / 0.16, 0, 1) * (i === N - 1 ? 1 : 1 - clamp((frac - 0.86) / 0.14, 0, 1));
+        ty = (1 - clamp(frac / 0.22, 0, 1)) * 26 - clamp((frac - 0.84) / 0.16, 0, 1) * 18;
+        sc = 1 - clamp((frac - 0.84) / 0.16, 0, 1) * 0.02;
+      }
+      L.style.opacity = o.toFixed(3);
+      L.style.transform = "translate3d(0," + ty.toFixed(1) + "px,0) scale(" + sc.toFixed(3) + ")";
+      L.style.pointerEvents = o > 0.5 ? "auto" : "none";
+    });
+
+    this.el.rows.forEach((o3) => {
+      const i = o3.i;
+      o3.e.style.opacity = i === idx ? "1" : i < idx ? ".5" : ".28";
+      if (o3.bar) o3.bar.style.width = (i < idx ? 100 : i === idx ? frac * 100 : 0).toFixed(1) + "%";
+    });
+
+    const typed = this.el.typed;
+    if (typed) {
+      const n = Math.round(clamp((idx === 0 ? frac : idx > 0 ? 1 : 0) / 0.72, 0, 1) * this.INTENT.length);
+      const s = this.INTENT.slice(0, n);
+      if (typed.textContent !== s) typed.textContent = s;
+    }
+
+    this.el.tokens.forEach((t, i) => {
+      const q = idx > 1 ? 1 : idx === 1 ? clamp((frac - i * 0.045) / 0.14, 0, 1) : 0;
+      t.style.opacity = q.toFixed(2);
+      t.style.transform = q > 0.5 ? "none" : "translateY(8px) scale(.96)";
+    });
+
+    let sel = 0;
+    this.el.engines.forEach((o4) => {
+      const e = o4.e, i = o4.i, on = o4.on;
+      const q = idx > 2 ? 1 : idx === 2 ? clamp((frac - i * 0.035) / 0.16, 0, 1) : 0;
+      if (on) {
+        if (q > 0.5) sel++;
+        e.style.opacity = (0.28 + q * 0.72).toFixed(2);
+        e.style.borderColor = q > 0.5 ? "rgb(35 196 166 / .42)" : "rgb(255 255 255 / .08)";
+        e.style.background = q > 0.5 ? "rgb(35 196 166 / .12)" : "#1A2220";
+        e.style.transform = q > 0.5 ? "translateY(-2px)" : "none";
+        e.style.boxShadow = q > 0.5 ? "0 10px 26px -14px rgb(35 196 166 / .7)" : "none";
+      } else {
+        e.style.opacity = (0.28 - q * 0.16).toFixed(2);
+        e.style.filter = "grayscale(1)";
+      }
+    });
+    const sc = this.el.selcount;
+    if (sc) { const v = idx > 2 ? "6" : String(sel); if (sc.textContent !== v) sc.textContent = v; }
+
+    if (idx === 2 || idx === 3 || idx === 4) {
+      this.updateWires();
+    }
+    this.el.wires.forEach((w, i) => {
+      const q = idx > 3 ? 1 : idx === 3 ? clamp((frac - i * 0.08) / 0.32, 0, 1) : 0;
+      const len = parseFloat(w.style.strokeDasharray) || 280;
+      w.style.strokeDashoffset = (len * (1 - q)).toFixed(1);
+    });
+  }
+}
+</script>
+</body>
+</html>

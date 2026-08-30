@@ -93,6 +93,19 @@ class Product extends Model
         return $this->hasMany(Batch::class);
     }
 
+    /**
+     * Choice sets offered against this product at the register: size, toppings,
+     * doneness. Ordered by the PIVOT's sort_order, not the group's — size comes
+     * first on a drink and doneness first on a steak, and it is the same group
+     * row in both cases.
+     */
+    public function modifierGroups()
+    {
+        return $this->belongsToMany(ModifierGroup::class, 'product_modifier_group', 'product_id', 'modifier_group_id')
+            ->withPivot('sort_order')
+            ->orderBy('product_modifier_group.sort_order');
+    }
+
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItem::class);

@@ -30,6 +30,8 @@ import {
     PAY_METHODS, lineDiscount,
 } from '@/NewPos/sheets';
 import SettingsDrawer from '@/NewPos/SettingsDrawer';
+import SetupWizardModal from '@/NewPos/SetupWizardModal';
+import LayoutPickerModal from '@/NewPos/LayoutPickerModal';
 import PrintService from '@/Utils/PrintService';
 
 export const HUES = ['teal', 'sky', 'lime', 'coral', 'butter', 'plum'];
@@ -331,6 +333,8 @@ export default function NewPos({
     /* ── Sheets, Drawers, Overlays ────────────────────────────────────────── */
     const [sheet, setSheet] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [setupWizardOpen, setSetupWizardOpen] = useState(() => !prefs?.wizardCompleted);
+    const [layoutPickerOpen, setLayoutPickerOpen] = useState(false);
     const [paletteOpen, setPaletteOpen] = useState(false);
     const [navOpen, setNavOpen] = useState(false);
     const [variantPicker, setVariantPicker] = useState(null);
@@ -362,6 +366,11 @@ export default function NewPos({
         t.onAction?.();
         setToasts((ts) => ts.filter((x) => x.id !== t.id));
     }, []);
+
+    const handleApplyWizard = useCallback((newPrefs) => {
+        setPrefs(newPrefs);
+        toast('✨ Register layout configured! You can customize this anytime in Settings.', { tone: 'good', ms: 5000 });
+    }, [toast]);
 
     const searchRef = useRef(null);
 
@@ -767,7 +776,7 @@ export default function NewPos({
     }, [patchTab, storeSlug, toast, walkInCustomer]);
 
     /* ── Keymap handler ───────────────────────────────────────────────────── */
-    const anyOverlay = Boolean(sheet || settingsOpen || paletteOpen || navOpen || confirm || variantPicker || completedSale);
+    const anyOverlay = Boolean(sheet || settingsOpen || setupWizardOpen || layoutPickerOpen || paletteOpen || navOpen || confirm || variantPicker || completedSale);
 
     useEffect(() => {
         const typing = () => {
@@ -780,6 +789,8 @@ export default function NewPos({
         const onKey = (e) => {
             if (e.key === 'Escape') {
                 if (completedSale) setCompletedSale(null);
+                else if (setupWizardOpen) setSetupWizardOpen(false);
+                else if (layoutPickerOpen) setLayoutPickerOpen(false);
                 else if (variantPicker) setVariantPicker(null);
                 else if (confirm) setConfirm(null);
                 else if (paletteOpen) setPaletteOpen(false);
@@ -1231,6 +1242,8 @@ export default function NewPos({
         { label: 'Offline queue', run: () => setSheet('offline') },
         { label: 'Keyboard map', key: '?', run: () => setSheet('keys') },
         { label: 'Register settings', run: () => setSettingsOpen(true) },
+        { label: 'Change POS look & layout', run: () => setLayoutPickerOpen(true) },
+        { label: 'Run setup wizard', run: () => setSetupWizardOpen(true) },
         { label: 'Back to Dashboard', run: () => { window.location.href = storeSlug ? `/s/${storeSlug}/dashboard` : '/dashboard'; } },
     ];
 
@@ -1859,6 +1872,23 @@ export default function NewPos({
                     warehouses={warehouses}
                     banks={banks}
                     taxRates={parsedTaxRates}
+                    onOpenLayoutPicker={() => setLayoutPickerOpen(true)}
+                    onOpenSetupWizard={() => setSetupWizardOpen(true)}
+                />
+
+                <SetupWizardModal
+                    open={setupWizardOpen}
+                    onClose={() => setSetupWizardOpen(false)}
+                    onApply={handleApplyWizard}
+                    currentPrefs={prefs}
+                    store={store}
+                />
+
+                <LayoutPickerModal
+                    open={layoutPickerOpen}
+                    onClose={() => setLayoutPickerOpen(false)}
+                    prefs={prefs}
+                    setPrefs={setPrefs}
                 />
 
                 <Toasts

@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VenQore Document Editor — 12 types, 1 screen</title>
+<style>
+:root{
+  --bg:#0A0B0F; --surface:#12141A; --raised:#1A1D25; --sunken:#0E1015;
+  --line:#252932; --line-soft:#1C2028;
+  --text:#EDEFF2; --text-2:#A8AEB8; --text-3:#6B7280;
+  --accent:#327882; --accent-400:#5DA5B0; --accent-quiet:rgba(50,120,130,.14);
+  --ok:#54CC8E; --warn:#EFB146; --bad:#F17070;
+  --sans:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --num:"Space Grotesk",ui-monospace,"SF Mono",monospace;
+  --vq-sidebar:264px; --vq-rail:72px; --vq-header:64px;
+  --vq-gutter:24px; --vq-row:64px; --vq-margin:24px; --vq-cols:12; --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased;
+  font-feature-settings:"tnum"}
+.n{font-family:var(--num);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--num);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);font-weight:500}
+
+.bar{position:sticky;top:0;z-index:900;background:rgba(10,11,15,.94);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);padding:12px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:600;font-size:15px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent-400)}
+.seg{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;flex-wrap:wrap}
+.seg button{background:none;border:0;color:var(--text-3);font:500 11px/1 var(--num);padding:8px 11px;
+  border-radius:999px;cursor:pointer;white-space:nowrap}
+.seg button:hover{color:var(--text-2)}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.ro{display:flex;flex-direction:column;gap:2px}
+.ro b{font:600 14px/1 var(--num);color:var(--accent-400)}
+input[type=range]{width:170px;accent-color:var(--accent)}
+.stage{padding:20px}
+.frame{margin:0 auto;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface);
+  transition:width .28s cubic-bezier(.16,1,.3,1);box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.fbar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--raised)}
+.fbar i{width:9px;height:9px;border-radius:50%;background:#33373f}
+.fbar span{margin-left:8px;font:500 11px/1 var(--num);color:var(--text-3)}
+
+/* shell */
+.shell{display:grid;grid-template-columns:var(--nav-w,0px) 1fr;grid-template-rows:var(--vq-header) 1fr;
+  grid-template-areas:"nav head" "nav main";height:820px;position:relative}
+.shell[data-nav=hidden]{--nav-w:0px;grid-template-columns:1fr;grid-template-areas:"head" "main"}
+.shell[data-nav=rail]{--nav-w:var(--vq-rail)}
+.shell[data-nav=expanded]{--nav-w:var(--vq-sidebar)}
+.nav{grid-area:nav;background:var(--sunken);border-right:1px solid var(--line);padding:12px 10px;
+  display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.shell[data-nav=hidden] .nav{display:none}
+.navitem{display:flex;align-items:center;gap:11px;height:40px;padding:0 10px;border-radius:10px;color:var(--text-2);
+  font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;cursor:pointer}
+.navitem .g{width:20px;height:20px;flex:none;border-radius:6px;background:var(--line)}
+.navitem.on{background:var(--accent-quiet);color:var(--accent-400);font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+[data-nav=rail] .navitem span{display:none}
+[data-nav=rail] .navitem{justify-content:center;padding:0}
+.peek{position:absolute;inset:0 auto 0 0;width:var(--vq-sidebar);background:var(--sunken);border-right:1px solid var(--line);
+  padding:12px 10px;display:flex;flex-direction:column;gap:3px;transform:translateX(-100%);
+  transition:transform .24s cubic-bezier(.16,1,.3,1);z-index:520}
+.shell[data-peek=true] .peek{transform:none}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .24s;z-index:519}
+.shell[data-peek=true] .scrim{opacity:1;pointer-events:auto}
+.head{grid-area:head;height:var(--vq-header);border-bottom:1px solid var(--line);display:flex;align-items:center;
+  gap:10px;padding:0 16px;background:var(--surface);position:relative;z-index:400}
+.main{grid-area:main;min-width:0;min-height:0;overflow:auto;background:var(--bg);padding:var(--vq-margin)}
+
+.ico{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--raised);
+  display:grid;place-items:center;color:var(--text-2);cursor:pointer;flex:none;font-size:15px}
+.ico:hover{color:var(--text);border-color:var(--accent)}
+.pill{height:34px;border-radius:999px;background:var(--raised);border:1px solid var(--line);display:flex;
+  align-items:center;gap:7px;padding:0 13px;color:var(--text-2);font-size:12.5px;cursor:pointer;white-space:nowrap}
+.pill.ghost{background:none}
+.pill.on{background:var(--accent-quiet);border-color:var(--accent);color:var(--accent-400)}
+
+/* doc grid */
+.doc{display:grid;gap:var(--vq-gutter);grid-template-columns:repeat(var(--vq-cols),minmax(0,1fr));align-items:start}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:18px;min-width:0}
+.card h3{font-size:13.5px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.fgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f label{font:500 11px/1 var(--sans);color:var(--text-3)}
+.f .in{height:42px;border-radius:10px;background:var(--sunken);border:1px solid var(--line);display:flex;
+  align-items:center;padding:0 12px;font-size:13.5px;color:var(--text);min-width:0}
+.f .in.num{font-family:var(--num);font-variant-numeric:tabular-nums;justify-content:flex-end;font-weight:600}
+.f .in.ph{color:var(--text-3)}
+.f.req label:after{content:" *";color:var(--bad)}
+.f .in.big{height:52px;font-size:16px;font-weight:600}
+
+/* line table */
+.lt{width:100%;border-collapse:collapse}
+.lt th{text-align:left;font:500 10px/1 var(--num);letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);
+  padding:0 10px 9px;white-space:nowrap}
+.lt th.r,.lt td.r{text-align:right}
+.lt td{padding:7px 10px;border-top:1px solid var(--line-soft);font-size:13px;color:var(--text-2)}
+.lt td.nm{color:var(--text);font-weight:500}
+.lt td.num{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;color:var(--text)}
+.cell{height:36px;border-radius:8px;background:var(--sunken);border:1px solid var(--line);display:flex;
+  align-items:center;padding:0 10px;font-size:13px;min-width:0}
+.cell.num{font-family:var(--num);justify-content:flex-end;font-variant-numeric:tabular-nums}
+.lt tr:hover td{background:rgba(255,255,255,.015)}
+.grip{color:var(--text-3);cursor:grab;font-size:13px}
+.addrow{margin-top:10px;display:flex;gap:8px;align-items:center}
+.btn{height:42px;border-radius:10px;border:1px solid var(--line);background:var(--raised);color:var(--text);
+  font:600 13px/1 var(--sans);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;padding:0 16px}
+.btn.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.go:hover{background:#3d8b96}
+.btn.lg{height:50px;font-size:14.5px;width:100%}
+.btn.sm{height:34px;font-size:12px;padding:0 12px}
+
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;color:var(--text-2);gap:12px}
+.kv b{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
+.kv.big{padding-top:11px;margin-top:5px;border-top:1px solid var(--line);font-size:15px}
+.kv.big b{font-size:23px;letter-spacing:-.02em}
+.kv .mini-in{height:30px;width:110px;border-radius:7px;background:var(--sunken);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:flex-end;padding:0 9px;font-family:var(--num);font-size:12.5px}
+
+.more{border-top:1px solid var(--line-soft);margin-top:14px;padding-top:12px}
+.morebtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:0;
+  color:var(--text-3);font:500 12px/1 var(--sans);cursor:pointer;padding:4px 0}
+.morebtn:hover{color:var(--accent-400)}
+.morewrap{display:none;padding-top:12px}
+.more.open .morewrap{display:block}
+.more.open .morebtn{color:var(--accent-400)}
+
+/* stepper (guided) */
+.steps{display:flex;gap:8px;margin-bottom:var(--vq-gutter);flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:9px;padding:10px 15px;border-radius:11px;background:var(--surface);
+  border:1px solid var(--line);font-size:13px;color:var(--text-3);cursor:pointer}
+.step b{width:22px;height:22px;border-radius:50%;background:var(--line);display:grid;place-items:center;
+  font:600 11px/1 var(--num);color:var(--text-3)}
+.step.on{border-color:var(--accent);color:var(--text);background:var(--accent-quiet)}
+.step.on b{background:var(--accent);color:#fff}
+.step.done b{background:var(--ok);color:#0A0B0F}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 10px;border-radius:8px;background:var(--sunken);border:1px solid var(--line);font:500 11.5px/1 var(--sans);
+  color:var(--text-3);cursor:pointer}
+.chip:hover{color:var(--accent-400);border-color:var(--accent)}
+.banner{border-radius:10px;padding:11px 14px;font-size:12.5px;line-height:1.55;margin-bottom:14px;
+  background:rgba(239,177,70,.10);border:1px solid rgba(239,177,70,.3);color:var(--warn)}
+.banner.info{background:var(--accent-quiet);border-color:var(--accent);color:var(--accent-400)}
+
+/* coverage */
+.cov{max-width:1180px;margin:0 auto}
+.covgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.covcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.covcard h4{font-size:13px;font-weight:600;margin-bottom:11px}
+.covrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-soft);
+  font-size:12px;color:var(--text-2)}
+.covrow:last-child{border:0}
+.tag{font:500 9.5px/1 var(--num);padding:3px 6px;border-radius:5px;letter-spacing:.05em;white-space:nowrap}
+.tag.e{background:rgba(84,204,142,.14);color:var(--ok)}
+.tag.p{background:rgba(239,177,70,.14);color:var(--warn)}
+.tag.na{background:rgba(107,114,128,.14);color:var(--text-3)}
+.tag.fix{background:rgba(50,120,130,.2);color:var(--accent-400)}
+.note{max-width:1180px;margin:0 auto 18px;background:var(--surface);border:1px solid var(--line);
+  border-left:3px solid var(--accent);border-radius:var(--r);padding:16px 18px;font-size:13px;color:var(--text-2);line-height:1.65}
+.note b{color:var(--text)} .note.bad{border-left-color:var(--bad)}
+h2.sec{font-size:19px;font-weight:600;letter-spacing:-.02em;margin-bottom:5px}
+code{font-family:var(--num);font-size:11.5px;background:var(--sunken);padding:2px 6px;border-radius:5px;color:var(--accent-400)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="brand"><span class="dot"></span>Document Editor</div>
+  <div class="seg" id="types"></div>
+  <div class="seg" id="modes">
+    <button data-m="simple">Simple</button>
+    <button data-m="standard" aria-pressed="true">Standard</button>
+    <button data-m="pro">Pro</button>
+    <button data-m="guided">Guided</button>
+  </div>
+  <input type="range" id="vw" min="390" max="2560" value="1905" step="1">
+  <div style="display:flex;gap:12px;margin-left:auto">
+    <div class="ro"><span class="eyebrow">viewport</span><b id="r-vw">1905</b></div>
+    <div class="ro"><span class="eyebrow">fields</span><b id="r-f">—</b></div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="note" id="blurb"></div>
+  <div class="frame" id="frame">
+    <div class="fbar"><i></i><i></i><i></i><span id="fb"></span></div>
+    <div class="shell" id="shell" data-nav="rail" data-peek="false">
+      <aside class="nav" id="nav"></aside>
+      <div class="scrim" id="scrim"></div>
+      <aside class="peek" id="peekNav"></aside>
+      <header class="head" id="head"></header>
+      <main class="main" id="main"></main>
+    </div>
+  </div>
+
+  <div style="height:32px"></div>
+  <div class="cov">
+    <h2 class="sec">Field coverage — all 12 document screens</h2>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:18px;max-width:820px">
+      Every field found across the twelve existing create/edit screens, and what the unified editor does with it
+      for the selected type. <span class="tag e">visible</span> ·
+      <span class="tag p">one tap</span> behind a disclosure ·
+      <span class="tag na">n/a</span> genuinely doesn't apply to this type ·
+      <span class="tag fix">fixed</span> a field the current code collects and then throws away, or persists with no input.</p>
+    <div class="covgrid" id="cov"></div>
+  </div>
+</div>
+
+<script>
+/* ============ DOC TYPE CONFIG — from the 12-screen comparison matrix ============ */
+const T={
+ SI:{name:"Sales invoice",src:"Sales/CreateInvoice.jsx · 3405 lines",party:"Customer",num:"Invoice #",
+   action:"Complete sale",sign:"out",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,lineTax:0,bizPct:0,batch:0,
+   taxSelect:1,delivery:1,extras:1,landed:0,roundOff:0,paid:1,convert:0,terms:1,deposit:1,cheque:1,warehouse:0,
+   status:0,taxIncl:0,reason:0,recur:0,category:0,attach:0,dueDate:1,supRef:0},
+   fix:["notes — posted with no input anywhere","due_date — posted with no input"]},
+ QT:{name:"Quotation",src:"Sales/CreatePreSale.jsx · 2427 lines",party:"Customer",num:"Quotation #",
+   action:"Save quotation",sign:"none",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,taxSelect:1,delivery:1,extras:1,
+   paid:1,convert:1,terms:1,deposit:1,cheque:1,dueDate:1,validUntil:1},
+   fix:["This entire file duplicates SalesOrders/CreatePreSale.jsx and hits the same endpoints — 2,427 deletable lines"]},
+ SO:{name:"Sales order",src:"SalesOrders/CreatePreSale.jsx · 3022 lines",party:"Customer",num:"Order #",
+   action:"Save order",sign:"reserve",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,taxSelect:1,delivery:1,extras:1,
+   paid:1,convert:1,terms:1,deposit:1,cheque:1},
+   fix:["delivery charge, extra charges, free qty, amount paid, payment method, terms and cheque are all collected by the UI and dropped from the payload (:850-869)"]},
+ PR:{name:"Proposal",src:"Proposals/Create.jsx · 4318 lines",party:"Customer (optional)",num:"Proposal #",
+   action:"Save proposal",sign:"none",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,taxSelect:1,delivery:1,extras:1,
+   paid:1,convert:2,terms:1,deposit:1,cheque:1,validUntil:1,status:1},
+   fix:["valid_until posted from dueDate — no UI field exists","status hard-coded 'draft', no picker","tax, delivery, extras, amount paid all dropped from payload"]},
+ PO:{name:"Purchase order",src:"PurchaseOrders/Create.jsx · 2751 lines",party:"Supplier",num:"PO #",
+   action:"Complete order",sign:"in",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,taxSelect:1,delivery:1,extras:1,
+   paid:1,terms:1,cheque:1,warehouse:1,status:1,taxIncl:1,expDelivery:1},
+   fix:["warehouse_id is server-REQUIRED but has no input — silently defaults to warehouses[0]","expected_delivery_date posted with no input","print is a stub alert"]},
+ PI:{name:"Purchase invoice",src:"V3/Purchases/PurchaseForm.jsx · 513 lines",party:"Supplier",num:"Purchase #",
+   action:"Post purchase",sign:"in",cap:{lines:1,lineDisc:1,lineTax:1,bizPct:1,landed:1,roundOff:1,notes:1,
+   warehouse:1,status:1,dueDate:1,supRef:1,payMethod:1},
+   fix:["The only screen with per-line tax, landed costs, notes, due date and manual round-off. Everything else lacks them"]},
+ GR:{name:"Goods receipt",src:"V3/Purchases/Receive.jsx · 166 lines",party:"Supplier (locked)",num:"—",
+   action:"Receive goods",sign:"in",cap:{lines:1,batch:1,expiry:1,receiveQty:1,notes:1,readonlyHeader:1},
+   fix:["The ONLY screen in the entire app with batch-number and expiry inputs on a document line"]},
+ SR:{name:"Sale return",src:"Returns/Create.jsx · 3029 lines",party:"Customer",num:"Return ref",
+   action:"Confirm return",sign:"in",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,taxSelect:0,delivery:1,extras:1,
+   paid:1,terms:1,cheque:1,refund:1},
+   fix:["No link to the original invoice, no returned-vs-original qty","Edit always POSTs a NEW return (:904)","Validation copy still says 'before processing the sale'"]},
+ DN:{name:"Debit note",src:"DebitNotes/Create.jsx · 2772 lines",party:"Supplier",num:"Reference #",
+   action:"Create debit note",sign:"out",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,paid:1,deposit:1,cheque:1,refund:1},
+   fix:["Discount and refund inputs exist ONLY in the mobile bar — desktop has no way to enter them","discount/tax computed and posted with no desktop UI","print route is abort(501)"]},
+ PRet:{name:"Purchase return",src:"V3/Purchases/Return.jsx · 193 lines",party:"Supplier (locked)",num:"—",
+   action:"Confirm return",sign:"out",cap:{lines:1,batch:1,returnQty:1,reason:1,readonlyHeader:1},
+   fix:["Batch-aware, unlike the legacy debit note that does the same job"]},
+ RI:{name:"Recurring invoice",src:"RecurringInvoices/Create.jsx · 3068 lines",party:"Customer",num:"Invoice #",
+   action:"Save schedule",sign:"out",cap:{lines:1,freeQty:1,lineDisc:1,linePct:1,taxSelect:1,delivery:1,extras:1,
+   paid:1,deposit:1,cheque:1,warehouse:1,recur:1,status:1},
+   fix:["All money and charge fields are collected then dropped from the payload (:846-866)"]},
+ EX:{name:"Expense",src:"Expenses/ExpensesList.jsx modal · L1240-1545",party:"Payee / Vendor",num:"Reference no.",
+   action:"Save record",sign:"cash-out",cap:{lines:0,category:1,attach:1,taxAmount:1,payMethod:1,deposit:1,notes:1},
+   fix:["No line items at all — a single-amount document. The only screen with a file attachment"]},
+};
+const LINES=[["Cement 50kg",12,1250],["Steel rod 12mm",40,980],["Paint 4L Ivory",3,3400]];
+const NAVITEMS=["Dashboard","Sell","Purchase","Stock","Contacts","Money","Insights","Settings"];
+
+const COVERAGE=[
+ {g:"Header",items:[["Party selector (+ inline create/edit)","party"],["Document number","num"],
+  ["Supplier's own reference","supRef"],["Document date","always"],["Due date","dueDate"],
+  ["Valid until","validUntil"],["Payment terms","terms"],["Payment method","payMethod|terms"],
+  ["Deposit / bank account","deposit"],["Cheque no + date","cheque"],["Warehouse","warehouse"],
+  ["Goods / doc status","status"],["Prices include tax","taxIncl"],["Expected delivery","expDelivery"],
+  ["Recurrence + next run","recur"],["Reason (required)","reason"],["Expense category","category"],
+  ["Attachment","attach"],["Notes / description","always"]]},
+ {g:"Line item",items:[["Product picker (+ inline create)","lines"],["Quantity","lines"],
+  ["Free quantity","freeQty"],["Rate / unit cost","lines"],["Line discount amount","lineDisc"],
+  ["Line discount %","linePct"],["Per-line tax %","lineTax"],["Business % (expense split)","bizPct"],
+  ["Editable line total (reverse-calc)","lines"],["Batch number","batch"],["Expiry date","expiry"],
+  ["Receive now / remaining","receiveQty"],["Return qty / remaining","returnQty"],
+  ["Per-line note","lines"],["Unit / UoM conversion","lines"],["Drag reorder","lines"],["Available-stock hint","lines"]]},
+ {g:"Totals",items:[["Subtotal","lines"],["Item-discount rollup","lineDisc"],["Global discount","lines"],
+  ["Tax (rate list, not retyped)","taxSelect"],["Tax amount (absolute)","taxAmount"],
+  ["Delivery charge","delivery"],["Extra charges (≤10)","extras"],["Landed costs","landed"],
+  ["Manual round-off","roundOff"],["Amount paid / advance","paid"],["Refund amount","refund"],
+  ["Balance due","always"],["Grand total","always"]]},
+ {g:"Actions",items:[["Save / post","always"],["Save & new","always"],["Save & print","always"],
+  ["Save as draft","always"],["Convert","convert"],["Duplicate","always"],["Delete","always"],
+  ["Email / WhatsApp / PDF","always"],["Record payment","paid"],["Attach file","always"],
+  ["Multi-document tabs","always"],["Barcode scan mode","lines"],["Keyboard shortcuts","always"]]},
+];
+
+/* ============ LAW ============ */
+const LAW={gutter:24,margin:24,sidebar:264,rail:72,nav:{expanded_min:1280,rail_min:1024,mobile_max:599},
+  N:{desk:[8,10,12,14,16,18,20,24],tab:[6,8,10,12],mob:[4]},target:112};
+function geo(vw,nav){
+  const mob=vw<=LAW.nav.mobile_max, navW={hidden:0,rail:LAW.rail,expanded:LAW.sidebar}[nav]??0;
+  const m=mob?16:LAW.margin, avail=vw-navW-2*m;
+  const legal=mob?LAW.N.mob:(vw<LAW.nav.rail_min?LAW.N.tab:LAW.N.desk);
+  let best=null;
+  for(const n of legal){const col=(avail-(n-1)*LAW.gutter)/n; if(col<=0)continue;
+    const d=Math.abs(col-LAW.target); if(!best||d<best.d)best={n,col,d};}
+  return{avail,cols:best.n,col:best.col};
+}
+const navStates=vw=>{const s=["hidden"];if(vw>=LAW.nav.rail_min)s.push("rail");
+  if(vw>=LAW.nav.expanded_min)s.push("expanded");return s;};
+
+/* ============ RENDER ============ */
+const $=s=>document.querySelector(s);
+const money=n=>n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+let TYPE="SI", MODE="standard", NAV="rail", PEEK=false, STEP=1;
+
+$("#types").innerHTML=Object.entries(T).map(([k,v])=>
+  `<button data-t="${k}"${k===TYPE?' aria-pressed="true"':''} title="${v.name}">${k}</button>`).join("");
+const navHTML=()=>NAVITEMS.map((n,i)=>`<div class="navitem${i===(TYPE[0]==="P"?2:1)?' on':''}"><i class="g"></i><span>${n}</span></div>`).join("");
+
+const has=k=>{ const c=T[TYPE].cap;
+  if(k==="always"||k==="party")return true;
+  return k.split("|").some(x=>!!c[x]); };
+
+function field(label,ph,opts={}){
+  return `<div class="f${opts.req?" req":""}"><label>${label}</label>
+    <div class="in${opts.num?" num":""}${opts.ph?" ph":""}${opts.big?" big":""}">${ph}</div></div>`;
+}
+function headerCard(){
+  const c=T[TYPE].cap, t=T[TYPE], pro=MODE==="pro", simple=MODE==="simple";
+  const core=[
+    field(t.party,"Rana Traders",{req:1,big:1}),
+    c.readonlyHeader?"":field(t.num!=="—"?t.num:"Reference",t.num==="—"?"—":"AUTO-000142"),
+    field(c.reason?"Return date":"Date","2026-08-25",{req:1}),
+  ].filter(Boolean);
+  const more=[];
+  if(has("dueDate"))     more.push(field("Due date","2026-09-24"));
+  if(has("validUntil"))  more.push(field("Valid until","2026-09-24"));
+  if(has("supRef"))      more.push(field("Supplier invoice #","SUP-88213"));
+  if(has("terms"))       more.push(field("Payment terms","Net 30"));
+  if(has("payMethod")||has("terms")) more.push(field("Payment method","Credit"));
+  if(has("deposit"))     more.push(field("Deposit to","Cash in hand"));
+  if(has("cheque"))      more.push(field("Cheque no.","—",{ph:1}));
+  if(has("warehouse"))   more.push(field("Warehouse","Main warehouse",{req:has("warehouse")}));
+  if(has("status"))      more.push(field(TYPE==="RI"?"Status":"Goods status",TYPE==="RI"?"Active":"Received now"));
+  if(has("taxIncl"))     more.push(field("Prices include tax","No"));
+  if(has("expDelivery")) more.push(field("Expected delivery","2026-09-05"));
+  if(has("recur"))       more.push(field("Billing frequency","Monthly"))||0;
+  if(has("recur"))       more.push(field("Next run date","2026-09-01"));
+  if(has("reason"))      more.push(field("Reason","Damaged on arrival",{req:1}));
+  if(has("category"))    more.push(field("Expense category","Freight",{req:1}));
+  if(has("attach"))      more.push(field("Attachment","Receipt.pdf"));
+  more.push(field("Notes","Add a note…",{ph:1}));
+
+  const show = simple ? [] : pro ? more : more.slice(0,3);
+  const hidden = simple ? more : pro ? [] : more.slice(3);
+  return `<div class="card" style="grid-column:span var(--hc)">
+    <h3>${t.name} <span class="eyebrow" style="margin-left:auto">${t.sign==="out"?"stock out":t.sign==="in"?"stock in":t.sign}</span></h3>
+    ${c.readonlyHeader?'<div class="banner info">Header is locked — this document is created from an existing purchase.</div>':""}
+    <div class="fgrid">${core.join("")}${show.join("")}</div>
+    ${hidden.length?`<div class="more"><button class="morebtn"><span>${hidden.length} more field${hidden.length>1?"s":""}</span><span>▾</span></button>
+      <div class="morewrap"><div class="fgrid">${hidden.join("")}</div></div></div>`:""}
+  </div>`;
+}
+function linesCard(){
+  const c=T[TYPE].cap, pro=MODE==="pro", simple=MODE==="simple";
+  if(!c.lines) return `<div class="card" style="grid-column:span var(--lc)">
+    <h3>Amount</h3><div class="fgrid">
+    ${field("Amount (excl. tax)","48,500.00",{num:1,req:1})}
+    ${field("Tax amount","8,245.00",{num:1})}
+    ${field("Payee / vendor","Shaheen Traders")}</div></div>`;
+  const cols=[["#",""],["Item",""],["Qty","r"]];
+  if(has("freeQty")&&!simple)cols.push(["Free","r"]);
+  cols.push([c.receiveQty?"Ordered":"Rate","r"]);
+  if(c.receiveQty)cols.push(["Received","r"],["Remaining","r"],["Receive now","r"]);
+  if(c.returnQty)cols.push(["Remaining","r"],["Return qty","r"]);
+  if(has("lineDisc")&&!simple)cols.push(["Disc.","r"]);
+  if(has("lineTax"))cols.push(["Tax %","r"]);
+  if(has("bizPct")&&pro)cols.push(["Biz %","r"]);
+  if(has("batch"))cols.push(["Batch",""],["Expiry",""]);
+  cols.push(["Total","r"],["",""]);
+  const body=LINES.map(([n,q,p],i)=>{
+    const cells=[`<td class="num" style="color:var(--text-3)">${i+1}</td>`,`<td class="nm">${n}</td>`,
+      `<td class="r"><div class="cell num">${q}</div></td>`];
+    if(has("freeQty")&&!simple)cells.push(`<td class="r"><div class="cell num" style="color:var(--ok)">0</div></td>`);
+    cells.push(`<td class="r"><div class="cell num">${money(p)}</div></td>`);
+    if(c.receiveQty)cells.push(`<td class="num">${q}</td>`,`<td class="num">0</td>`,`<td class="num">${q}</td>`,
+      `<td class="r"><div class="cell num">${q}</div></td>`);
+    if(c.returnQty)cells.push(`<td class="num">${q}</td>`,`<td class="r"><div class="cell num">0</div></td>`);
+    if(has("lineDisc")&&!simple)cells.push(`<td class="r"><div class="cell num">5%</div></td>`);
+    if(has("lineTax"))cells.push(`<td class="r"><div class="cell num">17</div></td>`);
+    if(has("bizPct")&&pro)cells.push(`<td class="r"><div class="cell num">100</div></td>`);
+    if(has("batch"))cells.push(`<td><div class="cell ph">B-2291</div></td>`,`<td><div class="cell ph">2027-04</div></td>`);
+    cells.push(`<td class="num">${money(q*p)}</td>`,
+      `<td class="r"><span class="grip">⋮⋮</span> <span style="color:var(--text-3);cursor:pointer">✕</span></td>`);
+    return `<tr>${cells.join("")}</tr>`;
+  }).join("");
+  return `<div class="card" style="grid-column:span var(--lc)">
+    <h3>Items <span class="eyebrow" style="margin-left:auto">${LINES.length} lines</span></h3>
+    <div style="overflow-x:auto"><table class="lt">
+      <thead><tr>${cols.map(([h,a])=>`<th class="${a}">${h}</th>`).join("")}</tr></thead>
+      <tbody>${body}</tbody></table></div>
+    <div class="addrow"><button class="btn sm">+ Add line</button>
+      ${!simple?'<button class="btn sm">Scan</button><button class="btn sm">Quick add</button>':""}
+      ${pro?'<span class="eyebrow" style="margin-left:auto">Enter → next field · Alt+Q quick add</span>':""}</div>
+  </div>`;
+}
+function totalsCard(){
+  const sub=LINES.reduce((a,[,q,p])=>a+q*p,0), tax=sub*0.17, tot=sub+tax;
+  const pro=MODE==="pro", simple=MODE==="simple", t=T[TYPE];
+  const rows=[];
+  rows.push(`<div class="kv"><span>Subtotal</span><b>${money(sub)}</b></div>`);
+  if(has("lineDisc")&&!simple)rows.push(`<div class="kv"><span>Item discounts</span><b>0.00</b></div>`);
+  if(!simple)rows.push(`<div class="kv"><span>Global discount</span><div class="mini-in">0.00</div></div>`);
+  if(has("taxSelect"))rows.push(`<div class="kv"><span>Tax <code>17% standard</code></span><b>${money(tax)}</b></div>`);
+  else if(has("taxAmount"))rows.push(`<div class="kv"><span>Tax amount</span><div class="mini-in">${money(tax)}</div></div>`);
+  else if(has("lineTax"))rows.push(`<div class="kv"><span>Tax (from lines)</span><b>${money(tax)}</b></div>`);
+  if(has("landed"))rows.push(`<div class="kv"><span>Landed costs</span><div class="mini-in">0.00</div></div>`);
+  if(has("delivery")&&pro)rows.push(`<div class="kv"><span>Delivery</span><div class="mini-in">0.00</div></div>`);
+  if(has("extras")&&pro)rows.push(`<div class="kv"><span>Extra charges</span><div class="mini-in">0.00</div></div>`);
+  if(has("roundOff"))rows.push(`<div class="kv"><span>Round off</span><div class="mini-in">0.00</div></div>`);
+  rows.push(`<div class="kv big"><span>${t.cap.refund?"Total return value":"Total"}</span><b>${money(tot)}</b></div>`);
+  if(has("paid"))rows.push(`<div class="kv" style="margin-top:8px"><span>${t.cap.refund?"Refund amount":"Amount paid"}</span><div class="mini-in">${money(tot)}</div></div>`);
+  rows.push(`<div class="kv"><span>Balance due</span><b style="color:var(--ok)">0.00</b></div>`);
+
+  const acts=[`<button class="btn go lg">${t.action}</button>`];
+  const secondary=["Save & new","Save & print","Save as draft","Duplicate","Email","WhatsApp","PDF"];
+  if(has("convert"))secondary.unshift(T[TYPE].cap.convert===2?"Convert to sale / pre-sale":"Convert to sale");
+  return `<div class="card" style="grid-column:span var(--tc)">
+    <h3>Totals</h3>${rows.join("")}
+    <div style="height:14px"></div>${acts.join("")}
+    <div class="more${pro?" open":""}"><button class="morebtn"><span>${pro?"All actions":"More actions"}</span><span>${pro?"▴":"▾"}</span></button>
+      <div class="morewrap"><div class="chips">${secondary.map(x=>`<span class="chip">${x}</span>`).join("")}</div></div></div>
+  </div>`;
+}
+function fixBanner(){
+  const f=T[TYPE].fix||[];
+  if(!f.length)return "";
+  return `<div class="card" style="grid-column:1/-1;border-left:3px solid var(--warn)">
+    <h3 style="color:var(--warn)">Carried over from <code>${T[TYPE].src}</code> — fixed here</h3>
+    ${f.map(x=>`<div class="covrow" style="border:0;padding:4px 0"><span>· ${x}</span></div>`).join("")}</div>`;
+}
+
+function body(g,vw){
+  const N=g.cols, mob=vw<=LAW.nav.mobile_max;
+  const guided=MODE==="guided";
+  if(guided){
+    const steps=[["1","Who"],["2","What"],["3","How much"],["4","Confirm"]];
+    const panel=STEP===1?headerCard():STEP===2?linesCard():STEP===3?totalsCard():
+      `<div class="card" style="grid-column:1/-1"><h3>Ready to save</h3>
+       <div class="banner info">${T[TYPE].name} for Rana Traders · ${LINES.length} lines · total ${money(LINES.reduce((a,[,q,p])=>a+q*p,0)*1.17)}</div>
+       <button class="btn go lg">${T[TYPE].action}</button></div>`;
+    return `<div class="steps">${steps.map(([i,l])=>
+      `<div class="step${+i===STEP?" on":+i<STEP?" done":""}" data-s="${i}"><b>${+i<STEP?"✓":i}</b>${l}</div>`).join("")}</div>
+      <div class="doc" style="--hc:${N};--lc:${N};--tc:${N}">${panel}</div>`;
+  }
+  if(mob) return `<div class="doc" style="--hc:${N};--lc:${N};--tc:${N}">
+    ${headerCard()}${linesCard()}${totalsCard()}${fixBanner()}</div>`;
+  const tc=Math.max(3,Math.round(N*4/12)), lc=N, hc=N-tc;
+  return `<div class="doc" style="--hc:${hc};--lc:${lc};--tc:${tc}">
+    ${headerCard()}${totalsCard()}${linesCard()}${fixBanner()}</div>`;
+}
+function header(){
+  const t=T[TYPE];
+  return `<div class="ico" id="navBtn">☰</div>
+    <div class="pill ghost"><b style="font:600 13px/1 var(--sans)">${t.name}</b>
+      <span style="color:var(--text-3)">· draft</span></div>
+    <div class="ico">＋</div>
+    ${MODE==="pro"?'<div class="pill ghost">Tab 1</div><div class="pill ghost">Tab 2</div>':""}
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <span class="pill ghost n" style="font-size:11px">${t.src}</span>
+      <div class="ico">⎋</div></div>`;
+}
+function coverage(){
+  return COVERAGE.map(sec=>`<div class="covcard"><h4>${sec.g}</h4>
+    ${sec.items.map(([lbl,k])=>{
+      const on=has(k);
+      const fixed=(T[TYPE].fix||[]).some(f=>f.toLowerCase().includes(lbl.split(" ")[0].toLowerCase()));
+      const tag=!on?'<span class="tag na">n/a</span>'
+        :fixed?'<span class="tag fix">fixed</span>'
+        :(MODE==="simple"&&!["Party selector (+ inline create/edit)","Document number","Document date",
+           "Product picker (+ inline create)","Quantity","Rate / unit cost","Subtotal","Grand total",
+           "Balance due","Save / post","Notes / description"].includes(lbl))
+          ?'<span class="tag p">one tap</span>':'<span class="tag e">visible</span>';
+      return `<div class="covrow"><span>${lbl}</span>${tag}</div>`;}).join("")}</div>`).join("");
+}
+
+function render(){
+  const vw=+$("#vw").value, states=navStates(vw);
+  if(!states.includes(NAV))NAV="hidden";
+  const g=geo(vw,NAV), sh=$("#shell");
+  sh.dataset.nav=NAV; sh.dataset.peek=PEEK?"true":"false";
+  $("#nav").innerHTML=navHTML(); $("#peekNav").innerHTML=navHTML();
+  $("#frame").style.width=Math.min(vw,window.innerWidth-40)+"px";
+  $("#head").innerHTML=header();
+  $("#main").innerHTML=body(g,vw);
+  const t=T[TYPE];
+  $("#blurb").innerHTML=`<b>${t.name}</b> — one editor, driven by a capability config. Source today:
+    <code>${t.src}</code>.<br><br>
+    Switch the type above and watch fields appear and disappear: <b>the layout never changes, only the capabilities do.</b>
+    That is what lets one screen replace twelve — and why adding a thirteenth document type is a config entry,
+    not another 3,000-line file.`;
+  $("#fb").textContent=`${vw} × auto · ${g.cols} columns · ${g.col.toFixed(1)}px · nav ${NAV}${PEEK?" + peek":""}`;
+  $("#r-vw").textContent=vw;
+  $("#r-f").textContent=[...$("#main").querySelectorAll(".f,.cell")].filter(e=>e.offsetParent!==null).length;
+  $("#cov").innerHTML=coverage();
+  document.querySelectorAll("#types button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===TYPE));
+  document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===MODE));
+  $("#navBtn").onclick=()=>{const st=navStates(vw);
+    if(st.length>1){NAV=st[(st.indexOf(NAV)+1)%st.length];PEEK=false;}else PEEK=!PEEK;render();};
+  $("#main").querySelectorAll(".morebtn").forEach(b=>b.onclick=e=>e.currentTarget.parentElement.classList.toggle("open"));
+  $("#main").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{STEP=+b.dataset.s;render();});
+}
+$("#scrim").onclick=()=>{PEEK=false;render();};
+$("#vw").addEventListener("input",render);
+$("#types").onclick=e=>{const b=e.target.closest("button");if(b){TYPE=b.dataset.t;STEP=1;render();}};
+$("#modes").onclick=e=>{const b=e.target.closest("button");if(b){MODE=b.dataset.m;STEP=1;render();}};
+addEventListener("keydown",e=>{if(e.key==="Escape"&&PEEK){PEEK=false;render();}});
+addEventListener("resize",render);
+render();
+</script>
+</body>
+</html>

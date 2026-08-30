@@ -1,0 +1,1454 @@
+/* ==========================================================================
+   VenQore — DOCUMENT, production stylesheet
+   ==========================================================================
+   The screen this dresses: resources/js/Pages/Sales/CreateInvoice.jsx.
+
+   Composed from `extras/Layout Law/venqore-document.html` and valued entirely
+   from the V6 token layer (`resources/css/venqore-v6/tokens/*`).
+
+   ── THE ONE RULE THIS FILE EXISTS TO ENFORCE ──────────────────────────────
+
+   Text size is not a font-size setting. When the operator makes the type
+   bigger, EVERYTHING grows with it: control heights, padding, gaps, column
+   widths, row heights, the dock. A ramp that scales the type alone is what
+   makes a search field shorter than the select beside it and squeezes the
+   padding out of the totals — every complaint about this screen at Large and
+   Senior came from exactly that.
+
+   So there are no raw pixels below this line. Spacing comes from --d-s*,
+   height from --d-h*, type from --d-t*, and all three are multiplied by
+   --d-scale. If you type a bare `px` value into this file you have
+   reintroduced the bug.
+
+   Responsiveness is done with CONTAINER queries. The element knows how wide
+   it is; the window does not know whether the rail was just hidden.
+   ========================================================================== */
+
+.vqdoc,
+.vqdoc-scope,
+.vqdoc *,
+.vqdoc-scope *,
+.vqdoc *::before,
+.vqdoc-scope *::before,
+.vqdoc *::after,
+.vqdoc-scope *::after { box-sizing: border-box; }
+
+/* ── SCOPE vs SHELL ───────────────────────────────────────────────────────
+   `.vqdoc-scope` carries the variables and nothing else. `.vqdoc` is the
+   screen itself and adds the layout on top.
+
+   They are separate because `.vqdoc` declares `container-type: inline-size`,
+   which applies INLINE-SIZE CONTAINMENT: the element's width stops depending
+   on its contents. On the screen that is exactly right. On a floating
+   element with `width: auto` it resolves the width to zero — which is why
+   the held-margin popup rendered and was invisible until something else
+   forced a width. Overlays use the scope; only the screen uses the shell. */
+.vqdoc,
+.vqdoc-scope {
+    --d-scale: 1;
+
+    /* spacing — the only gaps and paddings in the file */
+    --d-s1: calc(4px * var(--d-scale));
+    --d-s2: calc(8px * var(--d-scale));
+    --d-s3: calc(12px * var(--d-scale));
+    --d-s4: calc(16px * var(--d-scale));
+    --d-s5: calc(20px * var(--d-scale));
+    --d-s6: calc(26px * var(--d-scale));
+
+    /* type */
+    --d-t-micro: calc(10.5px * var(--d-scale));
+    --d-t-2xs: calc(12px * var(--d-scale));
+    --d-t-xs: calc(13px * var(--d-scale));
+    --d-t-sm: calc(14.5px * var(--d-scale));
+    --d-t-md: calc(15.5px * var(--d-scale));
+    --d-t-lg: calc(19px * var(--d-scale));
+    --d-t-num: calc(22px * var(--d-scale));
+    --d-t-total: calc(34px * var(--d-scale));
+
+    /* one control height, and nothing in a row may differ from it */
+    --d-h: calc(44px * var(--d-scale));
+    --d-h-sm: calc(38px * var(--d-scale));
+    --d-h-lg: calc(52px * var(--d-scale));
+    --d-row: calc(58px * var(--d-scale));
+
+    /* column widths, so a price never clips at Senior */
+    --d-w-qty: calc(82px * var(--d-scale));
+    --d-w-num: calc(108px * var(--d-scale));
+    --d-w-amt: calc(122px * var(--d-scale));
+
+    /* chrome */
+    --d-bar-h: calc(66px * var(--d-scale));
+    --d-zone-h: calc(48px * var(--d-scale));
+    --d-strip-h: calc(66px * var(--d-scale));
+    --d-dock-h: calc(70px * var(--d-scale));
+    --d-margin: var(--d-s5);
+    --d-gutter: var(--d-s4);
+    --d-split: 32%;
+    --d-r: var(--vq-r-lg);
+
+    color: var(--vq-text);
+    font-family: var(--vq-font-sans);
+    font-size: var(--d-t-md);
+}
+
+.vqdoc {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+    background: var(--vq-bg);
+    container-type: inline-size;
+    container-name: doc;
+}
+
+/* The ground is lit, not painted. A single flat fill behind white cards is
+   what made this screen read as a wireframe; two very soft mint pools give
+   the cards something to float on without becoming decoration. */
+.vqdoc::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(52% 40% at 12% 0%, rgb(35 196 166 / .10), transparent 70%),
+        radial-gradient(46% 44% at 92% 8%, rgb(11 170 143 / .07), transparent 72%);
+    z-index: 0;
+}
+.vqdoc > * { position: relative; z-index: 1; }
+:root[data-theme='dark'] .vqdoc::before,
+html.dark .vqdoc::before {
+    background:
+        radial-gradient(52% 42% at 10% 0%, rgb(35 196 166 / .13), transparent 70%),
+        radial-gradient(48% 46% at 94% 6%, rgb(11 170 143 / .10), transparent 72%);
+}
+
+.vqdoc[data-scale='2'], .vqdoc-scope[data-scale='2'] { --d-scale: 1.09; }
+.vqdoc[data-scale='3'], .vqdoc-scope[data-scale='3'] { --d-scale: 1.18; }
+.vqdoc[data-scale='4'], .vqdoc-scope[data-scale='4'] { --d-scale: 1.3; }
+.vqdoc[data-scale='5'], .vqdoc-scope[data-scale='5'] { --d-scale: 1.45; }
+
+.vqdoc .num, .vqdoc-scope .num { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; }
+
+/* ==========================================================================
+   1. PRIMITIVES
+   ========================================================================== */
+
+.vqdoc-btn {
+    height: var(--d-h);
+    border-radius: var(--vq-r-md);
+    padding: 0 var(--d-s4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--d-s2);
+    font-family: inherit;
+    font-size: var(--d-t-sm);
+    font-weight: var(--vq-fw-semi);
+    white-space: nowrap;
+    border: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+    color: var(--vq-text);
+    cursor: pointer;
+    min-width: 0;
+    transition: background var(--vq-dur-1) var(--vq-ease-out),
+                border-color var(--vq-dur-1) var(--vq-ease-out),
+                color var(--vq-dur-1) var(--vq-ease-out),
+                box-shadow var(--vq-dur-2) var(--vq-ease-out);
+}
+.vqdoc-btn:hover { background: var(--vq-surface-2); border-color: var(--vq-line-strong); }
+.vqdoc-btn:active { background: var(--vq-sunken); }
+.vqdoc-btn:disabled { opacity: .45; cursor: not-allowed; }
+.vqdoc-btn.lg { height: var(--d-h-lg); font-size: var(--d-t-md); padding: 0 var(--d-s5); }
+.vqdoc-btn.sm { height: var(--d-h-sm); font-size: var(--d-t-2xs); padding: 0 var(--d-s3); }
+.vqdoc-btn.xs { height: calc(28px * var(--d-scale)); font-size: var(--d-t-micro); padding: 0 var(--d-s2); gap: var(--d-s1); border-radius: var(--vq-r-md); }
+
+.vqdoc-btn.pri {
+    background: var(--vq-grad-mint);
+    border-color: var(--vq-accent-fill);
+    color: var(--vq-on-accent);
+    font-weight: var(--vq-fw-bold);
+    box-shadow: var(--vq-glow-accent);
+}
+.vqdoc-btn.pri:hover { background: var(--vq-accent-fill-hover); border-color: var(--vq-accent-fill-hover); box-shadow: var(--vq-glow-accent-strong); }
+.vqdoc-btn.pri:disabled { box-shadow: none; }
+.vqdoc-btn.quiet { background: transparent; border-color: transparent; color: var(--vq-text-2); }
+.vqdoc-btn.quiet:hover { background: var(--vq-surface-2); border-color: transparent; color: var(--vq-text); }
+.vqdoc-btn.danger { color: var(--vq-danger); }
+.vqdoc-btn.danger:hover { background: var(--vq-danger-bg); border-color: var(--vq-danger-line); }
+
+.vqdoc-icon {
+    width: var(--d-h);
+    height: var(--d-h);
+    flex: 0 0 auto;
+    border-radius: var(--vq-r-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+    color: var(--vq-text-2);
+    cursor: pointer;
+    transition: background var(--vq-dur-1) var(--vq-ease-out),
+                border-color var(--vq-dur-1) var(--vq-ease-out),
+                color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-icon > svg { width: calc(18px * var(--d-scale)); height: calc(18px * var(--d-scale)); }
+.vqdoc-icon:hover { background: var(--vq-surface-2); border-color: var(--vq-line-strong); color: var(--vq-text); }
+.vqdoc-icon[aria-pressed='true'] { background: var(--vq-accent-quiet); border-color: var(--vq-accent-quiet-line); color: var(--vq-accent-text); }
+.vqdoc-icon.sm { width: var(--d-h-sm); height: var(--d-h-sm); }
+.vqdoc-icon.sm > svg { width: calc(16px * var(--d-scale)); height: calc(16px * var(--d-scale)); }
+.vqdoc-icon.xs { width: calc(28px * var(--d-scale)); height: calc(28px * var(--d-scale)); }
+.vqdoc-icon.xs > svg { width: calc(14px * var(--d-scale)); height: calc(14px * var(--d-scale)); }
+.vqdoc-icon.quiet { border-color: transparent; background: transparent; }
+.vqdoc-icon.quiet:hover { background: var(--vq-surface-2); }
+.vqdoc-icon.danger:hover { background: var(--vq-danger-bg); border-color: var(--vq-danger-line); color: var(--vq-danger); }
+.vqdoc-icon:disabled { opacity: .4; cursor: not-allowed; }
+
+.vqdoc-seg {
+    display: inline-flex;
+    background: var(--vq-sunken);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    padding: calc(3px * var(--d-scale));
+    gap: calc(3px * var(--d-scale));
+    min-width: 0;
+    height: var(--d-h);
+}
+/* A tool button that has something behind it wears a dot, so a sheet's worth
+   of detail is not invisible once it is closed. */
+.vqdoc-icon { position: relative; }
+.vqdoc-icon > .dot {
+    position: absolute; top: calc(6px * var(--d-scale)); right: calc(6px * var(--d-scale));
+    width: calc(6px * var(--d-scale)); height: calc(6px * var(--d-scale));
+    border-radius: 50%;
+    background: var(--vq-accent);
+    box-shadow: 0 0 0 2px var(--vq-surface);
+}
+.vqdoc-seg.fill { display: flex; width: 100%; }
+.vqdoc-seg.fill > button { flex: 1 1 0; min-width: 0; }
+/* A segmented control standing in a form field always fills it: sized to its
+   text it left a stripe of empty trough beside the choices and stopped lining
+   up with the boxes on either side. Making it automatic means no screen has to
+   remember `fill`. */
+.vqdoc-f > .vqdoc-seg { display: flex; width: 100%; }
+.vqdoc-f > .vqdoc-seg > button { flex: 1 1 0; min-width: 0; }
+.vqdoc-seg > button {
+    border: 0;
+    background: none;
+    border-radius: calc(var(--vq-r-md) - 4px);
+    height: 100%;
+    padding: 0 var(--d-s3);
+    font-family: inherit;
+    font-size: var(--d-t-2xs);
+    font-weight: var(--vq-fw-semi);
+    color: var(--vq-text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--d-s1);
+    transition: background var(--vq-dur-1) var(--vq-ease-out), color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-seg > button:hover { color: var(--vq-text); }
+.vqdoc-seg > button[aria-pressed='true'] {
+    background: var(--vq-surface);
+    color: var(--vq-text);
+    font-weight: var(--vq-fw-bold);
+    box-shadow: var(--vq-elev-1);
+}
+/* Cash and credit are not two states of one thing, they are two different
+   things — money in the drawer now, or money owed. They get two different
+   colours, so a glance at the row tells you which sale this is. */
+.vqdoc-seg > button[data-tone='cash'][aria-pressed='true'] {
+    background: var(--vq-success-bg);
+    color: var(--vq-success);
+    box-shadow: inset 0 0 0 1px var(--vq-success-line);
+}
+.vqdoc-seg > button[data-tone='credit'][aria-pressed='true'] {
+    background: var(--vq-info-bg);
+    color: var(--vq-info);
+    box-shadow: inset 0 0 0 1px var(--vq-info-line);
+}
+.vqdoc-seg > button:disabled { opacity: .4; cursor: not-allowed; }
+.vqdoc-seg.sm { height: var(--d-h-sm); }
+
+.vqdoc-in {
+    height: var(--d-h);
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    padding: 0 var(--d-s3);
+    background: var(--vq-surface);
+    color: var(--vq-text);
+    font-family: inherit;
+    font-size: var(--d-t-sm);
+    font-weight: var(--vq-fw-medium);
+    outline: none;
+    transition: border-color var(--vq-dur-1) var(--vq-ease-out), box-shadow var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-in:hover:not(:disabled) { border-color: var(--vq-line-strong); }
+.vqdoc-in:focus { border-color: var(--vq-accent); box-shadow: var(--vq-ring-focus); }
+.vqdoc-in:disabled { background: var(--vq-sunken); color: var(--vq-text-3); cursor: not-allowed; }
+.vqdoc-in.n { text-align: right; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; font-weight: var(--vq-fw-semi); }
+/* ── THE DROPDOWN ────────────────────────────────────────────────────────
+   A native <select> hands its list to the operating system, which draws a
+   grey box with a blue bar in it and ignores every token in this file. The
+   trigger below is a button and the list is ours — see Sales/VqSelect.jsx. */
+.vqdoc-select {
+    height: var(--d-h);
+    width: 100%;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--d-s2);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    padding: 0 var(--d-s2) 0 var(--d-s3);
+    background: var(--vq-surface);
+    color: var(--vq-text);
+    font-family: inherit;
+    font-size: var(--d-t-sm);
+    font-weight: var(--vq-fw-medium);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+                box-shadow var(--vq-dur-1) var(--vq-ease-out),
+                background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-select:hover:not(:disabled) { border-color: var(--vq-line-strong); background: var(--vq-surface-2); }
+.vqdoc-select:focus-visible,
+.vqdoc-select[aria-expanded='true'] { border-color: var(--vq-accent); box-shadow: var(--vq-ring-focus); outline: none; }
+.vqdoc-select:disabled { background: var(--vq-sunken); color: var(--vq-text-3); cursor: not-allowed; }
+.vqdoc-select .val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vqdoc-select .ph { color: var(--vq-text-3); }
+.vqdoc-select .chev { flex: 0 0 auto; color: var(--vq-text-3); transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.vqdoc-select[aria-expanded='true'] .chev { transform: rotate(180deg); color: var(--vq-accent-text); }
+.vqdoc-select.sm { height: var(--d-h-sm); font-size: var(--d-t-2xs); }
+
+.vqdoc-menu {
+    --d-scale: 1;
+    position: fixed;
+    z-index: 700;
+    overflow-y: auto;
+    padding: calc(5px * var(--d-scale));
+    background: var(--vq-raised);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    box-shadow: var(--vq-elev-3);
+    font-family: var(--vq-font-sans);
+    animation: vqdoc-menu-in 140ms cubic-bezier(.22, 1, .36, 1) both;
+    scrollbar-width: thin;
+}
+@keyframes vqdoc-menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.vqdoc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: calc(10px * var(--d-scale));
+    min-height: calc(40px * var(--d-scale));
+    padding: 0 calc(11px * var(--d-scale));
+    border-radius: 10px;
+    font-size: calc(14.5px * var(--d-scale));
+    color: var(--vq-text);
+    cursor: pointer;
+    user-select: none;
+}
+.vqdoc-menu-item .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; padding: calc(6px * var(--d-scale)) 0; }
+.vqdoc-menu-item .lbl .hint { display: block; font-size: calc(11px * var(--d-scale)); color: var(--vq-text-3); }
+.vqdoc-menu-item .tick { flex: 0 0 auto; color: var(--vq-accent-text); }
+.vqdoc-menu-item[data-active='true'] { background: var(--vq-accent-quiet); color: var(--vq-accent-text); }
+.vqdoc-menu-item[data-chosen='true'] { font-weight: var(--vq-fw-bold); }
+.vqdoc-menu-item[aria-disabled='true'] { opacity: .45; cursor: not-allowed; }
+.vqdoc-menu-empty { padding: calc(16px * var(--d-scale)) calc(10px * var(--d-scale)); font-size: calc(13px * var(--d-scale)); color: var(--vq-text-3); text-align: center; }
+
+select.vqdoc-in {
+    appearance: none;
+    cursor: pointer;
+    padding-right: calc(var(--d-s6) + var(--d-s4));
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7A73' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--d-s3) center;
+    background-size: calc(16px * var(--d-scale)) calc(16px * var(--d-scale));
+}
+select.vqdoc-in:hover { background-color: var(--vq-surface-2); }
+:root[data-theme='dark'] select.vqdoc-in,
+html.dark /* ── THE DROPDOWN ────────────────────────────────────────────────────────
+   A native <select> hands its list to the operating system, which draws a
+   grey box with a blue bar in it and ignores every token in this file. The
+   trigger below is a button and the list is ours — see Sales/VqSelect.jsx. */
+.vqdoc-select {
+    height: var(--d-h);
+    width: 100%;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--d-s2);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    padding: 0 var(--d-s2) 0 var(--d-s3);
+    background: var(--vq-surface);
+    color: var(--vq-text);
+    font-family: inherit;
+    font-size: var(--d-t-sm);
+    font-weight: var(--vq-fw-medium);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+                box-shadow var(--vq-dur-1) var(--vq-ease-out),
+                background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-select:hover:not(:disabled) { border-color: var(--vq-line-strong); background: var(--vq-surface-2); }
+.vqdoc-select:focus-visible,
+.vqdoc-select[aria-expanded='true'] { border-color: var(--vq-accent); box-shadow: var(--vq-ring-focus); outline: none; }
+.vqdoc-select:disabled { background: var(--vq-sunken); color: var(--vq-text-3); cursor: not-allowed; }
+.vqdoc-select .val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vqdoc-select .ph { color: var(--vq-text-3); }
+.vqdoc-select .chev { flex: 0 0 auto; color: var(--vq-text-3); transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.vqdoc-select[aria-expanded='true'] .chev { transform: rotate(180deg); color: var(--vq-accent-text); }
+.vqdoc-select.sm { height: var(--d-h-sm); font-size: var(--d-t-2xs); }
+
+.vqdoc-menu {
+    --d-scale: 1;
+    position: fixed;
+    z-index: 700;
+    overflow-y: auto;
+    padding: calc(5px * var(--d-scale));
+    background: var(--vq-raised);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    box-shadow: var(--vq-elev-3);
+    font-family: var(--vq-font-sans);
+    animation: vqdoc-menu-in 140ms cubic-bezier(.22, 1, .36, 1) both;
+    scrollbar-width: thin;
+}
+@keyframes vqdoc-menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.vqdoc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: calc(10px * var(--d-scale));
+    min-height: calc(40px * var(--d-scale));
+    padding: 0 calc(11px * var(--d-scale));
+    border-radius: 10px;
+    font-size: calc(14.5px * var(--d-scale));
+    color: var(--vq-text);
+    cursor: pointer;
+    user-select: none;
+}
+.vqdoc-menu-item .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; padding: calc(6px * var(--d-scale)) 0; }
+.vqdoc-menu-item .lbl .hint { display: block; font-size: calc(11px * var(--d-scale)); color: var(--vq-text-3); }
+.vqdoc-menu-item .tick { flex: 0 0 auto; color: var(--vq-accent-text); }
+.vqdoc-menu-item[data-active='true'] { background: var(--vq-accent-quiet); color: var(--vq-accent-text); }
+.vqdoc-menu-item[data-chosen='true'] { font-weight: var(--vq-fw-bold); }
+.vqdoc-menu-item[aria-disabled='true'] { opacity: .45; cursor: not-allowed; }
+.vqdoc-menu-empty { padding: calc(16px * var(--d-scale)) calc(10px * var(--d-scale)); font-size: calc(13px * var(--d-scale)); color: var(--vq-text-3); text-align: center; }
+
+select.vqdoc-in {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238B9A93' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.vqdoc input[type='number']::-webkit-outer-spin-button,
+.vqdoc-scope input[type='number']::-webkit-outer-spin-button,
+.vqdoc input[type='number']::-webkit-inner-spin-button,
+.vqdoc-scope input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.vqdoc input[type='number'], .vqdoc-scope input[type='number'] { -moz-appearance: textfield; }
+
+/* THE COMBOBOX. It is a shared component that dresses itself with utility
+   classes, so this is where it is brought back onto the screen's own ramp —
+   otherwise it is the one control in the row that does not grow with the
+   text, and at Senior it sits visibly shorter than the select beside it. */
+.vqdoc-combo { width: 100%; min-width: 0; }
+.vqdoc-combo input[type='text'] {
+    height: var(--d-h);
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: var(--d-s3);
+    font-size: var(--d-t-sm);
+    font-weight: var(--vq-fw-medium);
+    border-radius: var(--vq-r-md);
+    line-height: normal;
+}
+.vqdoc-combo svg { width: calc(17px * var(--d-scale)); height: calc(17px * var(--d-scale)); }
+
+.vqdoc-lbl {
+    font-size: var(--d-t-micro);
+    font-weight: var(--vq-fw-bold);
+    letter-spacing: .085em;
+    text-transform: uppercase;
+    color: var(--vq-text-3);
+    display: flex;
+    align-items: center;
+    gap: var(--d-s1);
+    line-height: 1.2;
+    min-height: calc(14px * var(--d-scale));
+}
+.vqdoc-lbl .req { color: var(--vq-danger); }
+
+.vqdoc-switch {
+    width: calc(44px * var(--d-scale)); height: calc(26px * var(--d-scale));
+    border-radius: var(--vq-r-full);
+    background: var(--vq-line-strong);
+    border: 0; padding: 0; position: relative; flex: 0 0 auto; cursor: pointer;
+    transition: background var(--vq-dur-2) var(--vq-ease-out);
+}
+.vqdoc-switch::after {
+    content: '';
+    position: absolute;
+    top: calc(3px * var(--d-scale)); left: calc(3px * var(--d-scale));
+    width: calc(20px * var(--d-scale)); height: calc(20px * var(--d-scale));
+    border-radius: var(--vq-r-full);
+    background: var(--vq-ink-0);
+    box-shadow: var(--vq-elev-1);
+    transition: transform var(--vq-dur-2) var(--vq-ease-spring);
+}
+.vqdoc-switch[aria-checked='true'] { background: var(--vq-accent-fill); }
+.vqdoc-switch[aria-checked='true']::after { transform: translateX(calc(18px * var(--d-scale))); }
+
+.vqdoc :where(button, input, select, a, [tabindex]):focus-visible,
+.vqdoc-scope :where(button, input, select, a, [tabindex]):focus-visible {
+    outline: 2px solid var(--vq-focus);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   2. THE BAR
+   ========================================================================== */
+.vqdoc-bar {
+    min-height: var(--d-bar-h);
+    display: flex;
+    align-items: center;
+    gap: var(--d-s2);
+    padding: var(--d-s2) var(--d-margin);
+    background: var(--vq-surface);
+    border-bottom: 1px solid var(--vq-line);
+    flex-shrink: 0;
+    min-width: 0;
+    user-select: none;
+    position: relative;
+    z-index: var(--vq-z-sticky);
+}
+.vqdoc-bar > .sep { width: 1px; height: var(--d-s6); background: var(--vq-line); flex: 0 0 auto; margin: 0 var(--d-s1); }
+
+.vqdoc-title {
+    font-family: var(--vq-font-display);
+    font-weight: var(--vq-fw-semi);
+    font-size: var(--d-t-lg);
+    letter-spacing: var(--vq-ls-h3);
+    line-height: 1.15;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0;
+}
+.vqdoc-sub {
+    font-family: var(--vq-font-numeric);
+    font-size: var(--d-t-micro);
+    letter-spacing: .04em;
+    color: var(--vq-text-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.vqdoc-tabs { display: flex; align-items: center; gap: var(--d-s1); min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.vqdoc-tabs::-webkit-scrollbar { display: none; }
+.vqdoc-tab {
+    display: inline-flex; align-items: center; gap: var(--d-s2);
+    height: var(--d-h-sm);
+    padding: 0 var(--d-s1) 0 var(--d-s3);
+    border-radius: var(--vq-r-full);
+    border: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+    color: var(--vq-text-2);
+    font-family: inherit;
+    font-size: var(--d-t-2xs);
+    font-weight: var(--vq-fw-semi);
+    white-space: nowrap; max-width: calc(210px * var(--d-scale)); min-width: 0; cursor: pointer;
+    transition: background var(--vq-dur-1) var(--vq-ease-out), border-color var(--vq-dur-1) var(--vq-ease-out), color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-tab:hover { border-color: var(--vq-line-strong); background: var(--vq-surface-2); }
+.vqdoc-tab[aria-selected='true'] {
+    background: var(--vq-accent-quiet);
+    border-color: var(--vq-accent-quiet-line);
+    color: var(--vq-accent-text);
+    font-weight: var(--vq-fw-bold);
+}
+.vqdoc-tab .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.vqdoc-tab .x {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: calc(24px * var(--d-scale)); height: calc(24px * var(--d-scale));
+    border-radius: var(--vq-r-full);
+    color: var(--vq-text-3); flex: 0 0 auto;
+    transition: background var(--vq-dur-1) var(--vq-ease-out), color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-tab .x:hover { background: var(--vq-danger-bg); color: var(--vq-danger); }
+
+/* ==========================================================================
+   3. THE SCROLLER AND ITS ZONES
+   ========================================================================== */
+.vqdoc-scroll {
+    min-height: 0; min-width: 0;
+    overflow-y: auto; overflow-x: hidden;
+    padding: var(--d-margin);
+    display: flex; flex-direction: column; gap: var(--d-gutter);
+    scrollbar-width: thin;
+}
+.vqdoc-scroll > * { flex: 0 0 auto; }
+.vqdoc-scroll > .vqdoc-body { flex: 1 0 auto; }
+
+/* ── THE ITEM LIST SCROLLS, THE DOCUMENT DOES NOT ────────────────────────
+   With the totals beside the items, adding a line used to push the whole
+   page down: the customer block scrolled away, the totals went with it, and
+   you lost sight of the number you were building. Here the document holds
+   its shape and only the rows move. It is the register's rule — one screen
+   tall, and the list inside it is what scrolls.
+
+   This is only safe because the product list is portalled out of the page
+   (see SmartCombobox `portal`); a scrolling ancestor would otherwise clip
+   the dropdown the moment you searched. */
+.vqdoc-scroll[data-fill='1'] { overflow-y: hidden; }
+.vqdoc-scroll[data-fill='1'] > .vqdoc-body { flex: 1 1 auto; min-height: 0; }
+.vqdoc-scroll[data-fill='1'] .vqdoc-body > .vqdoc-zone,
+.vqdoc-scroll[data-fill='1'] .vqdoc-sumcol { max-height: 100%; min-height: 0; }
+
+/* A block between the header and the lines earns at most a third of the
+   screen, and scrolls inside itself past that. Left unbounded it grew until
+   the items and the totals were pushed off the bottom of a container that
+   does not scroll — the document became unreachable behind its own trimmings. */
+.vqdoc-scroll[data-fill='1'] > .vqdoc-extra { max-height: 34%; min-height: 0; display: flex; }
+.vqdoc-scroll[data-fill='1'] > .vqdoc-extra > .vqdoc-zone { min-height: 0; }
+.vqdoc-extra > .vqdoc-zone > .vqdoc-hdr { overflow-y: auto; min-height: 0; }
+.vqdoc-scroll[data-fill='1'] .vqdoc-linesbox { overflow-y: auto; }
+.vqdoc-scroll[data-fill='1'] .vqdoc-sumcol { overflow-y: auto; }
+.vqdoc[data-dock='on'] .vqdoc-scroll[data-fill='1'] { padding-bottom: var(--d-margin); }
+.vqdoc[data-dock='on'] .vqdoc-scroll[data-fill='1'] .vqdoc-linesbox { padding-bottom: calc(var(--d-dock-h) + var(--d-s3)); }
+.vqdoc[data-dock='on'] .vqdoc-scroll[data-fill='1'] .vqdoc-sumcol { padding-bottom: calc(var(--d-dock-h) + var(--d-s3)); }
+
+/* the header stays while the rows move under it */
+.vqdoc-lines thead th { position: sticky; top: 0; z-index: 2; }
+
+/* The dock floats OVER the document — it is not a row that sits there empty.
+   The scroller pays for it with bottom padding only while the dock is up, so
+   the last line can always be scrolled clear of it. */
+.vqdoc[data-dock='on'] .vqdoc-scroll { padding-bottom: calc(var(--d-dock-h) + var(--d-margin) + var(--d-s3)); }
+
+.vqdoc-zone {
+    background: var(--vq-surface);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--d-r);
+    min-width: 0;
+    overflow: visible;      /* the combobox list must not be clipped */
+    display: flex; flex-direction: column;
+}
+
+.vqdoc-zone-h {
+    min-height: var(--d-zone-h);
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: var(--d-s2);
+    padding: 0 var(--d-s3) 0 var(--d-s5);
+    border-bottom: 1px solid var(--vq-line-soft);
+    border-radius: calc(var(--d-r) - 1px) calc(var(--d-r) - 1px) 0 0;
+    font-size: var(--d-t-micro);
+    font-weight: var(--vq-fw-bold);
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--vq-text-3);
+    background: var(--vq-surface-2);
+}
+.vqdoc-zone-h[data-tone='accent'] {
+    background: linear-gradient(100deg, var(--vq-accent-quiet), var(--vq-surface-2) 70%);
+    color: var(--vq-accent-text);
+}
+.vqdoc-zone-h .count { color: var(--vq-text-2); letter-spacing: .04em; }
+.vqdoc-zone-h .spacer { margin-left: auto; }
+.vqdoc-zone-h .togg {
+    border: 0; background: none; cursor: pointer; font: inherit;
+    color: var(--vq-accent-text); letter-spacing: .07em;
+    display: inline-flex; align-items: center; gap: var(--d-s1);
+    height: var(--d-h-sm); padding: 0 var(--d-s2); border-radius: var(--vq-r-md);
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-zone-h .togg:hover { background: var(--vq-accent-quiet); }
+
+/* ── the details grid ───────────────────────────────────────────────────── */
+.vqdoc-hdr {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--d-s4) var(--d-s4);
+    padding: var(--d-s5);
+}
+.vqdoc-f { display: flex; flex-direction: column; gap: var(--d-s2); min-width: 0; grid-column: span 3; }
+/* Every width from 1 to 12, because a gap in the list does not fail loudly —
+   it silently falls back to span 3, and a one-column delete button ends up on
+   a row of its own. */
+.vqdoc-f[data-span='1']  { grid-column: span 1; }
+.vqdoc-f[data-span='2']  { grid-column: span 2; }
+.vqdoc-f[data-span='3']  { grid-column: span 3; }
+.vqdoc-f[data-span='4']  { grid-column: span 4; }
+.vqdoc-f[data-span='5']  { grid-column: span 5; }
+.vqdoc-f[data-span='6']  { grid-column: span 6; }
+.vqdoc-f[data-span='7']  { grid-column: span 7; }
+.vqdoc-f[data-span='8']  { grid-column: span 8; }
+.vqdoc-f[data-span='9']  { grid-column: span 9; }
+.vqdoc-f[data-span='10'] { grid-column: span 10; }
+.vqdoc-f[data-span='11'] { grid-column: span 11; }
+.vqdoc-f[data-span='12'] { grid-column: 1 / -1; }
+.vqdoc-f .hint { font-size: var(--d-t-micro); color: var(--vq-text-3); }
+/* A field holding nothing but a button sits level with the boxes beside it
+   rather than floating up where its missing label would have been. */
+.vqdoc-f[data-nolabel] { justify-content: flex-end; }
+.vqdoc-f .err { font-size: var(--d-t-micro); color: var(--vq-danger); font-weight: var(--vq-fw-semi); }
+
+/* Every control in this grid is exactly one height. The row a field sits in
+   is only as tall as the tallest thing in it, so one control that ignores
+   the ramp makes the whole row look broken. */
+.vqdoc-hdr .vqdoc-in,
+.vqdoc-hdr .vqdoc-seg,
+.vqdoc-hdr .vqdoc-party,
+.vqdoc-hdr .vqdoc-select,
+.vqdoc-hdr .vqdoc-combo input[type='text'] { height: var(--d-h); }
+
+@container doc (max-width: 1180px) {
+    .vqdoc-f            { grid-column: span 4; }
+    .vqdoc-f[data-span='2'] { grid-column: span 3; }
+    .vqdoc-f[data-span='4'] { grid-column: span 6; }
+    .vqdoc-f[data-span='5'] { grid-column: span 6; }
+}
+@container doc (max-width: 840px) {
+    .vqdoc-f,
+    .vqdoc-f[data-span='2'],
+    .vqdoc-f[data-span='3'] { grid-column: span 6; }
+    .vqdoc-f[data-span='4'],
+    .vqdoc-f[data-span='5'],
+    .vqdoc-f[data-span='6'] { grid-column: 1 / -1; }
+}
+@container doc (max-width: 560px) {
+    .vqdoc-hdr { gap: var(--d-s3); padding: var(--d-s4); }
+    .vqdoc-f, .vqdoc-f[data-span] { grid-column: 1 / -1; }
+}
+
+.vqdoc-party {
+    display: flex; align-items: center; gap: var(--d-s3);
+    height: var(--d-h);
+    padding: 0 var(--d-s1) 0 var(--d-s2);
+    border: 1px solid var(--vq-accent-quiet-line);
+    background: var(--vq-accent-quiet);
+    border-radius: var(--vq-r-md);
+    min-width: 0;
+}
+.vqdoc-avatar {
+    width: calc(30px * var(--d-scale)); height: calc(30px * var(--d-scale));
+    flex: 0 0 auto;
+    border-radius: var(--vq-r-full);
+    background: var(--vq-accent-fill);
+    color: var(--vq-on-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: var(--vq-fw-bold); font-size: var(--d-t-2xs);
+}
+.vqdoc-party .who { min-width: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; line-height: 1.25; }
+.vqdoc-party .who b { font-size: var(--d-t-sm); font-weight: var(--vq-fw-bold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vqdoc-party .who span { font-size: var(--d-t-micro); color: var(--vq-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vqdoc-party .bal {
+    font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+    font-size: var(--d-t-2xs); font-weight: var(--vq-fw-bold);
+    text-align: right; flex: 0 0 auto; white-space: nowrap;
+}
+
+/* ── the folded strip ───────────────────────────────────────────────────── */
+.vqdoc-strip {
+    display: flex; align-items: center; gap: var(--d-s3);
+    width: 100%; padding: 0 var(--d-s5);
+    min-height: var(--d-strip-h);
+    background: var(--vq-surface);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--d-r);
+    text-align: left; min-width: 0; cursor: pointer; color: inherit; font: inherit;
+    transition: border-color var(--vq-dur-1) var(--vq-ease-out), background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-strip:hover { border-color: var(--vq-accent-quiet-line); background: var(--vq-accent-quiet); }
+.vqdoc-strip .chev { flex: 0 0 auto; color: var(--vq-text-3); display: inline-flex; }
+.vqdoc-strip .who {
+    flex: 0 1 auto; max-width: 45%;
+    font-weight: var(--vq-fw-bold); font-size: var(--d-t-sm);
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* The reference and date give way first, and vanish entirely on a narrow
+   strip rather than surviving as three characters and an ellipsis. */
+.vqdoc-strip .meta {
+    flex: 1 1 0; min-width: 0;
+    font-family: var(--vq-font-numeric); font-size: var(--d-t-micro);
+    color: var(--vq-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@container doc (max-width: 560px) {
+    .vqdoc-strip .meta { display: none; }
+    .vqdoc-strip .who { max-width: none; }
+}
+.vqdoc-strip .amt {
+    margin-left: auto; flex: 0 0 auto;
+    display: inline-flex; align-items: baseline; gap: var(--d-s2);
+    font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+    font-weight: var(--vq-fw-bold); font-size: var(--d-t-lg);
+}
+/* A bare number on a folded line is ambiguous — it could be the bill, it could
+   be the ledger. The tag says which, quietly. */
+.vqdoc-strip .amt .tag {
+    font-family: var(--vq-font-sans, inherit);
+    font-size: var(--d-t-micro); font-weight: var(--vq-fw-medium);
+    letter-spacing: .04em; text-transform: uppercase;
+    color: var(--vq-text-3);
+}
+.vqdoc-strip .amt[data-owed='true'] { color: var(--vq-warning); }
+@container doc (max-width: 720px) {
+    .vqdoc-strip .amt { flex-direction: column; align-items: flex-end; gap: 0; line-height: 1.15; }
+}
+.vqdoc-strip .amt[data-owed='true'] .tag { color: inherit; opacity: .75; }
+
+/* ── THE LEDGER LINES ────────────────────────────────────────────────────
+   What the customer owed before this sale, and what they will owe after it.
+   Set apart from the invoice's own arithmetic by a rule, because they are
+   about the relationship rather than about this piece of paper. */
+.vqdoc-ledger {
+    margin-top: var(--d-s2);
+    padding-top: var(--d-s2);
+    border-top: 1px dashed var(--vq-line);
+    display: flex; flex-direction: column;
+}
+.vqdoc-ledger .vqdoc-sum-row { min-height: var(--d-h-sm); font-size: var(--d-t-xs); }
+.vqdoc-ledger .vqdoc-sum-row.strong .k { color: var(--vq-text); font-weight: var(--vq-fw-semi); }
+.vqdoc-ledger .vqdoc-sum-row.strong .v { font-size: var(--d-t-sm); }
+.vqdoc-ledger .v[data-owed='true'] { color: var(--vq-warning); }
+.vqdoc-ledger .v .cur { font-size: var(--d-t-micro); color: var(--vq-text-3); }
+
+/* ==========================================================================
+   4. THE BODY
+   ========================================================================== */
+.vqdoc-body {
+    display: grid; gap: 0; align-items: stretch; min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+}
+.vqdoc-body[data-sum='side'] { grid-template-columns: minmax(0, 1fr) var(--d-s4) minmax(0, var(--d-split)); }
+.vqdoc-body[data-sum='below'] { row-gap: var(--d-gutter); }
+.vqdoc-body > .vqdoc-sumcol { align-self: start; }
+.vqdoc-body[data-sum='below'] > .vqdoc-sumcol { align-self: stretch; }
+
+.vqdoc-sumcol { min-width: 0; display: flex; flex-direction: column; gap: var(--d-gutter); }
+.vqdoc-sumcol.stick { position: sticky; top: 0; align-self: start; max-height: 100%; }
+
+.vqdoc-split { cursor: col-resize; position: relative; align-self: stretch; touch-action: none; border: 0; background: none; padding: 0; }
+.vqdoc-split::before {
+    content: ''; position: absolute; top: var(--d-s3); bottom: var(--d-s3); left: 50%;
+    width: 2px; margin-left: -1px; border-radius: var(--vq-r-full);
+    background: transparent;
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-split:hover::before, .vqdoc-split.dragging::before, .vqdoc-split:focus-visible::before { background: var(--vq-accent); }
+.vqdoc-split:focus-visible { outline: none; }
+
+/* ── the item table ────────────────────────────────────────────────────── */
+.vqdoc-linesbox { flex: 1 1 auto; min-height: 0; overflow-x: auto; overflow-y: visible; padding: var(--d-s2) 0; }
+
+.vqdoc-lines { width: 100%; border-collapse: collapse; font-size: var(--d-t-sm); }
+.vqdoc-lines th {
+    font-size: var(--d-t-micro);
+    letter-spacing: .085em;
+    text-transform: uppercase;
+    color: var(--vq-text-3);
+    font-weight: var(--vq-fw-bold);
+    text-align: left;
+    height: calc(34px * var(--d-scale));
+    padding: 0 var(--d-s2);
+    border-bottom: 1px solid var(--vq-line);
+    white-space: nowrap;
+    background: var(--vq-surface);
+}
+.vqdoc-lines th:first-child, .vqdoc-lines td:first-child { padding-left: var(--d-s5); }
+.vqdoc-lines th:last-child,  .vqdoc-lines td:last-child  { padding-right: var(--d-s4); }
+.vqdoc-lines th.n, .vqdoc-lines td.n { text-align: right; }
+.vqdoc-lines th.c, .vqdoc-lines td.c { text-align: center; }
+
+/* the item column absorbs the slack; every other column fits its content */
+.vqdoc-lines th.item, .vqdoc-lines td.item { width: 100%; min-width: calc(200px * var(--d-scale)); }
+.vqdoc-lines th.fit, .vqdoc-lines td.fit { width: 1%; white-space: nowrap; }
+
+.vqdoc-lines td {
+    height: var(--d-row);
+    padding: var(--d-s1) var(--d-s2);
+    border-bottom: 1px solid var(--vq-line-soft);
+    vertical-align: middle;
+}
+.vqdoc-lines tbody tr { transition: background var(--vq-dur-1) var(--vq-ease-out); }
+.vqdoc-lines tbody tr:hover { background: var(--vq-surface-2); }
+.vqdoc-lines tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--vq-accent); }
+.vqdoc-lines tbody tr:last-child td { border-bottom: 0; }
+.vqdoc-lines tbody tr.dragging { opacity: .4; }
+.vqdoc-lines tbody tr.bad td { background: var(--vq-danger-bg); }
+.vqdoc-lines tr.quick td {
+    background: linear-gradient(100deg, var(--vq-accent-quiet), var(--vq-surface) 88%);
+    border-bottom: 1px solid var(--vq-accent-quiet-line);
+    border-top: 1px solid var(--vq-accent-quiet-line);
+}
+.vqdoc-lines tr.quick td:first-child { box-shadow: inset 3px 0 0 var(--vq-accent); }
+
+.vqdoc-lines .grip { color: transparent; cursor: grab; display: inline-flex; transition: color var(--vq-dur-1) var(--vq-ease-out); }
+.vqdoc-lines tr:hover .grip { color: var(--vq-line-strong); }
+.vqdoc-lines .grip:hover { color: var(--vq-text-3); }
+.vqdoc-idx { font-family: var(--vq-font-numeric); font-size: var(--d-t-2xs); color: var(--vq-text-3); }
+.vqdoc-lines .vqdoc-combo input[type='text'] { height: var(--d-h-sm); font-size: var(--d-t-sm); }
+
+.vqdoc-cell {
+    height: var(--d-h-sm);
+    width: 100%;
+    min-width: 0;
+    border: 1px solid transparent;
+    border-radius: var(--vq-r-md);
+    padding: 0 var(--d-s2);
+    background: var(--vq-sunken);
+    color: var(--vq-text);
+    font-family: var(--vq-font-numeric);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--d-t-sm);
+    font-weight: var(--vq-fw-semi);
+    text-align: right;
+    outline: none;
+    transition: background var(--vq-dur-1) var(--vq-ease-out), border-color var(--vq-dur-1) var(--vq-ease-out), box-shadow var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-cell:hover:not(:disabled) { background: var(--vq-surface); border-color: var(--vq-line); }
+.vqdoc-cell:focus { background: var(--vq-surface); border-color: var(--vq-accent); box-shadow: var(--vq-ring-focus); }
+.vqdoc-cell:disabled { opacity: .55; cursor: not-allowed; }
+.vqdoc-cell.c { text-align: center; }
+.vqdoc-cell.free { background: var(--vq-success-bg); color: var(--vq-success); }
+.vqdoc-cell.disc { background: var(--vq-warning-bg); color: var(--vq-warning); }
+.vqdoc-cell.total {
+    background: var(--vq-accent-quiet);
+    color: var(--vq-accent-text);
+    font-weight: var(--vq-fw-bold);
+    box-shadow: inset 0 0 0 1px var(--vq-accent-quiet-line);
+}
+.vqdoc-cell.w-qty { width: var(--d-w-qty); }
+.vqdoc-cell.w-num { width: var(--d-w-num); }
+.vqdoc-cell.w-amt { width: var(--d-w-amt); }
+
+.vqdoc-flip {
+    width: var(--d-h-sm); height: var(--d-h-sm);
+    flex: 0 0 auto;
+    border-radius: var(--vq-r-md);
+    border: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+    color: var(--vq-text-2);
+    font-family: var(--vq-font-numeric);
+    font-size: var(--d-t-micro);
+    font-weight: var(--vq-fw-bold);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background var(--vq-dur-1) var(--vq-ease-out), color var(--vq-dur-1) var(--vq-ease-out), border-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-flip:hover { background: var(--vq-surface-2); }
+.vqdoc-flip[data-on='true'] { background: var(--vq-accent-quiet); border-color: var(--vq-accent-quiet-line); color: var(--vq-accent-text); }
+.vqdoc-flip:disabled { opacity: .4; cursor: not-allowed; }
+
+.vqdoc-pair { display: flex; align-items: center; gap: var(--d-s1); justify-content: flex-end; }
+
+/* The stock figure hangs UNDER the quantity box without being part of the
+   row's height. In flow it made a row with a product taller than a row without
+   one, so the boxes stopped lining up the moment the first item was chosen —
+   the cell reserves the space, the figure sits in it, and every row is the
+   same height whether it carries one or not. */
+.vqdoc-lines td { position: relative; }
+.vqdoc-stock {
+    position: absolute;
+    left: var(--d-s2); right: var(--d-s2);
+    top: 50%;
+    margin-top: calc((var(--d-h) / 2) + (1px * var(--d-scale)));
+    text-align: center;
+    font-family: var(--vq-font-numeric);
+    font-size: var(--d-t-micro);
+    color: var(--vq-text-3);
+    white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.1;
+    pointer-events: none;
+}
+.vqdoc-stock[data-low='true'] { color: var(--vq-danger); font-weight: var(--vq-fw-semi); }
+
+/* The reserved space, on every row rather than only the ones with a figure. */
+.vqdoc-lines tbody td { padding-bottom: calc(var(--d-s1) + var(--d-t-micro)); }
+
+/* In the card layout there is no row to keep square, so it goes back in flow. */
+.vqdoc-card .vqdoc-stock, .vqdoc-adjust .vqdoc-stock {
+    position: static; margin-top: calc(2px * var(--d-scale)); text-align: left;
+}
+
+.vqdoc-addline {
+    display: flex; align-items: center; justify-content: center; gap: var(--d-s2);
+    min-height: var(--d-h-lg);
+    width: 100%;
+    margin-top: auto;
+    border: 0;
+    border-top: 1px solid var(--vq-line-soft);
+    border-radius: 0 0 calc(var(--d-r) - 1px) calc(var(--d-r) - 1px);
+    background: transparent;
+    color: var(--vq-accent-text);
+    font-family: inherit;
+    font-weight: var(--vq-fw-semi);
+    font-size: var(--d-t-sm);
+    cursor: pointer;
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-addline:hover { background: var(--vq-accent-quiet); }
+
+/* ── line cards ────────────────────────────────────────────────────────── */
+.vqdoc-card {
+    border-bottom: 1px solid var(--vq-line-soft);
+    padding: var(--d-s3) var(--d-s5);
+    display: flex; flex-direction: column; gap: var(--d-s2);
+    cursor: pointer;
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-card:hover { background: var(--vq-surface-2); }
+.vqdoc-card.open { background: var(--vq-accent-quiet); box-shadow: inset 3px 0 0 var(--vq-accent); }
+.vqdoc-card .top { display: flex; align-items: center; gap: var(--d-s2); }
+.vqdoc-card .nm { flex: 1; min-width: 0; font-weight: var(--vq-fw-semi); font-size: var(--d-t-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vqdoc-card .amt { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; font-weight: var(--vq-fw-bold); }
+.vqdoc-card .mini-row { display: flex; gap: var(--d-s4); flex-wrap: wrap; }
+.vqdoc-mini { display: flex; align-items: baseline; gap: var(--d-s1); }
+.vqdoc-mini .k { font-size: var(--d-t-micro); letter-spacing: .07em; text-transform: uppercase; color: var(--vq-text-3); font-weight: var(--vq-fw-semi); }
+.vqdoc-mini .v { font-family: var(--vq-font-numeric); font-size: var(--d-t-2xs); font-weight: var(--vq-fw-semi); }
+
+.vqdoc-adjust {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(126px * var(--d-scale)), 1fr));
+    gap: var(--d-s3);
+    padding: var(--d-s5);
+    background: var(--vq-accent-quiet);
+    border-bottom: 1px solid var(--vq-accent-quiet-line);
+}
+.vqdoc-adjust .f { display: flex; flex-direction: column; gap: var(--d-s2); min-width: 0; }
+
+.vqdoc-stepper {
+    display: flex; align-items: center;
+    height: var(--d-h);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    background: var(--vq-surface);
+    overflow: hidden;
+}
+.vqdoc-stepper button {
+    width: var(--d-h); height: 100%; border: 0; background: none;
+    color: var(--vq-accent-text); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-stepper button:hover { background: var(--vq-accent-quiet); }
+.vqdoc-stepper input {
+    flex: 1; min-width: 0; width: 100%; border: 0; background: none; outline: none;
+    text-align: center; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+    font-weight: var(--vq-fw-bold); font-size: var(--d-t-sm); color: var(--vq-text);
+}
+
+/* ==========================================================================
+   5. THE TOTALS
+   ========================================================================== */
+.vqdoc-sum { padding: var(--d-s3) 0 var(--d-s4); display: flex; flex-direction: column; gap: var(--d-s1); }
+.vqdoc-sum-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--d-s3);
+    min-height: var(--d-h);
+    padding: 0 var(--d-s5);
+    font-size: var(--d-t-sm);
+}
+.vqdoc-sum-row .k { color: var(--vq-text-2); min-width: 0; display: flex; align-items: center; gap: var(--d-s2); }
+.vqdoc-sum-row .v {
+    font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+    font-weight: var(--vq-fw-semi); text-align: right; white-space: nowrap;
+    display: flex; align-items: center; gap: var(--d-s2); justify-content: flex-end;
+}
+.vqdoc-sum-row.neg .v { color: var(--vq-danger); }
+.vqdoc-sum-row.pos .v { color: var(--vq-success); }
+.vqdoc-sum-row.edit { min-height: var(--d-h-lg); }
+.vqdoc-sum-row.edit .vqdoc-cell { width: var(--d-w-num); }
+/* A tax row that is charging several different rates says so under its own
+   label rather than implying the rate in the dropdown applies to everything. */
+.vqdoc-sum-row .k { flex-wrap: wrap; }
+.vqdoc-sum-row .k .sub {
+    flex-basis: 100%;
+    font-size: var(--d-t-2xs);
+    color: var(--vq-text-3);
+    line-height: 1.2;
+}
+
+/* ── THE DROPDOWN ────────────────────────────────────────────────────────
+   A native <select> hands its list to the operating system, which draws a
+   grey box with a blue bar in it and ignores every token in this file. The
+   trigger below is a button and the list is ours — see Sales/VqSelect.jsx. */
+.vqdoc-select {
+    height: var(--d-h);
+    width: 100%;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--d-s2);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    padding: 0 var(--d-s2) 0 var(--d-s3);
+    background: var(--vq-surface);
+    color: var(--vq-text);
+    font-family: inherit;
+    font-size: var(--d-t-sm);
+    font-weight: var(--vq-fw-medium);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+                box-shadow var(--vq-dur-1) var(--vq-ease-out),
+                background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-select:hover:not(:disabled) { border-color: var(--vq-line-strong); background: var(--vq-surface-2); }
+.vqdoc-select:focus-visible,
+.vqdoc-select[aria-expanded='true'] { border-color: var(--vq-accent); box-shadow: var(--vq-ring-focus); outline: none; }
+.vqdoc-select:disabled { background: var(--vq-sunken); color: var(--vq-text-3); cursor: not-allowed; }
+.vqdoc-select .val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vqdoc-select .ph { color: var(--vq-text-3); }
+.vqdoc-select .chev { flex: 0 0 auto; color: var(--vq-text-3); transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.vqdoc-select[aria-expanded='true'] .chev { transform: rotate(180deg); color: var(--vq-accent-text); }
+.vqdoc-select.sm { height: var(--d-h-sm); font-size: var(--d-t-2xs); }
+
+.vqdoc-menu {
+    --d-scale: 1;
+    position: fixed;
+    z-index: 700;
+    overflow-y: auto;
+    padding: calc(5px * var(--d-scale));
+    background: var(--vq-raised);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    box-shadow: var(--vq-elev-3);
+    font-family: var(--vq-font-sans);
+    animation: vqdoc-menu-in 140ms cubic-bezier(.22, 1, .36, 1) both;
+    scrollbar-width: thin;
+}
+@keyframes vqdoc-menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.vqdoc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: calc(10px * var(--d-scale));
+    min-height: calc(40px * var(--d-scale));
+    padding: 0 calc(11px * var(--d-scale));
+    border-radius: 10px;
+    font-size: calc(14.5px * var(--d-scale));
+    color: var(--vq-text);
+    cursor: pointer;
+    user-select: none;
+}
+.vqdoc-menu-item .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; padding: calc(6px * var(--d-scale)) 0; }
+.vqdoc-menu-item .lbl .hint { display: block; font-size: calc(11px * var(--d-scale)); color: var(--vq-text-3); }
+.vqdoc-menu-item .tick { flex: 0 0 auto; color: var(--vq-accent-text); }
+.vqdoc-menu-item[data-active='true'] { background: var(--vq-accent-quiet); color: var(--vq-accent-text); }
+.vqdoc-menu-item[data-chosen='true'] { font-weight: var(--vq-fw-bold); }
+.vqdoc-menu-item[aria-disabled='true'] { opacity: .45; cursor: not-allowed; }
+.vqdoc-menu-empty { padding: calc(16px * var(--d-scale)) calc(10px * var(--d-scale)); font-size: calc(13px * var(--d-scale)); color: var(--vq-text-3); text-align: center; }
+
+select.vqdoc-in { width: auto; min-width: calc(140px * var(--d-scale)); height: var(--d-h-sm); font-size: var(--d-t-2xs); }
+.vqdoc-sum-row .lbl-in {
+    height: var(--d-h-sm); width: calc(118px * var(--d-scale));
+    border: 1px dashed var(--vq-line-strong);
+    border-radius: var(--vq-r-md); background: transparent; color: var(--vq-text-2);
+    padding: 0 var(--d-s2); font-family: inherit; font-size: var(--d-t-2xs); outline: none;
+}
+.vqdoc-sum-row .lbl-in:focus { border-style: solid; border-color: var(--vq-accent); }
+.vqdoc-sum-row .cur { color: var(--vq-text-3); font-size: var(--d-t-2xs); }
+
+/* the quick amount actions — Exact fills the total, × clears it */
+.vqdoc-quickamt { display: inline-flex; gap: var(--d-s1); }
+
+.vqdoc-total {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--d-s3);
+    padding: var(--d-s4) var(--d-s5);
+    margin: var(--d-s2) var(--d-s4) 0;
+    border-radius: var(--vq-r-md);
+    background: var(--vq-grad-mint);
+    border: 1px solid transparent;
+    box-shadow: var(--vq-glow-accent);
+}
+.vqdoc-total .k { font-size: var(--d-t-micro); font-weight: var(--vq-fw-bold); letter-spacing: .1em; text-transform: uppercase; color: rgb(255 255 255 / .82); }
+.vqdoc-total .v {
+    font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+    font-size: var(--d-t-total); font-weight: var(--vq-fw-bold);
+    letter-spacing: -.02em; color: #fff; line-height: 1.05;
+}
+
+.vqdoc-callout {
+    margin: var(--d-s2) var(--d-s4) 0;
+    padding: var(--d-s3) var(--d-s5);
+    border-radius: var(--vq-r-md);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--d-s3);
+    font-size: var(--d-t-sm); font-weight: var(--vq-fw-semi);
+    border: 1px solid transparent;
+    min-height: var(--d-h-lg);
+}
+.vqdoc-callout .v { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; font-size: var(--d-t-num); font-weight: var(--vq-fw-bold); }
+.vqdoc-callout[data-tone='due']   { background: var(--vq-danger-bg);  border-color: var(--vq-danger-line);  color: var(--vq-danger); }
+.vqdoc-callout[data-tone='clear'] { background: var(--vq-success-bg); border-color: var(--vq-success-line); color: var(--vq-success); }
+.vqdoc-callout[data-tone='over']  { background: var(--vq-warning-bg); border-color: var(--vq-warning-line); color: var(--vq-warning); }
+
+.vqdoc-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: var(--d-s2);
+    padding: var(--d-s4) var(--d-s5) var(--d-s5);
+    border-top: 1px solid var(--vq-line-soft);
+    align-items: center;
+}
+.vqdoc-actions .vqdoc-btn.pri { height: var(--d-h-lg); }
+
+/* ==========================================================================
+   6. THE DOCK — floats over the document, never reserves an empty row
+   ========================================================================== */
+.vqdoc-dockrow {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: flex-end; align-items: flex-end;
+    padding: 0 var(--d-margin) var(--d-margin);
+    pointer-events: none;
+    z-index: var(--vq-z-sticky);
+}
+.vqdoc-dock {
+    display: flex; align-items: center; gap: var(--d-s4);
+    padding: 0 var(--d-s3) 0 var(--d-s5);
+    height: var(--d-dock-h);
+    max-width: 100%; min-width: 0;
+    background:
+        radial-gradient(120% 180% at 0% 0%, rgb(11 170 143 / .28), transparent 62%),
+        var(--vq-ink-950);
+    color: var(--vq-ink-0);
+    border-radius: var(--d-r);
+    box-shadow: var(--vq-elev-3);
+    opacity: 0; transform: translateY(var(--d-s3));
+    pointer-events: none;
+    transition: opacity var(--vq-dur-2) var(--vq-ease-out), transform var(--vq-dur-3) var(--vq-ease-spring-soft);
+}
+.vqdoc-dock.on { opacity: 1; transform: none; pointer-events: auto; }
+.vqdoc-dock .k { font-size: var(--d-t-micro); font-weight: var(--vq-fw-bold); letter-spacing: .11em; text-transform: uppercase; color: var(--vq-teal-300); }
+.vqdoc-dock .v { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; font-weight: var(--vq-fw-bold); font-size: var(--d-t-num); line-height: 1.2; white-space: nowrap; }
+.vqdoc-dock .bal { font-family: var(--vq-font-numeric); font-size: var(--d-t-micro); color: var(--vq-ink-300); white-space: nowrap; }
+.vqdoc-dock .vqdoc-btn { background: var(--vq-accent); border-color: var(--vq-accent); color: var(--vq-ink-950); font-weight: var(--vq-fw-bold); }
+.vqdoc-dock .vqdoc-btn:hover { background: var(--vq-teal-400); border-color: var(--vq-teal-400); }
+.vqdoc-dock .vqdoc-icon { background: transparent; border-color: rgb(255 255 255 / .18); color: var(--vq-ink-0); }
+.vqdoc-dock .vqdoc-icon:hover { background: rgb(255 255 255 / .1); border-color: rgb(255 255 255 / .3); }
+
+@container doc (max-width: 620px) {
+    .vqdoc-dockrow { padding: 0 var(--d-s3) var(--d-s3); }
+    .vqdoc-dock { width: 100%; gap: var(--d-s3); padding: 0 var(--d-s2) 0 var(--d-s4); }
+    .vqdoc-dock > div:nth-of-type(2) { display: none; }
+    .vqdoc-dock > .vqdoc-btn { margin-left: auto; }
+}
+
+/* The held-margin peek. Its own element so nothing about the screen's
+   containment can reach it. */
+.vqdoc-peek {
+    position: fixed;
+    left: 50%;
+    bottom: var(--d-s6);
+    transform: translateX(-50%);
+    z-index: 900;
+    pointer-events: none;
+    animation: vqdoc-rise 160ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+/* ==========================================================================
+   7. NOTICES, EMPTY STATES
+   ========================================================================== */
+.vqdoc-note {
+    display: flex; align-items: center; gap: var(--d-s3); flex-wrap: wrap;
+    padding: var(--d-s3) var(--d-s4);
+    border-radius: var(--d-r);
+    font-size: var(--d-t-2xs);
+    border: 1px solid var(--vq-accent-quiet-line);
+    background: var(--vq-accent-quiet);
+    color: var(--vq-text-2);
+}
+.vqdoc-note[data-tone='warn']   { border-color: var(--vq-warning-line); background: var(--vq-warning-bg); color: var(--vq-warning); }
+.vqdoc-note[data-tone='danger'] { border-color: var(--vq-danger-line);  background: var(--vq-danger-bg);  color: var(--vq-danger); }
+.vqdoc-note .eyebrow { font-size: var(--d-t-micro); font-weight: var(--vq-fw-bold); letter-spacing: .11em; text-transform: uppercase; color: var(--vq-accent-text); }
+
+.vqdoc-empty { padding: var(--d-s6) var(--d-s4); text-align: center; color: var(--vq-text-3); }
+.vqdoc-empty .ico {
+    width: calc(52px * var(--d-scale)); height: calc(52px * var(--d-scale));
+    margin: 0 auto var(--d-s3);
+    border-radius: var(--vq-r-md);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--vq-sunken); color: var(--vq-text-3);
+}
+.vqdoc-empty p { margin: 0; font-size: var(--d-t-sm); font-weight: var(--vq-fw-semi); color: var(--vq-text-2); }
+.vqdoc-empty small { display: block; margin-top: var(--d-s1); font-size: var(--d-t-2xs); }
+
+/* ==========================================================================
+   8. MODALS
+   ========================================================================== */
+.vqdoc-scrim {
+    position: fixed; inset: 0;
+    background: var(--vq-scrim);
+    backdrop-filter: blur(3px);
+    z-index: var(--vq-z-modal);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--d-s4);
+    animation: vqdoc-fade var(--vq-dur-2) var(--vq-ease-out) both;
+}
+.vqdoc-modal {
+    background: var(--vq-raised);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--d-r);
+    box-shadow: var(--vq-elev-3);
+    width: min(560px, 100%);
+    max-height: 92vh;
+    display: flex; flex-direction: column; overflow: hidden;
+    animation: vqdoc-rise var(--vq-dur-3) var(--vq-ease-spring-soft) both;
+}
+.vqdoc-modal.wide { width: min(1080px, 100%); }
+.vqdoc-modal.md { width: min(760px, 100%); }
+.vqdoc-modal > header {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: var(--d-s3);
+    padding: var(--d-s4) var(--d-s5);
+    border-bottom: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+}
+.vqdoc-modal > header .ico {
+    width: var(--d-h); height: var(--d-h); flex: 0 0 auto; border-radius: var(--vq-r-md);
+    background: var(--vq-accent-quiet); color: var(--vq-accent-text);
+    display: flex; align-items: center; justify-content: center;
+}
+.vqdoc-modal > header .t { min-width: 0; flex: 1; }
+.vqdoc-modal > header .t h3 { margin: 0; font-family: var(--vq-font-display); font-size: var(--d-t-lg); font-weight: var(--vq-fw-semi); letter-spacing: var(--vq-ls-h3); }
+.vqdoc-modal > header .t p { margin: 2px 0 0; font-size: var(--d-t-2xs); color: var(--vq-text-3); max-width: none; }
+.vqdoc-modal > .body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--d-s5); }
+.vqdoc-modal > .body.flush { padding: 0; }
+.vqdoc-modal > footer {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: var(--d-s2);
+    padding: var(--d-s4) var(--d-s5);
+    border-top: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+}
+
+@keyframes vqdoc-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes vqdoc-rise { from { opacity: 0; transform: translateY(12px) scale(.99); } to { opacity: 1; transform: none; } }
+
+.vqdoc-scanfield {
+    height: calc(80px * var(--d-scale)); width: 100%;
+    border: 2px dashed var(--vq-accent-quiet-line);
+    border-radius: var(--vq-r-md);
+    background: var(--vq-accent-quiet);
+    text-align: center;
+    font-family: var(--vq-font-numeric);
+    font-size: calc(22px * var(--d-scale));
+    font-weight: var(--vq-fw-bold);
+    color: var(--vq-text);
+    outline: none;
+    padding: 0 var(--d-s5);
+    transition: border-color var(--vq-dur-1) var(--vq-ease-out), box-shadow var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqdoc-scanfield::placeholder { color: var(--vq-text-3); font-weight: var(--vq-fw-medium); }
+.vqdoc-scanfield:focus { border-color: var(--vq-accent); border-style: solid; box-shadow: var(--vq-ring-focus); }
+
+.vqdoc-list { display: flex; flex-direction: column; }
+.vqdoc-list-row {
+    display: flex; align-items: center; gap: var(--d-s3);
+    padding: var(--d-s3) var(--d-s5);
+    border-bottom: 1px solid var(--vq-line-soft);
+    min-width: 0;
+}
+.vqdoc-list-row:last-child { border-bottom: 0; }
+.vqdoc-list-row .n {
+    width: calc(28px * var(--d-scale)); height: calc(28px * var(--d-scale));
+    flex: 0 0 auto; border-radius: var(--vq-r-md);
+    background: var(--vq-sunken); color: var(--vq-text-3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--vq-font-numeric); font-size: var(--d-t-micro); font-weight: var(--vq-fw-bold);
+}
+.vqdoc-list-row .t { flex: 1; min-width: 0; }
+.vqdoc-list-row .t b { display: block; font-size: var(--d-t-sm); font-weight: var(--vq-fw-semi); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vqdoc-list-row .t span { display: block; font-family: var(--vq-font-numeric); font-size: var(--d-t-micro); color: var(--vq-text-3); }
+.vqdoc-list-row .amt { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; font-weight: var(--vq-fw-bold); font-size: var(--d-t-sm); }
+
+.vqdoc-dtable { width: 100%; border-collapse: collapse; font-size: var(--d-t-2xs); }
+.vqdoc-dtable th {
+    text-align: left; font-size: var(--d-t-micro); letter-spacing: .085em; text-transform: uppercase;
+    color: var(--vq-text-3); font-weight: var(--vq-fw-bold);
+    padding: 0 var(--d-s3); height: calc(38px * var(--d-scale)); border-bottom: 1px solid var(--vq-line);
+    position: sticky; top: 0; background: var(--vq-raised); white-space: nowrap;
+}
+.vqdoc-dtable td { padding: 0 var(--d-s3); height: var(--d-h-lg); border-bottom: 1px solid var(--vq-line-soft); }
+.vqdoc-dtable td.n, .vqdoc-dtable th.n { text-align: right; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; }
+.vqdoc-dtable tbody tr:hover { background: var(--vq-surface-2); }
+
+.vqdoc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(150px * var(--d-scale)), 1fr)); gap: var(--d-s3); }
+.vqdoc-stat { padding: var(--d-s3) var(--d-s4); border-radius: var(--vq-r-md); border: 1px solid var(--vq-line); background: var(--vq-surface); }
+.vqdoc-stat .k { font-size: var(--d-t-micro); font-weight: var(--vq-fw-bold); letter-spacing: .09em; text-transform: uppercase; color: var(--vq-text-3); }
+.vqdoc-stat .v { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; font-size: var(--d-t-num); font-weight: var(--vq-fw-bold); margin-top: 3px; }
+.vqdoc-stat[data-tone='accent'] { background: var(--vq-accent-quiet); border-color: var(--vq-accent-quiet-line); }
+.vqdoc-stat[data-tone='accent'] .v { color: var(--vq-accent-text); }
+.vqdoc-stat[data-tone='danger'] .v { color: var(--vq-danger); }
+
+.vqdoc-opt {
+    display: flex; align-items: center; gap: var(--d-s4);
+    padding: var(--d-s3) var(--d-s4);
+    border-radius: var(--vq-r-md);
+    background: var(--vq-surface);
+    border: 1px solid var(--vq-line);
+    min-width: 0;
+}
+.vqdoc-opt.stack { display: block; }
+.vqdoc-opt.stack .t { margin-bottom: var(--d-s3); }
+.vqdoc-opt + .vqdoc-opt { margin-top: var(--d-s2); }
+.vqdoc-opt .t { flex: 1; min-width: 0; }
+.vqdoc-opt .t b { display: block; font-size: var(--d-t-sm); font-weight: var(--vq-fw-semi); }
+.vqdoc-opt .t span { display: block; font-size: var(--d-t-2xs); color: var(--vq-text-3); margin-top: 2px; line-height: 1.45; }
+
+.vqdoc-group { display: flex; flex-direction: column; gap: var(--d-s2); }
+.vqdoc-group > h4 {
+    margin: 0 0 2px;
+    font-size: var(--d-t-micro); font-weight: var(--vq-fw-bold);
+    letter-spacing: .1em; text-transform: uppercase; color: var(--vq-text-3);
+    font-family: var(--vq-font-sans);
+}
+.vqdoc-group > p { margin: 0 0 var(--d-s2); font-size: var(--d-t-2xs); color: var(--vq-text-3); max-width: 62ch; line-height: 1.55; }
+
+.vqdoc-layouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--d-s3); }
+.vqdoc-layout {
+    border: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+    border-radius: var(--vq-r-md);
+    padding: var(--d-s3);
+    cursor: pointer;
+    text-align: left;
+    display: flex; flex-direction: column; gap: var(--d-s2);
+    min-width: 0;
+    transition: border-color var(--vq-dur-1) var(--vq-ease-out), background var(--vq-dur-1) var(--vq-ease-out), box-shadow var(--vq-dur-2) var(--vq-ease-out);
+}
+.vqdoc-layout:hover { border-color: var(--vq-line-strong); background: var(--vq-surface-2); }
+.vqdoc-layout[aria-pressed='true'] { border-color: var(--vq-accent); background: var(--vq-accent-quiet); box-shadow: 0 0 0 1px var(--vq-accent); }
+.vqdoc-layout .art { aspect-ratio: 16 / 10; border-radius: 8px; background: var(--vq-bg); border: 1px solid var(--vq-line); position: relative; overflow: hidden; }
+.vqdoc-layout .art i { position: absolute; border-radius: 2px; display: block; }
+.vqdoc-layout .art .bar   { left: 0; right: 0; top: 0; height: 12%; background: var(--vq-surface-2); border-bottom: 1px solid var(--vq-line); border-radius: 0; }
+.vqdoc-layout .art .det   { left: 8%; right: 8%; top: 20%; background: var(--vq-line-soft); }
+.vqdoc-layout .art .lines { left: 8%; top: 20%; bottom: 12%; background: var(--vq-surface); border: 1px solid var(--vq-line); }
+.vqdoc-layout .art .sum   { top: 20%; background: var(--vq-accent-quiet); border: 1px solid var(--vq-accent-quiet-line); }
+.vqdoc-layout .art .dock  { right: 8%; bottom: 4%; height: 9%; width: 34%; background: var(--vq-ink-950); }
+.vqdoc-layout .nm { font-size: var(--d-t-sm); font-weight: var(--vq-fw-bold); display: flex; align-items: center; gap: var(--d-s1); }
+.vqdoc-layout .ds { font-size: var(--d-t-micro); color: var(--vq-text-3); line-height: 1.45; }
+
+.vqdoc-device { background: var(--vq-ink-950); border-radius: 12px; padding: 8px; box-shadow: var(--vq-elev-2); flex: 0 0 auto; }
+.vqdoc-device .screen { background: var(--vq-bg); border-radius: 6px; overflow: hidden; position: relative; }
+.vqdoc-device .screen i { position: absolute; display: block; border-radius: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .vqdoc *, .vqdoc *::before, .vqdoc *::after,
+    .vqdoc-scope *, .vqdoc-scrim, .vqdoc-modal, .vqdoc-peek, .vqdoc-menu {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+}

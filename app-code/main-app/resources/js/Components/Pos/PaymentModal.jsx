@@ -3,7 +3,17 @@ import { X, CreditCard, Banknote, Smartphone, Plus, Trash2, Printer, CheckCircle
 import { formatCurrency } from '@/Utils/format';
 import { usePage } from '@inertiajs/react';
 
-const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PKR', bankAccounts = [], customer = null, defaultPrintReceipt = true }) => {
+const PaymentModal = ({
+    isOpen, onClose, totalAmount, onComplete, currency = 'PKR', bankAccounts = [],
+    customer = null, defaultPrintReceipt = true,
+    /* A table splitting one bill between several people is not a different
+       kind of sale -- it is this panel, which has always taken more than one
+       tender. `seedSplit` only fills the amounts in, so "four ways" stops
+       being arithmetic the waiter does on a napkin.
+         { ways: n }    n equal rows
+         { amount: x }  one row for x, the rest left to settle */
+    seedSplit = null,
+}) => {
     if (!isOpen) return null;
 
     const [payments, setPayments] = useState([
@@ -27,22 +37,37 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
-            setPayments([
-                { 
-                    method: 'cash', 
-                    amount: '', 
-                    account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
-                },
-                { 
-                    method: 'bank', 
-                    amount: '', 
-                    account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
-                }
-            ]);
+            const acct = (bankAccounts.length > 0) ? bankAccounts[0].id : null;
+            const blank = [
+                { method: 'cash', amount: '', account_id: acct },
+                { method: 'bank', amount: '', account_id: acct },
+            ];
+
+            if (seedSplit && seedSplit.ways > 1) {
+                /* Equal shares that still add up. Dividing by n and rounding
+                   every row leaves the last person paying a cent too much or
+                   the till a cent short, so the remainder goes on the first
+                   row rather than being scattered. */
+                const n = Math.min(8, Math.max(2, Math.round(seedSplit.ways)));
+                const each = Math.floor((totalAmount / n) * 100) / 100;
+                const rows = Array.from({ length: n }, () => ({ method: 'cash', amount: each.toFixed(2), account_id: acct }));
+                const drift = Math.round((totalAmount - each * n) * 100) / 100;
+                if (drift) rows[0].amount = (each + drift).toFixed(2);
+                setPayments(rows);
+            } else if (seedSplit && seedSplit.amount > 0) {
+                const first = Math.min(Number(seedSplit.amount), totalAmount);
+                setPayments([
+                    { method: 'cash', amount: first.toFixed(2), account_id: acct },
+                    { method: 'card', amount: Math.max(0, totalAmount - first).toFixed(2), account_id: acct },
+                ]);
+            } else {
+                setPayments(blank);
+            }
+
             setNotes('');
             setPrintReceipt(defaultPrintReceipt);
         }
-    }, [isOpen, totalAmount, defaultPrintReceipt]);
+    }, [isOpen, totalAmount, defaultPrintReceipt, seedSplit]);
 
     const paymentMethods = [
         { id: 'cash', name: 'Cash', icon: Banknote, color: 'bg-emerald-500' },

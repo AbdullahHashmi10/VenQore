@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { usePage } from '@inertiajs/react';
 import {
     Search, Plus, Check, Edit2, Package, User, Loader2, ArrowUp, ArrowDown,
@@ -28,6 +29,13 @@ const SmartCombobox = ({
     onKeyDown,
     loading = false,
     showTypeIcon = true,
+    /* Opt-in. When true the results list is rendered into <body> at fixed
+       coordinates instead of absolutely inside the field's own box. A list
+       positioned inside its field is clipped by the first ancestor that
+       scrolls or hides its overflow — which is exactly what happens on a
+       document screen where the item rows scroll in their own container.
+       Off by default so no existing screen changes. */
+    portal = false,
     showDetailedView = true, // Show enhanced details
     disableLocalFiltering = false,
     hideCostAndMargin = false,
@@ -48,6 +56,8 @@ const SmartCombobox = ({
 
     const [debouncedQuery] = useDebounce(query, 300);
     const wrapperRef = useRef(null);
+    const popRef = useRef(null);
+    const [anchor, setAnchor] = useState(null);
     const inputRef = useRef(null);
     const listRef = useRef(null);
 
@@ -59,7 +69,8 @@ const SmartCombobox = ({
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+            const inPop = popRef.current && popRef.current.contains(event.target);
+            if (!inPop && wrapperRef.current && !wrapperRef.current.contains(event.target)) {
                 setIsOpen(false);
                 setHighlightedIndex(-1);
                 if (selectedItem) {
@@ -88,6 +99,23 @@ const SmartCombobox = ({
     useEffect(() => {
         setHighlightedIndex(-1);
     }, [items]);
+
+    /* Where to put a portalled list. Re-measured on open and while anything
+       scrolls, because the field it belongs to may itself be in a scroller. */
+    useEffect(() => {
+        if (!portal || !isOpen) return undefined;
+        const measure = () => {
+            const el = inputRef.current;
+            if (el) setAnchor(el.getBoundingClientRect());
+        };
+        measure();
+        window.addEventListener('scroll', measure, true);
+        window.addEventListener('resize', measure);
+        return () => {
+            window.removeEventListener('scroll', measure, true);
+            window.removeEventListener('resize', measure);
+        };
+    }, [portal, isOpen]);
 
     useEffect(() => {
         if (highlightedIndex >= 0 && listRef.current) {
@@ -378,6 +406,12 @@ const SmartCombobox = ({
         return <Package size={18} className="text-ink-muted" />;
     };
 
+    /* A portalled list escapes every clipping ancestor; an inline one keeps
+       the old behaviour exactly. */
+    const renderList = (node) => (portal && typeof document !== 'undefined'
+        ? createPortal(node, document.body)
+        : node);
+
     // Check if item is a party (customer/supplier)
     const isParty = (item) => item.type === 'customer' || item.type === 'supplier' || item.phone;
 
@@ -435,8 +469,23 @@ const SmartCombobox = ({
             )}
 
             {/* Dropdown */}
-            {isOpen && (
-                <div className={`absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-surface border border-line rounded-2xl shadow-2xl z-drawer animate-in fade-in zoom-in-95 duration-fast`}>
+            {isOpen && renderList(
+                <div
+                    ref={popRef}
+                    className={portal
+                        ? 'fixed bg-surface border border-line rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-fast'
+                        : `absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-surface border border-line rounded-2xl shadow-2xl z-drawer animate-in fade-in zoom-in-95 duration-fast`}
+                    style={portal && anchor ? {
+                        left: anchor.left + anchor.width / 2,
+                        transform: 'translateX(-50%)',
+                        minWidth: anchor.width,
+                        maxWidth: Math.max(anchor.width, 350),
+                        zIndex: 700,
+                        ...(openUpwards
+                            ? { bottom: Math.max(8, window.innerHeight - anchor.top + 4) }
+                            : { top: anchor.bottom + 4 }),
+                    } : undefined}
+                >
 
                     {/* Results Count Header */}
                     {filteredItems.length > 0 && (
@@ -649,7 +698,7 @@ const SmartCombobox = ({
                             </button>
                         </div>
                     )}
-                </div>
+                </div>,
             )}
         </div>
     );

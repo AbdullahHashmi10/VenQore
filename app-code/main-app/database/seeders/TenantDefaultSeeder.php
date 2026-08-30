@@ -204,6 +204,9 @@ class TenantDefaultSeeder
             ['code' => '2000', 'name' => 'Accounts Payable',         'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '2050', 'name' => 'Customer Credit Balances', 'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '2100', 'name' => 'Sales Tax Payable',        'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
+            // Tips are collected FOR the staff, so they are owed on from the moment
+            // they are taken. Never income — see SaleController::postSaleJournal().
+            ['code' => '2150', 'name' => 'Tips Payable',             'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '2200', 'name' => 'Loans Payable',            'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '2300', 'name' => 'Input Tax Recoverable',    'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
 

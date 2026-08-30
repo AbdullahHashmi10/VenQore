@@ -453,7 +453,7 @@ export const LAW = {
     "comp": {
      "catalog": {
       "mode": "top",
-      "size": 0.4,
+      "size": 0.0,
       "rows": 1,
       "tiles": null
      },

@@ -45,6 +45,58 @@ class PosController extends Controller
             }
         }
 
+        /* ── SETTLING A TABLE ─────────────────────────────────────────────
+           Table Service does not own money. When a waiter settles, that screen
+           saves the table's order and sends the operator here with the
+           occupancy id, so the tender panel, the journal posting and the
+           offline queue stay in one place for the whole product. The register
+           loads the cart, takes the payment, and closes the occupancy on
+           success. Copy-pasting a second tender flow into the floor screen is
+           the mistake CLAUDE.md records against the purchase island. */
+        $occupancy = null;
+        if ($request->filled('occupancy')) {
+            $occ = \App\Models\Occupancy::with('position')
+                ->where('tenant_id', app('current.tenant')->id)
+                ->whereNull('closed_at')
+                ->find($request->occupancy);
+
+            if ($occ) {
+                $session = $occ->session_data ?? [];
+
+                /* UNPAID LINES ONLY.
+                   Once a bill can be split, the table's cart contains rows that
+                   have already been paid for and carry the sale that paid them.
+                   Handing the whole cart to the register would put a settled
+                   plate of food back in the tender panel and charge for it a
+                   second time. `price` is the line's EFFECTIVE unit price —
+                   base plus its modifiers — which TableServiceController stamps
+                   on as `unit_price` when the order is saved, so the register
+                   and the floor can never disagree about what a line costs. */
+                $lines = array_values(array_filter($session['cart'] ?? [], fn ($l) => empty($l['paid_sale_id'])));
+                $lines = array_map(function ($l) {
+                    $l['base_price'] = (float) ($l['price'] ?? 0);
+                    $l['price']      = (float) ($l['unit_price'] ?? $l['price'] ?? 0);
+                    $l['mods']       = array_values($l['mods'] ?? []);
+                    return $l;
+                }, $lines);
+
+                $occupancy = [
+                    'id'         => $occ->id,
+                    'label'      => $occ->label ?: $occ->position?->label,
+                    'party_id'   => $occ->party_id,
+                    'order_type' => $session['order_type'] ?? 'dine_in',
+                    'covers'     => (int) ($session['covers'] ?? 0),
+                    'note'       => $session['note'] ?? '',
+                    'cart'       => $lines,
+                    /* The part currently at the till, if the waiter sent one.
+                       For mode = covers or amount there are no lines to load —
+                       the register charges pending_settle.amount and posts the
+                       part_id back to tables.settled. */
+                    'pending_settle' => $session['pending_settle'] ?? null,
+                ];
+            }
+        }
+
         // Bank accounts: small, stable, filter out cash accounts
         $bankAccounts = \App\Models\BankAccount::where(function ($query) {
                 $query->whereNull('account_type')
@@ -59,6 +111,7 @@ class PosController extends Controller
         return Inertia::render('Pos', [
             // ⬇ No more products prop — React fetches on mount
             'recalledSale' => $recalledSale,
+            'occupancy'    => $occupancy,
             'bankAccounts' => $bankAccounts,
             'warehouses'   => \App\Models\Warehouse::all(['id', 'name', 'is_default']),
             'ecommerceChannels' => \App\Models\EcommerceChannel::where('tenant_id', app('current.tenant')->id)->get(['id', 'name', 'platform', 'default_fulfillment_type']),

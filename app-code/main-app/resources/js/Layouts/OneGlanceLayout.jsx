@@ -58,7 +58,8 @@ import {
     Plus,
     Factory,
     Mail,
-    Palette
+    Palette,
+    Armchair
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -86,6 +87,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
     const { url, props } = usePage();
     const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo } = props;
+
+    /* Counter, table service, or both. Decides whether a Tables entry exists at
+       all: a counter-only shop seeing a control it can never use is the kind of
+       noise that makes people stop reading a menu. */
+    const serviceMode = settings?.service_mode || 'counter';
 
     // Global Toast State
     const [toasts, setToasts] = useState([]);
@@ -340,6 +346,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                 return [
                     { label: 'Business Dashboard', href: 'store.dashboard', icon: <LayoutDashboard size={14} /> },
                     { label: 'Point of Sale (POS)', href: 'store.pos', icon: <Monitor size={14} /> },
+                    /* Table service is a separate screen, and it only appears for a
+                       business that runs one. A counter-only shop seeing a Tables
+                       entry it can never use is the kind of noise that makes people
+                       stop reading a menu. */
+                    ...(['tables', 'both'].includes(serviceMode)
+                        ? [{ label: 'Tables', href: 'store.tables.index', icon: <Armchair size={14} /> }]
+                        : []),
                     { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
                     { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
                     { label: 'New Expense', action: 'expense-modal', icon: <CreditCard size={14} /> },
@@ -833,12 +846,42 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
     // REMOVED LOCAL THEME EFFECT - Handled by ThemeContext
 
+    // Bumped by the 'vq:pos-senior-mode-changed' listener below so the font-size
+    // effect re-runs the instant the POS screen's own toggle fires, rather than
+    // waiting for isLargeText/settings to change (they won't -- see that effect).
+    const [posSeniorModeTick, setPosSeniorModeTick] = useState(0);
+    useEffect(() => {
+        const handlePosSeniorModeChanged = () => setPosSeniorModeTick((t) => t + 1);
+        window.addEventListener('vq:pos-senior-mode-changed', handlePosSeniorModeChanged);
+        return () => window.removeEventListener('vq:pos-senior-mode-changed', handlePosSeniorModeChanged);
+    }, []);
+
     useEffect(() => {
         // UI Scale logic: senior_mode (20px) > ui_scale setting (%)
+        //
+        // Single writer of documentElement.style.fontSize for the whole app.
+        // The POS screen's "Large text mode" toggle (Pos.jsx) used to write this
+        // same property itself, independently and in a different unit (percent
+        // vs this effect's px) -- whichever effect last re-ran won, so the POS
+        // toggle could silently get reverted by an unrelated re-render here.
+        // Pos.jsx now only persists its choice to sessionStorage under
+        // 'pos_senior_mode'; this is the one place that reads it and applies it,
+        // so a POS-local override still takes effect immediately without racing
+        // a second writer, and without waiting on a DB round-trip.
+        let posSeniorOverride = null;
+        try {
+            const raw = sessionStorage.getItem('pos_senior_mode');
+            if (raw !== null) posSeniorOverride = JSON.parse(raw);
+        } catch (_) { /* ignore malformed/inaccessible storage */ }
+
         let fontSize = '16px';
         let scale = (parseInt(settings?.ui_scale) || 100) / 100;
 
-        if (settings?.senior_mode === '1') {
+        const seniorActive = posSeniorOverride !== null
+            ? posSeniorOverride
+            : settings?.senior_mode === '1';
+
+        if (seniorActive) {
             fontSize = '20px';
         } else if (isLargeText) {
             fontSize = '18px';
@@ -858,7 +901,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             document.body.style.width = '';
             document.body.style.height = '';
         }
-    }, [isLargeText, settings?.senior_mode, settings?.ui_scale]);
+    }, [isLargeText, settings?.senior_mode, settings?.ui_scale, posSeniorModeTick]);
 
     useEffect(() => {
         function handleClickOutside(event) {

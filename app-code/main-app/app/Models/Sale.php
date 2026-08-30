@@ -37,7 +37,15 @@ class Sale extends Model
         'is_dropship'           => 'boolean',
         'financial_reconciled'  => 'boolean',
         'gross_platform_fee'    => 'decimal:4',
+        // Restaurant money. service_charge is the house's (income); tip_amount is
+        // the staff's (a liability the business owes on). Same precision as every
+        // other money column so a bill that ends in .5 never rounds two ways.
+        'service_charge'        => 'decimal:4',
+        'tip_amount'            => 'decimal:4',
     ];
+
+    // NOTE: this model is $guarded = [] — there is no $fillable to extend, so the
+    // two new columns are mass-assignable the moment the migration lands.
 
     protected $appends = ['paid_amount', 'total_amount', 'net_amount'];
 

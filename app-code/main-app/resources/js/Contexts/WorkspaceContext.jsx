@@ -263,7 +263,14 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
                         selling_price: item.product.selling_price,
                         cost: item.product.cost,
                         cost_price: item.product.cost_price,
-                        stock_quantity: item.product.stock_quantity
+                        stock_quantity: item.product.stock_quantity,
+                        /* Without the rate, a product with its own tax silently
+                           fell back to the document's rate on the next reload. */
+                        tax_rate: item.product.tax_rate,
+                        reserved_quantity: item.product.reserved_quantity,
+                        available_stock: item.product.available_stock,
+                        unit: item.product.unit,
+                        base_unit: item.product.base_unit
                     } : null,
                     name: item.name,
                     quantity: item.quantity,
@@ -271,7 +278,14 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
                     cost: item.cost,
                     discount: item.discount,
                     discountType: item.discountType,
-                    variant: item.variant
+                    variant: item.variant,
+                    /* Kept, because dropping them was not free: a bill with free
+                       goods reloaded without them and re-priced at full, and an
+                       edit lost the units the document already owned — which is
+                       exactly what the stock check allows for. */
+                    freeQuantity: item.freeQuantity,
+                    available_stock: item.available_stock,
+                    originalQuantity: item.originalQuantity
                 })) || []
             }));
             sessionStorage.setItem('amd_active_invoices_v2', JSON.stringify(sanitizedInvoices));
@@ -297,7 +311,14 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
                         selling_price: item.product.selling_price,
                         cost: item.product.cost,
                         cost_price: item.product.cost_price,
-                        stock_quantity: item.product.stock_quantity
+                        stock_quantity: item.product.stock_quantity,
+                        /* Without the rate, a product with its own tax silently
+                           fell back to the document's rate on the next reload. */
+                        tax_rate: item.product.tax_rate,
+                        reserved_quantity: item.product.reserved_quantity,
+                        available_stock: item.product.available_stock,
+                        unit: item.product.unit,
+                        base_unit: item.product.base_unit
                     } : null,
                     name: item.name,
                     quantity: item.quantity,
@@ -305,7 +326,14 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
                     cost: item.cost,
                     discount: item.discount,
                     discountType: item.discountType,
-                    variant: item.variant
+                    variant: item.variant,
+                    /* Kept, because dropping them was not free: a bill with free
+                       goods reloaded without them and re-priced at full, and an
+                       edit lost the units the document already owned — which is
+                       exactly what the stock check allows for. */
+                    freeQuantity: item.freeQuantity,
+                    available_stock: item.available_stock,
+                    originalQuantity: item.originalQuantity
                 })) || []
             }));
             sessionStorage.setItem('amd_active_presales_v2', JSON.stringify(sanitized));

@@ -13,7 +13,12 @@ class Expense extends Model
     protected $fillable = [
         'tenant_id', 'category', 'expense_category_id', 'amount', 'tax_amount',
         'date', 'bank_account_id', 'payment_method', 'reference', 'payee',
-        'description', 'notes', 'attachment', 'is_landed_cost', 'purchase_id',
+        'description', 'notes', 'attachment', 'is_landed_cost',
+        /* Without these three the columns above are written to nothing:
+           `$fillable` is a silent filter, not a validation. */
+        'party_id',
+        'amount_paid',
+        'grand_total', 'purchase_id',
         'allocation_method', 'channel',
     ];
 
@@ -35,5 +40,11 @@ class Expense extends Model
     public function purchase()
     {
         return $this->belongsTo(Purchase::class, 'purchase_id');
+    }
+
+    /** The lines of this voucher, where it has more than one. */
+    public function items()
+    {
+        return $this->hasMany(\App\Models\ExpenseItem::class);
     }
 }

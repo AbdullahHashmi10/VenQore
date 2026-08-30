@@ -132,11 +132,34 @@ class ProposalController extends Controller
             'customer_id' => 'nullable|exists:parties,id',
             'customer_name' => 'nullable|string',
             'valid_until' => 'nullable|date',
+            /* The day it was quoted, which is not the day the row was made. */
+            'date' => 'nullable|date',
+            /* Both of these were absent, so editing a quotation could not change
+               its status or its note — the operator typed and nothing happened. */
+            'status' => 'nullable|in:draft,sent,accepted,declined',
+            'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount' => 'nullable|numeric|min:0',
+            /* A quotation is an offer, so it carries the money it is offered
+               at — a discount, tax, carriage — and the terms it stands on.
+               `tax_amount` and `discount_amount` have been columns all along
+               and have never once been written. */
+            'reference'          => 'nullable|string|max:100',
+            'payment_terms'      => 'nullable|string|max:40',
+            /* The screens call this `discount`; the column is `discount_amount`.
+                Both are accepted so neither spelling is silently thrown away. */
+            'discount'           => 'nullable|numeric|min:0',
+            'discount_amount'    => 'nullable|numeric|min:0',
+            'tax_amount'         => 'nullable|numeric|min:0',
+            'tax_rate'           => 'nullable|numeric|min:0|max:100',
+            'delivery_charge'    => 'nullable|numeric|min:0',
+            'extra_charge_value' => 'nullable|numeric|min:0',
+            'extra_charge_label' => 'nullable|string|max:120',
+            'items.*.discount_type' => 'nullable|in:fixed,percent',
+            'items.*.tax_rate'      => 'nullable|numeric|min:0|max:100',
         ]);
 
         DB::transaction(function () use ($validated, $id) {
@@ -145,6 +168,17 @@ class ProposalController extends Controller
                 'customer_id' => $validated['customer_id'],
                 'customer_name' => $validated['customer_name'] ?? Party::find($validated['customer_id'])?->name,
                 'valid_until' => $validated['valid_until'] ?? $proposal->valid_until,
+                'date' => $validated['date'] ?? $proposal->date,
+                'status' => $validated['status'] ?? $proposal->status,
+                'notes' => $validated['notes'] ?? $proposal->notes,
+                'reference' => $validated['reference'] ?? null,
+                'payment_terms' => $validated['payment_terms'] ?? null,
+                'discount_amount' => $validated['discount_amount'] ?? $validated['discount'] ?? 0,
+                'tax_amount' => $validated['tax_amount'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 0,
+                'delivery_charge' => $validated['delivery_charge'] ?? 0,
+                'extra_charge_value' => $validated['extra_charge_value'] ?? 0,
+                'extra_charge_label' => $validated['extra_charge_label'] ?? null,
                 'total_amount' => 0, // Recalculated below
             ]);
 
@@ -156,7 +190,11 @@ class ProposalController extends Controller
 
             foreach ($validated['items'] as $item) {
                 $product = Product::find($item['product_id']);
-                $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0);
+                $gross = $item['unit_price'] * $item['quantity'];
+                /* Already money by the time it gets here — see the note in
+                   SalesOrderController. */
+                $lineDiscount = (float) ($item['discount'] ?? 0);
+                $lineTotal = max(0, $gross - $lineDiscount);
                 $lineCost = $product->cost_price * $item['quantity'];
 
                 $totalAmount += $lineTotal;
@@ -169,19 +207,32 @@ class ProposalController extends Controller
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'unit_cost' => $product->cost_price,
-                    'discount' => $item['discount'] ?? 0,
+                    'discount' => $lineDiscount,
+                    'tax_rate' => $item['tax_rate'] ?? 0,
                     'total' => $lineTotal
                 ]);
             }
 
+            /* What the customer was actually quoted: the goods, less the
+               discount on the whole offer, plus tax and carriage. Saving only
+               the sum of the lines is how a discounted quotation came back at
+               full price. */
+            $net = max(0, $totalAmount - (float) ($validated['discount_amount'] ?? $validated['discount'] ?? 0));
+            $grand = round(
+                $net
+                + (float) ($validated['tax_amount'] ?? 0)
+                + (float) ($validated['delivery_charge'] ?? 0)
+                + (float) ($validated['extra_charge_value'] ?? 0),
+                2
+            );
             $proposal->update([
-                'total_amount' => $totalAmount,
+                'total_amount' => $grand,
                 'estimated_cost' => $totalCost,
-                'expected_margin' => $totalAmount - $totalCost
+                'expected_margin' => $net - $totalCost
             ]);
         });
 
-        return redirect()->route('proposals.index')->with('success', 'Proposal updated.');
+        return redirect()->route('store.proposals.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Proposal updated.');
     }
 
     public function store(Request $request)
@@ -190,6 +241,9 @@ class ProposalController extends Controller
             'customer_id' => 'nullable|exists:parties,id',
             'customer_name' => 'nullable|string',
             'valid_until' => 'nullable|date',
+            /* The day it was quoted, which is not the same as the day the row
+               was created — a quotation is often written up afterwards. */
+            'date' => 'nullable|date',
             'status' => 'required|in:draft,sent,accepted,declined',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
@@ -197,6 +251,23 @@ class ProposalController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount' => 'nullable|numeric|min:0',
+            /* A quotation is an offer, so it carries the money it is offered
+               at — a discount, tax, carriage — and the terms it stands on.
+               `tax_amount` and `discount_amount` have been columns all along
+               and have never once been written. */
+            'reference'          => 'nullable|string|max:100',
+            'payment_terms'      => 'nullable|string|max:40',
+            /* The screens call this `discount`; the column is `discount_amount`.
+                Both are accepted so neither spelling is silently thrown away. */
+            'discount'           => 'nullable|numeric|min:0',
+            'discount_amount'    => 'nullable|numeric|min:0',
+            'tax_amount'         => 'nullable|numeric|min:0',
+            'tax_rate'           => 'nullable|numeric|min:0|max:100',
+            'delivery_charge'    => 'nullable|numeric|min:0',
+            'extra_charge_value' => 'nullable|numeric|min:0',
+            'extra_charge_label' => 'nullable|string|max:120',
+            'items.*.discount_type' => 'nullable|in:fixed,percent',
+            'items.*.tax_rate'      => 'nullable|numeric|min:0|max:100',
         ]);
 
         $proposalId = null;
@@ -207,8 +278,17 @@ class ProposalController extends Controller
                 'customer_id' => $validated['customer_id'],
                 'customer_name' => $validated['customer_name'] ?? Party::find($validated['customer_id'])?->name,
                 'valid_until' => $validated['valid_until'],
+                'date' => $validated['date'] ?? now()->toDateString(),
                 'status' => $validated['status'],
                 'notes' => $validated['notes'] ?? null,
+                'reference' => $validated['reference'] ?? null,
+                'payment_terms' => $validated['payment_terms'] ?? null,
+                'discount_amount' => $validated['discount_amount'] ?? $validated['discount'] ?? 0,
+                'tax_amount' => $validated['tax_amount'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 0,
+                'delivery_charge' => $validated['delivery_charge'] ?? 0,
+                'extra_charge_value' => $validated['extra_charge_value'] ?? 0,
+                'extra_charge_label' => $validated['extra_charge_label'] ?? null,
                 'user_id' => auth()->id(),
                 'total_amount' => 0,
                 'estimated_cost' => 0,
@@ -221,7 +301,11 @@ class ProposalController extends Controller
 
             foreach ($validated['items'] as $item) {
                 $product = Product::find($item['product_id']);
-                $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0);
+                $gross = $item['unit_price'] * $item['quantity'];
+                /* Already money by the time it gets here — see the note in
+                   SalesOrderController. */
+                $lineDiscount = (float) ($item['discount'] ?? 0);
+                $lineTotal = max(0, $gross - $lineDiscount);
                 $lineCost = ($product->cost_price ?? 0) * $item['quantity'];
 
                 $totalAmount += $lineTotal;
@@ -234,15 +318,28 @@ class ProposalController extends Controller
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'unit_cost' => $product->cost_price ?? 0,
-                    'discount' => $item['discount'] ?? 0,
+                    'discount' => $lineDiscount,
+                    'tax_rate' => $item['tax_rate'] ?? 0,
                     'total' => $lineTotal
                 ]);
             }
 
+            /* What the customer was actually quoted: the goods, less the
+               discount on the whole offer, plus tax and carriage. Saving only
+               the sum of the lines is how a discounted quotation came back at
+               full price. */
+            $net = max(0, $totalAmount - (float) ($validated['discount_amount'] ?? $validated['discount'] ?? 0));
+            $grand = round(
+                $net
+                + (float) ($validated['tax_amount'] ?? 0)
+                + (float) ($validated['delivery_charge'] ?? 0)
+                + (float) ($validated['extra_charge_value'] ?? 0),
+                2
+            );
             $proposal->update([
-                'total_amount' => $totalAmount,
+                'total_amount' => $grand,
                 'estimated_cost' => $totalCost,
-                'expected_margin' => $totalAmount - $totalCost
+                'expected_margin' => $net - $totalCost
             ]);
         });
 
@@ -255,7 +352,7 @@ class ProposalController extends Controller
             ]);
         }
 
-        return redirect()->route('proposals.index')->with('success', 'Proposal created successfully.');
+        return redirect()->route('store.proposals.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Proposal created successfully.');
     }
 
     public function show(Proposal $proposal)

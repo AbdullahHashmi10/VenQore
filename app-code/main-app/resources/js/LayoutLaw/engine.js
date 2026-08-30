@@ -272,24 +272,97 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
        The dock is a layout row, so every vertical number depends on how tall it
        is. A demotion discovered late, after the dock height was already taken,
        is exactly how a button ends up overlapping the pane beneath it. */
+    /* THE WATERFALL, as the law states it: "every resident pane reserves its
+       leanest floor, in rank order; panes are upgraded one fit-step at a time;
+       whatever is left is shared by weight, respecting caps."
+
+       Two things were missing here and both are visible on real screens.
+
+       1. THE FLOOR WAS WEIGHTED LIKE A COLUMN. It held a hard-coded 0.2, which
+          on a 1024 iPad works out below its measured 254px minimum -- so the
+          pane the law gives a resident column at that width was demoting
+          itself to a step. The floor is a `hold: residency` pane: presence is
+          the information, so it reserves its leanest fit BEFORE anything is
+          shared out, and only grows once the fixed panes are full.
+
+       2. THE CAPS WERE NEVER APPLIED. The law's central claim is that a wider
+          screen shows MORE, not bigger, and it caps the cart at 805 and the
+          tender at 551 for exactly that reason -- a cart shows the same five
+          columns however wide it is, so past that point the extra width is
+          margin. Without the cap an ultrawide gave the cart 1629px of nothing
+          and the catalog stayed at three tiles across. The surplus goes to the
+          absorbers the law names: the catalog and the floor, which genuinely
+          do show more when given room. */
+    const CAPS = LAW.paneCaps || {};
+    const ABSORB = new Set(LAW.absorbers || ['catalog', 'floor', 'lines']);
+    const FLOOR_MIN = LAW.pos.paneFits.floor[LAW.pos.paneFits.floor.length - 1].floor;
+
     const allocateColumns = (wantCat, wantFloor, wantTender) => {
         const f = {};
         if (wantCat) f.catalog = clampN(C_.catalog.size, 0.12, 0.55);
-        if (wantFloor) f.floor = 0.2;
         f.cart = Math.max(0.2, C_.split.cart);
         if (wantTender) f.tender = clampN(C_.split.tender, 0, 0.45);
+
+        const tracks = Object.keys(f).length + (wantFloor ? 1 : 0);
+        const pool = avail - G * Math.max(0, tracks - 1);
+
+        const reserved = wantFloor ? Math.min(FLOOR_MIN, Math.max(0, pool)) : 0;
+        const share = Math.max(0, pool - reserved);
+
         const tot = Object.values(f).reduce((a, b) => a + b, 0) || 1;
-        for (const k in f) f[k] /= tot;
-        const pool = avail - G * (Object.keys(f).length - 1);
+        const frac = {};
         const px = {};
-        for (const k in f) px[k] = pool * f[k];
-        return { frac: f, pool, px };
+        for (const k in f) { frac[k] = f[k] / tot; px[k] = share * frac[k]; }
+        if (wantFloor) { px.floor = reserved; frac.floor = pool ? reserved / pool : 0; }
+
+        let surplus = 0;
+        for (const k of ['cart', 'tender']) {
+            const cap = CAPS[k];
+            if (cap && px[k] > cap) { surplus += px[k] - cap; px[k] = cap; }
+        }
+        if (surplus > 0) {
+            const takers = Object.keys(px).filter(k => ABSORB.has(k));
+            if (takers.length) {
+                const each = surplus / takers.length;
+                for (const k of takers) px[k] += each;
+            } else {
+                /* Nothing on this screen absorbs. Handing the width back to the
+                   cart is not "bigger is better" -- it is that a track short of
+                   the pool leaves a visible gap, and a gap is worse than a wide
+                   cart. */
+                px.cart += surplus;
+            }
+        }
+
+    /* RANK 1 UPGRADES TOGETHER. The cart and the tender are both rank 1, and
+       the law upgrades a rank one fit-step at a time by weight -- it does not
+       let one of them sit two steps up while the other is below its next
+       floor. Reserving the floor's column made that visible: a 1024 iPad gave
+       the cart its relay fit with room to spare and left the payment column at
+       202px, one pixel over the bar fit. Moving the difference across costs
+       the cart a fit it was not using and buys the tender the one it needs. */
+        if (px.tender !== undefined) {
+            const TEND_OK = LAW.pos.paneFits.tender[1].floor;   // compact
+            const CART_OK = LAW.pos.paneFits.cart[1].floor;     // relay
+            if (px.tender < TEND_OK && px.cart > CART_OK) {
+                const move = Math.min(TEND_OK - px.tender, px.cart - CART_OK);
+                px.cart -= move; px.tender += move;
+            }
+        }
+
+        return { frac, pool, px };
     };
 
     let catRes = ['left', 'right', 'top', 'bottom'].includes(catMode) && regime !== 'phone';
     if (catRes && (catMode === 'left' || catMode === 'right') && avail < RESIDENT_MIN) catRes = false;
-    let floorRes = floorMode === 'left' && regime === 'columns'
-        && avail >= RESIDENT_MIN + CAT_LIST + G;
+    /* See the note in Layout/venqoreLayoutEngine.js: the old test asked for
+       room for a CATALOG column beside the floor, but the table terminal's
+       catalog is a band -- so the floor was refused a column at every width
+       from 1024 to 1520, all of which §10 gives it one. */
+    const floorNeeds = FLOOR_MIN + G + CART_MIN
+        + (tenderMode === 'column' ? TENDER_MIN + G : 0)
+        + ((catMode === 'left' || catMode === 'right') ? CAT_LIST + G : 0);
+    let floorRes = floorMode === 'left' && regime === 'columns' && avail >= floorNeeds;
     let tenderRes = regime === 'columns' && tenderMode === 'column' && C_.split.tender > 0;
 
     let alloc = null;
@@ -320,7 +393,13 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
     if (catMode !== 'off' && !catRes) dock.push({ id: 'catalog', label: 'Catalog', rank: 2, shows: 'count' });
     if (floorMode !== 'off' && !floorRes) dock.push({ id: 'floor', label: 'Floor', rank: 2 });
 
-    let dockH = !dock.length ? 0 : (dock.some((d) => d.inline) ? T.tender_bar_h : 72);
+    /* AMENDED, and mirrored in Layout/venqoreLayoutEngine.js: only a TENDER
+       dock is a real layout row. A single narrow Catalog or Floor trigger was
+       costing every pane 72px of height -- including the payment column, which
+       has nothing below it. Secondary triggers live in the Current Order pane's
+       header instead: still in flow, still unable to overlap anything. */
+    const dockNeedsRow = dock.some((d) => d.id === 'tender');
+    let dockH = !dockNeedsRow ? 0 : (dock.some((d) => d.inline) ? T.tender_bar_h : 72);
     let usableH = H - (dockH ? dockH + G : 0);
     const { frac, px } = allocateColumns(
         catRes && (catMode === 'left' || catMode === 'right'), floorRes, tenderRes,
@@ -375,8 +454,7 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
             );
             if (!dock.some((d) => d.id === 'catalog')) {
                 dock.push({ id: 'catalog', label: 'Catalog', rank: 2, shows: 'count' });
-                dockH = dockH || 72;
-                usableH = H - (dockH + G);
+                /* No row for it -- see the amendment above. */
             }
         } else {
             const per = C_.catalog.tiles

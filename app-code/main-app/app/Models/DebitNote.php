@@ -13,15 +13,25 @@ class DebitNote extends Model
 {
     use SoftDeletes, HasUuids, HasTenant;
 
+    /* A short $fillable is a silent filter: anything not on this list is
+       dropped on save with no error, which is how a rewrite that added tax, a
+       warehouse and a journal pointer persisted none of them. */
     protected $fillable = [
         'reference_number',
         'supplier_id',
         'purchase_id',
         'date',
         'amount',
+        'discount',
+        'tax',
+        'tax_rate',
         'reason',
+        'notes',
         'status',
-        'created_by'
+        'warehouse_id',
+        'returns_stock',
+        'journal_entry_id',
+        'created_by',
     ];
 
     protected $casts = [

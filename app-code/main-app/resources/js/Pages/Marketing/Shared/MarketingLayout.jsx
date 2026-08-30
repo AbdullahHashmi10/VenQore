@@ -92,9 +92,9 @@ export const MagneticButton = ({ children, href, className = '', variant = 'prim
     const handleMouseLeave = useCallback(() => { if (btnRef.current) btnRef.current.style.transform = ''; }, []);
 
     const baseClass = variant === 'primary'
-        ? 'px-9 py-4 bg-neutral-900 dark:bg-white text-white dark:text-void-900 font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(99,102,241,0.4)] dark:hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]'
+        ? 'px-9 py-4 bg-void-900 dark:bg-white text-white dark:text-void-900 font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-400)/0.55)]'
         : variant === 'ghost'
-            ? 'px-8 py-4 bg-neutral-900/[0.04] dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md'
+            ? 'px-8 py-4 bg-void-900/[0.04] dark:bg-white/[0.04] border border-void-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md'
             : 'px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-full shadow-xl ';
 
     const Tag = href ? Link : 'button';
@@ -168,8 +168,8 @@ const MkAmbient = ({ isDarkMode }) => (
                 : 'radial-gradient(125% 100% at 50% -12%, #eef0ff 0%, #f7f6fd 38%, #fdfdff 72%, #ffffff 100%)',
         }} />
         <div className={`absolute -top-[10%] left-1/2 w-[140vw] h-[85vh] -translate-x-1/2 ${isDarkMode ? 'vqm-beams' : 'vqm-beams-light'}`} />
-        <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vqm-blob" style={{ background: `radial-gradient(circle, rgba(99,102,241,${isDarkMode ? 0.15 : 0.22}), transparent 62%)` }} />
-        <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vqm-blob2" style={{ background: `radial-gradient(circle, rgba(139,92,246,${isDarkMode ? 0.12 : 0.18}), transparent 62%)` }} />
+        <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vqm-blob" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / ${isDarkMode ? 0.15 : 0.22}), transparent 62%)` }} />
+        <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vqm-blob2" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-400) / ${isDarkMode ? 0.12 : 0.18}), transparent 62%)` }} />
         <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vqm-blob" style={{ background: `radial-gradient(circle, rgba(34,211,238,${isDarkMode ? 0.07 : 0.14}), transparent 62%)` }} />
         {!isDarkMode && (
             <div className="absolute top-[18%] right-[6%] w-[34vw] h-[34vw] rounded-full blur-[200px] vqm-blob2" style={{ background: 'radial-gradient(circle, rgba(244,114,182,0.10), transparent 64%)' }} />
@@ -178,7 +178,7 @@ const MkAmbient = ({ isDarkMode }) => (
         <div className="absolute inset-0" style={{
             background: isDarkMode
                 ? 'radial-gradient(95% 75% at 50% 40%, rgba(4,2,12,0) 0%, rgba(4,2,12,0.5) 100%)'
-                : 'radial-gradient(100% 80% at 50% 34%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 52%, rgba(99,102,241,0.06) 100%)',
+                : 'radial-gradient(100% 80% at 50% 34%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 52%, rgb(var(--vq-ramp-teal-500) / 0.06) 100%)',
         }} />
         <div className={`absolute inset-0 vqm-grain ${isDarkMode ? 'opacity-[0.3]' : 'opacity-[0.18]'}`} />
     </div>
@@ -250,7 +250,7 @@ const MkSpotlight = ({ isDarkMode }) => {
     if (reduced) return null;
     return (
         <div className="fixed inset-0 pointer-events-none z-base hidden md:block">
-            <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full" style={{ background: `radial-gradient(circle, rgba(99,102,241,${isDarkMode ? 0.06 : 0.10}), transparent 60%)` }} />
+            <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / ${isDarkMode ? 0.06 : 0.10}), transparent 60%)` }} />
         </div>
     );
 };
@@ -582,6 +582,20 @@ export default function MarketingLayout({ children, title, description }) {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    /*
+       The authenticated app is a fixed-viewport shell — app.css locks
+       html/body/#app to overflow:hidden so each screen scrolls internally.
+       This is the public site: a normal long page with no internal scroll
+       container. Marking <html> for the lifetime of every marketing page
+       lifts that lock (see app.css) and restores it automatically the
+       moment Inertia navigates back into the authenticated app.
+    */
+    useEffect(() => {
+        const html = document.documentElement;
+        html.setAttribute('data-vq-shell', 'marketing');
+        return () => html.removeAttribute('data-vq-shell');
+    }, []);
+
     // Esc closes any open dropdown; clicking outside the nav does too.
     useEffect(() => {
         if (!openGroup) return;
@@ -648,7 +662,7 @@ export default function MarketingLayout({ children, title, description }) {
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         {isExceptionPath(currentPath) && <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />}
                         <Link href="/login" className="hidden sm:block px-5 py-2.5 text-1xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-ink dark:hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-void-900 rounded-full text-2xs sm:text-1xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:shadow-[0_0_40px_-6px_rgba(99,102,241,0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
+                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-void-900 dark:bg-white text-white dark:text-void-900 rounded-full text-2xs sm:text-1xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-ink-secondary hover:text-ink dark:hover:text-white transition-colors" aria-label="Menu" aria-expanded={mobileMenu}>
                             {mobileMenu ? <X size={22} /> : <Menu size={22} />}
                         </button>
@@ -752,9 +766,9 @@ export default function MarketingLayout({ children, title, description }) {
                 .vqm-blob2 { animation: vqm-blob 22s ease-in-out infinite 3s; }
                 .vqm-beams {
                     background: conic-gradient(from 90deg at 50% 0%,
-                        transparent 0deg, rgba(129,140,248,0.07) 10deg, transparent 22deg,
-                        transparent 44deg, rgba(167,139,250,0.06) 56deg, transparent 70deg,
-                        transparent 104deg, rgba(34,211,238,0.05) 118deg, transparent 134deg);
+                        transparent 0deg, rgb(var(--vq-ramp-teal-500) / 0.07) 10deg, transparent 22deg,
+                        transparent 44deg, rgb(var(--vq-ramp-teal-400) / 0.06) 56deg, transparent 70deg,
+                        transparent 104deg, rgb(var(--vq-ramp-teal-500) / 0.05) 118deg, transparent 134deg);
                     filter: blur(22px); transform-origin: 50% 0%;
                     animation: vqm-beamspin 26s ease-in-out infinite;
                 }
@@ -762,16 +776,16 @@ export default function MarketingLayout({ children, title, description }) {
                    are actually perceivable against a white page. */
                 .vqm-beams-light {
                     background: conic-gradient(from 90deg at 50% 0%,
-                        transparent 0deg, rgba(99,102,241,0.13) 10deg, transparent 22deg,
-                        transparent 44deg, rgba(139,92,246,0.11) 56deg, transparent 70deg,
-                        transparent 104deg, rgba(6,182,212,0.09) 118deg, transparent 134deg);
+                        transparent 0deg, rgb(var(--vq-ramp-teal-500) / 0.13) 10deg, transparent 22deg,
+                        transparent 44deg, rgb(var(--vq-ramp-teal-400) / 0.11) 56deg, transparent 70deg,
+                        transparent 104deg, rgb(var(--vq-ramp-teal-600) / 0.09) 118deg, transparent 134deg);
                     filter: blur(26px); transform-origin: 50% 0%;
                     animation: vqm-beamspin 26s ease-in-out infinite;
                 }
                 @keyframes vqm-beamspin { 0%,100%{transform:translateX(-50%) rotate(-7deg);} 50%{transform:translateX(-50%) rotate(7deg);} }
                 .vqm-grid { background-image:
-                    linear-gradient(rgba(99,102,241,0.055) 1px,transparent 1px),
-                    linear-gradient(90deg,rgba(99,102,241,0.055) 1px,transparent 1px);
+                    linear-gradient(rgb(var(--vq-ramp-teal-500) / 0.055) 1px,transparent 1px),
+                    linear-gradient(90deg,rgb(var(--vq-ramp-teal-500) / 0.055) 1px,transparent 1px);
                     background-size: 64px 64px;
                     mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 78%);
                     -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 78%); }
@@ -791,37 +805,52 @@ export default function MarketingLayout({ children, title, description }) {
                 .vq-shimmer { background-size:200% auto; animation: vq-shimmer 4s linear infinite; }
                 @keyframes vq-blink { 0%,100%{opacity:1;} 50%{opacity:.25;} }
                 .vq-blink { animation: vq-blink 1.6s ease-in-out infinite; }
-                @keyframes vq-border-glow { 0%,100% { border-color: rgba(99,102,241,0.1); } 50% { border-color: rgba(99,102,241,0.3); } }
+                @keyframes vq-border-glow { 0%,100% { border-color: rgb(var(--vq-ramp-teal-500) / 0.1); } 50% { border-color: rgb(var(--vq-ramp-teal-500) / 0.3); } }
                 .vq-border-glow { animation: vq-border-glow 4s ease-in-out infinite; }
                 @keyframes vq-gradient-shift { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
                 .vq-gradient-shift { background-size:200% 200%; animation: vq-gradient-shift 8s ease infinite; }
 
+                /*
+                   V6's identity is one hue — teal, mint-on-pine (see
+                   resources/css/venqore-v6/tokens/colors.css). This used to
+                   be a three-stop indigo/violet/cyan gradient left over from
+                   the pre-V6 "Midnight Nebula" palette; --vq-indigo-* and
+                   --vq-violet-* are old-system aliases that the V6 generator
+                   now points at teal and plum respectively (see
+                   resources/css/theme.generated.css), which is why only part
+                   of this gradient looked "fixed" — indigo landed on brand
+                   teal, violet landed on plum (a real V6 colour, but not this
+                   component's colour), and the #0891b2/#22d3ee cyan stops
+                   were never tokens at all. Single definition now, on-brand
+                   in both modes, no duplicate elsewhere.
+                */
                 .vq-headline-grad {
-                    background: linear-gradient(100deg,rgb(var(--vq-indigo-600)) 0%,rgb(var(--vq-violet-600)) 40%,#0891b2 80%);
+                    background: linear-gradient(100deg, rgb(var(--vq-ramp-teal-600)) 0%, rgb(var(--vq-ramp-teal-400)) 50%, rgb(var(--vq-ramp-teal-600)) 100%);
                     -webkit-background-clip: text; background-clip: text; color: transparent;
                     background-size: 200% auto; animation: vq-shimmer 6s linear infinite;
                 }
                 .dark .vq-headline-grad {
-                    background: linear-gradient(100deg,rgb(var(--vq-indigo-400)) 0%,rgb(var(--vq-violet-400)) 40%,#22d3ee 80%);
+                    background: linear-gradient(100deg, rgb(var(--vq-ramp-teal-400)) 0%, rgb(var(--vq-ramp-teal-300)) 50%, rgb(var(--vq-ramp-teal-400)) 100%);
                     -webkit-background-clip: text; background-clip: text; color: transparent;
                     background-size: 200% auto;
                 }
+                /* rgba(99,102,241,*) was Tailwind indigo-500 — off-brand. Retinted to V6 teal. */
                 .vq-text-glow { text-shadow: none; }
-                .dark .vq-text-glow { text-shadow: 0 0 80px rgba(99,102,241,0.4); }
+                .dark .vq-text-glow { text-shadow: 0 0 80px rgb(var(--vq-ramp-teal-500) / 0.4); }
                 .vq-text-glow-strong { text-shadow: none; }
-                .dark .vq-text-glow-strong { text-shadow: 0 0 120px rgba(99,102,241,0.6), 0 0 40px rgba(99,102,241,0.2); }
+                .dark .vq-text-glow-strong { text-shadow: 0 0 120px rgb(var(--vq-ramp-teal-500) / 0.6), 0 0 40px rgb(var(--vq-ramp-teal-500) / 0.2); }
 
                 .no-scrollbar::-webkit-scrollbar { display:none; }
                 .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
-                .vq-grid-pattern { background-image: linear-gradient(rgba(99,102,241,0.04) 1px,transparent 1px), linear-gradient(90deg,rgba(99,102,241,0.04) 1px,transparent 1px); background-size:60px 60px; }
+                .vq-grid-pattern { background-image: linear-gradient(rgb(var(--vq-ramp-teal-500) / 0.04) 1px,transparent 1px), linear-gradient(90deg,rgb(var(--vq-ramp-teal-500) / 0.04) 1px,transparent 1px); background-size:60px 60px; }
                 .dark .vq-grid-pattern { background-image: linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px); }
-                .vq-dot-pattern { background-image: radial-gradient(rgba(99,102,241,0.08) 1px,transparent 1px); background-size:30px 30px; }
+                .vq-dot-pattern { background-image: radial-gradient(rgb(var(--vq-ramp-teal-500) / 0.08) 1px,transparent 1px); background-size:30px 30px; }
                 .dark .vq-dot-pattern { background-image: radial-gradient(rgba(255,255,255,0.05) 1px,transparent 1px); }
 
                 ::-webkit-scrollbar { width:10px; }
                 ::-webkit-scrollbar-track { background:transparent; }
-                ::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.25); border-radius:10px; }
-                ::-webkit-scrollbar-thumb:hover { background:rgba(99,102,241,0.4); }
+                ::-webkit-scrollbar-thumb { background:rgb(var(--vq-ramp-teal-500) / 0.25); border-radius:10px; }
+                ::-webkit-scrollbar-thumb:hover { background:rgb(var(--vq-ramp-teal-500) / 0.4); }
 
                 @media (prefers-reduced-motion: reduce) {
                     *, *::before, *::after { animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }

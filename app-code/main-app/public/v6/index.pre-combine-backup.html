@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>VenQore — The ERP that builds itself around your business</title>
+<meta name="description" content="Describe your business in plain language. VenQore assembles the ERP that runs it — with double-entry accounting under every module. From $36/mo.">
+<meta property="og:title" content="VenQore — The ERP that builds itself around your business">
+<meta property="og:description" content="Describe your business in plain language. VenQore assembles the ERP that runs it — with double-entry accounting under every module. From $36/mo.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VenQore">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0BAA8F">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="assets/venqore.css">
+<script>
+/* Theme before paint — no flash. */
+(function(){try{var r=document.documentElement,t=r.getAttribute('data-theme')||localStorage.getItem('vq-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',t);r.classList.toggle('dark',t==='dark');}catch(e){}})();
+</script>
+
+</head>
+<body>
+
+
+  <a class="vq-skip" href="#main">Skip to content</a>
+  <header class="vq-header vq-header--onHero" data-header>
+    <div class="vq-header__inner">
+      <a class="vq-brand" href="index.html" aria-label="VenQore home">
+        <img src="assets/logo.png" alt="" width="30" height="30">
+        <span class="vq-brand__word">VenQore</span>
+      </a>
+
+      <nav class="vq-nav" aria-label="Main">
+        <ul class="vq-nav__list">
+          <li class="vq-nav__item">
+            <a href="blueprint.html" class="vq-nav__link">Product <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:660px">
+              <div class="vq-mega__grid" style="grid-template-columns:1fr 1fr 1fr">
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Build</span>
+                  <a class="vq-mega__link" href="blueprint.html"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
+                  <a class="vq-mega__link" href="onboarding.html"><b>See a build</b><span>Four minutes, start to live.</span></a>
+                  <a class="vq-mega__link" href="index.html#assemble"><b>Watch it assemble</b><span>46 modules in, only yours out.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Run</span>
+                  <a class="vq-mega__link" href="pos.html"><b>The register</b><span>A till you compose yourself.</span></a>
+                  <a class="vq-mega__link" href="documents.html"><b>Documents</b><span>Thirteen types, one editor.</span></a>
+                  <a class="vq-mega__link" href="vensynq.html"><b>VenSynQ</b><span>Sell in five places, count once.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Know</span>
+                  <a class="vq-mega__link" href="dashboard.html"><b>The dashboard</b><span>108 readings, self-assembling.</span></a>
+                  <a class="vq-mega__link" href="reckoner.html"><b>The Reckoner</b><span>One place a number is defined.</span></a>
+                  <a class="vq-mega__link" href="ledger.html"><b>Core Ledger</b><span>One engine. Every number.</span></a>
+                </div>
+              </div>
+              <div class="vq-mega__foot">
+                <a class="vq-link" href="smartcapture.html">SmartCapture — a photo in, a posted transaction out <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              </div>
+            </div>
+          </li>
+          <li class="vq-nav__item">
+            <a href="index.html#presets" class="vq-nav__link">Solutions <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:420px">
+              <div class="vq-mega__grid">
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="index.html#presets"><b>Retail shop</b><span>Fast checkout, real margins.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Wholesale &amp; distribution</b><span>Credit terms and price tiers.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Pharmacy</b><span>Batch and expiry that hold the line.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="index.html#presets"><b>Restaurant &amp; café</b><span>Recipes that draw down ingredients.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Hardware &amp; auto parts</b><span>Deep catalogues, real costing.</span></a>
+                  <a class="vq-mega__link" href="index.html#presets"><b>Multi-branch</b><span>One truth across every location.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="vq-nav__item"><a href="features.html" class="vq-nav__link">Features</a></li>
+          <li class="vq-nav__item"><a href="pricing.html" class="vq-nav__link">Pricing</a></li>
+          <li class="vq-nav__item">
+            <a href="about.html" class="vq-nav__link">Company <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:320px">
+              <div class="vq-mega__grid" style="grid-template-columns:1fr">
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="about.html"><b>About</b><span>Built on a shop counter in Okara.</span></a>
+                  <a class="vq-mega__link" href="ledger.html"><b>How we prove it</b><span>The checks we publish.</span></a>
+                  <a class="vq-mega__link" href="contact.html"><b>Contact</b><span>A person answers this one.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <div class="vq-header__actions">
+        <button class="vq-theme-btn" data-theme-toggle type="button" aria-label="Switch theme">
+          <span class="vq-icon-sun"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span class="vq-icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        </button>
+        <a href="signin.html" class="vq-nav__link">Sign in</a>
+        <a href="register.html" class="vq-btn vq-btn--primary">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+      </div>
+      <button class="vq-burger" type="button" data-menu-open aria-label="Open menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+    </div>
+  </header>
+  <!-- Side Live Slider Rail -->
+  <aside data-rail="1">
+    <a data-dot="1" data-for="top" href="#top" aria-label="Intent"><span data-dotlabel="1">Intent</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="compiler" href="#compiler" aria-label="Compiler"><span data-dotlabel="1">Compiler</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="problem" href="#problem" aria-label="Extremes"><span data-dotlabel="1">Extremes</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="blueprint" href="#blueprint" aria-label="Blueprint"><span data-dotlabel="1">Blueprint</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="modules" href="#modules" aria-label="Modules"><span data-dotlabel="1">Modules</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="ledger" href="#ledger" aria-label="Ledger"><span data-dotlabel="1">Ledger</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="day2" href="#day2" aria-label="Day 2"><span data-dotlabel="1">Day 2</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="pricing" href="#pricing" aria-label="Pricing"><span data-dotlabel="1">Pricing</span><span data-dotmark="1"></span></a>
+  </aside>
+  <div class="vq-mobile" data-menu hidden>
+    <button class="vq-burger" type="button" data-menu-close aria-label="Close menu"
+            style="position:absolute;top:24px;right:20px"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <a href="blueprint.html">Blueprint</a>
+    <a href="pos.html">The register</a>
+    <a href="documents.html">Documents</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="smartcapture.html">SmartCapture</a>
+    <a href="reckoner.html">The Reckoner</a>
+    <a href="ledger.html">Core Ledger</a>
+    <a href="vensynq.html">VenSynQ</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <div class="vq-mobile__actions">
+      <a href="signin.html" class="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Sign in</a>
+      <a href="register.html" class="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+    </div>
+  </div>
+<main id="main">
+
+<section id="top" data-sec="top" class="vq-hero-section" style="position:relative;min-height:100svh;width:100%;display:flex;flex-direction:column;padding-top:clamp(85px,10vw,120px);overflow:hidden">
+  <div class="hero-gradient-overlay" aria-hidden="true"></div>
+
+  <!-- Floating Domain Pills -->
+  <div class="hero-floaters" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2;">
+    <span class="hero-pill-float" style="top: 20%; left: 5%; animation-duration: 7.2s;">
+      <span class="hero-pill-dot"></span>Batch &amp; expiry
+    </span>
+    <span class="hero-pill-float" style="top: 58%; left: 8%; animation-duration: 8.4s;">
+      <span class="hero-pill-dot"></span>Core Ledger
+    </span>
+    <span class="hero-pill-float" style="top: 16%; right: 9%; animation-duration: 9.2s;">
+      <span class="hero-pill-dot"></span>Payables · 30 days
+    </span>
+    <span class="hero-pill-float" style="top: 42%; right: 5%; animation-duration: 7.8s;">
+      <span class="hero-pill-dot"></span>POS checkout
+    </span>
+    <span class="hero-pill-float" style="top: 72%; right: 12%; animation-duration: 6.6s;">
+      <span class="hero-pill-dot"></span>Branch transfers
+    </span>
+  </div>
+
+  <div class="vq-hero-inner" style="position:relative;z-index:3;margin-block:auto;margin-inline:auto;max-width:64rem;width:100%;display:flex;flex-direction:column;align-items:center;gap:var(--vq-space-4);padding-inline:var(--vq-space-6);text-align:center">
+
+    <span class="vq-eyebrow vq-hero-eyebrow" style="display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 14px; border-radius: 9999px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22); backdrop-filter: blur(8px); font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #C6F5E9;">
+      <span style="width: 6px; height: 6px; border-radius: 9999px; background: #23C4A6; box-shadow: 0 0 8px #23C4A6;"></span>
+      THE AI BUSINESS COMPILER
+    </span>
+
+    <h1 id="main-heading" class="vq-hero vq-hero-h1 fold-text-container" style="font-weight:600;font-size:clamp(44px,7.2vw,84px);line-height:1.0;letter-spacing:-0.04em;max-width:22ch;text-align:center;margin:0">
+      Tell us how you operate.<br>
+      We <span style="position: relative; color: #93EBD6; display: inline-block;">assemble<span style="position: absolute; left: 0; right: 0; bottom: 6px; height: 6px; border-radius: 999px; background: rgba(35, 196, 166, 0.38);"></span></span> your system.
+    </h1>
+
+    <p class="vq-lede vq-hero-subhead" style="max-width:44rem;color:rgba(234, 251, 245, 0.85);font-size:clamp(1.05rem,1.4vw,1.25rem);line-height:1.55;margin-top:var(--vq-space-2)">
+      VenQore takes your requirements and snaps together battle-tested modules into a custom platform that never breaks.
+    </p>
+
+    <!-- The interactive prompt & business picker -->
+    <form class="vq-mt-6" data-hero-prompt style="width:100%;display:flex;flex-direction:column;align-items:center;max-width:44rem">
+      <div class="vq-hero-rule" style="width:100%;display:flex;align-items:flex-end;gap:var(--vq-space-4);padding-bottom:10px;position:relative">
+        <div id="shiny-placeholder" data-hero-placeholder class="shiny-text" aria-hidden="true"
+             style="position:absolute;left:8px;bottom:20px;pointer-events:none;font-size:var(--vq-fs-lede);text-align:left;max-width:calc(100% - 108px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Describe your business (e.g. "Retail pharmacy with batch & expiry")...</div>
+        <textarea id="hero-prompt" rows="1" aria-label="Describe your business" class="vq-hero-input"
+          style="flex:1;resize:none;background:transparent;border:0;outline:none;font-size:var(--vq-fs-lede);line-height:1.5;padding:8px;max-height:160px;font-family:inherit"></textarea>
+        <div style="display:flex;align-items:center;gap:8px;padding-bottom:4px">
+          <button type="button" class="vq-hero-icon" aria-label="Voice input" title="Voice input"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg></button>
+          <button type="button" class="vq-hero-go" data-hero-go aria-label="Build my system" title="Build my system"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="vq-row vq-wrap vq-gap-2 vq-mt-6" style="justify-content:center;align-items:center">
+        <button id="btn-select-business" type="button" class="vq-btn vq-btn--secondary" style="font-weight:600;display:inline-flex;align-items:center;gap:6px">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Select your business
+        </button>
+        <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="pharmacy">Pharmacy</button>
+        <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="wholesale">Wholesale distributor</button>
+        <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="cafe">Restaurant &amp; café</button>
+        <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="hardware">Hardware &amp; parts</button>
+        <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="multi">Multi-branch</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:16px;font:500 13px/1 var(--vq-font-sans);color:rgba(234, 251, 245, 0.65)">
+        <span>1,600+ automated tests</span><span style="opacity:.4">·</span>
+        <span>11,000+ assertions</span><span style="opacity:.4">·</span>
+        <span>7 correctness checks on every post</span>
+      </div>
+
+      <p class="vq-caption vq-mt-4 vq-hero-caret" style="max-width:none">
+        Free to try. No card. You'll see your live system before you sign up for anything.
+      </p>
+    </form>
+  </div>
+
+  <div class="vq-hero-foot" style="margin-inline:auto;width:100%;max-width:58rem;display:flex;align-items:flex-end;justify-content:space-between;gap:var(--vq-space-6);padding:var(--vq-space-8) var(--vq-space-6) var(--vq-space-10)">
+    <p class="vq-small" style="max-width:26rem">
+      Describe how you actually work. VenQore assembles the system that runs it — and every
+      number it produces is backed by double-entry accounting.
+    </p>
+    <a href="#compiler" aria-label="How it works">
+      <span class="animate-bounce-slow" style="display:block"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></span>
+    </a>
+  </div>
+</section>
+
+<!-- SECTION 2: 5-Stage Compiler Theater -->
+<section id="compiler" data-sec="compiler" data-theater="1" style="position: relative; height: 600vh; background: #0C1211;">
+  <div style="position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
+    <div style="position: absolute; inset: 0; background: radial-gradient(70% 60% at 50% 0%, rgba(11, 170, 143, 0.16), transparent 70%);"></div>
+    <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px); background-size: 64px 64px;"></div>
+
+    <div data-thgrid="1" style="position: relative; flex: 1; max-width: 1240px; width: 100%; margin: 0 auto; padding: 96px 28px 40px; display: grid; grid-template-columns: 250px 1fr; gap: 40px; align-items: start; min-height: 0;">
+
+      <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px;">
+        <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #23C4A6; margin-bottom: 16px;">COMPILATION PASS</span>
+        
+        <div data-stagerow="0" style="display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 10px 0; opacity: 1; transition: opacity var(--vq-dur-3) var(--vq-ease-out);">
+          <span style="font: 600 12px/1.6 var(--vq-font-numeric); color: #8B9A93;">01</span>
+          <span style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font: 600 15px/1.2 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">Intent</span>
+            <span style="font: 500 12.5px/1.45 var(--vq-font-sans); color: #8B9A93;">You describe how you operate</span>
+            <span data-stagebar="0" style="height: 2px; width: 0%; margin-top: 5px; border-radius: 999px; background: linear-gradient(90deg, #0BAA8F, #59DBC0);"></span>
+          </span>
+        </div>
+
+        <div data-stagerow="1" style="display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 10px 0; opacity: .34; transition: opacity var(--vq-dur-3) var(--vq-ease-out);">
+          <span style="font: 600 12px/1.6 var(--vq-font-numeric); color: #8B9A93;">02</span>
+          <span style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font: 600 15px/1.2 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">Parse</span>
+            <span style="font: 500 12.5px/1.45 var(--vq-font-sans); color: #8B9A93;">Entities, workflows, financial routes</span>
+            <span data-stagebar="1" style="height: 2px; width: 0%; margin-top: 5px; border-radius: 999px; background: linear-gradient(90deg, #0BAA8F, #59DBC0);"></span>
+          </span>
+        </div>
+
+        <div data-stagerow="2" style="display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 10px 0; opacity: .34; transition: opacity var(--vq-dur-3) var(--vq-ease-out);">
+          <span style="font: 600 12px/1.6 var(--vq-font-numeric); color: #8B9A93;">03</span>
+          <span style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font: 600 15px/1.2 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">Select</span>
+            <span style="font: 500 12.5px/1.45 var(--vq-font-sans); color: #8B9A93;">Proven engines, parameterized</span>
+            <span data-stagebar="2" style="height: 2px; width: 0%; margin-top: 5px; border-radius: 999px; background: linear-gradient(90deg, #0BAA8F, #59DBC0);"></span>
+          </span>
+        </div>
+
+        <div data-stagerow="3" style="display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 10px 0; opacity: .34; transition: opacity var(--vq-dur-3) var(--vq-ease-out);">
+          <span style="font: 600 12px/1.6 var(--vq-font-numeric); color: #8B9A93;">04</span>
+          <span style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font: 600 15px/1.2 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">Wire</span>
+            <span style="font: 500 12.5px/1.45 var(--vq-font-sans); color: #8B9A93;">Routes bound to the double-entry core</span>
+            <span data-stagebar="3" style="height: 2px; width: 0%; margin-top: 5px; border-radius: 999px; background: linear-gradient(90deg, #0BAA8F, #59DBC0);"></span>
+          </span>
+        </div>
+
+        <div data-stagerow="4" style="display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 10px 0; opacity: .34; transition: opacity var(--vq-dur-3) var(--vq-ease-out);">
+          <span style="font: 600 12px/1.6 var(--vq-font-numeric); color: #8B9A93;">05</span>
+          <span style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font: 600 15px/1.2 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">Live</span>
+            <span style="font: 500 12.5px/1.45 var(--vq-font-sans); color: #8B9A93;">Your system, running</span>
+            <span data-stagebar="4" style="height: 2px; width: 0%; margin-top: 5px; border-radius: 999px; background: linear-gradient(90deg, #0BAA8F, #59DBC0);"></span>
+          </span>
+        </div>
+      </div>
+
+      <div style="position: relative; height: min(620px, 66vh); border-radius: var(--vq-r-2xl, 24px); border: 1px solid rgba(255, 255, 255, 0.1); background: #141B19; box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.9); overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">
+          <span style="width: 9px; height: 9px; border-radius: 999px; background: #FF8A6B;"></span>
+          <span style="width: 9px; height: 9px; border-radius: 999px; background: #FFCD5B;"></span>
+          <span style="width: 9px; height: 9px; border-radius: 999px; background: #A9E34B;"></span>
+          <span data-frametitle="1" style="margin-left: 12px; font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .12em; color: #8B9A93;">BLUEPRINT · READING INTENT</span>
+          <span style="margin-left: auto; font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .1em; color: #23C4A6;">LIVE</span>
+        </div>
+
+        <div style="position: relative; height: calc(100% - 45px);">
+
+          <!-- Stage 01: Intent -->
+          <div data-layer="0" style="position: absolute; inset: 0; padding: 44px 48px; display: flex; flex-direction: column; justify-content: center; gap: 24px; opacity: 1;">
+            <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">THE OWNER TYPES</span>
+            <p style="margin: 0; font: 600 clamp(22px, 2.5vw, 34px)/1.32 var(--vq-font-display); letter-spacing: -.028em; color: #EDF2EF; max-width: 30ch;"><span data-typed="1"></span><span style="display: inline-block; width: 3px; height: 1em; margin-left: 4px; vertical-align: -0.12em; background: #23C4A6; animation: vqBlink 1s steps(1) infinite;"></span></p>
+            <span style="font: 500 14px/1.5 var(--vq-font-sans); color: #8B9A93;">No forms. No implementation consultant. One paragraph in your own words.</span>
+          </div>
+
+          <!-- Stage 02: Parse (with all 3 groups: Entities, Workflows, Financial routes) -->
+          <div data-layer="1" style="position: absolute; inset: 0; padding: 40px 48px; display: flex; flex-direction: column; justify-content: center; gap: 20px; opacity: 0;">
+            <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">DOMAIN PARSE</span>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font: 600 12px/1 var(--vq-font-sans); color: #EDF2EF;">ENTITIES</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+                  <span data-token="0" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(35, 196, 166, 0.28); background: rgba(35, 196, 166, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #C6F5E9; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #23C4A6;"></span>Drugs &amp; SKUs</span>
+                  <span data-token="1" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(35, 196, 166, 0.28); background: rgba(35, 196, 166, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #C6F5E9; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #23C4A6;"></span>Batches</span>
+                  <span data-token="2" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(35, 196, 166, 0.28); background: rgba(35, 196, 166, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #C6F5E9; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #23C4A6;"></span>Expiry dates</span>
+                  <span data-token="3" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(35, 196, 166, 0.28); background: rgba(35, 196, 166, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #C6F5E9; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #23C4A6;"></span>Branches</span>
+                  <span data-token="4" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(35, 196, 166, 0.28); background: rgba(35, 196, 166, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #C6F5E9; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #23C4A6;"></span>Distributors</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font: 600 12px/1 var(--vq-font-sans); color: #EDF2EF;">WORKFLOWS</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+                  <span data-token="5" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(85, 196, 236, 0.28); background: rgba(85, 196, 236, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #B3E8FA; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #55C4EC;"></span>Counter checkout</span>
+                  <span data-token="6" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(85, 196, 236, 0.28); background: rgba(85, 196, 236, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #B3E8FA; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #55C4EC;"></span>Batch-first picking</span>
+                  <span data-token="7" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(85, 196, 236, 0.28); background: rgba(85, 196, 236, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #B3E8FA; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #55C4EC;"></span>Branch transfers</span>
+                  <span data-token="8" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(85, 196, 236, 0.28); background: rgba(85, 196, 236, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #B3E8FA; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #55C4EC;"></span>Expiry write-off</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font: 600 12px/1 var(--vq-font-sans); color: #EDF2EF;">FINANCIAL ROUTES</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+                  <span data-token="9" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255, 205, 91, 0.28); background: rgba(255, 205, 91, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #FFE7A8; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #FFCD5B;"></span>Accounts payable · 30-day terms</span>
+                  <span data-token="10" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255, 205, 91, 0.28); background: rgba(255, 205, 91, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #FFE7A8; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #FFCD5B;"></span>Sales tax on invoice</span>
+                  <span data-token="11" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255, 205, 91, 0.28); background: rgba(255, 205, 91, 0.1); font: 500 12.5px/1 var(--vq-font-sans); color: #FFE7A8; opacity: 0; transform: translateY(8px) scale(.96); transition: all 320ms var(--vq-ease-spring);"><span style="width: 5px; height: 5px; border-radius: 999px; background: #FFCD5B;"></span>Inventory valuation</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stage 03: Select (12 full cards matching animated page) -->
+          <div data-layer="2" style="position: absolute; inset: 0; padding: 36px 44px; display: flex; flex-direction: column; justify-content: center; gap: 18px; opacity: 0;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+              <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">ENGINE SELECTION</span>
+              <span style="font: 500 12px/1 var(--vq-font-sans); color: #8B9A93;"><span data-selcount="1" style="font-family: var(--vq-font-numeric); color: #23C4A6;">0</span> of 24 engines wired · the rest never ship to you</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+              <div data-engine="0" data-on="1" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .28; transition: all 380ms var(--vq-ease-spring);"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">POS checkout</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #8B9A93;">SELECTED</span></div>
+              <div data-engine="1" data-on="1" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .28; transition: all 380ms var(--vq-ease-spring);"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">Batch &amp; expiry</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #8B9A93;">SELECTED</span></div>
+              <div data-engine="2" data-on="1" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .28; transition: all 380ms var(--vq-ease-spring);"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">Stock ledger</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #8B9A93;">SELECTED</span></div>
+              <div data-engine="3" data-on="0" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .12;"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #8B9A93;">Manufacturing BOM</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #5B6A63;">not needed</span></div>
+              <div data-engine="4" data-on="1" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .28; transition: all 380ms var(--vq-ease-spring);"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">Purchases &amp; credit</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #8B9A93;">SELECTED</span></div>
+              <div data-engine="5" data-on="1" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .28; transition: all 380ms var(--vq-ease-spring);"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">Branch transfers</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #8B9A93;">SELECTED</span></div>
+              <div data-engine="6" data-on="0" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .12;"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #8B9A93;">Payroll</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #5B6A63;">not needed</span></div>
+              <div data-engine="7" data-on="0" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .12;"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #8B9A93;">Container logistics</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #5B6A63;">not needed</span></div>
+              <div data-engine="8" data-on="1" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .28; transition: all 380ms var(--vq-ease-spring);"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">Core Ledger</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #23C4A6;">ALWAYS ON</span></div>
+              <div data-engine="9" data-on="0" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .12;"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #8B9A93;">Table service</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #5B6A63;">not needed</span></div>
+              <div data-engine="10" data-on="0" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .12;"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #8B9A93;">Tier pricing matrix</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #5B6A63;">not needed</span></div>
+              <div data-engine="11" data-on="0" style="padding: 12px 14px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.08); background: #1A2220; opacity: .12;"><span style="display: block; font: 600 13px/1.25 var(--vq-font-display); color: #8B9A93;">Channel sync</span><span style="display: block; margin-top: 4px; font: 500 10.5px/1.3 var(--vq-font-numeric); color: #5B6A63;">not needed</span></div>
+            </div>
+          </div>
+
+          <!-- Stage 04: Wire (with dynamic SVG topology wires) -->
+          <div data-layer="3" style="position: absolute; inset: 0; padding: 34px 44px; opacity: 0;">
+            <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">TOPOLOGY · ROUTES BOUND TO CORE LEDGER</span>
+            <div style="position: relative; height: calc(100% - 26px); margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr 1.15fr; gap: 40px; align-items: center;">
+              <svg data-wires="1" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible;">
+                <path data-wire="1" fill="none" stroke="#0BAA8F" stroke-width="2.2" stroke-linecap="round"></path>
+                <path data-wire="1" fill="none" stroke="#0BAA8F" stroke-width="2.2" stroke-linecap="round"></path>
+                <path data-wire="1" fill="none" stroke="#0BAA8F" stroke-width="2.2" stroke-linecap="round"></path>
+                <path data-wire="1" fill="none" stroke="#59DBC0" stroke-width="2.6" stroke-linecap="round"></path>
+                <path data-wire="1" fill="none" stroke="#59DBC0" stroke-width="2.6" stroke-linecap="round"></path>
+              </svg>
+              <div style="display: flex; flex-direction: column; gap: 14px; position: relative;">
+                <div data-node="in" style="position: relative; padding: 13px 16px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.12); background: #1A2220; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">POS terminals<span style="display: block; margin-top: 4px; font: 500 10.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: #8B9A93;">3 BRANCHES</span><span style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #0BAA8F; border: 2px solid #1A2220; box-shadow: 0 0 8px #0BAA8F;"></span></div>
+                <div data-node="in" style="position: relative; padding: 13px 16px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.12); background: #1A2220; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">Purchase receipts<span style="display: block; margin-top: 4px; font: 500 10.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: #8B9A93;">DISTRIBUTORS</span><span style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #0BAA8F; border: 2px solid #1A2220; box-shadow: 0 0 8px #0BAA8F;"></span></div>
+                <div data-node="in" style="position: relative; padding: 13px 16px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(255, 255, 255, 0.12); background: #1A2220; font: 600 13px/1.25 var(--vq-font-display); color: #EDF2EF;">SmartCapture<span style="display: block; margin-top: 4px; font: 500 10.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: #8B9A93;">PHOTO · VOICE</span><span style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #0BAA8F; border: 2px solid #1A2220; box-shadow: 0 0 8px #0BAA8F;"></span></div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 18px; position: relative;">
+                <div data-node="mid" style="position: relative; padding: 15px 18px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(35, 196, 166, 0.35); background: rgba(35, 196, 166, 0.1); font: 600 13px/1.25 var(--vq-font-display); color: #C6F5E9;"><span style="position: absolute; left: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #0BAA8F; border: 2px solid #1A2220;"></span>Stock &amp; batch engine<span style="display: block; margin-top: 4px; font: 500 10.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: rgba(198, 245, 233, 0.66);">FEFO · EXPIRY GUARD</span><span style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #59DBC0; border: 2px solid #1A2220; box-shadow: 0 0 8px #59DBC0;"></span></div>
+                <div data-node="mid" style="position: relative; padding: 15px 18px; border-radius: var(--vq-r-md, 12px); border: 1px solid rgba(35, 196, 166, 0.35); background: rgba(35, 196, 166, 0.1); font: 600 13px/1.25 var(--vq-font-display); color: #C6F5E9;"><span style="position: absolute; left: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #0BAA8F; border: 2px solid #1A2220;"></span>Payables &amp; terms<span style="display: block; margin-top: 4px; font: 500 10.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: rgba(198, 245, 233, 0.66);">30-DAY AGING</span><span style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #59DBC0; border: 2px solid #1A2220; box-shadow: 0 0 8px #59DBC0;"></span></div>
+              </div>
+              <div style="position: relative;">
+                <div data-node="core" style="position: relative; padding: 22px 20px; border-radius: var(--vq-r-lg, 16px); background: var(--vq-grad-mint); box-shadow: var(--vq-glow-accent-strong); color: #fff;">
+                  <span style="position: absolute; left: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 999px; background: #fff; border: 2px solid #088975; box-shadow: 0 0 10px #fff;"></span>
+                  <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: rgba(255, 255, 255, 0.75);">THE ENGINE</span>
+                  <span style="display: block; margin-top: 8px; font: 600 20px/1.1 var(--vq-font-display); letter-spacing: -.03em;">Core Ledger</span>
+                  <span style="display: block; margin-top: 8px; font: 500 12px/1.45 var(--vq-font-sans); color: rgba(255, 255, 255, 0.84);">Every module posts here. Debits equal credits or the post is refused.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stage 05: Live (matching exact items from animated page) -->
+          <div data-layer="4" style="position: absolute; inset: 0; padding: 30px 34px; opacity: 0;">
+            <div style="height: 100%; display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px;">
+              <div style="border-radius: var(--vq-r-lg, 16px); border: 1px solid rgba(255, 255, 255, 0.08); background: #101715; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font: 600 13px/1 var(--vq-font-display); letter-spacing: -.02em; color: #EDF2EF;">Checkout · Branch 2</span>
+                  <span style="font: 600 10.5px/1 var(--vq-font-numeric); letter-spacing: .1em; color: #4BD99B;">BATCH EXPIRY ON</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                    <span style="display: flex; flex-direction: column; gap: 3px;">
+                      <span style="font: 500 13px/1 var(--vq-font-sans); color: #EDF2EF;">Amoxicillin 500mg × 2</span>
+                      <span style="font: 500 11px/1 var(--vq-font-numeric); letter-spacing: .05em; color: #8B9A93;">BATCH A-2291 · EXP 03/2027</span>
+                    </span>
+                    <span style="font: 600 13px/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: #EDF2EF; align-self: center;">Rs 1,240.00</span>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                    <span style="display: flex; flex-direction: column; gap: 3px;">
+                      <span style="font: 500 13px/1 var(--vq-font-sans); color: #EDF2EF;">Insulin pen refill</span>
+                      <span style="font: 500 11px/1 var(--vq-font-numeric); letter-spacing: .05em; color: #8B9A93;">BATCH C-0417 · EXP 11/2026</span>
+                    </span>
+                    <span style="font: 600 13px/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: #EDF2EF; align-self: center;">Rs 2,660.00</span>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                    <span style="display: flex; flex-direction: column; gap: 3px;">
+                      <span style="font: 500 13px/1 var(--vq-font-sans); color: #EDF2EF;">Paracetamol strip × 4</span>
+                      <span style="font: 500 11px/1 var(--vq-font-numeric); letter-spacing: .05em; color: #8B9A93;">BATCH P-8802 · EXP 08/2028</span>
+                    </span>
+                    <span style="font: 600 13px/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: #EDF2EF; align-self: center;">Rs 418.00</span>
+                  </div>
+                </div>
+                <div style="margin-top: auto; display: flex; align-items: baseline; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.16);">
+                  <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">TOTAL</span>
+                  <span style="font: 600 24px/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: #EDF2EF;">Rs 4,318.00</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+                <div style="border-radius: var(--vq-r-lg, 16px); border: 1px solid rgba(75, 217, 155, 0.28); background: rgba(75, 217, 155, 0.1); padding: 14px 16px;">
+                  <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #4BD99B;">POSTED · 7 CHECKS PASSED</span>
+                  <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; font: 500 12px/1.5 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: #EDF2EF;">
+                    <span>Debits</span><span>Rs 4,318.00</span>
+                    <span>Credits</span><span>Rs 4,318.00</span>
+                  </div>
+                </div>
+                <div style="flex: 1; border-radius: var(--vq-r-lg, 16px); border: 1px solid rgba(255, 255, 255, 0.08); background: #101715; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0;">
+                  <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: #8B9A93;">EXPIRING IN 45 DAYS</span>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 500 12px/1.4 var(--vq-font-sans); color: #A8B4AE;"><span>Batch C-0417 · Insulin</span><span style="font: 600 11px/1 var(--vq-font-numeric); color: #F7C05A;">18 DAYS</span></div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 500 12px/1.4 var(--vq-font-sans); color: #A8B4AE;"><span>Batch V-1120 · Vitamin D</span><span style="font: 600 11px/1 var(--vq-font-numeric); color: #F7C05A;">31 DAYS</span></div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 500 12px/1.4 var(--vq-font-sans); color: #A8B4AE;"><span>Batch A-9043 · Syrup</span><span style="font: 600 11px/1 var(--vq-font-numeric); color: #F7C05A;">44 DAYS</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section><div class="vq-page">
+<section class="vq-section vq-section--tight" style="padding-block:var(--vq-space-10)">
+  <div class="vq-container">
+    <div class="vq-row vq-wrap vq-gap-8" style="justify-content:center;text-align:center">
+      <span class="vq-logo-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg> Running two live retail businesses today</span>
+      <span class="vq-logo-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg> 46 modules, 108 readings, no module fees</span>
+      <span class="vq-logo-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg> Double-entry accounting under every module</span>
+    </div>
+  </div>
+</section>
+<section id="problem" data-sec="problem" class="vq-section vq-section--alt">
+  <div class="vq-amb"><span class="vq-amb__grid"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow">The real cost</span>
+      <h2 class="vq-display">You didn't buy five systems.<br>You ended up with five systems.</h2>
+      <p class="vq-lede">POS here, accounting there, stock in Excel, orders in WhatsApp, purchases in
+        a notebook. Nothing agrees with anything. Month-end is archaeology.</p>
+    </div>
+
+    <div class="vq-grid vq-grid--3">
+      
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        <h3 class="vq-tile__title">The implementation never ends</h3>
+        <p class="vq-tile__body">Legacy ERP is sold as software and delivered as a project. Discovery, statement of work, configuration phase, change request. Somewhere in month four the business decides it is easier to keep using the spreadsheet.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg></span>
+        <h3 class="vq-tile__title">The template never fits</h3>
+        <p class="vq-tile__body">Every system worth having was built for a business that isn't yours. So you bend your business to fit the software, and you keep a second set of numbers on the side for the parts that never fit.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>
+        <h3 class="vq-tile__title">The numbers never agree</h3>
+        <p class="vq-tile__body">Your till says one thing, your stock sheet says another, your accountant reconstructs a third. By the time you know your real margin, the month it belonged to is over.</p>
+      </article>
+    </div>
+
+    <p class="vq-lede vq-mt-12 vq-reveal" style="max-width:62ch;color:var(--vq-text)">
+      The problem was never that you needed better software. It's that every system worth
+      having was built for a business that isn't yours.
+    </p>
+  </div>
+</section>
+<section class="vq-section" id="how">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">How it works</span>
+      <h2 class="vq-display">Three steps. One afternoon.</h2>
+    </div>
+    <div class="vq-steps-big">
+      
+      <div class="vq-bigstep vq-reveal is-active">
+        <h3 class="vq-h3">Describe</h3>
+        <p class="vq-tile__body vq-mt-3">Tell VenQore what your business does, in sentences. What you sell, how you buy, who works there, what your accountant asks for. No forms, no 40-field wizard, no discovery call.</p>
+      </div>
+      <div class="vq-bigstep vq-reveal">
+        <h3 class="vq-h3">Review your Blueprint</h3>
+        <p class="vq-tile__body vq-mt-3">You get a plan: the modules you need, the ones you don't, your fields in your words, your tax rules, your roles, your approval chain, your reports. Every line is editable. Nothing is a black box.</p>
+      </div>
+      <div class="vq-bigstep vq-reveal">
+        <h3 class="vq-h3">Go live</h3>
+        <p class="vq-tile__body vq-mt-3">You approve, and the system exists. Not a demo — your live system, with your data model, ready for your first transaction. Change it later by describing the change and approving the diff.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="vq-section vq-section--alt" id="blueprint">
+  <div class="vq-amb"><span class="vq-amb__aurora" style="opacity:.28"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Blueprint</span>
+      <h2 class="vq-display">Watch a business become a system.</h2>
+      <p class="vq-lede">These are real sentences from real businesses, and a real composition of
+        the modules VenQore ships. Pick one, or write your own at the top of the page.</p>
+    </div>
+    <div class="vq-reveal">
+<div class="vq-bp" data-bp>
+  <div class="vq-bp__bar">
+    <span class="vq-eyebrow" style="flex:none">Try one</span>
+    <div class="vq-bp__tabs" role="tablist">
+      <button class="vq-bp__tab" role="tab" data-bp-key="pharmacy"  aria-selected="true">Pharmacy</button>
+      <button class="vq-bp__tab" role="tab" data-bp-key="wholesale" aria-selected="false">Wholesale</button>
+      <button class="vq-bp__tab" role="tab" data-bp-key="cafe"      aria-selected="false">Café</button>
+      <button class="vq-bp__tab" role="tab" data-bp-key="hardware"  aria-selected="false">Hardware store</button>
+      <button class="vq-bp__tab" role="tab" data-bp-key="multi"     aria-selected="false">Multi-branch</button>
+    </div>
+  </div>
+  <div class="vq-bp__body">
+    <div class="vq-bp__in">
+      <span class="vq-eyebrow">What the owner typed</span>
+      <div class="vq-bp__prompt vq-mt-3" data-bp-prompt></div>
+      <div class="vq-steps" data-bp-steps></div>
+      <p class="vq-caption" style="margin-top:auto;padding-top:var(--vq-space-6);max-width:none">
+        Blueprint cannot post a transaction. It cannot alter the accounting engine. It cannot
+        change historical data. <b style="color:var(--vq-text-2)">It builds the room; it doesn't touch the safe.</b>
+      </p>
+    </div>
+    <div class="vq-bp__out">
+      <div class="vq-bp__result" data-bp-result></div>
+    </div>
+  </div>
+</div></div>
+    <div class="vq-row vq-wrap vq-gap-6 vq-mt-8 vq-reveal" style="justify-content:space-between">
+      <p class="vq-small vq-text-2" style="max-width:56ch">
+        Businesses change faster than implementations. Describe what's different — a second
+        branch, a wholesale price tier, a new channel — and Blueprint shows you a diff: what's
+        added, what changes, what's affected. Approve it or don't.
+      </p>
+      <a class="vq-link" href="blueprint.html">How Blueprint works <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+  </div>
+</section>
+<section class="vq-section vq-band-dark" id="assemble">
+  <div class="vq-amb"><span class="vq-amb__grain"></span></div>
+  <div class="vq-container vq-container--wide" style="position:relative">
+    <div class="vq-section-head vq-reveal" style="max-width:840px">
+      <span class="vq-eyebrow">Watch it happen</span>
+      <h2 class="vq-display">46 modules go in. Only yours come out.</h2>
+      <p class="vq-lede">This is the part nobody else can show you, because nobody else does it. Every module and every
+        dashboard card VenQore ships is on the screen. Watch which ones a pharmacy keeps — and which ones it never has
+        to look at again.</p>
+    </div>
+
+    <div class="vq-demo vq-reveal" data-assemble>
+      <div class="vq-demo__bar">
+        <div class="vq-demo__dots"><i></i><i></i><i></i></div>
+        <div class="vq-demo__url"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> app.venqore.com/build</div>
+        <span class="vq-demo__live">Assembling</span>
+      </div>
+      <div class="vq-demo__controls">
+        <span class="vq-eyebrow" style="flex:none">Build one for</span>
+        <div class="vq-demo__scroller" data-assemble-tabs role="tablist"></div>
+      </div>
+      <div class="vq-assemble">
+        <div class="vq-assemble__cloud" data-assemble-cloud></div>
+        <div class="vq-assemble__out" data-assemble-out></div>
+        <div class="vq-assemble__caption" data-assemble-caption></div>
+      </div>
+    </div>
+
+    <div class="vq-grid vq-grid--4 vq-mt-10">
+      
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi);color:#fff">Nothing is greyed out</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">A module your business does not need is absent, not locked behind an upsell badge. Your menus are short because your system is yours.</p></div>
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi);color:#fff">The cards follow the modules</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">Turn on batch tracking and an expiry card becomes available. Turn it off and the card is not offered — not shown empty.</p></div>
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi);color:#fff">You can change your mind</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">Describe what is different and approve the diff. Adding a branch is a sentence, not a change request.</p></div>
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi);color:#fff">Every version is snapshotted</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">The composition is versioned and reversible. Nothing about your books changes when your menus do.</p></div>
+    </div>
+  </div>
+</section>
+<section class="vq-section vq-band-dark" id="ledger">
+  <div class="vq-amb"><span class="vq-amb__beams"><i></i><i></i><i></i></span><span class="vq-amb__grain"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div class="vq-section-head vq-reveal" style="max-width:820px">
+      <span class="vq-eyebrow">Core Ledger</span>
+      <h2 class="vq-display">AI decides what your system looks like.<br>It never decides what your numbers say.</h2>
+      <p class="vq-lede">Every module — sales, purchases, stock, payroll, expenses — posts through one
+        double-entry engine. The AI can add a module, rename a field, rewire a workflow. It cannot
+        invent a balance. Debits equal credits, or the transaction does not post.</p>
+    </div>
+
+    <div class="vq-grid vq-grid--3">
+      
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg></span>
+        <h3 class="vq-tile__title">One engine, every module</h3>
+        <p class="vq-tile__body">There is no second version of the truth to reconcile, because there is no second version. Your P&amp;L is not a report someone generated — it is the same data your till produced, read from the other end.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <h3 class="vq-tile__title">Verified, not asserted</h3>
+        <p class="vq-tile__body">Balance integrity, cost of goods, tax handling, multi-currency, inter-branch movement, period closing, reversal integrity. Seven independent correctness checks, run on every release.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>
+        <h3 class="vq-tile__title">Auditable by design</h3>
+        <p class="vq-tile__body">Every posting traces back to the document, the user and the timestamp. Nothing is edited in place — corrections are reversals, the way accounting is supposed to work.</p>
+      </article>
+    </div>
+
+    <div class="vq-row vq-wrap vq-gap-6 vq-mt-12 vq-reveal" style="justify-content:space-between;align-items:center">
+      <p class="vq-h3" style="color:#fff;max-width:42ch">Most vendors ask you to trust that their accounting is right. We'd rather publish the check.</p>
+      <a class="vq-btn vq-btn--lg vq-btn--onDark" href="ledger.html">Read how it works <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+    </div>
+  </div>
+</section>
+<section class="vq-section">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Look closer</span>
+      <h2 class="vq-display">Six things worth seeing working.</h2>
+      <p class="vq-lede">Each of these is a live demo, not a screenshot. Click through them.</p>
+    </div>
+    <div class="vq-grid vq-grid--3">
+      
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="pos.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span>
+        <h3 class="vq-tile__title">The register</h3>
+        <p class="vq-tile__body">A till you compose yourself — seven starting points and a layout engine that stops your arrangement breaking.</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">7<small>layouts</small></span>
+          <span class="vq-link">See it live <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="documents.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>
+        <h3 class="vq-tile__title">Documents</h3>
+        <p class="vq-tile__body">Sales invoice to stock audit on one editor. A field that renders is a field that posts.</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">13<small>types</small></span>
+          <span class="vq-link">See it live <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="dashboard.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span>
+        <h3 class="vq-tile__title">The dashboard</h3>
+        <p class="vq-tile__body">Pick what you want to know. The card works out the smallest size it can be read at.</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">108<small>readings</small></span>
+          <span class="vq-link">See it live <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="smartcapture.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span>
+        <h3 class="vq-tile__title">SmartCapture</h3>
+        <p class="vq-tile__body">Photograph a bill, forward a screenshot, send a voice note. It comes back as a transaction.</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">11<small>seconds</small></span>
+          <span class="vq-link">See it live <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="reckoner.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg></span>
+        <h3 class="vq-tile__title">The Reckoner</h3>
+        <p class="vq-tile__body">One place a number can be defined — and your history survives every rename you ever make.</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">18<small>windows</small></span>
+          <span class="vq-link">See it live <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a class="vq-card vq-card--xl vq-fcard vq-reveal" href="vensynq.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg></span>
+        <h3 class="vq-tile__title">VenSynQ</h3>
+        <p class="vq-tile__body">One catalogue behind five channels. Orders in as sales, stock counted once, commission isolated.</p>
+        <div class="vq-fcard__meta">
+          <span class="vq-fcard__n">5<small>channels</small></span>
+          <span class="vq-link">See it live <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="vq-section" id="modules" data-sec="modules">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">What's inside</span>
+      <h2 class="vq-display">Everything the business actually runs on.<br>Nothing charged as a module.</h2>
+      <p class="vq-lede">Nine groups, 46 modules. Your Blueprint turns on the ones your
+        business needs and leaves the rest off — not greyed out with an upsell badge. Off.</p>
+    </div>
+
+    <div class="vq-grid vq-grid--3">
+      
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span>
+        <h3 class="vq-tile__title">Selling</h3>
+        <p class="vq-tile__body">Point of sale · Quotes &amp; invoices · Returns &amp; exchanges · Layaway &amp; credit sales · Multi-currency</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
+        <h3 class="vq-tile__title">Stock</h3>
+        <p class="vq-tile__body">Multi-location inventory · Batch, serial &amp; expiry · Stock transfers · Adjustments &amp; counts · Reorder points</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span>
+        <h3 class="vq-tile__title">Buying</h3>
+        <p class="vq-tile__body">Purchase orders · Supplier bills · Goods received notes · Landed cost · Supplier credit terms</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg></span>
+        <h3 class="vq-tile__title">Money</h3>
+        <p class="vq-tile__body">Double-entry ledger · Chart of accounts · Bank &amp; cash · Tax handling · Trial balance, P&amp;L, balance sheet</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <h3 class="vq-tile__title">People</h3>
+        <p class="vq-tile__body">7 roles out of the box · Custom permissions · Approval chains · Shift &amp; attendance · Commission</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></span>
+        <h3 class="vq-tile__title">Customers</h3>
+        <p class="vq-tile__body">Customer accounts · Credit limits · Loyalty · Statements · Payment history</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></span>
+        <h3 class="vq-tile__title">Branches</h3>
+        <p class="vq-tile__body">Unlimited locations · Per-branch stock, pricing and reporting · Inter-branch transfers · Consolidated view</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+        <h3 class="vq-tile__title">Intelligence</h3>
+        <p class="vq-tile__body">Dashboards · Custom reports · Signals (retention &amp; risk) · Export to anything</p>
+      </article>
+      <article class="vq-card vq-tile vq-reveal vq-card--interactive">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg></span>
+        <h3 class="vq-tile__title">Channels</h3>
+        <p class="vq-tile__body">VenSynQ multi-channel sync · WooCommerce · Amazon · eBay · TikTok Shop</p>
+      </article>
+    </div>
+
+    <div class="vq-center vq-mt-10 vq-reveal">
+      <a class="vq-btn vq-btn--lg vq-btn--secondary" href="features.html">See everything inside <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+    </div>
+  </div>
+</section>
+<section id="problem" data-sec="problem" class="vq-section vq-section--alt">
+  <div class="vq-container vq-container--wide">
+    <div class="vq-section-head vq-section-head--center vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Day one</span>
+      <h2 class="vq-display">This is what a pharmacy gets.</h2>
+      <p class="vq-lede">Not a template with the logo swapped. The batch and expiry card is there because
+        the owner said "expiry"; a hardware store's Blueprint puts unit conversion in that slot instead.</p>
+    </div>
+    <div class="vq-reveal">
+<div class="vq-app">
+  <div class="vq-app__bar">
+    <div class="vq-app__dots"><i></i><i></i><i></i></div>
+    <div class="vq-app__omni"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Ask your business a question…</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span class="vq-badge vq-badge--accent">Pharmacy · 2 branches</span>
+    </div>
+  </div>
+  <div class="vq-app__body">
+    <nav class="vq-app__rail" aria-label="Product navigation (illustration)">
+      <span class="vq-app__nav" aria-current="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> Dashboard</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Sell</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg> Stock</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Buy</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg> Money</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> People</span>
+      <span class="vq-app__nav"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> Reports</span>
+      <span class="vq-app__nav" style="margin-top:auto"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2"/><circle cx="12" cy="12" r="3"/></svg> Settings</span>
+    </nav>
+    <div class="vq-app__main">
+      <div class="vq-app__title">
+        <div><h3 class="vq-h3" style="font-size:19px">Today</h3>
+          <span class="vq-caption">Wednesday, 4 September</span></div>
+        <span class="vq-status vq-status--ok"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Ledger balanced</span>
+      </div>
+      <div class="vq-cards">
+
+        <div class="vq-dcard vq-dcard--accent c5 r2">
+          <div class="vq-stat">
+            <span class="vq-stat__label">Sales today</span>
+            <span class="vq-stat__value">184.2<span class="vq-stat__unit">k PKR</span></span>
+          </div>
+          <div class="vq-row vq-gap-2">
+            <span class="vq-delta">▲ 8.2%</span>
+            <span class="vq-stat__note">vs last Wednesday</span>
+          </div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Gross margin</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">31.4<span class="vq-stat__unit">%</span></span>
+          </div>
+          <div class="vq-row vq-gap-2">
+            <span class="vq-delta vq-delta--down">▼ 1.1pt</span>
+            <span class="vq-stat__note">vs last month</span>
+          </div>
+        </div>
+
+        <div class="vq-dcard c3 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Expiring ≤30 days</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">27<span class="vq-stat__unit">batches</span></span>
+          </div>
+          <span class="vq-status vq-status--warn"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Review</span>
+        </div>
+
+        <div class="vq-dcard c7 r3">
+          <div class="vq-dcard__head">
+            <span class="vq-dcard__title">Sales, last 14 days</span>
+            <span class="vq-badge">Branch: all</span>
+          </div>
+          <div style="margin-top:auto"><div class="vq-chart" style="height:108px">
+    <svg viewBox="0 0 320 108" preserveAspectRatio="none" role="img" aria-label="Trend, last 14 periods">
+      <defs><linearGradient id="vqFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--vq-series-1-ink)" stop-opacity=".22"/>
+        <stop offset="100%" stop-color="var(--vq-series-1-ink)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path class="area" d="M0.0 101.7 L24.6 91.8 L49.2 105.0 L73.8 78.7 L98.5 68.8 L123.1 82.0 L147.7 58.9 L172.3 65.5 L196.9 45.8 L221.5 52.4 L246.2 32.6 L270.8 42.5 L295.4 16.2 L320.0 3.0 L320 108 L0 108 Z"/><path class="line" d="M0.0 101.7 L24.6 91.8 L49.2 105.0 L73.8 78.7 L98.5 68.8 L123.1 82.0 L147.7 58.9 L172.3 65.5 L196.9 45.8 L221.5 52.4 L246.2 32.6 L270.8 42.5 L295.4 16.2 L320.0 3.0"/>
+    </svg></div></div>
+        </div>
+
+        <div class="vq-dcard c5 r3">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Top lines by margin</span></div>
+          <div class="vq-mt-4"><div class="vq-rank">
+  <div class="vq-rank__row"><span class="vq-rank__name">Panadol 500mg</span><span class="vq-rank__val">41.2%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:92%"></span></span>
+  </div>
+  <div class="vq-rank__row"><span class="vq-rank__name">Augmentin 625</span><span class="vq-rank__val">33.8%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:76%"></span></span>
+  </div>
+  <div class="vq-rank__row"><span class="vq-rank__name">Surgical masks</span><span class="vq-rank__val">28.1%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:63%"></span></span>
+  </div>
+  <div class="vq-rank__row"><span class="vq-rank__name">Glucose strips</span><span class="vq-rank__val">19.4%</span>
+    <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:44%"></span></span>
+  </div></div></div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Cash vs card</span></div>
+          <div style="margin-top:auto"><div class="vq-chart" style="height:78px">
+    <svg viewBox="0 0 260 78" preserveAspectRatio="none" role="img" aria-label="Comparison by period"><line class="grid" x1="0" x2="260" y1="21.12" y2="21.12"/><line class="grid" x1="0" x2="260" y1="42.24" y2="42.24"/><line class="grid" x1="0" x2="260" y1="64" y2="64"/><rect class="bar" x="0.0" y="27.1" width="32.0" height="36.9"/><rect class="bar" x="38.0" y="19.2" width="32.0" height="44.8"/><rect class="bar" x="76.0" y="30.6" width="32.0" height="33.4"/><rect class="bar" x="114.0" y="11.3" width="32.0" height="52.7"/><rect class="bar" x="152.0" y="22.7" width="32.0" height="41.3"/><rect class="bar is-on" x="190.0" y="6.0" width="32.0" height="58.0"/><rect class="bar" x="228.0" y="13.0" width="32.0" height="51.0"/><text class="lbl" x="16.0" y="76" text-anchor="middle">M</text><text class="lbl" x="54.0" y="76" text-anchor="middle">T</text><text class="lbl" x="92.0" y="76" text-anchor="middle">W</text><text class="lbl" x="130.0" y="76" text-anchor="middle">T</text><text class="lbl" x="168.0" y="76" text-anchor="middle">F</text><text class="lbl" x="206.0" y="76" text-anchor="middle">S</text><text class="lbl" x="244.0" y="76" text-anchor="middle">S</text></svg></div></div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">Owed to you</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">612<span class="vq-stat__unit">k</span></span>
+            <span class="vq-stat__note">Rs 84k over 60 days</span>
+          </div>
+        </div>
+
+        <div class="vq-dcard c4 r2">
+          <div class="vq-dcard__head"><span class="vq-dcard__title">You owe</span></div>
+          <div class="vq-stat">
+            <span class="vq-stat__value vq-stat__value--sm">(438)<span class="vq-stat__unit">k</span></span>
+            <span class="vq-stat__note">4 distributors · next due Fri</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div></div>
+    <div class="vq-grid vq-grid--4 vq-mt-10">
+      
+      <div class="vq-reveal">
+        <h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">Cards are chosen, not shipped</h3>
+        <p class="vq-caption vq-mt-2" style="max-width:none">A cashier is never offered the P&amp;L card. No products recorded yet means no stock cards.</p>
+      </div>
+      <div class="vq-reveal">
+        <h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">Numbers step down, never clip</h3>
+        <p class="vq-caption vq-mt-2" style="max-width:none">Currency drops first, then decimals, then magnitude. Full precision belongs in the ledger.</p>
+      </div>
+      <div class="vq-reveal">
+        <h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">Growth against zero is null</h3>
+        <p class="vq-caption vq-mt-2" style="max-width:none">Not +100%. A number that means nothing is not displayed as a number that means something.</p>
+      </div>
+      <div class="vq-reveal">
+        <h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">Every chart has a table</h3>
+        <p class="vq-caption vq-mt-2" style="max-width:none">It is the accessibility answer and the "let me check that" answer at the same time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="vq-section" id="presets">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Presets</span>
+      <h2 class="vq-display">Or start from a system that already fits.</h2>
+      <p class="vq-lede">Six starting points, each one a real Blueprint. Pick the closest — you can
+        change everything after.</p>
+    </div>
+    <div class="vq-grid vq-grid--3">
+      
+      <a class="vq-card vq-tile vq-reveal" href="onboarding.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg></span>
+        <h3 class="vq-tile__title">Retail shop</h3>
+        <p class="vq-tile__body">Fast checkout, real margins, stock that's right at closing time.</p>
+        <span class="vq-link vq-mt-3">Start here <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </a>
+      <a class="vq-card vq-tile vq-reveal" href="onboarding.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span>
+        <h3 class="vq-tile__title">Wholesale &amp; distribution</h3>
+        <p class="vq-tile__body">Credit terms, price tiers, and knowing which customer stopped ordering.</p>
+        <span class="vq-link vq-mt-3">Start here <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </a>
+      <a class="vq-card vq-tile vq-reveal" href="onboarding.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
+        <h3 class="vq-tile__title">Pharmacy</h3>
+        <p class="vq-tile__body">Batch and expiry tracking that won't let an expired item ring up.</p>
+        <span class="vq-link vq-mt-3">Start here <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </a>
+      <a class="vq-card vq-tile vq-reveal" href="onboarding.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1z"/><path d="M6 2v2"/><path d="M17 9h1a3 3 0 0 1 0 6h-1"/></svg></span>
+        <h3 class="vq-tile__title">Restaurant &amp; café</h3>
+        <p class="vq-tile__body">Recipes that draw down ingredients, not just plates sold.</p>
+        <span class="vq-link vq-mt-3">Start here <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </a>
+      <a class="vq-card vq-tile vq-reveal" href="onboarding.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+        <h3 class="vq-tile__title">Hardware &amp; auto parts</h3>
+        <p class="vq-tile__body">Deep catalogues, units that convert, and a margin you can actually see.</p>
+        <span class="vq-link vq-mt-3">Start here <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </a>
+      <a class="vq-card vq-tile vq-reveal" href="onboarding.html">
+        <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></span>
+        <h3 class="vq-tile__title">Multi-branch</h3>
+        <p class="vq-tile__body">One truth across every location, without a nightly sync.</p>
+        <span class="vq-link vq-mt-3">Start here <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+<section id="problem" data-sec="problem" class="vq-section vq-section--alt">
+  <div class="vq-amb"><span class="vq-amb__aurora" style="opacity:.22"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">AI that does the work</span>
+      <h2 class="vq-display">The AI isn't a chat box in the corner.<br>It's how the work gets done.</h2>
+    </div>
+
+    <div class="vq-grid vq-grid--2">
+      
+      <article class="vq-card vq-card--xl vq-tile vq-reveal vq-card--interactive">
+        <div class="vq-row" style="justify-content:space-between">
+          <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>
+          <span class="vq-badge vq-badge--success"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Live</span>
+        </div>
+        <h3 class="vq-tile__title">Blueprint</h3>
+        <p class="vq-tile__body">Describe your business. Approve the plan. The system exists.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal vq-card--interactive">
+        <div class="vq-row" style="justify-content:space-between">
+          <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span>
+          <span class="vq-badge vq-badge--success"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Live</span>
+        </div>
+        <h3 class="vq-tile__title">SmartCapture</h3>
+        <p class="vq-tile__body">The order came in as a voice note. It leaves as a sale. Photo, screenshot or audio in — a structured, posted transaction out.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal vq-card--interactive">
+        <div class="vq-row" style="justify-content:space-between">
+          <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6V2H8"/><rect width="16" height="12" x="4" y="6" rx="2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M15 11v2"/><path d="M9 11v2"/></svg></span>
+          <span class="vq-badge vq-badge--success"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Live</span>
+        </div>
+        <h3 class="vq-tile__title">Vena</h3>
+        <p class="vq-tile__body">Ask your business a question in plain language. "Which customers owe me more than 60 days?" is a sentence, not a report builder.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-tile vq-reveal vq-card--interactive">
+        <div class="vq-row" style="justify-content:space-between">
+          <span class="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg></span>
+          <span class="vq-badge vq-badge--success"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Live</span>
+        </div>
+        <h3 class="vq-tile__title">Signals</h3>
+        <p class="vq-tile__body">Know a customer is leaving while you can still keep them. Retention and risk intelligence that runs on statistics, with or without an AI key.</p>
+      </article>
+    </div>
+
+    <div class="vq-card vq-card--xl vq-mt-8 vq-reveal">
+      <div class="vq-row vq-wrap vq-gap-8" style="justify-content:space-between">
+        <div style="max-width:46ch">
+          <span class="vq-eyebrow vq-eyebrow--accent">VenSynQ</span>
+          <h3 class="vq-h2 vq-mt-3">Sell in five places. Count your stock once.</h3>
+          <p class="vq-tile__body vq-mt-4">One catalogue behind WooCommerce, Amazon, eBay and TikTok Shop.
+            Orders land as sales, stock moves once, commission is isolated so your margin is the real one.
+            Amazon SP-API approved.</p>
+          <a class="vq-link vq-mt-5" href="features.html#channels">See the channel work <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+        <div style="flex:1;min-width:260px;max-width:380px;align-self:center"><div class="vq-chart" style="height:96px">
+    <svg viewBox="0 0 340 96" preserveAspectRatio="none" role="img" aria-label="Trend, last 12 periods">
+      <defs><linearGradient id="vqFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--vq-series-1-ink)" stop-opacity=".22"/>
+        <stop offset="100%" stop-color="var(--vq-series-1-ink)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path class="area" d="M0.0 93.0 L30.9 83.4 L61.8 88.2 L92.7 68.9 L123.6 75.3 L154.5 56.0 L185.5 60.9 L216.4 38.4 L247.3 46.4 L278.2 23.9 L309.1 28.7 L340.0 3.0 L340 96 L0 96 Z"/><path class="line" d="M0.0 93.0 L30.9 83.4 L61.8 88.2 L92.7 68.9 L123.6 75.3 L154.5 56.0 L185.5 60.9 L216.4 38.4 L247.3 46.4 L278.2 23.9 L309.1 28.7 L340.0 3.0"/>
+    </svg></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="vq-section">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Proof</span>
+      <h2 class="vq-display">We'd rather show you the tests than a wall of logos.</h2>
+      <p class="vq-lede">We are early. Where a normal site puts "trusted by 10,000 businesses", we put
+        the checks. Buyers of financial software respond to rigour more than popularity.</p>
+    </div>
+    <div class="vq-grid vq-grid--4">
+      <div class="vq-card vq-card--xl vq-card--accent vq-stat vq-reveal">
+        <span class="vq-stat__label">Correctness checks</span>
+        <span class="vq-stat__value"><span data-count="7">7</span><span class="vq-stat__unit">/ 7 passing</span></span>
+        <span class="vq-stat__note">Balance, COGS, tax, currency, inter-branch, close, reversal</span>
+      </div>
+      
+      <div class="vq-card vq-card--xl vq-stat vq-reveal">
+        <span class="vq-stat__label">Live businesses</span>
+        <span class="vq-stat__value"><span data-count="2" data-suffix="">2</span></span>
+        <span class="vq-stat__note">Running on it daily — including the shop it was built for</span>
+      </div>
+      <div class="vq-card vq-card--xl vq-stat vq-reveal">
+        <span class="vq-stat__label">Passing tests</span>
+        <span class="vq-stat__value"><span data-count="1610" data-suffix="">1610</span></span>
+        <span class="vq-stat__note">11,000+ assertions, run on every release</span>
+      </div>
+      <div class="vq-card vq-card--xl vq-stat vq-reveal">
+        <span class="vq-stat__label">Modules to compose</span>
+        <span class="vq-stat__value"><span data-count="46" data-suffix="">46</span></span>
+        <span class="vq-stat__note">108 readings, 13 document types, 7 register layouts</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="problem" data-sec="problem" class="vq-section vq-section--alt">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow">The alternatives</span>
+      <h2 class="vq-display">What you're choosing between.</h2>
+    </div>
+    <div class="vq-table-wrap vq-reveal">
+      <table class="vq-table vq-table--compare">
+        <colgroup><col><col><col><col><col class="is-us"></colgroup>
+        <thead><tr>
+          <th></th><th>Spreadsheets + POS</th><th>Odoo / Zoho</th><th>NetSuite / SAP</th>
+          <th style="color:var(--vq-accent-text)">VenQore</th>
+        </tr></thead>
+        <tbody>
+        <tr>
+          <td class="vq-table__row-head">Time to running</td>
+          <td class="vq-text-3">Already there</td><td class="vq-text-3">4–12 weeks</td><td class="vq-text-3">3–9 months</td>
+          <td class="vq-table__win">An afternoon</td></tr><tr>
+          <td class="vq-table__row-head">Who configures it</td>
+          <td class="vq-text-3">You, forever</td><td class="vq-text-3">A partner firm</td><td class="vq-text-3">A partner firm</td>
+          <td class="vq-table__win">AI, then you</td></tr><tr>
+          <td class="vq-table__row-head">Implementation cost</td>
+          <td class="vq-text-3">—</td><td class="vq-text-3">Consultant fees</td><td class="vq-text-3">Substantial project cost</td>
+          <td class="vq-table__win">None</td></tr><tr>
+          <td class="vq-table__row-head">Fits your business</td>
+          <td class="vq-text-3">You fit it</td><td class="vq-text-3">Configured to fit</td><td class="vq-text-3">Configured to fit</td>
+          <td class="vq-table__win">Built to fit</td></tr><tr>
+          <td class="vq-table__row-head">One source of truth</td>
+          <td class="vq-text-3">No</td><td class="vq-text-3">Yes</td><td class="vq-text-3">Yes</td>
+          <td class="vq-table__win">Yes</td></tr><tr>
+          <td class="vq-table__row-head">Double-entry everywhere</td>
+          <td class="vq-text-3">No</td><td class="vq-text-3">Yes</td><td class="vq-text-3">Yes</td>
+          <td class="vq-table__win">Yes</td></tr><tr>
+          <td class="vq-table__row-head">Changing it later</td>
+          <td class="vq-text-3">Rebuild the sheet</td><td class="vq-text-3">Change request</td><td class="vq-text-3">Change request</td>
+          <td class="vq-table__win">Describe the change</td></tr><tr>
+          <td class="vq-table__row-head">Starting price</td>
+          <td class="vq-text-3">Free-ish</td><td class="vq-text-3">Per-user, per-module</td><td class="vq-text-3">Enterprise</td>
+          <td class="vq-table__win">$18/month</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="vq-lede vq-mt-8 vq-reveal" style="max-width:64ch;color:var(--vq-text)">
+      If you already have a working ERP and a team who knows it, don't switch. This is for the
+      business that never got past the quote.
+    </p>
+  </div>
+</section>
+<section class="vq-section">
+  <div class="vq-container">
+    <div class="vq-section-head vq-section-head--center vq-reveal">
+      <h2 class="vq-display">Priced like software. Not like a project.</h2>
+      <p class="vq-lede">Every plan includes the full system. Plans differ by scale, not by unlocking
+        the parts you need.</p>
+    </div>
+    <div class="vq-grid vq-grid--4">
+      
+      <div class="vq-plan vq-reveal">
+        
+        <h3 class="vq-plan__name">Counter</h3>
+        <p class="vq-plan__for">One person, one counter, everything in one place.</p>
+        <div class="vq-plan__price"><span class="vq-plan__amt">$18</span><span class="vq-plan__per">/month</span></div>
+        <ul class="vq-plan__list"><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>1 branch, 1 user</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>The complete system, nothing withheld</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Core Ledger + every financial report</span></li></ul>
+        <a href="pricing.html" class="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Choose Counter</a>
+      </div>
+      <div class="vq-plan vq-reveal">
+        
+        <h3 class="vq-plan__name">Starter</h3>
+        <p class="vq-plan__for">A shop with a couple of people on the till.</p>
+        <div class="vq-plan__price"><span class="vq-plan__amt">$36</span><span class="vq-plan__per">/month</span></div>
+        <ul class="vq-plan__list"><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>1 branch, up to 3 users</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Everything in Counter</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>SmartCapture, 20 pages a month</span></li></ul>
+        <a href="pricing.html" class="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Choose Starter</a>
+      </div>
+      <div class="vq-plan vq-plan--featured vq-reveal">
+        <span class="vq-plan__flag">Most businesses start here</span>
+        <h3 class="vq-plan__name">Growth</h3>
+        <p class="vq-plan__for">A business with more than one of something.</p>
+        <div class="vq-plan__price"><span class="vq-plan__amt">$63</span><span class="vq-plan__per">/month</span></div>
+        <ul class="vq-plan__list"><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Up to 3 branches, 10 users</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Multi-branch stock &amp; consolidated reporting</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Signals, Vena, approval chains</span></li></ul>
+        <a href="pricing.html" class="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Choose Growth</a>
+      </div>
+      <div class="vq-plan vq-reveal">
+        
+        <h3 class="vq-plan__name">Scale</h3>
+        <p class="vq-plan__for">Multi-location, selling on more than one channel.</p>
+        <div class="vq-plan__price"><span class="vq-plan__amt">$129</span><span class="vq-plan__per">/month</span></div>
+        <ul class="vq-plan__list"><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>10 branches, 50 users</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>VenSynQ multi-channel sync</span></li><li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Full API, custom reports</span></li></ul>
+        <a href="pricing.html" class="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Choose Scale</a>
+      </div>
+    </div>
+    <div class="vq-center vq-mt-8 vq-reveal">
+      <a class="vq-link" href="pricing.html">See full pricing <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+  </div>
+</section>
+<section id="problem" data-sec="problem" class="vq-section vq-section--alt">
+  <div class="vq-container vq-container--narrow">
+    <div class="vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Why this exists</span>
+      <div class="vq-quote vq-mt-6">
+        <p>I built this for my father's shop first. Everything since has been the same
+        question, asked louder: why does software this important still arrive as a six-month project?</p>
+      </div>
+      <p class="vq-lede vq-mt-8">I'm not going to tell you thousands of businesses use VenQore. I'll tell you
+        it's tested harder than most software that says they do — and that the person who wrote it answers
+        the support email. That's a real trade-off. If it doesn't work for you, it's better we both know now.</p>
+      <div class="vq-row vq-gap-4 vq-mt-8">
+        <div style="width:44px;height:44px;border-radius:var(--vq-r-full);background:var(--vq-accent-quiet);border:1px solid var(--vq-accent-quiet-line);display:grid;place-items:center;color:var(--vq-accent-text);font-family:var(--vq-font-numeric);font-weight:600">AH</div>
+        <div>
+          <div class="vq-small" style="font-weight:var(--vq-fw-semi)">Abdullah Hashmi</div>
+          <div class="vq-caption">Founder · Okara, Pakistan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="vq-section">
+  <div class="vq-container vq-container--narrow">
+    <div class="vq-section-head vq-reveal"><h2 class="vq-display">Questions people actually ask.</h2></div>
+    <div class="vq-faq vq-reveal">
+      
+      <div class="vq-faq__item">
+        <button class="vq-faq__q" type="button" aria-expanded="false">Is my accounting safe if an AI configured it?<span class="vq-faq__sign"></span></button>
+        <div class="vq-faq__a"><div><p>The AI composes your system — which modules run, what your fields are called, who approves what. It never touches the accounting engine. Debits equal credits or the transaction does not post, and that rule is in the engine, not in a prompt.</p></div></div>
+      </div>
+      <div class="vq-faq__item">
+        <button class="vq-faq__q" type="button" aria-expanded="false">What if the Blueprint gets it wrong?<span class="vq-faq__sign"></span></button>
+        <div class="vq-faq__a"><div><p>You see it before anything is real. Every line is editable, nothing posts to your books until you approve it, and every applied configuration keeps a version snapshot you can roll back.</p></div></div>
+      </div>
+      <div class="vq-faq__item">
+        <button class="vq-faq__q" type="button" aria-expanded="false">Can I change my system later?<span class="vq-faq__sign"></span></button>
+        <div class="vq-faq__a"><div><p>Describe the change. Blueprint shows you a diff — what is added, what changes, what is affected — and you approve it or you don't. Adding a branch is a sentence, not a change request.</p></div></div>
+      </div>
+      <div class="vq-faq__item">
+        <button class="vq-faq__q" type="button" aria-expanded="false">Do you charge to import my data, or to leave?<span class="vq-faq__sign"></span></button>
+        <div class="vq-faq__a"><div><p>No, and no. Import is included. Export everything, any time, in a format your next system can read.</p></div></div>
+      </div>
+      <div class="vq-faq__item">
+        <button class="vq-faq__q" type="button" aria-expanded="false">How big is the team?<span class="vq-faq__sign"></span></button>
+        <div class="vq-faq__a"><div><p>One founder, currently. That is a real trade-off: you get someone who answers your email personally and ships weekly, and you don't get a 40-person support org. If that trade doesn't work for you, it's better we both know now.</p></div></div>
+      </div>
+      <div class="vq-faq__item">
+        <button class="vq-faq__q" type="button" aria-expanded="false">What does it cost to get started?<span class="vq-faq__sign"></span></button>
+        <div class="vq-faq__a"><div><p>Counter is $18 a month for a single user, and it is the whole system — nothing is withheld. There is no implementation fee, no setup fee, no module fee and no consultant — which is the actual comparison, not the subscription line.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section></div>
+</main>
+
+  <footer class="vq-footer">
+    <div class="footer-bg"></div>
+    
+    <div class="vq-container" style="position:relative;z-index:10;padding-bottom:var(--vq-space-16)">
+      <div class="mesh-gradient-card" style="border-radius:var(--vq-r-2xl);padding:clamp(32px,5vw,56px);border:1px solid rgb(255 255 255 / .10);box-shadow:var(--vq-elev-3)">
+        <div style="max-width:36rem">
+          <h2 class="vq-h2" style="color:#fff">Describe your business. See what it becomes.</h2>
+          <p class="vq-lede vq-mt-3" style="color:rgb(255 255 255 / .74)">Free to try. No card. You'll see your whole system before you decide anything.</p>
+          <form class="vq-row vq-wrap vq-gap-3 vq-mt-8" data-waitlist style="max-width:520px">
+            <input type="email" class="vq-input" required placeholder="you@company.com" aria-label="Work email"
+                   style="flex:1 1 240px;background:rgb(0 0 0 / .35);border-color:rgb(255 255 255 / .16);color:#fff">
+            <button type="submit" class="vq-btn vq-btn--lg vq-btn--light">Start building</button>
+          </form>
+          <p class="vq-caption vq-mt-4" style="color:rgb(255 255 255 / .55)">Takes about four minutes. Nothing goes live until you approve it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="vq-container" style="position:relative;z-index:10;padding-bottom:var(--vq-space-20)">
+      <div style="display:flex;flex-direction:column;gap:var(--vq-space-12)" class="vq-foot-cols">
+        <div style="display:grid;gap:var(--vq-space-8);grid-template-columns:repeat(auto-fit,minmax(150px,1fr));flex:1">
+          <div>
+            <h3 class="vq-footer__head">Product</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="blueprint.html">Blueprint</a></li>
+              <li><a href="pos.html">The register</a></li>
+              <li><a href="documents.html">Documents</a></li>
+              <li><a href="dashboard.html">Dashboard</a></li>
+              <li><a href="smartcapture.html">SmartCapture</a></li>
+              <li><a href="reckoner.html">The Reckoner</a></li>
+              <li><a href="ledger.html">Core Ledger</a></li>
+              <li><a href="vensynq.html">VenSynQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Company</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="about.html">About</a></li>
+              <li><a href="contact.html">Contact</a></li>
+              <li><a href="/blog">Blog</a></li>
+              <li><a href="/roadmap">Roadmap</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Resources</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/docs">Documentation</a></li>
+              <li><a href="/help">Help centre</a></li>
+              <li><a href="onboarding.html">See a build</a></li>
+              <li><a href="signin.html">Sign in</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Social</h3>
+            <div style="margin-top:var(--vq-space-4);display:flex;gap:var(--vq-space-3)">
+              <a class="vq-footer__social" href="#" aria-label="Facebook"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="X"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="LinkedIn"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:var(--vq-space-12);padding-top:var(--vq-space-8);border-top:1px solid rgb(255 255 255 / .08);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vq-space-4);padding-bottom:14vw">
+        <p class="vq-small" style="color:var(--vq-ink-500);max-width:none">© 2026 VenQore, Inc. The AI ERP builder.</p>
+        <div style="display:flex;gap:var(--vq-space-6)">
+          <a class="vq-small" href="/terms">Terms</a>
+          <a class="vq-small" href="/privacy">Privacy</a>
+          <a class="vq-small" href="/cookies">Cookies</a>
+        </div>
+      </div>
+
+      <div class="watermark-wrapper"><span>VenQore</span></div>
+    </div>
+  </footer>
+<script src="assets/venqore.js" defer></script>
+<script src="assets/demos.js" defer></script>
+
+</body>
+</html>

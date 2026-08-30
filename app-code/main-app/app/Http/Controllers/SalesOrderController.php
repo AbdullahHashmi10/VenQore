@@ -110,21 +110,57 @@ class SalesOrderController extends Controller
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:parties,id',
             'order_date' => 'required|date',
+            /* The header money. Every one of these has been on the screen since
+               the screen existed and none of them has ever been saved: an order
+               could be discounted, taxed and carriage-charged and come back
+               tomorrow at list price. */
+            'reference'          => 'nullable|string|max:100',
+            'delivery_date'      => 'nullable|date',
+            'payment_terms'      => 'nullable|string|max:40',
+            'notes'              => 'nullable|string',
+            'discount'           => 'nullable|numeric|min:0',
+            'tax'                => 'nullable|numeric|min:0',
+            'tax_rate'           => 'nullable|numeric|min:0|max:100',
+            'delivery_charge'    => 'nullable|numeric|min:0',
+            'extra_charge_value' => 'nullable|numeric|min:0',
+            'extra_charge_label' => 'nullable|string|max:120',
+            /* A deposit taken when the order is placed. Real money, and until
+               now there was nowhere to put it. */
+            'amount_paid'        => 'nullable|numeric|min:0',
+            'payment_method'     => 'nullable|in:cash,credit',
+            'payment_account_id' => 'nullable',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:fixed,percent',
+            'items.*.tax_rate' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        $order = DB::transaction(function () use ($validated) {
+        $order = DB::transaction(function () use ($validated, $request) {
             $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id;
             $customerName = Party::find($customerId)->name;
 
             $order = SalesOrder::create([
                 'order_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
                 'customer_id' => $customerId,
+                'party_id' => $customerId,
                 'customer_name' => $customerName,
                 'order_date' => $validated['order_date'],
+                'delivery_date' => $validated['delivery_date'] ?? null,
+                'reference' => $validated['reference'] ?? null,
+                'payment_terms' => $validated['payment_terms'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'discount' => $validated['discount'] ?? 0,
+                'tax' => $validated['tax'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 0,
+                'delivery_charge' => $validated['delivery_charge'] ?? 0,
+                'extra_charge_value' => $validated['extra_charge_value'] ?? 0,
+                'extra_charge_label' => $validated['extra_charge_label'] ?? null,
+                'amount_paid' => $validated['amount_paid'] ?? 0,
+                'payment_method' => $validated['payment_method'] ?? null,
+                'payment_account_id' => $validated['payment_account_id'] ?? null,
                 'status' => 'confirmed',
                 'user_id' => auth()->id(),
                 'total_amount' => 0
@@ -132,8 +168,16 @@ class SalesOrderController extends Controller
 
             $totalAmount = 0;
 
-            foreach ($validated['items'] as $item) {
-                $subtotal = $item['unit_price'] * $item['quantity'];
+            foreach ($validated['items'] as $index => $item) {
+                $gross = $item['unit_price'] * $item['quantity'];
+                /* `discount` arrives already resolved to money — every screen in
+                   this app converts a percentage before it sends. Re-applying
+                   the percentage here turned a 10% discount on a 1,000 line
+                   into a 1,000 discount and the line came out free. The type is
+                   kept as a label so the screen can show it the way it was
+                   entered. */
+                $lineDiscount = (float) ($item['discount'] ?? 0);
+                $subtotal = max(0, $gross - $lineDiscount);
                 $totalAmount += $subtotal;
 
                 $totalStock = \App\Models\Stock::where('product_id', $item['product_id'])->sum('quantity');
@@ -145,8 +189,14 @@ class SalesOrderController extends Controller
                 $available = $totalStock - $currentlyReserved;
                 
                 if ($available < $item['quantity']) {
+                    /* Keyed to the line that actually failed. It was hardcoded to
+                       the first one, so a shortage on line seven lit up line one. */
                     throw \Illuminate\Validation\ValidationException::withMessages([
-                        'items.0.quantity' => ['Insufficient stock available.']
+                        "items.{$index}.quantity" => [
+                            'Only ' . max(0, $available) . ' of '
+                            . (\App\Models\Product::find($item['product_id'])?->name ?? 'this item')
+                            . ' is free to reserve.',
+                        ],
                     ]);
                 }
 
@@ -157,13 +207,66 @@ class SalesOrderController extends Controller
                     'product_id' => $item['product_id'],
                     'quantity_requested' => $item['quantity'],
                     'quantity_reserved' => $reservedAmount,
+                    'qty' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
-                    'subtotal' => $subtotal
+                    'discount' => $lineDiscount,
+                    /* Stored as 'fixed' because `discount` above is money, not a
+                       percentage. Keeping the operator's 'percent' label beside
+                       a resolved amount was a delayed fault: the line saved
+                       correctly, then re-opened showing 100 with the % toggle
+                       lit — a 100% discount — and the next save zeroed it. */
+                    'discount_type' => 'fixed',
+                    'tax_rate' => $item['tax_rate'] ?? 0,
+                    'subtotal' => $subtotal,
+                    'line_total' => $subtotal,
                 ]);
             }
 
-            $order->update(['total_amount' => $totalAmount]);
-            
+            /* The goods, less the order discount, plus tax and carriage — the
+               figure the customer was actually quoted, rather than the sum of
+               the line subtotals with everything else thrown away. */
+            $net = max(0, $totalAmount - (float) ($validated['discount'] ?? 0));
+            $grand = round(
+                $net
+                + (float) ($validated['tax'] ?? 0)
+                + (float) ($validated['delivery_charge'] ?? 0)
+                + (float) ($validated['extra_charge_value'] ?? 0),
+                2
+            );
+            $order->update(['total_amount' => $grand]);
+
+            /* A deposit is money that has actually moved, so it goes to the
+               ledger like any other: the till goes up, and what the shop owes
+               the customer in goods goes up with it. */
+            $paid = round(min(max(0, (float) ($validated['amount_paid'] ?? 0)), $grand), 2);
+            if ($paid > 0.0001) {
+                $accounting = app(\App\Engines\AccountingService::class);
+                $cash = null;
+                if (! empty($validated['payment_account_id'])) {
+                    $cash = \App\Models\Account::find($validated['payment_account_id']);
+                }
+                $cash = $cash ?: $accounting->getAccountByCode('1000', 'Cash in Hand', 'asset');
+                /* Its own code. 2050 is already Customer Credit Balances — money
+                    owed back from a refund — and a deposit against an undelivered
+                    order is a different obligation. Sharing one line makes the
+                    balance impossible to reconcile. */
+                $advances = $accounting->getAccountByCode('2060', 'Customer Advances', 'liability');
+
+                $entry = $accounting->createEntry([
+                    'date' => $validated['order_date'],
+                    'reference_type' => 'sales_order_advance',
+                    'reference' => $order->id,
+                    'description' => "Advance on order #{$order->order_number}",
+                    'party_id' => $customerId,
+                ], [
+                    ['account_id' => $cash->id, 'debit' => $paid, 'credit' => 0,
+                     'description' => "Advance received on #{$order->order_number}", 'party_id' => $customerId],
+                    ['account_id' => $advances->id, 'debit' => 0, 'credit' => $paid,
+                     'description' => "Held against order #{$order->order_number}", 'party_id' => $customerId],
+                ]);
+                $order->update(['journal_entry_id' => $entry->id, 'amount_paid' => $paid]);
+            }
+
             return $order;
         });
 
@@ -229,13 +332,28 @@ class SalesOrderController extends Controller
             return redirect()->back()->with('error', 'Completed/Converted Pre-Sale cannot be updated.');
         }
 
+        /* The same shape as store(). An edit that silently dropped the header
+           money was how an order came back from a correction at list price. */
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:parties,id',
             'order_date' => 'required|date',
+            'reference'          => 'nullable|string|max:100',
+            'delivery_date'      => 'nullable|date',
+            'payment_terms'      => 'nullable|string|max:40',
+            'notes'              => 'nullable|string',
+            'discount'           => 'nullable|numeric|min:0',
+            'tax'                => 'nullable|numeric|min:0',
+            'tax_rate'           => 'nullable|numeric|min:0|max:100',
+            'delivery_charge'    => 'nullable|numeric|min:0',
+            'extra_charge_value' => 'nullable|numeric|min:0',
+            'extra_charge_label' => 'nullable|string|max:120',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:fixed,percent',
+            'items.*.tax_rate' => 'nullable|numeric|min:0|max:100',
         ]);
 
         DB::transaction(function () use ($validated, $order) {
@@ -247,14 +365,33 @@ class SalesOrderController extends Controller
             // Update order header
             $order->update([
                 'customer_id' => $customerId,
+                'party_id' => $customerId,
                 'customer_name' => $customerName,
                 'order_date' => $validated['order_date'],
+                'delivery_date' => $validated['delivery_date'] ?? $order->delivery_date,
+                'reference' => $validated['reference'] ?? $order->reference,
+                'payment_terms' => $validated['payment_terms'] ?? $order->payment_terms,
+                'notes' => $validated['notes'] ?? $order->notes,
+                'discount' => $validated['discount'] ?? 0,
+                'tax' => $validated['tax'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 0,
+                'delivery_charge' => $validated['delivery_charge'] ?? 0,
+                'extra_charge_value' => $validated['extra_charge_value'] ?? 0,
+                'extra_charge_label' => $validated['extra_charge_label'] ?? null,
                 'total_amount' => 0
             ]);
 
             $totalAmount = 0;
             foreach ($validated['items'] as $item) {
-                $subtotal = $item['unit_price'] * $item['quantity'];
+                $gross = $item['unit_price'] * $item['quantity'];
+                /* `discount` arrives already resolved to money — every screen in
+                   this app converts a percentage before it sends. Re-applying
+                   the percentage here turned a 10% discount on a 1,000 line
+                   into a 1,000 discount and the line came out free. The type is
+                   kept as a label so the screen can show it the way it was
+                   entered. */
+                $lineDiscount = (float) ($item['discount'] ?? 0);
+                $subtotal = max(0, $gross - $lineDiscount);
                 $totalAmount += $subtotal;
 
                 SalesOrderItem::create([
@@ -262,11 +399,32 @@ class SalesOrderController extends Controller
                     'product_id' => $item['product_id'],
                     'quantity_requested' => $item['quantity'],
                     'quantity_reserved' => $item['quantity'],
+                    'qty' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
-                    'subtotal' => $subtotal
+                    'discount' => $lineDiscount,
+                    /* Stored as 'fixed' because `discount` above is money, not a
+                       percentage. Keeping the operator's 'percent' label beside
+                       a resolved amount was a delayed fault: the line saved
+                       correctly, then re-opened showing 100 with the % toggle
+                       lit — a 100% discount — and the next save zeroed it. */
+                    'discount_type' => 'fixed',
+                    'tax_rate' => $item['tax_rate'] ?? 0,
+                    'subtotal' => $subtotal,
+                    'line_total' => $subtotal,
                 ]);
             }
-            $order->update(['total_amount' => $totalAmount]);
+            /* The goods, less the order discount, plus tax and carriage — the
+               figure the customer was actually quoted, rather than the sum of
+               the line subtotals with everything else thrown away. */
+            $net = max(0, $totalAmount - (float) ($validated['discount'] ?? 0));
+            $grand = round(
+                $net
+                + (float) ($validated['tax'] ?? 0)
+                + (float) ($validated['delivery_charge'] ?? 0)
+                + (float) ($validated['extra_charge_value'] ?? 0),
+                2
+            );
+            $order->update(['total_amount' => $grand]);
         });
 
         return response()->json([

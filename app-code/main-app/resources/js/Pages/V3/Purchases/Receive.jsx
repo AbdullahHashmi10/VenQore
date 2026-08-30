@@ -1,166 +1,128 @@
-import { usePage, useForm, Link } from '@inertiajs/react';
+import React, { useCallback } from 'react';
+import { usePage } from '@inertiajs/react';
+import { PackageCheck } from 'lucide-react';
+
+import { Field } from '@/Documents/DocumentShell';
+import MoneyDocument, { uid, today } from '@/Documents/MoneyDocument';
+import { documentType } from '@/Documents/documentTypes';
 import { formatCurrency } from '@/Utils/format';
 
+const DOC = documentType('goods-receipt');
+const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+
 /**
- * V3 CONSOLIDATION Phase 2 — goods receipt.
+ * The goods receipt.
  *
- * Ported from the legacy Pages/Purchases/Receive.jsx. Receiving is what creates
- * the FIFO batches, so the unit cost shown here is the cost that will be locked
- * into the batch and eventually reach COGS.
+ * A count at the door, not a negotiation: the prices were agreed on the
+ * purchase, so no money appears on this screen at all. What matters here is
+ * how many actually turned up, and what batch and expiry are printed on them —
+ * the only place in the app where those are captured, and the figures every
+ * FIFO cost and every expiry report is built on afterwards.
  *
- * Over-receipt is blocked server-side under a row lock — the client-side cap
- * below is a convenience, not the guard.
+ * Each line starts at what is still outstanding and is capped there. The
+ * server checks the same thing again under a row lock, so two people
+ * receiving the same delivery cannot book it twice.
  */
-export default function PurchaseReceive({ purchase, items }) {
-    const { store } = usePage().props;
+export default function ReceivePurchase({ purchase, items = [] }) {
+    const { store, settings } = usePage().props;
+    const money = (n) => formatCurrency(n, store || settings);
 
-    const remaining = (item) => Math.max(Number(item.qty) - Number(item.received_qty ?? 0), 0);
+    const remainingOf = (i) => Math.max(0, num(i.qty ?? i.quantity) - num(i.received_qty));
 
-    const { data, setData, post, processing, errors } = useForm({
-        items: items.map(i => ({
-            purchase_item_id: i.id,
-            receiving_qty: remaining(i),
-            batch_number: '',
-            expiry_date: '',
-        })),
+    const seed = useCallback(() => ({
+        id: purchase?.id || uid(),
+        party: { id: purchase?.party_id, name: purchase?.supplier_name || 'Supplier' },
+        reference: purchase?.reference_number || purchase?.invoice_number || '',
+        date: today(),
         notes: '',
-    });
+        items: (items || []).map((i) => ({
+            id: uid(),
+            product: { id: i.product_id, name: i.product_name, sku: i.sku, unit: i.base_unit },
+            source_line_id: i.id,
+            ordered_quantity: num(i.qty ?? i.quantity),
+            max_quantity: remainingOf(i),
+            /* Everything outstanding, because that is what a delivery usually
+               is. A short one is a number the operator changes, not a form
+               they have to fill in from scratch. */
+            quantity: remainingOf(i),
+            price: num(i.unit_cost),
+            cost: num(i.unit_cost),
+            batch: '',
+            expiry: '',
+        })),
+    }), [purchase, items]);
 
-    const updateLine = (index, field, value) =>
-        setData('items', data.items.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
-
-    const receivingTotal = data.items.reduce((sum, line, index) => {
-        const item = items[index];
-        return sum + (parseFloat(line.receiving_qty) || 0) * Number(item.unit_cost);
-    }, 0);
-
-    const anythingToReceive = data.items.some(l => (parseFloat(l.receiving_qty) || 0) > 0);
-
-    const submit = (e) => {
-        e.preventDefault();
-        post(route('store.v3.purchases.receive.store', { store_slug: store.slug, purchase: purchase.id }));
-    };
+    /* What this delivery is worth at the costs already agreed — the figure
+       that will be locked into the FIFO batches and reach cost of sales. */
+    const valueOf = (lines) => lines.reduce((s, i) => s + num(i.quantity) * num(i.price), 0);
 
     return (
-        <div className="p-6 max-w-5xl">
-            <div className="flex items-center gap-4 mb-6">
-                <Link
-                    href={route('store.v3.purchases.show', { store_slug: store.slug, purchase: purchase.id })}
-                    className="text-ink-muted hover:text-ink"
-                >
-                    ← {purchase.invoice_number}
-                </Link>
-                <h1 className="text-2xl font-bold">Receive Goods</h1>
-                <span className="px-2 py-1 rounded text-xs bg-sunken text-ink-secondary">
-                    {purchase.workflow_status}
+        <MoneyDocument
+            doc={DOC}
+            seed={seed}
+            transport="inertia"
+            method="post"
+            saveLabel="Receive these goods"
+            partyLocked
+            lockItems
+            canAddLines={false}
+            qtyFloor={0}
+            url={() => route('store.v3.purchases.receive.store', { store_slug: store?.slug, purchase: purchase?.id })}
+            afterUrl={route('store.v3.purchases.show', { store_slug: store?.slug, purchase: purchase?.id })}
+            validate={({ items: lines }) => {
+                if (!lines.some((i) => num(i.quantity) > 0)) {
+                    return { items: 'Nothing is being received — put a quantity against at least one line.' };
+                }
+                const over = lines.find((i) => num(i.quantity) > num(i.max_quantity) + 0.0001);
+                if (over) return { items: `Only ${over.max_quantity} of ${over.product?.name} is still outstanding.` };
+                const dated = lines.find((i) => i.expiry && i.expiry < today());
+                if (dated) return { items: `${dated.product?.name} has an expiry date in the past.` };
+                return null;
+            }}
+            header={({ d, patch, chrome }) => (
+                <>
+                    <Field label="Against purchase" span={4}>
+                        <div className="vqdoc-in" style={{ display: 'flex', alignItems: 'center' }}>
+                            {purchase?.reference_number || purchase?.invoice_number || 'This purchase'}
+                        </div>
+                    </Field>
+                    {/* No date field: the receive endpoint books the delivery as
+                        of now and takes no date, so one here would be a
+                        control the operator could change to no effect. */}
+                    {chrome.field('notes') && (
+                        <Field label="Condition on arrival" span={5}
+                            hint="Kept with the purchase — it is the one thing nobody can reconstruct later.">
+                            <input type="text" className="vqdoc-in" value={d.notes}
+                                placeholder="Two cartons crushed, driver noted it…"
+                                onChange={(e) => patch({ notes: e.target.value })} />
+                        </Field>
+                    )}
+                </>
+            )}
+            dockTotal={({ items: lines }) => money(valueOf(lines))}
+            dockLabel="Value arriving"
+            extraRows={({ items: lines }) => (
+                <div className="vqdoc-sum-row">
+                    <span className="k">Value arriving</span>
+                    <span className="v">{money(valueOf(lines))}</span>
+                </div>
+            )}
+            buildPayload={({ d, items: lines }) => ({
+                notes: d.notes || null,
+                items: lines
+                    .filter((i) => num(i.quantity) > 0)
+                    .map((i) => ({
+                        purchase_item_id: i.source_line_id,
+                        receiving_qty: num(i.quantity),
+                        batch_number: i.batch || null,
+                        expiry_date: i.expiry || null,
+                    })),
+            })}
+            extraTools={(
+                <span className="vqdoc-icon" title="Goods arriving onto the shelf" aria-hidden>
+                    <PackageCheck size={17} />
                 </span>
-            </div>
-
-            <div className="mb-6 text-sm text-ink-secondary">
-                Supplier: <span className="font-medium">{purchase.supplier_name}</span>
-                {purchase.reference && <> · Ref {purchase.reference}</>}
-            </div>
-
-            <form onSubmit={submit} className="space-y-6">
-                <table className="w-full border-collapse border border-line">
-                    <thead className="bg-sunken">
-                        <tr>
-                            <th className="border border-line px-3 py-2 text-left text-sm">Product</th>
-                            <th className="border border-line px-3 py-2 text-right text-sm w-24">Ordered</th>
-                            <th className="border border-line px-3 py-2 text-right text-sm w-24">Received</th>
-                            <th className="border border-line px-3 py-2 text-right text-sm w-24">Remaining</th>
-                            <th className="border border-line px-3 py-2 text-right text-sm w-28">Receive now</th>
-                            <th className="border border-line px-3 py-2 text-left text-sm w-36">Batch #</th>
-                            <th className="border border-line px-3 py-2 text-left text-sm w-40">Expiry</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {items.map((item, index) => {
-                            const rem = remaining(item);
-                            return (
-                                <tr key={item.id} className={rem === 0 ? 'bg-sunken text-ink-muted' : ''}>
-                                    <td className="border border-line px-3 py-2 text-sm">
-                                        <div>{item.product_name}</div>
-                                        <div className="text-xs text-ink-muted">
-                                            {item.sku} · {formatCurrency(item.unit_cost, store)}/{item.base_unit}
-                                        </div>
-                                    </td>
-                                    <td className="border border-line px-3 py-2 text-right text-sm">{item.qty}</td>
-                                    <td className="border border-line px-3 py-2 text-right text-sm">{item.received_qty ?? 0}</td>
-                                    <td className="border border-line px-3 py-2 text-right text-sm font-medium">{rem}</td>
-                                    <td className="border border-line px-2 py-1">
-                                        <input
-                                            type="number" step="0.0001" min="0" max={rem}
-                                            disabled={rem === 0}
-                                            value={data.items[index].receiving_qty}
-                                            onChange={e => updateLine(index, 'receiving_qty', e.target.value)}
-                                            className="w-full text-right border-0 outline-none py-1 disabled:bg-transparent"
-                                        />
-                                    </td>
-                                    <td className="border border-line px-2 py-1">
-                                        <input
-                                            type="text" disabled={rem === 0}
-                                            value={data.items[index].batch_number}
-                                            onChange={e => updateLine(index, 'batch_number', e.target.value)}
-                                            className="w-full border-0 outline-none py-1 disabled:bg-transparent"
-                                            placeholder="Optional"
-                                        />
-                                    </td>
-                                    <td className="border border-line px-2 py-1">
-                                        <input
-                                            type="date" disabled={rem === 0}
-                                            value={data.items[index].expiry_date}
-                                            onChange={e => updateLine(index, 'expiry_date', e.target.value)}
-                                            className="w-full border-0 outline-none py-1 disabled:bg-transparent"
-                                        />
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan={4} className="px-3 py-2 text-right font-medium">Value being received:</td>
-                            <td colSpan={3} className="border border-line px-3 py-2 font-bold">
-                                {formatCurrency(receivingTotal, store)}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                <div>
-                    <label className="block text-sm font-medium mb-1">Receipt notes</label>
-                    <textarea
-                        value={data.notes}
-                        onChange={e => setData('notes', e.target.value)}
-                        rows={3}
-                        className="w-full border rounded px-3 py-2"
-                        placeholder="Condition on arrival, short shipment, damage…"
-                    />
-                </div>
-
-                {Object.keys(errors).length > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-700">
-                        {Object.values(errors).map((err, i) => <div key={i}>{err}</div>)}
-                    </div>
-                )}
-
-                <div className="flex gap-4">
-                    <button
-                        type="submit"
-                        disabled={processing || !anythingToReceive}
-                        className="bg-green-600 text-white px-8 py-2 rounded hover:bg-green-700 disabled:opacity-50 font-medium"
-                    >
-                        {processing ? 'Receiving…' : 'Receive Goods'}
-                    </button>
-                    <Link
-                        href={route('store.v3.purchases.show', { store_slug: store.slug, purchase: purchase.id })}
-                        className="border px-6 py-2 rounded hover:bg-interactive-hover"
-                    >
-                        Cancel
-                    </Link>
-                </div>
-            </form>
-        </div>
+            )}
+        />
     );
 }

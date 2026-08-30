@@ -37,6 +37,13 @@ class StorePurchaseRequest extends FormRequest
             'supplier_id'      => ['required', 'string', self::supplierExistsRule()],
             'warehouse_id'     => ['nullable', 'string', 'exists:warehouses,id'],
             'payment_method'   => ['required', 'in:cash,credit'],
+
+            /* A purchase used to be paid in full or not at all: 'cash' meant
+               paid, 'credit' meant nothing paid, and there was no way to say
+               "half now, half on the 30th" — which is how a great many
+               suppliers are actually settled. These two make that sayable. */
+            'amount_paid'        => ['nullable', 'numeric', 'min:0'],
+            'payment_account_id' => ['nullable', 'string'],
             'supplier_invoice' => ['nullable', 'string', 'max:100'],
 
             // ── legacy parity: header fields ─────────────────────────────────
@@ -123,9 +130,14 @@ class StorePurchaseRequest extends FormRequest
 
             // A header discount larger than the goods value would drive the
             // inventory debit negative and silently corrupt stock valuation.
+            /* NET of the per-line discounts, because that is what the stock is
+               debited with. Measuring against the gross let a header discount
+               equal to the gross sail through and drive the inventory debit —
+               and therefore the whole journal entry — negative. */
             $goodsValue = 0.0;
             foreach ($items as $item) {
-                $goodsValue += (float) ($item['qty'] ?? 0) * (float) ($item['unit_cost'] ?? 0);
+                $line = (float) ($item['qty'] ?? 0) * (float) ($item['unit_cost'] ?? 0);
+                $goodsValue += max(0.0, $line - (float) ($item['discount_amount'] ?? 0));
             }
 
             if ((float) $this->input('discount', 0) > $goodsValue) {

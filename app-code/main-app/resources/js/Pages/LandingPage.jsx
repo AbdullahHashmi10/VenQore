@@ -151,9 +151,9 @@ const MagBtn = ({ children, href, variant = 'primary', className = '', onClick }
        need their light/dark pairs written by hand. `glow` and `accent` sit on
        saturated backgrounds and stay white in both themes. */
     const variants = {
-        primary: 'px-9 py-4 bg-neutral-900 dark:bg-white text-white dark:text-void-900 font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(99,102,241,0.45)] dark:hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]',
+        primary: 'px-9 py-4 bg-void-900 dark:bg-white text-white dark:text-void-900 font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-500)/0.45)] dark:hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-400)/0.55)]',
         glow: 'px-9 py-4 text-white font-bold text-[15px] rounded-full vq-cta-glow',
-        ghost: 'px-8 py-4 bg-neutral-900/[0.04] dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md',
+        ghost: 'px-8 py-4 bg-void-900/[0.04] dark:bg-white/[0.04] border border-void-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md',
         accent: 'px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-full shadow-xl ',
     };
     return (
@@ -172,7 +172,7 @@ const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
         amber: 'bg-amber-500/10 border-amber-400/20 text-amber-300',
         emerald: 'bg-emerald-500/10 border-emerald-400/20 text-emerald-300',
         rose: 'bg-rose-500/10 border-rose-400/20 text-rose-300',
-        violet: 'bg-violet-500/10 border-violet-400/20 text-violet-300',
+        violet: 'bg-brand-500/10 border-brand-400/20 text-brand-300', // 'violet' tone now renders V6 brand teal, not off-brand violet
     };
     return (
         <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border ${tones[tone]} text-2xs font-bold tracking-[0.32em] uppercase mb-7 backdrop-blur-sm`}>
@@ -184,7 +184,7 @@ const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
 
 /* ── Glass surface ───────────────────────────────────────────────────────── */
 const Glass = ({ children, className = '', glow = false }) => (
-    <div className={`relative rounded-xl border border-line dark:border-white/[0.08] bg-white/[0.025] backdrop-blur-xl ${glow ? 'shadow-[0_30px_120px_-40px_rgba(99,102,241,0.45)]' : ''} ${className}`}>
+    <div className={`relative rounded-xl border border-line dark:border-white/[0.08] bg-white/[0.025] backdrop-blur-xl ${glow ? 'shadow-[0_30px_120px_-40px_rgb(var(--vq-ramp-teal-500)/0.45)]' : ''} ${className}`}>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-xl" />
         {children}
     </div>
@@ -543,7 +543,7 @@ const ScrollProgressBar = () => {
     const p = useScrollProgress();
     return (
         <div className="fixed top-0 left-0 right-0 z-sticky h-[2px] bg-transparent">
-            <div className="h-full bg-gradient-to-r from-brand-500 via-violet-400 to-cyan-400 origin-left transition-transform duration-fast ease-out"
+            <div className="h-full bg-gradient-to-r from-brand-600 via-brand-400 to-brand-500 origin-left transition-transform duration-fast ease-out"
                 style={{ transform: `scaleX(${p})`, width: '100%' }} />
         </div>
     );
@@ -608,9 +608,9 @@ const Ambient = () => (
         <div className="absolute -top-[10%] left-1/2 w-[140vw] h-[85vh] -translate-x-1/2 vq-beams" />
         {/* Edge-confined glows (low opacity, away from content) */}
         <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vq-blob"
-            style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent 62%)' }} />
+            style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / 0.15), transparent 62%)' }} />
         <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vq-blob-2"
-            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.12), transparent 62%)' }} />
+            style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-teal-400) / 0.12), transparent 62%)' }} />
         <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vq-blob"
             style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.07), transparent 62%)' }} />
         {/* Subtle grid */}
@@ -642,7 +642,7 @@ const Spotlight = () => {
     return (
         <div className="fixed inset-0 pointer-events-none z-base hidden md:block">
             <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full"
-                style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.07), transparent 60%)' }} />
+                style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / 0.07), transparent 60%)' }} />
         </div>
     );
 };
@@ -700,9 +700,9 @@ const RevenueChart = ({ height = 210, tab = 'Month', reduced = false }) => {
                 <path key={`pl-${tab}`} d={lineP} fill="none" stroke={vq.emerald[500]} strokeWidth="2.5" strokeLinecap="round" pathLength="1"
                     style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: reduced ? 'none' : 'stroke-dashoffset 1.7s cubic-bezier(0.65,0,0.35,1) 0.15s' }} />
                 <path key={`sl-${tab}`} d={lineS} fill="none" stroke={vq.indigo[500]} strokeWidth="3" strokeLinecap="round" pathLength="1"
-                    style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: reduced ? 'none' : 'stroke-dashoffset 1.7s cubic-bezier(0.65,0,0.35,1)', filter: 'drop-shadow(0 6px 16px rgba(99,102,241,0.45))' }} />
+                    style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: reduced ? 'none' : 'stroke-dashoffset 1.7s cubic-bezier(0.65,0,0.35,1)', filter: 'drop-shadow(0 6px 16px rgb(var(--vq-ramp-teal-500) / 0.45))' }} />
                 <g style={{ opacity: drawn ? 1 : 0, transition: 'opacity 0.6s ease 1.5s' }}>
-                    <circle cx={last[0]} cy={last[1]} r="9" fill="rgba(99,102,241,0.2)" className={reduced ? '' : 'vq-ping'} />
+                    <circle cx={last[0]} cy={last[1]} r="9" fill="rgb(var(--vq-ramp-teal-500) / 0.2)" className={reduced ? '' : 'vq-ping'} />
                     <circle cx={last[0]} cy={last[1]} r="4" fill={vq.indigo[400]} />
                 </g>
             </svg>
@@ -814,7 +814,7 @@ const HeroDashboard = () => {
             </div>
 
             {/* Glass window */}
-            <div ref={cardRef} className="relative z-10 rounded-xl border border-line dark:border-white/[0.08] bg-neutral-950/70 backdrop-blur-2xl shadow-[0_50px_160px_-50px_rgba(99,102,241,0.6)] overflow-hidden transition-transform duration-slow ease-out">
+            <div ref={cardRef} className="relative z-10 rounded-xl border border-line dark:border-white/[0.08] bg-void-950/70 backdrop-blur-2xl shadow-[0_50px_160px_-50px_rgb(var(--vq-ramp-teal-500)/0.6)] overflow-hidden transition-transform duration-slow ease-out">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                 {/* window bar */}
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-line dark:border-white/[0.06]">
@@ -849,9 +849,9 @@ const HeroDashboard = () => {
                                 <div className="text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted">VenQore</div>
                                 <div className="text-lg font-bold text-ink tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Dashboard</div>
                             </div>
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20">
-                                <Sparkles size={12} className="text-violet-300" />
-                                <span className="text-2xs font-bold text-violet-200">AI Insight</span>
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-400/20">
+                                <Sparkles size={12} className="text-brand-300" />
+                                <span className="text-2xs font-bold text-brand-200">AI Insight</span>
                             </div>
                         </div>
 
@@ -960,7 +960,7 @@ const HeroDashboard = () => {
                                         <div className="flex items-center gap-1.5 mb-1"><Wallet size={12} className="text-emerald-300" /><span className="text-3xs font-bold text-ink-secondary">Cash</span></div>
                                         <div className="text-[12px] font-bold text-ink tabular-nums">$<AnimCounter end={142300} group duration={2200} /></div>
                                     </div>
-                                    <div className="rounded-xl bg-gradient-to-br from-brand-500/10 to-purple-500/10 border border-brand-500/20 p-2.5">
+                                    <div className="rounded-xl bg-gradient-to-br from-brand-500/10 to-brand-600/10 border border-brand-500/20 p-2.5">
                                         <div className="flex items-center gap-1.5 mb-1"><Package size={12} className="text-brand-300" /><span className="text-3xs font-bold text-ink-secondary">Stock Value</span></div>
                                         <div className="text-[12px] font-bold text-ink tabular-nums">$<AnimCounter end={486100} group duration={2400} /></div>
                                     </div>
@@ -1096,7 +1096,7 @@ const IntegrityPipeline = () => {
     return (
         <div ref={ref} className="relative">
             <div className="absolute left-0 right-0 top-7 h-0.5 bg-sunken dark:bg-white/[0.06] hidden md:block">
-                <div className="h-full bg-gradient-to-r from-brand-500 via-violet-400 to-cyan-400 origin-left transition-transform duration-slower ease-out"
+                <div className="h-full bg-gradient-to-r from-brand-600 via-brand-400 to-brand-500 origin-left transition-transform duration-slower ease-out"
                     style={{ transform: `scaleX(${reduced ? 1 : (inView ? 1 : 0)})` }} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-3 relative">
@@ -1168,7 +1168,7 @@ const AIChatDemo = () => {
         <div ref={ref}>
             <Glass className="p-5 sm:p-6" glow>
                 <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-line dark:border-white/[0.06]">
-                    <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center"><Bot size={16} className="text-violet-300" /></div>
+                    <div className="w-8 h-8 rounded-xl bg-brand-500/20 flex items-center justify-center"><Bot size={16} className="text-brand-300" /></div>
                     <div>
                         <div className="text-sm font-bold text-ink tracking-tight">VenQore Assistant</div>
                         <div className="text-2xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" /> Reading your ledger</div>
@@ -1200,7 +1200,7 @@ const AIChatDemo = () => {
                                                 <span className="text-ink-muted tabular-nums">{val}{cur.unit.includes('%') ? '%' : 'd'}</span>
                                             </div>
                                             <div className="h-1.5 rounded-full bg-sunken dark:bg-white/[0.06] overflow-hidden">
-                                                <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-rose-400 origin-left"
+                                                <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-rose-400 origin-left"
                                                     style={{ transform: `scaleX(${reduced ? 1 : (phase === 'answer' ? Math.min(1, val / 100 + 0.12) : 0)})`, transition: 'transform 1s cubic-bezier(0.22,1,0.36,1)', transitionDelay: `${i * 0.12}s` }} />
                                             </div>
                                         </div>
@@ -1241,7 +1241,7 @@ const ModuleCard = ({ m, delay }) => (
     <Reveal delay={delay}>
         <div className="group relative h-full p-5 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] hover:bg-white/[0.04] hover:border-brand-400/25 transition-all duration-slower hover:-translate-y-1 overflow-hidden">
             <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-slower"
-                style={{ background: 'radial-gradient(220px circle at var(--mx,50%) var(--my,0%), rgba(129,140,248,0.12), transparent 70%)' }} />
+                style={{ background: 'radial-gradient(220px circle at var(--mx,50%) var(--my,0%), rgb(var(--vq-ramp-teal-500) / 0.12), transparent 70%)' }} />
             <div className="relative z-10">
                 <div className="w-11 h-11 rounded-xl bg-brand-500/12 text-brand-300 flex items-center justify-center mb-4 group-hover:rotate-3 transition-transform duration-slower">
                     <m.ic size={20} />
@@ -1359,7 +1359,7 @@ export default function LandingPage() {
                             </h1>
 
                             {/* Hero Interactive AI Prompt — Start With The Question */}
-                            <div className="max-w-2xl mx-auto my-8 p-4 md:p-6 bg-neutral-900 border border-brand-500/30 rounded-2xl shadow-2xl backdrop-blur-2xl text-left space-y-4">
+                            <div className="max-w-2xl mx-auto my-8 p-4 md:p-6 bg-void-900 border border-brand-500/30 rounded-2xl shadow-2xl backdrop-blur-2xl text-left space-y-4">
                                 <div className="flex items-center gap-2 text-brand-400 text-xs font-bold uppercase tracking-wider">
                                     <Bot size={16} />
                                     <span>What does your business need?</span>
@@ -1375,14 +1375,14 @@ export default function LandingPage() {
                                                 window.location.href = `/build-workspace?prompt=${encodeURIComponent(e.target.value)}`;
                                             }
                                         }}
-                                        className="w-full px-5 py-4 bg-neutral-950 border border-neutral-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all pr-32"
+                                        className="w-full px-5 py-4 bg-void-950 border border-void-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all pr-32"
                                     />
                                     <button
                                         onClick={() => {
                                             const val = document.getElementById('hero-ai-prompt')?.value || '';
                                             window.location.href = `/build-workspace?prompt=${encodeURIComponent(val)}`;
                                         }}
-                                        className="absolute right-2 top-2 bottom-2 px-5 bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all"
+                                        className="absolute right-2 top-2 bottom-2 px-5 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all"
                                     >
                                         <span>Build Workspace</span>
                                         <ArrowRight size={14} />
@@ -1395,7 +1395,7 @@ export default function LandingPage() {
                                     </span>
                                     <a
                                         href="/build-workspace"
-                                        className="text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1"
+                                        className="text-brand-400 hover:text-brand-300 font-semibold flex items-center gap-1"
                                     >
                                         <span>Browse Templates</span>
                                         <ArrowRight size={12} />
@@ -1549,7 +1549,7 @@ export default function LandingPage() {
                         <Reveal direction="right">
                             <Eyebrow icon={Cpu} tone="violet">AI Growth Engine</Eyebrow>
                             <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Ask your business<br /><span className="text-violet-400">anything.</span>
+                                Ask your business<br /><span className="text-brand-400">anything.</span>
                             </h2>
                             <p className="text-ink-muted text-lg leading-relaxed mb-8 max-w-xl">
                                 A context-aware assistant reads your live ledger and answers in plain English — no spreadsheets, no SQL. Behind it, three models work continuously so you act before problems do.
@@ -1828,13 +1828,19 @@ const VQ_CSS = `
 html { scroll-behavior: smooth; }
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
-.vq-headline-grad {
-    background: linear-gradient(100deg,rgb(var(--vq-indigo-400)) 0%,rgb(var(--vq-violet-400)) 40%,#22d3ee 80%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    background-size: 200% auto; animation: vq-shimmer 6s linear infinite;
-}
+/*
+   .vq-headline-grad and .vq-text-glow are NOT redefined here on purpose.
+   MarketingLayout.jsx (the shared chokepoint every marketing page — this
+   one included — renders inside of) owns both, reading V6's teal ramp.
+   This file used to carry a second, competing definition of each, hardcoded
+   to the old indigo/violet palette with a raw cyan hex thrown in — whichever
+   one won the cascade still wasn't V6, and the split between the two is why
+   the headline showed two off-brand colours instead of one on-brand colour.
+   @keyframes vq-shimmer is still needed here since MarketingLayout's
+   .vq-headline-grad animation references it and this stylesheet is injected
+   separately; keep it, drop only the colour rules above.
+*/
 @keyframes vq-shimmer { to { background-position: 200% center; } }
-.vq-text-glow { filter: drop-shadow(0 0 60px rgba(129,140,248,0.35)); }
 
 @keyframes vq-rise { 0%{transform:translateY(110%);opacity:0;filter:blur(10px);} 100%{transform:translateY(0);opacity:1;filter:blur(0);} }
 .hero-rise { display:inline-block; animation: vq-rise 1.1s cubic-bezier(0.22,1,0.36,1) forwards; }
@@ -1849,8 +1855,8 @@ html { scroll-behavior: smooth; }
 .vq-blob-2 { animation: vq-blob 22s ease-in-out infinite 3s; }
 .vq-beams {
     background: conic-gradient(from 90deg at 50% 0%,
-        transparent 0deg, rgba(129,140,248,0.07) 10deg, transparent 22deg,
-        transparent 44deg, rgba(167,139,250,0.06) 56deg, transparent 70deg,
+        transparent 0deg, rgb(var(--vq-ramp-teal-500) / 0.07) 10deg, transparent 22deg,
+        transparent 44deg, rgb(var(--vq-ramp-teal-400) / 0.06) 56deg, transparent 70deg,
         transparent 104deg, rgba(34,211,238,0.05) 118deg, transparent 134deg);
     filter: blur(22px); transform-origin: 50% 0%;
     animation: vq-beamspin 26s ease-in-out infinite;
@@ -1883,31 +1889,31 @@ html { scroll-behavior: smooth; }
 .vq-row-in { animation: vq-rowin 0.5s cubic-bezier(0.22,1,0.36,1); }
 @keyframes vq-dot { 0%,60%,100%{transform:translateY(0);opacity:0.4;} 30%{transform:translateY(-5px);opacity:1;} }
 .vq-dot { animation: vq-dot 1s ease-in-out infinite; }
-@keyframes vq-pulsenode { 0%,100%{opacity:0.9;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);filter:drop-shadow(0 0 18px rgba(167,139,250,0.7));} }
+@keyframes vq-pulsenode { 0%,100%{opacity:0.9;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);filter:drop-shadow(0 0 18px rgb(var(--vq-ramp-teal-500) / 0.7));} }
 .vq-pulse-node { animation: vq-pulsenode 2.8s ease-in-out infinite; }
 
-.vq-cta-glow { background: linear-gradient(100deg,rgb(var(--vq-indigo-500)),rgb(var(--vq-violet-500)),#22d3ee); background-size:200% auto; box-shadow:0 10px 50px -12px rgba(99,102,241,0.6); animation: vq-shimmer 5s linear infinite; }
+.vq-cta-glow { background: linear-gradient(100deg, rgb(var(--vq-ramp-teal-600)), rgb(var(--vq-ramp-teal-400)), rgb(var(--vq-ramp-teal-600))); background-size:200% auto; box-shadow:0 10px 50px -12px rgb(var(--vq-ramp-teal-500) / 0.6); animation: vq-shimmer 5s linear infinite; }
 
 /* Range sliders in the cost calculator — native inputs look wrong in both
    themes, so the track and thumb are drawn explicitly. */
 .vq-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; background: rgba(15,23,42,0.10); outline: none; cursor: pointer; }
 .dark .vq-range { background: rgba(255,255,255,0.10); }
-.vq-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-indigo-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; transition: transform .15s ease; }
+.vq-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-ramp-teal-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgb(var(--vq-ramp-teal-500) / 0.45); cursor: grab; transition: transform .15s ease; }
 .dark .vq-range::-webkit-slider-thumb { border-color: #0c0922; }
 .vq-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .vq-range::-webkit-slider-thumb:active { cursor: grabbing; }
-.vq-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-indigo-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; }
+.vq-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-ramp-teal-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgb(var(--vq-ramp-teal-500) / 0.45); cursor: grab; }
 .dark .vq-range::-moz-range-thumb { border-color: #0c0922; }
-.vq-range:focus-visible::-webkit-slider-thumb { outline: 2px solid #818cf8; outline-offset: 2px; }
+.vq-range:focus-visible::-webkit-slider-thumb { outline: 2px solid rgb(var(--vq-ramp-teal-500)); outline-offset: 2px; }
 
 @keyframes vq-marq { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
 .vq-marquee { animation: vq-marq 30s linear infinite; }
 .vq-marquee-mask { -webkit-mask-image: linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); mask-image: linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
 
 ::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: #04020c; }
-::-webkit-scrollbar-thumb { background: rgba(129,140,248,0.25); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(129,140,248,0.4); }
+::-webkit-scrollbar-track { background: rgb(var(--vq-ramp-void-950)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--vq-ramp-teal-500) / 0.25); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--vq-ramp-teal-500) / 0.4); }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }

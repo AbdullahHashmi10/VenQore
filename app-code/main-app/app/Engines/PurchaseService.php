@@ -100,7 +100,15 @@ class PurchaseService
             );
 
             $journalEntryId = null;
-            $paymentStatus  = ($validated['payment_method'] ?? null) === 'cash' ? 'paid' : 'unpaid';
+
+            /* How much of this bill was settled at the counter. A cash purchase
+               with no figure given means paid in full, which is what 'cash'
+               used to mean on its own; a credit purchase with a figure means
+               part of it was paid now. Never more than the bill. */
+            $amountPaid = $this->paidNow($validated, $grandTotal);
+            $paymentStatus = $amountPaid >= $grandTotal - 0.005
+                ? 'paid'
+                : ($amountPaid > 0.005 ? 'partial' : 'unpaid');
 
             if ($isReceived) {
                 $journalEntry = $this->postPurchaseJournal(
@@ -111,7 +119,9 @@ class PurchaseService
                     totals:        $totals,
                     landedCost:    $landedCostTotal,
                     grandTotal:    $grandTotal,
-                    paymentMethod: $validated['payment_method'] ?? 'credit'
+                    paymentMethod: $validated['payment_method'] ?? 'credit',
+                    amountPaid:    $amountPaid,
+                    paymentAccountId: $validated['payment_account_id'] ?? null
                 );
                 $journalEntryId = $journalEntry->id;
             }
@@ -198,6 +208,12 @@ class PurchaseService
             );
 
             $journalEntryId = null;
+            /* An edit reverses the old entry and posts a fresh one, so the paid
+               figure has to be worked out again here or a part-paid purchase
+               would come back from an edit looking wholly unpaid. */
+            $amountPaid = array_key_exists('amount_paid', $validated)
+                ? $this->paidNow($validated, $grandTotal)
+                : $this->paidNow(['payment_method' => $validated['payment_method'] ?? $purchase->payment_method], $grandTotal);
             if ($isReceived) {
                 $journalEntry = $this->postPurchaseJournal(
                     purchaseId:    $purchaseId,
@@ -207,7 +223,9 @@ class PurchaseService
                     totals:        $totals,
                     landedCost:    $landedCostTotal,
                     grandTotal:    $grandTotal,
-                    paymentMethod: $validated['payment_method'] ?? ($purchase->payment_method ?? 'credit')
+                    paymentMethod: $validated['payment_method'] ?? ($purchase->payment_method ?? 'credit'),
+                    amountPaid:    $amountPaid,
+                    paymentAccountId: $validated['payment_account_id'] ?? null
                 );
                 $journalEntryId = $journalEntry->id;
             }
@@ -227,6 +245,9 @@ class PurchaseService
                     'round_off'        => $totals['roundOff'],
                     'total'            => $grandTotal,
                     'workflow_status'  => $workflowStatus,
+                    'payment_status'   => $isReceived
+                        ? ($amountPaid >= $grandTotal - 0.005 ? 'paid' : ($amountPaid > 0.005 ? 'partial' : 'unpaid'))
+                        : 'unpaid',
                     'payment_method'   => $validated['payment_method'] ?? $purchase->payment_method,
                     'notes'            => $validated['notes'] ?? $purchase->notes,
                     'journal_entry_id' => $journalEntryId,
@@ -651,7 +672,12 @@ class PurchaseService
             $qty         = (float) ($item['qty'] ?? $item['quantity'] ?? 0);
             $unitCost    = (float) ($item['unit_cost'] ?? $item['price'] ?? 0);
             $lineDiscount = (float) ($item['discount_amount'] ?? 0);
-            $lineCost    = round(($qty * $unitCost) - $lineDiscount, 2);
+            /* A line discount larger than the line is worth nothing, not a
+               negative. Both validators already measure the goods this way; the
+               subtotal did not, so an over-discounted line pulled the subtotal
+               below what the header discount had been checked against and the
+               journal came out unbalanced. */
+            $lineCost    = max(0.0, round(($qty * $unitCost) - $lineDiscount, 2));
 
             $businessPct = isset($item['business_pct']) ? (float) $item['business_pct'] : 100.0;
 
@@ -682,13 +708,24 @@ class PurchaseService
             ]);
         }
 
+        /* Round-off adjusts the last paisa of a bill; it cannot rewrite it. It
+           is bounded here so the total it produces can never fall below zero —
+           a negative total posts a credit with no debit behind it, and the
+           ledger refuses the whole entry rather than storing it. */
+        $discount    = round((float) ($validated['discount'] ?? 0), 2);
+        $beforeRound = round($subtotal, 2) - $discount + round($taxTotal, 2);
+        $roundOff    = round((float) ($validated['round_off'] ?? 0), 2);
+        if ($beforeRound + $roundOff < 0) {
+            $roundOff = round(-$beforeRound, 2);
+        }
+
         return [
             'subtotal'  => round($subtotal, 2),
             'taxTotal'  => round($taxTotal, 2),
             'itcTotal'  => round($itcTotal, 2),
             'expTotal'  => round($expTotal, 2),
-            'discount'  => round((float) ($validated['discount'] ?? 0), 2),
-            'roundOff'  => round((float) ($validated['round_off'] ?? 0), 2),
+            'discount'  => $discount,
+            'roundOff'  => $roundOff,
             'lineItems' => $lineItems,
         ];
     }
@@ -754,6 +791,20 @@ class PurchaseService
      *   DR 5900 / CR 4900            round-off
      *   CR 1000 Cash | 2000 Payable  grand total + landed cost
      */
+    /**
+     * How much of this bill was handed over now. A cash purchase that names no
+     * figure means paid in full — which is all 'cash' ever meant — and any
+     * figure given is capped at the bill so a keying slip cannot credit the
+     * supplier with money they were never given.
+     */
+    private function paidNow(array $validated, float $grandTotal): float
+    {
+        if (array_key_exists('amount_paid', $validated) && $validated['amount_paid'] !== null && $validated['amount_paid'] !== '') {
+            return round(max(0.0, min((float) $validated['amount_paid'], $grandTotal)), 2);
+        }
+        return ($validated['payment_method'] ?? null) === 'cash' ? round($grandTotal, 2) : 0.0;
+    }
+
     private function postPurchaseJournal(
         string $purchaseId,
         ?string $invoiceNumber,
@@ -762,9 +813,15 @@ class PurchaseService
         array $totals,
         float $landedCost,
         float $grandTotal,
-        ?string $paymentMethod
+        ?string $paymentMethod,
+        ?float $amountPaid = null,
+        ?string $paymentAccountId = null
     ) {
-        $inventoryDebit = round($totals['subtotal'] - $totals['discount'] + $landedCost, 2);
+        /* The validator refuses a discount past the net goods value, but this is
+           the last place before the ledger and an unbalanced entry is not
+           something to discover later. If the goods come to nothing, they come
+           to nothing on both sides. */
+        $inventoryDebit = max(0.0, round($totals['subtotal'] - $totals['discount'] + $landedCost, 2));
 
         $lines = [
             ['account_code' => self::ACC_INVENTORY, 'debit' => $inventoryDebit, 'credit' => 0],
@@ -787,15 +844,62 @@ class PurchaseService
                 : ['account_code' => self::ACC_ROUNDOFF_INCOME, 'debit' => 0, 'credit' => abs($roundOff)];
         }
 
-        $isCash = $paymentMethod === 'cash';
+        /* What was handed over now, and what is still owed. The two always add
+           up to the bill, so the entry balances whichever way it is split — and
+           a purchase settled halfway no longer has to pretend to be either a
+           cash purchase or a credit one. */
+        /* A bill discounted to nothing (or below, once round-off is applied)
+           has nothing to settle. Clamping at zero here keeps `paid + owed` equal
+           to what was credited: a negative $owed used to fall through the
+           `> 0.0001` guard below, dropping the payable line while the round-off
+           line stayed, and the entry came out unbalanced. */
+        /* Clamped together with the inventory debit by the caller, so this is
+           only ever reached with a bill of zero or more. */
+        $billable = max(0.0, round($grandTotal, 2));
+        $paid = $amountPaid === null
+            ? ($paymentMethod === 'cash' ? $billable : 0.0)
+            : round(max(0.0, min((float) $amountPaid, $billable)), 2);
+        $owed = round($billable - $paid, 2);
 
-        // The supplier is owed the VENDOR BILL ONLY.
-        $lines[] = [
-            'account_code' => $isCash ? self::ACC_CASH : self::ACC_PAYABLE,
-            'debit'        => 0,
-            'credit'       => round($grandTotal, 2),
-            'party_id'     => $partyId,
-        ];
+        if ($paid > 0.0001) {
+            /* Out of the account the operator named, or the till if they named
+               none — the same rule the sales side uses. */
+            $cashLine = [
+                'account_code' => self::ACC_CASH,
+                'debit'        => 0,
+                'credit'       => $paid,
+                'party_id'     => $partyId,
+            ];
+            if ($paymentAccountId) {
+                /* The picker sends the sentinel 'CHEQUE' for a cheque, which is
+                   not an account id: `find()` returned null and the credit fell
+                   through to Cash in Hand, so the till went down by the value of
+                   every cheque written and the uncleared cheque was recorded
+                   nowhere. A cheque written but not yet cleared is 1020. */
+                if (is_string($paymentAccountId) && strtoupper($paymentAccountId) === 'CHEQUE') {
+                    unset($cashLine['account_code']);
+                    $cashLine['account_id'] = app(\App\Engines\AccountingService::class)
+                        ->getAccountByCode('1020', 'Cheques in Hand', 'asset')->id;
+                } else {
+                    $acc = \App\Models\Account::find($paymentAccountId);
+                    if ($acc) {
+                        unset($cashLine['account_code']);
+                        $cashLine['account_id'] = $acc->id;
+                    }
+                }
+            }
+            $lines[] = $cashLine;
+        }
+
+        // The supplier is owed the VENDOR BILL ONLY, less anything paid now.
+        if ($owed > 0.0001) {
+            $lines[] = [
+                'account_code' => self::ACC_PAYABLE,
+                'debit'        => 0,
+                'credit'       => $owed,
+                'party_id'     => $partyId,
+            ];
+        }
 
         // Landed cost is owed to whoever provided it — a freight company, customs,
         // a handling agent — NOT to the supplier of the goods. Legacy credited it
@@ -818,7 +922,13 @@ class PurchaseService
             'date'           => $date,
             'reference_type' => 'purchase',
             'reference'      => $purchaseId,
-            'description'    => ($isCash ? 'Cash' : 'Credit') . " purchase — {$invoiceNumber}",
+            /* Described by what actually happened to the money rather than by
+               the cash/credit flag, now that a purchase can be settled part
+               way. ($isCash was left behind when this method learned about
+               partial payment, and an undefined variable inside a transaction
+               takes the whole purchase down with it.) */
+            'description'    => ($paid <= 0.0001 ? 'Credit' : ($owed <= 0.0001 ? 'Cash' : 'Part-paid'))
+                                . " purchase — {$invoiceNumber}",
             'party_id'       => $partyId,
         ], $lines);
     }
@@ -1158,9 +1268,24 @@ class PurchaseService
      * point). Everything after that goes through here. Principle 5 of
      * V3_CONSOLIDATION_PLAN.md.
      */
+    /**
+     * `updatePurchaseBadge` decides the badge purely from allocation rows. A
+     * purchase settled inside its own journal has no allocation, so calling it
+     * unconditionally after an edit flipped a paid purchase to 'unpaid' — the
+     * status written moments earlier in the same transaction. It is only asked
+     * when there is something for it to look at.
+     */
     private function refreshPaymentStatus(string $purchaseId): void
     {
         try {
+            $hasAllocations = DB::table('allocations')
+                ->where('tenant_id', app('current.tenant')->id)
+                ->where('purchase_id', $purchaseId)
+                ->where('status', 'active')
+                ->exists();
+            if (! $hasAllocations) {
+                return;
+            }
             app(PaymentService::class)->updatePurchaseBadge($purchaseId);
         } catch (\Throwable $e) {
             Log::warning('[V3\\PurchaseService] Could not refresh payment badge.', [
