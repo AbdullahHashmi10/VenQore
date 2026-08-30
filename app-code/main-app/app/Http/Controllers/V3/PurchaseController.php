@@ -34,40 +34,69 @@ class PurchaseController extends Controller
     {
         $tenantId = app('current.tenant')->id;
 
-        $purchases = DB::table('purchases')
-            ->where('purchases.tenant_id', $tenantId)
-            ->join('parties', 'purchases.party_id', '=', 'parties.id')
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $term = '%' . $request->input('search') . '%';
-                $q->where(function ($w) use ($term) {
-                    $w->where('purchases.invoice_number', 'like', $term)
-                      ->orWhere('purchases.reference', 'like', $term)
-                      ->orWhere('parties.name', 'like', $term);
+        $query = \App\Models\Purchase::where('purchases.tenant_id', $tenantId)
+            ->with(['party', 'items.product']);
+
+        if ($request->filled('search')) {
+            $term = '%' . $request->input('search') . '%';
+            $query->where(function ($w) use ($term) {
+                $w->where('purchases.invoice_number', 'like', $term)
+                  ->orWhere('purchases.reference', 'like', $term)
+                  ->orWhereHas('party', function ($q) use ($term) {
+                      $q->where('name', 'like', $term);
+                  });
+            });
+        }
+
+        if ($request->filled('filter') && $request->input('filter') !== 'all' && $request->input('filter') !== 'custom') {
+            $filter = $request->input('filter');
+            if ($filter === 'today') {
+                $query->whereDate('purchases.purchase_date', now()->toDateString());
+            } elseif ($filter === 'month') {
+                $query->whereMonth('purchases.purchase_date', now()->month)
+                      ->whereYear('purchases.purchase_date', now()->year);
+            } else {
+                $query->where(function ($q) use ($filter) {
+                    $q->where('purchases.workflow_status', $filter)
+                      ->orWhere('purchases.payment_status', $filter);
                 });
-            })
-            ->when($request->filled('workflow_status'), fn ($q) => $q->where('purchases.workflow_status', $request->input('workflow_status')))
-            ->when($request->filled('payment_status'), fn ($q) => $q->where('purchases.payment_status', $request->input('payment_status')))
-            ->when($request->filled('from_date') && $request->filled('to_date'), function ($q) use ($request) {
-                $q->whereBetween('purchases.purchase_date', [
-                    $request->input('from_date'),
-                    $request->input('to_date'),
-                ]);
-            })
-            ->orderByDesc('purchases.created_at')
-            ->select(
-                'purchases.id',
-                'purchases.invoice_number',
-                'purchases.reference',
-                'purchases.purchase_date',
-                'purchases.due_date',
-                'purchases.total',
-                'purchases.payment_status',
-                'purchases.workflow_status',
-                'purchases.payment_method',
-                'parties.name as supplier_name'
-            )
-            ->paginate(50)
-            ->withQueryString();
+            }
+        }
+
+        if ($request->filled('workflow_status')) {
+            $query->where('purchases.workflow_status', $request->input('workflow_status'));
+        }
+
+        if ($request->filled('payment_status')) {
+            $query->where('purchases.payment_status', $request->input('payment_status'));
+        }
+
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+            $query->whereBetween('purchases.purchase_date', [
+                $request->input('from_date'),
+                $request->input('to_date'),
+            ]);
+        }
+
+        // Sorting
+        $sortBy = $request->input('sort_by', 'date');
+        $sortDir = strtolower($request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if ($sortBy === 'date') {
+            $query->orderBy('purchases.purchase_date', $sortDir)->orderBy('purchases.created_at', $sortDir);
+        } elseif ($sortBy === 'invoice_number') {
+            $query->orderBy('purchases.invoice_number', $sortDir);
+        } elseif ($sortBy === 'total') {
+            $query->orderBy('purchases.total', $sortDir);
+        } elseif ($sortBy === 'status') {
+            $query->orderBy('purchases.workflow_status', $sortDir);
+        } elseif ($sortBy === 'supplier_name') {
+            $query->leftJoin('parties', 'purchases.party_id', '=', 'parties.id')
+                ->select('purchases.*')
+                ->orderBy('parties.name', $sortDir);
+        } else {
+            $query->orderBy('purchases.created_at', $sortDir);
+        }
 
         // Calculate statistics for the list view
         $apAccount = DB::table('accounts')
@@ -75,15 +104,15 @@ class PurchaseController extends Controller
             ->where('tenant_id', $tenantId)
             ->value('id');
 
-        $applyStatsScope = function ($query) use ($tenantId, $request) {
-            $query->where('journal_entries.tenant_id', $tenantId);
+        $applyStatsScope = function ($q) use ($tenantId, $request) {
+            $q->where('journal_entries.tenant_id', $tenantId);
             if ($request->filled('from_date') && $request->filled('to_date')) {
-                $query->whereBetween('journal_entries.date', [
+                $q->whereBetween('journal_entries.date', [
                     $request->input('from_date'),
                     $request->input('to_date'),
                 ]);
             }
-            return $query;
+            return $q;
         };
 
         // Total invoiced = sum of all AP credits (what we owe suppliers)
@@ -116,9 +145,72 @@ class PurchaseController extends Controller
                 ->count(),
         ];
 
-        return Inertia::render('V3/Purchases/Index', [
+        $purchases = $query->paginate(50)
+            ->withQueryString()
+            ->through(function ($purchase) use ($tenantId, $apAccount) {
+                $extras = (float) DB::table('expenses')
+                    ->where('tenant_id', $tenantId)
+                    ->where('purchase_id', $purchase->id)
+                    ->where('is_landed_cost', true)
+                    ->sum('amount');
+
+                // Read paid amount from ledger journal entries
+                $paid = (float) DB::table('journal_items')
+                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->where('journal_entries.tenant_id', $tenantId)
+                    ->where('journal_entries.reference', $purchase->id)
+                    ->whereIn('journal_entries.reference_type', ['purchase_payment', 'purchase'])
+                    ->where('journal_entries.is_reversed', 0)
+                    ->where('journal_items.account_id', $apAccount)
+                    ->sum('journal_items.debit');
+
+                if ($purchase->payment_status === 'paid' && $paid <= 0) {
+                    $paid = (float) $purchase->total;
+                }
+
+                $total = (float) $purchase->total;
+                $balance = max(0.0, $total - $paid);
+
+                return [
+                    'id'              => $purchase->id,
+                    'date'            => $purchase->purchase_date ?? $purchase->created_at,
+                    'created_at'      => $purchase->created_at,
+                    'invoice_number'  => $purchase->invoice_number,
+                    'reference'       => $purchase->reference,
+                    'supplier'        => $purchase->party,
+                    'supplier_name'   => $purchase->party?->name ?? 'Unknown Supplier',
+                    'payment_method'  => $purchase->payment_method ?? 'Cash',
+                    'items_count'     => $purchase->items ? $purchase->items->count() : 0,
+                    'items'           => $purchase->items ? $purchase->items->map(function ($item) {
+                        return [
+                            'id'       => $item->id,
+                            'product'  => $item->product,
+                            'name'     => $item->product?->name ?? 'Product Item',
+                            'quantity' => (float) ($item->qty ?? $item->quantity ?? 1),
+                            'price'    => (float) ($item->unit_cost ?? $item->unit_price ?? 0),
+                            'subtotal' => (float) ($item->line_total ?? (($item->qty ?? 1) * ($item->unit_cost ?? 0))),
+                        ];
+                    })->values() : [],
+                    'subtotal'        => (float) ($purchase->subtotal ?? ($total - $extras)),
+                    'extras'          => $extras,
+                    'total'           => $total,
+                    'paid'            => $paid,
+                    'balance'         => $balance,
+                    'payment_status'  => $purchase->payment_status ?? ($balance <= 1.0 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid')),
+                    'status'          => $purchase->workflow_status ?? 'received',
+                    'workflow_status' => $purchase->workflow_status ?? 'received',
+                    'is_jit'          => (bool) ($purchase->is_jit ?? false),
+                    'approval_status' => $purchase->approval_status ?? null,
+                ];
+            });
+
+        if ($request->wantsJson()) {
+            return response()->json($purchases);
+        }
+
+        return Inertia::render('Purchases/PurchasesList', [
             'purchases' => $purchases,
-            'filters'   => $request->only(['search', 'workflow_status', 'payment_status', 'from_date', 'to_date']),
+            'filters'   => $request->only(['search', 'filter', 'workflow_status', 'payment_status', 'from_date', 'to_date', 'sort_by', 'sort_dir']),
             'stats'     => $stats,
         ]);
     }
