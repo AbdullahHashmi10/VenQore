@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -272,29 +272,29 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
     return (
         <OneGlanceLayout title="Purchases History" activeMenu="Purchase">
             <Head title="Purchases History" />
-            <div className="flex flex-col min-h-full lg:h-full bg-slate-50 dark:bg-slate-950 p-1 md:p-2 gap-1 lg:overflow-hidden relative">
+            <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
                 <PurchaseModuleTabs activeTab="purchases" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
-                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     
                     {!isStatsExpanded && (
-                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                        <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
                             <div className="flex items-center gap-2">
-                                <span className="text-indigo-600 dark:text-indigo-400">Purchase: {renderCurrency(stats?.total_purchase || 0, store)}</span>
-                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-brand-600 dark:text-brand-400">Purchase: {renderCurrency(stats?.total_purchase || 0, store)}</span>
+                                <span className="text-neutral-300 dark:text-ink-secondary">|</span>
                                 <span className="text-blue-600 dark:text-blue-400">Txns: {purchases?.total || 0}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-emerald-600">Paid: {renderCurrency(stats?.total_paid || 0, store)}</span>
-                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-neutral-300 dark:text-ink-secondary">|</span>
                                 <span className="text-rose-600">Due: {renderCurrency(stats?.total_due || 0, store)}</span>
                             </div>
                         </div>
@@ -303,75 +303,75 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
 
                 {/* Stats Cards Section - Compact Single Line */}
                 <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <ShoppingBag size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Purchases</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Total Purchases</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{renderCurrency(stats?.total_purchase || 0, store)}</p>
+                        <p className="text-base font-bold text-ink">{renderCurrency(stats?.total_purchase || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckSquare size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Paid Amount</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Paid Amount</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{renderCurrency(stats?.total_paid || 0, store)}</p>
+                        <p className="text-base font-bold text-emerald-600">{renderCurrency(stats?.total_paid || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <Clock size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Unpaid (Due)</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Unpaid (Due)</p>
                         </div>
-                        <p className="text-base font-black text-rose-600">{renderCurrency(stats?.total_due || 0, store)}</p>
+                        <p className="text-base font-bold text-rose-600">{renderCurrency(stats?.total_due || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <History size={16} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Transactions</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Transactions</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{purchases?.total || sortedPurchases.length || 0}</p>
+                        <p className="text-base font-bold text-ink">{purchases?.total || sortedPurchases.length || 0}</p>
                     </div>
                 </div>
 
                 {/* PC / Desktop Header Area (Hidden on Mobile) */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
-                            Purchase <span className="text-indigo-600">Transactions</span>
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            Purchase <span className="text-brand-600 dark:text-brand-400">Transactions</span>
                         </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        <div className="h-4 w-px bg-line mx-1"></div>
                         <button
                             onClick={() => applyFilterType('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
                         >All</button>
                         <button
                             onClick={() => applyFilterType('today')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
                         >Today</button>
                         <button
                             onClick={() => applyFilterType('month')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
                         >This Month</button>
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
                         >Custom</button>
                         {activeFilter === 'custom' && (
                             <div className="flex items-center gap-1.5 ml-1">
                                 <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500" />
-                                <span className="text-slate-400 text-xs">→</span>
+                                    className="px-2 py-0.5 text-xs font-semibold bg-sunken border border-line rounded-md text-ink focus:ring-1 focus:ring-brand-500" />
+                                <span className="text-ink-muted text-xs">→</span>
                                 <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500" />
+                                    className="px-2 py-0.5 text-xs font-semibold bg-sunken border border-line rounded-md text-ink focus:ring-1 focus:ring-brand-500" />
                             </div>
                         )}
                     </div>
@@ -385,15 +385,15 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                 onChange={handleSearch}
                                 onKeyDown={handleServerSearch}
                                 placeholder="Search purchase #, supplier..."
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink placeholder:text-ink-muted"
                             />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
+                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
+                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600 transition-colors" title="Export">
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print" onClick={() => window.print()}>
+                            <button className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors" title="Print" onClick={() => window.print()}>
                                 <Printer size={18} />
                             </button>
                         </div>
@@ -401,29 +401,29 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                 </div>
 
                 {/* Mobile Layout Header Area */}
-                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center justify-between w-full">
-                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
                             Purchase Transactions
                         </h1>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Search"
                             >
                                 <Search size={16} />
                             </button>
                             <button
                                 onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
                                 title="Filters"
                             >
                                 <Filter size={16} />
                             </button>
                             <Link
                                 href={route('store.purchases.create', { store_slug: store?.slug })}
-                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+                                className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
                                 title="New Purchase"
                             >
                                 <Plus size={16} />
@@ -432,33 +432,33 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     </div>
 
                     {showMobileSearch && (
-                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                        <div className="w-full relative mt-1 border-t border-line pt-2">
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={handleSearch}
                                 onKeyDown={handleServerSearch}
                                 placeholder="Search purchase #, supplier..."
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none text-slate-800 dark:text-white"
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink placeholder:text-ink-muted"
                             />
-                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
                         </div>
                     )}
 
                     {showMobileFilters && (
-                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                        <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => applyFilterType('all')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >All</button>
                                 <button
                                     onClick={() => applyFilterType('today')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >Today</button>
                                 <button
                                     onClick={() => applyFilterType('month')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
                                 >Month</button>
                             </div>
                         </div>
@@ -466,10 +466,10 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                 </div>
 
                 {/* Main Table / Container */}
-                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                <div className="flex-1 overflow-auto md:rounded-2xl md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
                     <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                            <tr className="bg-sunken border-b border-line sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
                                     <th
                                         key={col.key}
@@ -479,35 +479,35 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                                            cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
-                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
+                                            p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
+                                            cursor-pointer select-none hover:bg-interactive-hover transition-colors
+                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
                                         `}
                                         style={{ width: col.width }}
                                     >
                                         <div className="flex items-center gap-2">
                                             {col.label}
                                             {col.key !== 'actions' && sortConfig.key === col.key && (
-                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-indigo-500" /> : <ChevronDown size={14} className="text-indigo-500" />
+                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-brand-500" /> : <ChevronDown size={14} className="text-brand-500" />
                                             )}
                                         </div>
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-line bg-surface">
                             {sortedPurchases.length === 0 ? (
                                 <tr>
                                     <td colSpan={tableColumns.length} className="p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
-                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                                <ShoppingBag size={32} className="text-slate-400" />
+                                            <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
+                                                <ShoppingBag size={32} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">No purchases found</p>
-                                            <p className="text-sm text-slate-500 mb-4">Record your first purchase to get started</p>
+                                            <p className="text-lg font-bold text-ink-secondary mb-1">No purchases found</p>
+                                            <p className="text-sm text-ink-muted mb-4">Record your first purchase to get started</p>
                                             <Link
                                                 href={route('store.purchases.create', { store_slug: store?.slug })}
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                                className="px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-colors flex items-center gap-2"
                                             >
                                                 <Plus size={16} /> Create First Purchase
                                             </Link>
@@ -520,20 +520,20 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                         key={row.id}
                                         onClick={() => handleRowClick(row)}
                                         className={`
-                                            hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group cursor-pointer
-                                            border-l-4 border-transparent hover:border-indigo-400
-                                            ${quickViewItem?.id === row.id ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50 dark:bg-indigo-900/20' : ''}
+                                            hover:bg-interactive-hover transition-all group cursor-pointer
+                                            border-l-4 border-transparent hover:border-brand-500
+                                            ${quickViewItem?.id === row.id ? 'ring-2 ring-brand-500 ring-inset bg-brand-50/30 dark:bg-brand-900/20' : ''}
                                         `}
                                     >
                                         {tableColumns.map((col) => (
-                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
+                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
                                                 {(() => {
                                                     switch (col.key) {
                                                         case 'date': return <span className="font-medium">{formatDate(row.date || row.created_at)}</span>;
                                                         case 'invoice_number':
-                                                            return (
+                                                             return (
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{row.invoice_number || row.reference_number || '-'}</span>
+                                                                    <span className="font-mono text-brand-600 dark:text-brand-400 font-semibold">{row.invoice_number || row.reference_number || '-'}</span>
                                                                     {vensynq_enabled && row.is_jit && row.approval_status === 'draft' && (
                                                                         <span className="text-2xs font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-1.5 py-0.5 rounded uppercase tracking-wide">
                                                                             JIT Draft
@@ -544,8 +544,8 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                         case 'supplier_name':
                                                             return (
                                                                 <div>
-                                                                    <p className="font-semibold">{row.supplier?.name || 'Unknown Supplier'}</p>
-                                                                    {row.supplier?.phone && <p className="text-xs text-slate-400">{row.supplier.phone}</p>}
+                                                                    <p className="font-semibold text-ink">{row.supplier?.name || 'Unknown Supplier'}</p>
+                                                                    {row.supplier?.phone && <p className="text-xs text-ink-muted">{row.supplier.phone}</p>}
                                                                 </div>
                                                             );
                                                         case 'transaction': return <span className="text-xs font-bold uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-1 rounded-md">Purchase</span>;
@@ -553,7 +553,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                         case 'total':
                                                             return (
                                                                 <div className="flex flex-col">
-                                                                    <span className="font-bold">{renderCurrency(row.subtotal || row.total, store)}</span>
+                                                                    <span className="font-bold text-ink">{renderCurrency(row.subtotal || row.total, store)}</span>
                                                                     {row.extras > 0 && (
                                                                         <span className="text-xs text-amber-600 dark:text-amber-400">+{renderCurrency(row.extras, store)} extras</span>
                                                                     )}
@@ -565,11 +565,11 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                             const balance = row.balance ?? (total - paid);
                                                             return (
                                                                 <div className="flex flex-col">
-                                                                    <span className="text-xs text-slate-500">Paid: <span className="text-emerald-600 font-semibold">{renderCurrency(paid, store)}</span></span>
+                                                                    <span className="text-xs text-ink-muted">Paid: <span className="text-emerald-600 font-semibold">{renderCurrency(paid, store)}</span></span>
                                                                     {balance > 1 ? (
-                                                                        <span className="text-red-500 font-bold">Due: {renderCurrency(balance, store)}</span>
+                                                                        <span className="text-rose-600 font-bold">Due: {renderCurrency(balance, store)}</span>
                                                                     ) : (
-                                                                        <span className="text-emerald-500 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full w-fit">Settled</span>
+                                                                        <span className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full w-fit">Settled</span>
                                                                     )}
                                                                 </div>
                                                             );
@@ -580,11 +580,11 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                             const statusStyles = {
                                                                 paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
                                                                 partial: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
-                                                                unpaid: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
+                                                                unpaid: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400',
                                                             };
                                                             return (
                                                                 <div className="flex flex-col gap-1">
-                                                                    <span className={`px-2 py-1 rounded-md text-2xs font-bold uppercase w-fit ${statusStyles[paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
+                                                                    <span className={`px-2 py-1 rounded-md text-2xs font-bold uppercase w-fit ${statusStyles[paymentStatus] || 'bg-sunken text-ink-secondary'}`}>
                                                                         {paymentStatus}
                                                                     </span>
                                                                     {isJitDraft && (
@@ -613,22 +613,25 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                                             <CheckSquare size={12} /> Approve
                                                                         </button>
                                                                     )}
-                                                                    <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); }} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors">
+                                                                    <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); }} className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors">
                                                                         <Printer size={16} />
                                                                     </button>
                                                                     <div className="relative">
-                                                                        <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-indigo-600 bg-slate-100' : 'text-slate-500 hover:bg-slate-100'}`}>
+                                                                        <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-brand-600 bg-interactive-hover' : 'text-ink-muted hover:bg-interactive-hover'}`}>
                                                                             <MoreVertical size={16} />
                                                                         </button>
                                                                         {activeActionMenu === row.id && (
-                                                                            <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+                                                                            <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
                                                                                 <div className="py-1">
-                                                                                    <Link href={route("store.purchases.edit", [store.slug, row.id])} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Edit size={14} /> View Details</Link>
-                                                                                    <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><History size={14} /> Payment History</button>
-                                                                                    <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                                                                    <Link href={route("store.purchases.show", { store_slug: store?.slug, purchase: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded flex items-center gap-2 text-sm text-ink-secondary"><Eye size={14} /> View Details</Link>
+                                                                                    <Link href={route("store.purchases.edit", { store_slug: store?.slug, purchase: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded flex items-center gap-2 text-sm text-ink-secondary"><Edit size={14} /> Edit Purchase</Link>
+                                                                                    {['pending', 'partial'].includes(row.workflow_status) && (
+                                                                                        <Link href={route("store.purchases.receive", { store_slug: store?.slug, purchase: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded flex items-center gap-2 text-sm text-emerald-600"><CheckSquare size={14} /> Receive Goods</Link>
+                                                                                    )}
+                                                                                    <div className="h-px bg-line my-1"></div>
                                                                                     <button
                                                                                         onClick={(e) => { e.stopPropagation(); handleDeleteClick(row.id); }}
-                                                                                        className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"
+                                                                                        className="w-full text-left px-3 py-2 hover:bg-rose-500/10 rounded flex items-center gap-2 text-sm text-rose-600"
                                                                                     >
                                                                                         <Trash2 size={14} /> Delete
                                                                                     </button>
@@ -652,11 +655,11 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     {/* Mobile View - Cards List */}
                     <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
                         {sortedPurchases.length === 0 ? (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
-                                <ShoppingBag size={32} className="mx-auto text-slate-400 mb-2" />
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No purchases found</p>
+                            <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                                <ShoppingBag size={32} className="mx-auto text-ink-muted mb-2" />
+                                <p className="text-sm font-bold text-ink-secondary">No purchases found</p>
                             </div>
-                        ) :                             sortedPurchases.map((row) => {
+                        ) : sortedPurchases.map((row) => {
                                 const paid = parseFloat(row.paid || 0);
                                 const total = parseFloat(row.total || 0);
                                 const balance = row.balance ?? (total - paid);
@@ -665,32 +668,32 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                 const statusStyles = {
                                     paid: 'bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20',
                                     partial: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20',
-                                    unpaid: 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-500/20',
+                                    unpaid: 'bg-rose-100/50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-500/20',
                                 };
                                 return (
                                     <div
                                         key={row.id}
                                         onClick={() => handleRowClick(row)}
                                         className={`
-                                            p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2 relative cursor-pointer hover:border-indigo-400 transition-colors
-                                            ${quickViewItem?.id === row.id ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20 dark:bg-indigo-900/10' : ''}
+                                            p-3 bg-surface rounded-xl border border-line shadow-sm flex flex-col gap-2 relative cursor-pointer hover:border-brand-500 transition-colors
+                                            ${quickViewItem?.id === row.id ? 'ring-2 ring-brand-500 ring-inset bg-brand-50/20 dark:bg-brand-900/10' : ''}
                                         `}
                                     >
                                         {/* Row 1: Supplier Name (Left), Invoice Reference & Date (Right) */}
                                         <div className="flex items-start justify-between">
                                             <div>
-                                                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm">
+                                                <h3 className="font-extrabold text-ink text-sm">
                                                     {row.supplier?.name || 'Unknown Supplier'}
                                                 </h3>
                                                 {row.supplier?.phone && (
-                                                    <p className="text-2xs text-slate-400 font-semibold">{row.supplier.phone}</p>
+                                                    <p className="text-2xs text-ink-muted font-semibold">{row.supplier.phone}</p>
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                                <span className="font-mono text-xs font-bold text-brand-600 dark:text-brand-400 block">
                                                     {row.invoice_number || row.reference_number || '-'}
                                                 </span>
-                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-ink-muted font-semibold block mt-0.5">
                                                     {formatDate(row.date || row.created_at)}
                                                 </span>
                                             </div>
@@ -706,28 +709,28 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                     JIT Draft
                                                 </span>
                                             )}
-                                            <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[paymentStatus] || 'bg-sunken text-ink-secondary'}`}>
                                                 {paymentStatus}
                                             </span>
                                         </div>
 
                                         {/* Row 3: Totals & Action Icons */}
-                                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                        <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Total</span>
-                                                    <span className="text-xs font-black text-slate-900 dark:text-white">
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Total</span>
+                                                    <span className="text-xs font-black text-ink">
                                                         {renderCurrency(total, store)}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Balance</span>
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Balance</span>
                                                     {balance > 1 ? (
-                                                        <span className="text-xs font-black text-red-500">
+                                                        <span className="text-xs font-black text-rose-600">
                                                             {renderCurrency(balance, store)}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
+                                                        <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
                                                             Settled
                                                         </span>
                                                     )}
@@ -752,7 +755,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                 )}
                                                 <button
                                                     onClick={() => PrintService.quickPrint(row)}
-                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                                                     title="Print"
                                                 >
                                                     <Printer size={16} />
@@ -760,23 +763,23 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                 <div className="relative">
                                                     <button 
                                                         onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} 
-                                                        className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-indigo-600 bg-slate-100 dark:bg-slate-800' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                                        className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-brand-600 bg-interactive-hover' : 'text-ink-muted hover:bg-interactive-hover'}`}
                                                     >
                                                         <MoreVertical size={16} />
                                                     </button>
                                                     {activeActionMenu === row.id && (
-                                                        <div className="absolute right-0 bottom-full mb-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+                                                        <div className="absolute right-0 bottom-full mb-2 w-56 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
                                                             <div className="py-1">
-                                                                <Link href={route("store.purchases.edit", [store.slug, row.id])} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                <Link href={route("store.purchases.show", { store_slug: store?.slug, purchase: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded flex items-center gap-2 text-sm text-ink-secondary">
                                                                     <Eye size={14} /> View Details
                                                                 </Link>
-                                                                <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                                                                    <History size={14} /> Payment History
-                                                                </button>
-                                                                <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                                                <Link href={route("store.purchases.edit", { store_slug: store?.slug, purchase: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded flex items-center gap-2 text-sm text-ink-secondary">
+                                                                    <Edit size={14} /> Edit Purchase
+                                                                </Link>
+                                                                <div className="h-px bg-line my-1"></div>
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleDeleteClick(row.id); }}
-                                                                    className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"
+                                                                    className="w-full text-left px-3 py-2 hover:bg-rose-500/10 rounded flex items-center gap-2 text-sm text-rose-600"
                                                                 >
                                                                     <Trash2 size={14} /> Delete
                                                                 </button>
@@ -792,7 +795,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     </div>
 
                     {/* Infinite Scroll Sentinel */}
-                    <div ref={observerTarget} className="mt-4 p-4 text-center text-slate-400 text-sm opacity-0 h-4">
+                    <div ref={observerTarget} className="mt-4 p-4 text-center text-ink-muted text-sm opacity-0 h-4">
                         {nextPageUrl ? 'Loading...' : ''}
                     </div>
                 </div>
@@ -812,25 +815,25 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
             {quickViewItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setQuickViewItem(null)}>
                     <div
-                        className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                        className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
+                        <div className="flex items-center justify-between p-4 border-b border-line bg-sunken shrink-0">
                             <div className="flex items-center gap-4">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Purchase Preview</p>
-                                    <h3 className="text-xl font-black text-indigo-600">{quickViewItem.invoice_number || quickViewItem.reference_number}</h3>
+                                    <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Purchase Preview</p>
+                                    <h3 className="text-xl font-black text-brand-600 dark:text-brand-400">{quickViewItem.invoice_number || quickViewItem.reference_number}</h3>
                                 </div>
                                 {(() => {
                                     const statusStyles = {
                                         paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
                                         partial: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
-                                        unpaid: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                                        unpaid: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
                                     };
                                     const ps = quickViewItem.payment_status || 'unpaid';
                                     return (
-                                        <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${statusStyles[ps] || 'bg-slate-100 text-slate-700'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${statusStyles[ps] || 'bg-sunken text-ink-secondary'}`}>
                                             {ps}
                                         </span>
                                     );
@@ -845,14 +848,14 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                     className="font-bold text-xs"
                                 />
                                 <Link
-                                    href={route('store.purchases.edit', { store_slug: store?.slug, purchase: quickViewItem.id })}
-                                    className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                                    href={route('store.purchases.show', { store_slug: store?.slug, purchase: quickViewItem.id })}
+                                    className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition-colors flex items-center gap-1"
                                 >
-                                    <Edit size={14} /> View Details
+                                    <Eye size={14} /> View Details
                                 </Link>
                                 <button
                                     onClick={() => setQuickViewItem(null)}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                                    className="p-2 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
                                 >
                                     <X size={18} />
                                 </button>
@@ -863,66 +866,66 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                         <div className="flex-1 overflow-auto p-4">
                             {/* Top Info Row */}
                             <div className="grid grid-cols-4 gap-3 mb-4">
-                                <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Supplier</p>
-                                    <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewItem.supplier?.name || 'Unknown'}</p>
+                                <div className="bg-sunken p-3 rounded-xl border border-line">
+                                    <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Supplier</p>
+                                    <p className="font-bold text-ink text-sm">{quickViewItem.supplier?.name || 'Unknown'}</p>
                                     {quickViewItem.supplier?.phone && (
-                                        <p className="text-xs text-slate-500">{quickViewItem.supplier.phone}</p>
+                                        <p className="text-xs text-ink-muted">{quickViewItem.supplier.phone}</p>
                                     )}
                                 </div>
-                                <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date</p>
-                                    <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewItem.date || quickViewItem.created_at)}</p>
+                                <div className="bg-sunken p-3 rounded-xl border border-line">
+                                    <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Date</p>
+                                    <p className="font-bold text-ink text-sm">{formatDate(quickViewItem.date || quickViewItem.created_at)}</p>
                                 </div>
-                                <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Payment</p>
-                                    <p className="font-bold text-slate-800 dark:text-white text-sm uppercase">{quickViewItem.payment_method || 'Cash'}</p>
+                                <div className="bg-sunken p-3 rounded-xl border border-line">
+                                    <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Payment</p>
+                                    <p className="font-bold text-ink text-sm uppercase">{quickViewItem.payment_method || 'Cash'}</p>
                                 </div>
-                                <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                    <p className="text-2xs font-bold text-indigo-600 uppercase mb-1">Total</p>
-                                    <p className="font-black text-indigo-600 text-lg">{renderCurrency(quickViewItem.total, store)}</p>
+                                <div className="bg-brand-500/10 p-3 rounded-xl border border-brand-500/20">
+                                    <p className="text-2xs font-bold text-brand-600 dark:text-brand-400 uppercase mb-1">Total</p>
+                                    <p className="font-black text-brand-600 dark:text-brand-400 text-lg">{renderCurrency(quickViewItem.total, store)}</p>
                                 </div>
                             </div>
 
                             {/* Items Table */}
-                            <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                                <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                    <p className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">
+                            <div className="border border-line rounded-xl overflow-hidden">
+                                <div className="bg-sunken px-4 py-2 border-b border-line">
+                                    <p className="text-xs font-bold text-ink uppercase">
                                         Items in this Purchase ({quickViewItem.items?.length || 0})
                                     </p>
                                 </div>
                                 <div className="max-h-[300px] overflow-auto">
                                     <table className="w-full text-sm">
-                                        <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                                        <thead className="sticky top-0 bg-sunken border-b border-line">
                                             <tr>
-                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
-                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
-                                                <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
-                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
-                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-ink-muted uppercase">#</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-ink-muted uppercase">Item Name</th>
+                                                <th className="text-center p-3 text-2xs font-bold text-ink-muted uppercase">Qty</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-ink-muted uppercase">Rate</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-ink-muted uppercase">Total</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <tbody className="divide-y divide-line bg-surface">
                                             {quickViewItem.items && quickViewItem.items.length > 0 ? (
                                                 quickViewItem.items.map((item, idx) => (
-                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                                        <td className="p-3 text-slate-400 font-mono text-xs">{idx + 1}</td>
+                                                    <tr key={idx} className="hover:bg-interactive-hover transition-colors">
+                                                        <td className="p-3 text-ink-muted font-mono text-xs">{idx + 1}</td>
                                                         <td className="p-3">
-                                                            <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
+                                                            <p className="font-semibold text-ink">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                             {item.product?.sku && (
-                                                                <p className="text-2xs text-slate-400 font-mono">{item.product.sku}</p>
+                                                                <p className="text-2xs text-ink-muted font-mono">{item.product.sku}</p>
                                                             )}
                                                         </td>
-                                                        <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                                        <td className="p-3 text-right text-slate-600 dark:text-slate-400">{renderCurrency(item.price || item.unit_price || 0, store)}</td>
-                                                        <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
+                                                        <td className="p-3 text-center font-bold text-ink">{item.quantity}</td>
+                                                        <td className="p-3 text-right text-ink-secondary">{renderCurrency(item.price || item.unit_price || 0, store)}</td>
+                                                        <td className="p-3 text-right font-bold text-ink">
                                                             {renderCurrency(item.quantity * (item.price || item.unit_price || 0), store)}
                                                         </td>
                                                     </tr>
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan={5} className="p-6 text-center text-slate-400">
+                                                    <td colSpan={5} className="p-6 text-center text-ink-muted">
                                                         No items data available
                                                     </td>
                                                 </tr>
@@ -931,11 +934,11 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                     </table>
                                 </div>
                                 {/* Summary Row */}
-                                <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
+                                <div className="bg-sunken px-4 py-3 border-t border-line">
                                     <div className="flex justify-end gap-6">
                                         <div className="text-right">
-                                            <p className="text-2xs text-slate-400 uppercase">Subtotal</p>
-                                            <p className="font-bold text-slate-700 dark:text-slate-300">{renderCurrency(quickViewItem.subtotal || quickViewItem.total, store)}</p>
+                                            <p className="text-2xs text-ink-muted uppercase">Subtotal</p>
+                                            <p className="font-bold text-ink">{renderCurrency(quickViewItem.subtotal || quickViewItem.total, store)}</p>
                                         </div>
                                         {quickViewItem.extras > 0 && (
                                             <div className="text-right">
@@ -943,17 +946,17 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                 <p className="font-bold text-amber-600">+{renderCurrency(quickViewItem.extras, store)}</p>
                                             </div>
                                         )}
-                                        <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-6">
-                                            <p className="text-2xs text-slate-400 uppercase">Paid</p>
+                                        <div className="text-right border-l border-line pl-6">
+                                            <p className="text-2xs text-ink-muted uppercase">Paid</p>
                                             <p className="font-bold text-emerald-600">{renderCurrency(quickViewItem.paid || 0, store)}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-2xs text-slate-400 uppercase">Balance</p>
-                                            <p className="font-bold text-red-600">{renderCurrency(quickViewItem.balance ?? ((quickViewItem.total || 0) - (quickViewItem.paid || 0)), store)}</p>
+                                            <p className="text-2xs text-ink-muted uppercase">Balance</p>
+                                            <p className="font-bold text-rose-600">{renderCurrency(quickViewItem.balance ?? ((quickViewItem.total || 0) - (quickViewItem.paid || 0)), store)}</p>
                                         </div>
-                                        <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-6">
-                                            <p className="text-2xs text-indigo-600 uppercase font-bold">Grand Total</p>
-                                            <p className="font-black text-lg text-indigo-600">{renderCurrency(quickViewItem.total, store)}</p>
+                                        <div className="text-right border-l border-line pl-6">
+                                            <p className="text-2xs text-brand-600 dark:text-brand-400 uppercase font-bold">Grand Total</p>
+                                            <p className="font-black text-lg text-brand-600 dark:text-brand-400">{renderCurrency(quickViewItem.total, store)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -961,12 +964,12 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center shrink-0">
-                            <p className="text-2xs text-slate-400">Double-click row to view details • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
+                        <div className="p-3 border-t border-line bg-sunken text-center shrink-0">
+                            <p className="text-2xs text-ink-muted">Double-click row to view details • Press <kbd className="px-1.5 py-0.5 bg-app rounded text-ink-secondary font-mono border border-line">Esc</kbd> to close</p>
                         </div>
                     </div>
                 </div>
             )}
         </OneGlanceLayout>
     );
-}
+};
