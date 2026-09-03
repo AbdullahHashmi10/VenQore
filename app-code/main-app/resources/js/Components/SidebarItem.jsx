@@ -212,7 +212,18 @@ export default function SidebarItem({
                             'Import/Export': 'store.admin.data',
                             'Attributes': 'store.attributes.index',
                             'Quick Access': 'store.home',
+                            'Home': 'store.home',
                             'Dashboard': 'store.dashboard',
+                            'Main Dashboard': 'store.dashboard',
+                            'Executive Dashboard': 'store.admin.dashboard',
+                            'User Management': 'store.admin.users',
+                            'Staff Attendance': 'store.admin.attendance',
+                            'Data Management': 'store.admin.data',
+                            'System Settings': 'store.admin.settings',
+                            'Store Settings': 'store.settings',
+                            'Subscription': 'store.billing',
+                            'Agent Inbox': 'store.admin.chatbot.inbox',
+                            'Chatbot Settings': 'store.admin.chatbot.settings',
                             'POS': 'store.pos',
                             'Analytics': 'store.sales.analytics',
                             'Orders': 'store.sales.index',
@@ -316,7 +327,7 @@ export default function SidebarItem({
                                         ? { label: subItem.label, locked: subItem.locked }
                                         : { label: subItem, locked: false };
 
-                                    const baseRoute = getRoute(itemName);
+                                    const baseRoute = (typeof subItem === 'object' && subItem.route) ? subItem.route : getRoute(itemName);
                                     if (!baseRoute) {
                                         return (
                                             <span key={sIdx} className="block pl-4 py-1.5 text-xs text-ink-muted cursor-not-allowed">
@@ -363,7 +374,7 @@ export default function SidebarItem({
                         ? { label: item.label, locked: item.locked }
                         : { label: item, locked: false };
 
-                    const baseRoute = getRoute(itemName);
+                    const baseRoute = (typeof item === 'object' && item.route) ? item.route : getRoute(itemName);
                     if (!baseRoute) {
                         return (
                             <span

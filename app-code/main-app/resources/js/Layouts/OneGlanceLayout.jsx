@@ -76,6 +76,7 @@ import PlanNotificationBell from '@/Components/PlanNotificationBell';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import LimitGraceBanner from '@/Components/LimitGraceBanner';
+import ActivityHubModal from '@/Components/ActivityHubModal';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
  const {
@@ -100,6 +101,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  setToasts(prev => [...prev, { id, message, type }]);
  };
  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+
+ // Activity Hub Modal State
+ const [isActivityHubModalOpen, setIsActivityHubModalOpen] = useState(false);
 
  // Live Header Clock State
  const [currentTime, setCurrentTime] = useState(new Date());
@@ -507,29 +511,31 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  };
  }, [isIdle]);
 
- const userPerms = props.auth?.user?.permissions || [];
- const hasAnyPerm = (...keys) => keys.some(k => userPerms.some(p => p === k || p.startsWith(k + '.')));
+ const userRole = my_role || userRoleProp || props.auth?.user?.role;
+ const isPlatformAdmin = !!props.auth?.user?.is_platform_admin;
+ 	const userPerms = props.auth?.user?.permissions || [];
+	const hasAnyPerm = (...keys) => keys.some(k => userPerms.some(p => p === k || p.startsWith(k + '.')));
+
+	const userPosSessions = posSessions?.filter(pos => userRole === 'cashier' ? pos.user_id === props.auth?.user?.id : true) || [];
+	const visibleInvoices = (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') ? (activeInvoices || []) : [];
+	const visiblePurchases = (activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases'))) ? activePurchases : [];
+	const totalActiveOps = visibleInvoices.length + userPosSessions.length + visiblePurchases.length;
 
  const appMenuItems = [
- { name: 'Home', icon: Home, subs: [],
- route: store ? 'store.home' : null,
- routeParams: store ? { store_slug: store.slug } : {} },
- { name: 'Dashboard', icon: LayoutDashboard, subs: [],
- route: store ? 'store.dashboard' : null,
- routeParams: store ? { store_slug: store.slug } : {} },
- store ? {
- name: 'AI Scan',
- icon: Sparkles,
- subs: [],
- onClick: () => {
- window.dispatchEvent(new CustomEvent('amd:open-smart-capture', { detail: { tab: 'image' } }));
- }
- } : null,
+ {
+ name: 'Dashboard',
+ icon: LayoutDashboard,
+ subs: [
+ { group: 'Overview', items: ['Home', 'Main Dashboard'] }
+ ],
+ route: store ? 'store.dashboard' : 'dashboard',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
  {
  name: 'Sell',
  icon: ShoppingCart,
  // PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
- subs: props.auth?.user?.role === 'cashier' ? [] : [
+ subs: userRole === 'cashier' ? [] : [
  { group: 'Transactions', items: ['Orders', 'Quotations / Pre-Sales', 'Proposals'] },
  { group: 'Post-Sale', items: ['Returns History', { label: 'Invoice Reminders', locked: !store?.features?.invoice_reminders }, { label: 'Recurring Invoices', locked: !store?.features?.recurring_invoices }] },
  { group: 'Config', items: [{ label: 'E-Invoicing (Coming Soon)', locked: true }] }
@@ -604,22 +610,29 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  route: store ? 'store.reports.index' : 'reports.index',
  routeParams: store ? { store_slug: store.slug } : {}
  },
- // Appearance nav entry — hidden while the New Experience is pulled
- // back for rework (see Appearance::NEW_EXPERIENCE_ENABLED). The route
- // it pointed to is commented out in web.php, so leaving this entry in
- // would be a link to a 404. Restore both together.
- //
- // store ? {
- // name: 'Appearance',
- // icon: Palette,
- // subs: [],
- // route: 'store.appearance',
- // routeParams: { store_slug: store.slug },
- // } : null,
+ store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage', 'users.manage', 'audit')) ? {
+ name: 'Administration',
+ icon: ShieldCheck,
+ subs: [
+ { group: 'Executive', items: ['Executive Dashboard'] },
+ { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
+ { group: 'System & Data', items: ['Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
+ { group: 'AI Support', items: ['Agent Inbox'] }
+ ],
+ route: store ? 'store.admin.dashboard' : null,
+ routeParams: store ? { store_slug: store.slug } : {}
+ } : null,
+ store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage')) ? {
+ name: 'Settings',
+ icon: Settings,
+ subs: [
+ { group: 'Store Configuration', items: ['Store Settings', 'System Settings'] },
+ { group: 'AI & Automation', items: ['Chatbot Settings'] }
+ ],
+ route: store ? 'store.settings' : null,
+ routeParams: store ? { store_slug: store.slug } : {}
+ } : null,
  ].filter(Boolean);
-
- const userRole = my_role || userRoleProp || props.auth?.user?.role;
- const isPlatformAdmin = !!props.auth?.user?.is_platform_admin;
 
  // ── CRITICAL SECURITY: If no store context and user landed here via a legacy bare route,
  // redirect to /hub immediately. NEVER show platform links to store users.
@@ -706,6 +719,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  // RBAC Permission Map
  const MENU_PERMISSIONS = {
  'Home': [],
+ 'Dashboard': [],
+ 'Administration': ['admin.settings_manage', 'users.manage'],
+ 'Settings': ['admin.settings_manage'],
  'AI Scan': ['pos', 'sales', 'purchases'],
  // Sell: only roles that can actually create sales or open POS sessions
  'Sell': ['sales.create', 'sales.view'],
@@ -745,7 +761,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'Database': ['settings']
  };
 
- const rawMenuItems = mode === 'admin' ? adminMenuItems : appMenuItems;
+ const rawMenuItems = (mode === 'admin' && isPlatformAdmin && !store) ? adminMenuItems : appMenuItems;
 
  const menuItems = rawMenuItems.filter(item => {
  // Exclude VenSynQ if disabled platform-wide
@@ -1027,8 +1043,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  onHoverExpand={handleHoverExpand}
  isPlatformHQ={isPlatformAdmin && !store}
  isExpanded={showExpandedSidebar}
- isMenuExpanded={expandedMenu === item.name}
- isActive={activeMenu === item.name}
+ isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && activeMenu === 'Home' && item.name === 'Dashboard')}
+ isActive={activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home')}
  onToggle={() => {
  if (item.onClick) {
  item.onClick();
@@ -1041,91 +1057,46 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  />
  ))}
 
- {/* Activity Hub — PROBLEM 5 FIX: Viewer/Accountant see nothing; Cashier sees own sessions only */}
- {(activeInvoices.length > 0 || posSessions.length > 0 || (activePurchases && activePurchases.length > 0)) && !(isPlatformAdmin && !store) && (
- <div className="mt-8 pt-6 border-t border-line animate-in fade-in slide-in-from-left-2">
- <div className={`flex items-center gap-3 mb-4 px-2 ${!showExpandedSidebar && 'justify-center'}`}>
- <Activity size={18} className="text-brand-500" />
- {showExpandedSidebar && <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">Activity Hub</span>}
- </div>
-
- <div className="space-y-1">
- {/* Invoices — hidden from cashier/viewer/accountant/purchasing_officer */}
- {(userRole === 'owner' || userRole === 'admin' || userRole === 'manager') && activeInvoices.map((inv, idx) => (
- <button
- key={inv.id}
- onClick={() => {
- setCurrentInvoiceId(inv.id);
- if (!url.includes('/sales/invoice/create')) router.visit(route('store.sales.invoice.create', { store_slug: store?.slug }));
- }}
- className={`
- w-full flex items-center gap-3 p-2 rounded-xl transition-all group
- ${currentInvoiceId === inv.id && url.includes('/sales/invoice/create') ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}
- ${!showExpandedSidebar && 'justify-center'}
-`}
- title={`Invoice: ${inv.customer?.name || `Sale #${idx + 1}`}`}
- >
- <div className={`w-2 h-2 rounded-full ${currentInvoiceId === inv.id && url.includes('/sales/invoice/create') ? 'bg-emerald-500' : 'bg-green-500/50'}`}></div>
- {showExpandedSidebar && (
- <span className="text-sm font-medium truncate">
- 📄 {inv.customer?.name || `Sale #${idx + 1}`}
- </span>
- )}
- </button>
- ))}
-
- {/* POS Sessions — cashier sees only own sessions */}
- {(userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || userPerms.includes('pos')) && posSessions
- .filter(pos => userRole === 'cashier' ? pos.user_id === props.auth?.user?.id : true)
- .map((pos, idx) => (
- <button
- key={pos.id}
- onClick={() => {
- setCurrentPosId(pos.id);
- if (!url.startsWith('/pos')) router.visit(route('store.pos', { store_slug: store?.slug }));
- }}
- className={`
- w-full flex items-center gap-3 p-2 rounded-xl transition-all group
- ${currentPosId === pos.id && url.startsWith('/pos') ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}
- ${!showExpandedSidebar && 'justify-center'}
-`}
- title={`POS: ${pos.customer?.name || `Session #${idx + 1}`}`}
- >
- <div className={`w-2 h-2 rounded-full ${currentPosId === pos.id && url.startsWith('/pos') ? 'bg-emerald-500' : 'bg-green-500/50'}`}></div>
- {showExpandedSidebar && (
- <span className="text-sm font-medium truncate">
- 🛒 {pos.customer?.name || `POS #${idx + 1}`}
- </span>
- )}
- </button>
- ))}
-
- {/* Purchases — purchasing_officer and above */}
- {activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases')) && activePurchases.map((pur, idx) => (
- <button
- key={pur.id}
- onClick={() => {
- setCurrentPurchaseId(pur.id);
- if (!url.includes('/purchases/create')) router.visit(route('store.purchases.create', { store_slug: store?.slug }));
- }}
- className={`
- w-full flex items-center gap-3 p-2 rounded-xl transition-all group
- ${currentPurchaseId === pur.id && url.includes('/purchases/create') ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}
- ${!showExpandedSidebar && 'justify-center'}
-`}
- title={`Purchase: ${pur.supplier?.name || `Purchase #${idx + 1}`}`}
- >
- <div className={`w-2 h-2 rounded-full ${currentPurchaseId === pur.id && url.includes('/purchases/create') ? 'bg-red-500' : 'bg-red-500/50'}`}></div>
- {showExpandedSidebar && (
- <span className="text-sm font-medium truncate">
- 🛍️ {pur.supplier?.name || `Purchase #${idx + 1}`}
- </span>
- )}
- </button>
- ))}
- </div>
- </div>
- )}
+						{/* Activity Hub Button — opens centered pop-up modal */}
+						{!(isPlatformAdmin && !store) && (
+							<div className="mt-4 pt-4 border-t border-line px-1">
+								<button
+									onClick={() => setIsActivityHubModalOpen(true)}
+									className={`
+										w-full flex items-center justify-between p-2.5 rounded-xl transition-all border group
+										${totalActiveOps > 0
+											? 'bg-brand-50/80 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/30 shadow-xs'
+											: 'bg-surface text-ink-muted border-line hover:text-ink hover:bg-interactive-hover'
+										}
+										${!showExpandedSidebar && 'justify-center'}
+									`}
+									title={`Activity Hub (${totalActiveOps} active operations)`}
+								>
+									<div className="flex items-center gap-2.5">
+										<div className="relative">
+											<Activity size={18} className={totalActiveOps > 0 ? "text-brand-500 animate-pulse" : "text-ink-muted"} />
+											{totalActiveOps > 0 && (
+												<span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+											)}
+										</div>
+										{showExpandedSidebar && (
+											<span className="text-xs font-bold uppercase tracking-wider">
+												Activity Hub
+											</span>
+										)}
+									</div>
+									{showExpandedSidebar && (
+										<span className={`px-2 py-0.5 rounded-full text-2xs font-bold transition-all ${
+											totalActiveOps > 0
+												? 'bg-brand-500 text-white shadow-xs'
+												: 'bg-sunken text-ink-muted'
+										}`}>
+											{totalActiveOps}
+										</span>
+									)}
+								</button>
+							</div>
+						)}
 
  {/* Back to Shop Button (Admin Mode Only) - Hide in Platform HQ */}
  {mode === 'admin' && !(isPlatformAdmin && !store) && (
@@ -1480,6 +1451,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
  </div>
 
+ {/* AI Scan Header Action Button */}
+ {store && (
+     <button
+         onClick={() => window.dispatchEvent(new CustomEvent('amd:open-smart-capture', { detail: { tab: 'image' } }))}
+         className="hidden lg:flex p-3 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
+         title="AI Scan / Smart Capture"
+     >
+         <Sparkles size={18} className="text-brand-500 group-hover:scale-110 transition-transform" />
+     </button>
+ )}
+
  {/* Display Settings Dropdown */}
  <div className="hidden lg:block relative" ref={displayMenuRef}>
  <button
@@ -1746,6 +1728,40 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <VersionChecker />
  <OnboardingDriver />
  <GlobalOnboardingWidget store={store} />
+ <ActivityHubModal
+     isOpen={isActivityHubModalOpen}
+     onClose={() => setIsActivityHubModalOpen(false)}
+     store={store}
+     currentUrl={url}
+     visibleInvoices={visibleInvoices}
+     currentInvoiceId={currentInvoiceId}
+     onSelectInvoice={(id) => {
+         setCurrentInvoiceId(id);
+         setIsActivityHubModalOpen(false);
+         if (!url.includes('/sales/invoice/create')) {
+             router.visit(route('store.sales.invoice.create', { store_slug: store?.slug }));
+         }
+     }}
+     userPosSessions={userPosSessions}
+     currentPosId={currentPosId}
+     onSelectPos={(id) => {
+         setCurrentPosId(id);
+         setIsActivityHubModalOpen(false);
+         if (!url.startsWith('/pos')) {
+             router.visit(route('store.pos', { store_slug: store?.slug }));
+         }
+     }}
+     visiblePurchases={visiblePurchases}
+     currentPurchaseId={currentPurchaseId}
+     onSelectPurchase={(id) => {
+         setCurrentPurchaseId(id);
+         setIsActivityHubModalOpen(false);
+         if (!url.includes('/purchases/create')) {
+             router.visit(route('store.purchases.create', { store_slug: store?.slug }));
+         }
+     }}
+     totalActiveOps={totalActiveOps}
+ />
 
  {/* Mobile Bottom Navigation Bar */}
  {showMobileNavBar && (
