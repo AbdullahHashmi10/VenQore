@@ -1,6 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { Head, router, Link } from '@inertiajs/react';
 import './NewDashboard.css';
+import SidebarItem from '@/Components/SidebarItem';
+import ActivityHubModal from '@/Components/ActivityHubModal';
+import VenaLogo from '@/Components/VenaLogo';
+import { useWorkspace } from '@/Contexts/WorkspaceContext';
 
 /* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
    lucide icon NAMES — the same contract QoreShell consumes. */
@@ -11,6 +15,8 @@ import {
   Layers, Package, Receipt, RefreshCcw, Repeat, ScanLine, ShoppingBag,
   ShoppingCart, Sparkles, Truck, Users, Utensils, Wallet, Settings2,
   Menu, Clock, Sun, Moon, Bell, PenLine, Plus, PanelRight, RotateCcw, Store, Type,
+  LayoutDashboard, Box, TrendingUp, ShieldCheck, Settings, Activity, Monitor, User,
+  LogOut, ChevronLeft, ChevronUp, Home,
 } from 'lucide-react';
 import OmniSearch from '@/Components/OmniSearch';
 import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
@@ -3428,6 +3434,194 @@ export default function NewDashboard(props) {
   const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
   const displayMenuRef = useRef(null);
 
+  // Sidebar state (synchronized with OneGlanceLayout / Dashboard Page)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [expandedMenu, setExpandedMenu] = useState(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isActivityHubModalOpen, setIsActivityHubModalOpen] = useState(false);
+
+  const sidebarRef = useRef(null);
+  const userMenuRef = useRef(null);
+  const wasHoverExpandedRef = useRef(false);
+
+  const showExpandedSidebar = isSidebarOpen || navOverlayOpen;
+
+  const handleHoverExpand = useCallback((menuName) => {
+    if (!isSidebarOpen) {
+      wasHoverExpandedRef.current = true;
+      setIsSidebarOpen(true);
+    }
+    if (menuName) {
+      setExpandedMenu(menuName);
+    }
+  }, [isSidebarOpen]);
+
+  const handleSidebarMouseLeave = useCallback(() => {
+    if (wasHoverExpandedRef.current && isSidebarOpen) {
+      setIsSidebarOpen(false);
+      setExpandedMenu(null);
+      wasHoverExpandedRef.current = false;
+    }
+  }, [isSidebarOpen]);
+
+  const handleManualToggle = useCallback(() => {
+    wasHoverExpandedRef.current = false;
+    setIsSidebarOpen(prev => !prev);
+  }, []);
+
+  const handleSidebarInteraction = useCallback(() => {
+    wasHoverExpandedRef.current = false;
+  }, []);
+
+  const toggleMenu = (name) => {
+    setExpandedMenu(prev => prev === name ? null : name);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Workspace context for Activity Hub
+  const workspace = useWorkspace?.() || {};
+  const {
+    activeInvoices = [],
+    currentInvoiceId,
+    setCurrentInvoiceId,
+    posSessions = [],
+    currentPosId,
+    setCurrentPosId,
+    activePurchases = [],
+    currentPurchaseId,
+    setCurrentPurchaseId
+  } = workspace;
+
+  const userRole = props?.my_role || props?.userRole || props?.auth?.user?.role || 'owner';
+  const userPerms = props?.auth?.user?.permissions || [];
+  const hasAnyPerm = (...keys) => keys.some(k => userPerms.some(p => p === k || p.startsWith(k + '.')));
+
+  const userPosSessions = posSessions?.filter(pos => userRole === 'cashier' ? pos.user_id === props?.auth?.user?.id : true) || [];
+  const visibleInvoices = (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') ? (activeInvoices || []) : [];
+  const visiblePurchases = (activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases'))) ? activePurchases : [];
+  const totalActiveOps = visibleInvoices.length + userPosSessions.length + visiblePurchases.length;
+
+  const appMenuItems = useMemo(() => [
+    {
+      name: 'Dashboard',
+      icon: LayoutDashboard,
+      subs: [
+        { group: 'Overview', items: ['Home', 'Main Dashboard'] }
+      ],
+      route: store?.slug ? 'store.dashboard' : 'dashboard',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    {
+      name: 'Sell',
+      icon: ShoppingCart,
+      subs: userRole === 'cashier' ? [] : [
+        { group: 'Transactions', items: ['Orders', 'Quotations / Pre-Sales', 'Proposals'] },
+        { group: 'Post-Sale', items: ['Returns History', { label: 'Invoice Reminders', locked: !store?.features?.invoice_reminders }, { label: 'Recurring Invoices', locked: !store?.features?.recurring_invoices }] },
+        { group: 'Config', items: [{ label: 'E-Invoicing (Coming Soon)', locked: true }] }
+      ],
+      route: store?.slug ? 'store.sales.dashboard' : 'sales.dashboard',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    {
+      name: 'Purchase',
+      icon: ShoppingBag,
+      subs: [
+        { group: 'Transactions', items: ['Purchases', 'Purchase Orders'] },
+        { group: 'Post-Purchase', items: ['Purchase Returns'] }
+      ],
+      route: store?.slug ? 'store.purchases.index' : 'purchases.index',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    {
+      name: 'Stock',
+      icon: Box,
+      subs: [
+        { group: 'Catalog', items: ['Products', 'Categories', 'Attributes', 'Labels'] },
+        { group: 'Operations', items: ['Stock Levels', 'Stock Operations', 'Stock Transfers', 'Stock Audit'] },
+        { group: 'Tracking', items: ['Batch Tracking', 'Serial Tracking'] },
+        { group: 'Manufacturing', items: [{ label: 'Production', locked: !store?.features?.production }, { label: 'Cookbook', locked: !store?.features?.bill_of_materials }] }
+      ],
+      route: store?.slug ? 'store.inventory.dashboard' : 'inventory.dashboard',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    {
+      name: 'Contacts',
+      icon: Users,
+      subs: [
+        { group: 'Partners', items: ['Customers', 'Suppliers', 'Parties'] },
+      ],
+      route: store?.slug ? 'store.parties.index' : 'parties.index',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    {
+      name: 'Money',
+      icon: Wallet,
+      subs: [
+        { group: 'Cash Flow', items: ['Payments', 'Expenses', 'To Receive', 'To Pay'] },
+        { group: 'Banking', items: [{ label: 'Fund Management', locked: !store?.features?.fund_management }, 'Bank Accounts', { label: 'Bank Reconciliation', locked: !store?.features?.bank_reconciliation }] },
+      ],
+      route: store?.slug ? 'store.transactions.index' : 'transactions.index',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    {
+      name: 'VenSynQ',
+      icon: RefreshCcw,
+      subs: [
+        { group: 'Multi-Channel', items: ['VenSynQ'] },
+        { group: 'Promotion', items: [{ label: 'Email Marketing', locked: !store?.features?.email_marketing }, { label: 'SMS Marketing', locked: !store?.features?.sms_marketing }, { label: 'Campaigns', locked: !store?.features?.campaigns }] },
+        { group: 'Integrations', items: [props?.woocommerce_enabled ? 'WooCommerce Sync' : null].filter(Boolean) },
+        { group: 'Configuration', items: ['VenSynQ Settings'] }
+      ],
+      route: store?.slug ? 'store.vensynq.index' : 'vensynq.index',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    {
+      name: 'Insights',
+      icon: TrendingUp,
+      subs: [
+        { group: 'Growth', items: [!store?.features?.growth_engine ? { label: 'Growth Engine', locked: true } : 'Growth Engine'] },
+        { group: 'Financial Health', items: ['Chart of Accounts', 'Profit & Loss', 'Balance Sheet', 'Cash Flow', 'Tax Report'] },
+        { group: 'Sales Analysis', items: ['Sales Report', 'Discount Report', 'Sale Aging'] },
+        { group: 'Purchase Analysis', items: ['Purchase Report', 'Expense Report'] },
+        { group: 'Inventory', items: ['Stock Valuation', 'Low Stock', 'Movement History', 'Expiry Report'] },
+        { group: 'Operational', items: ['Activity Log'] }
+      ],
+      route: store?.slug ? 'store.reports.index' : 'reports.index',
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    },
+    store?.slug && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage', 'users.manage', 'audit')) ? {
+      name: 'Administration',
+      icon: ShieldCheck,
+      subs: [
+        { group: 'Executive', items: ['Executive Dashboard'] },
+        { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
+        { group: 'System & Data', items: ['Data Management', 'Activity Log', 'Recycle Bin', ...(!props?.is_demo ? ['Subscription'] : [])] },
+        { group: 'AI Support', items: ['Agent Inbox'] }
+      ],
+      route: store?.slug ? 'store.admin.dashboard' : null,
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    } : null,
+    store?.slug && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage')) ? {
+      name: 'Settings',
+      icon: Settings,
+      subs: [
+        { group: 'Store Configuration', items: ['Store Settings', 'System Settings'] },
+        { group: 'AI & Automation', items: ['Chatbot Settings'] }
+      ],
+      route: store?.slug ? 'store.settings' : null,
+      routeParams: store?.slug ? { store_slug: store.slug } : {}
+    } : null,
+  ].filter(Boolean), [store?.slug, store?.features, userRole, props?.woocommerce_enabled, props?.is_demo, userPerms]);
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -4696,64 +4890,207 @@ export default function NewDashboard(props) {
       <div className={`vq-nav-scrim ${navOverlayOpen ? 'is-on' : ''}`}
            onClick={() => setNavOverlayOpen(false)} aria-hidden="true" />
 
-      {/* ── Nav ─────────────────────────────────────────────────────────── */}
-      <aside className={`vq-sidebar ${railOnly ? 'is-collapsed' : ''} ${navOverlayOpen ? 'is-open' : ''}`}
-             aria-label="Main navigation">
-        <div className="vq-sidebar-top">
-          <div className="vq-brand-badge">V</div>
-          <div className="vq-brand-info">
-            <div className="vq-brand-name">
-              VenQore <span className="vq-brand-tag">v6</span>
-            </div>
-            <div className="vq-brand-sub">Enterprise POS</div>
+      {/* --- SIDEBAR (Mirrors OneGlanceLayout / Dashboard Page) --- */}
+      {navOverlayOpen && (
+        <div className="fixed inset-0 bg-black/50 z-drawer lg:hidden" onClick={() => setNavOverlayOpen(false)} />
+      )}
+      <aside
+        ref={sidebarRef}
+        onMouseLeave={handleSidebarMouseLeave}
+        onClick={handleSidebarInteraction}
+        className={`
+          fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer lg:z-40
+          transform lg:transform-none transition-all duration-slow lg:duration-slower lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
+          flex flex-col amd-no-drag
+          ${navOverlayOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          bg-surface border-r border-line dark:border-line
+          ${showExpandedSidebar ? 'w-[280px]' : 'w-[280px] lg:w-[88px]'}
+        `}
+        aria-label="Main navigation"
+      >
+        {/* Logo */}
+        <div className="h-24 flex items-center justify-center shrink-0 relative z-10">
+          <div className="flex items-center justify-center">
+            {(store?.logo_url && !store.logo_url.includes('logo.png')) ? (
+              <img 
+                src={store.logo_url} 
+                alt="Logo" 
+                className="w-16 h-16 object-contain drop-shadow-md transition-all duration-normal" 
+              />
+            ) : (
+              <VenaLogo animated={true} size="w-16 h-16" />
+            )}
           </div>
         </div>
 
-        <div className="vq-store-switcher" title="Switch store location">
-          <div className="vq-store-details">
-            <span className="vq-store-dot" />
-            <span className="vq-store-name">{store?.name || 'Main Showroom'}</span>
+        {/* Toggle Button for Desktop */}
+        <button
+          type="button"
+          onClick={handleManualToggle}
+          className={`
+            hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-surface border border-line rounded-full shadow-md z-50 items-center justify-center text-ink-muted hover:text-brand-500 transition-all group
+            ${!showExpandedSidebar && 'rotate-180'}
+          `}
+          title={showExpandedSidebar ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          <ChevronLeft size={14} className="transition-transform" />
+        </button>
+
+        {/* Menu Items */}
+        <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10" onClick={() => setNavOverlayOpen(false)}>
+          {appMenuItems.map((item) => (
+            <SidebarItem
+              key={item.name}
+              id={`tour-sidebar-${item.name.toLowerCase()}`}
+              name={item.name}
+              icon={item.icon}
+              subItems={item.subs}
+              route={item.route}
+              routeParams={item.routeParams || { store_slug: store?.slug }}
+              menuKey={item.name}
+              onHoverExpand={handleHoverExpand}
+              isExpanded={showExpandedSidebar}
+              isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && item.name === 'Dashboard')}
+              isActive={item.name === 'Dashboard'}
+              onToggle={() => {
+                if (item.onClick) {
+                  item.onClick();
+                  return;
+                }
+                toggleMenu(item.name);
+                if (!showExpandedSidebar) setIsSidebarOpen(true);
+              }}
+              onClick={item.onClick}
+            />
+          ))}
+
+          {/* Activity Hub Button */}
+          <div className="mt-4 pt-4 border-t border-line px-1">
+            <button
+              type="button"
+              onClick={() => setIsActivityHubModalOpen(true)}
+              className={`
+                w-full flex items-center justify-between p-2.5 rounded-xl transition-all border group
+                ${totalActiveOps > 0
+                  ? 'bg-brand-50/80 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/30 shadow-xs'
+                  : 'bg-surface text-ink-muted border-line hover:text-ink hover:bg-interactive-hover'
+                }
+                ${!showExpandedSidebar && 'justify-center'}
+              `}
+              title={`Activity Hub (${totalActiveOps} active operations)`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="relative">
+                  <Activity size={18} className={totalActiveOps > 0 ? "text-brand-500 animate-pulse" : "text-ink-muted"} />
+                  {totalActiveOps > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  )}
+                </div>
+                {showExpandedSidebar && (
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Activity Hub
+                  </span>
+                )}
+              </div>
+              {showExpandedSidebar && (
+                <span className={`px-2 py-0.5 rounded-full text-2xs font-bold transition-all ${
+                  totalActiveOps > 0
+                    ? 'bg-brand-500 text-white shadow-xs'
+                    : 'bg-sunken text-ink-muted'
+                }`}>
+                  {totalActiveOps}
+                </span>
+              )}
+            </button>
           </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
         </div>
 
-        <nav className="vq-nav-scroll">
-          {(liveNavGroups || navGroups).map(g => (
-            <div className={`vq-nav-group ${!g.pinned && navFold[g.title] ? 'is-folded' : ''}`} key={g.title}>
-              {g.pinned ? (
-                <div className="vq-nav-group-title">{g.title}</div>
-              ) : (
-                <button type="button" className="vq-nav-group-title vq-nav-group-toggle"
-                        aria-expanded={!navFold[g.title]}
-                        onClick={() => toggleFold(g.title)}>
-                  <span>{g.title}</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        {/* User & POS Button */}
+        <div className={`border-t border-line shrink-0 flex flex-col gap-3 relative z-10 ${showExpandedSidebar ? 'p-4' : 'p-2'}`} ref={userMenuRef}>
+          {/* POS BUTTON */}
+          {store && (
+            <Link
+              href={typeof route === 'function' ? route('store.pos', { store_slug: store.slug }) : '/pos'}
+              className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl transition-all duration-slow group relative overflow-hidden shadow-lg ${showExpandedSidebar ? 'px-4' : 'px-0'}`}
+            >
+              <div className="absolute inset-0 bg-neutral-900 z-0">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/40 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-600/30 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3"></div>
+                <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20"></div>
+                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-50"></div>
+              </div>
+
+              <div className="relative z-10 flex items-center gap-3 text-white">
+                <Monitor size={24} className="transition-transform duration-slow" />
+                <span className={`font-bold tracking-wide whitespace-nowrap transition-all duration-slow ${showExpandedSidebar ? 'w-auto opacity-100' : 'w-0 opacity-0 hidden'}`}>
+                  Open POS
+                </span>
+              </div>
+            </Link>
+          )}
+
+          {/* USER MENU POPUP */}
+          {isUserMenuOpen && (
+            <div className="absolute bottom-20 left-4 w-56 bg-surface rounded-2xl shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+              {props?.auth?.my_stores_count > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    setIsStoreSwitcherModalOpen(true);
+                  }}
+                  className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink group mb-1"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Store size={16} className="text-brand-500 group-hover:scale-110 transition-transform" />
+                    <span>Switch Store</span>
+                  </div>
+                  <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 max-w-[75px] truncate">
+                    {store?.name}
+                  </span>
                 </button>
               )}
-              <div className="vq-nav-list">
-                {g.items.map(it => (
-                  <a key={it.label} href={it.href} title={it.label}
-                     className={`vq-nav-item ${it.active ? 'is-active' : ''}`}
-                     onClick={() => setNavOverlayOpen(false)}>
-                    {it.lucide
-                      ? <NavIcon name={it.lucide} />
-                      : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{it.d}</svg>}
-                    <span className="vq-nav-text">{it.label}</span>
-                    {it.badge && <span className="vq-nav-badge">{it.badge}</span>}
-                  </a>
-                ))}
-              </div>
+              {store && (
+                <Link href={typeof route === 'function' ? route('store.profile.edit', { store_slug: store.slug }) : '#'} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+                  <User size={16} /> Profile Settings
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem('amd_onboarding_driver_complete');
+                  window.location.reload();
+                }}
+                className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-sm font-medium text-brand-600 dark:indigo-400"
+              >
+                <Sparkles size={16} /> Take a Tour
+              </button>
+              <div className="h-px bg-sunken my-1"></div>
+              <Link href={typeof route === 'function' ? route('logout') : '/logout'} method="post" as="button" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
+                <LogOut size={16} /> Logout
+              </Link>
             </div>
-          ))}
-        </nav>
+          )}
 
-        <div className="vq-sidebar-footer">
-          <div className="vq-user-avatar">{user?.name ? user.name.slice(0, 2).toUpperCase() : 'SO'}</div>
-          <div className="vq-user-info">
-            <span className="vq-user-name">{user?.name || 'Store Owner'}</span>
-            <span className="vq-user-role">{user?.email || 'business@venqore.com'}</span>
-          </div>
+          {/* USER PROFILE TRIGGER */}
+          <button
+            type="button"
+            className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-interactive-hover transition-colors border border-transparent hover:border-line`}
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+          >
+            <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md ring-2 ring-white dark:ring-line">
+              {user?.name ? user.name.slice(0, 2).toUpperCase() : 'SO'}
+            </div>
+            {showExpandedSidebar && (
+              <div className="flex flex-col text-left min-w-0 flex-1">
+                <span className="text-sm font-bold truncate text-ink">{user?.name || 'Store Owner'}</span>
+                <span className="text-2xs text-ink-muted capitalize truncate">{userRole || 'Owner'}</span>
+              </div>
+            )}
+            {showExpandedSidebar && (
+              <ChevronUp size={16} className={`text-ink-muted transition-transform duration-normal ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+            )}
+          </button>
         </div>
       </aside>
 
@@ -4765,8 +5102,14 @@ export default function NewDashboard(props) {
             <button
               type="button"
               className="h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line shrink-0"
-              onClick={toggleNav}
-              title={navMode === 'overlay' ? 'Open navigation' : navMode === 'expanded' ? 'Collapse navigation' : 'Expand navigation'}
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  setNavOverlayOpen(v => !v);
+                } else {
+                  handleManualToggle();
+                }
+              }}
+              title={showExpandedSidebar ? 'Collapse sidebar' : 'Expand sidebar'}
               aria-label="Toggle navigation"
             >
               <Menu size={20} />
@@ -5364,6 +5707,42 @@ export default function NewDashboard(props) {
       <StoreSwitcherModal
         isOpen={isStoreSwitcherModalOpen}
         onClose={() => setIsStoreSwitcherModalOpen(false)}
+      />
+
+      {/* Centered Activity Hub Modal */}
+      <ActivityHubModal
+        isOpen={isActivityHubModalOpen}
+        onClose={() => setIsActivityHubModalOpen(false)}
+        store={store}
+        currentUrl={typeof window !== 'undefined' ? window.location.pathname : ''}
+        visibleInvoices={visibleInvoices}
+        currentInvoiceId={currentInvoiceId}
+        onSelectInvoice={(id) => {
+          setCurrentInvoiceId?.(id);
+          setIsActivityHubModalOpen(false);
+          if (typeof route === 'function' && store?.slug) {
+            router.visit(route('store.sales.invoice.create', { store_slug: store.slug }));
+          }
+        }}
+        userPosSessions={userPosSessions}
+        currentPosId={currentPosId}
+        onSelectPos={(id) => {
+          setCurrentPosId?.(id);
+          setIsActivityHubModalOpen(false);
+          if (typeof route === 'function' && store?.slug) {
+            router.visit(route('store.pos', { store_slug: store.slug }));
+          }
+        }}
+        visiblePurchases={visiblePurchases}
+        currentPurchaseId={currentPurchaseId}
+        onSelectPurchase={(id) => {
+          setCurrentPurchaseId?.(id);
+          setIsActivityHubModalOpen(false);
+          if (typeof route === 'function' && store?.slug) {
+            router.visit(route('store.purchases.create', { store_slug: store.slug }));
+          }
+        }}
+        totalActiveOps={totalActiveOps}
       />
     </div>
   );
