@@ -4252,20 +4252,117 @@ export default function NewDashboard(props) {
     window.addEventListener('pointerup', up);
   };
 
-  // The Quick Actions launcher — the same destinations the shortcut family offers
+  // The Quick Actions launcher — 9 high-frequency operational fast-lane actions
   const glassActionItems = [
-    { label: 'POS Register',  color: 'teal',   href: '/pos',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> },
-    { label: 'New Invoice',   color: 'blue',   href: storePath('/sales'),
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg> },
-    { label: 'Add Product',   color: 'orange', href: storePath('/inventory'),
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg> },
-    { label: 'Stock Intake',  color: 'purple', href: storePath('/purchase-orders'),
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/></svg> },
-    { label: 'New Customer',  color: 'sky',    href: storePath('/parties'),
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> },
-    { label: 'Add Expense',   color: 'coral',  href: storePath('/finance'),
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
+    {
+      label: 'Money In',
+      color: 'teal',
+      href: storePath('/funds?action=add'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="7" y1="7" x2="17" y2="17"/>
+          <polyline points="17 7 17 17 7 17"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Money Out',
+      color: 'coral',
+      href: storePath('/funds?action=remove'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"/>
+          <polyline points="7 7 17 7 17 17"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Transfer Money',
+      color: 'blue',
+      href: storePath('/funds?action=transfer'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m16 3 4 4-4 4"/>
+          <path d="M20 7H4"/>
+          <path d="m8 21-4-4 4-4"/>
+          <path d="M4 17h16"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Add Product',
+      color: 'orange',
+      href: storePath('/inventory?action=add'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m7.5 4.27 9 5.15"/>
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/>
+          <path d="M12 22V12"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Add Expense',
+      color: 'red',
+      href: storePath('/expenses?action=add'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="2" x2="12" y2="22"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Add User',
+      color: 'purple',
+      href: storePath('/admin/users'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Refund',
+      color: 'indigo',
+      href: storePath('/returns/create'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'New Quote',
+      color: 'sky',
+      href: storePath('/sales/pre-sales/create'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'New Recurring Invoice',
+      color: 'lime',
+      href: storePath('/recurring-invoices/create'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m17 2 4 4-4 4"/>
+          <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
+          <path d="m7 22-4-4 4-4"/>
+          <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
+        </svg>
+      ),
+    },
   ];
 
   /* The REAL sidebar: derived from the shared `nav` prop the same way
