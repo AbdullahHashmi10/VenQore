@@ -37,31 +37,35 @@ class VisitorChatGuard
         $uuid = $request->route('uuid') ?? $request->input('session_uuid');
         $storeSlug = $request->route('store_slug') ?? $request->input('store_slug');
 
-        // 2. Per-IP Rate Limiting (Hourly: 40, Daily: 100)
-        $ipKey = "chat_guard_ip_{$ip}";
-        Cache::add($ipKey, 0, 3600);
-        $ipCount = Cache::increment($ipKey);
+        $isLocal = app()->environment('local', 'testing') || in_array($ip, ['127.0.0.1', '::1', 'localhost']);
 
-        if ($ipCount > self::MAX_IP_PER_HOUR) {
-            Log::warning("VisitorChatGuard: IP hourly limit exceeded for IP {$ip}");
-            return response()->json([
-                'error' => 'Hourly message limit reached for your IP. Please try again later.'
-            ], 429);
+        // 2. Per-IP Rate Limiting (Hourly: 40, Daily: 100) - Bypassed in local/testing
+        if (!$isLocal) {
+            $ipKey = "chat_guard_ip_{$ip}";
+            Cache::add($ipKey, 0, 3600);
+            $ipCount = Cache::increment($ipKey);
+
+            if ($ipCount > self::MAX_IP_PER_HOUR) {
+                Log::warning("VisitorChatGuard: IP hourly limit exceeded for IP {$ip}");
+                return response()->json([
+                    'error' => 'Hourly message limit reached for your IP. Please try again later.'
+                ], 429);
+            }
+
+            $ipDayKey = "chat_guard_ip_day_{$ip}";
+            Cache::add($ipDayKey, 0, 86400);
+            $ipDayCount = Cache::increment($ipDayKey);
+
+            if ($ipDayCount > self::MAX_IP_PER_DAY) {
+                Log::warning("VisitorChatGuard: IP daily limit exceeded for IP {$ip}");
+                return response()->json([
+                    'error' => 'Daily message limit reached for your IP. Please try again tomorrow.'
+                ], 429);
+            }
         }
 
-        $ipDayKey = "chat_guard_ip_day_{$ip}";
-        Cache::add($ipDayKey, 0, 86400);
-        $ipDayCount = Cache::increment($ipDayKey);
-
-        if ($ipDayCount > self::MAX_IP_PER_DAY) {
-            Log::warning("VisitorChatGuard: IP daily limit exceeded for IP {$ip}");
-            return response()->json([
-                'error' => 'Daily message limit reached for your IP. Please try again tomorrow.'
-            ], 429);
-        }
-
-        // 3. Per-Store Daily Limit (500/day)
-        if ($storeSlug) {
+        // 3. Per-Store Daily Limit (500/day) - Bypassed in local/testing
+        if ($storeSlug && !$isLocal) {
             $storeDayKey = "chat_guard_store_day_{$storeSlug}";
             Cache::add($storeDayKey, 0, 86400);
             $storeDayCount = Cache::increment($storeDayKey);
@@ -74,8 +78,8 @@ class VisitorChatGuard
             }
         }
 
-        // 4. Per-Session Rate Limiting (20 messages max)
-        if ($uuid) {
+        // 4. Per-Session Rate Limiting (20 messages max) - Bypassed in local/testing
+        if ($uuid && !$isLocal) {
             $sessionKey = "chat_guard_session_{$uuid}";
             Cache::add($sessionKey, 0, 3600);
             $sessionCount = Cache::increment($sessionKey);
