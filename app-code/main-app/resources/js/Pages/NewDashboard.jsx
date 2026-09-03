@@ -3469,6 +3469,13 @@ export default function NewDashboard(props) {
   const [glassModalOpen, setGlassModalOpen] = useState(false);
   const [editingCardId, setEditingCardId] = useState(null);
 
+  useEffect(() => {
+    if (!glassModalOpen) return;
+    const onKey = e => { if (e.key === 'Escape') setGlassModalOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [glassModalOpen]);
+
   /* the draft — one shape for all three families */
   const [selectedReading, setSelectedReading] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -5209,14 +5216,18 @@ export default function NewDashboard(props) {
 
       {/* ── Quick actions ───────────────────────────────────────────────── */}
       {glassModalOpen && (
-        <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)} role="dialog" aria-modal="true">
+        <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)} role="dialog" aria-modal="true" aria-label="Quick Actions">
           <div className="vq-glass-modal-card" onClick={e => e.stopPropagation()}>
             <div className="vq-glass-modal-header">
               <div>
-                <div className="vq-glass-modal-eyebrow">Command centre fast lane</div>
+                <div className="vq-glass-modal-eyebrow">
+                  <span className="vq-glass-pulse-dot" />
+                  <span>Command Centre Fast Lane</span>
+                </div>
                 <div className="vq-glass-modal-title">Quick Actions</div>
+                <div className="vq-glass-modal-desc">Instant one-click shortcuts to key operational workflows.</div>
               </div>
-              <button type="button" className="vq-modal-close-x" onClick={() => setGlassModalOpen(false)} aria-label="Close">
+              <button type="button" className="vq-glass-modal-close" onClick={() => setGlassModalOpen(false)} aria-label="Close Quick Actions">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
