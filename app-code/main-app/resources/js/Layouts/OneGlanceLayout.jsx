@@ -1014,7 +1014,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  {/* Logo */}
  <div className="h-24 flex items-center justify-center shrink-0 relative z-10">
  <div className="flex items-center justify-center">
- <img src={store?.logo_url || "/images/logo.png"} alt="Logo" className="w-20 h-20 object-contain drop-shadow-md" />
+ <img 
+ src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"} 
+ alt="Logo" 
+ className="w-16 h-16 object-contain drop-shadow-md transition-all duration-normal" 
+ />
  </div>
  </div>
 
@@ -1294,10 +1298,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  {/* Header */}
  {!hideHeader && !fullScreen && (
- <header className="h-14 px-4 sm:px-8 flex items-center z-nav relative shrink-0">
+ <header className="h-16 px-4 sm:px-8 flex items-center z-nav relative shrink-0">
  {/* LEFT SECTION */}
- <div className="flex-1 flex items-center gap-3 sm:gap-8 text-ink-muted">
- <button className="lg:hidden p-2 rounded-lg text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors"
+ <div className="flex-1 flex items-center gap-3 sm:gap-6 text-ink-muted">
+ <button className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors border border-line"
  onClick={() => setMobileSidebarOpen(true)}>
  <Menu size={20} />
  </button>
@@ -1319,7 +1323,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  {isTrial && !is_demo && (
  <Link
  href={route('store.billing', { store_slug: store?.slug })}
- className="hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all group shadow-sm "
+ className="hidden sm:flex items-center gap-2.5 h-11 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all group shadow-sm "
  >
  <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
  <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-[0.2em] leading-none">
@@ -1376,7 +1380,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <button
  id="tour-growth-engine"
  onClick={() => setIsGrowthOpen(!isGrowthOpen)}
- className={`group relative flex items-center gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border transition-all duration-slow ${isGrowthOpen
+ className={`group relative flex items-center gap-2 h-11 px-3.5 sm:px-4 rounded-xl border transition-all duration-slow ${isGrowthOpen
  ? 'bg-brand-600 text-white border-brand-600 dark:shadow-none'
  : 'bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'}`}
  >
@@ -1428,7 +1432,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <Link
  id="tour-sidebar-admin"
  href={store ? route('store.home', {store_slug: store.slug}) : '#'}
- className="hidden lg:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
+ className="hidden lg:flex group relative items-center gap-2 h-11 px-4 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
  >
  <Home size={16} className="text-brand-500" />
  <span className="text-sm font-bold text-ink">
@@ -1438,7 +1442,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  )}
 
  {/* Live Header Clock */}
- <div className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-line text-sm font-bold text-ink-secondary dark:text-ink shrink-0 font-mono shadow-sm hover:border-brand-300 dark:hover:border-brand-700 transition-all duration-slow">
+ <div className="hidden lg:flex items-center gap-2 h-11 px-4 rounded-xl bg-surface border border-line text-sm font-bold text-ink-secondary dark:text-ink shrink-0 font-mono shadow-sm hover:border-brand-300 dark:hover:border-brand-700 transition-all duration-slow">
  <Clock size={16} className="text-brand-500 dark:text-brand-400 animate-[pulse_2s_infinite]" />
  <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
  </div>
@@ -1447,7 +1451,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  {store && (
      <button
          onClick={() => window.dispatchEvent(new CustomEvent('amd:open-smart-capture', { detail: { tab: 'image' } }))}
-         className="hidden lg:flex p-3 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
+         className="hidden lg:flex items-center justify-center h-11 w-11 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
          title="AI Scan / Smart Capture"
      >
          <Sparkles size={18} className="text-brand-500 group-hover:scale-110 transition-transform" />
@@ -1458,7 +1462,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <div className="hidden lg:block relative" ref={displayMenuRef}>
  <button
  onClick={() => setIsDisplayMenuOpen(!isDisplayMenuOpen)}
- className={`p-3 rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
+ className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
  ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
  : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
  title="Display Preferences"
@@ -1512,7 +1516,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <div className="lg:hidden relative" ref={mobileMenuRef}>
  <button
  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
- className={`p-3 rounded-xl transition-all border shadow-sm relative ${isMobileMenuOpen
+ className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isMobileMenuOpen
  ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
  : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
  title="More Options"
@@ -1600,7 +1604,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <div className="relative" ref={notificationRef}>
  <button
  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
- className={`p-3 rounded-xl transition-all border shadow-sm relative ${isNotificationsOpen
+ className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isNotificationsOpen
  ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
  : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
  >

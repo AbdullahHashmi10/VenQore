@@ -228,7 +228,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  return (
  <div ref={containerRef} className="relative z-50">
  {/* Inline Input Bar */}
- <div className={`relative flex items-center bg-white/80 dark:bg-app backdrop-blur-xl border transition-all rounded-2xl w-full sm:w-80 lg:w-96 ${isOpen ? 'border-line dark:border-line shadow-md' : 'border-line hover:border-line dark:hover:border-line-strong'}`}>
+ <div className={`relative flex items-center bg-white/80 dark:bg-app backdrop-blur-xl border transition-all rounded-xl w-full sm:w-80 lg:w-96 h-11 ${isOpen ? 'border-line dark:border-line shadow-md' : 'border-line hover:border-line dark:hover:border-line-strong'}`}>
  <div className="pl-4 text-ink-muted">
  <Search size={16} />
  </div>
@@ -243,7 +243,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  }}
  onKeyDown={handleKeyDown}
  placeholder="Search anything..."
- className="flex-1 bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-sm text-ink placeholder-slate-500 dark:placeholder-slate-400 font-medium h-10 px-3"
+ className="flex-1 bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-sm text-ink placeholder-slate-500 dark:placeholder-slate-400 font-medium h-full px-3"
  autoComplete="off"
  />
 

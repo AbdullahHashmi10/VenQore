@@ -96,13 +96,13 @@ export default function CharityButton({ showLabel = false }) {
             onClick={handleClick}
             disabled={isLoading || showEdit}
             className={`
-                flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-slow
+                h-11 flex items-center gap-2 px-3 rounded-xl transition-all duration-slow
                 ${showSuccess
                     ? 'bg-green-500 text-white'
                     : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border border-amber-300 dark:border-amber-700'
                 }
                 ${isLoading ? 'opacity-50 cursor-wait' : ''}
-`}
+            `}
             title="Click to donate | Hold to change amount"
         >
             {showSuccess ? (
