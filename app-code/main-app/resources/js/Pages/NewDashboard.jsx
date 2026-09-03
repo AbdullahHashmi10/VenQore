@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import './NewDashboard.css';
 
 /* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
@@ -3377,6 +3377,24 @@ export default function NewDashboard(props) {
   const store = props?.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs', slug: '' };
   const auth = props?.auth || {};
   const user = auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
+  const settings = props?.settings || {};
+  const [seniorMode, setSeniorMode] = useState(() => String(settings?.senior_mode) === '1');
+
+  useEffect(() => {
+    setSeniorMode(String(settings?.senior_mode) === '1');
+  }, [settings?.senior_mode]);
+
+  useEffect(() => {
+    let posSeniorOverride = null;
+    try {
+      const raw = sessionStorage.getItem('pos_senior_mode');
+      if (raw !== null) posSeniorOverride = JSON.parse(raw);
+    } catch (_) {}
+
+    const isSenior = posSeniorOverride !== null ? posSeniorOverride : seniorMode;
+    const fontSize = isSenior ? '20px' : '16px';
+    document.documentElement.style.fontSize = fontSize;
+  }, [seniorMode]);
   /* The store route is /s/{slug}/new-dashboard and does not pass the slug as a
      prop, so read it off the path when it is not supplied. Every deep link on
      every card is built from this — the alternative is the literal store slug
@@ -4815,6 +4833,33 @@ export default function NewDashboard(props) {
                       </span>
                     </button>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newValue = seniorMode ? '0' : '1';
+                      setSeniorMode(!seniorMode);
+                      if (store?.slug) {
+                        const targetUrl = typeof route === 'function'
+                          ? route("store.settings.update", { store_slug: store.slug })
+                          : `/s/${store.slug}/settings`;
+                        router.post(targetUrl, {
+                          settings: { ...settings, senior_mode: newValue }
+                        }, { preserveScroll: true });
+                      }
+                    }}
+                    className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${seniorMode
+                      ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                      : 'hover:bg-interactive-hover text-ink-secondary'}`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Type size={16} className="text-brand-500 shrink-0" />
+                      <span className="text-sm font-semibold">Senior Mode</span>
+                    </div>
+                    <div className={`w-8 h-4 rounded-full relative transition-colors ${seniorMode ? 'bg-brand-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${seniorMode ? 'left-4.5' : 'left-0.5'}`}></div>
+                    </div>
+                  </button>
 
                   <button
                     type="button"
