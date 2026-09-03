@@ -1202,6 +1202,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         </div>
     );
 
+    if (typeof document === 'undefined') return null;
+
     return createPortal(
         <div className="fixed inset-0 z-toast flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-in fade-in duration-normal font-sans">
             <div className="w-full max-w-4xl bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative">
@@ -2003,7 +2005,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
@@ -2239,7 +2242,6 @@ function CustomSelect({
                     </div>
                 </div>
             )}
-        </div>,
-        document.body
+        </div>
     );
 }
