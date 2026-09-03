@@ -590,11 +590,14 @@ class DashboardController extends Controller
                         'expense' => 'Expense'
                     ];
 
-                    $titlePrefix = $typeLabels[$activity->type] ?? ucfirst($activity->type);
+                    $title = $typeLabels[$activity->type] ?? ucfirst($activity->type);
+                    if ($activity->reference_id && strlen($activity->reference_id) < 15 && !str_contains($activity->reference_id, '-')) {
+                        $title .= ' #' . $activity->reference_id;
+                    }
 
                     return [
                         'id' => $activity->id,
-                        'title' => $titlePrefix . ($activity->reference_id ? ' #' . $activity->reference_id : ''),
+                        'title' => $title,
                         'subtitle' => $activity->description,
                         'amount' => $sign . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber(abs((float) $activity->amount)),
                         'time' => $activity->created_at->diffForHumans(),
@@ -602,8 +605,34 @@ class DashboardController extends Controller
                 });
         }
 
+        $systemLogs = collect([]);
+        $membership = app()->bound('current.membership') ? app('current.membership') : null;
+        $storeRole  = $membership?->role ?? $user->role;
+        $canAudit = in_array($storeRole, ['owner', 'admin', 'manager']) || $user->hasPermission('audit') || (bool) ($user->is_platform_admin ?? false);
+
+        if ($canAudit) {
+            try {
+                $systemLogs = \App\Models\ActivityLog::with('user')
+                    ->orderByDesc('created_at')
+                    ->take(8)
+                    ->get()
+                    ->map(function ($log) {
+                        return [
+                            'id' => $log->id,
+                            'action' => $log->action,
+                            'description' => $log->description,
+                            'user' => $log->user?->name ?? 'System',
+                            'time' => $log->created_at ? $log->created_at->diffForHumans() : 'Recently',
+                        ];
+                    });
+            } catch (\Throwable $e) {
+                // Graceful fallback if table or relation error
+            }
+        }
+
         return Inertia::render('Home', [
-            'recentActivity' => $recentActivity
+            'recentActivity' => $recentActivity,
+            'systemLogs' => $systemLogs
         ]);
     }
 

@@ -659,9 +659,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  ] : [
  // ── Store Admin Panel — Restored Full Legacy Experience ──────────────
  // Scoped to /s/{store_slug}/admin/... to maintain SaaS isolation.
- { name: 'Admin Home', icon: Home, subs: [],
- route: store ? 'store.admin.home' : null,
- routeParams: store ? { store_slug: store.slug } : {} },
+ 	{ name: 'Home', icon: Home, subs: [],
+	route: store ? 'store.home' : null,
+	routeParams: store ? { store_slug: store.slug } : {} },
 
  { name: 'Executive Dashboard', icon: LayoutDashboard, subs: [],
  route: store ? 'store.admin.dashboard' : null,
@@ -1460,16 +1460,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
 
- {/* Header Private Shortcut: Toggle Admin/Store Panel - Hide in Platform HQ */}
- {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
+ {/* Header Link: When on store admin subpages, quick link Back to Home */}
+ {store && !(isPlatformAdmin && !store) && mode === 'admin' && (
  <Link
  id="tour-sidebar-admin"
- href={mode === 'admin' ? (store ? route('store.dashboard', {store_slug: store.slug}) : '#') : (store ? route('store.admin.home', {store_slug: store.slug}) : '#')}
- className="hidden lg:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all duration-slow"
+ href={store ? route('store.home', {store_slug: store.slug}) : '#'}
+ className="hidden lg:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
  >
- <ShieldCheck size={16} className={mode === 'admin' ? "text-brand-500" : "text-amber-500"} />
- <span className={`text-sm font-bold bg-gradient-to-r ${mode === 'admin' ? 'from-brand-600 to-brand-800' : 'from-amber-600 to-orange-600'} bg-clip-text text-transparent`}>
- {mode === 'admin' ? 'Back to Store' : 'Admin Panel'}
+ <Home size={16} className="text-brand-500" />
+ <span className="text-sm font-bold text-ink">
+ Back to Home
  </span>
  </Link>
  )}

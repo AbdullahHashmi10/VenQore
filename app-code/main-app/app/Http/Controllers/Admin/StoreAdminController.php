@@ -24,27 +24,10 @@ class StoreAdminController extends Controller
      * Admin Home — store health overview.
      * Route: store.admin.home → GET /s/{store_slug}/admin/
      */
-    public function home(): Response
+    public function home()
     {
-        $tenant     = app('current.tenant');
-        $membership = app('current.membership');
-
-        // Owners and admins only
-        if (!in_array($membership->role, ['owner', 'admin'])) {
-            abort(403);
-        }
-
-        $staffCount = TenantUser::where('tenant_id', $tenant->id)->where('status', 'active')->count();
-
-        return Inertia::render('Admin/Dashboard', [
-            'tenant'      => [
-                'name'       => $tenant->name,
-                'plan'       => $tenant->plan,
-                'status'     => $tenant->status,
-                'trial_ends' => $tenant->trial_ends_at,
-            ],
-            'staff_count' => $staffCount,
-        ]);
+        $tenant = app('current.tenant');
+        return redirect()->route('store.home', ['store_slug' => $tenant?->slug ?? request()->route('store_slug')]);
     }
 
     /**

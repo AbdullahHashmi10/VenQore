@@ -15,14 +15,9 @@ class AdminController extends Controller
 {
     public function index()
     {
-        return \Inertia\Inertia::render('Admin/Dashboard', [
-            'mode' => 'admin',
-            'stats' => [
-                'total_users' => \App\Models\User::count(),
-                'active_sessions' => \App\Models\StaffAttendance::whereNull('check_out')->count(),
-                'security_logs' => 0, // Placeholder
-            ]
-        ]);
+        $tenant = app('current.tenant');
+        $slug = $tenant?->slug ?? request()->route('store_slug');
+        return redirect()->route('store.home', ['store_slug' => $slug]);
     }
 
     public function dashboard()
