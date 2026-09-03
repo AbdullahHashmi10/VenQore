@@ -3510,8 +3510,8 @@ export default function NewDashboard(props) {
   const [themeMode, setThemeMode] = useState(() => {
     try {
       const v = localStorage.getItem(THEME_KEY);
-      return v === 'dark' || v === 'mesh' || v === 'light' ? v : 'light';
-    } catch { return 'light'; }
+      return v === 'dark' || v === 'mesh' || v === 'light' ? v : 'mesh';
+    } catch { return 'mesh'; }
   });
   useEffect(() => {
     const r = document.documentElement;
@@ -4739,6 +4739,8 @@ export default function NewDashboard(props) {
             >
               {themeMode === 'light' ? (
                 <Sun size={18} className="text-amber-500 group-hover:rotate-45 transition-transform" />
+              ) : themeMode === 'mesh' ? (
+                <Sparkles size={18} className="text-brand-500 group-hover:scale-110 transition-transform" />
               ) : (
                 <Moon size={18} className="text-slate-600 dark:text-slate-300 group-hover:-rotate-12 transition-transform" />
               )}
@@ -4876,8 +4878,16 @@ export default function NewDashboard(props) {
                     className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover text-ink-secondary transition-all"
                   >
                     <div className="flex items-center gap-2.5">
-                      {themeMode === 'light' ? <Sun size={16} className="shrink-0" /> : <Moon size={16} className="shrink-0" />}
-                      <span className="text-sm font-semibold">{themeMode === 'light' ? 'Light Mode' : 'Dark Mode'}</span>
+                      {themeMode === 'light' ? (
+                        <Sun size={16} className="shrink-0 text-amber-500" />
+                      ) : themeMode === 'mesh' ? (
+                        <Sparkles size={16} className="shrink-0 text-brand-500" />
+                      ) : (
+                        <Moon size={16} className="shrink-0 text-indigo-400" />
+                      )}
+                      <span className="text-sm font-semibold">
+                        {themeMode === 'light' ? 'Light Mode' : themeMode === 'mesh' ? 'Dark Mesh' : 'Dark Mode'}
+                      </span>
                     </div>
                     <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-app text-ink-muted uppercase">
                       {themeMode}
