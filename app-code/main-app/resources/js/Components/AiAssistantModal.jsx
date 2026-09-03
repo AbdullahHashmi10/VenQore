@@ -6,6 +6,7 @@ import {
  ExternalLink, TrendingUp, Package, DollarSign, Users,
  ChevronDown, MessageSquare
 } from 'lucide-react';
+import VenaLogo from '@/Components/VenaLogo';
 
 /**
  * AI Assistant Modal - Full-screen centered AI chat experience
@@ -174,15 +175,15 @@ export default function AiAssistantModal({
  <div className="relative w-full max-w-3xl h-[80vh] flex flex-col bg-neutral-900/80 backdrop-blur-2xl rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in zoom-in-95 duration-slow">
  {/* Header */}
  <div className="flex items-center justify-between p-5 border-b border-neutral-800/50 bg-brand-900/30">
- <div className="flex items-center gap-4">
- <div className="p-3 bg-gradient-brand rounded-2xl text-white shadow-lg ">
- <Sparkles size={24} />
- </div>
- <div>
- <h2 className="text-xl font-bold text-white">VenQore AI Assistant</h2>
- <p className="text-sm text-ink-muted">Ask anything about your business</p>
- </div>
- </div>
+ 					<div className="flex items-center gap-4">
+						<div className="p-2.5 bg-brand-500/20 border border-brand-500/30 rounded-2xl shadow-lg flex items-center justify-center">
+							<VenaLogo size={28} />
+						</div>
+						<div>
+							<h2 className="text-xl font-bold text-white">Vena AI Assistant</h2>
+							<p className="text-sm text-ink-muted">Ask anything about your business</p>
+						</div>
+					</div>
  <div className="flex items-center gap-2">
  {messages.length > 0 && (
  <button
@@ -213,28 +214,28 @@ export default function AiAssistantModal({
  <div className="flex-1 overflow-y-auto p-5 space-y-4">
  {messages.length === 0 ? (
  <div className="h-full flex flex-col items-center justify-center text-center">
- <div className="w-20 h-20 mb-6 rounded-full bg-brand-500/20 flex items-center justify-center">
- <Sparkles size={32} className="text-brand-400" />
- </div>
- <h3 className="text-xl font-bold text-white mb-2">How can I help you today?</h3>
- <p className="text-ink-muted text-sm mb-8 max-w-md">
- Ask me about your sales, profits, stock levels, expenses, or any business data.
- </p>
+ 							<div className="w-20 h-20 mb-6 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center p-3 shadow-md">
+								<VenaLogo size={48} className="drop-shadow-sm" />
+							</div>
+							<h3 className="text-xl font-bold text-white mb-2">How can Vena help you today?</h3>
+							<p className="text-ink-muted text-sm mb-8 max-w-md">
+								Ask me about your sales, profits, stock levels, expenses, or any business data.
+							</p>
 
- {/* Suggested Questions */}
- <div className="w-full max-w-lg space-y-2">
- <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-3">Try asking</p>
- {suggestedQuestions.slice(0, 4).map((q, idx) => (
- <button
- key={idx}
- onClick={() => handleSend(q)}
- className="w-full text-left p-3 rounded-xl bg-neutral-800/50 hover:bg-interactive-hover border border-neutral-700/50 hover:border-brand-500/30 text-neutral-300 hover:text-white transition-all text-sm"
- >
- "{q}"
- </button>
- ))}
- </div>
- </div>
+							{/* Suggested Questions */}
+							<div className="w-full max-w-lg space-y-2">
+								<p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-3">Try asking</p>
+								{suggestedQuestions.slice(0, 4).map((q, idx) => (
+									<button
+										key={idx}
+										onClick={() => handleSend(q)}
+										className="w-full text-left p-3 rounded-xl bg-neutral-800/50 hover:bg-interactive-hover border border-neutral-700/50 hover:border-brand-500/30 text-neutral-300 hover:text-white transition-all text-sm"
+									>
+										"{q}"
+									</button>
+								))}
+							</div>
+						</div>
  ) : (
  <>
  {messages.map((msg, idx) => (
@@ -250,9 +251,9 @@ export default function AiAssistantModal({
  } p-4`}>
  {msg.role === 'assistant' && !msg.isError && (
  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-neutral-700/30">
- <Sparkles size={14} className="text-brand-400" />
- <span className="text-xs font-bold text-brand-400">AI Insight</span>
- </div>
+												<VenaLogo size={15} />
+												<span className="text-xs font-bold text-brand-400">Vena AI Insight</span>
+											</div>
  )}
  <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
 

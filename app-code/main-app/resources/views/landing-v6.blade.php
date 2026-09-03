@@ -733,7 +733,10 @@
           </div>
 
           <div class="vq-card vq-reveal" style="padding: 26px; border-radius: var(--vq-r-xl, 20px); background: var(--vq-surface); border: 1px solid var(--vq-line); color: var(--vq-text); display: flex; flex-direction: column; gap: 16px;">
-            <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent);">VENA · ASK IN PLAIN WORDS</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <img src="/images/vena-logo.svg" style="width: 20px; height: 20px;" alt="Vena Logo" />
+              <span style="font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent);">VENA · ASK IN PLAIN WORDS</span>
+            </div>
             <h3 style="margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3);">Answers straight off the ledger</h3>
             <div style="padding: 14px 16px; border-radius: var(--vq-r-md); background: var(--vq-sunken); font: 500 14px/1.5 var(--vq-font-sans); color: var(--vq-text);">“What was our gross margin at branch 2 this weekend?”</div>
             <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; font: 500 13px/1.6 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: var(--vq-text-2);">

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import FeatureLockBadge from '@/Components/FeatureLockBadge';
+import VenaLogo from '@/Components/VenaLogo';
 
 export default function SidebarItem({
     icon: Icon,
@@ -356,6 +357,9 @@ export default function SidebarItem({
                                                         className={`block pl-4 py-1.5 text-xs font-medium transition-colors ${locked ? 'text-ink-muted dark:text-ink-secondary' : 'text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400'}`}
                                                     >
                                                         <span className="flex items-center gap-1.5">
+                                                            {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
+                                                                <VenaLogo size={13} className="shrink-0" />
+                                                            )}
                                                             {itemName}
                                                             {locked && <span className="text-2xs">🔒</span>}
                                                         </span>
@@ -398,6 +402,9 @@ export default function SidebarItem({
                                     className={`block pl-4 py-2 text-xs font-medium transition-colors relative ${locked ? 'text-ink-muted dark:text-ink-secondary' : 'text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400'}`}
                                 >
                                     <span className="flex items-center gap-1.5">
+                                        {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
+                                            <VenaLogo size={13} className="shrink-0" />
+                                        )}
                                         {itemName}
                                         {locked && <span className="text-2xs">🔒</span>}
                                     </span>

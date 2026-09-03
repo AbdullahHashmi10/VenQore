@@ -3,6 +3,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { Settings, Key, Eye, EyeOff, Save, Check, RefreshCw, AlertCircle, FileSpreadsheet, Cpu, Coins, Wallet, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import SectionHeader from '@/Components/SectionHeader';
+import VenaLogo from '@/Components/VenaLogo';
 import axios from 'axios';
 
 export default function ChatbotSettings({ settings, context, usageStats }) {
@@ -89,6 +90,9 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  <div className="flex items-center justify-between">
  <div>
  <div className="flex items-center gap-3 mb-2">
+ <div className="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center p-1.5 shadow-sm">
+ <VenaLogo size={22} />
+ </div>
  <span className="px-3 py-1 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-[0.2em] rounded-full">
  {isPlatform ? 'VenQore Support Bot' : 'Store Assistant Config'}
  </span>

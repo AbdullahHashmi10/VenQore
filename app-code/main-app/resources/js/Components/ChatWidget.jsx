@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { MessageSquare, X, Send, Sparkles, ArrowRight, Loader2, Play, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
+import VenaLogo from '@/Components/VenaLogo';
 import axios from 'axios';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
@@ -504,8 +505,9 @@ export default function ChatWidget() {
  ? 'bg-sunken text-ink rounded-tl-none leading-relaxed'
  : 'bg-brand-50 dark:bg-brand-950/20 text-brand-950 dark:text-brand-300 border border-brand-100 dark:border-brand-900 rounded-tl-none leading-relaxed'
  }`}>
- <div className="text-3xs font-bold uppercase tracking-wider mb-1 opacity-70">
- {isVisitor ? 'You' : 'Support'}
+ <div className="text-3xs font-bold uppercase tracking-wider mb-1 opacity-70 flex items-center gap-1.5">
+ {isBot && <VenaLogo size={12} />}
+ {isVisitor ? 'You' : isBot ? 'Vena AI' : 'Support'}
  </div>
  <p className="whitespace-pre-line leading-relaxed">{renderMessageBody(m.body)}</p>
  </div>
@@ -565,12 +567,12 @@ export default function ChatWidget() {
 
  {/* Left: branding */}
  <div className="flex items-center gap-3 relative z-10">
- <div className="w-9 h-9 rounded-xl bg-brand-600/30 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-inner shrink-0">
- <Sparkles size={18} className="animate-pulse" />
+ <div className="w-10 h-10 rounded-xl bg-brand-600/30 border border-brand-500/30 flex items-center justify-center p-2 text-brand-400 shadow-inner shrink-0">
+ <VenaLogo size={24} className="drop-shadow-sm" />
  </div>
  <div>
  <h4 className="text-sm font-bold tracking-tight flex items-center gap-1.5">
- Support
+ Vena AI Support
  {sessionStatus === 'agent_active' && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping ml-1" />}
  </h4>
  <p className="text-2xs text-brand-300 font-bold uppercase tracking-wider mt-0.5">Online</p>
@@ -674,7 +676,7 @@ export default function ChatWidget() {
  <div className="relative z-10 flex items-center justify-center">
  {isOpen
  ? <X size={22} className="animate-in spin-in-90 duration-slow" />
- : <MessageSquare size={22} className="animate-in zoom-in duration-slow" />
+ : <VenaLogo size={28} className="animate-in zoom-in duration-slow drop-shadow-sm" />
  }
  </div>
  </button>

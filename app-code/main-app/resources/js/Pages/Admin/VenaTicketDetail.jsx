@@ -4,6 +4,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft, MessageSquare, Sparkles, Clock, Bot, User, Zap, AlertCircle, CheckCircle
 } from 'lucide-react';
+import VenaLogo from '@/Components/VenaLogo';
 
 const ESCALATION_CONFIG = {
     ai_failure:        { label: 'AI Failure',         icon: Bot,          color: 'text-rose-500' },
@@ -74,9 +75,12 @@ export default function VenaTicketDetail({ ticket, context }) {
                         <ArrowLeft size={16} />
                     </Link>
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-base font-bold text-ink tracking-tight truncate">
-                            {ticket.subject}
-                        </h1>
+                        <div className="flex items-center gap-2">
+                            <VenaLogo size={18} />
+                            <h1 className="text-base font-bold text-ink tracking-tight truncate">
+                                {ticket.subject}
+                            </h1>
+                        </div>
                         <p className="text-1xs text-ink-muted">
                             From <strong className="text-ink-secondary">{ticket.requester_name}</strong>
                             {ticket.requester_email && <> · {ticket.requester_email}</>}
@@ -180,7 +184,8 @@ export default function VenaTicketDetail({ ticket, context }) {
                                                         ? 'bg-sunken text-ink rounded-tl-none'
                                                         : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100 border border-emerald-100 dark:border-emerald-800 rounded-tl-none'
                                             }`}>
-                                                <div className="text-3xs font-bold uppercase tracking-wider mb-0.5 opacity-60">
+                                                <div className="text-3xs font-bold uppercase tracking-wider mb-0.5 opacity-60 flex items-center gap-1.5">
+                                                    {isBot && <VenaLogo size={11} />}
                                                     {isBot ? 'Vena' : line.sender}
                                                     {line.time && <span className="ml-2 opacity-60 normal-case font-normal">{line.time.slice(11, 16)}</span>}
                                                 </div>

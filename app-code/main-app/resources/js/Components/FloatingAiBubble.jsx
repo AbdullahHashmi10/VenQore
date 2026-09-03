@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, MessageSquare, X } from 'lucide-react';
+import VenaLogo from '@/Components/VenaLogo';
 
 /**
  * Floating AI Bubble - Draggable minimized AI assistant
@@ -142,15 +143,15 @@ export default function FloatingAiBubble({
  <div className="absolute inset-0 rounded-full bg-gradient-brand opacity-0 group-hover:opacity-100 blur-md transition-opacity" />
 
  {/* Icon */}
- <div className="relative z-10 text-white">
- <Sparkles size={28} />
+ <div className="relative z-10 flex items-center justify-center">
+ <VenaLogo size={32} className="drop-shadow-md" />
  </div>
 
  {/* Message count badge removed */}
 
  {/* Tooltip */}
  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-neutral-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
- AI Assistant
+ Vena AI Assistant
  <div className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-1 w-2 h-2 bg-neutral-900 rotate-45" />
  </div>
  </div>

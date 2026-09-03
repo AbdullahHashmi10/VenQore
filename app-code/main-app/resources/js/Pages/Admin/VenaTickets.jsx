@@ -5,6 +5,7 @@ import {
     MessageSquare, Sparkles, Clock, CheckCircle, AlertCircle,
     ChevronRight, RefreshCw, Filter, Inbox, Bot, Zap, User, Plus
 } from 'lucide-react';
+import VenaLogo from '@/Components/VenaLogo';
 
 // ── Escalation type badge config ─────────────────────────────────────────────
 const ESCALATION_CONFIG = {
@@ -164,8 +165,8 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                 {/* Header */}
                 <div className="shrink-0 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-brand-600/10 dark:bg-brand-500/20 border border-brand-200 dark:border-brand-800 flex items-center justify-center">
-                            <Sparkles size={18} className="text-brand-600 dark:text-brand-400" />
+                        <div className="w-10 h-10 rounded-2xl bg-brand-600/10 dark:bg-brand-500/20 border border-brand-200 dark:border-brand-800 flex items-center justify-center p-2 shadow-xs">
+                            <VenaLogo size={22} />
                         </div>
                         <div>
                             <h1 className="text-lg font-bold text-ink tracking-tight">

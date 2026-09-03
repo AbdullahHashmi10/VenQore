@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, usePage } from '@inertiajs/react';
 import { MessageSquare, User, Clock, CheckCircle2, RefreshCw, Send, AlertCircle, ShieldAlert, Sparkles, LogOut, Loader2, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import VenaLogo from '@/Components/VenaLogo';
 import axios from 'axios';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
@@ -725,8 +726,8 @@ export default function AgentInbox() {
                                         <div className="flex items-center bg-app border border-line rounded-xl p-1 gap-2 shrink-0">
                                             {selectedSession.status === 'bot_active' ? (
                                                 <>
-                                                    <span className="px-2.5 py-1 bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-wider rounded-lg flex items-center gap-1">
-                                                        <Sparkles size={11} className="animate-pulse" />
+                                                    <span className="px-2.5 py-1 bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-wider rounded-lg flex items-center gap-1.5">
+                                                        <VenaLogo size={12} className="animate-pulse" />
                                                         Vena AI Active
                                                     </span>
                                                     <button
@@ -875,7 +876,8 @@ export default function AgentInbox() {
                                                                 : 'bg-brand-600 text-white rounded-br-none font-medium'
                                                     }`}>
                                                         {/* Sender name if group chat */}
-                                                        <div className="text-2xs font-bold uppercase tracking-wider mb-1 opacity-70">
+                                                        <div className="text-2xs font-bold uppercase tracking-wider mb-1 opacity-70 flex items-center gap-1.5">
+                                                            {isBot && <VenaLogo size={12} />}
                                                             {m.sender_name || (isVisitor ? 'Guest' : isBot ? 'Vena (AI)' : 'Agent')}
                                                         </div>
                                                         
@@ -1000,7 +1002,7 @@ export default function AgentInbox() {
                                 <div className="w-96 h-full flex flex-col bg-sunken/20 dark:bg-app overflow-hidden shrink-0 animate-in slide-in-from-right duration-slow border-l border-line">
                                     <div className="p-6 border-b border-line bg-sunken/50 dark:bg-app shrink-0">
                                         <h3 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
-                                            <Sparkles className="text-brand-500 animate-pulse" size={16} />
+                                            <VenaLogo className="animate-pulse" size={16} />
                                             Vena Assist Co-Pilot
                                         </h3>
                                         <p className="text-2xs text-ink-muted mt-1">Real-time co-pilot assist drawer</p>
