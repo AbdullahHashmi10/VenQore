@@ -1301,14 +1301,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  onClick={() => setMobileSidebarOpen(true)}>
  <Menu size={20} />
  </button>
- <div className="hidden md:flex flex-col">
- <h1 className={`font-bold tracking-tight whitespace-nowrap ${isPlatformAdmin && !store
- ? (isDarkMode ? 'text-2xl text-white' : 'text-2xl text-ink')
- : 'text-xl text-ink'}`}>
- {title || (isPlatformAdmin && !store ? 'Command Center' : 'Overview')}
- </h1>
- {!isPosRoute && <p className="text-xs text-ink-muted font-medium">Welcome back, {props.auth?.user?.name || 'Abdullah'}</p>}
- </div>
 
  {/* OmniSearch - Universal Command Palette */}
  <div id="tour-omnisearch" className="flex-1 max-w-[240px] sm:max-w-xs md:max-w-none">
