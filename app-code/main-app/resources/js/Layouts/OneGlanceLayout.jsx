@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import StoreSwitcher from '@/Components/StoreSwitcher';
 import { Link, usePage, router } from '@inertiajs/react';
 import SidebarItem from '@/Components/SidebarItem';
 import CommandPalette from '@/Components/CommandPalette';
@@ -59,7 +58,8 @@ import {
  Factory,
  Mail,
  Palette,
- Armchair
+ Armchair,
+ Store
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -77,6 +77,7 @@ import { useTheme } from '@/Contexts/ThemeContext';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import LimitGraceBanner from '@/Components/LimitGraceBanner';
 import ActivityHubModal from '@/Components/ActivityHubModal';
+import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
  const {
@@ -104,6 +105,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  // Activity Hub Modal State
  const [isActivityHubModalOpen, setIsActivityHubModalOpen] = useState(false);
+
+ // Store Switcher Modal State
+ const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
 
  // Live Header Clock State
  const [currentTime, setCurrentTime] = useState(new Date());
@@ -1158,12 +1162,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  {/* USER MENU POPUP */}
  {isUserMenuOpen && (
  <div className="absolute bottom-20 left-4 w-56 bg-surface rounded-2xl shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
- {props.auth?.my_stores_count > 1 && (
- <div className="p-2 border-b border-line mb-2">
- <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1.5 pl-1">Switch Store</p>
- <StoreSwitcher />
- </div>
- )}
+ 						{props.auth?.my_stores_count > 1 && (
+							<button
+								onClick={() => {
+									setIsUserMenuOpen(false);
+									setIsStoreSwitcherModalOpen(true);
+								}}
+								className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink group mb-1"
+							>
+								<div className="flex items-center gap-2.5">
+									<Store size={16} className="text-brand-500 group-hover:scale-110 transition-transform" />
+									<span>Switch Store</span>
+								</div>
+								<span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 max-w-[75px] truncate">
+									{store?.name}
+								</span>
+							</button>
+						)}
  {store && (
  <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
  <User size={16} /> Profile Settings
@@ -1472,6 +1487,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  {isDisplayMenuOpen && (
  <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
+ {props.auth?.my_stores_count > 1 && (
+ <button
+ onClick={() => {
+ setIsDisplayMenuOpen(false);
+ setIsStoreSwitcherModalOpen(true);
+ }}
+ className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+ >
+ <div className="flex items-center gap-2">
+ <Store size={16} className="text-brand-500" />
+ <span className="text-sm font-semibold">Switch Store</span>
+ </div>
+ <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 max-w-[80px] truncate">
+ {store?.name}
+ </span>
+ </button>
+ )}
  <button
  onClick={() => {
  const newValue = settings?.senior_mode === '1' ? '0' : '1';
@@ -1528,14 +1560,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
  {/* Store Switcher & Charity Button Row */}
  {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
- <div className="p-2 border-b border-line flex items-end justify-between gap-3">
+ <div className="p-2 border-b border-line flex items-center justify-between gap-3">
  {props.auth?.my_stores_count > 1 ? (
- <div className="flex-1">
- <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1">Switch Store</p>
- <StoreSwitcher />
+ <button
+ onClick={() => {
+ setIsMobileMenuOpen(false);
+ setIsStoreSwitcherModalOpen(true);
+ }}
+ className="flex-1 flex items-center justify-between p-2 rounded-xl bg-app border border-line hover:border-brand-400 text-ink-secondary hover:text-brand-600 transition-all text-left"
+ >
+ <div className="flex items-center gap-2">
+ <Store size={15} className="text-brand-500" />
+ <span className="text-xs font-bold truncate max-w-[100px]">{store?.name}</span>
  </div>
+ <span className="text-2xs font-bold text-brand-600">Switch</span>
+ </button>
  ) : (
- <span className="text-xs font-semibold text-ink-secondary pl-2 pb-2">Charity Donations</span>
+ <span className="text-xs font-semibold text-ink-secondary pl-2">Charity Donations</span>
  )}
  {(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
  <div className="flex-none">
@@ -1758,6 +1799,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
      }}
      totalActiveOps={totalActiveOps}
  />
+
+	{/* Store Switcher Centered Pop-up Modal */}
+	<StoreSwitcherModal
+		isOpen={isStoreSwitcherModalOpen}
+		onClose={() => setIsStoreSwitcherModalOpen(false)}
+	/>
 
  {/* Mobile Bottom Navigation Bar */}
  {showMobileNavBar && (
