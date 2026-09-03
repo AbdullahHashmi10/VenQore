@@ -9,8 +9,11 @@ import {
   Building2, CalendarClock, Circle, ClipboardCheck, ClipboardList, Coins, Factory,
   FileInput, FileMinus, FileSignature, FileText, GitCompare, Globe, Landmark,
   Layers, Package, Receipt, RefreshCcw, Repeat, ScanLine, ShoppingBag,
-  ShoppingCart, Sparkles, Truck, Users, Utensils, Wallet,
+  ShoppingCart, Sparkles, Truck, Users, Utensils, Wallet, Settings2,
+  Menu, Clock, Sun, Moon, Bell, PenLine, Plus, PanelRight, RotateCcw, Store, Type,
 } from 'lucide-react';
+import OmniSearch from '@/Components/OmniSearch';
+import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
 
 const NAV_ICONS = {
   ArrowLeftRight, BadgeCheck, BarChart3, Barcode, BookOpen, BookText, BookUser,
@@ -3401,6 +3404,15 @@ export default function NewDashboard(props) {
   const [engineReady, setEngineReady] = useState(false);
 
 
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
+  const displayMenuRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const onResize = () => setVw(window.innerWidth);
     window.addEventListener('resize', onResize);
@@ -3576,6 +3588,46 @@ export default function NewDashboard(props) {
     window.addEventListener('click', close);
     return () => window.removeEventListener('click', close);
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!isDisplayMenuOpen) return;
+    const close = (e) => {
+      if (displayMenuRef.current && displayMenuRef.current.contains(e.target)) return;
+      setIsDisplayMenuOpen(false);
+    };
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [isDisplayMenuOpen]);
+
+  /* Listen to layout customization events dispatched from header or layout */
+  useEffect(() => {
+    const onEditLayout = () => setIsEditMode(v => !v);
+    const onAddCard = () => openPicker(0);
+    const onToggleSidePanel = () => {
+      if (!panelDesign) setRailsModalOpen(true);
+      else setRailOpt({ collapsed: !railPrefs.collapsed });
+    };
+    const onStartFresh = () => setPresetModalOpen(true);
+
+    window.addEventListener('vq:edit-layout', onEditLayout);
+    window.addEventListener('vq:add-card', onAddCard);
+    window.addEventListener('vq:toggle-side-panel', onToggleSidePanel);
+    window.addEventListener('vq:start-fresh', onStartFresh);
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('edit') === '1') setIsEditMode(true);
+      if (params.get('add_card') === '1') setTimeout(() => openPicker(0), 350);
+      if (params.get('reset') === '1') setPresetModalOpen(true);
+    }
+
+    return () => {
+      window.removeEventListener('vq:edit-layout', onEditLayout);
+      window.removeEventListener('vq:add-card', onAddCard);
+      window.removeEventListener('vq:toggle-side-panel', onToggleSidePanel);
+      window.removeEventListener('vq:start-fresh', onStartFresh);
+    };
+  }, [panelDesign, railPrefs.collapsed]);
 
   /* ── the draft, as a card object ─────────────────────────────────────── */
   const draftCard = useMemo(() => {
@@ -4583,88 +4635,212 @@ export default function NewDashboard(props) {
 
       {/* ── Stage ───────────────────────────────────────────────────────── */}
       <div className="vq-main-stage">
-        <header className="vq-main-header">
-          <div className="vq-header-left">
-            <button type="button" className="vq-icon-btn" onClick={toggleNav}
-                    title={navMode === 'overlay' ? 'Open navigation' : navMode === 'expanded' ? 'Collapse navigation' : 'Expand navigation'}
-                    aria-label="Toggle navigation" aria-expanded={navMode === 'expanded' || navOverlayOpen}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <header className="h-16 px-4 sm:px-6 flex items-center justify-between z-nav relative shrink-0 w-full bg-surface border-b border-line gap-3">
+          {/* LEFT SECTION */}
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <button
+              type="button"
+              className="h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line shrink-0"
+              onClick={toggleNav}
+              title={navMode === 'overlay' ? 'Open navigation' : navMode === 'expanded' ? 'Collapse navigation' : 'Expand navigation'}
+              aria-label="Toggle navigation"
+            >
+              <Menu size={20} />
             </button>
-            <div className="vq-breadcrumbs">
-              <span>VenQore</span><span aria-hidden="true">/</span>
-              <span className="active">Command Center</span>
+
+            {/* OmniSearch - Universal Command Palette */}
+            <div className="w-48 sm:w-64 md:w-80 max-w-full min-w-0">
+              <OmniSearch />
             </div>
-            <div className={`vq-status-pill ${isEditMode ? 'is-editing' : ''}`}>
+
+            {/* Live / Edit Mode Status Pill */}
+            <div className={`vq-status-pill hidden md:inline-flex shrink-0 ${isEditMode ? 'is-editing' : ''}`}>
               <span className="vq-status-dot" />
               <span>{isEditMode ? 'Edit mode' : 'Live'}</span>
             </div>
           </div>
 
-          <div className="vq-header-right">
-            <button type="button" onClick={() => setGlassModalOpen(true)} className="vq-quick-btn">
-              <span aria-hidden="true">⚡</span><span className="vq-btn-text">Quick Actions</span>
+          {/* RIGHT SECTION */}
+          <div className="flex items-center justify-end gap-2 sm:gap-2.5 shrink-0">
+            {/* Quick Actions Button */}
+            <button
+              type="button"
+              onClick={() => setGlassModalOpen(true)}
+              className="hidden sm:flex items-center gap-2 h-11 px-3.5 rounded-xl border border-line bg-surface text-ink-secondary hover:text-brand-600 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all text-sm font-bold shadow-sm"
+            >
+              <span aria-hidden="true">⚡</span><span>Quick Actions</span>
             </button>
 
-            <button type="button" onClick={() => openPicker(0)}
-                    className="vq-quick-btn vq-add-card-btn" title="Add a card">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              <span className="vq-btn-text">Add card</span>
-            </button>
+            {/* Growth Engine Pill */}
+            {store && (
+              <a
+                href={typeof route === 'function' ? route('store.growth-engine.index', { store_slug: store?.slug || storeSlug }) : '#'}
+                className="hidden xl:flex items-center gap-2 h-11 px-3.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all shadow-sm group"
+              >
+                <Sparkles size={16} className="text-brand-500" />
+                <span className="text-sm font-bold bg-gradient-brand bg-clip-text text-transparent">
+                  Growth Engine
+                </span>
+              </a>
+            )}
 
-            {railsFit && (
-              <button type="button" className={`vq-icon-btn ${panelDesign && !railPrefs.collapsed ? 'is-active' : ''}`}
-                      title={panelDesign ? (railPrefs.collapsed ? 'Show the side panel' : 'Hide the side panel') : 'Choose a side panel'}
-                      aria-label="Side panel"
-                      onClick={() => {
-                        if (!panelDesign) setRailsModalOpen(true);
-                        else setRailOpt({ collapsed: !railPrefs.collapsed });
-                      }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
+            {/* Live Header Clock */}
+            <div className="hidden lg:flex items-center gap-2 h-11 px-3.5 rounded-xl bg-surface border border-line text-sm font-bold text-ink-secondary dark:text-ink shrink-0 font-mono shadow-sm hover:border-brand-300 dark:hover:border-brand-700 transition-all">
+              <Clock size={16} className="text-brand-500 dark:text-brand-400 animate-[pulse_2s_infinite]" />
+              <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+            </div>
+
+            {/* AI Scan Header Action Button */}
+            {store && (
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('amd:open-smart-capture', { detail: { tab: 'image' } }))}
+                className="hidden lg:flex items-center justify-center h-11 w-11 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
+                title="AI Scan / Smart Capture"
+              >
+                <Sparkles size={18} className="text-brand-500 group-hover:scale-110 transition-transform" />
               </button>
             )}
 
-            <button type="button" className="vq-icon-btn" onClick={cycleTheme}
-                    title={themeTitle} aria-label={themeTitle}>
-              {themeMode === 'light'
-                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
-                : themeMode === 'dark'
-                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>}
+            {/* Direct Light/Dark Mode Theme Button */}
+            <button
+              type="button"
+              onClick={cycleTheme}
+              className="flex items-center justify-center h-11 w-11 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
+              title={themeTitle}
+              aria-label={themeTitle}
+            >
+              {themeMode === 'light' ? (
+                <Sun size={18} className="text-amber-500 group-hover:rotate-45 transition-transform" />
+              ) : (
+                <Moon size={18} className="text-slate-600 dark:text-slate-300 group-hover:-rotate-12 transition-transform" />
+              )}
             </button>
 
-            <div className="vq-menu-container" onClick={e => e.stopPropagation()}>
-              <button type="button" onClick={() => setMenuOpen(o => !o)} className="vq-icon-btn"
-                      title="Dashboard options" aria-label="Dashboard options" aria-expanded={menuOpen}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            {/* Display & Dashboard Customization Settings Dropdown */}
+            <div className="relative" ref={displayMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsDisplayMenuOpen(v => !v)}
+                className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
+                  ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
+                  : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
+                title="Dashboard & Display Preferences"
+                aria-label="Dashboard preferences"
+              >
+                <Settings2 size={18} />
               </button>
 
-              {menuOpen && (
-                <div className="vq-dropdown-menu" role="menu">
-                  <button type="button" className="vq-dropdown-item" role="menuitem"
-                          onClick={() => { setIsEditMode(v => !v); setMenuOpen(false); }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                    <span>{isEditMode ? 'Done editing' : 'Edit layout'}</span>
+              {isDisplayMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
+                  {/* Dashboard Layout Actions */}
+                  <div className="px-2.5 pt-1.5 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                    <span>Dashboard Layout</span>
+                    <span className="text-4xs px-1.5 py-0.5 rounded bg-brand-50 dark:bg-brand-900/30 text-brand-600 font-mono">Customizer</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      setIsEditMode(v => !v);
+                    }}
+                    className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                    <PenLine size={16} className="text-brand-500 shrink-0" />
+                    <span className="flex-1 text-left">{isEditMode ? 'Done editing' : 'Edit Layout'}</span>
                   </button>
-                  <button type="button" className="vq-dropdown-item" role="menuitem"
-                          onClick={() => { openPicker(0); setMenuOpen(false); }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>Add a card</span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      openPicker(0);
+                    }}
+                    className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                    <Plus size={16} className="text-emerald-500 shrink-0" />
+                    <span className="flex-1 text-left">Add Card</span>
                   </button>
-                  <button type="button" className="vq-dropdown-item" role="menuitem"
-                          disabled={!railsFit}
-                          title={railsFit ? undefined : 'Needs a wider screen'}
-                          onClick={() => { if (railsFit){ setRailsModalOpen(true); setMenuOpen(false); } }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
-                    <span>Side panel…</span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      if (!panelDesign) setRailsModalOpen(true);
+                      else setRailOpt({ collapsed: !railPrefs.collapsed });
+                    }}
+                    className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                    <PanelRight size={16} className="text-indigo-500 shrink-0" />
+                    <span className="flex-1 text-left">{panelDesign && !railPrefs.collapsed ? 'Hide Side Panel' : 'Side Panel'}</span>
                   </button>
-                  <div className="vq-dropdown-divider" />
-                  <button type="button" className="vq-dropdown-item" role="menuitem" onClick={handleResetLayout}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                    <span>Start fresh…</span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleResetLayout();
+                    }}
+                    className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
+                  >
+                    <RotateCcw size={16} className="text-amber-500 shrink-0" />
+                    <span className="flex-1 text-left">Start Fresh…</span>
+                  </button>
+
+                  <div className="h-px bg-line my-1.5" />
+
+                  {/* Preferences & Store Switcher */}
+                  <div className="px-2.5 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                    Preferences
+                  </div>
+
+                  {(auth?.my_stores_count > 1 || props?.my_stores_count > 1) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDisplayMenuOpen(false);
+                        setIsStoreSwitcherModalOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover text-ink-secondary transition-all"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Store size={16} className="text-brand-500 shrink-0" />
+                        <span className="text-sm font-semibold">Switch Store</span>
+                      </div>
+                      <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 max-w-[80px] truncate">
+                        {store?.name || 'My Store'}
+                      </span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      cycleTheme();
+                    }}
+                    className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover text-ink-secondary transition-all"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {themeMode === 'light' ? <Sun size={16} className="shrink-0" /> : <Moon size={16} className="shrink-0" />}
+                      <span className="text-sm font-semibold">{themeMode === 'light' ? 'Light Mode' : 'Dark Mode'}</span>
+                    </div>
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-app text-ink-muted uppercase">
+                      {themeMode}
+                    </span>
                   </button>
                 </div>
               )}
             </div>
+
+            {/* Notifications Bell */}
+            <a
+              href={typeof route === 'function' ? route('store.notifications.index', { store_slug: store?.slug || storeSlug }) : '#'}
+              className="flex items-center justify-center h-11 w-11 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
+              title="Notifications"
+            >
+              <Bell size={18} />
+            </a>
           </div>
         </header>
 
@@ -5018,6 +5194,12 @@ export default function NewDashboard(props) {
           <div className="panel-b" id="lib-body" />
         </div>
       </aside>
+
+      {/* Centered Store Switcher Modal */}
+      <StoreSwitcherModal
+        isOpen={isStoreSwitcherModalOpen}
+        onClose={() => setIsStoreSwitcherModalOpen(false)}
+      />
     </div>
   );
 }

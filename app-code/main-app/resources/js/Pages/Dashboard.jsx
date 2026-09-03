@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -60,6 +60,16 @@ export default function Dashboard({
  const [netProfitPeriod, setNetProfitPeriod] = useState('Month');
  const [purchasesPeriod, setPurchasesPeriod] = useState('Month');
  const [mobileRightPanelOpen, setMobileRightPanelOpen] = useState(false);
+ const [desktopSidePanelVisible, setDesktopSidePanelVisible] = useState(true);
+
+ useEffect(() => {
+  const handleTogglePanel = () => {
+   setMobileRightPanelOpen(prev => !prev);
+   setDesktopSidePanelVisible(prev => !prev);
+  };
+  window.addEventListener('vq:toggle-side-panel', handleTogglePanel);
+  return () => window.removeEventListener('vq:toggle-side-panel', handleTogglePanel);
+ }, []);
 
  const timeframeOptions = [
         { value: 'Today', label: 'Today' },
@@ -158,7 +168,7 @@ export default function Dashboard({
                 <div className="grid grid-cols-12 gap-5 sm:gap-6 w-full animate-in fade-in duration-slower">
 
                     {/* --- Left Side Content --- */}
-                    <div className={`col-span-12 ${showRightPanel ? 'xl:col-span-9' : 'col-span-12'} flex flex-col gap-6 min-w-0`}>
+                    <div className={`col-span-12 ${showRightPanel && desktopSidePanelVisible ? 'xl:col-span-9' : 'col-span-12'} flex flex-col gap-6 min-w-0`}>
                         
                         {/* ═══ 6 INDEPENDENT TOP METRIC CARDS ═══ */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 sm:gap-4.5 w-full">
@@ -559,7 +569,7 @@ export default function Dashboard({
                     </div>
 
                     {/* --- RIGHT PANEL (Desktop Only) --- */}
-                    {showRightPanel && (
+                    {showRightPanel && desktopSidePanelVisible && (
                         <div id="tour-right-panel" className="hidden xl:block xl:col-span-3 min-w-0 self-start sticky top-0">
                             <RightPanel
  recentTransactions={recentTransactions}

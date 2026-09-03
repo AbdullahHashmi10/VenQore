@@ -8,7 +8,16 @@ import React from 'react';
  *  - size: number (default 24)
  *  - className: string
  */
-export default function VenaLogo({ size = 24, className = '', ...props }) {
+export default function VenaLogo({
+    size = 24,
+    className = '',
+    animated = true,
+    speed = 'normal',
+    style = {},
+    ...props
+}) {
+    const duration = speed === 'fast' ? '5s' : speed === 'slow' ? '16s' : '10s';
+
     return (
         <svg
             width={size}
@@ -16,7 +25,12 @@ export default function VenaLogo({ size = 24, className = '', ...props }) {
             viewBox="0 0 1024 1024"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className={`shrink-0 ${className}`}
+            className={`shrink-0 ${animated ? 'vena-live-spin' : ''} ${className}`}
+            style={{
+                transformOrigin: '50% 50%',
+                ...(animated ? { animationDuration: duration } : {}),
+                ...style,
+            }}
             {...props}
         >
             <polygon

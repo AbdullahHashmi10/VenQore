@@ -59,7 +59,10 @@ import {
  Mail,
  Palette,
  Armchair,
- Store
+ Store,
+ PenLine,
+ PanelRight,
+ RotateCcw
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -243,6 +246,41 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  setIsDarkMode(!isDarkMode);
  }
  };
+
+ const handleEditLayout = () => {
+ if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+ window.dispatchEvent(new CustomEvent('vq:edit-layout'));
+ } else if (store?.slug) {
+ router.visit(route('store.new-dashboard', { store_slug: store.slug, edit: 1 }));
+ } else {
+ router.visit('/new-dashboard?edit=1');
+ }
+ };
+
+ const handleAddCard = () => {
+ if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+ window.dispatchEvent(new CustomEvent('vq:add-card'));
+ } else if (store?.slug) {
+ router.visit(route('store.new-dashboard', { store_slug: store.slug, add_card: 1 }));
+ } else {
+ router.visit('/new-dashboard?add_card=1');
+ }
+ };
+
+ const handleToggleSidePanel = () => {
+ window.dispatchEvent(new CustomEvent('vq:toggle-side-panel'));
+ };
+
+ const handleStartFresh = () => {
+ if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+ window.dispatchEvent(new CustomEvent('vq:start-fresh'));
+ } else if (store?.slug) {
+ router.visit(route('store.new-dashboard', { store_slug: store.slug, reset: 1 }));
+ } else {
+ router.visit('/new-dashboard?reset=1');
+ }
+ };
+
  const [isLargeText, setIsLargeText] = useState(false);
  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -1473,75 +1511,147 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
      </button>
  )}
 
- {/* Display Settings Dropdown */}
+ {/* Quick Theme Toggle Button (Light/Dark mode direct toggle matching new dashboard) */}
+ <button
+     onClick={toggleAppTheme}
+     className="hidden lg:flex items-center justify-center h-11 w-11 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
+     title={isEffectiveDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+     aria-label="Toggle theme mode"
+ >
+     {isEffectiveDarkMode ? (
+         <Sun size={18} className="text-amber-500 group-hover:rotate-45 transition-transform" />
+     ) : (
+         <Moon size={18} className="text-slate-600 dark:text-slate-300 group-hover:-rotate-12 transition-transform" />
+     )}
+ </button>
+
+ {/* Display & Dashboard Customization Settings Dropdown */}
  <div className="hidden lg:block relative" ref={displayMenuRef}>
- <button
- onClick={() => setIsDisplayMenuOpen(!isDisplayMenuOpen)}
- className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
- ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
- : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
- title="Display Preferences"
- >
- <Settings2 size={18} />
- </button>
+     <button
+         onClick={() => setIsDisplayMenuOpen(!isDisplayMenuOpen)}
+         className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
+             ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
+             : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
+         title="Dashboard & Display Preferences"
+     >
+         <Settings2 size={18} />
+     </button>
 
- {isDisplayMenuOpen && (
- <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
- {props.auth?.my_stores_count > 1 && (
- <button
- onClick={() => {
- setIsDisplayMenuOpen(false);
- setIsStoreSwitcherModalOpen(true);
- }}
- className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
- >
- <div className="flex items-center gap-2">
- <Store size={16} className="text-brand-500" />
- <span className="text-sm font-semibold">Switch Store</span>
- </div>
- <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 max-w-[80px] truncate">
- {store?.name}
- </span>
- </button>
- )}
- <button
- onClick={() => {
- const newValue = settings?.senior_mode === '1' ? '0' : '1';
- router.post(route("store.settings.update", {
- store_slug: store.slug
- }), {
- settings: { ...settings, senior_mode: newValue }
- }, { preserveScroll: true });
- }}
- className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${settings?.senior_mode === '1'
- ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
- : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
- >
- <div className="flex items-center gap-2">
- <Type size={16} />
- <span className="text-sm font-semibold">Senior Mode</span>
- </div>
- <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
- <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
- </div>
- </button>
+     {isDisplayMenuOpen && (
+         <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
+             {/* Dashboard Layout Actions */}
+             <div className="px-2.5 pt-1.5 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                 <span>Dashboard Layout</span>
+                 <span className="text-4xs px-1.5 py-0.5 rounded bg-brand-50 dark:bg-brand-900/30 text-brand-600 font-mono">Customizer</span>
+             </div>
 
- <button
- onClick={toggleAppTheme}
- className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
- ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
- : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
- >
- <div className="flex items-center gap-2">
- {isEffectiveDarkMode ? <Sun size={16} /> : <Moon size={16} />}
- <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
- </div>
- <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-brand-500' : 'bg-sunken'}`}>
- <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
- </div>
- </button>
- </div>
- )}
+             <button
+                 onClick={() => {
+                     setIsDisplayMenuOpen(false);
+                     handleEditLayout();
+                 }}
+                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+             >
+                 <PenLine size={16} className="text-brand-500 shrink-0" />
+                 <span className="flex-1 text-left">Edit Layout</span>
+             </button>
+
+             <button
+                 onClick={() => {
+                     setIsDisplayMenuOpen(false);
+                     handleAddCard();
+                 }}
+                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+             >
+                 <Plus size={16} className="text-emerald-500 shrink-0" />
+                 <span className="flex-1 text-left">Add Card</span>
+             </button>
+
+             <button
+                 onClick={() => {
+                     setIsDisplayMenuOpen(false);
+                     handleToggleSidePanel();
+                 }}
+                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+             >
+                 <PanelRight size={16} className="text-indigo-500 shrink-0" />
+                 <span className="flex-1 text-left">Side Panel</span>
+             </button>
+
+             <button
+                 onClick={() => {
+                     setIsDisplayMenuOpen(false);
+                     handleStartFresh();
+                 }}
+                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
+             >
+                 <RotateCcw size={16} className="text-amber-500 shrink-0" />
+                 <span className="flex-1 text-left">Start Fresh…</span>
+             </button>
+
+             <div className="h-px bg-line my-1.5" />
+
+             {/* Preferences & Store Switcher */}
+             <div className="px-2.5 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                 Preferences
+             </div>
+
+             {props.auth?.my_stores_count > 1 && (
+                 <button
+                     onClick={() => {
+                         setIsDisplayMenuOpen(false);
+                         setIsStoreSwitcherModalOpen(true);
+                     }}
+                     className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+                 >
+                     <div className="flex items-center gap-2.5">
+                         <Store size={16} className="text-brand-500 shrink-0" />
+                         <span className="text-sm font-semibold">Switch Store</span>
+                     </div>
+                     <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 max-w-[80px] truncate">
+                         {store?.name}
+                     </span>
+                 </button>
+             )}
+
+             <button
+                 onClick={() => {
+                     const newValue = settings?.senior_mode === '1' ? '0' : '1';
+                     router.post(route("store.settings.update", {
+                         store_slug: store.slug
+                     }), {
+                         settings: { ...settings, senior_mode: newValue }
+                     }, { preserveScroll: true });
+                 }}
+                 className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${settings?.senior_mode === '1'
+                     ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                     : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+             >
+                 <div className="flex items-center gap-2.5">
+                     <Type size={16} className="shrink-0" />
+                     <span className="text-sm font-semibold">Senior Mode</span>
+                 </div>
+                 <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
+                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
+                 </div>
+             </button>
+
+             <button
+                 onClick={toggleAppTheme}
+                 className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${isEffectiveDarkMode
+                     ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                     : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+             >
+                 <div className="flex items-center gap-2.5">
+                     {isEffectiveDarkMode ? <Sun size={16} className="shrink-0" /> : <Moon size={16} className="shrink-0" />}
+                     <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                 </div>
+                 <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-brand-500' : 'bg-sunken'}`}>
+                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
+                 </div>
+             </button>
+         </div>
+     )}
  </div>
 
  {/* Mobile Options Dropdown (lg:hidden) */}
@@ -1585,6 +1695,57 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  )}
  </div>
  )}
+
+ {/* Dashboard Layout Actions */}
+ <div className="space-y-1 border-b border-line pb-2">
+     <div className="px-2 pt-1 pb-0.5 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+         Dashboard Layout
+     </div>
+
+     <button
+         onClick={() => {
+             setIsMobileMenuOpen(false);
+             handleEditLayout();
+         }}
+         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+     >
+         <PenLine size={16} className="text-brand-500 shrink-0" />
+         <span className="flex-1 text-left">Edit Layout</span>
+     </button>
+
+     <button
+         onClick={() => {
+             setIsMobileMenuOpen(false);
+             handleAddCard();
+         }}
+         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+     >
+         <Plus size={16} className="text-emerald-500 shrink-0" />
+         <span className="flex-1 text-left">Add Card</span>
+     </button>
+
+     <button
+         onClick={() => {
+             setIsMobileMenuOpen(false);
+             handleToggleSidePanel();
+         }}
+         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+     >
+         <PanelRight size={16} className="text-indigo-500 shrink-0" />
+         <span className="flex-1 text-left">Side Panel</span>
+     </button>
+
+     <button
+         onClick={() => {
+             setIsMobileMenuOpen(false);
+             handleStartFresh();
+         }}
+         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
+     >
+         <RotateCcw size={16} className="text-amber-500 shrink-0" />
+         <span className="flex-1 text-left">Start Fresh…</span>
+     </button>
+ </div>
 
  {/* Display Settings */}
  <div className="space-y-1">
