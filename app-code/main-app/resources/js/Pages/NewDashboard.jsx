@@ -3375,7 +3375,8 @@ export default function NewDashboard(props) {
   const previewHandleRef = useRef(null);
 
   const store = props?.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs', slug: '' };
-  const user = props?.auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
+  const auth = props?.auth || {};
+  const user = auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
   /* The store route is /s/{slug}/new-dashboard and does not pass the slug as a
      prop, so read it off the path when it is not supplied. Every deep link on
      every card is built from this — the alternative is the literal store slug
@@ -3405,6 +3406,7 @@ export default function NewDashboard(props) {
 
 
   const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [isDisplayMenuOpen, setIsDisplayMenuOpen] = useState(false);
   const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
   const displayMenuRef = useRef(null);
 
