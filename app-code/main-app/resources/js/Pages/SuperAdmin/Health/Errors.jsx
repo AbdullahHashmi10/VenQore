@@ -61,10 +61,10 @@ export default function Errors({ errors, filters }) {
 
             <div className="h-full flex flex-col relative overflow-hidden">
                 {/* --- Unified Header Banner --- */}
-                <div style={{ 
-                    background: 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.05) 100%)', 
-                    borderBottom: '1px solid rgba(255,255,255,0.07)', 
-                    padding: '32px', 
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.05) 100%)',
+                    borderBottom: '1px solid rgba(255,255,255,0.07)',
+                    padding: '32px',
                     borderRadius: '24px 24px 0 0',
                     marginBottom: 8
                 }} className="flex items-center justify-between">
@@ -80,7 +80,7 @@ export default function Errors({ errors, filters }) {
                             <p className="text-ink-muted font-medium mt-1">Platform-wide frontend and backend logs.</p>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 backdrop-blur-sm">
                         <button onClick={() => setFilter(0)} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${statusFilter === 'open' ? 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg ' : 'text-ink-muted hover:text-white hover:bg-white/5'}`}>
                             Open Errors
@@ -95,12 +95,12 @@ export default function Errors({ errors, filters }) {
                             {statusFilter === 'open' && (
                                 <>
                                     <div className="relative group/hint">
-                                        <button 
+                                        <button
                                             onClick={() => {
                                                 if (!confirm('⚠️ HEURISTIC SCAN\n\nThis uses file modification times to guess which errors may be fixed. It does NOT confirm errors are actually resolved.\n\nAuto-resolved items will be labelled "[HEURISTIC]" — please verify each one manually.\n\nProceed?')) return;
                                                 detectFixes();
                                             }}
-                                            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover: flex items-center gap-2"
+                                            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2"
                                             title="Heuristic only — estimates fixes by file modification times. Verify manually."
                                         >
                                             <Sparkles size={16} />
@@ -110,16 +110,16 @@ export default function Errors({ errors, filters }) {
                                             ⚠️ <strong>Heuristic only.</strong> Marks errors as likely-fixed if the source file was modified after the error was last seen. Always verify manually — not a guaranteed fix.
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={resolveAll}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover: flex items-center gap-2"
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg flex items-center gap-2"
                                     >
                                         <CheckCircle size={16} />
                                         Resolve All
                                     </button>
                                 </>
                             )}
-                            <button 
+                            <button
                                 onClick={copyAllErrors}
                                 className="bg-neutral-600 hover:bg-interactive-hover text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-neutral-500/25 flex items-center gap-2"
                                 title="Copy all currently listed errors to clipboard"
@@ -133,7 +133,7 @@ export default function Errors({ errors, filters }) {
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-8 relative z-0 hide-scrollbar flex gap-8">
-                    
+
                     {/* List */}
                     <div className="flex-1 max-w-4xl flex flex-col gap-4">
                         <div className="flex items-center gap-4 mb-2">
@@ -150,13 +150,13 @@ export default function Errors({ errors, filters }) {
                             </div>
                         ) : (
                             errors.data.map(err => (
-                                    <div 
-                                        key={err.id} 
+                                    <div
+                                        key={err.id}
                                         onClick={() => setSelected(err)}
                                         className={`p-5 rounded-2xl border cursor-pointer transition-all group relative ${selected?.id === err.id ? 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/50 shadow-md' : 'bg-white border-line hover:border-red-300 dark:bg-surface dark:border-line dark:hover:border-line-strong'}`}
                                     >
                                         {!err.is_resolved && (
-                                            <button 
+                                            <button
                                                 onClick={(e) => { e.stopPropagation(); resolveError(err.id); }}
                                                 className="absolute top-4 right-4 p-2 rounded-xl bg-emerald-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg active:scale-95 z-10"
                                                 title="Quick Resolve"
@@ -164,7 +164,7 @@ export default function Errors({ errors, filters }) {
                                                 <CheckCircle size={16} />
                                             </button>
                                         )}
-                                        <button 
+                                        <button
                                             onClick={(e) => { e.stopPropagation(); copyToClipboard(err); }}
                                             className={`absolute top-4 ${!err.is_resolved ? 'right-14' : 'right-4'} p-2 rounded-xl bg-neutral-500 hover:bg-interactive-hover text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg shadow-neutral-500/20 active:scale-95 z-10`}
                                             title="Copy Error Details"
@@ -189,7 +189,7 @@ export default function Errors({ errors, filters }) {
                                     </div>
                             ))
                         )}
-                        
+
                         {/* Pagination placeholder */}
                         {errors.last_page > 1 && (
                             <div className="flex gap-2 justify-center mt-6">
@@ -214,13 +214,13 @@ export default function Errors({ errors, filters }) {
                                     <Copy size={16} />
                                 </button>
                             </h3>
-                            
+
                             <div className="flex-1 overflow-y-auto hide-scrollbar space-y-6">
                                 <div>
                                     <div className="text-xs font-bold text-ink-muted uppercase mb-1">Message</div>
                                     <div className="text-sm font-medium text-ink-secondary break-words">{selected.message}</div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <div className="text-xs font-bold text-ink-muted uppercase mb-1">Store / Tenant</div>
@@ -255,16 +255,16 @@ export default function Errors({ errors, filters }) {
 
                             {!selected.is_resolved && (
                                 <div className="mt-6 pt-6 border-t border-line">
-                                    <textarea 
+                                    <textarea
                                         value={resolveNote}
                                         onChange={e => setResolveNote(e.target.value)}
                                         placeholder="Resolution note (optional)"
                                         className="w-full bg-app border border-line rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 mb-4 text-ink"
                                         rows="2"
                                     ></textarea>
-                                    <button 
+                                    <button
                                         onClick={resolveError}
-                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover: flex justify-center items-center gap-2"
+                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"
                                     >
                                         <CheckCircle size={18} />
                                         Mark as Resolved

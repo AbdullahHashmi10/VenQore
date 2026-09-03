@@ -313,7 +313,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 
                         <div className="bg-brand-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-500/20 rounded-full blur-xl translate-y-1/3 -translate-x-1/3" />
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-brand-500/20 rounded-full blur-xl translate-y-1/3 -translate-x-1/3" />
 
                             <div className="relative z-10">
                                 <h3 className="text-xs font-bold opacity-90 mb-2 flex items-center gap-2">

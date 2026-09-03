@@ -1,13 +1,38 @@
-import { Head, useForm } from '@inertiajs/react';
-import InputError from '@/Components/InputError';
-import { ShieldAlert, ArrowRight, Loader2, KeyRound } from 'lucide-react';
-import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { ArrowRight, KeyRound, Loader2 } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthField, AuthForm, AuthStack } from '@/Components/Auth';
 
+/**
+ * Two-factor verify — the challenge on the way in.
+ *
+ * The other logo-less screen. Same fixes as TwoFactorSetup, which it was a
+ * near-copy of:
+ *
+ *   · The `void` page ground, two 160px blur clouds, the inline dot pattern and
+ *     the 2%-white glass card, all gone.
+ *   · The same two leftover **indigo** glows — an arbitrary-value shadow on
+ *     focus and another under the button on hover, both rgba triplets typed out
+ *     by hand — which survived the teal rebrand because a colour written inside
+ *     an arbitrary class is invisible to a class-level find-and-replace.
+ *   · The teal→plum gradient primary, now a plain primary.
+ *   · The amber `ShieldAlert` tile, which coloured a routine step as a warning.
+ *
+ * `back={false}`: mid-session, same as setup.
+ *
+ * ── Why this is a text field and not Login.jsx's `PasscodePad` ──────────────
+ *
+ * The pad is the right pattern for a numeric PIN, and this looks like one. It
+ * is not. `TwoFactorController::verify()` accepts either a 6-digit TOTP **or**
+ * a recovery code, and recovery codes are `bin2hex(random_bytes(5))` — ten
+ * characters of 0-9a-f. A 0-9 keypad cannot type one, so replacing this field
+ * with a pad would lock out exactly the user who has lost their phone and has
+ * nothing left but the recovery code. One field, both codes, as before.
+ */
 export default function TwoFactorVerify() {
     const { data, setData, post, processing, errors } = useForm({
         code: '',
     });
-    const [focused, setFocused] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -15,73 +40,49 @@ export default function TwoFactorVerify() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-brand-500/40 p-4 sm:p-6 relative overflow-hidden">
-            <Head title="Two-Factor Authentication Verify" />
+        <AuthLayout
+            title="Two-Factor Authentication Verify"
+            heading="Verification required"
+            subheading="Two-factor authentication code"
+            back={false}
+        >
+            <AuthStack gap={6}>
+                <p className="text-sm text-ink-secondary">
+                    Please enter the 6-digit authentication code from your authenticator app,
+                    or a secure recovery code.
+                </p>
 
-            {/* Ambient */}
-            <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-brand-900/15 rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] bg-violet-900/10 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
-                backgroundSize: '30px 30px',
-            }} />
+                <AuthForm onSubmit={submit}>
+                    <AuthField
+                        label="Authentication code"
+                        type="text"
+                        name="code"
+                        value={data.code}
+                        onChange={(e) => setData('code', e.target.value)}
+                        placeholder="000000"
+                        autoComplete="one-time-code"
+                        className="tracking-widest"
+                        prefix={<KeyRound size={16} />}
+                        error={errors.code}
+                        required
+                        autoFocus
+                    />
 
-            <div className="relative z-10 w-full max-w-md">
-                {/* Card */}
-                <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-6 sm:p-10 backdrop-blur-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-11 h-11 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
-                            <ShieldAlert size={20} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>Verification Required</h2>
-                            <p className="text-xs text-ink-muted">Two-Factor Authentication Code</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6 text-sm text-neutral-300">
-                        <p>
-                            Please enter the 6-digit authentication code from your authenticator app, or a secure recovery code.
-                        </p>
-
-                        <form onSubmit={submit} className="space-y-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Authentication Code</label>
-                                <div className={`flex items-center gap-3 bg-white/[0.03] border rounded-2xl px-4 py-4 transition-all duration-slow ${focused ? 'border-brand-500 bg-brand-500/[0.02] shadow-[0_0_20px_rgba(99,102,241,0.1)]' : 'border-white/[0.08] hover:border-white/[0.15]'}`}>
-                                    <KeyRound size={20} className={focused ? 'text-brand-400' : 'text-ink-muted'} />
-                                    <input
-                                        type="text"
-                                        placeholder="000000"
-                                        value={data.code}
-                                        onChange={(e) => setData('code', e.target.value)}
-                                        onFocus={() => setFocused(true)}
-                                        onBlur={() => setFocused(false)}
-                                        className="bg-transparent border-0 outline-none text-white text-base tracking-widest font-mono p-0 w-full placeholder:text-ink-secondary focus:ring-0 focus:outline-none"
-                                        required
-                                        autoFocus
-                                    />
-                                </div>
-                                <InputError message={errors.code} className="mt-2 text-red-400 text-xs" />
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-500 hover:to-violet-500 text-white rounded-2xl font-bold text-sm transition-all duration-slow hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:scale-100"
-                            >
-                                {processing ? (
-                                    <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                    <>
-                                        Verify Code
-                                        <ArrowRight size={16} />
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    <AuthButton
+                        type="submit"
+                        disabled={processing}
+                        iconAfter={processing ? null : <ArrowRight size={16} />}
+                    >
+                        {processing ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" /> Verifying…
+                            </>
+                        ) : (
+                            'Verify Code'
+                        )}
+                    </AuthButton>
+                </AuthForm>
+            </AuthStack>
+        </AuthLayout>
     );
 }

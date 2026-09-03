@@ -208,7 +208,7 @@ export default function ReportsHub() {
                     description: 'Visual insights & trends',
                     longDescription: 'Deep dive into your sales data with interactive visual charts and graphs. This tool helps you understand complex revenue trends, identify your peak selling hours, and measure overall business growth metrics at a glance.',
                     icon: BarChart3,
-                    color: 'text-purple-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.analytics", {
                         store_slug: store.slug
                     })
@@ -314,7 +314,7 @@ export default function ReportsHub() {
                     description: 'Inventory asset value',
                     longDescription: 'Calculate the total financial worth of your current stock based on cost price. This report provides a crucial figure for your balance sheet and helps you understand exactly how much capital is tied up in inventory.',
                     icon: Package,
-                    color: 'text-purple-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.stock-valuation", {
                         store_slug: store.slug
                     })
@@ -480,7 +480,7 @@ export default function ReportsHub() {
                     description: 'Secure health dashboard',
                     longDescription: 'A secure vault displaying 7 vital daily store metrics (Sales, Purchases, Stock, Payables, Receivables, Cash, Expenses) with daily inline memos. Access is protected by an authorization passcode.',
                     icon: Activity,
-                    color: 'text-violet-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.owner-daily-pulse", {
                         store_slug: store.slug
                     })
@@ -504,7 +504,7 @@ export default function ReportsHub() {
                     description: 'General Ledger',
                     longDescription: 'View the raw double-entry accounting records for full transparency. This report allows accountants to inspect the debit and credit side of every single transaction in the system.',
                     icon: BookOpen,
-                    color: 'text-violet-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.account-ledger", {
                         store_slug: store.slug
                     })
@@ -590,7 +590,7 @@ export default function ReportsHub() {
                     description: 'Product popularity',
                     longDescription: 'Reverse analysis to see which customers are buying a specific product. If you have a surplus of an item, use this report to find customers who have bought it before and offer a deal.',
                     icon: PackageSearch,
-                    color: 'text-purple-500',
+                    color: 'text-brand-500',
                     href: route("store.reports.party-report-by-item", {
                         store_slug: store.slug
                     })

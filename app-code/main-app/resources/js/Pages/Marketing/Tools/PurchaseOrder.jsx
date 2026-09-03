@@ -189,11 +189,11 @@ export default function PurchaseOrderTool({ templates = {}, currencies = {}, max
                 </div>
                 <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                     <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'portrait' }))}
-                        className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>
+                        className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}>
                         Portrait
                     </button>
                     <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'landscape' }))}
-                        className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>
+                        className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}>
                         Landscape
                     </button>
                 </div>
@@ -222,7 +222,7 @@ export default function PurchaseOrderTool({ templates = {}, currencies = {}, max
                         type="button"
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}

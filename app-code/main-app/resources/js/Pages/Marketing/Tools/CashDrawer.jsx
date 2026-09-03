@@ -376,7 +376,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                 type="button"
                 onClick={generatePdf}
                 disabled={loading}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
             >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                 {loading ? 'Generating PDF…' : 'Download Printable Audit PDF'}

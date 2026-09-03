@@ -32,7 +32,7 @@ export default function Newsletter() {
             <section className="relative pt-40 pb-24 px-6 min-h-[85vh] flex items-center justify-center">
                 {/* Visual background accents */}
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl" />
 
                 <div className="max-w-xl w-full mx-auto relative z-10">
                     <RevealOnScroll>

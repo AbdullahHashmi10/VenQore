@@ -632,7 +632,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                     {/* Card 3: Actual Menu Price & Margin Evaluation */}
                     <div className="p-6 rounded-2xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 shadow-sm flex flex-col justify-between">
                         <div>
-                            <span className="text-2xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                            <span className="text-2xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
                                 Menu Margin Analysis
                             </span>
                             <div className="mt-3">

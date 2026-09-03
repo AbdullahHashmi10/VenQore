@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
-import { vq } from '@/theme/runtime';
+import { series, vq } from '@/theme/runtime';
 export default function SupplierInsights({ data = [], stats = [], filters = {} }) {
     const { store } = usePage().props;
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -57,7 +57,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
 
     // Top 5 Highest Variance Pairs for Bar Chart
     const chartData = useMemo(() => {
-        const COLORS = [vq.red[500], vq.orange[500], vq.amber[500], vq.yellow[500], vq.lime[500]];
+        const COLORS = series.light.slice(0, 5);
         return [...data]
             .sort((a, b) => (b.cost_variance_pct || 0) - (a.cost_variance_pct || 0))
             .slice(0, 5)

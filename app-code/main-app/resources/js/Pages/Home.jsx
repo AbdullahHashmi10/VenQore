@@ -128,8 +128,8 @@ export default function Home({ recentActivity = [] }) {
             icon: Users,
             route: 'store.parties.index',
             description: 'Manage customers & suppliers.',
-            colorClass: 'bg-purple-600',
-            glowColor: 'text-purple-500 dark:text-purple-400',
+            colorClass: 'bg-brand-600',
+            glowColor: 'text-brand-500 dark:text-brand-400',
             perm: () => hasPerm('purchases.suppliers', 'admin.staff_view', 'sales')
         },
         {
@@ -137,8 +137,8 @@ export default function Home({ recentActivity = [] }) {
             icon: Package,
             route: 'store.inventory.index',
             description: 'View full product list.',
-            colorClass: 'bg-pink-600',
-            glowColor: 'text-pink-500 dark:text-pink-400',
+            colorClass: 'bg-brand-600',
+            glowColor: 'text-brand-500 dark:text-brand-400',
             perm: () => hasPerm('inventory')
         },
     ];
@@ -149,7 +149,7 @@ export default function Home({ recentActivity = [] }) {
             <div className="h-full flex flex-col relative overflow-y-auto custom-scrollbar p-6 md:p-8">
                 {/* Mesh Gradient Background (Dark Mode Only) */}
                 <div className="hidden dark:block fixed top-0 right-0 w-[800px] h-[800px] bg-brand-600/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                <div className="hidden dark:block fixed bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+                <div className="hidden dark:block fixed bottom-0 left-0 w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
                 <div className="hidden dark:block fixed inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
 
                 {/* Welcome Section */}

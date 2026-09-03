@@ -144,7 +144,7 @@ export const DEFAULT_SURFACE = SURFACE_BUTTONS.reduce(
 /** Section heading. v6 eyebrow: 11px, 700, .12em, muted. */
 function Eyebrow({ children, className = '' }) {
     return (
-        <h4 className={`text-3xs font-extrabold uppercase tracking-[0.12em] text-ink-muted ${className}`}>
+        <h4 className={`text-3xs font-bold uppercase tracking-[0.12em] text-ink-muted ${className}`}>
             {children}
         </h4>
     );
@@ -188,7 +188,7 @@ function Toggle({ checked, onChange, label, tone = 'brand', disabled = false }) 
         >
             <span
                 className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-xs
-                            transition-[left,right] duration-150 ${checked ? 'right-0.5' : 'left-0.5'}`}
+                            transition-[left,right] duration-fast ${checked ? 'right-0.5' : 'left-0.5'}`}
             />
         </button>
     );
@@ -253,7 +253,7 @@ function Stepper({ value, min, max, step = 1, onChange, format, label, disabled 
                     disabled={value <= min} aria-label={`Decrease ${label}`}>
                 <Minus size={15} strokeWidth={2.5} />
             </button>
-            <span className="vq-num min-w-[64px] text-center text-xs font-extrabold text-ink tabular-nums select-none">
+            <span className="vq-num min-w-[64px] text-center text-xs font-bold text-ink tabular-nums select-none">
                 {format ? format(value) : value}
             </span>
             <button type="button" className={btn} onClick={() => onChange(clamp(value + step))}
@@ -444,7 +444,7 @@ export default function RegisterSettings({
                 <header className="shrink-0 h-[60px] px-4 sm:px-5 border-b border-line bg-surface
                                    flex items-center gap-3">
                     <div className="min-w-0 flex-1">
-                        <h2 id={titleId} className="vq-clip text-base font-extrabold text-ink leading-tight">
+                        <h2 id={titleId} className="vq-clip text-base font-bold text-ink leading-tight">
                             Register settings
                         </h2>
                         <p className="vq-clip text-2xs font-semibold text-ink-muted">
@@ -527,7 +527,7 @@ export default function RegisterSettings({
                                                 aria-pressed={active}
                                             >
                                                 <span className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-extrabold text-ink">{p.name}</span>
+                                                    <span className="text-xs font-bold text-ink">{p.name}</span>
                                                     {active && <Check size={13} className="text-brand-600 dark:text-brand-400 shrink-0" />}
                                                 </span>
                                                 <span className="mt-1 block text-3xs text-ink-muted leading-snug line-clamp-2">
@@ -883,7 +883,7 @@ export default function RegisterSettings({
                                                 key={p}
                                                 type="button"
                                                 onClick={() => setDiscountPresets?.(discountPresets.filter(x => x !== p))}
-                                                className="h-8 px-3 rounded-lg border border-line bg-sunken/60 text-2xs font-extrabold
+                                                className="h-8 px-3 rounded-lg border border-line bg-sunken/60 text-2xs font-bold
                                                            text-ink hover:border-danger-400 hover:text-danger-600 transition-colors
                                                            cursor-pointer flex items-center gap-1.5
                                                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
@@ -917,7 +917,7 @@ export default function RegisterSettings({
                                     title="Return mode"
                                     hint="Switches this register to processing returns and refunds. The next completed document is a credit, not a sale."
                                     badge={
-                                        <span className="text-3xs font-extrabold px-2 py-0.5 rounded-md bg-sunken text-ink-secondary uppercase tracking-wide">
+                                        <span className="text-3xs font-bold px-2 py-0.5 rounded-md bg-sunken text-ink-secondary uppercase tracking-wide">
                                             {returnPolicyLabel}
                                         </span>
                                     }
@@ -1010,7 +1010,7 @@ export default function RegisterSettings({
                                             {isOnline
                                                 ? <Wifi size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                                                 : <WifiOff size={14} className="text-danger-600 shrink-0" />}
-                                            <span className="text-2xs font-extrabold text-ink">
+                                            <span className="text-2xs font-bold text-ink">
                                                 {isOnline ? 'Online' : 'Offline'}
                                             </span>
                                         </div>
@@ -1021,7 +1021,7 @@ export default function RegisterSettings({
                                     <div className="rounded-xl border border-line/80 bg-surface p-3 shadow-xs">
                                         <div className="flex items-center gap-2">
                                             <Printer size={14} className={isStationConnected ? 'text-emerald-600 dark:text-emerald-400 shrink-0' : 'text-ink-faint shrink-0'} />
-                                            <span className="text-2xs font-extrabold text-ink">
+                                            <span className="text-2xs font-bold text-ink">
                                                 {isStationConnected ? 'Station ready' : 'No station'}
                                             </span>
                                         </div>
@@ -1039,7 +1039,7 @@ export default function RegisterSettings({
                                                    hover:border-amber-400 transition-colors cursor-pointer
                                                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                                     >
-                                        <span className="text-2xs font-extrabold text-amber-800 dark:text-amber-300">
+                                        <span className="text-2xs font-bold text-amber-800 dark:text-amber-300">
                                             <span className="vq-num">{pendingCount}</span> sale{pendingCount === 1 ? '' : 's'} waiting to sync
                                         </span>
                                         <span className="block text-3xs text-amber-700/80 dark:text-amber-400/70 mt-0.5">
@@ -1088,7 +1088,7 @@ export default function RegisterSettings({
                                                 <Icon size={15} />
                                             </span>
                                             <span className="min-w-0">
-                                                <span className="block vq-clip text-xs font-extrabold text-ink">{a.label}</span>
+                                                <span className="block vq-clip text-xs font-bold text-ink">{a.label}</span>
                                                 <span className="block vq-clip text-3xs text-ink-muted">{a.sub}</span>
                                             </span>
                                         </button>
@@ -1111,7 +1111,7 @@ export default function RegisterSettings({
                                 {POS_KEYMAP.map(([k, desc]) => (
                                     <div key={k} className="flex items-center justify-between gap-3 px-3.5 py-2">
                                         <kbd className="px-2 py-1 rounded-md bg-sunken border border-line text-3xs
-                                                        font-mono font-extrabold text-brand-700 dark:text-brand-300 shrink-0">
+                                                        font-mono font-bold text-brand-700 dark:text-brand-300 shrink-0">
                                             {k}
                                         </kbd>
                                         <span className="vq-clip text-2xs font-semibold text-ink-secondary text-right min-w-0">
@@ -1171,7 +1171,7 @@ export default function RegisterSettings({
                             {[['Catalog', 'bg-sky-300 dark:bg-sky-700'],
                               ['Cart', 'bg-emerald-300 dark:bg-emerald-700'],
                               ['Payment', 'bg-amber-300 dark:bg-amber-700'],
-                              ...(terminal === 'table' ? [['Floor', 'bg-violet-300 dark:bg-violet-700']] : [])].map(([l, c]) => (
+                              ...(terminal === 'table' ? [['Floor', 'bg-brand-300 dark:bg-brand-700']] : [])].map(([l, c]) => (
                                 <span key={l} className="flex items-center gap-1.5 text-3xs font-bold text-ink-muted">
                                     <span className={`w-2.5 h-2.5 rounded-sm ${c}`} /> {l}
                                 </span>
@@ -1222,7 +1222,7 @@ export default function RegisterSettings({
                         type="button"
                         onClick={onClose}
                         className="ml-auto sm:ml-0 h-10 px-8 rounded-xl bg-brand-600 hover:bg-brand-700 text-white
-                                   text-xs font-extrabold transition-colors cursor-pointer shrink-0
+                                   text-xs font-bold transition-colors cursor-pointer shrink-0
                                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                     >
                         Done

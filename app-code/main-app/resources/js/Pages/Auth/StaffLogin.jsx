@@ -1,52 +1,49 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Mail, Lock, ArrowRight, ShieldCheck, Loader2, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Link, useForm } from '@inertiajs/react';
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthCheckbox, AuthField, AuthForm, AuthNotice, AuthStack } from '@/Components/Auth';
 
-/* ═══════════════════════════════════════════════════════════════════════
-   STAFF LOGIN PAGE — Premium Dark Cinematic (Midnight Nebula)
-   Split-screen: ambient branding left · glass form right
-   ═══════════════════════════════════════════════════════════════════════ */
-
-const AuthInput = ({ icon: Icon, label, error, ...props }) => {
-    const [focused, setFocused] = useState(false);
-    return (
-        <div>
-            <label className={`block text-2xs font-bold uppercase tracking-[0.25em] mb-2.5 transition-colors duration-slow ${focused ? 'text-violet-400' : 'text-ink-muted'}`}>
-                {label}
-            </label>
-            <div className="relative group">
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-slow ${focused ? 'text-violet-400' : 'text-ink-secondary'}`}>
-                    <Icon size={18} />
-                </div>
-                <input
-                    {...props}
-                    onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
-                    onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
-                    className={`w-full pl-12 pr-4 py-4 bg-white/[0.02] border rounded-2xl text-white text-sm placeholder:text-ink-secondary outline-none transition-all duration-slower
-                        ${focused ? 'border-violet-500/40 bg-violet-500/[0.02] shadow-lg ' : 'border-white/[0.06] hover:border-white/[0.1]'}
-                        ${error ? 'border-red-500/40' : ''}
-`}
-                />
-                <div className={`absolute bottom-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-violet-500 to-transparent transition-opacity duration-slower ${focused ? 'opacity-100' : 'opacity-0'}`} />
-            </div>
-            {error && <p className="text-red-400 text-xs mt-2 font-medium">{error}</p>}
-        </div>
-    );
-};
-
+/**
+ * Staff sign-in — the platform-staff door, at /staff-login.
+ *
+ * Same shell as every other auth screen now. It is the same act as signing in
+ * to a store account, so it has no business looking like a different product.
+ *
+ * What went, and why:
+ *   · The 45/55 split-screen: the "Staff Hub." slab, the two `ShieldCheck`
+ *     reassurance chips, three ambient 140px blur clouds and an inline
+ *     50px grid pattern. §13: "single centred card … No hero art, no gradient,
+ *     no canvas."
+ *   · The deep `void` page ground. Its two siblings sat one stop darker on the
+ *     same family — one shade apart for no reason anyone could name, which is
+ *     exactly the drift the shared shell exists to end. Both grounds are gone;
+ *     the shell is on `bg-app`.
+ *   · The plum theme. This screen was `violet` end to end — label, focus
+ *     border, focus wash, the badge, the selection colour. A codemod had
+ *     already renamed the classes to `brand-*`, but it could not see inside the
+ *     arbitrary-value hover shadow, whose rgba triplet spelled out plum-500 by
+ *     hand — so the submit button was still throwing a plum glow. Gone with the
+ *     rest.
+ *   · The white-on-void submit button with `uppercase tracking-[0.1em]`, which
+ *     was the only inverted primary in the product.
+ *   · `<style>{'* { font-family: Inter }'}</style>`, the same page-wide font
+ *     override Login.jsx carried.
+ *   · An `axios` import the file never used.
+ *
+ * Behaviour is untouched: same `useForm` fields, same POST to /staff-login,
+ * same password reveal, same link back to the store login.
+ */
 export default function StaffLogin({ status, flash }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
     });
-    
+
     const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {
-        return () => reset('password');
-    }, []);
+    useEffect(() => () => reset('password'), []);
 
     const submit = (e) => {
         e.preventDefault();
@@ -57,141 +54,91 @@ export default function StaffLogin({ status, flash }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-void-900 font-sans selection:bg-violet-500/40 selection:text-white">
-            <Head title="Staff Access Portal" />
+        <AuthLayout
+            title="Staff sign-in"
+            heading="Staff sign-in"
+            subheading="Please authenticate using your credentials to enter the cockpit."
+            footer={
+                <Link
+                    href={route('login')}
+                    className="font-medium text-accent-text transition-colors duration-fast hover:text-accent-fill-hover"
+                >
+                    ← Regular store account login
+                </Link>
+            }
+        >
+            <AuthStack gap={6}>
+                {status ? <AuthNotice tone="success">{status}</AuthNotice> : null}
+                {flash?.error ? <AuthNotice tone="danger">{flash.error}</AuthNotice> : null}
 
-            {/* ── Left Panel — Branding ─────────────────────── */}
-            <div className="hidden lg:flex w-[45%] relative overflow-hidden items-center justify-center p-16 border-r border-white/[0.03]">
-                {/* Ambient blobs */}
-                <div className="absolute top-[-20%] right-[-15%] w-[600px] h-[600px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-brand-600/10 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent pointer-events-none" />
+                <AuthForm onSubmit={submit}>
+                    <AuthField
+                        label="Email address"
+                        type="email"
+                        name="email"
+                        value={data.email}
+                        onChange={(e) => setData('email', e.target.value)}
+                        placeholder="yourname@venqore.com"
+                        autoComplete="username"
+                        autoFocus
+                        prefix={<Mail size={16} />}
+                        error={errors.email}
+                    />
 
-                {/* Grid pattern */}
-                <div className="absolute inset-0 opacity-20" style={{
-                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px)',
-                    backgroundSize: '50px 50px',
-                }} />
+                    <AuthField
+                        label="Password"
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={data.password}
+                        onChange={(e) => setData('password', e.target.value)}
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        prefix={<Lock size={16} />}
+                        suffix={<RevealToggle shown={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
+                        error={errors.password}
+                    />
 
-                <div className="relative z-10 text-center max-w-md">
-                    <div className="mb-10 flex justify-center">
-                        <div className="w-20 h-20 bg-white/[0.03] backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/[0.06] shadow-2xl ">
-                            <KeyRound className="w-10 h-10 text-violet-400" />
-                        </div>
-                    </div>
-                    <h1 className="text-4xl font-bold text-white mb-4 tracking-tighter leading-[0.95]" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
-                        Staff Hub.
-                    </h1>
-                    <p className="text-ink-muted text-sm leading-relaxed">
-                        Secure authorization portal for VenQore platform support agents, content writers, marketing specialists, and platform managers.
-                    </p>
+                    <AuthCheckbox
+                        checked={data.remember}
+                        onChange={(v) => setData('remember', v)}
+                        label="Remember me"
+                    />
 
-                    <div className="mt-12 flex justify-center gap-4">
-                        <div className="px-6 py-3 rounded-2xl bg-white/[0.01] border border-white/[0.04] text-xs font-bold text-ink-muted flex items-center gap-2">
-                            <ShieldCheck size={14} className="text-violet-500" /> Platform Level
-                        </div>
-                        <div className="px-6 py-3 rounded-2xl bg-white/[0.01] border border-white/[0.04] text-xs font-bold text-ink-muted flex items-center gap-2">
-                            <ShieldCheck size={14} className="text-violet-500" /> Secure Sessions
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    <AuthButton
+                        type="submit"
+                        disabled={processing}
+                        iconAfter={processing ? null : <ArrowRight size={16} />}
+                    >
+                        {processing ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" /> Authorizing…
+                            </>
+                        ) : (
+                            'Enter Staff Hub'
+                        )}
+                    </AuthButton>
+                </AuthForm>
+            </AuthStack>
+        </AuthLayout>
+    );
+}
 
-            {/* ── Right Panel — Form ───────────────────────── */}
-            <div className="w-full lg:w-[55%] flex items-center justify-center p-6 sm:p-12 relative">
-                <div className="absolute top-[20%] right-[10%] w-[300px] h-[300px] bg-violet-600/5 rounded-full blur-[100px] pointer-events-none" />
-
-                <div className="w-full max-w-md relative z-10">
-                    {/* Header */}
-                    <div className="mb-10 text-center sm:text-left">
-                        <span className="text-2xs bg-violet-500/10 border border-violet-500/20 text-violet-400 font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-3">
-                            Platform Command Portal
-                        </span>
-                        <h2 className="text-3xl font-bold text-white tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
-                            Staff Authorization
-                        </h2>
-                        <p className="text-ink-muted text-sm">
-                            Please authenticate using your credentials to enter the cockpit.
-                        </p>
-                    </div>
-
-                    {/* Status message */}
-                    {status && (
-                        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8">
-                            {status}
-                        </div>
-                    )}
-
-                    {/* Error message */}
-                    {flash?.error && (
-                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium mb-8">
-                            {flash.error}
-                        </div>
-                    )}
-
-                    <form onSubmit={submit} className="space-y-6">
-                        <div className="space-y-5">
-                            <AuthInput
-                                icon={Mail}
-                                label="Email Address"
-                                type="email"
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                placeholder="yourname@venqore.com"
-                                autoComplete="username"
-                                autoFocus
-                                error={errors.email}
-                            />
-
-                            <div>
-                                <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-2.5 text-ink-muted">Password</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-ink-secondary">
-                                        <Lock size={18} />
-                                    </div>
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
-                                        placeholder="••••••••"
-                                        autoComplete="current-password"
-                                        className="w-full pl-12 pr-12 py-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl text-white text-sm placeholder:text-ink-secondary outline-none focus:border-violet-500/40 focus:bg-violet-500/[0.02] focus:shadow-lg focus: hover:border-white/[0.1] transition-all duration-slower"
-                                    />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-ink-secondary hover:text-ink-muted transition-colors">
-                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
-                                </div>
-                                {errors.password && <p className="text-red-400 text-xs mt-2 font-medium">{errors.password}</p>}
-                            </div>
-
-                            <div className="flex items-center">
-                                <label className="flex items-center cursor-pointer group">
-                                    <input type="checkbox" checked={data.remember} onChange={(e) => setData('remember', e.target.checked)}
-                                        className="w-4 h-4 rounded border-white/10 bg-white/[0.03] text-violet-600 focus:ring-violet-500/20 focus:ring-offset-0" />
-                                    <span className="ml-2.5 text-sm text-ink-muted group-hover:text-ink-muted transition-colors">Remember me</span>
-                                </label>
-                            </div>
-
-                            <button type="submit" disabled={processing}
-                                className="w-full flex items-center justify-center gap-3 py-4 px-4 bg-white text-void-900 rounded-2xl font-bold text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(139,92,246,0.3)] active:scale-[0.99] transition-all duration-slow disabled:opacity-50">
-                                {processing ? <><Loader2 size={18} className="animate-spin" /> Authorizing...</> : <>Enter Staff Hub <ArrowRight size={16} /></>}
-                            </button>
-                        </div>
-                    </form>
-
-                    {/* Back link */}
-                    <div className="mt-10 text-center">
-                        <Link href={route('login')} className="font-semibold text-xs text-ink-secondary hover:text-violet-400 transition-colors">
-                            ← Regular Store Account Login
-                        </Link>
-                    </div>
-                </div>
-            </div>
-
-            <style>{`
-                * { font-family: 'Inter', system-ui, sans-serif; }
-`}</style>
-        </div>
+/**
+ * The password reveal. It is a bare <button> rather than a ds `Button` because
+ * it lives inside the input's 48px suffix slot, where a control with its own
+ * 22px padding and 20px radius does not fit. It carries no chrome of its own —
+ * only the two ink tokens the ds input already uses for its affordances — and
+ * it exists because deleting it would be a behaviour change, not a restyle.
+ */
+function RevealToggle({ shown, onToggle }) {
+    return (
+        <button
+            type="button"
+            onClick={onToggle}
+            aria-label={shown ? 'Hide password' : 'Show password'}
+            className="flex items-center text-ink-muted transition-colors duration-fast hover:text-ink-secondary"
+        >
+            {shown ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
     );
 }

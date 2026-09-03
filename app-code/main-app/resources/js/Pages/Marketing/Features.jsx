@@ -363,8 +363,8 @@ const CAT_COLOR = {
     emerald: 'text-emerald-300 bg-emerald-500/12 border-emerald-400/20',
     cyan: 'text-cyan-300 bg-cyan-500/12 border-cyan-400/20',
     blue: 'text-blue-300 bg-blue-500/12 border-blue-400/20',
-    violet: 'text-violet-300 bg-violet-500/12 border-violet-400/20',
-    pink: 'text-pink-300 bg-pink-500/12 border-pink-400/20',
+    violet: 'text-brand-300 bg-brand-500/12 border-brand-400/20',
+    pink: 'text-brand-300 bg-brand-500/12 border-brand-400/20',
 };
 
 /* ── Feature explorer: search + filter + click-to-explain ─────────────────── */
@@ -451,7 +451,7 @@ const JumpPill = ({ href, icon: Ic, children }) => (
 const ACCENT_TEXTS = {
     indigo: 'text-brand-400 hover:text-brand-300',
     emerald: 'text-emerald-400 hover:text-emerald-300',
-    violet: 'text-violet-400 hover:text-violet-300',
+    violet: 'text-brand-400 hover:text-brand-300',
     blue: 'text-blue-400 hover:text-blue-300',
     amber: 'text-amber-400 hover:text-amber-300',
 };
@@ -554,7 +554,7 @@ export default function Features() {
 
             {/* DEMO 3 · SMART CAPTURE */}
             <DemoSection id="capture" eyebrow="Smart Capture · AI" icon={ScanBarcode} accent="violet" soon
-                title={<>Snap it. Say it. <span className="text-violet-400">Booked.</span></>}
+                title={<>Snap it. Say it. <span className="text-brand-400">Booked.</span></>}
                 lead="Photograph a supplier bill or speak a sale out loud. Your own AI key reads it, figures out the transaction type, and matches every line to your catalog.">
                 <SmartCaptureDemo />
             </DemoSection>
@@ -568,7 +568,7 @@ export default function Features() {
 
             {/* DEMO 5 · GROWTH ENGINE (Intelligence Engine) */}
             <DemoSection id="growth" eyebrow="Growth · Intelligence Engine" icon={Cpu} accent="violet" hero
-                title={<>It shows you <span className="text-violet-400">its working.</span></>}
+                title={<>It shows you <span className="text-brand-400">its working.</span></>}
                 lead="Four brains read your customers, stock, margin and cash — every insight comes with the numbers behind it, and every prediction is scored afterwards against what actually happened."
                 deepDiveLink="/features/growth-engine"
                 deepDiveText="Deep Dive: The Intelligence Engine">

@@ -35,15 +35,15 @@ export default function MarketingCampaignsIndex({ campaigns = [] }) {
                 <div className="flex justify-between items-center">
                     <div>
                         <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
-                            <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-xl">
-                                <Megaphone className="text-pink-600 dark:text-pink-400" size={24} />
+                            <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-xl">
+                                <Megaphone className="text-brand-600 dark:text-brand-400" size={24} />
                             </div>
                             Marketing & Campaigns
                         </h1>
                         <p className="text-ink-muted text-sm mt-1">Engage customers via WhatsApp and Email campaigns</p>
                     </div>
                     <button
-                        className="flex items-center gap-2 px-4 py-2.5 bg-pink-600 text-ink rounded-xl hover:bg-pink-700 transition-colors font-bold shadow-lg shadow-pink-500/20"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-ink rounded-xl hover:bg-brand-700 transition-colors font-bold shadow-lg shadow-brand-500/20"
                     >
                         <Plus size={18} />
                         New Campaign
@@ -54,8 +54,8 @@ export default function MarketingCampaignsIndex({ campaigns = [] }) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-surface rounded-2xl p-5 border border-line">
                         <div className="flex items-center gap-3">
-                            <div className="p-3 bg-pink-100 dark:bg-pink-900/30 rounded-xl">
-                                <Megaphone className="text-pink-600 dark:text-pink-400" size={20} />
+                            <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-xl">
+                                <Megaphone className="text-brand-600 dark:text-brand-400" size={20} />
                             </div>
                             <div>
                                 <p className="text-xs text-ink-muted uppercase font-bold">Active Campaigns</p>

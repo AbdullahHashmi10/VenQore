@@ -109,7 +109,7 @@ export default function GeneralSettingsSection({ data, setData }) {
                     {/* Visual Card */}
                     <div className="p-8 bg-surface rounded-xl border border-line h-full">
                         <div className="flex items-center gap-3 mb-8">
-                            <div className="p-2.5 bg-purple-50 dark:bg-purple-900/20 rounded-xl text-purple-600">
+                            <div className="p-2.5 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600">
                                 <Layout size={20} />
                             </div>
                             <h3 className="text-xl font-bold text-ink">Visual & Format</h3>
@@ -132,7 +132,7 @@ export default function GeneralSettingsSection({ data, setData }) {
                                             type="button"
                                             onClick={() => setData('decimal_places', num)}
                                             className={`py-3 rounded-xl font-bold text-sm transition-all border-2 ${parseInt(data.decimal_places) === num
-                                                ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+                                                ? 'border-brand-600 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300'
                                                 : 'border-transparent bg-app text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                                 }`}
                                         >

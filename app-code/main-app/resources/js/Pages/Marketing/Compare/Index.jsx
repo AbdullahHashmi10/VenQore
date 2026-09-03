@@ -35,7 +35,7 @@ export default function CompareIndex({ competitors }) {
                 <div className="grid md:grid-cols-2 gap-8">
                     {competitors.map((item, idx) => (
                         <RevealOnScroll key={item.slug} delay={idx * 0.15}>
-                            <div className="h-full bg-surface border border-line rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-slow hover:shadow-2xl hover: flex flex-col justify-between">
+                            <div className="h-full bg-surface border border-line rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-slow hover:shadow-2xl flex flex-col justify-between">
                                 <div>
                                     <div className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-4">
                                         {item.tag}

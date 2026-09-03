@@ -262,7 +262,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                         </td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 rounded-md text-2xs font-bold uppercase tracking-wide ${account.account_type === 'cash' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
-                                                    account.account_type === 'savings' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' :
+                                                    account.account_type === 'savings' ? 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400' :
                                                         account.account_type === 'credit' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                                                             'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
                                                 }`}>

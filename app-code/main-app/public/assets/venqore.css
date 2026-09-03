@@ -3109,3 +3109,133 @@ html.dark .vq-app {
   fill: var(--vq-accent) !important;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Auth pages — signin.html · register.html
+   ───────────────────────────────────────────────────────────────────────────
+   DESIGN-RULES §13 "Login / auth": single centred card, max-width 400, radius
+   --vq-r-xl, elevation 2, on --vq-bg. Logo 32px above. No hero art, no
+   gradient, no canvas. The login page's job is to be fast and boring.
+
+   Every rule below is scoped to .vq-auth / .vq-auth__form. The site header,
+   the landing page and every other public page are outside that scope and
+   cannot be reached by any of it. The single unscoped addition is the
+   .vq-btn--pill modifier, which is purely additive — no existing markup
+   anywhere in this repo carries that class.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* One column at every width. .vq-auth opens a second track at 1024px for the
+   layouts that still carry an aside; this modifier keeps the single column,
+   and .vq-auth__pane's own flex centring does the vertical work. */
+.vq-auth--single { grid-template-columns: 1fr; }
+@media (min-width: 1024px) { .vq-auth--single { grid-template-columns: 1fr; } }
+
+/* --header-text is read three times in this file (.vq-brand, .vq-nav__link,
+   .vq-header__cta) and declared nowhere, so outside a dark header its
+   #FFFFFF fallback wins — white wordmark on the mint page, ~1.05:1. The
+   fallback is right for the header and wrong everywhere else, and the
+   !important on .vq-brand means no inline style can beat it. Bind the
+   variable to page ink for the auth pages instead. The header is not a
+   descendant of .vq-auth, so it keeps its white. (§15: body text ≥ 4.5:1.) */
+.vq-auth { --header-text: var(--vq-text); }
+
+/* §13 "Logo 32px above." .vq-brand is display:inline-flex globally and the
+   header layout depends on that, so justify-content on the anchor only
+   distributes the anchor's own children inside a shrink-to-fit box — it
+   cannot centre the anchor inside its parent. Give it a box of its own. */
+.vq-auth__form .vq-brand {
+  display: flex;
+  width: fit-content;
+  margin-inline: auto;
+  margin-bottom: var(--vq-space-8);
+}
+
+/* §8 "1px border or a shadow, never both." §13 puts the auth card on
+   elevation 2, so it gives up .vq-card's hairline. border-color rather than
+   border-width keeps the 1px in the box model, so the card's content box
+   does not shift by 2px against the rest of the column. */
+.vq-auth__card {
+  border-color: transparent;
+  box-shadow: var(--vq-elev-2);
+}
+
+/* §13 Button — "Radius --vq-r-lg (20px) for standard, --vq-r-full for pills
+   — not md; V6 lists button under lg." The global .vq-btn is an unconditional
+   999px pill, contradicting both that clause and this file's own comment
+   above the .vq-btn block ("Radius lg (20px) or full"). At --vq-control-lg
+   (48px) a 999px radius resolves to a 24px corner, so a block button reads
+   24px narrower per side than the 48px-tall .vq-input stacked above it — the
+   seam the auth column was failing on. Correcting .vq-btn globally would
+   reshape all ten buttons on the landing page, so the correction is scoped
+   to auth here and the deliberate pill becomes an explicit, opt-in modifier
+   for whoever rolls the global change out later. */
+.vq-btn--pill { border-radius: var(--vq-r-full); }
+.vq-auth .vq-btn { border-radius: var(--vq-r-lg); }
+.vq-auth .vq-btn--pill { border-radius: var(--vq-r-full); }
+
+/* The "or" rule. Three inline-styled spans became one element and two
+   pseudo-elements — §17, the component layer owns layout. */
+.vq-auth__or { display: flex; align-items: center; gap: var(--vq-space-4); }
+.vq-auth__or::before,
+.vq-auth__or::after { content: ""; flex: 1 1 0; height: 1px; background: var(--vq-line); }
+
+/* Field label row: label left, helper link right. */
+.vq-auth__labelrow { justify-content: space-between; }
+
+/* Caption-sized accent link ("Forgot?"). Deliberately does NOT set a colour:
+   .vq-caption would pin it to --vq-text-3 and force an inline override, so
+   this pins the size only and lets the global a{} accent colour through. */
+.vq-auth__hint { font-size: var(--vq-fs-caption); line-height: var(--vq-lh-caption); }
+
+/* Quiet footer link — inherits --vq-text-3 from .vq-caption instead of the
+   accent colour, so "← Back to venqore.com" reads as chrome, not as an
+   action competing with the card. */
+.vq-auth__quiet a { color: inherit; }
+
+/* register.html — "What happens next", folded out of the removed dark aside
+   and into the single column as a plain numbered list on --vq-bg. No band,
+   no beams, no grain: §13 forbids hero art on an auth page. */
+.vq-auth__step { display: flex; align-items: flex-start; gap: var(--vq-space-4); }
+.vq-auth__stepno {
+  flex: none;
+  display: grid; place-items: center;
+  width: 28px; height: 28px;
+  border-radius: var(--vq-r-full);
+  background: var(--vq-accent-quiet);
+  border: 1px solid var(--vq-accent-quiet-line);
+  color: var(--vq-accent-text);
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-semi);
+  word-spacing: normal;
+}
+.vq-auth__stepname { display: block; font-weight: var(--vq-fw-semi); color: var(--vq-text); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BOX MODEL — the auth pages, and why this is scoped
+
+   This is the defect in the sign-in screenshot: the email and password fields
+   render 368px wide inside a 334px content box and bleed 1px past the card's
+   own right edge, while every button beside them sits at exactly 334px. The
+   fields are not mis-sized — they are the only elements in the column still
+   measured as content-box, so their 16px padding and 1px border are added to
+   the 100% instead of counted inside it.
+
+   Root cause, one line, not in this file's control: venqore.css:296 declares
+       *, *::before, *::after { box-sizing: border-box; }
+   and it never reaches the browser. The dark-theme block opened at line 215 is
+   closed early by a stray `}` at line 258, which leaves lines 259-295 as
+   orphaned declarations at top level; the parser reads those as a selector
+   prelude and swallows the next rule whole — which is line 296. Every V6 page
+   is therefore rendering content-box.
+
+   The two-character fix is deleting that brace. It is NOT made here: it also
+   restores 29 dark-mode tokens and the global reset, which moves the landing
+   hero and footer, and those are signed off. venqore-landing.css:426 already
+   works around it the same way, section by section, for the same reason.
+
+   So this restores the reset for the auth pages only. When the brace is fixed
+   and the landing is re-checked, this block becomes redundant and should go.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vq-auth, .vq-auth *, .vq-auth *::before, .vq-auth *::after { box-sizing: border-box; }

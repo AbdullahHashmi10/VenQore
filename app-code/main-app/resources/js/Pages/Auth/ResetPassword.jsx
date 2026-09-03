@@ -1,19 +1,35 @@
-import InputError from '@/Components/InputError';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Lock, ArrowRight, Loader2, ShieldCheck, Eye, EyeOff, Mail } from 'lucide-react';
-import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { ArrowRight, Loader2, Lock, Mail } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthField, AuthForm } from '@/Components/Auth';
 
-/* ═══════════════════════════════════════════════════════════════════════
-   RESET PASSWORD — Premium Dark Cinematic
-   ═══════════════════════════════════════════════════════════════════════ */
-
+/**
+ * Set a new password from a reset link.
+ *
+ * What went, and why:
+ *   · The dark card on the dark void ground, the two ambient blur blobs and
+ *     the inline radial-dot `backgroundImage`. §13: no hero art. One of those
+ *     blobs asked for an emerald tint at `/8` opacity — `/8` is not a Tailwind
+ *     step, so the class compiled to nothing and the blob had been painting
+ *     un-tinted for as long as it had been there.
+ *   · The standalone logo tile; the shell owns the logo.
+ *   · The ShieldCheck badge beside the heading. §13's card is a heading, a
+ *     line of copy and the form.
+ *   · The password reveal toggle — no ds primitive, and the exemplar's
+ *     password field does not carry one.
+ *   · `<style>{'* { font-family: Inter }'}</style>`.
+ *
+ * `token` and `email` arrive from `NewPasswordController::create()` and stay in
+ * `useForm`; the token has no field because there is nothing for a user to do
+ * with it, and the email keeps its read-only field so a person landing here
+ * from a mail client can see which account they are about to change.
+ */
 export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         token, email,
         password: '',
         password_confirmation: '',
     });
-    const [showPassword, setShowPassword] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -25,82 +41,62 @@ export default function ResetPassword({ token, email }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-brand-500/40 p-4 sm:p-6 relative overflow-hidden">
-            <Head title="Reset Password" />
+        <AuthLayout
+            title="Choose a new password"
+            heading="Choose a new password"
+            subheading="Choose a strong password for your account."
+        >
+            <AuthForm onSubmit={submit}>
+                <AuthField
+                    label="Email"
+                    type="email"
+                    name="email"
+                    value={data.email}
+                    onChange={(e) => setData('email', e.target.value)}
+                    readOnly
+                    prefix={<Mail size={16} />}
+                    error={errors.email}
+                />
 
-            <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-brand-900/15 rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] bg-emerald-900/8 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
-                backgroundSize: '30px 30px',
-            }} />
+                <AuthField
+                    label="New password"
+                    type="password"
+                    name="password"
+                    value={data.password}
+                    onChange={(e) => setData('password', e.target.value)}
+                    autoComplete="new-password"
+                    autoFocus
+                    required
+                    prefix={<Lock size={16} />}
+                    error={errors.password}
+                />
 
-            <div className="relative z-10 w-full max-w-md">
-                <div className="flex justify-center mb-6 sm:mb-10">
-                    <Link href="/" className="w-14 h-14 sm:w-16 sm:h-16 bg-white/[0.04] rounded-2xl flex items-center justify-center border border-white/[0.08] transition-transform">
-                        <img src="/images/logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
-                    </Link>
-                </div>
+                <AuthField
+                    label="Confirm password"
+                    type="password"
+                    name="password_confirmation"
+                    value={data.password_confirmation}
+                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                    autoComplete="new-password"
+                    required
+                    prefix={<Lock size={16} />}
+                    error={errors.password_confirmation}
+                />
 
-                <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-6 sm:p-10 backdrop-blur-sm">
-                    <div className="flex items-center gap-3 mb-6 sm:mb-8">
-                        <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                            <ShieldCheck size={20} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>Set New Password</h2>
-                            <p className="text-xs text-ink-muted">Choose a strong password for your account</p>
-                        </div>
-                    </div>
-
-                    <form onSubmit={submit} className="space-y-4 sm:space-y-5">
-                        {/* Email (read-only display) */}
-                        <div>
-                            <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-2.5 text-ink-muted">Email</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-ink-muted"><Mail size={18} /></div>
-                                <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 sm:py-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl text-ink-muted text-sm outline-none" readOnly />
-                            </div>
-                            {errors.email && <p className="text-red-400 text-xs mt-2">{errors.email}</p>}
-                        </div>
-
-                        {/* Password */}
-                        <div>
-                            <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-2.5 text-ink-muted">New Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-ink-muted"><Lock size={18} /></div>
-                                <input type={showPassword ? 'text' : 'password'} value={data.password} onChange={(e) => setData('password', e.target.value)}
-                                    placeholder="••••••••" autoComplete="new-password" autoFocus
-                                    className="w-full pl-12 pr-12 py-3 sm:py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-ink-muted outline-none focus:border-brand-500/40 focus:bg-brand-500/[0.03] hover:border-white/[0.12] transition-all duration-slower" />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-4 flex items-center text-ink-muted hover:text-neutral-200 transition-colors">
-                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                </button>
-                            </div>
-                            {errors.password && <p className="text-red-400 text-xs mt-2">{errors.password}</p>}
-                        </div>
-
-                        {/* Confirm */}
-                        <div>
-                            <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-2.5 text-ink-muted">Confirm Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-ink-muted"><Lock size={18} /></div>
-                                <input type={showPassword ? 'text' : 'password'} value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)}
-                                    placeholder="••••••••" autoComplete="new-password"
-                                    className="w-full pl-12 pr-4 py-3 sm:py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-ink-muted outline-none focus:border-brand-500/40 focus:bg-brand-500/[0.03] hover:border-white/[0.12] transition-all duration-slower" />
-                            </div>
-                            {errors.password_confirmation && <p className="text-red-400 text-xs mt-2">{errors.password_confirmation}</p>}
-                        </div>
-
-                        <button type="submit" disabled={processing}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-void-950 rounded-2xl font-bold text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all duration-slow disabled:opacity-50 mt-2">
-                            {processing ? <><Loader2 size={18} className="animate-spin" /> Resetting...</> : <>Reset Password <ArrowRight size={16} /></>}
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <style>{`* { font-family: 'Inter', 'Figtree', system-ui, sans-serif; }`}</style>
-        </div>
+                <AuthButton
+                    type="submit"
+                    disabled={processing}
+                    iconAfter={processing ? null : <ArrowRight size={16} />}
+                >
+                    {processing ? (
+                        <>
+                            <Loader2 size={16} className="animate-spin" /> Resetting…
+                        </>
+                    ) : (
+                        'Reset password'
+                    )}
+                </AuthButton>
+            </AuthForm>
+        </AuthLayout>
     );
 }

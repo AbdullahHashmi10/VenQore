@@ -27,8 +27,8 @@ export default function PrivacyPolicy() {
             <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-32 md:pt-36 pb-14">
                 {/* Header */}
                 <div className="flex items-center gap-3 sm:gap-4 mb-10">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
-                        <Eye size={26} className="text-purple-600 dark:text-purple-400" />
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0">
+                        <Eye size={26} className="text-brand-600 dark:text-brand-400" />
                     </div>
                     <div className="min-w-0">
                         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Privacy Policy</h1>

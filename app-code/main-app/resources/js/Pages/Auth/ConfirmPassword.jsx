@@ -1,16 +1,27 @@
-import InputError from '@/Components/InputError';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Lock, ArrowRight, Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { ArrowRight, Loader2, Lock } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthField, AuthForm } from '@/Components/Auth';
 
-/* ═══════════════════════════════════════════════════════════════════════
-   CONFIRM PASSWORD — Premium Dark Cinematic
-   ═══════════════════════════════════════════════════════════════════════ */
-
+/**
+ * Re-confirm the password before a protected action.
+ *
+ * What went, and why:
+ *   · The dark card on the dark void ground, its two ambient blur blobs and
+ *     the inline radial-dot `backgroundImage`. §13: no hero art.
+ *   · The standalone logo tile; the shell owns the logo.
+ *   · The amber ShieldCheck badge and its "Secure area — re-enter your
+ *     password" caption, which said the same thing as the paragraph below it.
+ *     The paragraph survives, as the shell's subheading.
+ *   · The password reveal toggle and the gradient focus underline.
+ *   · `<style>{'* { font-family: Inter }'}</style>`.
+ *
+ * `back={false}`: this screen is only ever reached from inside the app, on the
+ * way to something the user asked for. "← Back to venqore.com" would be an exit
+ * out of the product rather than out of the step.
+ */
 export default function ConfirmPassword() {
     const { data, setData, post, processing, errors, reset } = useForm({ password: '' });
-    const [showPassword, setShowPassword] = useState(false);
-    const [focused, setFocused] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -22,77 +33,40 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-brand-500/40 p-4 sm:p-6 relative overflow-hidden">
-            <Head title="Confirm Password" />
+        <AuthLayout
+            title="Confirm your password"
+            heading="Confirm your password"
+            subheading="This is a protected section of the application. Please confirm your password before continuing."
+            back={false}
+        >
+            <AuthForm onSubmit={submit}>
+                <AuthField
+                    label="Password"
+                    type="password"
+                    name="password"
+                    value={data.password}
+                    onChange={(e) => setData('password', e.target.value)}
+                    autoComplete="current-password"
+                    autoFocus
+                    required
+                    prefix={<Lock size={16} />}
+                    error={errors.password}
+                />
 
-            {/* Ambient */}
-            <div className="absolute top-[-20%] right-[-10%] w-[50vw] h-[50vw] bg-brand-900/15 rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-[-15%] left-[-5%] w-[40vw] h-[40vw] bg-violet-900/10 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
-                backgroundSize: '30px 30px',
-            }} />
-
-            <div className="relative z-10 w-full max-w-md">
-                <div className="flex justify-center mb-6 sm:mb-10">
-                    <Link href="/" className="w-14 h-14 sm:w-16 sm:h-16 bg-white/[0.04] rounded-2xl flex items-center justify-center border border-white/[0.08] transition-transform">
-                        <img src="/images/logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
-                    </Link>
-                </div>
-
-                <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-6 sm:p-10 backdrop-blur-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-11 h-11 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
-                            <ShieldCheck size={20} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>Confirm Password</h2>
-                            <p className="text-xs text-ink-muted">Secure area — re-enter your password</p>
-                        </div>
-                    </div>
-
-                    <p className="text-ink-muted text-sm leading-relaxed mb-6 sm:mb-8">
-                        This is a protected section of the application. Please confirm your password before continuing.
-                    </p>
-
-                    <form onSubmit={submit} className="space-y-5 sm:space-y-6">
-                        <div>
-                            <label className={`block text-2xs font-bold uppercase tracking-[0.25em] mb-2.5 transition-colors duration-slow ${focused ? 'text-brand-400' : 'text-ink-muted'}`}>
-                                Password
-                            </label>
-                            <div className="relative">
-                                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-slow ${focused ? 'text-brand-400' : 'text-ink-muted'}`}>
-                                    <Lock size={18} />
-                                </div>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    onFocus={() => setFocused(true)}
-                                    onBlur={() => setFocused(false)}
-                                    placeholder="••••••••"
-                                    autoFocus
-                                    className={`w-full pl-12 pr-12 py-3.5 sm:py-4 bg-white/[0.03] border rounded-2xl text-white text-sm placeholder:text-ink-muted outline-none transition-all duration-slower
-                                        ${focused ? 'border-brand-500/40 bg-brand-500/[0.03] shadow-lg ' : 'border-white/[0.08] hover:border-white/[0.12]'}`}
-                                />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-ink-muted hover:text-neutral-200 transition-colors">
-                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                </button>
-                                <div className={`absolute bottom-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent transition-opacity duration-slower ${focused ? 'opacity-100' : 'opacity-0'}`} />
-                            </div>
-                            {errors.password && <p className="text-red-400 text-xs mt-2 font-medium">{errors.password}</p>}
-                        </div>
-
-                        <button type="submit" disabled={processing}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-void-950 rounded-2xl font-bold text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all duration-slow disabled:opacity-50">
-                            {processing ? <><Loader2 size={18} className="animate-spin" /> Confirming...</> : <>Confirm <ArrowRight size={16} /></>}
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <style>{`* { font-family: 'Inter', 'Figtree', system-ui, sans-serif; }`}</style>
-        </div>
+                <AuthButton
+                    type="submit"
+                    disabled={processing}
+                    iconAfter={processing ? null : <ArrowRight size={16} />}
+                >
+                    {processing ? (
+                        <>
+                            <Loader2 size={16} className="animate-spin" /> Confirming…
+                        </>
+                    ) : (
+                        'Confirm'
+                    )}
+                </AuthButton>
+            </AuthForm>
+        </AuthLayout>
     );
 }

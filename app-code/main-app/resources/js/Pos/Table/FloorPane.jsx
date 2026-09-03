@@ -245,7 +245,7 @@ export default function FloorPane({
         >
             {!embedded && (
                 <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
-                    <Users size={15} className="text-violet-500 dark:text-violet-400" />
+                    <Users size={15} className="text-brand-500 dark:text-brand-400" />
                     <span>Floor</span>
                     {counts?.alerts > 0 && (
                         <span className="vqt-h-alert" title="Tables waiting on someone">

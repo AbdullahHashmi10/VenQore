@@ -117,7 +117,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                         <button
                             onClick={() => { setActiveTab('e-invoice'); handleCloseModal(); }}
                             className={`px-4 py-2 rounded-xl font-bold transition-colors ${activeTab === 'e-invoice'
-                                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
+                                    ? 'bg-cyan-600 text-white shadow-lg shadow-glow'
                                     : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                 }`}
                         >
@@ -126,7 +126,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                         <button
                             onClick={() => { setActiveTab('e-way-bill'); handleCloseModal(); }}
                             className={`px-4 py-2 rounded-xl font-bold transition-colors ${activeTab === 'e-way-bill'
-                                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
+                                    ? 'bg-cyan-600 text-white shadow-lg shadow-glow'
                                     : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                 }`}
                         >
@@ -221,7 +221,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                         </div>
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors font-bold shadow-lg shadow-cyan-500/20"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors font-bold shadow-lg shadow-glow"
                         >
                             <Plus size={18} />
                             Generate New {activeTab === 'e-invoice' ? 'E-Invoice' : 'E-Way Bill'}
@@ -325,7 +325,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                                         ) : (
                                                             <button
                                                                 onClick={() => handleReport(invoice.id)}
-                                                                className="inline-flex items-center gap-1 px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-bold text-xs shadow-md shadow-cyan-500/10"
+                                                                className="inline-flex items-center gap-1 px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-bold text-xs shadow-md shadow-glow"
                                                             >
                                                                 Report
                                                             </button>
@@ -346,7 +346,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                                                     setSelectedSale(invoice);
                                                                     setIsModalOpen(true);
                                                                 }}
-                                                                className="inline-flex items-center gap-1 px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-bold text-xs shadow-md shadow-cyan-500/10"
+                                                                className="inline-flex items-center gap-1 px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-bold text-xs shadow-md shadow-glow"
                                                             >
                                                                 Generate EWB
                                                             </button>
@@ -437,7 +437,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                         <button
                                             type="submit"
                                             disabled={isSubmittingWaybill}
-                                            className="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 flex items-center gap-2"
+                                            className="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-glow flex items-center gap-2"
                                         >
                                             {isSubmittingWaybill ? 'Generating...' : 'Generate E-Way Bill'}
                                         </button>
@@ -483,7 +483,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                                                     setSelectedSale(sale);
                                                                 }
                                                             }}
-                                                            className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-cyan-500/10"
+                                                            className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-glow"
                                                         >
                                                             {activeTab === 'e-invoice' ? 'Report' : 'Select'}
                                                         </button>

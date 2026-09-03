@@ -70,7 +70,7 @@ export default function ConnectionSetup({
                         setSiteUrl(res.data.site_url);
                         setIsPolling(false);
                         clearInterval(interval);
-                        
+
                         // Auto redirect after 3.5 seconds to show the gorgeous success screen
                         const timer = setTimeout(() => {
                             window.location.href = route('store.woo.connections.sync', { store_slug, connection: connection.id });
@@ -98,7 +98,7 @@ export default function ConnectionSetup({
                     setStatus('active');
                     setSiteUrl(res.data.site_url);
                     setIsPolling(false);
-                    
+
                     setTimeout(() => {
                         window.location.href = route('store.woo.connections.sync', { store_slug, connection: connection.id });
                     }, 2500);
@@ -163,7 +163,7 @@ export default function ConnectionSetup({
 
                                 {/* Step-by-Step Flow */}
                                 <div className="space-y-6 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-[2px] before:bg-sunken dark:before:bg-neutral-800/60">
-                                    
+
                                     {/* Step 1: Download */}
                                     <div className="relative flex gap-5 items-start group">
                                         <div className="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-800/50 flex items-center justify-center font-bold text-violet-600 dark:text-violet-400 text-base z-10 shadow-sm transition-transform">
@@ -178,7 +178,7 @@ export default function ConnectionSetup({
                                             </div>
                                             <a
                                                 href={plugin_download_url}
-                                                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-brand-600 hover:from-violet-700 hover:to-brand-700 text-white rounded-xl font-semibold text-xs transition-all shadow-md hover:"
+                                                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-brand-600 hover:from-violet-700 hover:to-brand-700 text-white rounded-xl font-semibold text-xs transition-all shadow-md"
                                             >
                                                 <Download size={14} />
                                                 Download venqore-sync.zip
@@ -304,7 +304,7 @@ export default function ConnectionSetup({
                                                     href={`${siteUrl}/?venqore_debug=${setup_token}&venqore_action=force_handshake`}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-gradient-to-r from-violet-600 to-brand-600 hover:from-violet-500 hover:to-brand-500 text-white rounded-xl text-xs font-bold transition-all shadow-md hover:"
+                                                    className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-gradient-to-r from-violet-600 to-brand-600 hover:from-violet-500 hover:to-brand-500 text-white rounded-xl text-xs font-bold transition-all shadow-md"
                                                 >
                                                     <Zap size={12} className="animate-pulse text-amber-300 fill-amber-300" />
                                                     🚀 Launch Remote Handshake
@@ -375,7 +375,7 @@ export default function ConnectionSetup({
                                 <div className="pt-4">
                                     <Link
                                         href={route('store.woo.connections.sync', { store_slug, connection: connection.id })}
-                                        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md hover:"
+                                        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md"
                                     >
                                         <Zap size={15} />
                                         Access Control Panel

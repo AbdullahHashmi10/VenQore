@@ -1,27 +1,50 @@
-import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
 import {
-    Mail, Users, ArrowRight, Loader2, Eye, EyeOff,
-    CheckCircle, Crown, Zap, Store
+    ArrowRight, CheckCircle, Crown, Eye, EyeOff, Loader2, Mail, Store, Users, Zap,
 } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthField, AuthForm, AuthLink, AuthStack } from '@/Components/Auth';
 
 /**
- * Auth/AcceptInvite.jsx — Definitive Plan
+ * Auth/AcceptInvite.jsx — staff invite acceptance, at /invite/{token}.
  *
- * Staff invite acceptance page.
- * URL: /invite/{token}
+ * Shown when a staff member clicks the invite link from their email. If the
+ * account already exists they just accept; if they are new they set a password
+ * here.
  *
- * Shown when a staff member clicks the invite link from their email.
- * If account already exists, they just accept (no password needed).
- * If new user, they set a password here.
+ * What went, and why:
+ *   · The `void` page ground and a 120px blur cloud, plus the standalone
+ *     `/images/logo.png` tile — the shell owns the logo now, and this was the
+ *     only auth screen loading the wordmark as a raster.
+ *   · **A white-alpha card surface at a `/3` opacity step.** Tailwind has no
+ *     `/3` step, so that utility compiled to nothing and the card has been
+ *     rendering with no surface at all — a border floating on the page ground.
+ *     It is the clearest argument in the whole family for not writing surfaces
+ *     by hand.
+ *   · The inputs, which were the odd ones out twice over: a 28px corner where
+ *     every sibling used the 36px step, and `focus:ring-1` where every sibling
+ *     moved its border. Both replaced by the one ds input.
+ *   · `placeholder-slate-600` — a grey from outside the palette.
+ *   · The teal-500 → plum-600 CTA gradient (already folded into the
+ *     `bg-gradient-brand` alias by an earlier pass): teal on one end, plum on
+ *     the other. Now a plain primary.
+ *   · `join as a{''}` and `VenQore's{''}` — an empty expression where a space
+ *     was meant, which rendered "join as aAdmin" and "VenQore'sTerms". Real
+ *     spaces now.
+ *
+ * The role ramps replace the five hand-picked hues: amber → warning, teal →
+ * brand, blue → info, emerald → success, and viewer takes plain ink.
+ *
+ * Behaviour is untouched: same `useForm` fields, same POST to /invite/accept,
+ * same `id` hooks on the two fields and the submit button.
  */
-
 const ROLE_INFO = {
-    owner:   { label: 'Owner',   icon: Crown,   color: 'text-amber-400',   bg: 'bg-amber-400/10',   border: 'border-amber-400/20' },
-    admin:   { label: 'Admin',   icon: Zap,     color: 'text-brand-400',  bg: 'bg-brand-400/10',  border: 'border-brand-400/20' },
-    manager: { label: 'Manager', icon: Users,   color: 'text-blue-400',    bg: 'bg-blue-400/10',    border: 'border-blue-400/20' },
-    cashier: { label: 'Cashier', icon: Store,   color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
-    viewer:  { label: 'Viewer',  icon: Users,   color: 'text-ink-muted',   bg: 'bg-neutral-400/10',   border: 'border-line-strong' },
+    owner:   { label: 'Owner',   icon: Crown, tone: 'bg-warning-50 text-warning-700 dark:bg-warning-500/10 dark:text-warning-300' },
+    admin:   { label: 'Admin',   icon: Zap,   tone: 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300' },
+    manager: { label: 'Manager', icon: Users, tone: 'bg-info-50 text-info-700 dark:bg-info-500/10 dark:text-info-300' },
+    cashier: { label: 'Cashier', icon: Store, tone: 'bg-success-50 text-success-700 dark:bg-success-500/10 dark:text-success-300' },
+    viewer:  { label: 'Viewer',  icon: Users, tone: 'bg-sunken text-ink-secondary' },
 };
 
 export default function AcceptInvite({ token, invite_email, store_name, role }) {
@@ -31,7 +54,7 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
 
     const { data, setData, post, processing, errors } = useForm({
         token,
-        name:     '',
+        name: '',
         password: '',
     });
 
@@ -44,125 +67,97 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
     };
 
     return (
-        <div className="min-h-screen bg-void-950 text-white font-sans flex flex-col items-center justify-center p-6">
-            <Head title={`Join ${store_name} — VenQore`} />
-
-            {/* Ambient */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-brand-900/15 rounded-full blur-[120px]" />
-            </div>
-
-            <div className="relative z-10 w-full max-w-md">
-
-                {/* Top icon */}
-                <div className="flex justify-center mb-8">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                        <img src="/images/logo.png" alt="VenQore" className="w-10 h-10 object-contain" />
-                    </div>
+        <AuthLayout
+            title={`Join ${store_name} — VenQore`}
+            heading={store_name ? `Join ${store_name}` : "You're invited!"}
+            subheading={
+                <>
+                    You&apos;ve been invited to join as a{' '}
+                    <strong className="font-semibold text-ink">{roleInfo.label}</strong>.
+                </>
+            }
+            footer={
+                <>
+                    By joining, you agree to VenQore&apos;s{' '}
+                    <AuthLink href="/terms">Terms of Service</AuthLink>. If you weren&apos;t
+                    expecting this invite, you can safely close this page.
+                </>
+            }
+        >
+            <AuthStack gap={6}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ${roleInfo.tone}`}>
+                        <RoleIcon size={14} />
+                        {roleInfo.label}
+                    </span>
+                    <span className="inline-flex items-center gap-2 text-xs text-ink-muted">
+                        <Mail size={12} />
+                        Sent to: <span className="text-ink-secondary">{invite_email}</span>
+                    </span>
                 </div>
 
-                {/* Invite card */}
-                <div className="rounded-2xl border border-white/10 bg-white/3 p-8">
+                <AuthForm onSubmit={submit}>
+                    <input type="hidden" value={token} name="token" />
 
-                    {/* Store + role info */}
-                    <div className="text-center mb-8">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium mb-4 ${roleInfo.color} ${roleInfo.bg} ${roleInfo.border}`}>
-                            <RoleIcon size={14} />
-                            {roleInfo.label}
-                        </div>
-                        <h1 className="text-2xl font-bold text-white tracking-tight mb-2">
-                            You're invited!
-                        </h1>
-                        <p className="text-neutral-300 text-sm">
-                            <strong className="text-white">{store_name}</strong> has invited you to join as a{''}
-                            <strong className={roleInfo.color}>{roleInfo.label}</strong>.
-                        </p>
-                        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-ink-muted">
-                            <Mail size={12} />
-                            <span>Sent to: <span className="text-neutral-300">{invite_email}</span></span>
-                        </div>
-                    </div>
+                    <AuthField
+                        id="invite-name"
+                        label="Your name"
+                        type="text"
+                        name="name"
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
+                        placeholder="How should we call you?"
+                        autoComplete="name"
+                        required
+                        autoFocus
+                        error={errors.name}
+                    />
 
-                    {/* Form */}
-                    <form onSubmit={submit} className="space-y-4">
-                        <input type="hidden" value={token} name="token" />
+                    <AuthField
+                        id="invite-password"
+                        label="Set a password"
+                        type={showPass ? 'text' : 'password'}
+                        name="password"
+                        value={data.password}
+                        onChange={(e) => setData('password', e.target.value)}
+                        placeholder="Min 8 characters"
+                        autoComplete="new-password"
+                        hint="Skip if you already have an account."
+                        suffix={<RevealToggle shown={showPass} onToggle={() => setShowPass((v) => !v)} />}
+                        error={errors.password}
+                    />
 
-                        {/* Name */}
-                        <div>
-                            <label className="block text-sm font-semibold text-neutral-300 mb-2">
-                                Your Name <span className="text-red-400">*</span>
-                            </label>
-                            <input
-                                id="invite-name"
-                                type="text"
-                                value={data.name}
-                                onChange={e => setData('name', e.target.value)}
-                                placeholder="How should we call you?"
-                                className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600
-                                    focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors
-                                    ${errors.name ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
-                                autoFocus
-                            />
-                            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
-                        </div>
+                    <AuthButton
+                        id="accept-invite-submit"
+                        type="submit"
+                        disabled={processing || !data.name}
+                        icon={processing ? null : <CheckCircle size={16} />}
+                        iconAfter={processing ? null : <ArrowRight size={16} />}
+                    >
+                        {processing ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" /> Joining…
+                            </>
+                        ) : (
+                            'Accept & Enter Store'
+                        )}
+                    </AuthButton>
+                </AuthForm>
+            </AuthStack>
+        </AuthLayout>
+    );
+}
 
-                        {/* Password — only if new user */}
-                        <div>
-                            <label className="block text-sm font-semibold text-neutral-300 mb-2">
-                                Set a Password <span className="text-ink-muted font-normal">(skip if you already have an account)</span>
-                            </label>
-                            <div className="relative">
-                                <input
-                                    id="invite-password"
-                                    type={showPass ? 'text' : 'password'}
-                                    value={data.password}
-                                    onChange={e => setData('password', e.target.value)}
-                                    placeholder="Min 8 characters"
-                                    className={`w-full px-4 py-3 pr-11 rounded-xl bg-white/5 border text-white placeholder-slate-600
-                                        focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors
-                                        ${errors.password ? 'border-red-500' : 'border-white/10 hover:border-white/20'}`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPass(!showPass)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-neutral-300 transition-colors"
-                                >
-                                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                                </button>
-                            </div>
-                            {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
-                        </div>
-
-                        {/* Accept button */}
-                        <button
-                            id="accept-invite-submit"
-                            type="submit"
-                            disabled={processing || !data.name}
-                            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
- bg-gradient-to-r from-brand-500 to-purple-600
- hover:from-brand-400 hover:to-purple-500
- text-white font-bold text-base transition-all
- hover:shadow-xl hover:
- disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed mt-2"
-                        >
-                            {processing ? (
-                                <><Loader2 size={18} className="animate-spin" /> Joining…</>
-                            ) : (
-                                <><CheckCircle size={18} /> Accept & Enter Store <ArrowRight size={16} /></>
-                            )}
-                        </button>
-                    </form>
-
-                    <p className="text-center text-xs text-ink-secondary mt-5">
-                        By joining, you agree to VenQore's{''}
-                        <a href="/terms" className="text-ink-muted hover:text-neutral-300 underline">Terms of Service</a>.
-                    </p>
-                </div>
-
-                <p className="text-center text-xs text-ink-secondary mt-4">
-                    If you weren't expecting this invite, you can safely close this page.
-                </p>
-            </div>
-        </div>
+/** Same reveal as StaffLogin: a bare button because it sits in the input's 48px suffix slot. */
+function RevealToggle({ shown, onToggle }) {
+    return (
+        <button
+            type="button"
+            onClick={onToggle}
+            aria-label={shown ? 'Hide password' : 'Show password'}
+            className="flex items-center text-ink-muted transition-colors duration-fast hover:text-ink-secondary"
+        >
+            {shown ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
     );
 }

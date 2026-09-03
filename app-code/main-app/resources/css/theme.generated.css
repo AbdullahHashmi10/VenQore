@@ -25,7 +25,7 @@
 
     /* ═══════════════ COLOUR RAMPS ═══════════════
        Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
-       opacity modifiers keep working: bg-indigo-500/30 compiles to
+       opacity modifiers keep working: bg-brand-500/30 compiles to
        rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every
        /opacity class in the codebase. */
 
@@ -770,7 +770,7 @@
 
     /* ═══════════════ COLOUR RAMPS ═══════════════
        Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
-       opacity modifiers keep working: bg-indigo-500/30 compiles to
+       opacity modifiers keep working: bg-brand-500/30 compiles to
        rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every
        /opacity class in the codebase. */
 

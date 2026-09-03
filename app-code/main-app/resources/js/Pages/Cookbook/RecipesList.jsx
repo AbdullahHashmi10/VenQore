@@ -147,7 +147,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                                         {(recipe.labor_cost > 0 || recipe.overhead_cost > 0) && (
                                             <div className="flex gap-2 text-xs">
                                                 {recipe.labor_cost > 0 && (
-                                                    <span className="flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-lg">
+                                                    <span className="flex items-center gap-1 px-2 py-1 bg-brand-50 dark:bg-brand-900/20 text-brand-600 rounded-lg">
                                                         <Users size={12} />
                                                         Labor: {getCurrencySymbol()} {parseFloat(recipe.labor_cost).toLocaleString()}
                                                     </span>

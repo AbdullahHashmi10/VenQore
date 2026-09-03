@@ -140,7 +140,7 @@ export default function Migration() {
                             <button
                                 disabled={!file}
                                 onClick={handleAnalyze}
-                                className="mt-8 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold shadow-lg transition-transform disabled:opacity-50 disabled: flex items-center gap-2"
+                                className="mt-8 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold shadow-lg transition-transform disabled:opacity-50 flex items-center gap-2"
                             >
                                 Analyze File <ArrowRight size={18} />
                             </button>
@@ -178,8 +178,8 @@ export default function Migration() {
                                         {analysis.analysis.potential_sales}
                                     </p>
                                 </div>
-                                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl border border-purple-100 dark:border-purple-800">
-                                    <h3 className="font-bold text-sm text-purple-700 dark:text-purple-400 mb-1">Purchases</h3>
+                                <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
+                                    <h3 className="font-bold text-sm text-brand-700 dark:text-brand-400 mb-1">Purchases</h3>
                                     <p className="text-2xl font-bold text-ink">
                                         {analysis.analysis.potential_purchases}
                                     </p>

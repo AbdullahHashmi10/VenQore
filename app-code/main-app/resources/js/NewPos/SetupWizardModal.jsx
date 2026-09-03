@@ -54,7 +54,7 @@ function Toggle({ checked, onChange, label }) {
                         ${checked ? 'bg-brand-600' : 'bg-line-strong'}`}
         >
             <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-xs
-                              transition-[left,right] duration-150 ${checked ? 'right-0.5' : 'left-0.5'}`} />
+                              transition-[left,right] duration-fast ${checked ? 'right-0.5' : 'left-0.5'}`} />
         </button>
     );
 }
@@ -149,10 +149,10 @@ export default function SetupWizardModal({
                 <header className="shrink-0 px-6 pt-5 pb-4 border-b border-line bg-surface">
                     <div className="flex items-start gap-4">
                         <div className="min-w-0 flex-1">
-                            <span className="text-3xs font-extrabold uppercase tracking-[0.12em] text-brand-700 dark:text-brand-300">
+                            <span className="text-3xs font-bold uppercase tracking-[0.12em] text-brand-700 dark:text-brand-300">
                                 Step {step} of 2
                             </span>
-                            <h2 className="mt-1 text-lg font-extrabold text-ink leading-tight">
+                            <h2 className="mt-1 text-lg font-bold text-ink leading-tight">
                                 {step === 1 ? 'What kind of counter is this?' : 'Four things worth setting now'}
                             </h2>
                             <p className="mt-1 text-xs text-ink-muted leading-relaxed max-w-[62ch]">
@@ -215,14 +215,14 @@ export default function SetupWizardModal({
                                                 <Icon size={18} />
                                             </span>
                                             {recommended && (
-                                                <span className="text-3xs font-extrabold uppercase tracking-wide px-2 py-1 rounded-lg
+                                                <span className="text-3xs font-bold uppercase tracking-wide px-2 py-1 rounded-lg
                                                                  bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400
                                                                  border border-emerald-200/70 dark:border-emerald-900/60">
                                                     Suggested
                                                 </span>
                                             )}
                                         </div>
-                                        <span className="block text-sm font-extrabold text-ink leading-snug">
+                                        <span className="block text-sm font-bold text-ink leading-snug">
                                             {sug.title}
                                         </span>
                                         <span className="block text-2xs text-ink-muted leading-relaxed flex-1">
@@ -233,7 +233,7 @@ export default function SetupWizardModal({
                                                 {sug.preset} layout
                                             </span>
                                             {selected && (
-                                                <span className="flex items-center gap-1 text-3xs font-extrabold text-brand-700 dark:text-brand-300">
+                                                <span className="flex items-center gap-1 text-3xs font-bold text-brand-700 dark:text-brand-300">
                                                     <Check size={12} /> Selected
                                                 </span>
                                             )}
@@ -245,7 +245,7 @@ export default function SetupWizardModal({
                     ) : (
                         <div className="grid lg:grid-cols-[minmax(0,1fr)_320px] gap-5">
                             <div className="min-w-0 space-y-2.5">
-                                <span className="text-3xs font-extrabold uppercase tracking-[0.12em] text-ink-muted">
+                                <span className="text-3xs font-bold uppercase tracking-[0.12em] text-ink-muted">
                                     Preview
                                 </span>
                                 <div className="rounded-2xl border border-line/80 bg-sunken/40 p-3 overflow-hidden">
@@ -264,7 +264,7 @@ export default function SetupWizardModal({
                             </div>
 
                             <div className="min-w-0 space-y-2.5">
-                                <span className="text-3xs font-extrabold uppercase tracking-[0.12em] text-ink-muted">
+                                <span className="text-3xs font-bold uppercase tracking-[0.12em] text-ink-muted">
                                     Preferences
                                 </span>
                                 {PREFS.map(pf => (
@@ -308,7 +308,7 @@ export default function SetupWizardModal({
                                 type="button"
                                 onClick={() => setStep(2)}
                                 className="ml-auto h-11 px-5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white
-                                           text-xs font-extrabold transition-colors cursor-pointer
+                                           text-xs font-bold transition-colors cursor-pointer
                                            flex items-center gap-2
                                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                             >
@@ -331,7 +331,7 @@ export default function SetupWizardModal({
                                 type="button"
                                 onClick={handleComplete}
                                 className="ml-auto h-11 px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white
-                                           text-xs font-extrabold transition-colors cursor-pointer
+                                           text-xs font-bold transition-colors cursor-pointer
                                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                             >
                                 Start selling

@@ -261,7 +261,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                 return (
                                     <div
                                         key={ticket.id}
-                                        className="group bg-surface border border-line hover:border-brand-200 dark:hover:border-brand-800 rounded-2xl p-5 flex items-start gap-4 transition-all duration-normal hover:shadow-md hover: relative overflow-hidden"
+                                        className="group bg-surface border border-line hover:border-brand-200 dark:hover:border-brand-800 rounded-2xl p-5 flex items-start gap-4 transition-all duration-normal hover:shadow-md relative overflow-hidden"
                                     >
                                         {/* Left accent stripe for open tickets */}
                                         {ticket.status === 'open' && (
@@ -390,7 +390,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Customer Name</label>
-                                    <input 
+                                    <input
                                         type="text" required placeholder="e.g. John Doe"
                                         value={formName} onChange={e => setFormName(e.target.value)}
                                         className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold"
@@ -398,7 +398,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                 </div>
                                 <div>
                                     <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Customer Email</label>
-                                    <input 
+                                    <input
                                         type="email" required placeholder="e.g. john@example.com"
                                         value={formEmail} onChange={e => setFormEmail(e.target.value)}
                                         className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold"
@@ -408,7 +408,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                             <div>
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Subject / Summary</label>
-                                <input 
+                                <input
                                     type="text" required placeholder="Brief description of the issue"
                                     value={formSubject} onChange={e => setFormSubject(e.target.value)}
                                     className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold"
@@ -417,7 +417,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                             <div>
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Priority</label>
-                                <select 
+                                <select
                                     value={formPriority} onChange={e => setFormPriority(e.target.value)}
                                     className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-bold"
                                 >
@@ -430,7 +430,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                             <div>
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Issue details / notes</label>
-                                <textarea 
+                                <textarea
                                     required rows={4} placeholder="Describe the customer inquiry or ticket details..."
                                     value={formMessage} onChange={e => setFormMessage(e.target.value)}
                                     className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold resize-none"

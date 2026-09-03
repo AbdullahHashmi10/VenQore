@@ -399,7 +399,7 @@ function build() {
             semibold: L('--vq-fw-semi'),
             bold: L('--vq-fw-bold'),
             // 800 and 900 are not in V6. They are held at 700 rather than
-            // removed so the 1,948 `font-black` / `font-extrabold` classes stop
+            // removed so the 1,948 `font-bold` / `font-bold` classes stop
             // rendering illegal weights immediately, while still compiling until
             // the Phase 3 codemod deletes them.
             extrabold: L('--vq-fw-bold'),

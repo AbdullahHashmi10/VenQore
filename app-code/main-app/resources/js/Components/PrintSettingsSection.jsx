@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import {
-    ChevronLeft, ChevronRight, Maximize2, Minimize2, Printer,
-    Layout, Type, FileText, Image as ImageIcon, Settings,
-    AlignLeft, AlignCenter, AlignRight, Check, X, Palette,
-    Monitor, Upload, Play, Save
+ ChevronLeft, ChevronRight, Maximize2, Minimize2, Printer,
+ Layout, Type, FileText, Image as ImageIcon, Settings,
+ AlignLeft, AlignCenter, AlignRight, Check, X, Palette,
+ Monitor, Upload, Play, Save
 } from 'lucide-react';
 import PrintPreview from '@/Components/PrintPreview';
 import Swal from 'sweetalert2';
@@ -20,304 +20,304 @@ import { vq } from '@/theme/runtime';
 // ... (imports remain the same, ensuring createPortal is added)
 
 export default function PrintSettingsSection({ data, setData, saveSettings }) {
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [isFullScreen, setIsFullScreen] = useState(false);
-    const [previewMode, setPreviewMode] = useState('light'); // 'light' | 'dark'
+ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+ const [isFullScreen, setIsFullScreen] = useState(false);
+ const [previewMode, setPreviewMode] = useState('light'); // 'light' | 'dark'
 
-    // Persist printer sub-tab selection (thermal vs regular) across refreshes
-    useEffect(() => {
-        const storedTab = localStorage.getItem('active_printer_subtab');
-        if (storedTab && (storedTab === 'thermal' || storedTab === 'regular')) {
-            setData('_print_tab', storedTab);
-        }
-    }, []);
+ // Persist printer sub-tab selection (thermal vs regular) across refreshes
+ useEffect(() => {
+ const storedTab = localStorage.getItem('active_printer_subtab');
+ if (storedTab && (storedTab === 'thermal' || storedTab === 'regular')) {
+ setData('_print_tab', storedTab);
+ }
+ }, []);
 
-    const handleSubtabChange = (tabName) => {
-        setData('_print_tab', tabName);
-        localStorage.setItem('active_printer_subtab', tabName);
-    };
+ const handleSubtabChange = (tabName) => {
+ setData('_print_tab', tabName);
+ localStorage.setItem('active_printer_subtab', tabName);
+ };
 
-    // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background
-    useEffect(() => {
-        if (isFullScreen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => { document.body.style.overflow = ''; };
-    }, [isFullScreen]);
+ // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background
+ useEffect(() => {
+ if (isFullScreen) {
+ document.body.style.overflow = 'hidden';
+ } else {
+ document.body.style.overflow = '';
+ }
+ return () => { document.body.style.overflow = ''; };
+ }, [isFullScreen]);
 
-    /**
-     * Test Print Handler
-     * Renders the EXACT same PrintPreview React component (used in the settings preview panel)
-     * to a static HTML string and opens it in a print window.
-     * This guarantees 100% identical output between what you see in the preview and what prints.
-     */
-    const handleTestPrint = (currentData) => {
-        const type = currentData._print_tab === 'thermal' ? 'thermal' : 'regular';
-        const isThermal = type === 'thermal';
+ /**
+ * Test Print Handler
+ * Renders the EXACT same PrintPreview React component (used in the settings preview panel)
+ * to a static HTML string and opens it in a print window.
+ * This guarantees 100% identical output between what you see in the preview and what prints.
+ */
+ const handleTestPrint = (currentData) => {
+ const type = currentData._print_tab === 'thermal' ? 'thermal' : 'regular';
+ const isThermal = type === 'thermal';
 
-        // Determine paper/window dimensions (mirrors PrintPreview logic)
-        const MM_TO_PX = 3;
-        let width;
-        if (isThermal) {
-            if (currentData.thermal_page_size === '2inch') width = 58 * MM_TO_PX;
-            else if (currentData.thermal_page_size === '4inch') width = 100 * MM_TO_PX;
-            else width = 80 * MM_TO_PX;
-        } else {
-            const paperSizes = { 'A4': 210, 'A5': 148, 'Letter': 216, 'Legal': 216 };
-            const pW = currentData.paper_size === 'Custom'
-                ? (parseFloat(currentData.custom_paper_width) || 210)
-                : (paperSizes[currentData.paper_size] || 210);
-            width = currentData.paper_orientation === 'Landscape'
-                ? (currentData.paper_size === 'A4' ? 297 : pW) * MM_TO_PX
-                : pW * MM_TO_PX;
-        }
-        const windowWidth = Math.max(width + 80, isThermal ? 340 : 820);
+ // Determine paper/window dimensions (mirrors PrintPreview logic)
+ const MM_TO_PX = 3;
+ let width;
+ if (isThermal) {
+ if (currentData.thermal_page_size === '2inch') width = 58 * MM_TO_PX;
+ else if (currentData.thermal_page_size === '4inch') width = 100 * MM_TO_PX;
+ else width = 80 * MM_TO_PX;
+ } else {
+ const paperSizes = { 'A4': 210, 'A5': 148, 'Letter': 216, 'Legal': 216 };
+ const pW = currentData.paper_size === 'Custom'
+ ? (parseFloat(currentData.custom_paper_width) || 210)
+ : (paperSizes[currentData.paper_size] || 210);
+ width = currentData.paper_orientation === 'Landscape'
+ ? (currentData.paper_size === 'A4' ? 297 : pW) * MM_TO_PX
+ : pW * MM_TO_PX;
+ }
+ const windowWidth = Math.max(width + 80, isThermal ? 340 : 820);
 
-        // Render the exact same PrintPreview component to static HTML
-        const rootNode = document.createElement('div');
-        const root = createRoot(rootNode);
-        flushSync(() => {
-            root.render(
-                <PrintPreview data={currentData} type={type} mode="light" forPrint={true} />
-            );
-        });
-        const previewHtml = rootNode.innerHTML;
-        root.unmount();
+ // Render the exact same PrintPreview component to static HTML
+ const rootNode = document.createElement('div');
+ const root = createRoot(rootNode);
+ flushSync(() => {
+ root.render(
+ <PrintPreview data={currentData} type={type} mode="light" forPrint={true} />
+ );
+ });
+ const previewHtml = rootNode.innerHTML;
+ root.unmount();
 
-        // Grab all Tailwind/app CSS from the current page's stylesheets
-        // so the printed output looks exactly like the on-screen preview
-        const allStyles = Array.from(document.styleSheets)
-            .map(sheet => {
-                try {
-                    return Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
-                } catch { return ''; }
-            })
-            .join('\n');
+ // Grab all Tailwind/app CSS from the current page's stylesheets
+ // so the printed output looks exactly like the on-screen preview
+ const allStyles = Array.from(document.styleSheets)
+ .map(sheet => {
+ try {
+ return Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
+ } catch { return ''; }
+ })
+ .join('\n');
 
-        const copies = parseInt(isThermal ? currentData.thermal_copies : currentData.print_copies) || 1;
-        let repeatedHtml = '';
-        for (let c = 0; c < copies; c++) {
-            repeatedHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'border-t-2 border-dashed border-black pt-4 mt-4;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
-        }
+ const copies = parseInt(isThermal ? currentData.thermal_copies : currentData.print_copies) || 1;
+ let repeatedHtml = '';
+ for (let c = 0; c < copies; c++) {
+ repeatedHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'border-t-2 border-dashed border-black pt-4 mt-4;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
+ }
 
-        const printDoc = `<!DOCTYPE html>
+ const printDoc = `<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>Test Print — ${type === 'thermal' ? 'Thermal Receipt' : 'A4 Invoice'}</title>
-  <style>
-    ${allStyles}
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body { margin: 0; padding: 0; background: white; }
-    @page {
-      margin: 0;
-      ${isThermal ? `size: ${width / MM_TO_PX}mm 297mm;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
-    }
-    @media print {
-      html, body {
-        height: auto !important;
-        overflow: visible !important;
-        padding: 0 !important;
-      }
-      .print-container {
-        page-break-inside: auto !important;
-        break-inside: auto !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
-      .print-container tr,
-      .print-container .space-y-3 > div {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-      }
-    }
-  </style>
+ <meta charset="utf-8" />
+ <title>Test Print — ${type === 'thermal' ? 'Thermal Receipt' : 'A4 Invoice'}</title>
+ <style>
+ ${allStyles}
+ * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+ body { margin: 0; padding: 0; background: white; }
+ @page {
+ margin: 0;
+ ${isThermal ? `size: ${width / MM_TO_PX}mm 297mm;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
+ }
+ @media print {
+ html, body {
+ height: auto !important;
+ overflow: visible !important;
+ padding: 0 !important;
+ }
+ .print-container {
+ page-break-inside: auto !important;
+ break-inside: auto !important;
+ height: auto !important;
+ overflow: visible !important;
+ }
+ .print-container tr,
+ .print-container .space-y-3 > div {
+ page-break-inside: avoid !important;
+ break-inside: avoid !important;
+ }
+ }
+ </style>
 </head>
 <body>
-  ${repeatedHtml}
+ ${repeatedHtml}
 </body>
 </html>`;
 
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = '0';
-        document.body.appendChild(iframe);
+ const iframe = document.createElement('iframe');
+ iframe.style.position = 'fixed';
+ iframe.style.right = '0';
+ iframe.style.bottom = '0';
+ iframe.style.width = '0';
+ iframe.style.height = '0';
+ iframe.style.border = '0';
+ document.body.appendChild(iframe);
 
-        const printDocument = iframe.contentWindow.document;
-        printDocument.open();
-        printDocument.write(printDoc);
-        printDocument.close();
+ const printDocument = iframe.contentWindow.document;
+ printDocument.open();
+ printDocument.write(printDoc);
+ printDocument.close();
 
-        // Delay slightly to let styles apply, then trigger print dialog
-        setTimeout(() => {
-            if (iframe.contentWindow) {
+ // Delay slightly to let styles apply, then trigger print dialog
+ setTimeout(() => {
+ if (iframe.contentWindow) {
 
 
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
+ iframe.contentWindow.focus();
+ iframe.contentWindow.print();
 
-                // Cleanup after printing to avoid memory leaks
-                setTimeout(() => {
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                }, 1000);
-            }
-        }, isThermal ? 500 : 300);
-    };
+ // Cleanup after printing to avoid memory leaks
+ setTimeout(() => {
+ if (document.body.contains(iframe)) {
+ document.body.removeChild(iframe);
+ }
+ }, 1000);
+ }
+ }, isThermal ? 500 : 300);
+ };
 
-    const content = (
-        <div id="fullscreen-portal-root" className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'h-[calc(100vh-12rem)]'}`}>
-            {/* Header Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-line bg-surface z-10">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-ink">
-                        <Printer size={18} className="text-brand-500" />
-                        <span className="font-bold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
-                    </div>
+ const content = (
+ <div id="fullscreen-portal-root" className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'h-[calc(100vh-12rem)]'}`}>
+ {/* Header Toolbar */}
+ <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-line bg-surface z-10">
+ <div className="flex items-center gap-4">
+ <div className="flex items-center gap-2 text-ink">
+ <Printer size={18} className="text-brand-500" />
+ <span className="font-bold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
+ </div>
 
-                    {/* Format Tabs (Thermal vs Regular) */}
-                    <div className="flex bg-sunken rounded-lg p-1">
-                        <button
-                            type="button"
-                            onClick={() => handleSubtabChange('regular')}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab !== 'thermal'
-                                ? 'bg-sunken text-brand-600 shadow-sm'
-                                : 'text-ink-muted hover:text-ink-secondary'}`}
-                        >
-                            Standard A4/A5
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleSubtabChange('thermal')}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'thermal'
-                                ? 'bg-sunken text-emerald-600 shadow-sm'
-                                : 'text-ink-muted hover:text-ink-secondary'}`}
-                        >
-                            Thermal / POS
-                        </button>
-                    </div>
-                </div>
+ {/* Format Tabs (Thermal vs Regular) */}
+ <div className="flex bg-sunken rounded-lg p-1">
+ <button
+ type="button"
+ onClick={() => handleSubtabChange('regular')}
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab !== 'thermal'
+ ? 'bg-sunken text-brand-600 shadow-sm'
+ : 'text-ink-muted hover:text-ink-secondary'}`}
+ >
+ Standard A4/A5
+ </button>
+ <button
+ type="button"
+ onClick={() => handleSubtabChange('thermal')}
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'thermal'
+ ? 'bg-sunken text-emerald-600 shadow-sm'
+ : 'text-ink-muted hover:text-ink-secondary'}`}
+ >
+ Thermal / POS
+ </button>
+ </div>
+ </div>
 
-                <div className="flex items-center gap-2">
-                    {/* Test Print Button */}
-                    <button
-                        type="button"
-                        onClick={() => handleTestPrint(data)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-bold shadow-lg hover: transition-all active:scale-95 mr-2"
-                        title="Send a test print with current settings (no need to save first)"
-                    >
-                        <Play size={14} className="fill-current" />
-                        Test Print
-                    </button>
+ <div className="flex items-center gap-2">
+ {/* Test Print Button */}
+ <button
+ type="button"
+ onClick={() => handleTestPrint(data)}
+ className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 mr-2"
+ title="Send a test print with current settings (no need to save first)"
+ >
+ <Play size={14} className="fill-current" />
+ Test Print
+ </button>
 
-                    {/* Save Changes Button (Print Settings specific with resistant warning) */}
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (saveSettings) {
-                                Swal.fire({
-                                    title: 'Save Printer Settings?',
-                                    text: 'Are you sure you want to save and apply the new printer configurations across the system?',
-                                    icon: 'question',
-                                    showCancelButton: true,
-                                    confirmButtonText: 'Yes, Save Settings',
-                                    cancelButtonText: 'Cancel',
-                                    background: vq.slate[800],
-                                    color: '#fff',
-                                    confirmButtonColor: vq.indigo[600],
-                                    target: isFullScreen ? document.getElementById('fullscreen-portal-root') || 'body' : 'body'
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        saveSettings();
-                                    }
-                                });
-                            }
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white rounded-xl text-xs font-bold shadow-lg hover: transition-all active:scale-95 mr-2"
-                        title="Save and apply current printer settings"
-                    >
-                        <Save size={14} />
-                        Save Printer Settings
-                    </button>
+ {/* Save Changes Button (Print Settings specific with resistant warning) */}
+ <button
+ type="button"
+ onClick={() => {
+ if (saveSettings) {
+ Swal.fire({
+ title: 'Save Printer Settings?',
+ text: 'Are you sure you want to save and apply the new printer configurations across the system?',
+ icon: 'question',
+ showCancelButton: true,
+ confirmButtonText: 'Yes, Save Settings',
+ cancelButtonText: 'Cancel',
+ background: vq.slate[800],
+ color: '#fff',
+ confirmButtonColor: vq.indigo[600],
+ target: isFullScreen ? document.getElementById('fullscreen-portal-root') || 'body' : 'body'
+ }).then((result) => {
+ if (result.isConfirmed) {
+ saveSettings();
+ }
+ });
+ }
+ }}
+ className="flex items-center gap-2 px-4 py-2 bg-gradient-brand text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 mr-2"
+ title="Save and apply current printer settings"
+ >
+ <Save size={14} />
+ Save Printer Settings
+ </button>
 
-                    {/* Preview Mode Toggle */}
-                    <div className="flex items-center gap-1 bg-sunken rounded-lg p-1 mr-2">
-                        <button
-                            type="button"
-                            onClick={() => setPreviewMode('light')}
-                            className={`p-1.5 rounded transition-colors ${previewMode === 'light' ? 'bg-sunken text-amber-500 shadow-sm' : 'text-ink-muted'}`}
-                            title="Light Mode Preview"
-                        >
-                            <Monitor size={14} />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setPreviewMode('dark')}
-                            className={`p-1.5 rounded transition-colors ${previewMode === 'dark' ? 'bg-neutral-800 text-brand-400 shadow-sm' : 'text-ink-muted'}`}
-                            title="Dark Mode Preview"
-                        >
-                            <Monitor size={14} className="fill-current" />
-                        </button>
-                    </div>
+ {/* Preview Mode Toggle */}
+ <div className="flex items-center gap-1 bg-sunken rounded-lg p-1 mr-2">
+ <button
+ type="button"
+ onClick={() => setPreviewMode('light')}
+ className={`p-1.5 rounded transition-colors ${previewMode === 'light' ? 'bg-sunken text-amber-500 shadow-sm' : 'text-ink-muted'}`}
+ title="Light Mode Preview"
+ >
+ <Monitor size={14} />
+ </button>
+ <button
+ type="button"
+ onClick={() => setPreviewMode('dark')}
+ className={`p-1.5 rounded transition-colors ${previewMode === 'dark' ? 'bg-neutral-800 text-brand-400 shadow-sm' : 'text-ink-muted'}`}
+ title="Dark Mode Preview"
+ >
+ <Monitor size={14} className="fill-current" />
+ </button>
+ </div>
 
-                    <button
-                        type="button"
-                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
-                        title={sidebarCollapsed ? "Show Settings" : "Hide Settings"}
-                    >
-                        {sidebarCollapsed ? <Settings size={18} /> : <ChevronLeft size={18} />}
-                    </button>
+ <button
+ type="button"
+ onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+ className="p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
+ title={sidebarCollapsed ? "Show Settings" : "Hide Settings"}
+ >
+ {sidebarCollapsed ? <Settings size={18} /> : <ChevronLeft size={18} />}
+ </button>
 
-                    <button
-                        type="button"
-                        onClick={() => setIsFullScreen(!isFullScreen)}
-                        className={`p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors ${isFullScreen ? 'text-brand-600 bg-brand-50 dark:bg-raised' : ''}`}
-                        title="Full Screen Mode"
-                    >
-                        {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                    </button>
-                </div>
-            </div>
+ <button
+ type="button"
+ onClick={() => setIsFullScreen(!isFullScreen)}
+ className={`p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors ${isFullScreen ? 'text-brand-600 bg-brand-50 dark:bg-raised' : ''}`}
+ title="Full Screen Mode"
+ >
+ {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+ </button>
+ </div>
+ </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex overflow-hidden bg-sunken">
-                {/* Scrollable Settings Sidebar */}
-                <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
-                        {data._print_tab !== 'thermal'
-                            ? <RegularSettings data={data} setData={setData} />
-                            : <ThermalSettings data={data} setData={setData} />
-                        }
-                    </div>
-                </div>
+ {/* Main Content Area */}
+ <div className="flex-1 flex overflow-hidden bg-sunken">
+ {/* Scrollable Settings Sidebar */}
+ <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
+ <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
+ {data._print_tab !== 'thermal'
+ ? <RegularSettings data={data} setData={setData} />
+ : <ThermalSettings data={data} setData={setData} />
+ }
+ </div>
+ </div>
 
-                {/* Preview Area */}
-                <div className={`flex-1 overflow-auto flex items-start justify-center p-8 transition-colors duration-slow ${previewMode === 'dark' ? 'bg-neutral-900' : 'bg-sunken'}`}>
-                    <div className={`transform transition-all duration-slow ${sidebarCollapsed ? 'scale-100' : 'scale-95 origin-top'}`}>
-                        <PrintPreview
-                            data={data}
-                            type={data._print_tab === 'thermal' ? 'thermal' : 'regular'}
-                            mode={previewMode}
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+ {/* Preview Area */}
+ <div className={`flex-1 overflow-auto flex items-start justify-center p-8 transition-colors duration-slow ${previewMode === 'dark' ? 'bg-neutral-900' : 'bg-sunken'}`}>
+ <div className={`transform transition-all duration-slow ${sidebarCollapsed ? 'scale-100' : 'scale-95 origin-top'}`}>
+ <PrintPreview
+ data={data}
+ type={data._print_tab === 'thermal' ? 'thermal' : 'regular'}
+ mode={previewMode}
+ />
+ </div>
+ </div>
+ </div>
+ </div>
+ );
 
-    if (isFullScreen) {
-        return createPortal(content, document.body);
-    }
+ if (isFullScreen) {
+ return createPortal(content, document.body);
+ }
 
-    return content;
+ return content;
 }
 
 // ----------------------------------------------------------------------
@@ -325,282 +325,282 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
 // ----------------------------------------------------------------------
 
 const RegularSettings = ({ data, setData }) => (
-    <>
-        <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-800/30 mb-6">
-            <Toggle
-                label="Set as Default Printer"
-                checked={data.default_print_type === 'regular' || !data.default_print_type}
-                onChange={v => setData('default_print_type', v ? 'regular' : 'thermal')}
-                color="indigo"
-            />
-        </div>
+ <>
+ <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-800/30 mb-6">
+ <Toggle
+ label="Set as Default Printer"
+ checked={data.default_print_type === 'regular' || !data.default_print_type}
+ onChange={v => setData('default_print_type', v ? 'regular' : 'thermal')}
+ color="indigo"
+ />
+ </div>
 
-        <Section title="Page Layout" icon={Layout}>
-            <ButtonGroup
-                label="Paper Size"
-                value={data.paper_size}
-                onChange={v => setData('paper_size', v)}
-                options={[
-                    { value: 'A4', label: 'A4' },
-                    { value: 'A5', label: 'A5' },
-                    { value: 'Letter', label: 'Letter' },
-                    { value: 'Legal', label: 'Legal' },
-                    { value: 'Custom', label: 'Custom' },
-                ]}
-            />
+ <Section title="Page Layout" icon={Layout}>
+ <ButtonGroup
+ label="Paper Size"
+ value={data.paper_size}
+ onChange={v => setData('paper_size', v)}
+ options={[
+ { value: 'A4', label: 'A4' },
+ { value: 'A5', label: 'A5' },
+ { value: 'Letter', label: 'Letter' },
+ { value: 'Legal', label: 'Legal' },
+ { value: 'Custom', label: 'Custom' },
+ ]}
+ />
 
-            {data.paper_size === 'Custom' && (
-                <div className="grid grid-cols-2 gap-3 mt-3 animate-in fade-in slide-in-from-top-1">
-                    <NumberInput label="Width (mm)" value={data.custom_paper_width} onChange={v => setData('custom_paper_width', v)} />
-                    <NumberInput label="Height (mm)" value={data.custom_paper_height} onChange={v => setData('custom_paper_height', v)} />
-                </div>
-            )}
+ {data.paper_size === 'Custom' && (
+ <div className="grid grid-cols-2 gap-3 mt-3 animate-in fade-in slide-in-from-top-1">
+ <NumberInput label="Width (mm)" value={data.custom_paper_width} onChange={v => setData('custom_paper_width', v)} />
+ <NumberInput label="Height (mm)" value={data.custom_paper_height} onChange={v => setData('custom_paper_height', v)} />
+ </div>
+ )}
 
-            <div className="mt-4">
-                <ButtonGroup
-                    label="Orientation"
-                    value={data.paper_orientation}
-                    onChange={v => setData('paper_orientation', v)}
-                    options={[
-                        { value: 'Portrait', label: 'Portrait' },
-                        { value: 'Landscape', label: 'Landscape' },
-                    ]}
-                />
-            </div>
+ <div className="mt-4">
+ <ButtonGroup
+ label="Orientation"
+ value={data.paper_orientation}
+ onChange={v => setData('paper_orientation', v)}
+ options={[
+ { value: 'Portrait', label: 'Portrait' },
+ { value: 'Landscape', label: 'Landscape' },
+ ]}
+ />
+ </div>
 
-            <div className="mt-4">
-                <Label>Margins (mm)</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                    <NumberInput label="Top" value={data.margin_top} onChange={v => setData('margin_top', v)} />
-                    <NumberInput label="Bottom" value={data.margin_bottom} onChange={v => setData('margin_bottom', v)} />
-                    <NumberInput label="Left" value={data.margin_left} onChange={v => setData('margin_left', v)} />
-                    <NumberInput label="Right" value={data.margin_right} onChange={v => setData('margin_right', v)} />
-                </div>
-            </div>
+ <div className="mt-4">
+ <Label>Margins (mm)</Label>
+ <div className="grid grid-cols-2 gap-2 mt-1">
+ <NumberInput label="Top" value={data.margin_top} onChange={v => setData('margin_top', v)} />
+ <NumberInput label="Bottom" value={data.margin_bottom} onChange={v => setData('margin_bottom', v)} />
+ <NumberInput label="Left" value={data.margin_left} onChange={v => setData('margin_left', v)} />
+ <NumberInput label="Right" value={data.margin_right} onChange={v => setData('margin_right', v)} />
+ </div>
+ </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
-                <NumberInput label="Min Item Rows" value={data.print_min_item_rows} onChange={v => setData('print_min_item_rows', v)} />
-                <NumberInput label="Extra Top Space (mm)" value={data.print_extra_space_top} onChange={v => setData('print_extra_space_top', v)} />
-            </div>
-        </Section>
+ <div className="grid grid-cols-2 gap-3 mt-4">
+ <NumberInput label="Min Item Rows" value={data.print_min_item_rows} onChange={v => setData('print_min_item_rows', v)} />
+ <NumberInput label="Extra Top Space (mm)" value={data.print_extra_space_top} onChange={v => setData('print_extra_space_top', v)} />
+ </div>
+ </Section>
 
-        <Section title="Visual Style" icon={Palette}>
-            <div className="space-y-4">
-                <div>
-                    <Label>Theme Template</Label>
-                    <select
-                        value={data.print_theme}
-                        onChange={e => setData('print_theme', e.target.value)}
-                        className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
-                    >
-                        <option value="modern">Modern (Default)</option>
-                        <option value="classic">Classic Formal</option>
-                        <option value="bold">Bold Header</option>
-                    </select>
-                </div>
+ <Section title="Visual Style" icon={Palette}>
+ <div className="space-y-4">
+ <div>
+ <Label>Theme Template</Label>
+ <select
+ value={data.print_theme}
+ onChange={e => setData('print_theme', e.target.value)}
+ className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
+ >
+ <option value="modern">Modern (Default)</option>
+ <option value="classic">Classic Formal</option>
+ <option value="bold">Bold Header</option>
+ </select>
+ </div>
 
-                <ColorPicker
-                    label="Accent Color"
-                    value={data.print_theme_color}
-                    onChange={v => setData('print_theme_color', v)}
-                />
+ <ColorPicker
+ label="Accent Color"
+ value={data.print_theme_color}
+ onChange={v => setData('print_theme_color', v)}
+ />
 
-                <div className="grid grid-cols-2 gap-3">
-                    <SelectInput label="Header Size" value={data.print_company_text_size} onChange={v => setData('print_company_text_size', v)}
-                        options={[{ v: '2', l: 'Small' }, { v: '3', l: 'Medium' }, { v: '4', l: 'Large' }, { v: '5', l: 'Huge' }]} />
-                    <SelectInput label="Body Text" value={data.print_invoice_text_size} onChange={v => setData('print_invoice_text_size', v)}
-                        options={[{ v: '1', l: 'Tiny' }, { v: '2', l: 'Compact' }, { v: '3', l: 'Normal' }, { v: '4', l: 'Large' }]} />
-                </div>
-            </div>
-        </Section>
+ <div className="grid grid-cols-2 gap-3">
+ <SelectInput label="Header Size" value={data.print_company_text_size} onChange={v => setData('print_company_text_size', v)}
+ options={[{ v: '2', l: 'Small' }, { v: '3', l: 'Medium' }, { v: '4', l: 'Large' }, { v: '5', l: 'Huge' }]} />
+ <SelectInput label="Body Text" value={data.print_invoice_text_size} onChange={v => setData('print_invoice_text_size', v)}
+ options={[{ v: '1', l: 'Tiny' }, { v: '2', l: 'Compact' }, { v: '3', l: 'Normal' }, { v: '4', l: 'Large' }]} />
+ </div>
+ </div>
+ </Section>
 
-        <Section title="Header Content" icon={FileText}>
-            <TextInput label="Company Name" value={data.business_name} onChange={v => setData('business_name', v)} />
-            <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} />
-            <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} />
+ <Section title="Header Content" icon={FileText}>
+ <TextInput label="Company Name" value={data.business_name} onChange={v => setData('business_name', v)} />
+ <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} />
+ <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} />
 
-            {data.print_logo && <LogoUploader data={data} setData={setData} />}
+ {data.print_logo && <LogoUploader data={data} setData={setData} />}
 
-            <Toggle label="Repeat Header on All Pages" checked={data.print_header_all_pages} onChange={v => setData('print_header_all_pages', v)} />
-            <Toggle label="Show Original/Duplicate Copy" checked={data.print_original_copy} onChange={v => setData('print_original_copy', v)} />
-        </Section>
+ <Toggle label="Repeat Header on All Pages" checked={data.print_header_all_pages} onChange={v => setData('print_header_all_pages', v)} />
+ <Toggle label="Show Original/Duplicate Copy" checked={data.print_original_copy} onChange={v => setData('print_original_copy', v)} />
+ </Section>
 
-        <Section title="Table Columns" icon={Layout}>
-            <div className="space-y-2">
-                <ToggleBtn label="Serial No." checked={data.print_show_sno} onChange={v => setData('print_show_sno', v)} />
-                <ToggleBtn label="HSN/SAC Code" checked={data.print_show_hsn} onChange={v => setData('print_show_hsn', v)} />
-                <ToggleBtn label="Product Description" checked={data.print_show_description} onChange={v => setData('print_show_description', v)} />
-                <ToggleBtn label="Units/Qty" checked={data.print_show_units} onChange={v => setData('print_show_units', v)} />
-                <ToggleBtn label="MRP Column" checked={data.print_show_mrp} onChange={v => setData('print_show_mrp', v)} />
-                <ToggleBtn label="Discount Column" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} />
-                <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} />
-                <ToggleBtn label="Show Batch Codes" checked={data.thermal_show_batch} onChange={v => setData('thermal_show_batch', v)} />
-                <ToggleBtn label="Show Expiry Dates" checked={data.thermal_show_expiry} onChange={v => setData('thermal_show_expiry', v)} />
-                <ToggleBtn label="Tax Breakdown" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} />
-                <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} />
-            </div>
-        </Section>
+ <Section title="Table Columns" icon={Layout}>
+ <div className="space-y-2">
+ <ToggleBtn label="Serial No." checked={data.print_show_sno} onChange={v => setData('print_show_sno', v)} />
+ <ToggleBtn label="HSN/SAC Code" checked={data.print_show_hsn} onChange={v => setData('print_show_hsn', v)} />
+ <ToggleBtn label="Product Description" checked={data.print_show_description} onChange={v => setData('print_show_description', v)} />
+ <ToggleBtn label="Units/Qty" checked={data.print_show_units} onChange={v => setData('print_show_units', v)} />
+ <ToggleBtn label="MRP Column" checked={data.print_show_mrp} onChange={v => setData('print_show_mrp', v)} />
+ <ToggleBtn label="Discount Column" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} />
+ <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} />
+ <ToggleBtn label="Show Batch Codes" checked={data.thermal_show_batch} onChange={v => setData('thermal_show_batch', v)} />
+ <ToggleBtn label="Show Expiry Dates" checked={data.thermal_show_expiry} onChange={v => setData('thermal_show_expiry', v)} />
+ <ToggleBtn label="Tax Breakdown" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} />
+ <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} />
+ </div>
+ </Section>
 
-        <Section title="Totals & Footer" icon={AlignLeft}>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-                <ToggleBtn label="Total Qty" checked={data.print_total_quantity} onChange={v => setData('print_total_quantity', v)} />
-                <ToggleBtn label="Decimal Amounts" checked={data.print_amount_decimal} onChange={v => setData('print_amount_decimal', v)} />
-                <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} />
-                <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} />
-                <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} />
-                <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} />
-                <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} />
-                <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} />
-                <ToggleBtn label="Party Balance" checked={data.print_party_balance} onChange={v => setData('print_party_balance', v)} />
-                <ToggleBtn label="Amount Grouping" checked={data.print_amount_grouping} onChange={v => setData('print_amount_grouping', v)} />
-                <ToggleBtn label="Received By" checked={data.print_received_by} onChange={v => setData('print_received_by', v)} />
-                <ToggleBtn label="Delivered By" checked={data.print_delivered_by} onChange={v => setData('print_delivered_by', v)} />
-                <ToggleBtn label="Acknowledgement" checked={data.print_acknowledgement} onChange={v => setData('print_acknowledgement', v)} />
-                <ToggleBtn label="Print Description" checked={data.print_description} onChange={v => setData('print_description', v)} />
-            </div>
+ <Section title="Totals & Footer" icon={AlignLeft}>
+ <div className="grid grid-cols-2 gap-2 mb-4">
+ <ToggleBtn label="Total Qty" checked={data.print_total_quantity} onChange={v => setData('print_total_quantity', v)} />
+ <ToggleBtn label="Decimal Amounts" checked={data.print_amount_decimal} onChange={v => setData('print_amount_decimal', v)} />
+ <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} />
+ <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} />
+ <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} />
+ <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} />
+ <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} />
+ <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} />
+ <ToggleBtn label="Party Balance" checked={data.print_party_balance} onChange={v => setData('print_party_balance', v)} />
+ <ToggleBtn label="Amount Grouping" checked={data.print_amount_grouping} onChange={v => setData('print_amount_grouping', v)} />
+ <ToggleBtn label="Received By" checked={data.print_received_by} onChange={v => setData('print_received_by', v)} />
+ <ToggleBtn label="Delivered By" checked={data.print_delivered_by} onChange={v => setData('print_delivered_by', v)} />
+ <ToggleBtn label="Acknowledgement" checked={data.print_acknowledgement} onChange={v => setData('print_acknowledgement', v)} />
+ <ToggleBtn label="Print Description" checked={data.print_description} onChange={v => setData('print_description', v)} />
+ </div>
 
-            <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
-                options={[{ v: '0', l: 'None' }, { v: '1', l: 'English' }, { v: '2', l: 'Indian Format' }]} />
+ <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
+ options={[{ v: '0', l: 'None' }, { v: '1', l: 'English' }, { v: '2', l: 'Indian Format' }]} />
 
-            <div className="space-y-4 mt-4">
-                <TextInput label="Terms & Conditions (Bottom)" value={data.print_terms} onChange={v => setData('print_terms', v)} placeholder="E.g. No returns..." />
-                <TextInput label="Custom Footer Message" value={data.thermal_custom_footer} onChange={v => setData('thermal_custom_footer', v)} placeholder="E.g. Follow us on Instagram!" />
-                <TextInput label="Signature Text" value={data.print_signature_text} onChange={v => setData('print_signature_text', v)} />
-            </div>
-        </Section>
-    </>
+ <div className="space-y-4 mt-4">
+ <TextInput label="Terms & Conditions (Bottom)" value={data.print_terms} onChange={v => setData('print_terms', v)} placeholder="E.g. No returns..." />
+ <TextInput label="Custom Footer Message" value={data.thermal_custom_footer} onChange={v => setData('thermal_custom_footer', v)} placeholder="E.g. Follow us on Instagram!" />
+ <TextInput label="Signature Text" value={data.print_signature_text} onChange={v => setData('print_signature_text', v)} />
+ </div>
+ </Section>
+ </>
 );
 
 const ThermalSettings = ({ data, setData }) => (
-    <>
-        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30 mb-6">
-            <Toggle
-                label="Set as Default Printer"
-                checked={data.default_print_type === 'thermal'}
-                onChange={v => setData('default_print_type', v ? 'thermal' : 'regular')}
-                color="emerald"
-            />
-        </div>
+ <>
+ <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30 mb-6">
+ <Toggle
+ label="Set as Default Printer"
+ checked={data.default_print_type === 'thermal'}
+ onChange={v => setData('default_print_type', v ? 'thermal' : 'regular')}
+ color="emerald"
+ />
+ </div>
 
-        <Section title="Paper Format" icon={FileText}>
-            <ButtonGroup
-                label="Roll Width"
-                value={data.thermal_page_size}
-                onChange={v => setData('thermal_page_size', v)}
-                options={[
-                    { value: '2inch', label: '58mm (2")' },
-                    { value: '3inch', label: '80mm (3")' },
-                    { value: '4inch', label: '100mm (4")' },
-                ]}
-                color="emerald"
-            />
+ <Section title="Paper Format" icon={FileText}>
+ <ButtonGroup
+ label="Roll Width"
+ value={data.thermal_page_size}
+ onChange={v => setData('thermal_page_size', v)}
+ options={[
+ { value: '2inch', label: '58mm (2")' },
+ { value: '3inch', label: '80mm (3")' },
+ { value: '4inch', label: '100mm (4")' },
+ ]}
+ color="emerald"
+ />
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
-                <NumberInput label="Margins Top/Bottom" value={data.margin_top} onChange={v => setData('margin_top', v)} />
-                <NumberInput label="Custom Chars (line length)" value={data.thermal_custom_chars} onChange={v => setData('thermal_custom_chars', v)} />
-            </div>
+ <div className="grid grid-cols-2 gap-3 mt-4">
+ <NumberInput label="Margins Top/Bottom" value={data.margin_top} onChange={v => setData('margin_top', v)} />
+ <NumberInput label="Custom Chars (line length)" value={data.thermal_custom_chars} onChange={v => setData('thermal_custom_chars', v)} />
+ </div>
 
-            <div className="mt-4">
-                <Label>Margins (mm)</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                    <NumberInput label="Left" value={data.margin_left} onChange={v => setData('margin_left', v)} />
-                    <NumberInput label="Right" value={data.margin_right} onChange={v => setData('margin_right', v)} />
-                </div>
-            </div>
+ <div className="mt-4">
+ <Label>Margins (mm)</Label>
+ <div className="grid grid-cols-2 gap-2 mt-1">
+ <NumberInput label="Left" value={data.margin_left} onChange={v => setData('margin_left', v)} />
+ <NumberInput label="Right" value={data.margin_right} onChange={v => setData('margin_right', v)} />
+ </div>
+ </div>
 
-            <div className="mt-4">
-                <Label>Font Size Scale</Label>
-                <input
-                    type="range" min="10" max="22" step="1"
-                    value={data.thermal_font_size || 12}
-                    onChange={e => setData('thermal_font_size', parseInt(e.target.value))}
-                    className="w-full h-2 bg-sunken rounded-lg appearance-none cursor-pointer accent-emerald-500 mt-2"
-                />
-                <div className="flex justify-between text-xs text-ink-muted mt-1">
-                    <span>Compact</span>
-                    <span className="font-bold text-emerald-600">{data.thermal_font_size}pt</span>
-                    <span>Large</span>
-                </div>
-            </div>
-        </Section>
+ <div className="mt-4">
+ <Label>Font Size Scale</Label>
+ <input
+ type="range" min="10" max="22" step="1"
+ value={data.thermal_font_size || 12}
+ onChange={e => setData('thermal_font_size', parseInt(e.target.value))}
+ className="w-full h-2 bg-sunken rounded-lg appearance-none cursor-pointer accent-emerald-500 mt-2"
+ />
+ <div className="flex justify-between text-xs text-ink-muted mt-1">
+ <span>Compact</span>
+ <span className="font-bold text-emerald-600">{data.thermal_font_size}pt</span>
+ <span>Large</span>
+ </div>
+ </div>
+ </Section>
 
-        <Section title="Receipt Style" icon={Palette}>
-            <Label>Theme Template</Label>
-            <select
-                value={data.print_theme}
-                onChange={e => setData('print_theme', e.target.value)}
-                className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
-            >
-                <option value="modern">Modern Receipt</option>
-                <option value="classic">Classic Typewriter</option>
-                <option value="bold">Bold Boxed</option>
-            </select>
+ <Section title="Receipt Style" icon={Palette}>
+ <Label>Theme Template</Label>
+ <select
+ value={data.print_theme}
+ onChange={e => setData('print_theme', e.target.value)}
+ className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
+ >
+ <option value="modern">Modern Receipt</option>
+ <option value="classic">Classic Typewriter</option>
+ <option value="bold">Bold Boxed</option>
+ </select>
 
-            <div className="mt-4">
-                <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} color="emerald" />
-                <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} color="emerald" />
-                {data.print_logo && <LogoUploader data={data} setData={setData} />}
-            </div>
+ <div className="mt-4">
+ <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} color="emerald" />
+ <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} color="emerald" />
+ {data.print_logo && <LogoUploader data={data} setData={setData} />}
+ </div>
 
-            <div className="mt-4 space-y-2">
-                <ToggleBtn label="Bold Text Mode" checked={data.thermal_use_bold} onChange={v => setData('thermal_use_bold', v)} color="emerald" />
-                <ToggleBtn label="Show Batch Codes" checked={data.thermal_show_batch} onChange={v => setData('thermal_show_batch', v)} color="emerald" />
-                <ToggleBtn label="Show Expiry Dates" checked={data.thermal_show_expiry} onChange={v => setData('thermal_show_expiry', v)} color="emerald" />
-            </div>
-        </Section>
+ <div className="mt-4 space-y-2">
+ <ToggleBtn label="Bold Text Mode" checked={data.thermal_use_bold} onChange={v => setData('thermal_use_bold', v)} color="emerald" />
+ <ToggleBtn label="Show Batch Codes" checked={data.thermal_show_batch} onChange={v => setData('thermal_show_batch', v)} color="emerald" />
+ <ToggleBtn label="Show Expiry Dates" checked={data.thermal_show_expiry} onChange={v => setData('thermal_show_expiry', v)} color="emerald" />
+ </div>
+ </Section>
 
-        <Section title="Columns & Content" icon={Layout}>
-            <div className="space-y-2">
-                <ToggleBtn label="Label Headers" checked={data.thermal_show_headers} onChange={v => setData('thermal_show_headers', v)} color="emerald" />
-                <ToggleBtn label="Show Serial No." checked={data.thermal_show_sno} onChange={v => setData('thermal_show_sno', v)} color="emerald" />
-                <ToggleBtn label="Show Units" checked={data.thermal_show_units} onChange={v => setData('thermal_show_units', v)} color="emerald" />
-                <ToggleBtn label="Item Description" checked={data.thermal_show_description} onChange={v => setData('thermal_show_description', v)} color="emerald" />
-                <ToggleBtn label="MRP Prices" checked={data.thermal_show_mrp} onChange={v => setData('thermal_show_mrp', v)} color="emerald" />
-                <ToggleBtn label="Discounts (%)" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} color="emerald" />
-                <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} color="emerald" />
-                <ToggleBtn label="Tax Details" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} color="emerald" />
-                <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} color="emerald" />
-                <ToggleBtn label="Show MFG Date" checked={data.thermal_show_mfg_date} onChange={v => setData('thermal_show_mfg_date', v)} color="emerald" />
-                <ToggleBtn label="Show Size" checked={data.thermal_show_size} onChange={v => setData('thermal_show_size', v)} color="emerald" />
-                <ToggleBtn label="Show Model" checked={data.thermal_show_model} onChange={v => setData('thermal_show_model', v)} color="emerald" />
-                <ToggleBtn label="Show Serial (product)" checked={data.thermal_show_serial} onChange={v => setData('thermal_show_serial', v)} color="emerald" />
-            </div>
-        </Section>
+ <Section title="Columns & Content" icon={Layout}>
+ <div className="space-y-2">
+ <ToggleBtn label="Label Headers" checked={data.thermal_show_headers} onChange={v => setData('thermal_show_headers', v)} color="emerald" />
+ <ToggleBtn label="Show Serial No." checked={data.thermal_show_sno} onChange={v => setData('thermal_show_sno', v)} color="emerald" />
+ <ToggleBtn label="Show Units" checked={data.thermal_show_units} onChange={v => setData('thermal_show_units', v)} color="emerald" />
+ <ToggleBtn label="Item Description" checked={data.thermal_show_description} onChange={v => setData('thermal_show_description', v)} color="emerald" />
+ <ToggleBtn label="MRP Prices" checked={data.thermal_show_mrp} onChange={v => setData('thermal_show_mrp', v)} color="emerald" />
+ <ToggleBtn label="Discounts (%)" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} color="emerald" />
+ <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} color="emerald" />
+ <ToggleBtn label="Tax Details" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} color="emerald" />
+ <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} color="emerald" />
+ <ToggleBtn label="Show MFG Date" checked={data.thermal_show_mfg_date} onChange={v => setData('thermal_show_mfg_date', v)} color="emerald" />
+ <ToggleBtn label="Show Size" checked={data.thermal_show_size} onChange={v => setData('thermal_show_size', v)} color="emerald" />
+ <ToggleBtn label="Show Model" checked={data.thermal_show_model} onChange={v => setData('thermal_show_model', v)} color="emerald" />
+ <ToggleBtn label="Show Serial (product)" checked={data.thermal_show_serial} onChange={v => setData('thermal_show_serial', v)} color="emerald" />
+ </div>
+ </Section>
 
-        <Section title="Totals & Footer" icon={AlignLeft}>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-                <ToggleBtn label="Total Qty" checked={data.print_total_quantity} onChange={v => setData('print_total_quantity', v)} color="emerald" />
-                <ToggleBtn label="Decimal Amounts" checked={data.print_amount_decimal} onChange={v => setData('print_amount_decimal', v)} color="emerald" />
-                <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} color="emerald" />
-                <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} color="emerald" />
-                <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} color="emerald" />
-                <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} color="emerald" />
-                <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} color="emerald" />
-                <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} color="emerald" />
-            </div>
+ <Section title="Totals & Footer" icon={AlignLeft}>
+ <div className="grid grid-cols-2 gap-2 mb-4">
+ <ToggleBtn label="Total Qty" checked={data.print_total_quantity} onChange={v => setData('print_total_quantity', v)} color="emerald" />
+ <ToggleBtn label="Decimal Amounts" checked={data.print_amount_decimal} onChange={v => setData('print_amount_decimal', v)} color="emerald" />
+ <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} color="emerald" />
+ <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} color="emerald" />
+ <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} color="emerald" />
+ <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} color="emerald" />
+ <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} color="emerald" />
+ <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} color="emerald" />
+ </div>
 
-            <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
-                options={[{ v: '0', l: 'None' }, { v: '1', l: 'English' }, { v: '2', l: 'Indian Format' }]} />
+ <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
+ options={[{ v: '0', l: 'None' }, { v: '1', l: 'English' }, { v: '2', l: 'Indian Format' }]} />
 
-            <div className="space-y-4 mt-4">
-                <TextInput label="Terms & Conditions (Bottom)" value={data.print_terms} onChange={v => setData('print_terms', v)} placeholder="E.g. No returns..." />
+ <div className="space-y-4 mt-4">
+ <TextInput label="Terms & Conditions (Bottom)" value={data.print_terms} onChange={v => setData('print_terms', v)} placeholder="E.g. No returns..." />
 
-                <TextInput label="Custom Footer Message" value={data.thermal_custom_footer} onChange={v => setData('thermal_custom_footer', v)} placeholder="E.g. Follow us on Instagram!" />
+ <TextInput label="Custom Footer Message" value={data.thermal_custom_footer} onChange={v => setData('thermal_custom_footer', v)} placeholder="E.g. Follow us on Instagram!" />
 
-                <TextInput label="Signature Text" value={data.print_signature_text} onChange={v => setData('print_signature_text', v)} />
-            </div>
-        </Section>
+ <TextInput label="Signature Text" value={data.print_signature_text} onChange={v => setData('print_signature_text', v)} />
+ </div>
+ </Section>
 
-        <Section title="Hardware Actions" icon={Settings}>
-            <Toggle label="Auto Cut Paper" checked={data.thermal_auto_cut} onChange={v => setData('thermal_auto_cut', v)} color="emerald" />
-            <Toggle label="Open Cash Drawer" checked={data.thermal_open_drawer} onChange={v => setData('thermal_open_drawer', v)} color="emerald" />
+ <Section title="Hardware Actions" icon={Settings}>
+ <Toggle label="Auto Cut Paper" checked={data.thermal_auto_cut} onChange={v => setData('thermal_auto_cut', v)} color="emerald" />
+ <Toggle label="Open Cash Drawer" checked={data.thermal_open_drawer} onChange={v => setData('thermal_open_drawer', v)} color="emerald" />
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
-                <NumberInput label="Extra Feed (Lines)" value={data.thermal_extra_lines} onChange={v => setData('thermal_extra_lines', v)} />
-                <NumberInput label="Copies to Print" value={data.thermal_copies} onChange={v => setData('thermal_copies', v)} />
-            </div>
-        </Section>
-    </>
+ <div className="grid grid-cols-2 gap-3 mt-4">
+ <NumberInput label="Extra Feed (Lines)" value={data.thermal_extra_lines} onChange={v => setData('thermal_extra_lines', v)} />
+ <NumberInput label="Copies to Print" value={data.thermal_copies} onChange={v => setData('thermal_copies', v)} />
+ </div>
+ </Section>
+ </>
 );
 
 // ----------------------------------------------------------------------
@@ -608,210 +608,210 @@ const ThermalSettings = ({ data, setData }) => (
 // ----------------------------------------------------------------------
 
 const Section = ({ title, icon: Icon, children }) => (
-    <div className="space-y-3">
-        <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted border-b border-line pb-2">
-            <Icon size={14} /> {title}
-        </h3>
-        <div className="px-1">{children}</div>
-    </div>
+ <div className="space-y-3">
+ <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted border-b border-line pb-2">
+ <Icon size={14} /> {title}
+ </h3>
+ <div className="px-1">{children}</div>
+ </div>
 );
 
 const Label = ({ children }) => (
-    <div className="text-2xs font-bold text-ink-muted uppercase tracking-wide mb-1.5">{children}</div>
+ <div className="text-2xs font-bold text-ink-muted uppercase tracking-wide mb-1.5">{children}</div>
 );
 
 const ButtonGroup = ({ label, value, onChange, options, color = 'indigo' }) => (
-    <div>
-        <Label>{label}</Label>
-        <div className="flex flex-wrap gap-1">
-            {options.map((opt) => (
-                <button
-                    type="button"
-                    key={opt.value}
-                    onClick={() => onChange(opt.value)}
-                    className={`flex-1 min-w-[60px] py-2 px-1 text-xs font-bold rounded-lg border transition-all ${value === opt.value
-                        ? color === 'emerald'
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                            : 'bg-brand-600 text-white border-brand-600 shadow-sm'
-                        : 'bg-sunken border-line dark:border-line text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
-                        }`}
-                >
-                    {opt.label}
-                </button>
-            ))}
-        </div>
-    </div>
+ <div>
+ <Label>{label}</Label>
+ <div className="flex flex-wrap gap-1">
+ {options.map((opt) => (
+ <button
+ type="button"
+ key={opt.value}
+ onClick={() => onChange(opt.value)}
+ className={`flex-1 min-w-[60px] py-2 px-1 text-xs font-bold rounded-lg border transition-all ${value === opt.value
+ ? color === 'emerald'
+ ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+ : 'bg-brand-600 text-white border-brand-600 shadow-sm'
+ : 'bg-sunken border-line dark:border-line text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
+ }`}
+ >
+ {opt.label}
+ </button>
+ ))}
+ </div>
+ </div>
 );
 
 const ToggleBtn = ({ label, checked, onChange, color = 'indigo' }) => (
-    <button
-        type="button"
-        onClick={() => onChange(!checked)}
-        className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${checked
-            ? color === 'emerald'
-                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                : 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
-            : 'bg-surface border-line hover:border-line'
-            }`}
-    >
-        <span className={`text-sm font-bold ${checked ? (color === 'emerald' ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-400') : 'text-ink-secondary'}`}>
-            {label}
-        </span>
-        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${checked
-            ? color === 'emerald' ? 'bg-emerald-500 text-white' : 'bg-brand-500 text-white'
-            : 'bg-sunken text-transparent'
-            }`}>
-            <Check size={12} strokeWidth={4} />
-        </div>
-    </button>
+ <button
+ type="button"
+ onClick={() => onChange(!checked)}
+ className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${checked
+ ? color === 'emerald'
+ ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+ : 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
+ : 'bg-surface border-line hover:border-line'
+ }`}
+ >
+ <span className={`text-sm font-bold ${checked ? (color === 'emerald' ? 'text-emerald-700 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-400') : 'text-ink-secondary'}`}>
+ {label}
+ </span>
+ <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${checked
+ ? color === 'emerald' ? 'bg-emerald-500 text-white' : 'bg-brand-500 text-white'
+ : 'bg-sunken text-transparent'
+ }`}>
+ <Check size={12} strokeWidth={4} />
+ </div>
+ </button>
 );
 
 const Toggle = ({ label, checked, onChange, color = 'indigo' }) => (
-    <div className="flex items-center justify-between py-1">
-        <span className="text-sm font-bold text-ink-secondary">{label}</span>
-        <button
-            type="button"
-            onClick={() => onChange(!checked)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${checked
-                ? color === 'emerald' ? 'bg-emerald-500' : 'bg-brand-500'
-                : 'bg-sunken'
-                }`}
-        >
-            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${checked ? 'left-6' : 'left-1'}`} />
-        </button>
-    </div>
+ <div className="flex items-center justify-between py-1">
+ <span className="text-sm font-bold text-ink-secondary">{label}</span>
+ <button
+ type="button"
+ onClick={() => onChange(!checked)}
+ className={`relative w-11 h-6 rounded-full transition-colors ${checked
+ ? color === 'emerald' ? 'bg-emerald-500' : 'bg-brand-500'
+ : 'bg-sunken'
+ }`}
+ >
+ <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${checked ? 'left-6' : 'left-1'}`} />
+ </button>
+ </div>
 );
 
 const TextInput = ({ label, value, onChange, placeholder }) => (
-    <div>
-        <Label>{label}</Label>
-        <input
-            type="text"
-            value={value || ''}
-            onChange={e => onChange(e.target.value)}
-            placeholder={placeholder}
-            className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink-secondary dark:text-white"
-        />
-    </div>
+ <div>
+ <Label>{label}</Label>
+ <input
+ type="text"
+ value={value || ''}
+ onChange={e => onChange(e.target.value)}
+ placeholder={placeholder}
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink-secondary dark:text-white"
+ />
+ </div>
 );
 
 const NumberInput = ({ label, value, onChange }) => (
-    <div>
-        <Label>{label}</Label>
-        <input
-            type="number"
-            value={value || 0}
-            onChange={e => onChange(parseFloat(e.target.value) || 0)}
-            className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-center"
-        />
-    </div>
+ <div>
+ <Label>{label}</Label>
+ <input
+ type="number"
+ value={value || 0}
+ onChange={e => onChange(parseFloat(e.target.value) || 0)}
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-center"
+ />
+ </div>
 );
 
 const SelectInput = ({ label, value, onChange, options }) => (
-    <div>
-        <Label>{label}</Label>
-        <select
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold"
-        >
-            {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
-        </select>
-    </div>
+ <div>
+ <Label>{label}</Label>
+ <select
+ value={value}
+ onChange={e => onChange(e.target.value)}
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold"
+ >
+ {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+ </select>
+ </div>
 );
 
 // Basic accessible color picker row
 const ColorPicker = ({ label, value, onChange }) => {
-    const colors = [
-        { c: vq.slate[900], n: 'Black' },
-        { c: vq.indigo[600], n: 'Indigo' },
-        { c: vq.blue[600], n: 'Blue' },
-        { c: vq.cyan[600], n: 'Cyan' },
-        { c: vq.emerald[600], n: 'Emerald' },
-        { c: vq.red[600], n: 'Red' },
-        { c: vq.amber[600], n: 'Amber' },
-        { c: vq.violet[600], n: 'Violet' },
-        { c: vq.pink[600], n: 'Pink' },
-        { c: vq.stone[600], n: 'Stone' },
-    ];
+ const colors = [
+ { c: vq.slate[900], n: 'Black' },
+ { c: vq.indigo[600], n: 'Indigo' },
+ { c: vq.blue[600], n: 'Blue' },
+ { c: vq.cyan[600], n: 'Cyan' },
+ { c: vq.emerald[600], n: 'Emerald' },
+ { c: vq.red[600], n: 'Red' },
+ { c: vq.amber[600], n: 'Amber' },
+ { c: vq.violet[600], n: 'Violet' },
+ { c: vq.pink[600], n: 'Pink' },
+ { c: vq.stone[600], n: 'Stone' },
+ ];
 
-    return (
-        <div>
-            <Label>{label}</Label>
-            <div className="flex flex-wrap gap-2">
-                {colors.map((col) => (
-                    <button
-                        key={col.c}
-                        onClick={() => onChange(col.c)}
-                        type="button"
-                        className={`w-6 h-6 rounded-full border-2 transition-transform ${value === col.c ? 'border-brand-500 ring-1 ring-offset-1 ring-brand-500' : 'border-transparent'}`}
-                        style={{ backgroundColor: col.c }}
-                        title={col.n}
-                    />
-                ))}
-            </div>
-        </div>
-    );
+ return (
+ <div>
+ <Label>{label}</Label>
+ <div className="flex flex-wrap gap-2">
+ {colors.map((col) => (
+ <button
+ key={col.c}
+ onClick={() => onChange(col.c)}
+ type="button"
+ className={`w-6 h-6 rounded-full border-2 transition-transform ${value === col.c ? 'border-brand-500 ring-1 ring-offset-1 ring-brand-500' : 'border-transparent'}`}
+ style={{ backgroundColor: col.c }}
+ title={col.n}
+ />
+ ))}
+ </div>
+ </div>
+ );
 };
 
 const LogoUploader = ({ data, setData }) => (
-    <div className="mt-3 p-3 bg-surface rounded-xl border border-line">
-        <Label>Logo Image</Label>
+ <div className="mt-3 p-3 bg-surface rounded-xl border border-line">
+ <Label>Logo Image</Label>
 
-        <div className="flex items-start gap-4 mt-2">
-            {data.print_logo_path ? (
-                <div className="relative group">
-                    <img
-                        src={data.print_logo_path}
-                        alt="Logo Preview"
-                        className="w-20 h-20 object-contain bg-sunken rounded-lg p-1 border border-line"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setData(d => ({ ...d, print_logo_path: null, print_logo_file: null }));
-                        }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                        title="Remove Logo"
-                    >
-                        <X size={12} />
-                    </button>
-                </div>
-            ) : (
-                <div className="w-20 h-20 bg-sunken rounded-lg border-2 border-dashed border-line dark:border-line flex flex-col items-center justify-center text-ink-muted gap-1">
-                    <ImageIcon size={20} />
-                    <span className="text-3xs font-bold">No Logo</span>
-                </div>
-            )}
+ <div className="flex items-start gap-4 mt-2">
+ {data.print_logo_path ? (
+ <div className="relative group">
+ <img
+ src={data.print_logo_path}
+ alt="Logo Preview"
+ className="w-20 h-20 object-contain bg-sunken rounded-lg p-1 border border-line"
+ />
+ <button
+ type="button"
+ onClick={() => {
+ setData(d => ({ ...d, print_logo_path: null, print_logo_file: null }));
+ }}
+ className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+ title="Remove Logo"
+ >
+ <X size={12} />
+ </button>
+ </div>
+ ) : (
+ <div className="w-20 h-20 bg-sunken rounded-lg border-2 border-dashed border-line dark:border-line flex flex-col items-center justify-center text-ink-muted gap-1">
+ <ImageIcon size={20} />
+ <span className="text-3xs font-bold">No Logo</span>
+ </div>
+ )}
 
-            <div className="flex-1">
-                <input
-                    type="file"
-                    id="logo-upload"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            setData(d => ({
-                                ...d,
-                                print_logo_file: file,
-                                print_logo_path: URL.createObjectURL(file)
-                            }));
-                        }
-                    }}
-                />
-                <label
-                    htmlFor="logo-upload"
-                    className="inline-flex items-center gap-2 px-3 py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-bold cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
-                >
-                    <Upload size={14} />
-                    {data.print_logo_path ? 'Change Logo' : 'Upload Logo'}
-                </label>
-                <p className="text-2xs text-ink-muted mt-2 leading-tight">
-                    Recommended: PNG with transparent background. Max 2MB.
-                </p>
-            </div>
-        </div>
-    </div>
+ <div className="flex-1">
+ <input
+ type="file"
+ id="logo-upload"
+ accept="image/*"
+ className="hidden"
+ onChange={(e) => {
+ const file = e.target.files[0];
+ if (file) {
+ setData(d => ({
+ ...d,
+ print_logo_file: file,
+ print_logo_path: URL.createObjectURL(file)
+ }));
+ }
+ }}
+ />
+ <label
+ htmlFor="logo-upload"
+ className="inline-flex items-center gap-2 px-3 py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-bold cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
+ >
+ <Upload size={14} />
+ {data.print_logo_path ? 'Change Logo' : 'Upload Logo'}
+ </label>
+ <p className="text-2xs text-ink-muted mt-2 leading-tight">
+ Recommended: PNG with transparent background. Max 2MB.
+ </p>
+ </div>
+ </div>
+ </div>
 );

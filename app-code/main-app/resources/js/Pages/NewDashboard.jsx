@@ -2,10 +2,34 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import './NewDashboard.css';
 
+/* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
+   lucide icon NAMES — the same contract QoreShell consumes. */
+import {
+  ArrowLeftRight, BadgeCheck, BarChart3, Barcode, BookOpen, BookText, BookUser,
+  Building2, CalendarClock, Circle, ClipboardCheck, ClipboardList, Coins, Factory,
+  FileInput, FileMinus, FileSignature, FileText, GitCompare, Globe, Landmark,
+  Layers, Package, Receipt, RefreshCcw, Repeat, ScanLine, ShoppingBag,
+  ShoppingCart, Sparkles, Truck, Users, Utensils, Wallet,
+} from 'lucide-react';
+
+const NAV_ICONS = {
+  ArrowLeftRight, BadgeCheck, BarChart3, Barcode, BookOpen, BookText, BookUser,
+  Building2, CalendarClock, ClipboardCheck, ClipboardList, Coins, Factory,
+  FileInput, FileMinus, FileSignature, FileText, GitCompare, Globe, Landmark,
+  Layers, Package, Receipt, RefreshCcw, Repeat, ScanLine, ShoppingBag,
+  ShoppingCart, Sparkles, Truck, Users, Utensils, Wallet,
+};
+const NavIcon = ({ name, size = 18 }) => {
+  const Cmp = NAV_ICONS[name] || Circle;
+  return <Cmp size={size} strokeWidth={1.9} aria-hidden="true" />;
+};
+/** Group letters (config/modules.php) → the section word the sidebar shows —
+    identical to QoreShell so the two shells can never disagree. */
+const NAV_GROUP_LABELS = { A:'Catalog', B:'Sell', C:'Stock', D:'Buy', E:'Make', F:'Money', G:'Grow' };
+const NAV_GROUP_ORDER = ['A','B','C','D','E','F','G'];
+
 // React Bits Components
-import Folder from '@/Components/ReactBits/Folder';
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
-import Stepper from '@/Components/ReactBits/Stepper';
 
 function runCardBuilder(opts) {
   /* Inertia remounts this page on every client-side navigation back to it. The
@@ -13,12 +37,228 @@ function runCardBuilder(opts) {
      every pointerup and leak a listener per visit. Re-boot the board instead. */
   if (typeof window !== "undefined" && window.VenQoreCards && window.__vqCardEngine){
     window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
+    window.VenQoreCards.setEnabledModules(opts && opts.modules);
     window.VenQoreCards.boot();
     return;
   }
   if (typeof window !== "undefined") window.__vqCardEngine = true;
 
 const READINGS = [{"key":"accounting.assets","label":"Assets","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Assets","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.liabilities","label":"Liabilities","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Liabilities","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.income_ytd","label":"Income (YTD)","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Income (YTD)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"accounting.expense_ytd","label":"Expense (YTD)","shape":"SCALAR","unit":"currency","area":"Finance","module":"Accounting","short":"Expense (YTD)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.total_balance","label":"Total Balance","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Total Balance","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.cash_on_hand","label":"Cash on Hand","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Cash on Hand","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.money_in_today","label":"Money In (Today)","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Money In (Today)","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_accounts.money_out_today","label":"Money Out (Today)","shape":"SCALAR","unit":"currency","area":"Finance","module":"BankAccounts","short":"Money Out (Today","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.total_txns","label":"Total Txns","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Total Txns","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.matched","label":"Matched","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Matched","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"bank_reconciliation.unmatched","label":"Unmatched","shape":"SCALAR","unit":"count","area":"Finance","module":"BankReconciliation","short":"Unmatched","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"batch_tracking.total_batches","label":"Total Batches","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Total Batches","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.expiring_soon","label":"Expiring Soon","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Expiring Soon","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.expired","label":"Expired","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Expired","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"batch_tracking.total_qty","label":"Total Qty","shape":"SCALAR","unit":"count","area":"Inventory","module":"BatchTracking","short":"Total Qty","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"debit_notes.total_notes","label":"Total Notes","shape":"SCALAR","unit":"count","area":"Purchasing","module":"DebitNotes","short":"Total Notes","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.spend","label":"Total Value","shape":"SCALAR","unit":"currency","area":"Purchasing","module":"DebitNotes","short":"Total Value","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"debit_notes.open_credits","label":"Open Credits","shape":"SCALAR","unit":"currency","area":"Purchasing","module":"DebitNotes","short":"Open Credits","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"finance.expenses_total","label":"Today's Expenses","shape":"SCALAR","unit":"currency","area":"Finance","module":"Expenses","short":"Today's Expenses","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.payables","label":"Total Payable","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Total Payable","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"party.supplier_count","label":"Active Creditors","shape":"SCALAR","unit":"count","area":"Finance","module":"Finance","short":"Active Creditors","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.avg_balance","label":"Avg Balance","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Avg Balance","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.receivables","label":"Total Receivable","shape":"SCALAR","unit":"currency","area":"Finance","module":"Finance","short":"Total Receivable","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"party.customer_count","label":"Active Debtors","shape":"SCALAR","unit":"count","area":"Finance","module":"Finance","short":"Active Debtors","extra":false,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"inventory.total_categories","label":"Total Categories","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Total Categories","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.main_categories","label":"Main Categories","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Main Categories","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.products_linked","label":"Products Linked","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Products Linked","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.product_count","label":"Total Products","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Total Products","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.low_stock_count","label":"Low Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Low Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.stock_value","label":"Inventory Value","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Inventory","short":"Inventory Value","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"production.run_count","label":"Active Runs","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Active Runs","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.completed_today","label":"Completed Today","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Completed Today","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"production.total_cost","label":"Cost (Month)","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Inventory","short":"Cost (Month)","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.out_of_stock_count","label":"Out of Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"Inventory","short":"Out of Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"pre_sales.total_quotes","label":"Total Quotes","shape":"SCALAR","unit":"count","area":"Sales","module":"PreSales","short":"Total Quotes","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"pre_sales.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"PreSales","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.total_proposals","label":"Total Proposals","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Total Proposals","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.accepted","label":"Accepted","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Accepted","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"proposals.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"Proposals","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"purchasing.count","label":"Total Orders","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Total Orders","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchase_orders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Pending","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchase_orders.received","label":"Received","shape":"SCALAR","unit":"count","area":"Purchasing","module":"PurchaseOrders","short":"Received","extra":false,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"recurring_invoices.total","label":"Total","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Total","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.active","label":"Active","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Active","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.paused","label":"Paused","shape":"SCALAR","unit":"count","area":"Sales","module":"RecurringInvoices","short":"Paused","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"recurring_invoices.monthly_revenue","label":"Monthly Revenue","shape":"SCALAR","unit":"currency","area":"Sales","module":"RecurringInvoices","short":"Monthly Revenue","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.total_scheduled","label":"Total Scheduled","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Total Scheduled","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.sent","label":"Sent","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Sent","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"reminders.overdue","label":"Overdue","shape":"SCALAR","unit":"count","area":"Sales","module":"Reminders","short":"Overdue","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.total_returns","label":"Total Returns","shape":"SCALAR","unit":"count","area":"Sales","module":"Returns","short":"Total Returns","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.items_returned","label":"Items Returned","shape":"SCALAR","unit":"count","area":"Sales","module":"Returns","short":"Items Returned","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"returns.total_refunded","label":"Total Refunded","shape":"SCALAR","unit":"currency","area":"Sales","module":"Returns","short":"Total Refunded","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.revenue","label":"Total Sale","shape":"SCALAR","unit":"currency","area":"Sales","module":"Sales","short":"Total Sale","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales_orders.confirmed","label":"Confirmed","shape":"SCALAR","unit":"count","area":"Sales","module":"SalesOrders","short":"Confirmed","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales_orders.pending","label":"Pending","shape":"SCALAR","unit":"count","area":"Sales","module":"SalesOrders","short":"Pending","extra":false,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"serial_tracking.total_serials","label":"Total Serials","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Total Serials","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.in_stock","label":"In Stock","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"In Stock","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.sold","label":"Sold","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Sold","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"serial_tracking.returned","label":"Returned","shape":"SCALAR","unit":"count","area":"Inventory","module":"SerialTracking","short":"Returned","extra":false,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"staff.member_count","label":"Total Staff","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Total Staff","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.on_shift_count","label":"Present","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Present","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.absent","label":"Absent","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Absent","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.pending_gaps","label":"Pending Gaps","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Pending Gaps","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff_attendance.hours_today","label":"Hours Today","shape":"SCALAR","unit":"count","area":"Operations","module":"StaffAttendance","short":"Hours Today","extra":false,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"sales.revenue_trend","label":"Revenue trend","shape":"SERIES","unit":"currency","area":"Sales","module":"Extra","short":"Revenue trend","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.payment_breakdown","label":"Payment breakdown","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Payment breakdow","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.top_products","label":"Top products","shape":"RANKING","unit":"currency","area":"Sales","module":"Extra","short":"Top products","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.top_customers","label":"Top customers","shape":"RANKING","unit":"currency","area":"Sales","module":"Extra","short":"Top customers","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.hourly_heatmap","label":"Sales by hour and day","shape":"TABLE","unit":"count","area":"Sales","module":"Extra","short":"Sales by hour an","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.live_feed","label":"Live sales feed","shape":"FEED","unit":"currency","area":"Sales","module":"Extra","short":"Live sales feed","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.avg_order_value","label":"Average order value","shape":"SCALAR","unit":"currency","area":"Sales","module":"Extra","short":"Average order va","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.basket_size","label":"Average basket size","shape":"SCALAR","unit":"count","area":"Sales","module":"Extra","short":"Average basket s","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.discount_given","label":"Discount given","shape":"SCALAR","unit":"currency","area":"Sales","module":"Extra","short":"Discount given","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.return_rate","label":"Return rate","shape":"SCALAR","unit":"percent","area":"Sales","module":"Extra","short":"Return rate","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.conversion_funnel","label":"Sales funnel","shape":"RANKING","unit":"count","area":"Sales","module":"Extra","short":"Sales funnel","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.channel_split","label":"Sales by channel","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Sales by channel","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"sales.region_split","label":"Sales by region","shape":"BREAKDOWN","unit":"currency","area":"Sales","module":"Extra","short":"Sales by region","extra":true,"rowNames":["Rana Traders","Bilal Pharmacy","Zoya Retail","Ahmad Stores","Noor Kiryana","Sana Mart"],"sliceNames":["Cash","Card","Credit","Bank","Wallet"]},{"key":"finance.profit_trend","label":"Profit trend","shape":"SERIES","unit":"currency","area":"Finance","module":"Extra","short":"Profit trend","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.cash_flow_trend","label":"Cash in vs out","shape":"MULTI_SERIES","unit":"currency","area":"Finance","module":"Extra","short":"Cash in vs out","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.expenses_by_category","label":"Expenses by category","shape":"BREAKDOWN","unit":"currency","area":"Finance","module":"Extra","short":"Expenses by cate","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.receivables_aging","label":"Receivables ageing","shape":"BREAKDOWN","unit":"currency","area":"Finance","module":"Extra","short":"Receivables agei","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.balance_sheet_ok","label":"Books balanced","shape":"STATUS","unit":"count","area":"Finance","module":"Extra","short":"Books balanced","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.cash_runway","label":"Cash runway","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Cash runway","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.dso","label":"Days sales outstanding","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Days sales outst","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.dpo","label":"Days payable outstanding","shape":"SCALAR","unit":"count","area":"Finance","module":"Extra","short":"Days payable out","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.quick_ratio","label":"Quick ratio","shape":"SCALAR","unit":"percent","area":"Finance","module":"Extra","short":"Quick ratio","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.expense_ratio","label":"Expense ratio","shape":"SCALAR","unit":"percent","area":"Finance","module":"Extra","short":"Expense ratio","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"finance.tax_liability","label":"Tax liability","shape":"SCALAR","unit":"currency","area":"Finance","module":"Extra","short":"Tax liability","extra":true,"rowNames":["Rent","Salaries","Utilities","Transport","Marketing","Other"],"sliceNames":["Rent","Salaries","Utilities","Transport","Other"]},{"key":"inventory.low_stock_list","label":"Low stock list","shape":"TABLE","unit":"count","area":"Inventory","module":"Extra","short":"Low stock list","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.turnover","label":"Inventory turnover","shape":"SCALAR","unit":"percent","area":"Inventory","module":"Extra","short":"Inventory turnov","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.days_of_cover","label":"Days of cover","shape":"SCALAR","unit":"count","area":"Inventory","module":"Extra","short":"Days of cover","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.sell_through","label":"Sell-through rate","shape":"SCALAR","unit":"percent","area":"Inventory","module":"Extra","short":"Sell-through rat","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.dead_stock_value","label":"Dead stock value","shape":"SCALAR","unit":"currency","area":"Inventory","module":"Extra","short":"Dead stock value","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.value_trend","label":"Stock value trend","shape":"SERIES","unit":"currency","area":"Inventory","module":"Extra","short":"Stock value tren","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.by_warehouse","label":"Stock by warehouse","shape":"BREAKDOWN","unit":"currency","area":"Inventory","module":"Extra","short":"Stock by warehou","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"inventory.expiry_window","label":"Expiring in 30 days","shape":"RANKING","unit":"count","area":"Inventory","module":"Extra","short":"Expiring in 30 d","extra":true,"rowNames":["Basmati 5kg","Cumfrey 500g","BMC Tonic 200ml","Vitamix 40g","Surf Excel 1kg","Tapal Danedar"],"sliceNames":["Main store","Warehouse A","Warehouse B","In transit"]},{"key":"purchasing.spend_trend","label":"Purchase spend trend","shape":"SERIES","unit":"currency","area":"Purchasing","module":"Extra","short":"Purchase spend t","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.by_supplier","label":"Spend by supplier","shape":"BREAKDOWN","unit":"currency","area":"Purchasing","module":"Extra","short":"Spend by supplie","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.supplier_concentration","label":"Supplier concentration","shape":"SCALAR","unit":"percent","area":"Purchasing","module":"Extra","short":"Supplier concent","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.lead_time","label":"Average lead time","shape":"SCALAR","unit":"count","area":"Purchasing","module":"Extra","short":"Average lead tim","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"purchasing.on_time_rate","label":"On-time delivery","shape":"SCALAR","unit":"percent","area":"Purchasing","module":"Extra","short":"On-time delivery","extra":true,"rowNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],"sliceNames":["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"]},{"key":"operations.plan_usage","label":"Plan usage","shape":"GAUGE","unit":"percent","area":"Operations","module":"Extra","short":"Plan usage","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.sales_per_head","label":"Sales per staff member","shape":"SCALAR","unit":"currency","area":"Operations","module":"Extra","short":"Sales per staff ","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"staff.attendance_rate","label":"Attendance rate","shape":"SCALAR","unit":"percent","area":"Operations","module":"Extra","short":"Attendance rate","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"operations.open_tickets","label":"Open tickets","shape":"SCALAR","unit":"count","area":"Operations","module":"Extra","short":"Open tickets","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"party.new_vs_returning","label":"New vs returning","shape":"BREAKDOWN","unit":"count","area":"Operations","module":"Extra","short":"New vs returning","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]},{"key":"party.retention_rate","label":"Customer retention","shape":"SCALAR","unit":"percent","area":"Operations","module":"Extra","short":"Customer retenti","extra":true,"rowNames":["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],"sliceNames":["New","Returning","Dormant"]}];
+/* ══ human copy ════════════════════════════════════════════════════════════
+   Every reading carries a plain-language description. The wizard shows ONLY
+   the name and this sentence — never the backend key, never the shape, never
+   the module. Descriptions are written per key; anything unlisted falls back
+   to a sentence built from what the reading is.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+const READING_DESC = {
+  "accounting.assets": "Everything the business owns — stock, cash, equipment and receivables combined.",
+  "accounting.liabilities": "Everything the business owes — supplier dues, loans and unpaid bills combined.",
+  "accounting.income_ytd": "All income recorded since the start of this year.",
+  "accounting.expense_ytd": "All expenses recorded since the start of this year.",
+  "bank_accounts.total_balance": "The combined balance across all your bank accounts.",
+  "bank_accounts.cash_on_hand": "Cash currently in the drawer and safe.",
+  "bank_accounts.money_in_today": "Money received into your accounts today.",
+  "bank_accounts.money_out_today": "Money paid out of your accounts today.",
+  "bank_reconciliation.total_txns": "Bank transactions imported and waiting to be checked.",
+  "bank_reconciliation.matched": "Bank transactions matched to your books.",
+  "bank_reconciliation.unmatched": "Bank transactions that still need matching.",
+  "batch_tracking.total_batches": "Product batches currently tracked in stock.",
+  "batch_tracking.expiring_soon": "Batches that reach their expiry date soon.",
+  "batch_tracking.expired": "Batches already past their expiry date.",
+  "batch_tracking.total_qty": "Total quantity held across all tracked batches.",
+  "debit_notes.total_notes": "Debit notes raised against suppliers.",
+  "purchasing.spend": "Total value of purchases in the selected timeframe.",
+  "debit_notes.open_credits": "Supplier credit you can still use against future purchases.",
+  "finance.expenses_total": "Everything spent today, across all expense heads.",
+  "finance.payables": "What you currently owe suppliers and creditors.",
+  "party.supplier_count": "Suppliers you currently owe money to.",
+  "finance.avg_balance": "The average balance across your accounts.",
+  "finance.receivables": "What customers currently owe you.",
+  "party.customer_count": "Customers who currently owe you money.",
+  "inventory.total_categories": "Product categories in your catalogue.",
+  "inventory.main_categories": "Top-level categories in your catalogue.",
+  "inventory.products_linked": "Products linked to your online store.",
+  "inventory.product_count": "Products in your catalogue.",
+  "inventory.low_stock_count": "Products at or below their reorder level.",
+  "inventory.stock_value": "What your current stock is worth at cost.",
+  "production.run_count": "Production runs currently in progress.",
+  "inventory.completed_today": "Production runs finished today.",
+  "production.total_cost": "What production has cost this month.",
+  "inventory.out_of_stock_count": "Products with nothing left on the shelf.",
+  "pre_sales.total_quotes": "Quotations sent to customers.",
+  "pre_sales.pending": "Quotations still waiting on a customer decision.",
+  "proposals.total_proposals": "Proposals sent to customers.",
+  "proposals.accepted": "Proposals the customer said yes to.",
+  "proposals.pending": "Proposals still waiting on a reply.",
+  "purchasing.count": "Purchase orders placed with suppliers.",
+  "purchase_orders.pending": "Purchase orders not yet delivered.",
+  "purchase_orders.received": "Purchase orders delivered and received.",
+  "recurring_invoices.total": "Repeating invoices set up for regular customers.",
+  "recurring_invoices.active": "Repeating invoices currently running.",
+  "recurring_invoices.paused": "Repeating invoices on hold.",
+  "recurring_invoices.monthly_revenue": "What your repeating invoices bring in each month.",
+  "reminders.total_scheduled": "Payment reminders scheduled to go out.",
+  "reminders.pending": "Reminders queued but not yet sent.",
+  "reminders.sent": "Reminders already delivered.",
+  "reminders.overdue": "Invoices past due that need a follow-up.",
+  "returns.total_returns": "Sales returned by customers.",
+  "returns.items_returned": "Individual items customers brought back.",
+  "returns.total_refunded": "Money refunded on returned sales.",
+  "sales.revenue": "Everything you sold in the selected timeframe.",
+  "sales_orders.confirmed": "Customer orders confirmed and in progress.",
+  "sales_orders.pending": "Customer orders waiting for confirmation.",
+  "serial_tracking.total_serials": "Serial-numbered items being tracked.",
+  "serial_tracking.in_stock": "Serialised items currently in stock.",
+  "serial_tracking.sold": "Serialised items sold.",
+  "serial_tracking.returned": "Serialised items returned.",
+  "staff.member_count": "People on your team.",
+  "staff.on_shift_count": "Team members clocked in right now.",
+  "staff_attendance.absent": "Team members not in today.",
+  "staff_attendance.pending_gaps": "Attendance gaps awaiting review.",
+  "staff_attendance.hours_today": "Hours worked by the whole team today.",
+  "sales.revenue_trend": "How your sales move day by day — the classic revenue chart.",
+  "sales.payment_breakdown": "How customers paid — cash, card, credit, bank and wallet.",
+  "sales.top_products": "Your best sellers, ranked by sales value.",
+  "sales.top_customers": "Your biggest customers, ranked by what they bought.",
+  "sales.hourly_heatmap": "Your busiest hours, mapped across the week.",
+  "sales.live_feed": "The latest sales as they happen, newest first.",
+  "sales.avg_order_value": "What the typical sale is worth.",
+  "sales.basket_size": "How many items the typical sale contains.",
+  "sales.discount_given": "Discounts given away in the selected timeframe.",
+  "sales.return_rate": "The share of sales that come back as returns.",
+  "sales.conversion_funnel": "Quotes to orders to paid — where deals drop off.",
+  "sales.channel_split": "Sales split between your counter, online store and phone orders.",
+  "sales.region_split": "Where your sales come from, by area.",
+  "finance.profit_trend": "What's left after costs, tracked over time.",
+  "finance.cash_flow_trend": "Money coming in against money going out.",
+  "finance.expenses_by_category": "Where the money goes — rent, salaries, utilities and more.",
+  "finance.receivables_aging": "Customer dues grouped by how overdue they are.",
+  "finance.balance_sheet_ok": "A quick check that your books balance.",
+  "finance.cash_runway": "How many days your cash lasts at the current burn.",
+  "finance.dso": "How long customers take to pay you, on average.",
+  "finance.dpo": "How long you take to pay suppliers, on average.",
+  "finance.quick_ratio": "Whether liquid assets cover short-term dues.",
+  "finance.expense_ratio": "Expenses as a share of income.",
+  "finance.tax_liability": "Tax collected and owed for the period.",
+  "inventory.low_stock_list": "Every product at or below its reorder level, in one list.",
+  "inventory.turnover": "How fast stock sells through and gets replaced.",
+  "inventory.days_of_cover": "How many days current stock will last.",
+  "inventory.sell_through": "The share of stock received that has already sold.",
+  "inventory.dead_stock_value": "Money tied up in stock that hasn't moved.",
+  "inventory.value_trend": "How your stock value moves over time.",
+  "inventory.by_warehouse": "Where your stock sits, location by location.",
+  "inventory.expiry_window": "Products expiring within the next 30 days.",
+  "purchasing.spend_trend": "Your purchase history — what you bought, over time.",
+  "purchasing.by_supplier": "Which suppliers your money goes to.",
+  "purchasing.supplier_concentration": "How much of your buying depends on one supplier.",
+  "purchasing.lead_time": "How long suppliers take to deliver, on average.",
+  "purchasing.on_time_rate": "The share of orders suppliers deliver on time.",
+  "operations.plan_usage": "How much of your VenQore plan you've used.",
+  "staff.sales_per_head": "Sales generated per team member.",
+  "staff.attendance_rate": "The share of shifts your team showed up for.",
+  "operations.open_tickets": "Support tickets waiting on an answer.",
+  "party.new_vs_returning": "New faces against regulars, side by side.",
+  "party.retention_rate": "The share of customers who come back.",
+  "finance.expenses_trend": "Your expense history — what you spent, over time.",
+  "operations.activity_feed": "Everything that just happened — sales, purchases, payments and stock moves.",
+};
+
+/* Cards the old dashboard had that the library was missing. Same demo-data
+   contract as every other reading. */
+READINGS.push(
+  { key:"finance.expenses_trend", label:"Expense trend", shape:"SERIES", unit:"currency",
+    area:"Finance", module:"Extra", short:"Expense trend", extra:true,
+    rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
+    sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
+  { key:"operations.activity_feed", label:"Recent activity", shape:"FEED", unit:"currency",
+    area:"Operations", module:"Extra", short:"Recent activity", extra:true,
+    rowNames:["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],
+    sliceNames:["New","Returning","Dormant"] },
+  { key:"bank_accounts.liquid_net", label:"Total Liquid Net", shape:"SCALAR", unit:"currency",
+    area:"Finance", module:"BankAccounts", short:"Total Liquid Net", extra:true,
+    rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
+    sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
+  { key:"purchasing.recent", label:"Recent purchases", shape:"FEED", unit:"currency",
+    area:"Purchasing", module:"Extra", short:"Recent purchases", extra:true,
+    rowNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],
+    sliceNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"] },
+);
+READING_DESC["bank_accounts.liquid_net"] = "Bank balances and cash in hand, added up — everything liquid.";
+READING_DESC["purchasing.recent"] = "The latest purchases from your suppliers, newest first.";
+
+/* A description for anything the table above missed — built from what the
+   reading is, still free of jargon. */
+function readingDesc(r){
+  if (READING_DESC[r.key]) return READING_DESC[r.key];
+  const noun = r.unit === "currency" ? "value" : r.unit === "percent" ? "rate" : "count";
+  return `${r.label} — a live ${noun} from ${r.area.toLowerCase()}.`;
+}
+READINGS.forEach(r => { r.desc = readingDesc(r); });
+
+/* ══ module gating ═════════════════════════════════════════════════════════
+   Every reading belongs to the product module(s) that produce its data —
+   the same module keys config/modules.php declares and the Inertia shell
+   shares on every page as the `modules` prop. A business running five
+   modules sees the cards those five modules can actually answer, nothing
+   else. An empty enabled-set (no tenant bound, the dev harness) gates
+   nothing. A reading matching no rule is always available. */
+const READING_MODULE_RULES = [
+  [/^accounting\./,           ["accounting_workspace"]],
+  [/^bank_accounts\./,        ["bank_accounts"]],
+  [/^bank_reconciliation\./,  ["bank_reconciliation"]],
+  [/^batch_tracking\./,       ["batches_expiry"]],
+  [/^debit_notes\./,          ["purchase_returns"]],
+  [/^finance\.expenses/,      ["expenses"]],
+  [/^finance\.tax/,           ["tax_compliance"]],
+  [/^finance\./,              ["khata_credit", "payments", "accounting_workspace"]],
+  [/^party\./,                ["customers", "suppliers"]],
+  [/^inventory\./,            ["inventory"]],
+  [/^production\./,           ["production_runs"]],
+  [/^pre_sales\./,            ["pre_sales"]],
+  [/^proposals\./,            ["quotations"]],
+  [/^purchase_orders\./,      ["purchase_orders"]],
+  [/^purchasing\./,           ["purchases", "purchase_orders"]],
+  [/^recurring_invoices\./,   ["recurring_invoices"]],
+  [/^reminders\./,            ["khata_credit"]],
+  [/^returns\./,              ["sales_returns"]],
+  [/^sales_orders\./,         ["sales_orders"]],
+  [/^sales\./,                ["pos", "invoicing"]],
+  [/^serial_tracking\./,      ["serials"]],
+  [/^staff\./,                ["staff_attendance"]],
+  [/^staff_attendance\./,     ["staff_attendance"]],
+  [/^operations\./,           []],
+];
+function modulesOf(key){
+  for (const [re, mods] of READING_MODULE_RULES) if (re.test(key)) return mods;
+  return [];
+}
+READINGS.forEach(r => { r.modules = modulesOf(r.key); });
+
+let ENABLED_MODULES = null;    /* null = ungated (no tenant / dev harness) */
+function setEnabledModules(list){
+  ENABLED_MODULES = Array.isArray(list) && list.length ? new Set(list) : null;
+}
+function readingAvailable(r){
+  if (!ENABLED_MODULES) return true;
+  const mods = r.modules || [];
+  if (!mods.length) return true;
+  return mods.some(m => ENABLED_MODULES.has(m));
+}
+function availableReadings(){ return READINGS.filter(readingAvailable); }
+/** Hubs gate the same way: by the module that owns their data. */
+const SPECIAL_MODULES = {
+  bank_liquidity: ["bank_accounts"],
+  growth_engine:  ["reports", "ai_insights"],
+  action_hub: [], launchpad: [], alerts_hub: [], custom_button: [],
+};
+function specialAvailable(type){
+  if (!ENABLED_MODULES) return true;
+  const mods = SPECIAL_MODULES[type] || [];
+  if (!mods.length) return true;
+  return mods.some(m => ENABLED_MODULES.has(m));
+}
+
 /* ══ time, scales, formatting ══════════════════════════════════════════════
    Every chart is anchored to real dates so a card can always answer
    "what day is this, and what period am I looking at?"
@@ -178,38 +418,24 @@ function shapeOf(s){ return String(s).replace(/\d/g, "D"); }
 
 function buildRoller(el, text){
   const s = String(text);
-  el.dataset.shape = shapeOf(s);
   el.dataset.value = s;
-  let html = "", di = 0;
-  for (const ch of s){
-    if (DIGITS.includes(ch)){
-      html += `<span class="nf-c nf-d"><span class="nf-col" style="transform:translateY(${-ch * 10}%);`
-            + `transition-delay:${di * 22}ms">`
-            + `<i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i>`
-            + `</span></span>`;
-      di++;
-    } else {
-      html += `<span class="nf-c nf-s">${ch === " " ? "&nbsp;" : ch}</span>`;
-    }
-  }
-  el.innerHTML = html;
+  el.textContent = s;
 }
 
-/** Set a roller's value. Same shape → digits slide. New shape → rebuild. */
+/** Set a value's text. Changed → the text swaps with a soft pulse. The old
+    per-digit rolling columns are gone: they depended on every digit row
+    measuring exactly 1em against the full app cascade, and in production one
+    stray rule made the digits land between rows. A number that is always
+    readable beats one that sometimes dances. */
 function setRoller(el, text){
   if (!el) return;
   const s = String(text);
   if (el.dataset.value === s) return;
-  if (el.dataset.shape !== shapeOf(s)){ buildRoller(el, s); return; }
   el.dataset.value = s;
-  const cols = el.querySelectorAll(".nf-d .nf-col");
-  let i = 0;
-  for (const ch of s){
-    if (DIGITS.includes(ch)){
-      const col = cols[i++];
-      if (col) col.style.transform = `translateY(${-ch * 10}%)`;
-    }
-  }
+  el.textContent = s;
+  el.classList.remove("nf-pulse");
+  void el.offsetWidth;                      /* restart the animation */
+  el.classList.add("nf-pulse");
 }
 
 /** Markup for a roller that some later call will drive. */
@@ -543,15 +769,18 @@ function wireCartesian(host, card, ds, g){
   const tick  = host.querySelector(".ck-ticker");
   const tickEl= host.querySelector(".dt");
   const plot  = host.querySelector(".ck-plot");
-  const head  = host.closest(".vqc")?.querySelector(".vqc-head-val .nf");
-  const headSub = host.closest(".vqc")?.querySelector(".vqc-head-when");
+  const head  = host.closest(".vqc")?.querySelector(".vqc-value[data-full] .nf");
+  const headSub = host.closest(".vqc")?.querySelector(".vqc-when");
   const hds   = [...host.querySelectorAll(".ck-hd")];
   const bars  = [...host.querySelectorAll(".ck-bar")];
   let active = -1;
 
+  /* the headline may be running in its abbreviated form — hover re-reads
+     must respect that, or the hover value overflows what fitValues fitted */
+  const headCompact = () => head?.closest(".vqc-value")?.dataset.mode === "compact";
   const restText = () => {
     const s0 = ds.series[0], last = s0.values[s0.values.length - 1];
-    return { v: unitPrefix(s0.unit) + fmtValue(last, s0.unit) , when: rangeLabel(ds) };
+    return { v: unitPrefix(s0.unit) + fmtValue(last, s0.unit, headCompact()), when: rangeLabel(ds) };
   };
 
   function show(i){
@@ -576,7 +805,7 @@ function wireCartesian(host, card, ds, g){
     tick.hidden = false;
     tick.style.left = x.toFixed(1) + "px";
     setTicker(tickEl, i);
-    if (head) setRoller(head, unitPrefix(ds.series[0].unit) + fmtValue(ds.series[0].values[i], ds.series[0].unit));
+    if (head) setRoller(head, unitPrefix(ds.series[0].unit) + fmtValue(ds.series[0].values[i], ds.series[0].unit, headCompact()));
     if (headSub) headSub.textContent = ds.fullLabels[i];
   }
   function clear(){
@@ -664,6 +893,16 @@ function mountRadial(host, card){
   }
 
   const centreV = unitPrefix(pd.unit) + fmtValue(pd.total, pd.unit, true);
+  /* The legend never scrolls and never clips: rows that do not fit the space
+     the dial left over are folded into one quiet "+N more" line. Each legend
+     row (name + bar) lays out at ~34px; the more-line takes one slot. */
+  const LEG_ROW = 34, MORE_ROW = 20;
+  const legRoom = Math.max(0, HH - size - 10);
+  const fit = Math.floor((legRoom + 4) / LEG_ROW);
+  const useRows = fit >= pd.parts.length
+    ? pd.parts
+    : pd.parts.slice(0, Math.max(0, Math.floor((legRoom + 4 - MORE_ROW) / LEG_ROW)));
+  const moreN = pd.parts.length - useRows.length;
   host.innerHTML = `
     <div class="ck-radial">
       <div class="ck-dial" style="width:${size}px;height:${size}px">
@@ -672,14 +911,15 @@ function mountRadial(host, card){
           <span class="ck-centre-v">${rollerHTML(centreV)}</span>
           <span class="ck-centre-k">${centreLabel(card)}</span></span>` : ""}
       </div>
-      <div class="ck-leg">${pd.parts.map((p,i) => `
+      <div class="ck-leg">${useRows.map((p,i) => `
         <button class="ck-leg-r" data-i="${i}">
           <span class="ck-leg-d" style="background:${p.color}"></span>
           <span class="ck-leg-n">${p.name}</span>
           <span class="ck-leg-v">${unitPrefix(pd.unit)}${fmtValue(p.value, pd.unit, true)}</span>
           <span class="ck-leg-p">${Math.round(p.value / pd.total * 100)}%</span>
           <span class="ck-leg-bar"><i style="width:${(p.value/pd.parts[0].value*100).toFixed(0)}%;background:${p.color}"></i></span>
-        </button>`).join("")}</div>
+        </button>`).join("")}${moreN > 0 && useRows.length ? `
+        <span class="ck-leg-more">+ ${moreN} more in the full view</span>` : ""}</div>
     </div>`;
 
   const dial = host.querySelector(".ck-dial");
@@ -869,7 +1109,7 @@ function mountHeatmap(host, card){
 function mountTable(host, card){
   const { H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key).rowNames);
-  const capacity = Math.max(3, Math.floor((H - 4) / 32));
+  const capacity = Math.max(2, Math.floor((H - 4) / 38));
   const rows = pd.parts.slice(0, Math.min(7, capacity)), mx = rows[0].value;
   const variant = card.variant || "rows";
   host.innerHTML = `<div class="ck-tb">${rows.map((p,i) => `
@@ -885,7 +1125,7 @@ function mountFeed(host, card){
   const { H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key).rowNames);
   const times = timeline(card.period).slice(-6).reverse();
-  const capacity = Math.max(3, Math.floor((H - 4) / 32));
+  const capacity = Math.max(2, Math.floor((H - 4) / 38));
   const rows = pd.parts.slice(0, Math.min(6, capacity)), mx = pd.parts[0].value || 1;
   const bars = card.variant === "bars";
   host.innerHTML = `<div class="ck-tb ${bars ? "is-bars" : ""}">${rows.map((p,i) => `
@@ -925,7 +1165,7 @@ function mountChoropleth(host, card){
   regs.sort((a,b) => b.v - a.v);
   const mx = regs[0].v;
   if (card.variant === "list"){
-    const capacity = Math.max(3, Math.floor((host.clientHeight - 4) / 31));
+    const capacity = Math.max(2, Math.floor((host.clientHeight - 4) / 38));
     host.innerHTML = `<div class="ck-tb">${regs.slice(0, capacity).map((g,i)=>`<div class="ck-tr" style="--d:${i*45}ms">
       <span class="ck-rank">${i+1}</span><span class="ck-tn">${g.n}</span>
       <span class="ck-tbar"><i style="width:${(g.v/mx*100).toFixed(0)}%;background:var(--vq-seq-${Math.min(4,Math.floor(g.v/mx*5))+1})"></i></span>
@@ -976,9 +1216,10 @@ function mountSparkline(host, card){
   const cap = host.querySelector(".ck-cap"), hov = host.querySelector(".ck-hover");
   const cross = host.querySelector(".ck-cross"), dot = host.querySelector(".ck-hd");
   const tip = host.querySelector(".ck-tip");
-  const head = host.closest(".vqc")?.querySelector(".vqc-head-val .nf");
-  const sub  = host.closest(".vqc")?.querySelector(".vqc-head-when");
-  const rest = () => { if (head) setRoller(head, unitPrefix(rd.unit) + fmtValue(vals[n-1], rd.unit));
+  const head = host.closest(".vqc")?.querySelector(".vqc-value[data-full] .nf");
+  const sub  = host.closest(".vqc")?.querySelector(".vqc-when");
+  const headCompact = () => head?.closest(".vqc-value")?.dataset.mode === "compact";
+  const rest = () => { if (head) setRoller(head, unitPrefix(rd.unit) + fmtValue(vals[n-1], rd.unit, headCompact()));
                        if (sub) sub.textContent = card.period + " · " + tickLabel(times[0],grain) + " – " + tickLabel(times[n-1],grain); };
   cap.addEventListener("mousemove", e => {
     const r0 = cap.getBoundingClientRect();
@@ -991,7 +1232,7 @@ function mountSparkline(host, card){
       <span class="ck-tip-r"><b class="ck-tip-v">${unitPrefix(rd.unit)}${fmtValue(vals[i], rd.unit)}</b></span>`;
     const tw = tip.offsetWidth || 110;
     tip.style.left = Math.max(0, Math.min(W - tw, pts[i][0] - tw/2)) + "px";
-    if (head) setRoller(head, unitPrefix(rd.unit) + fmtValue(vals[i], rd.unit));
+    if (head) setRoller(head, unitPrefix(rd.unit) + fmtValue(vals[i], rd.unit, headCompact()));
     if (sub) sub.textContent = fullLabel(times[i], grain);
   });
   cap.addEventListener("mouseleave", () => { hov.style.opacity = "0"; tip.hidden = true; rest(); });
@@ -1093,9 +1334,9 @@ const LEGAL = {
   FEED:         ["feed","table","bar","stat"],
 };
 const CHART_NAME = {
-  stat:"Stat", sparkline:"Sparkline", gauge:"Gauge", ring:"Ring", status:"Status",
+  stat:"Number", sparkline:"Sparkline", gauge:"Gauge", ring:"Ring", status:"Status",
   area:"Area", line:"Line", bar:"Bar", pl:"Profit / loss", live:"Live line",
-  composed:"Composed", pie:"Pie", sunburst:"Sunburst", funnel:"Funnel", radar:"Radar",
+  composed:"Combo", pie:"Pie", sunburst:"Sunburst", funnel:"Funnel", radar:"Radar",
   sankey:"Sankey", choropleth:"Regions", table:"Table", heatmap:"Heatmap",
   scatter:"Scatter", feed:"Feed",
 };
@@ -1234,7 +1475,7 @@ function presetsFor(cat, T){
    The Law picks the legal column count whose width lands nearest 112px. The
    stylesheet does the same thing in media queries; this reads the answer back
    out of the DOM so JS and CSS can never disagree about how wide the grid is. */
-const LEGAL_COLS = { desktop:[8,10,12,14,16,18,20,24], tablet:[6,8,10,12], mobile:[4] };
+const LEGAL_COLS = { desktop:[12], tablet:[8], mobile:[4] };
 function boardCols(el){
   const board = el || document.getElementById("board");
   if (board){
@@ -1255,10 +1496,7 @@ function boardCols(el){
   /* No board in the document yet — fall back to the ladder, and only ever to
      a count the Law actually allows. */
   const vw = typeof window !== "undefined" ? window.innerWidth : 1920;
-  const band = vw < 600 ? "mobile" : vw < 1024 ? "tablet" : "desktop";
-  const want = vw < 600 ? 4 : vw < 900 ? 6 : vw < 1560 ? 8 : vw < 1880 ? 10 : vw < 2480 ? 12 : vw < 3280 ? 16 : 24;
-  const legal = LEGAL_COLS[band];
-  return legal.reduce((best, n) => Math.abs(n - want) < Math.abs(best - want) ? n : best, legal[0]);
+  return vw < 600 ? 4 : vw < 1024 ? 8 : 12;
 }
 /** The board's real column width in px. The Law's fit floors are pixel
     measurements — "4×1 inline ≥ 356px" — so a fit cannot be chosen from column
@@ -1319,6 +1557,9 @@ const SPECIAL = {
                     sub:"Velocity, target pace and retention" },
   custom_button:  { cat:"C1", min:[1,1], cats:["C1"], family:"shortcut",
                     eyebrow:"SHORTCUT", name:"Shortcut", sub:"One-click jump" },
+  launchpad:      { cat:"C4", min:[3,2], cats:["C3","C4","C5"], family:"hub",
+                    eyebrow:"LAUNCHPAD", name:"Launchpad",
+                    sub:"Your four essentials — always the same four" },
 };
 const isSpecial = c => !!(c && c.type && SPECIAL[c.type]);
 /* Hubs are laid out on their own ladder rather than the reading ladder: a hub
@@ -1375,6 +1616,15 @@ function fitsFor(card, cat){
 function catsFor(card){
   if (isSpecial(card)) return SPECIAL[card.type].cats.filter(k => fitsFor(card, k).length);
   return CATS.filter(k => fitsFor(card, k).length);
+}
+/** The category a given rectangle lands in — richest legal one wins, so
+    dragging a card bigger buys a richer interior rather than more air. */
+function catForSize(card, w, h){
+  const list = catsFor(card);
+  for (let i = list.length - 1; i >= 0; i--){
+    if (sizeLegal(list[i], w, h, fitsTable(card))) return list[i];
+  }
+  return card.cat || list[0] || "C3";
 }
 /* smallest category that can actually hold this chart */
 function fitCat(card){ return catsFor(card)[0] || (isSpecial(card) ? SPECIAL[card.type].cat : "C6"); }
@@ -1517,9 +1767,42 @@ function headlineOf(card){
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
   return {
     value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
+    valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
     dir: pct >= 0 ? "up" : "down", pct: Math.abs(pct).toFixed(1) + "%",
     when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
   };
+}
+
+/** The one way a number lands on a card face. Carries both its full and its
+    abbreviated form so fitValues() can step down instead of ever clipping. */
+function valueHTML(hl, cls){
+  return `<span class="vqc-value ${cls || ""}" data-full="${esc(hl.value)}"
+    data-compact="${esc(hl.valueCompact)}">${rollerHTML(hl.value)}</span>`;
+}
+
+/* ══ the no-clip contract ══════════════════════════════════════════════════
+   A number is never allowed to be cut. After every layout-affecting event the
+   board walks its values: full figure → abbreviated figure → abbreviated at a
+   smaller size. Deterministic, measured against real layout, no scrolling. */
+function fitValues(scope){
+  (scope || document).querySelectorAll(".vqc-value[data-full], .vqc-bank-val[data-full]").forEach(v => {
+    const nf = v.querySelector(".nf");
+    const put = t => { if (nf) setRoller(nf, t); else v.textContent = t; };
+    const cur = () => (nf ? nf.dataset.value : v.textContent);
+    const box = v.closest(".vqc-bank-box") || v.closest(".vqc-bd") || v.closest(".vqc") || v.parentElement;
+    if (!box || !box.clientWidth) return;
+    const over = () => (box.scrollWidth - box.clientWidth > 1) || (v.scrollWidth - v.clientWidth > 1);
+    v.classList.remove("is-tight");
+    v.dataset.mode = "full";
+    if (cur() !== v.dataset.full) put(v.dataset.full);
+    if (!over()) return;
+    if (v.dataset.compact && v.dataset.compact !== v.dataset.full){
+      put(v.dataset.compact);
+      v.dataset.mode = "compact";
+      if (!over()) return;
+    }
+    v.classList.add("is-tight");
+  });
 }
 
 /* Day / Week / Month / Quarter / Year, switchable from the card face. */
@@ -1700,9 +1983,13 @@ function cardFrame(c, opts){
   ].filter(Boolean).join(" ");
   /* --vqw / --vqh let the stylesheet reason about a card's own span without a
      container query, so an interior can thin out at 2 rows and fill out at 6. */
+  const pinned = Number.isInteger(c.gx) && Number.isInteger(c.gy) && (opts.cols || 12) >= 12;
+  const place = pinned
+    ? `grid-column:${Math.max(1, Math.min((opts.cols || 12) - w + 1, c.gx + 1))} / span ${w};grid-row:${c.gy + 1} / span ${h};`
+    : "";
   return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${w}" data-h="${h}"
     tabindex="0" draggable="false"
-    style="--i:${CARDS.indexOf(c)};--vqw:${w};--vqh:${h}">
+    style="--i:${CARDS.indexOf(c)};--vqw:${w};--vqh:${h};${place}">
     ${c.starBorder ? `<span class="vqc-star" aria-hidden="true"></span>` : ""}
     ${opts.body}
     <span class="vqc-glare" aria-hidden="true"></span>
@@ -1764,30 +2051,35 @@ function bodyActionHub(c, geo){
 function bodyBankLiquidity(c, geo){
   const link = c.targetUrl || c.link || storePath('/finance');
   const boxes = [
-    { l:'Bank Accounts',   v:'Rs 4,820,400', s:'3 accounts active' },
-    { l:'Cash on Hand',    v:'Rs 1,816,149', s:'Drawer & safe' },
-    { l:'Total Liquid Net',v:'Rs 6,636,549', s:'+8.2% vs last mo', total:true },
+    { l:'Bank Accounts',   v:4820400, s:'3 accounts active' },
+    { l:'Cash on Hand',    v:1816149, s:'Drawer & safe' },
+    { l:'Total Liquid Net',v:6636549, s:'+8.2% vs last mo', total:true },
   ];
+  /* a 3-wide hub gives each box ~110px — the grouped figure cannot fit, so
+     the boxes carry both forms and fitValues steps them down like any card */
   return hubHead(c, SPECIAL.bank_liquidity.eyebrow, link) +
     `<div class="vqc-hub-title-wrap"><div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
       <div class="vqc-action-hub-sub">${esc(SPECIAL.bank_liquidity.sub)}</div></div>` +
     `<div class="vqc-bank-grid">${boxes.map(b => `
       <div class="vqc-bank-box${b.total ? ' is-total' : ''}">
-        <span class="vqc-bank-label">${esc(b.l)}</span>
-        <span class="vqc-bank-val">${esc(b.v)}</span>
+        <span class="vqc-bank-label" title="${esc(b.l)}">${esc(b.l)}</span>
+        <span class="vqc-bank-val" data-full="Rs ${groupNum(b.v)}" data-compact="Rs ${abbrNum(b.v)}">Rs ${groupNum(b.v)}</span>
         <span class="vqc-bank-sub">${esc(b.s)}</span>
       </div>`).join("")}</div>`;
 }
 
 function bodyAlertsHub(c, geo){
   const link = c.targetUrl || c.link || storePath('/reports');
+  /* each alert belongs to the module that raised it — a store without that
+     module never sees the row */
+  const modOk = mods => !ENABLED_MODULES || !mods.length || mods.some(m => ENABLED_MODULES.has(m));
   const rows = [
-    { k:'warning', href: storePath('/inventory'),       msg:'<strong>4 products</strong> reached safety reorder limit', cta:'Reorder' },
-    { k:'danger',  href: storePath('/finance'),         msg:'<strong>Rs 10,260</strong> customer dues overdue (>30 days)', cta:'Follow up' },
-    { k:'info',    href: storePath('/purchase-orders'), msg:'<strong>2 purchase orders</strong> awaiting warehouse receipt', cta:'Receive' },
-    { k:'warning', href: storePath('/inventory'),       msg:'<strong>6 batches</strong> expire within 30 days', cta:'Review' },
-    { k:'info',    href: storePath('/sales'),           msg:'<strong>3 quotations</strong> waiting on customer reply', cta:'Chase' },
-  ];
+    { k:'warning', mods:['inventory'], href: storePath('/inventory'),       msg:'<strong>4 products</strong> reached safety reorder limit', cta:'Reorder' },
+    { k:'danger',  mods:['khata_credit','payments'], href: storePath('/finance'), msg:'<strong>Rs 10,260</strong> customer dues overdue (>30 days)', cta:'Follow up' },
+    { k:'info',    mods:['purchase_orders'], href: storePath('/purchase-orders'), msg:'<strong>2 purchase orders</strong> awaiting warehouse receipt', cta:'Receive' },
+    { k:'warning', mods:['batches_expiry'], href: storePath('/inventory'),  msg:'<strong>6 batches</strong> expire within 30 days', cta:'Review' },
+    { k:'info',    mods:['quotations'], href: storePath('/sales'),          msg:'<strong>3 quotations</strong> waiting on customer reply', cta:'Chase' },
+  ].filter(r => modOk(r.mods));
   /* one row per row-track above the header — never more than will fit */
   const room = Math.max(1, Math.min(rows.length, Math.floor((geo.h - 1) * 88 / 46)));
   return hubHead(c, SPECIAL.alerts_hub.eyebrow, link) +
@@ -1834,10 +2126,32 @@ function bodyCustomButton(c, geo){
     </a>${cardTools(c, href)}`;
 }
 
+/* The launchpad: four fixed actions, whatever the size. Growing the card
+   grows the buttons, not the button count — the counterpart to the action
+   hub for people who found the growing lane-count unsettling. */
+function bodyLaunchpad(c, geo){
+  const link = c.targetUrl || c.link || '/pos';
+  const items = [
+    { href:'/pos',                         icon:'cart',  label:'Point of Sale' },
+    { href: storePath('/sales'),           icon:'file',  label:'New Invoice' },
+    { href: storePath('/inventory'),       icon:'box',   label:'Add Product' },
+    { href: storePath('/purchase-orders'), icon:'truck', label:'Purchase Order' },
+  ];
+  const perRow = geo.w >= 4 ? 2 : 1;
+  return hubHead(c, SPECIAL.launchpad.eyebrow, link) +
+    (geo.h >= 3 ? `<div class="vqc-hub-title-wrap">
+       <div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
+       <div class="vqc-action-hub-sub">${esc(SPECIAL.launchpad.sub)}</div>
+     </div>` : "") +
+    `<div class="vqc-launchpad" style="grid-template-columns:repeat(${perRow},minmax(0,1fr))">${items.map(i =>
+      `<a href="${esc(i.href)}" class="vqc-hub-btn vqc-hub-btn--quiet vqc-launchpad-btn">${shortcutIcon(i.icon,16)}<span>${esc(i.label)}</span></a>`
+    ).join("")}</div>`;
+}
+
 const SPECIAL_BODY = {
   action_hub: bodyActionHub, bank_liquidity: bodyBankLiquidity,
   alerts_hub: bodyAlertsHub, growth_engine: bodyGrowthEngine,
-  custom_button: bodyCustomButton,
+  custom_button: bodyCustomButton, launchpad: bodyLaunchpad,
 };
 
 /* ── the reading interiors ─────────────────────────────────────────────── */
@@ -1849,22 +2163,32 @@ const SPECIAL_BODY = {
 function bodyStrip(c, geo, link){
   const hl = headlineOf(c);
   const title = titleOf(c);
-  /* §6, verbatim: the inline strip has a 356px floor. Below it the card does
-     not truncate its way through — it degrades to the leaner fit, which trades
-     a column for a row. That only works if the card has a second row to trade
-     into; a one-row strip has nowhere to go and drops the label instead. */
+  /* Two forms, one idea: the number owns the right edge and never clips.
+     INLINE (one row): a two-zone grid — the left zone stacks the label over
+     the timeframe caption (both truncate), the right zone is the value and
+     its change pill, right-aligned and never shrunk. No floating captions in
+     the middle of the card, ever.
+     STACKED (two rows): label on top, the number below at full size, the
+     change pill beside it, the timeframe as a quiet caption at the bottom. */
   const px = pxWidth(geo.w, geo.colW);
-  const stacked = geo.h >= 2 && (geo.fit === 1 || geo.w <= 3 || px < 356);
+  const stacked = geo.h >= 2;
   const delta = c.showDelta === false ? "" :
     `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>`;
+  const tight = px < 320;                      /* a phone-width strip */
   const when = c.showWhen === false ? "" : `<span class="vqc-when">${esc(c.period)}</span>`;
-  return `<div class="vqc-bd vqc-bd--strip ${stacked ? "is-stacked" : "is-inline"}">
-      <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
-      <span class="vqc-head">
-        <span class="vqc-value vqc-value--sm">${rollerHTML(hl.value)}</span>
-        ${delta}
+  if (stacked){
+    return `<div class="vqc-bd vqc-bd--strip is-stacked">
+        <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
+        <span class="vqc-head">${valueHTML(hl, "vqc-value--sm")}${delta}</span>
+        ${when}
+      </div>${cardTools(c, link)}`;
+  }
+  return `<div class="vqc-bd vqc-bd--strip is-inline${tight ? " is-tight-strip" : ""}">
+      <span class="vqc-strip-left">
+        <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
+        ${when}
       </span>
-      ${when}
+      <span class="vqc-head">${valueHTML(hl, "vqc-value--sm")}${delta}</span>
     </div>${cardTools(c, link)}`;
 }
 
@@ -1874,7 +2198,7 @@ function bodyTile(c, geo, link){
   const title = titleOf(c);
   return `<div class="vqc-bd vqc-bd--tile">
       ${geo.w > 1 ? `<span class="vqc-label" title="${esc(title)}">${esc(title)}</span>` : ""}
-      <span class="vqc-value vqc-value--xs">${rollerHTML(hl.value)}</span>
+      ${valueHTML(hl, "vqc-value--xs")}
     </div>${cardTools(c, link)}`;
 }
 
@@ -1913,7 +2237,7 @@ function bodyChartCard(c, geo, link){
     </div>
     <div class="vqc-bd">
       ${showHead ? `<div class="vqc-head">
-        <span class="vqc-value">${rollerHTML(hl.value)}</span>
+        ${valueHTML(hl)}
         ${showDelta ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
       </div>` : ""}
       ${showWhen ? `<p class="vqc-when">${esc(hl.when)}</p>` : ""}
@@ -1928,7 +2252,7 @@ function renderCard(c, cols, colW){
   if (isSpecial(c)){
     const fn = SPECIAL_BODY[c.type];
     return cardFrame(c, {
-      geo, body: fn(c, geo),
+      geo, cols, body: fn(c, geo),
       extraClass: `vqc--${c.type.replace(/_/g,"-")} vqc--special vqc--fam-${SPECIAL[c.type].family}`,
     });
   }
@@ -1938,7 +2262,7 @@ function renderCard(c, cols, colW){
     : geo.cat === "C2" ? bodyStrip(c, geo, link)
     : bodyChartCard(c, geo, link);
 
-  return cardFrame(c, { geo, body, extraClass: `vqc--chart-${c.chart}` });
+  return cardFrame(c, { geo, cols, body, extraClass: `vqc--chart-${c.chart}` });
 }
 
 /* ── draw ──────────────────────────────────────────────────────────────── */
@@ -2016,7 +2340,9 @@ function draw(){
     wireResize(el, c);
     wirePeriod(el, c);
   });
+  fitValues(board);
   renderLibrary();
+  persistBoard();
 }
 /* Re-measure on resize. When the grid changes column count the cards have to
    be re-laid, not just re-drawn — a 12-wide board card is an 8-wide one at
@@ -2030,6 +2356,7 @@ function relayout(){
     const c = cardOf(el.dataset.id), host = el.querySelector(".vqc-host");
     if (c && host) mountChart(host, c);
   });
+  fitValues(board);
 }
 addEventListener("resize", () => { clearTimeout(RESIZE_T); RESIZE_T = setTimeout(relayout, 150); });
 
@@ -2052,8 +2379,20 @@ function wirePeriod(el, c){
     const host = el.querySelector(".vqc-host");
     el.querySelector(".vqc-per-b").childNodes[0].nodeValue = c.period + " ";
     const hl = headlineOf(c);
-    setRoller(el.querySelector(".vqc-head-val .nf"), hl.value);
-    const when = el.querySelector(".vqc-head-when"); if (when) when.textContent = hl.when;
+    const val = el.querySelector(".vqc-value[data-full]");
+    if (val){
+      val.dataset.full = hl.value;
+      val.dataset.compact = hl.valueCompact;
+    }
+    const when = el.querySelector(".vqc-when");
+    if (when) when.textContent = when.closest(".vqc-bd--strip") ? c.period : hl.when;
+    const deltaEl = el.querySelector(".vqc-delta");
+    if (deltaEl){
+      deltaEl.className = `vqc-delta vqc-delta--${hl.dir}`;
+      deltaEl.innerHTML = `${ic(hl.dir,10)}${hl.pct}`;
+    }
+    fitValues(el);
+    persistBoard();
     menu.querySelectorAll(".vqc-per-i").forEach(x => x.classList.toggle("is-on", x.dataset.p === c.period));
     if (host){ host.classList.add("is-swapping");
       setTimeout(() => { mountChart(host, c); host.classList.remove("is-swapping"); }, 180); }
@@ -2110,6 +2449,7 @@ function wireResize(el, c){
       const fitName = (T[cat][c.fit] || [])[2];
       hint.textContent = `${w} × ${h}${fitName ? " · " + fitName : ""}`;
       const host = el.querySelector(".vqc-host"); if (host) mountChart(host, c);
+      fitValues(el);
     };
     const up = () => {
       removeEventListener("pointermove", move); removeEventListener("pointerup", up);
@@ -2124,34 +2464,75 @@ function wireResize(el, c){
 }
 
 /* ── drag to reposition ────────────────────────────────────────────────── */
-let DRAG = null;
+/* ── move a card anywhere on the grid ─────────────────────────────────────
+   In edit mode the whole card face is a handle (the grip works everywhere,
+   any time). While dragging, a dashed ghost shows the snapped 12-column
+   cell the card will take; dropping PINS the card there (c.gx / c.gy — grid
+   coordinates, 0-based). Pinned cards keep their spot; unpinned cards flow
+   around them. Pins apply on the full 12-column grid — on tablet and phone
+   the board stacks in card order instead, so a phone never inherits a
+   desktop arrangement it has no room for. */
+function pinnedOthers(self, cols){
+  return CARDS.filter(o => o !== self && Number.isInteger(o.gx) && Number.isInteger(o.gy))
+    .map(o => { const [w, h] = sizeOf(o, cols); return { x: o.gx, y: o.gy, w, h }; });
+}
+function freeSpot(self, gx, gy, w, h, cols){
+  const others = pinnedOthers(self, cols);
+  const x = Math.max(0, Math.min(cols - w, gx));
+  let y = Math.max(0, gy);
+  const hits = (yy) => others.some(o => x < o.x + o.w && o.x < x + w && yy < o.y + o.h && o.y < yy + h);
+  while (hits(y)) y++;
+  return { x, y };
+}
+function beginMove(e0, el, c){
+  e0.preventDefault(); e0.stopPropagation();
+  const board = document.getElementById("board"); if (!board) return;
+  const cols = boardCols(board);
+  const colW = boardColW(board);
+  const pitchX = colW + GRID.gutter, pitchY = GRID.unit + GRID.gutter;
+  const [w, h] = sizeOf(c, cols, colW);
+  el.classList.add("is-dragging");
+  document.body.classList.add("is-reordering");
+  const ghost = document.createElement("div");
+  ghost.className = "vq-drop-ghost";
+  board.appendChild(ghost);
+  let gx = null, gy = null;
+  const move = ev => {
+    const r = board.getBoundingClientRect();
+    const x = ev.clientX - r.left, y = ev.clientY - r.top;
+    gx = Math.max(0, Math.min(cols - w, Math.round(x / pitchX - w / 2)));
+    gy = Math.max(0, Math.round(y / pitchY - h / 2));
+    ghost.style.gridColumn = `${gx + 1} / span ${w}`;
+    ghost.style.gridRow = `${gy + 1} / span ${h}`;
+    ghost.classList.add("is-on");
+  };
+  const up = () => {
+    removeEventListener("pointermove", move); removeEventListener("pointerup", up);
+    el.classList.remove("is-dragging");
+    document.body.classList.remove("is-reordering");
+    ghost.remove();
+    if (gx != null && gy != null && cols >= 12){
+      const spot = freeSpot(c, gx, gy, w, h, cols);
+      c.gx = spot.x; c.gy = spot.y;
+      draw();
+    } else if (gx != null){
+      /* small grid: reorder by drop position instead of pinning */
+      draw();
+    }
+  };
+  addEventListener("pointermove", move); addEventListener("pointerup", up);
+  move(e0);
+}
 function wireDrag(el, c){
-  const grip = el.querySelector(".vqc-grip"); if (!grip) return;
-  grip.addEventListener("pointerdown", e => {
-    e.preventDefault(); e.stopPropagation();
-    DRAG = c.id; el.classList.add("is-dragging");
-    document.body.classList.add("is-reordering");
+  const grip = el.querySelector(".vqc-grip");
+  grip?.addEventListener("pointerdown", e => beginMove(e, el, c));
+  el.addEventListener("pointerdown", e => {
+    if (!document.documentElement.classList.contains("vq-editing")) return;
+    if (e.button !== 0) return;
+    if (e.target.closest(".vqc-act, .vqc-nav-link, .vqc-per, .vqc-resize, a, button, input, .ck-cap")) return;
+    beginMove(e, el, c);
   });
 }
-document.addEventListener("pointerup", () => {
-  if (!DRAG) return;
-  DRAG = null;
-  document.body.classList.remove("is-reordering");
-  document.querySelectorAll(".vqc").forEach(x => x.classList.remove("is-dragging","is-over"));
-  draw();
-});
-document.addEventListener("pointermove", e => {
-  if (!DRAG) return;
-  const over = document.elementFromPoint(e.clientX, e.clientY)?.closest(".vqc");
-  document.querySelectorAll(".vqc").forEach(x => x.classList.toggle("is-over", x === over && x.dataset.id !== DRAG));
-  if (!over || over.dataset.id === DRAG) return;
-  const from = CARDS.findIndex(x => x.id === DRAG), to = CARDS.findIndex(x => x.id === over.dataset.id);
-  if (from < 0 || to < 0) return;
-  CARDS.splice(to, 0, CARDS.splice(from, 1)[0]);
-  const board = document.getElementById("board");
-  const nodes = [...board.children];
-  board.insertBefore(nodes[from], nodes[to] || null);   /* cheap live shuffle */
-});
 
 /* ── editor ────────────────────────────────────────────────────────────── */
 function openEdit(id){
@@ -2300,37 +2681,175 @@ function renderLibrary(){
     const c = addCard(b.dataset.k); if (c) openEdit(c.id); });
 }
 
+/* ── persistence ───────────────────────────────────────────────────────────
+   The board a person builds is theirs: every change is written to this
+   browser, per store, and comes back on the next visit. A reset swaps in a
+   starting layout rather than silently destroying their work. */
+const BOARD_KEY = () => `vq-dashboard-v6:${STORE_SLUG || "default"}`;
+let PERSIST_ON = false;            /* off until the first board is in place */
+function persistBoard(){
+  if (!PERSIST_ON || typeof localStorage === "undefined") return;
+  try { localStorage.setItem(BOARD_KEY(), JSON.stringify({ v: 2, cards: CARDS })); }
+  catch {}
+}
+function loadBoard(){
+  if (typeof localStorage === "undefined") return null;
+  try {
+    const data = JSON.parse(localStorage.getItem(BOARD_KEY()) || "null");
+    if (!data || data.v !== 2 || !Array.isArray(data.cards) || !data.cards.length) return null;
+    return availableCards(data.cards.filter(c => c && (c.type ? SPECIAL[c.type] : true)));
+  } catch { return null; }
+}
+
+/* ── starting layouts ──────────────────────────────────────────────────────
+   Composed to pack an 8-column board edge to edge; on wider or narrower
+   boards the grid re-flows and every size stays legal. `key` is a reading,
+   `type` a hub. Anything else is the ordinary card contract. */
+const PRESETS = {
+  retail: {
+    name: "Retail overview", desc: "Sales, money, stock and alerts — the everyday board.",
+    panel: "money",
+    cards: [
+      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:7, period:"Month" },
+      { type:"bank_liquidity", cat:"C4", w:3, h:3 },
+      { key:"sales.avg_order_value", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Month" },
+      { type:"alerts_hub", cat:"C4", w:3, h:4 },
+      { key:"inventory.low_stock_count", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Today" },
+      { key:"sales.payment_breakdown", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"sales.top_products", chart:"bar", variant:"solid", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"sales.live_feed", chart:"feed", variant:"live", cat:"C4", w:4, h:6, period:"Today" },
+      { type:"launchpad", cat:"C4", w:6, h:3 },
+      { type:"growth_engine", cat:"C4", w:6, h:3 },
+    ],
+  },
+  finance: {
+    name: "Money & accounts", desc: "Cash flow, dues, expenses and the bank picture.",
+    panel: "credit",
+    cards: [
+      { key:"finance.cash_flow_trend", chart:"composed", variant:"bar-line-area", cat:"C5", w:6, h:7, period:"Month" },
+      { type:"bank_liquidity", cat:"C4", w:3, h:3 },
+      { key:"bank_accounts.money_in_today", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
+      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
+      { key:"bank_accounts.money_out_today", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
+      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
+      { key:"finance.quick_ratio", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Month" },
+      { key:"finance.expenses_by_category", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"finance.expenses_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"finance.receivables_aging", chart:"bar", variant:"solid", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"finance.profit_trend", chart:"line", variant:"smooth", cat:"C4", w:6, h:4, period:"Month" },
+      { key:"finance.dso", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Month" },
+      { key:"finance.dpo", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Month" },
+    ],
+  },
+  inventory: {
+    name: "Stock & purchasing", desc: "What's on the shelf, what's running out, what's on order.",
+    panel: "operations",
+    cards: [
+      { key:"inventory.stock_value", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Month" },
+      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
+      { key:"inventory.out_of_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
+      { key:"inventory.low_stock_list", chart:"table", variant:"standard", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"inventory.by_warehouse", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"inventory.value_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:6, period:"Month" },
+      { key:"inventory.expiry_window", chart:"bar", variant:"solid", cat:"C4", w:4, h:5, period:"Month" },
+      { key:"purchasing.spend_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:5, period:"Month" },
+      { type:"alerts_hub", cat:"C4", w:4, h:5 },
+      { key:"purchase_orders.pending", chart:"stat", variant:"number", cat:"C2", w:6, h:1, period:"Month" },
+      { key:"batch_tracking.expiring_soon", chart:"stat", variant:"number", cat:"C2", w:6, h:1, period:"Month" },
+    ],
+  },
+  command: {
+    name: "Command centre", desc: "The revenue chart front and centre, everything else around it.",
+    panel: "operations",
+    cards: [
+      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
+      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:8, period:"Month" },
+      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
+      { key:"operations.plan_usage", chart:"gauge", variant:"arc", cat:"C4", w:3, h:4, period:"Month" },
+      { key:"sales.top_products", chart:"table", variant:"bars", cat:"C4", w:3, h:4, period:"Month" },
+      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
+      { key:"sales.avg_order_value", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
+      { key:"sales.live_feed", chart:"feed", variant:"live", cat:"C4", w:6, h:4, period:"Today" },
+      { key:"sales.top_customers", chart:"bar", variant:"solid", cat:"C4", w:6, h:4, period:"Month" },
+    ],
+  },
+  classic: {
+    name: "Familiar (like the old dashboard)", desc: "The layout you know — numbers on top, trend and lists below, money and activity on the right.",
+    panel: "money",
+    cards: [
+      { key:"sales.revenue", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Today" },
+      { key:"finance.profit_trend", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
+      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
+      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
+      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:6, period:"Month" },
+      { type:"alerts_hub", cat:"C4", w:3, h:3 },
+      { key:"inventory.low_stock_count", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Today" },
+      { key:"purchasing.recent", chart:"feed", variant:"live", cat:"C4", w:3, h:6, period:"Month" },
+      { key:"sales.top_products", chart:"bar", variant:"solid", cat:"C4", w:6, h:5, period:"Month" },
+      { key:"operations.activity_feed", chart:"feed", variant:"live", cat:"C4", w:6, h:5, period:"Today" },
+    ],
+  },
+  base: {
+    name: "Start simple", desc: "One chart, the day's numbers, and room to grow.",
+    panel: null,
+    cards: [
+      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:12, h:6, period:"Month" },
+      { key:"sales.revenue", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
+      { key:"finance.expenses_total", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
+      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
+      { type:"launchpad", cat:"C4", w:6, h:3 },
+      { type:"alerts_hub", cat:"C4", w:6, h:3 },
+    ],
+  },
+};
+const DEFAULT_PRESET = "retail";
+
+/** A preset never hands over a card the store's modules cannot answer. */
+function availableCards(cards){
+  return cards.filter(c => c.type
+    ? specialAvailable(c.type)
+    : (READINGS.some(r => r.key === c.key) && readingAvailable(readingOf(c.key))));
+}
+
+function applyPreset(id){
+  const p = PRESETS[id] || PRESETS[DEFAULT_PRESET];
+  const cols = boardCols();
+  const scale = cols < 12 ? cols / 12 : 1;
+  CARDS = availableCards(p.cards).map(c => {
+    const card = { ...c, id: newId() };
+    if (scale !== 1 && card.w){
+      card.w = Math.max(1, Math.min(cols, Math.round(card.w * scale)));
+    }
+    delete card.gx; delete card.gy;          /* presets always flow */
+    return normaliseCard(card);
+  });
+  EDIT = null;
+  draw();
+}
+
 /* ── boot ──────────────────────────────────────────────────────────────── */
-function boot(){
+function boot(presetId){
   CARDS = []; EDIT = null;          /* a reset replaces the board, never doubles it */
-  const has = k => READINGS.some(r => r.key === k);
-  const pick = (...ks) => ks.find(has);
-  const rev  = pick("sales.revenue_trend","sales.revenue");
-  const prof = pick("finance.profit_trend","finance.net_profit");
-
-  if (rev)  addCard(rev,  { chart:"area", cat:"C5", fit:0, period:"Month", accent:false });
-  if (prof) addCard(prof, { chart:"composed", cat:"C5", fit:1, period:"Month",
-                            extraKeys:[pick("sales.revenue_trend"), pick("finance.cash_flow_trend")].filter(Boolean).slice(0,2) });
-  [pick("sales.payment_breakdown"), pick("sales.top_products"), pick("inventory.low_stock_count"),
-   pick("operations.plan_usage"), pick("sales.avg_order_value")].filter(Boolean)
-    .forEach(k => addCard(k));
-
-  /* light → dark → mesh. Mesh keeps the dark token set and swaps only the
-     page ground, so contrast rules carry over untouched. */
-  const THEMES = [["light",null], ["dark",null], ["dark","mesh"]];
-  let themeAt = 0;
-  const themeBtn = document.getElementById("vq-theme");
-  if (themeBtn) {
-    themeBtn.onclick = () => {
-      themeAt = (themeAt + 1) % THEMES.length;
-      const [t, bg] = THEMES[themeAt];
-      const r = document.documentElement;
-      r.setAttribute("data-theme", t);
-      if (bg) r.setAttribute("data-bg", bg); else r.removeAttribute("data-bg");
-      themeBtn.setAttribute("data-mode", bg || t);
+  PERSIST_ON = false;
+  if (presetId){
+    applyPreset(presetId);
+  } else {
+    const saved = loadBoard();
+    if (saved){
+      let maxSeq = 0;
+      saved.forEach(c => { const m = /^c(\d+)$/.exec(c.id || ""); if (m) maxSeq = Math.max(maxSeq, +m[1]); });
+      SEQ = maxSeq;
+      CARDS = saved.map(c => normaliseCard(c));
       draw();
-    };
+    } else {
+      applyPreset(DEFAULT_PRESET);
+    }
   }
+  PERSIST_ON = true;
+  persistBoard();
+
+  /* Theme is owned by the React shell now (persisted, light by default) —
+     the engine only repaints when told. */
   const libOpenBtn = document.getElementById("lib-open");
   if (libOpenBtn) {
     libOpenBtn.onclick = () => {
@@ -2342,7 +2861,6 @@ function boot(){
   if (libCloseBtn) {
     libCloseBtn.onclick = () => document.getElementById("lib")?.classList.remove("is-on");
   }
-  draw();
 }
 
 
@@ -2396,6 +2914,13 @@ window.VenQoreCards = {
   boot: boot,
   setStoreSlug: (s) => { STORE_SLUG = s || ""; },
   deepLinkFor: getDeepLinkForCard,
+  catForSize: (card, w, h) => catForSize(normaliseCard({ ...card }), w, h),
+  fitValues,
+  getPresets: () => PRESETS,
+  applyPreset,
+  setEnabledModules,
+  getAvailableReadings: availableReadings,
+  specialAvailable,
   destinationName,
   titleOf,
   getPrefs: () => PREFS,
@@ -2431,6 +2956,9 @@ function normaliseCard(c){
     }
     fixVariant(c);
   }
+  if (!Number.isInteger(c.gx) || !Number.isInteger(c.gy) || c.gx < 0 || c.gy < 0 || c.gx > 11){
+    delete c.gx; delete c.gy;
+  }
   if (c.tone == null) c.tone = c.accent ? "accent" : "surface";
   if (c.tone === "accent") c.accent = true;
   const g = geometryOf(c, 24);
@@ -2441,6 +2969,7 @@ function normaliseCard(c){
 
 
   STORE_SLUG = (opts && opts.storeSlug) || "";
+  setEnabledModules(opts && opts.modules);
   boot();
 
   /* The board can change width without the window doing so — the nav pushes,
@@ -2478,8 +3007,11 @@ const CARD_TONES = [
    registry, which owns their category, floor and legal categories. */
 const OPERATIONAL_TEMPLATES = [
   { type: 'action_hub', title: 'Quick Operations Hub', category: 'Operations',
-    desc: 'Three-button fast lane — Point of Sale, Purchase Orders and the Quick Actions launcher.',
+    desc: 'Action buttons for your daily flow — shows more of them as you make the card bigger.',
     tone: 'ink' },
+  { type: 'launchpad', title: 'Launchpad', category: 'Operations',
+    desc: 'Your four essentials — Point of Sale, New Invoice, Add Product, Purchase Order. Always the same four, at any size.',
+    tone: 'surface' },
   { type: 'bank_liquidity', title: 'Bank & Liquid Net Balances', category: 'Finance',
     desc: 'Live breakdown of bank accounts, cash drawer holdings and total liquid net balance.',
     tone: 'surface' },
@@ -2541,10 +3073,303 @@ function SizeGlyph({ w, h, max = [12, 16] }) {
 
 const isReadingCardIdx = i => i === 0;
 
+/* ══ the right side panel ══════════════════════════════════════════════════
+   The old dashboard kept a fixed right panel (cash in hand, accounts,
+   activity). Here it is OPT-IN and COMPOSABLE: a store picks the rails it
+   wants from this registry, in any order, and the choice persists next to
+   the board. Each rail is a narrow, fixed-purpose column widget — cards on
+   the grid stay the place for anything a user wants to size or restyle. */
+/* Six pre-built side panels. A store picks ONE design — the composition is
+   ours, so every one of them is balanced; nobody has to be a designer to get
+   a good panel. Each design is a fixed stack of rails. */
+const PANEL_DESIGNS = [
+  { id: 'money', name: 'Money desk',
+    desc: 'The old dashboard\u2019s panel — action buttons, cash & accounts, live activity.',
+    rails: ['action_trio', 'balances', 'activity'] },
+  { id: 'operations', name: 'Operations desk',
+    desc: 'What needs doing — alerts, today\u2019s numbers, quick actions.',
+    rails: ['alerts', 'today', 'quick_actions'] },
+  { id: 'sales', name: 'Sales pulse',
+    desc: 'Today at a glance, best sellers and the live feed.',
+    rails: ['today', 'top_lists', 'activity'] },
+  { id: 'credit', name: 'Credit control',
+    desc: 'Who owes you — reminders, cash & accounts, activity.',
+    rails: ['reminders', 'balances', 'activity'] },
+  { id: 'growth', name: 'Growth',
+    desc: 'Targets, velocity and your best performers.',
+    rails: ['targets', 'top_lists'] },
+  { id: 'minimal', name: 'Minimal',
+    desc: 'Just quick actions and today\u2019s numbers.',
+    rails: ['quick_actions', 'today'] },
+];
+
+const RAIL_DEFS = [
+  { id: 'action_trio', name: 'Action buttons', modules: [],
+    desc: 'Sale, purchase and more actions \u2014 one tap each.' },
+  { id: 'balances', name: 'Cash & accounts', modules: ['bank_accounts'],
+    desc: 'Cash in hand, every bank account, and the liquid total.' },
+  { id: 'today', name: 'Today at a glance', modules: [],
+    desc: "Today's sales, expenses and money in / out, in four numbers." },
+  { id: 'activity', name: 'Recent activity', modules: [],
+    desc: 'The latest sales, purchases and payments as they happen.' },
+  { id: 'alerts', name: 'Actions required', modules: [],
+    desc: 'Low stock, overdue dues, waiting orders — everything needing someone.' },
+  { id: 'quick_actions', name: 'Quick actions', modules: [],
+    desc: 'One-tap buttons for the things you do all day.' },
+  { id: 'targets', name: 'Growth & targets', modules: ['reports', 'ai_insights'],
+    desc: 'Monthly target pace, revenue velocity and repeat customers.' },
+  { id: 'top_lists', name: 'Top performers', modules: ['pos', 'invoicing'],
+    desc: 'Best-selling products and biggest customers this month.' },
+  { id: 'reminders', name: 'Payment reminders', modules: ['khata_credit'],
+    desc: 'Who to chase today, with amounts and how overdue they are.' },
+];
+
+/* demo data the rails draw — the same seeded world the cards use */
+const RAIL_ACCOUNTS = [
+  { n: 'Meezan Bank – Current', v: 'Rs 2,914,300' },
+  { n: 'HBL – Business', v: 'Rs 1,406,100' },
+  { n: 'JazzCash Wallet', v: 'Rs 500,000' },
+];
+const RAIL_ACTIVITY = [
+  { t: 'Sale · Noor Kiryana', v: '+ Rs 234,000', k: 'in', w: '13:00' },
+  { t: 'Purchase · Metro Supply', v: '− Rs 88,400', k: 'out', w: '12:20' },
+  { t: 'Payment in · Rana Traders', v: '+ Rs 45,000', k: 'in', w: '11:45' },
+  { t: 'Sale · Bilal Pharmacy', v: '+ Rs 123,000', k: 'in', w: '11:20' },
+  { t: 'Expense · Utilities', v: '− Rs 18,500', k: 'out', w: '10:05' },
+  { t: 'Sale · Sana Mart', v: '+ Rs 109,000', k: 'in', w: '09:40' },
+];
+const RAIL_ALERTS = [
+  { k: 'warn', mods: ['inventory'], msg: <><strong>4 products</strong> reached reorder limit</>, href: '/inventory' },
+  { k: 'bad',  mods: ['khata_credit', 'payments'], msg: <><strong>Rs 10,260</strong> dues overdue 30+ days</>, href: '/finance' },
+  { k: 'info', mods: ['purchase_orders'], msg: <><strong>2 purchase orders</strong> awaiting receipt</>, href: '/purchase-orders' },
+  { k: 'warn', mods: ['batches_expiry'], msg: <><strong>6 batches</strong> expire within 30 days</>, href: '/inventory' },
+  { k: 'info', mods: ['quotations'], msg: <><strong>3 quotations</strong> awaiting reply</>, href: '/sales' },
+];
+const RAIL_TOP_PRODUCTS = [
+  { n: 'Basmati 5kg', v: 'Rs 88.4K', w: 100 }, { n: 'Surf Excel 1kg', v: 'Rs 62.9K', w: 71 },
+  { n: 'Tapal Danedar', v: 'Rs 42.1K', w: 48 }, { n: 'BMC Tonic 200ml', v: 'Rs 23.1K', w: 26 },
+];
+const RAIL_TOP_CUSTOMERS = [
+  { n: 'Rana Traders', v: 'Rs 310K', w: 100 }, { n: 'Bilal Pharmacy', v: 'Rs 264K', w: 85 },
+  { n: 'Zoya Retail', v: 'Rs 158K', w: 51 },
+];
+const RAIL_REMINDERS = [
+  { n: 'Ahmad Stores', v: 'Rs 42,000', d: '12 days overdue', k: 'bad' },
+  { n: 'Noor Kiryana', v: 'Rs 18,600', d: '6 days overdue', k: 'warn' },
+  { n: 'Sana Mart', v: 'Rs 9,200', d: 'due tomorrow', k: 'info' },
+  { n: 'Zoya Retail', v: 'Rs 5,750', d: 'due in 3 days', k: 'info' },
+];
+
+/** One rail, rendered. Fixed-purpose, fixed-width; the board stays the
+    place for anything the user wants to size and restyle. */
+function DashRail({ id, storePath, onQuickActions, enabledModules = [] }) {
+  const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
+  if (id === 'action_trio') return (
+    <section className="vq-rail-card vq-rail-card--trio">
+      <div className="vq-rail-trio">
+        <a href="/pos" className="vq-trio-btn is-sale">
+          <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="m5 12 7 7 7-7"/></svg></span>
+          <span>Sale</span>
+        </a>
+        <a href={storePath('/purchase-orders')} className="vq-trio-btn is-purchase">
+          <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7-7-7 7"/></svg></span>
+          <span>Purchase</span>
+        </a>
+        <button type="button" className="vq-trio-btn is-actions" onClick={onQuickActions}>
+          <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+          <span>Actions</span>
+        </button>
+      </div>
+    </section>
+  );
+  if (id === 'balances') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Cash &amp; accounts</span><a href={storePath('/finance')} className="vq-rail-link">Open</a></header>
+      <div className="vq-rail-hero">
+        <span className="vq-rail-hero-l">Cash in hand</span>
+        <span className="vq-rail-hero-v">Rs 1,816,149</span>
+        <span className="vq-rail-hero-s">Drawer &amp; safe · counted 09:00</span>
+      </div>
+      <ul className="vq-rail-list">
+        {RAIL_ACCOUNTS.map(a => (
+          <li key={a.n} className="vq-rail-row">
+            <span className="vq-rail-row-n">{a.n}</span>
+            <span className="vq-rail-row-v">{a.v}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="vq-rail-total">
+        <span>Total liquid</span><strong>Rs 6,636,549</strong>
+      </div>
+    </section>
+  );
+  if (id === 'today') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Today at a glance</span></header>
+      <div className="vq-rail-minigrid">
+        <div className="vq-rail-mini"><span>Sales</span><strong>Rs 1.05M</strong></div>
+        <div className="vq-rail-mini"><span>Expenses</span><strong>Rs 86K</strong></div>
+        <div className="vq-rail-mini"><span>Money in</span><strong>Rs 412K</strong></div>
+        <div className="vq-rail-mini"><span>Money out</span><strong>Rs 158K</strong></div>
+      </div>
+    </section>
+  );
+  if (id === 'activity') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Recent activity</span><a href={storePath('/reports')} className="vq-rail-link">All</a></header>
+      <ul className="vq-rail-list">
+        {RAIL_ACTIVITY.map((a, i) => (
+          <li key={i} className="vq-rail-row">
+            <span className={`vq-rail-dot is-${a.k}`} aria-hidden="true" />
+            <span className="vq-rail-row-n">{a.t}<em>{a.w}</em></span>
+            <span className={`vq-rail-row-v is-${a.k}`}>{a.v}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+  if (id === 'alerts') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Actions required</span></header>
+      <ul className="vq-rail-list">
+        {RAIL_ALERTS.filter(a => modOk(a.mods)).map((a, i) => (
+          <li key={i}>
+            <a href={storePath(a.href)} className={`vq-rail-alert is-${a.k}`}>
+              <span className="vq-rail-dot" aria-hidden="true" />
+              <span className="vq-rail-alert-m">{a.msg}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+  if (id === 'quick_actions') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Quick actions</span></header>
+      <div className="vq-rail-actions">
+        <a href={storePath('/sales')} className="vq-rail-act is-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          <span>New Invoice</span>
+        </a>
+        <a href={storePath('/purchase-orders')} className="vq-rail-act">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span>New Purchase</span>
+        </a>
+        <button type="button" className="vq-rail-act" onClick={onQuickActions}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span>More actions</span>
+        </button>
+      </div>
+    </section>
+  );
+  if (id === 'targets') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
+      <div className="vq-rail-meter">
+        <div className="vq-rail-meter-t"><span>Monthly target</span><strong>94.2%</strong></div>
+        <div className="vq-rail-bar"><i style={{ width: '94.2%' }} /></div>
+        <span className="vq-rail-meter-s">Rs 2.8M of Rs 3.0M</span>
+      </div>
+      <div className="vq-rail-meter">
+        <div className="vq-rail-meter-t"><span>Revenue velocity</span><strong>+18.4%</strong></div>
+        <div className="vq-rail-bar"><i style={{ width: '68%' }} /></div>
+        <span className="vq-rail-meter-s">Pace vs last month</span>
+      </div>
+      <div className="vq-rail-meter">
+        <div className="vq-rail-meter-t"><span>Repeat customers</span><strong>68.5%</strong></div>
+        <div className="vq-rail-bar"><i style={{ width: '68.5%' }} /></div>
+        <span className="vq-rail-meter-s">Came back this month</span>
+      </div>
+    </section>
+  );
+  if (id === 'top_lists') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Top performers</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
+      <span className="vq-rail-sub">Products</span>
+      <ul className="vq-rail-list">
+        {RAIL_TOP_PRODUCTS.map(t => (
+          <li key={t.n} className="vq-rail-rank">
+            <span className="vq-rail-row-n">{t.n}</span>
+            <span className="vq-rail-track"><i style={{ width: `${t.w}%` }} /></span>
+            <span className="vq-rail-row-v">{t.v}</span>
+          </li>
+        ))}
+      </ul>
+      <span className="vq-rail-sub">Customers</span>
+      <ul className="vq-rail-list">
+        {RAIL_TOP_CUSTOMERS.map(t => (
+          <li key={t.n} className="vq-rail-rank">
+            <span className="vq-rail-row-n">{t.n}</span>
+            <span className="vq-rail-track"><i style={{ width: `${t.w}%` }} /></span>
+            <span className="vq-rail-row-v">{t.v}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+  if (id === 'reminders') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/finance')} className="vq-rail-link">All</a></header>
+      <ul className="vq-rail-list">
+        {RAIL_REMINDERS.map(r => (
+          <li key={r.n} className="vq-rail-row">
+            <span className={`vq-rail-dot is-${r.k}`} aria-hidden="true" />
+            <span className="vq-rail-row-n">{r.n}<em>{r.d}</em></span>
+            <span className="vq-rail-row-v">{r.v}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+  return null;
+}
+
+/* ── a preset, drawn: simulate the grid's row-major auto-placement on 8
+   columns and paint the little rectangles. A picker you choose by eye. */
+function packPreset(cards, cols = 8) {
+  const taken = [];   /* taken[row] = boolean[cols] */
+  const rects = [];
+  const fits = (r, c, w, h) => {
+    for (let y = r; y < r + h; y++) { const row = taken[y]; if (row) for (let x = c; x < c + w; x++) if (row[x]) return false; }
+    return true;
+  };
+  const mark = (r, c, w, h) => {
+    for (let y = r; y < r + h; y++) { taken[y] ||= new Array(cols).fill(false); for (let x = c; x < c + w; x++) taken[y][x] = true; }
+  };
+  let cursorR = 0, cursorC = 0;
+  cards.forEach(card => {
+    const w = Math.min(cols, card.w || 3), h = card.h || 2;
+    let r = cursorR, c = cursorC, placed = false;
+    while (!placed) {
+      if (c + w > cols) { c = 0; r++; continue; }
+      if (fits(r, c, w, h)) { rects.push({ x: c, y: r, w, h, hub: !!card.type }); mark(r, c, w, h); cursorR = r; cursorC = c + w; placed = true; }
+      else c++;
+    }
+  });
+  return rects;
+}
+function PresetThumb({ cards }) {
+  const rects = useMemo(() => packPreset(cards), [cards]);
+  const rows = Math.min(14, rects.reduce((m, r) => Math.max(m, r.y + r.h), 0));
+  const CW = 112, U = 5, G = 1.6, colW = (CW - G * 7) / 8;
+  const H = rows * U + (rows - 1) * G;
+  return (
+    <svg className="vq-preset-thumb" width={CW} height={Math.max(30, H)} viewBox={`0 0 ${CW} ${Math.max(30, H)}`} aria-hidden="true">
+      {rects.filter(r => r.y < 14).map((r, i) => (
+        <rect key={i}
+          x={r.x * (colW + G)} y={r.y * (U + G)}
+          width={r.w * colW + (r.w - 1) * G} height={Math.min(r.h, 14 - r.y) * U + (Math.min(r.h, 14 - r.y) - 1) * G}
+          rx="1.6" fill="currentColor" opacity={r.hub ? 0.85 : 0.42} />
+      ))}
+    </svg>
+  );
+}
+
 export default function NewDashboard(props) {
   const containerRef = useRef(null);
   const previewRef = useRef(null);
   const previewFrameRef = useRef(null);
+  const previewHandleRef = useRef(null);
 
   const store = props?.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs', slug: '' };
   const user = props?.auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
@@ -2575,6 +3400,7 @@ export default function NewDashboard(props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [engineReady, setEngineReady] = useState(false);
 
+
   useEffect(() => {
     const onResize = () => setVw(window.innerWidth);
     window.addEventListener('resize', onResize);
@@ -2602,7 +3428,7 @@ export default function NewDashboard(props) {
   const railOnly = navMode === 'rail';
 
   /* ── the add-card wizard ─────────────────────────────────────────────── */
-  const [folderLauncherOpen, setFolderLauncherOpen] = useState(false);
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
   const [stepperModalOpen, setStepperModalOpen] = useState(false);
   const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0 readings · 1 hubs · 2 shortcuts
   const [step, setStep] = useState(1);
@@ -2640,15 +3466,98 @@ export default function NewDashboard(props) {
 
   const engine = () => (typeof window !== 'undefined' ? window.VenQoreCards : null);
 
+  /* ── theme: light is the default; the choice persists per browser ────── */
+  const THEME_KEY = 'vq-dashboard-v6-theme';
+  const [themeMode, setThemeMode] = useState(() => {
+    try {
+      const v = localStorage.getItem(THEME_KEY);
+      return v === 'dark' || v === 'mesh' || v === 'light' ? v : 'light';
+    } catch { return 'light'; }
+  });
+  useEffect(() => {
+    const r = document.documentElement;
+    const dark = themeMode !== 'light';
+    r.setAttribute('data-theme', dark ? 'dark' : 'light');
+    if (themeMode === 'mesh') r.setAttribute('data-bg', 'mesh');
+    else r.removeAttribute('data-bg');
+    try { localStorage.setItem(THEME_KEY, themeMode); } catch {}
+    /* charts sample their colours at mount — repaint under the new tokens */
+    engine()?.draw?.();
+  }, [themeMode, engineReady]);
+  const cycleTheme = () => setThemeMode(m => (m === 'light' ? 'dark' : m === 'dark' ? 'mesh' : 'light'));
+  const themeTitle = themeMode === 'light' ? 'Theme: light — switch to dark'
+    : themeMode === 'dark' ? 'Theme: dark — switch to mesh' : 'Theme: mesh — switch to light';
+
+  /* ── the right side panel ────────────────────────────────────────────── */
+  const RAILS_KEY = `vq-dashboard-v6-rails:${storeSlug || 'default'}`;
+  const [railPrefs, setRailPrefsState] = useState(() => {
+    const base = { design: null, sticky: true, width: 340, collapsed: false };
+    try {
+      const v = JSON.parse(localStorage.getItem(RAILS_KEY) || 'null');
+      if (v && typeof v.design === 'string') return { ...base, ...v };
+      /* older payloads composed rails by hand — map them onto the nearest design */
+      const ids = Array.isArray(v) ? v : (v && Array.isArray(v.ids) ? v.ids : null);
+      if (ids && ids.length){
+        const design = ids.includes('balances') ? 'money'
+          : ids.includes('alerts') ? 'operations'
+          : ids.includes('targets') ? 'growth' : 'minimal';
+        return { ...base, ...(v && !Array.isArray(v) ? v : {}), ids: undefined, design };
+      }
+    } catch {}
+    return base;
+  });
+  const saveRailPrefs = (next) => {
+    setRailPrefsState(next);
+    try { localStorage.setItem(RAILS_KEY, JSON.stringify(next)); } catch {}
+  };
+  const setRailOpt = (patch) => saveRailPrefs({ ...railPrefs, ...patch });
+  const panelDesign = PANEL_DESIGNS.find(d => d.id === railPrefs.design) || null;
+  const [railsModalOpen, setRailsModalOpen] = useState(false);
+
+  const railAvailable = (def) => {
+    const mods = Array.isArray(props?.modules) ? props.modules : [];
+    if (!mods.length || !def.modules.length) return true;
+    return def.modules.some(m => mods.includes(m));
+  };
+  const availableRailDefs = RAIL_DEFS.filter(railAvailable);
+  const railsFit = vw >= 1360;                    /* the panel needs real width */
+  const chosenRails = panelDesign
+    ? panelDesign.rails.filter(id => availableRailDefs.some(d => d.id === id))
+    : [];
+  const activeRails = railsFit ? chosenRails : [];
+  const railsOn = activeRails.length > 0 && !railPrefs.collapsed;
+
+  /* The grid is a fixed 12 columns — the panel and the nav squeeze the same
+     twelve tracks rather than re-arranging the board. Only a repaint is
+     needed when the available width changes. */
+  useEffect(() => {
+    const t = setTimeout(() => engine()?.relayout?.(), 260);
+    return () => clearTimeout(t);
+  }, [railsOn, railPrefs.width, vw, navMode, engineReady]);
+
+  /* Applying a preset sets the board AND the panel it was composed with. */
+  const choosePreset = (id) => {
+    const e = engine();
+    const p = e?.getPresets?.()[id];
+    e?.applyPreset?.(id);
+    if (p) setRailOpt({ design: PANEL_DESIGNS.some(d => d.id === p.panel) ? p.panel : null, collapsed: false });
+    setPresetModalOpen(false);
+  };
+
+
   useEffect(() => {
     window._vqOpenGlassActions = () => setGlassModalOpen(true);
     return () => { window._vqOpenGlassActions = null; };
   }, []);
 
+  const enabledModules = useMemo(
+    () => (Array.isArray(props?.modules) ? props.modules : []),
+    [props?.modules]);
+
   useEffect(() => {
-    runCardBuilder({ storeSlug });
+    runCardBuilder({ storeSlug, modules: enabledModules });
     setEngineReady(true);
-  }, [storeSlug]);
+  }, [storeSlug, enabledModules]);
 
   /* Edit mode is a page state; the engine paints from a class on the shell. */
   useEffect(() => {
@@ -2892,9 +3801,23 @@ export default function NewDashboard(props) {
     frame.dataset.size = `${geo.w} × ${geo.h} · ${cardW}×${cardH}px · ${Math.round(scale * 100)}%`;
     setPreviewScale(Math.round(scale * 100));
 
+    /* seat the resize handle on the card's bottom-right corner — it lives
+       outside the re-rendered host so a drag survives every re-render */
+    const handle = previewHandleRef.current;
+    if (handle){
+      const seat = () => {
+        handle.style.left = (host.offsetLeft + Math.round(cardW * scale) - 8) + 'px';
+        handle.style.top  = (host.offsetTop  + Math.round(cardH * scale) - 8) + 'px';
+        handle.style.display = 'block';
+      };
+      seat();
+      requestAnimationFrame(seat);
+    }
+
     const raf = requestAnimationFrame(() => {
       const chartHost = scaler.querySelector('.vqc-host');
       if (chartHost) e.mountChart(chartHost, draftCard);
+      e.fitValues?.(scaler);
     });
     return () => cancelAnimationFrame(raf);
   }, [stepperModalOpen, step, draftCard, previewZoom, vw, engineReady]);
@@ -2907,13 +3830,14 @@ export default function NewDashboard(props) {
     setDraftShowDelta(true); setDraftShowPeriodPicker(true);
   };
 
-  const launchCategoryModal = (catIndex) => {
+  /* One picker, three families as tabs — no launcher in between. */
+  const setFamily = (catIndex) => {
     setCategoryFolderIndex(catIndex);
-    setFolderLauncherOpen(false);
     setStep(1);
     setEditingCardId(null);
     setSelectedReading(null);
     setSelectedTemplate(null);
+    setSearchQuery('');
     resetDraftChrome();
     if (catIndex === 2) {
       setDraftCat('C1'); setDraftW(2); setDraftH(1);
@@ -2924,8 +3848,12 @@ export default function NewDashboard(props) {
       setDraftCat('C3'); setDraftW(4); setDraftH(3);
       setDraftShowPeriodPicker(true);
     }
+  };
+  const openPicker = (catIndex = 0) => {
+    setFamily(catIndex);
     setStepperModalOpen(true);
   };
+  const launchCategoryModal = openPicker;
 
   const seatDraftOn = (card) => {
     const e = engine(); if (!e) return;
@@ -3062,10 +3990,15 @@ export default function NewDashboard(props) {
     setStep(1);
   };
 
-  const handleResetLayout = () => { engine()?.boot?.(); setMenuOpen(false); };
+  const handleResetLayout = () => { setPresetModalOpen(true); setMenuOpen(false); };
 
   /* ── catalogue ───────────────────────────────────────────────────────── */
-  const readings = engineReady ? (engine()?.getReadings?.() || []) : [];
+  const readings = engineReady
+    ? ((engine()?.getAvailableReadings?.() ?? engine()?.getReadings?.()) || [])
+    : [];
+  const visibleTemplates = engineReady
+    ? OPERATIONAL_TEMPLATES.filter(t => engine()?.specialAvailable?.(t.type) !== false)
+    : OPERATIONAL_TEMPLATES;
 
   const availableAreas = useMemo(
     () => ['All', ...Array.from(new Set(readings.map(r => r.area).filter(Boolean)))],
@@ -3104,8 +4037,142 @@ export default function NewDashboard(props) {
   const hasDraft = !!draftCard;
   const chartlessCat = draftCat === 'C1' || draftCat === 'C2';
 
-  const familyLabel = isReadingCard ? 'ANALYTICS READING'
-    : isHubCard ? 'OPERATIONS & HUBS' : 'CUSTOM SHORTCUT';
+  const familyLabel = isReadingCard ? 'METRIC & CHART'
+    : isHubCard ? 'SMART PANEL' : 'SHORTCUT';
+
+  /* ── the simple size system ──────────────────────────────────────────────
+     Users never see categories, fits, columns or pixel floors. They see a
+     handful of named sizes — and the preview's corner, which drags through
+     every size the rules allow. The engine's legality tables still decide
+     everything; this is only a friendlier way to ask. */
+  const SIZE_LABELS = { C1:'Tiny', C2:'One-line', C3:'Compact', C4:'Standard', C5:'Large', C6:'Extra large' };
+  const SIZE_HINTS  = {
+    C1:'Just the number', C2:'Name and number on one line', C3:'Number with its trend',
+    C4:'Room for a small chart or list', C5:'A full chart', C6:'The biggest card there is',
+  };
+
+  const statFamily = isReadingCard && draftChart === 'stat';
+  const variantForCat = (cat) => {
+    if (!statFamily) return draftVariant;
+    if (cat === 'C1' || cat === 'C2') return 'number';
+    return draftVariant === 'number' ? 'spark' : draftVariant;
+  };
+
+  const sizeChips = useMemo(() => {
+    const e = engine();
+    if (!e || !draftCard) return [];
+    if (isShortcutCard){
+      return [
+        { cat:'C1', w:1, h:1, label:'Icon only', hint:'Glyph only — the name shows on hover' },
+        { cat:'C1', w:2, h:1, label:'Standard', hint:'Icon and name' },
+        { cat:'C1', w:3, h:2, label:'Roomy', hint:'Icon, name and where it goes' },
+      ];
+    }
+    const probeBase = { ...draftCard, variant: statFamily ? 'number' : draftVariant };
+    let cats = [];
+    try { cats = e.catsFor(probeBase); } catch { cats = ['C3']; }
+    const chips = [];
+    cats.forEach(cat => {
+      if (isReadingCard && cat === 'C1') return;      /* tiles belong to shortcuts */
+      const variant = variantForCat(cat);
+      const probe = { ...draftCard, cat, variant };
+      let pick = null;
+      try {
+        const T = e.fitsTable(probe);
+        const floor = e.minSizeFor(probe);
+        const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
+        pick = list.find(s => s.isFit) || list[0];
+      } catch { pick = null; }
+      if (pick) chips.push({ cat, w: pick.w, h: pick.h, variant,
+                             label: SIZE_LABELS[cat] || cat, hint: SIZE_HINTS[cat] || '' });
+    });
+    return chips;
+  }, [draftCard, isShortcutCard, isReadingCard, statFamily, draftChart, draftVariant, engineReady]);
+
+  const pickChip = (chip) => {
+    setDraftCat(chip.cat);
+    if (chip.variant && chip.variant !== draftVariant) setDraftVariant(chip.variant);
+    setDraftW(chip.w); setDraftH(chip.h);
+  };
+
+  /* Drag the preview's corner: candidate rectangle → the richest interior the
+     rules will give it. Falls back to the nearest legal size in the current
+     interior, exactly like the board's own resize. */
+  const applyDragSize = (wRaw, hRaw) => {
+    const e = engine(); if (!e || !draftCard) return;
+    const catMaxTbl = e.getCatMax?.() || CAT_MAX_FALLBACK;
+    const w = Math.max(1, Math.min(12, wRaw)), h = Math.max(1, Math.min(16, hRaw));
+    let cats = [];
+    try { cats = isShortcutCard ? ['C1'] : e.catsFor({ ...draftCard, variant: statFamily ? 'number' : draftVariant }); }
+    catch { cats = [draftCat]; }
+    if (isReadingCard) cats = cats.filter(c => c !== 'C1');
+    for (let i = cats.length - 1; i >= 0; i--){
+      const cat = cats[i];
+      const variant = variantForCat(cat);
+      const probe = { ...draftCard, cat, variant };
+      try {
+        const [MW, MH] = catMaxTbl[cat] || [12, 16];
+        if (w > MW || h > MH) continue;
+        const [fw, fh] = e.minSizeFor(probe);
+        if (w < fw || h < fh) continue;
+        if (!e.sizeLegal(cat, w, h, e.fitsTable(probe))) continue;
+        setDraftCat(cat);
+        if (variant !== draftVariant) setDraftVariant(variant);
+        setDraftW(w); setDraftH(h);
+        return;
+      } catch { /* try the next interior */ }
+    }
+    /* nothing takes the exact rectangle — snap inside the current interior */
+    try {
+      const probe = { ...draftCard, cat: draftCat };
+      const T = e.fitsTable(probe);
+      const [MW, MH] = catMaxTbl[draftCat] || [12, 16];
+      const [fw, fh] = e.minSizeFor(probe);
+      let w2 = Math.max(fw, Math.min(MW, w)), h2 = Math.max(fh, Math.min(MH, h));
+      if (!e.sizeLegal(draftCat, w2, h2, T)){
+        const needH = e.minHeightAt(draftCat, w2, T);
+        if (needH != null && needH <= MH) h2 = Math.max(h2, needH);
+        else {
+          const needW = e.minWidthAt(draftCat, h2, T);
+          if (needW != null && needW <= MW) w2 = Math.max(w2, needW);
+          else return;
+        }
+      }
+      setDraftW(w2); setDraftH(h2);
+    } catch { /* keep the current size */ }
+  };
+  const applyDragSizeRef = useRef(applyDragSize);
+  applyDragSizeRef.current = applyDragSize;
+
+  /* the drag itself — the handle lives outside the re-rendered preview */
+  const dragState = useRef(null);
+  const dragScaleRef = useRef(1);
+  dragScaleRef.current = Math.max(0.05, previewScale / 100);
+  const onHandleDown = (ev) => {
+    ev.preventDefault(); ev.stopPropagation();
+    dragState.current = { x: ev.clientX, y: ev.clientY, w: draftW, h: draftH, scale: dragScaleRef.current };
+    document.body.classList.add('is-reordering');
+    const move = (e2) => {
+      const st = dragState.current; if (!st) return;
+      const dw = Math.round(((e2.clientX - st.x) / st.scale) / (112 + 24));
+      const dh = Math.round(((e2.clientY - st.y) / st.scale) / (64 + 24));
+      applyDragSizeRef.current(st.w + dw, st.h + dh);
+    };
+    const up = () => {
+      dragState.current = null;
+      document.body.classList.remove('is-reordering');
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      /* a drag that ends over the overlay must not read as a click on it —
+         that click is what used to close the whole modal mid-resize */
+      const squelch = (ce) => { ce.stopPropagation(); ce.preventDefault(); };
+      window.addEventListener('click', squelch, { capture: true, once: true });
+      setTimeout(() => window.removeEventListener('click', squelch, { capture: true }), 250);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
   // The Quick Actions launcher — the same destinations the shortcut family offers
   const glassActionItems = [
     { label: 'POS Register',  color: 'teal',   href: '/pos',
@@ -3121,6 +4188,63 @@ export default function NewDashboard(props) {
     { label: 'Add Expense',   color: 'coral',  href: storePath('/finance'),
       icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
   ];
+
+  /* The REAL sidebar: derived from the shared `nav` prop the same way
+     QoreShell derives it, so this shell and the module switches can never
+     disagree. The hardcoded groups below survive only as the fallback for
+     the store-less route and the dev harness. */
+  const sharedNav = Array.isArray(props?.nav) ? props.nav : [];
+  const liveNavGroups = useMemo(() => {
+    if (!sharedNav.length) return null;
+    const safeHref = (name) => {
+      try {
+        if (typeof window !== 'undefined' && typeof window.route === 'function') {
+          const has = window.route().has ? window.route().has(name) : true;
+          if (has === false) return null;
+          return window.route(name);
+        }
+      } catch { /* fall through */ }
+      return null;
+    };
+    const byGroup = new Map();
+    for (const item of sharedNav) {
+      const href = safeHref(item.route);
+      if (!href) continue;
+      if (!byGroup.has(item.group)) byGroup.set(item.group, []);
+      byGroup.get(item.group).push({ label: item.label, href, lucide: item.icon });
+    }
+    const groups = NAV_GROUP_ORDER
+      .filter(g => byGroup.has(g))
+      .map(g => ({ title: NAV_GROUP_LABELS[g] || g, items: byGroup.get(g) }));
+    if (!groups.length) return null;
+    const main = [
+      { label: 'Dashboard', href: storePath('/new-dashboard'), active: true, badge: 'Live',
+        d: <><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></> },
+    ];
+    /* POS is the one destination a counter business lives in — pinned. */
+    if (sharedNav.some(i => i.key === 'pos')) main.push({
+      label: 'Point of Sale', href: '/pos',
+      d: <><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></> });
+    return [
+      { title: 'Main', items: main, pinned: true },
+      ...groups,
+      { title: 'System', items: [
+        { label: 'Settings', href: storePath('/settings'),
+          d: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V4.5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.5.6.87 1.15 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></> },
+      ], pinned: true },
+    ];
+  }, [sharedNav, storeSlug]);
+
+  /* nav groups collapse — remembered per browser, Main and System never fold */
+  const NAVFOLD_KEY = 'vq-dashboard-v6-navfold';
+  const [navFold, setNavFold] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(NAVFOLD_KEY) || '{}') || {}; } catch { return {}; }
+  });
+  const toggleFold = (title) => {
+    const next = { ...navFold, [title]: !navFold[title] };
+    setNavFold(next);
+    try { localStorage.setItem(NAVFOLD_KEY, JSON.stringify(next)); } catch {}
+  };
 
   const navGroups = [
     { title: 'Main', items: [
@@ -3176,88 +4300,35 @@ export default function NewDashboard(props) {
         <span className="vq-identity-eyebrow">{familyLabel}</span>
         <span className="vq-identity-name">{draftName}</span>
         <span className="vq-identity-meta">
-          {isReadingCard && selectedReading
-            ? <><code>{selectedReading.key}</code> · {selectedReading.module} · opens {destLabel}</>
-            : <>opens {destLabel}</>}
+          {isReadingCard && selectedReading?.desc ? <>{selectedReading.desc} </> : null}
+          <span className="vq-identity-opens">Opens {destLabel}.</span>
         </span>
       </div>
 
-      {/* ── Size: category, presets, and a stepper for everything between ── */}
+      {/* ── Size: a few named sizes; the preview's corner does the rest ── */}
       <div className="vq-form-group">
         <label className="vq-form-label">
-          <span>Size &amp; category</span>
-          <span className="vq-form-sublabel">
-            floor {draftFloor[0]}×{draftFloor[1]} · max {(catMax[draftCat] || [12,16])[0]}×{(catMax[draftCat] || [12,16])[1]}
-          </span>
+          <span>Size</span>
+          <span className="vq-form-sublabel">or drag the corner of the preview</span>
         </label>
 
-        <div className="vq-category-tabs" role="tablist" aria-label="Card category">
-          {['C1','C2','C3','C4','C5','C6'].map(cat => {
-            const ok = legalCats.includes(cat);
-            return (
-              <button key={cat} type="button" role="tab" aria-selected={draftCat === cat}
-                disabled={!ok}
-                title={ok ? `${catNames[cat] || cat} — ${catDescs[cat] || ''}` : 'Too small for this card'}
-                className={`vq-cat-tab-btn ${draftCat === cat ? 'is-active' : ''} ${ok ? '' : 'is-off'}`}
-                onClick={() => ok && chooseCat(cat)}>
-                <span className="vq-cat-tab-code">{cat}</span>
-                <span className="vq-cat-tab-name">{catNames[cat] || cat}</span>
-              </button>
-            );
-          })}
-        </div>
-
         <div className="vq-size-grid">
-          {sizePresets.map(s => (
-            <button key={`${s.w}x${s.h}`} type="button"
-              className={`vq-size-card ${draftW === s.w && draftH === s.h ? 'is-active' : ''}`}
-              onClick={() => chooseSize(s)}>
-              <SizeGlyph w={s.w} h={s.h} max={catMax[s.cat] || [12,16]} />
+          {sizeChips.map(s => (
+            <button key={`${s.cat}-${s.w}x${s.h}`} type="button"
+              className={`vq-size-card ${draftCat === s.cat && draftW === s.w && draftH === s.h ? 'is-active' : ''}`}
+              onClick={() => pickChip(s)}>
+              <SizeGlyph w={s.w} h={s.h} max={[12, 8]} />
               <span className="vq-size-card-text">
-                <span className="vq-size-card-title">
-                  {s.w} × {s.h}
-                  <span className="vq-size-card-fit">{s.isMax ? 'max' : s.fitName}</span>
-                </span>
-                <span className="vq-size-card-desc">{s.isMax ? 'The largest this category allows' : s.inside}</span>
+                <span className="vq-size-card-title">{s.label}</span>
+                <span className="vq-size-card-desc">{s.hint}</span>
               </span>
             </button>
           ))}
         </div>
 
-        <div className="vq-size-stepper" role="group" aria-label="Custom size">
-          <div className="vq-step-axis">
-            <span className="vq-step-axis-label">Columns</span>
-            <div className="vq-step-ctl">
-              <button type="button" aria-label="Narrower" disabled={!canStep('w', -1)}
-                      onClick={() => stepSize('w', -1)}>−</button>
-              <span className="vq-step-val">{draftW}</span>
-              <button type="button" aria-label="Wider" disabled={!canStep('w', 1)}
-                      onClick={() => stepSize('w', 1)}>+</button>
-            </div>
-          </div>
-          <div className="vq-step-axis">
-            <span className="vq-step-axis-label">Rows</span>
-            <div className="vq-step-ctl">
-              <button type="button" aria-label="Shorter" disabled={!canStep('h', -1)}
-                      onClick={() => stepSize('h', -1)}>−</button>
-              <span className="vq-step-val">{draftH}</span>
-              <button type="button" aria-label="Taller" disabled={!canStep('h', 1)}
-                      onClick={() => stepSize('h', 1)}>+</button>
-            </div>
-          </div>
-          <div className="vq-step-readout">
-            <SizeGlyph w={draftW} h={draftH} max={catMax[draftCat] || [12,16]} />
-            <span>
-              {draftW * 112 + (draftW - 1) * 24} × {draftH * 64 + (draftH - 1) * 24}px
-              <em>interior: {resolvedFitName}</em>
-            </span>
-          </div>
-        </div>
-
         {draftW > boardColCount && (
           <p className="vq-form-note is-warn">
-            This screen shows {boardColCount} columns, so the card renders {boardColCount} wide
-            here and takes its full {draftW} on a wider display. Nothing is lost — it re-lays itself.
+            Wider than this screen — here it fills the row, and spreads out fully on a bigger display.
           </p>
         )}
       </div>
@@ -3268,7 +4339,7 @@ export default function NewDashboard(props) {
           <div className="vq-form-group">
             <label className="vq-form-label">
               <span>Chart type</span>
-              <span className="vq-form-sublabel">Re-seats the size on this chart's floor</span>
+              <span className="vq-form-sublabel">The size adjusts to fit</span>
             </label>
             <div className="vq-select-btn-group">
               {legalCharts.map(ch => (
@@ -3283,7 +4354,7 @@ export default function NewDashboard(props) {
 
           <div className="vq-form-group">
             <label className="vq-form-label">
-              <span>Visual variant</span>
+              <span>Style</span>
               <span className="vq-form-sublabel">{chartNames[draftChart] || draftChart}</span>
             </label>
             <div className="vq-select-btn-group">
@@ -3301,8 +4372,7 @@ export default function NewDashboard(props) {
 
       {isReadingCard && chartlessCat && (
         <p className="vq-form-note">
-          <strong>{catNames[draftCat] || draftCat} rule:</strong> a {draftCat === 'C1' ? 'tile' : 'strip'} carries
-          the reading and nothing else — label and value only. Charts start at Metric (C3).
+          This size shows the name and the number, nothing else — pick a bigger size to add a chart.
         </p>
       )}
 
@@ -3472,16 +4542,27 @@ export default function NewDashboard(props) {
         </div>
 
         <nav className="vq-nav-scroll">
-          {navGroups.map(g => (
-            <div className="vq-nav-group" key={g.title}>
-              <div className="vq-nav-group-title">{g.title}</div>
+          {(liveNavGroups || navGroups).map(g => (
+            <div className={`vq-nav-group ${!g.pinned && navFold[g.title] ? 'is-folded' : ''}`} key={g.title}>
+              {g.pinned ? (
+                <div className="vq-nav-group-title">{g.title}</div>
+              ) : (
+                <button type="button" className="vq-nav-group-title vq-nav-group-toggle"
+                        aria-expanded={!navFold[g.title]}
+                        onClick={() => toggleFold(g.title)}>
+                  <span>{g.title}</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              )}
               <div className="vq-nav-list">
                 {g.items.map(it => (
                   <a key={it.label} href={it.href} title={it.label}
                      className={`vq-nav-item ${it.active ? 'is-active' : ''}`}
                      onClick={() => setNavOverlayOpen(false)}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{it.d}</svg>
+                    {it.lucide
+                      ? <NavIcon name={it.lucide} />
+                      : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{it.d}</svg>}
                     <span className="vq-nav-text">{it.label}</span>
                     {it.badge && <span className="vq-nav-badge">{it.badge}</span>}
                   </a>
@@ -3524,18 +4605,31 @@ export default function NewDashboard(props) {
               <span aria-hidden="true">⚡</span><span className="vq-btn-text">Quick Actions</span>
             </button>
 
-            <button type="button" onClick={() => setFolderLauncherOpen(true)}
-                    className="vq-desktop-folder-btn" title="Add a card">
-              <span className="vq-desktop-folder-icon">
-                <span className="vq-desktop-folder-papers" />
-                <span className="vq-desktop-folder-front" />
-              </span>
-              <span className="vq-desktop-folder-label">Add Card</span>
+            <button type="button" onClick={() => openPicker(0)}
+                    className="vq-quick-btn vq-add-card-btn" title="Add a card">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span className="vq-btn-text">Add card</span>
             </button>
 
-            <button type="button" id="vq-theme" className="pg-theme vq-icon-btn" aria-label="Toggle theme">
-              <span className="pg-theme-l"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></span>
-              <span className="pg-theme-d"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+            {railsFit && (
+              <button type="button" className={`vq-icon-btn ${panelDesign && !railPrefs.collapsed ? 'is-active' : ''}`}
+                      title={panelDesign ? (railPrefs.collapsed ? 'Show the side panel' : 'Hide the side panel') : 'Choose a side panel'}
+                      aria-label="Side panel"
+                      onClick={() => {
+                        if (!panelDesign) setRailsModalOpen(true);
+                        else setRailOpt({ collapsed: !railPrefs.collapsed });
+                      }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
+              </button>
+            )}
+
+            <button type="button" className="vq-icon-btn" onClick={cycleTheme}
+                    title={themeTitle} aria-label={themeTitle}>
+              {themeMode === 'light'
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+                : themeMode === 'dark'
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>}
             </button>
 
             <div className="vq-menu-container" onClick={e => e.stopPropagation()}>
@@ -3552,14 +4646,21 @@ export default function NewDashboard(props) {
                     <span>{isEditMode ? 'Done editing' : 'Edit layout'}</span>
                   </button>
                   <button type="button" className="vq-dropdown-item" role="menuitem"
-                          onClick={() => { setFolderLauncherOpen(true); setMenuOpen(false); }}>
+                          onClick={() => { openPicker(0); setMenuOpen(false); }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     <span>Add a card</span>
+                  </button>
+                  <button type="button" className="vq-dropdown-item" role="menuitem"
+                          disabled={!railsFit}
+                          title={railsFit ? undefined : 'Needs a wider screen'}
+                          onClick={() => { if (railsFit){ setRailsModalOpen(true); setMenuOpen(false); } }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
+                    <span>Side panel…</span>
                   </button>
                   <div className="vq-dropdown-divider" />
                   <button type="button" className="vq-dropdown-item" role="menuitem" onClick={handleResetLayout}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                    <span>Reset layout</span>
+                    <span>Start fresh…</span>
                   </button>
                 </div>
               )}
@@ -3571,7 +4672,7 @@ export default function NewDashboard(props) {
           <div className="vq-edit-banner">
             <span className="vq-edit-banner-text">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-              Drag by the grip to reorder · drag the bottom-right corner to resize · click the pencil to open the full editor.
+              Drag any card to place it anywhere on the grid · drag the bottom-right corner to resize · the pencil opens the full editor.
             </span>
             <button type="button" className="vq-edit-banner-btn" onClick={() => setIsEditMode(false)}>Done</button>
           </div>
@@ -3579,50 +4680,72 @@ export default function NewDashboard(props) {
 
         <main className="vq-scroll-region">
           <div className="vq-canvas">
-            <div className="board-h">
-              <div className="board-h-text">
-                <h1>Your dashboard</h1>
-                <p className="board-sub">
-                  <span id="count" className="pill-n">0</span> cards on a {boardColCount}-column grid.
-                  Hover any chart to read a point — the crosshair snaps to the nearest one and the headline re-reads to it.
-                </p>
+            <div className={`vq-canvas-body ${railsOn ? 'has-rails' : ''}`}>
+              <div className="vq-board-zone">
+                <div className="vq-grid" id="board" />
               </div>
 
+              {railsOn && (
+                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''}`}
+                       style={{ '--vq-rails-w': `${railPrefs.width || 340}px` }}
+                       aria-label="Side panel">
+                  <div className="vq-rails-shell">
+                    <div className="vq-rails-scroll">
+                      {activeRails.map(id => <DashRail key={id} id={id} storePath={storePath}
+                                                       enabledModules={enabledModules}
+                                                       onQuickActions={() => setGlassModalOpen(true)} />)}
+                    </div>
+                  </div>
+                </aside>
+              )}
             </div>
-
-            <div className="vq-grid" id="board" />
           </div>
         </main>
       </div>
 
-      {/* ── Category launcher ───────────────────────────────────────────── */}
-      {folderLauncherOpen && (
-        <div className="vq-folder-portal-overlay" onClick={() => setFolderLauncherOpen(false)}>
-          <button type="button" className="vq-folder-portal-floating-close"
-                  onClick={() => setFolderLauncherOpen(false)} aria-label="Close">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-          <Folder
-            size={1.75} color="#0baa8f" selectedIndex={categoryFolderIndex}
-            autoAnimateOpen={true} onSelectCategory={(i) => launchCategoryModal(i)}
-            items={[
-              <div className="vq-folder-paper-content" key="r">
-                <span className="vq-folder-paper-icon">📊</span>
-                <span className="vq-folder-paper-title">Readings</span>
-                <span className="vq-folder-paper-sub">{readings.length || '—'} metrics</span>
-              </div>,
-              <div className="vq-folder-paper-content" key="o">
-                <span className="vq-folder-paper-icon">⚡</span>
-                <span className="vq-folder-paper-title">Operations</span>
-                <span className="vq-folder-paper-sub">{OPERATIONAL_TEMPLATES.length} hubs</span>
-              </div>,
-              <div className="vq-folder-paper-content" key="s">
-                <span className="vq-folder-paper-icon">🚀</span>
-                <span className="vq-folder-paper-title">Shortcuts</span>
-                <span className="vq-folder-paper-sub">One-click tiles</span>
-              </div>,
-            ]}
-          />
+      {/* ── Choose a starting layout ────────────────────────────────────── */}
+      {presetModalOpen && (
+        <div className="vq-modal-overlay" onClick={() => setPresetModalOpen(false)} role="dialog" aria-modal="true">
+          <div className="vq-modal-card vq-preset-modal" onClick={e => e.stopPropagation()}>
+            <div className="vq-modal-top-bar">
+              <div>
+                <div className="vq-modal-step-sub">STARTING LAYOUTS</div>
+                <div className="vq-modal-heading">Start fresh</div>
+              </div>
+              <button type="button" className="vq-modal-close-x" onClick={() => setPresetModalOpen(false)} aria-label="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+            <div className="vq-preset-note">
+              Pick a starting point — it replaces what's on the board now, and you can
+              add, resize and remove anything afterwards.
+            </div>
+            <div className="vq-preset-grid">
+              {Object.entries(engine()?.getPresets?.() || {}).map(([id, p]) => {
+                const railNames = (p.rails || [])
+                  .map(rid => RAIL_DEFS.find(d => d.id === rid)?.name)
+                  .filter(Boolean);
+                return (
+                  <button key={id} type="button" className="vq-item-card vq-preset-card"
+                          onClick={() => choosePreset(id)}>
+                    <span className="vq-preset-row">
+                      <PresetThumb cards={p.cards} />
+                      <span className="vq-preset-text">
+                        <span className="vq-item-card-top">
+                          <span className="vq-item-card-title">{p.name}</span>
+                          <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                        </span>
+                        <span className="vq-item-card-desc">{p.desc}</span>
+                        {railNames.length > 0 && (
+                          <span className="vq-preset-rails">Side panel: {railNames.join(' · ')}</span>
+                        )}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
@@ -3633,10 +4756,10 @@ export default function NewDashboard(props) {
             <div className="vq-modal-top-bar">
               <div>
                 <div className="vq-modal-step-sub">
-                  {familyLabel} · {editingCardId ? 'EDITING' : `STEP ${step} OF 2`}
+                  {editingCardId ? familyLabel : step === 1 ? 'ADD A CARD' : familyLabel}
                 </div>
                 <div className="vq-modal-heading">
-                  {step === 1 ? 'Choose a card' : editingCardId ? 'Edit this card' : 'Shape it'}
+                  {step === 1 ? 'Add to your dashboard' : editingCardId ? 'Edit this card' : 'Make it yours'}
                 </div>
               </div>
               <button type="button" className="vq-modal-close-x" onClick={() => setStepperModalOpen(false)} aria-label="Close">
@@ -3644,13 +4767,20 @@ export default function NewDashboard(props) {
               </button>
             </div>
 
-            {!editingCardId && (
-              <div className="vq-modal-stepper">
-                <Stepper
-                  steps={[{ label: 'Choose' }, { label: 'Shape & style' }]}
-                  currentStep={step}
-                  onStepClick={(s) => { if (s === 1 || hasDraft) setStep(s); }}
-                />
+            {!editingCardId && step === 1 && (
+              <div className="vq-family-tabs" role="tablist" aria-label="What kind of card">
+                {[
+                  { t: 'Metrics & charts', s: 'Live numbers from your business' },
+                  { t: 'Smart panels', s: 'Ready-made interactive cards' },
+                  { t: 'Shortcuts', s: 'One-click buttons to any page' },
+                ].map((f, i) => (
+                  <button key={f.t} type="button" role="tab" aria-selected={categoryFolderIndex === i}
+                    className={`vq-family-tab ${categoryFolderIndex === i ? 'is-active' : ''}`}
+                    onClick={() => setFamily(i)}>
+                    <span className="vq-family-tab-title">{f.t}</span>
+                    <span className="vq-family-tab-sub">{f.s}</span>
+                  </button>
+                ))}
               </div>
             )}
 
@@ -3659,7 +4789,7 @@ export default function NewDashboard(props) {
                 <div className="vq-modal-search-wrapper">
                   <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                   <input type="text" className="vq-modal-search-input"
-                         placeholder={`Search ${readings.length} readings…`}
+                         placeholder="Search for anything — sales, stock, expenses…"
                          value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
                 </div>
                 <div className="vq-modal-chips-row">
@@ -3686,14 +4816,9 @@ export default function NewDashboard(props) {
                                   onClick={() => selectMetricForStep2(r)}>
                             <span className="vq-item-card-top">
                               <span className="vq-item-card-title">{r.label}</span>
-                              {r.extra && <span className="vq-item-new-badge">✨ new</span>}
-                            </span>
-                            <span className="vq-item-card-desc">{r.module} · live {String(r.unit)} reading</span>
-                            <span className="vq-item-card-foot">
-                              <span className="vq-item-shape-tag">{r.shape || 'NUMBER'}</span>
-                              <span className="vq-item-card-key">{r.key}</span>
                               <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                             </span>
+                            <span className="vq-item-card-desc">{r.desc || ''}</span>
                           </button>
                         ))}
                       </div>
@@ -3701,44 +4826,34 @@ export default function NewDashboard(props) {
                   ))
                 ) : isHubCard ? (
                   <div className="vq-modal-section-group">
-                    <div className="vq-modal-section-title">Operations &amp; command cards</div>
+                    <div className="vq-modal-section-title">Ready-made panels</div>
                     <div className="vq-modal-cards-grid">
-                      {OPERATIONAL_TEMPLATES.map(tmpl => (
+                      {visibleTemplates.map(tmpl => (
                         <button type="button" key={tmpl.type} className="vq-item-card"
                                 onClick={() => selectTemplateForStep2(tmpl)}>
                           <span className="vq-item-card-top">
                             <span className="vq-item-card-title">{tmpl.title}</span>
-                            <span className="vq-item-new-badge">⚡ interactive</span>
-                          </span>
-                          <span className="vq-item-card-desc">{tmpl.desc}</span>
-                          <span className="vq-item-card-foot">
-                            <span className="vq-item-shape-tag">
-                              {(engine()?.getSpecials?.()[tmpl.type]?.cat) || 'C4'}
-                            </span>
-                            <span className="vq-item-card-key">{tmpl.category}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </span>
+                          <span className="vq-item-card-desc">{tmpl.desc}</span>
                         </button>
                       ))}
                     </div>
                   </div>
                 ) : (
                   <div className="vq-modal-section-group">
-                    <div className="vq-modal-section-title">Create a shortcut tile</div>
+                    <div className="vq-modal-section-title">Pick where the button takes you</div>
                     <div className="vq-modal-cards-grid">
                       {SHORTCUT_TARGETS.map(target => (
                         <button type="button" key={target.path} className="vq-item-card"
                                 onClick={() => selectCustomBtnForStep2(target)}>
                           <span className="vq-item-card-top">
+                            <span className="vq-item-glyph" style={{ background: target.color }}
+                                  dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(target.icon, 15) || '' }} />
                             <span className="vq-item-card-title">{target.label}</span>
-                            <span className="vq-item-new-badge">C1 tile</span>
-                          </span>
-                          <span className="vq-item-card-desc">One-click jump to the {target.label.toLowerCase()} workflow.</span>
-                          <span className="vq-item-card-foot">
-                            <span className="vq-item-shape-tag" style={{ background: target.color, color: '#fff' }}>shortcut</span>
-                            <span className="vq-item-card-key">{target.absolute ? target.path : storePath(target.path)}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </span>
+                          <span className="vq-item-card-desc">One click takes you straight there.</span>
                         </button>
                       ))}
                     </div>
@@ -3752,7 +4867,7 @@ export default function NewDashboard(props) {
                     <div className="vq-preview-bar">
                       <span className="vq-preview-title">Live preview</span>
                       <span className="vq-preview-meta">
-                        {draftGeo.w} × {draftGeo.h} · {draftW * 112 + (draftW - 1) * 24}×{draftH * 64 + (draftH - 1) * 24}px
+                        {draftGeo.w} × {draftGeo.h}
                         {previewScale < 100 && <em className="vq-preview-scale"> · shown at {previewScale}%</em>}
                       </span>
                       <span className="vq-preview-zoom">
@@ -3764,10 +4879,12 @@ export default function NewDashboard(props) {
                     </div>
                     <div className="vq-preview-frame" ref={previewFrameRef}>
                       <div className="vq-preview-card-host" ref={previewRef} />
+                      <button type="button" className="vq-preview-handle" ref={previewHandleRef}
+                              onPointerDown={onHandleDown}
+                              aria-label="Drag to resize" title="Drag to resize" />
                     </div>
                     <p className="vq-preview-foot">
-                      Drawn at the board's own geometry — {draftW} column{draftW === 1 ? '' : 's'} of 112px
-                      and {draftH} row{draftH === 1 ? '' : 's'} of 64px, gutters included.
+                      Drag the corner to resize — it snaps to sizes where everything always fits.
                     </p>
                   </div>
                 </div>
@@ -3776,11 +4893,7 @@ export default function NewDashboard(props) {
 
             <div className="vq-modal-bottom-bar">
               {step === 1 ? (
-                <button type="button" className="vq-choice-btn"
-                        onClick={() => { setStepperModalOpen(false); setFolderLauncherOpen(true); }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                  <span>Change category</span>
-                </button>
+                <span />
               ) : (
                 <button type="button" className="vq-choice-btn"
                         onClick={() => { if (editingCardId) { setStepperModalOpen(false); setEditingCardId(null); } else setStep(1); }}>
@@ -3796,6 +4909,75 @@ export default function NewDashboard(props) {
                     {editingCardId ? 'Save changes' : 'Add to dashboard'}
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Choose a side panel ─────────────────────────────────────────── */}
+      {railsModalOpen && (
+        <div className="vq-modal-overlay" onClick={() => setRailsModalOpen(false)} role="dialog" aria-modal="true">
+          <div className="vq-modal-card vq-preset-modal" onClick={e => e.stopPropagation()}>
+            <div className="vq-modal-top-bar">
+              <div>
+                <div className="vq-modal-step-sub">SIDE PANEL</div>
+                <div className="vq-modal-heading">Choose a side panel</div>
+              </div>
+              <button type="button" className="vq-modal-close-x" onClick={() => setRailsModalOpen(false)} aria-label="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+            <div className="vq-preset-note">
+              A ready-made column that sits to the right of your cards — pick the
+              one that matches how you work. Each is composed to fit; there is
+              nothing to arrange.
+            </div>
+            <div className="vq-rails-layoutbar">
+              <div className="vq-rails-opt-group" role="group" aria-label="Panel width">
+                <span className="vq-rails-opt-label">Width</span>
+                {[[300, 'Cosy'], [340, 'Comfortable'], [380, 'Wide']].map(([w, n]) => (
+                  <button key={w} type="button"
+                          className={`vq-choice-btn ${railPrefs.width === w ? 'is-active' : ''}`}
+                          onClick={() => setRailOpt({ width: w })}>{n}</button>
+                ))}
+              </div>
+              <div className="vq-rails-opt-group" role="group" aria-label="Panel behaviour">
+                <span className="vq-rails-opt-label">Scrolling</span>
+                <button type="button" className={`vq-choice-btn ${railPrefs.sticky ? 'is-active' : ''}`}
+                        onClick={() => setRailOpt({ sticky: true })}>Stays in place</button>
+                <button type="button" className={`vq-choice-btn ${!railPrefs.sticky ? 'is-active' : ''}`}
+                        onClick={() => setRailOpt({ sticky: false })}>Scrolls with cards</button>
+              </div>
+            </div>
+            <div className="vq-rails-options">
+              <button type="button"
+                      className={`vq-rail-option ${!panelDesign ? 'is-on' : ''}`}
+                      onClick={() => setRailOpt({ design: null, collapsed: false })}>
+                <span className="vq-rail-option-text">
+                  <span className="vq-rail-option-name">No side panel</span>
+                  <span className="vq-rail-option-desc">Give the cards the full width.</span>
+                </span>
+              </button>
+              {PANEL_DESIGNS.map(d => {
+                const usable = d.rails.some(rid => availableRailDefs.some(x => x.id === rid));
+                if (!usable) return null;
+                return (
+                  <button key={d.id} type="button"
+                          className={`vq-rail-option ${railPrefs.design === d.id ? 'is-on' : ''}`}
+                          onClick={() => setRailOpt({ design: d.id, collapsed: false })}>
+                    <span className="vq-rail-option-text">
+                      <span className="vq-rail-option-name">{d.name}</span>
+                      <span className="vq-rail-option-desc">{d.desc}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="vq-modal-bottom-bar">
+              <span />
+              <div className="vq-modal-bottom-actions">
+                <button type="button" className="vqb vqb--primary" onClick={() => setRailsModalOpen(false)}>Done</button>
               </div>
             </div>
           </div>

@@ -1,53 +1,69 @@
-import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import {
-    Store, ArrowRight, ArrowLeft, Loader2, Check, Sparkles,
-    Clock, CreditCard, Pencil
+    ArrowLeft, ArrowRight, Clock, CreditCard, Loader2, Pencil, Sparkles, Store,
 } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import {
+    AuthButton, AuthCheckbox, AuthField, AuthForm, AuthNotice, AuthStack,
+} from '@/Components/Auth';
 
 /**
- * Store/Create.jsx — Plan-gated store creation, Step 2
+ * Store/Create.jsx — plan-gated store creation, step 2.
  *
  * URL: /new-store?plan=<slug>&interval=<monthly|annual>
  *
- * Reached only after a plan has been chosen on Step 1 (Store/SelectPlan), or
- * directly when the user holds a pre-paid/AppSumo license (plan predetermined).
- *
- * Collects the store name and starts the trial on the selected plan. The plan
- * + interval ride along with the submission so the server can record what to
+ * Reached only after a plan has been chosen on step 1 (Store/SelectPlan), or
+ * directly when the user holds a pre-paid / AppSumo license, in which case the
+ * plan is already decided. Collects the store name and starts the trial; the
+ * plan and interval ride along with the submission so the server knows what to
  * charge once the trial ends.
+ *
+ * What went, and why:
+ *   · The whole page chrome. This was layout D of five — an app shell with its
+ *     own header bar carrying a raster wordmark and a back link, sitting on a
+ *     forced near-black ground with two large ambient colour clouds behind it.
+ *     §13 asks for one centred card and §14 forbids ambient motion or art
+ *     inside the product, so the shell now supplies the ground, the logo and
+ *     the card, and this file supplies only the form.
+ *   · A 576px content column. §13's number is 400. Every field below fits it;
+ *     the plan summary and the consent row were the two that needed relaying,
+ *     and both now stack rather than sit on one line.
+ *   · **Three surfaces written at opacity steps Tailwind does not have.** The
+ *     URL-preview well, its hairline and the license badge's fill were all
+ *     authored at fractional steps outside the generated set, so each compiled
+ *     to nothing: the preview has been rendering as bare text and the badge as
+ *     text with no wash behind it. That is the whole argument for not writing a
+ *     surface by hand — a token either exists or the build fails, but an
+ *     invented alpha step fails silently.
+ *   · The hand-rolled field trio — a local label, a local error line and a
+ *     local input with a 24px corner and a focus ring the rest of the family
+ *     does not use. One ds input now, via the shared field.
+ *   · The gradient call to action, teal at one end and plum at the other. Plum
+ *     is a categorical DATA colour (§5 slot 6); as chrome it argues with the
+ *     teal identity. It is a plain primary now, and it is the only primary on
+ *     the page.
+ *   · The hand-rolled consent checkbox, which set its own box colours and its
+ *     own focus ring. The ds checkbox already draws both.
+ *
+ * NOTE: none of the class names behind those descriptions are written out
+ * above. Tailwind scans raw file text, so a class quoted in a comment is a
+ * class that gets generated — naming the ones you just deleted puts them
+ * straight back into the bundle.
+ *
+ * Behaviour is untouched: same `useForm` fields, same POST to `store.store`,
+ * same disabled gate on name + consent, same back target, and the same three
+ * `id` hooks on the name field, the consent box and the submit button.
+ *
+ * `back={false}` because the shell's escape hatch leads to the marketing site,
+ * and this screen is reached from inside a signed-in session. The footer link
+ * carries the real way back — to the plan picker, or to the create-or-join fork
+ * when a license already decided the plan.
  */
-
-function FieldLabel({ children, required }) {
-    return (
-        <label className="block text-sm font-semibold text-neutral-300 mb-2">
-            {children} {required && <span className="text-red-400">*</span>}
-        </label>
-    );
-}
-
-function FieldError({ message }) {
-    if (!message) return null;
-    return <p className="text-red-400 text-xs mt-1.5">{message}</p>;
-}
-
-function InputBase({ className = '', hasError, ...props }) {
-    return (
-        <input
-            {...props}
-            className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-500
-                focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors
-                ${hasError ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}
-                ${className}`}
-        />
-    );
-}
-
 export default function CreateStore({ available_license = null, selected_plan = null, trial_days = 14 }) {
     const { data, setData, post, processing, errors } = useForm({
-        name:          '',
-        plan:          selected_plan?.slug || '',
-        interval:      selected_plan?.interval || 'monthly',
+        name: '',
+        plan: selected_plan?.slug || '',
+        interval: selected_plan?.interval || 'monthly',
         terms_consent: false,
     });
 
@@ -68,161 +84,159 @@ export default function CreateStore({ available_license = null, selected_plan = 
     const backHref = available_license ? route('store.create-or-join') : route('store.create');
 
     return (
-        <div className="min-h-screen bg-void-950 text-white font-sans">
-            <Head title="Create Store — VenQore" />
-
-            {/* Ambient */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-brand-900/15 rounded-full blur-[140px]" />
-                <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-[100px]" />
-            </div>
-
-            {/* Nav */}
-            <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                    <img src="/images/logo.png" alt="VenQore" className="h-8 w-8 object-contain" />
-                    <span className="font-bold text-lg text-white">VenQore<span className="text-brand-400">.</span></span>
-                </div>
+        <AuthLayout
+            title="Create Store — VenQore"
+            heading="Name your store"
+            subheading={
+                available_license
+                    ? `Your ${available_license.plan} license will be activated for this store.`
+                    : `Last step — your ${trial_days}-day free trial starts as soon as your store is created.`
+            }
+            back={false}
+            footer={
                 <Link
                     href={backHref}
-                    className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1.5 font-medium text-accent-text transition-colors duration-fast hover:text-accent-fill-hover"
                 >
                     <ArrowLeft size={14} /> {available_license ? 'Back' : 'Change plan'}
                 </Link>
-            </header>
-
-            <div className="relative z-10 flex items-center justify-center p-6 min-h-[calc(100vh-65px)]">
-                <div className="w-full max-w-xl">
-
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-500/15 border border-brand-500/30 mb-5">
-                            <Store size={24} className="text-brand-400" />
-                        </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-                            Name your store
-                        </h1>
-                        <p className="text-ink-muted text-sm">
-                            {available_license
-                                ? `Your ${available_license.plan} license will be activated for this store.`
-                                : `Last step — your ${trial_days}-day free trial starts as soon as your store is created.`}
+            }
+        >
+            <AuthStack gap={6}>
+                {/* Plan summary — the self-serve trial path. Stacks at 400px:
+                    the plan line, the trial line, then the change link on its
+                    own row, rather than three things fighting for one line. */}
+                {selected_plan && (
+                    <div className="rounded-lg bg-sunken p-4">
+                        <p className="flex items-center gap-2 text-sm font-bold text-ink">
+                            <Sparkles size={14} className="shrink-0 text-accent-text" />
+                            {selected_plan.name} plan
+                            <span className="font-medium text-ink-muted">
+                                · {selected_plan.interval === 'annual' ? 'Annual' : 'Monthly'}
+                            </span>
                         </p>
-                    </div>
-
-                    {/* Plan summary (self-serve trial) */}
-                    {selected_plan && (
-                        <div className="rounded-2xl border border-brand-500/20 bg-brand-500/[0.06] p-4 mb-6">
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-brand-500/15 border border-brand-500/25 flex items-center justify-center">
-                                        <Sparkles size={16} className="text-brand-300" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-white">
-                                            {selected_plan.name} plan
-                                            <span className="text-ink-muted font-medium"> · {selected_plan.interval === 'annual' ? 'Annual' : 'Monthly'}</span>
-                                        </p>
-                                        <p className="text-xs text-ink-muted mt-0.5 flex items-center gap-1.5">
-                                            <Clock size={11} className="text-emerald-400" />
-                                            Free for {trial_days} days, then {fmtCharge()}
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link
-                                    href={route('store.create')}
-                                    className="flex items-center gap-1 text-xs font-semibold text-brand-300 hover:text-brand-200 transition-colors"
-                                >
-                                    <Pencil size={11} /> Change
-                                </Link>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* License badge (pre-paid) */}
-                    {available_license && (
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/8 border border-emerald-500/20 mb-6">
-                            <Sparkles size={16} className="text-emerald-400 shrink-0" />
-                            <p className="text-sm text-emerald-300">
-                                <span className="font-bold capitalize">{available_license.plan} plan</span> license will be activated for this store
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
-
-                        {/* Store name */}
-                        <div>
-                            <FieldLabel required>Store Name</FieldLabel>
-                            <InputBase
-                                id="store-name"
-                                type="text"
-                                value={data.name}
-                                onChange={e => setData('name', e.target.value)}
-                                placeholder="e.g. Ali Electronics, Green Mart..."
-                                hasError={!!errors.name}
-                                autoFocus
-                                maxLength={100}
-                            />
-                            <FieldError message={errors.name} />
-                            <FieldError message={errors.plan} />
-                        </div>
-
-                        {/* Quick preview */}
-                        {data.name && (
-                            <div className="px-4 py-3 rounded-xl bg-white/3 border border-white/8 text-sm text-ink-muted">
-                                <span className="text-ink-muted text-xs font-semibold uppercase tracking-wider block mb-1">Your store URL will be</span>
-                                <span className="text-white font-mono text-xs">
-                                    venqore.com/s/<span className="text-brand-300">[ID]</span>/dashboard
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Terms & Privacy Consent */}
-                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                            <div className="flex items-start gap-3">
-                                <input
-                                    id="terms_consent"
-                                    type="checkbox"
-                                    checked={data.terms_consent}
-                                    onChange={e => setData('terms_consent', e.target.checked)}
-                                    className="mt-0.5 w-4 h-4 text-brand-600 rounded border-white/20 bg-white/5 focus:ring-brand-500 cursor-pointer shrink-0"
-                                />
-                                <label htmlFor="terms_consent" className="text-xs text-neutral-300 leading-relaxed cursor-pointer select-none">
-                                    I agree to the <Link href="/terms" target="_blank" className="text-brand-400 font-semibold hover:underline">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="text-brand-400 font-semibold hover:underline">Privacy Policy</Link>, including data handling & shared catalog terms described in Section 6.
-                                </label>
-                            </div>
-                            <FieldError message={errors.terms_consent} />
-                        </div>
-
-                        {/* Submit */}
-                        <button
-                            id="create-store-submit"
-                            type="submit"
-                            disabled={processing || !data.name || !data.terms_consent}
-                            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
- bg-gradient-to-r from-brand-500 to-purple-600
- hover:from-brand-400 hover:to-purple-500
- text-white font-bold text-base transition-all
- hover:shadow-xl hover:
- disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed mt-2"
+                        <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-muted">
+                            <Clock size={11} className="shrink-0 text-success-600 dark:text-success-400" />
+                            Free for {trial_days} days, then {fmtCharge()}
+                        </p>
+                        <Link
+                            href={route('store.create')}
+                            className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-accent-text transition-colors duration-fast hover:text-accent-fill-hover"
                         >
-                            {processing ? (
-                                <><Loader2 size={18} className="animate-spin" /> Creating store…</>
-                            ) : (
-                                <><Store size={18} /> {available_license ? 'Create Store' : 'Start my free trial'} <ArrowRight size={16} /></>
-                            )}
-                        </button>
+                            <Pencil size={11} /> Change
+                        </Link>
+                    </div>
+                )}
 
-                        <p className="text-center text-xs text-ink-muted flex items-center justify-center gap-1.5">
-                            {available_license
-                                ? 'You can rename your store and change settings at any time.'
-                                : <><CreditCard size={11} /> No card charged today. You can cancel anytime before your trial ends.</>}
-                        </p>
-                    </form>
+                {/* License badge — the pre-paid / AppSumo path. */}
+                {available_license && (
+                    <AuthNotice tone="success">
+                        <span className="flex items-start gap-2">
+                            <Sparkles size={14} className="mt-0.5 shrink-0" />
+                            <span>
+                                <span className="font-bold capitalize">{available_license.plan} plan</span>{' '}
+                                license will be activated for this store
+                            </span>
+                        </span>
+                    </AuthNotice>
+                )}
 
-                </div>
-            </div>
-        </div>
+                {/* `plan` is posted but has no field of its own, so its error has
+                    nowhere to land. It gets the form-level notice. */}
+                {errors.plan ? <AuthNotice tone="danger">{errors.plan}</AuthNotice> : null}
+
+                <AuthForm onSubmit={handleSubmit}>
+                    <AuthField
+                        id="store-name"
+                        label="Store name"
+                        type="text"
+                        name="name"
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
+                        placeholder="e.g. Ali Electronics, Green Mart..."
+                        maxLength={100}
+                        required
+                        autoFocus
+                        error={errors.name}
+                    />
+
+                    {/* Live preview of the address the store will live at. */}
+                    {data.name && (
+                        <div className="rounded-lg bg-sunken px-4 py-3">
+                            <span className="mb-1 block text-2xs font-semibold uppercase tracking-wider text-ink-muted">
+                                Your store URL will be
+                            </span>
+                            <span className="font-mono text-xs text-ink">
+                                venqore.com/s/<span className="text-accent-text">[ID]</span>/dashboard
+                            </span>
+                        </div>
+                    )}
+
+                    {/* stopPropagation on the two links: the ds Checkbox wraps its
+                        label in a <label>, so a click on anything inside it is
+                        forwarded to the box. Without this, opening the Terms
+                        silently un-ticks the thing you were agreeing to. */}
+                    <AuthCheckbox
+                        id="terms_consent"
+                        checked={data.terms_consent}
+                        onChange={(v) => setData('terms_consent', v)}
+                        label={
+                            <span className="text-xs leading-relaxed text-ink-secondary">
+                                I agree to the{' '}
+                                <Link
+                                    href="/terms"
+                                    target="_blank"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="font-semibold text-accent-text transition-colors duration-fast hover:text-accent-fill-hover"
+                                >
+                                    Terms of Service
+                                </Link>{' '}
+                                and{' '}
+                                <Link
+                                    href="/privacy"
+                                    target="_blank"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="font-semibold text-accent-text transition-colors duration-fast hover:text-accent-fill-hover"
+                                >
+                                    Privacy Policy
+                                </Link>
+                                , including data handling &amp; shared catalog terms described in Section 6.
+                            </span>
+                        }
+                    />
+
+                    {errors.terms_consent ? (
+                        <p className="text-xs font-medium text-danger-600">{errors.terms_consent}</p>
+                    ) : null}
+
+                    <AuthButton
+                        id="create-store-submit"
+                        type="submit"
+                        disabled={processing || !data.name || !data.terms_consent}
+                        icon={processing ? null : <Store size={16} />}
+                        iconAfter={processing ? null : <ArrowRight size={16} />}
+                    >
+                        {processing ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" /> Creating store…
+                            </>
+                        ) : (
+                            available_license ? 'Create Store' : 'Start my free trial'
+                        )}
+                    </AuthButton>
+
+                    <p className="flex items-center justify-center gap-1.5 text-center text-xs text-ink-muted">
+                        {available_license ? (
+                            'You can rename your store and change settings at any time.'
+                        ) : (
+                            <>
+                                <CreditCard size={11} className="shrink-0" /> No card charged today. You can
+                                cancel anytime before your trial ends.
+                            </>
+                        )}
+                    </p>
+                </AuthForm>
+            </AuthStack>
+        </AuthLayout>
     );
 }

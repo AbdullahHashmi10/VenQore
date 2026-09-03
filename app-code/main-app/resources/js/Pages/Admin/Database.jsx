@@ -136,9 +136,9 @@ export default function AdminDatabase({ stats, backups }) {
 
                     {/* Driver Card */}
                     <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full -mr-16 -mt-16 transition-transform"></div>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full -mr-16 -mt-16 transition-transform"></div>
                         <div className="flex items-center gap-4 relative z-10">
-                            <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center text-purple-600">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center text-brand-600">
                                 <Server size={24} />
                             </div>
                             <div>

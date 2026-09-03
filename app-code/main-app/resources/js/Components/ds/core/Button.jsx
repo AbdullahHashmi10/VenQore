@@ -17,7 +17,7 @@ const VARIANTS = {
 /** Pill button. One primary per view. */
 export function Button({
   children, variant = "primary", size = "md", icon, iconAfter,
-  full = false, disabled = false, onClick, type = "button", style, ...rest
+  full = false, pill = false, disabled = false, onClick, type = "button", style, ...rest
 }) {
   const s = SIZES[size] || SIZES.md;
   const v = VARIANTS[variant] || VARIANTS.primary;
@@ -42,7 +42,11 @@ export function Button({
           : hover && !disabled && variant === "ghost" ? "var(--vq-sunken)" : v.bg,
         color: v.fg,
         border: `1px solid ${v.bd}`,
-        borderRadius: "var(--vq-r-full)",
+        // §13: lg (20px) is the standard button; `pill` is the deliberate 999px
+        // case. This used to be r-full unconditionally, which is why a
+        // full-width button read 24px narrower than the input above it at
+        // the seam where they meet.
+        borderRadius: pill ? "var(--vq-r-full)" : "var(--vq-r-lg)",
         boxShadow: press ? "none" : hover && variant === "primary" ? "var(--vq-glow-accent-strong)" : v.sh,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.45 : 1,

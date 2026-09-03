@@ -89,8 +89,8 @@ export default function FirstRunDashboard({ storeSlug, tenantName, modules = [],
                         </div>
                     </div>
 
-                    <div className="p-6 bg-neutral-900/80 border border-neutral-800 rounded-2xl space-y-3 hover:border-purple-500/50 transition-all duration-slow shadow-xl group">
-                        <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl text-purple-400 w-fit transition-transform">
+                    <div className="p-6 bg-neutral-900/80 border border-neutral-800 rounded-2xl space-y-3 hover:border-brand-500/50 transition-all duration-slow shadow-xl group">
+                        <div className="p-3 bg-brand-500/10 border border-brand-500/20 rounded-2xl text-brand-400 w-fit transition-transform">
                             <BarChart2 size={22} />
                         </div>
                         <div>

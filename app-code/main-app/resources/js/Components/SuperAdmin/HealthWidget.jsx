@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Heart, ShieldAlert, Activity, Database, Cpu, 
-    HardDrive, Terminal, CheckCircle2, AlertCircle, RefreshCw 
+import {
+    Heart, ShieldAlert, Activity, Database, Cpu,
+    HardDrive, Terminal, CheckCircle2, AlertCircle, RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -53,7 +53,7 @@ export default function HealthWidget() {
             color: vq.slate[50],
             transition: 'all 0.3s ease'
         }}>
-            
+
             {/* Header */}
             <div className="flex items-center justify-between mb-6 pb-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
                 <div className="flex items-center gap-3">
@@ -66,10 +66,10 @@ export default function HealthWidget() {
                     </div>
                 </div>
 
-                <button 
-                    onClick={runChecks} 
+                <button
+                    onClick={runChecks}
                     disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-sunken disabled:text-ink-muted text-white rounded-xl text-xs font-bold transition-all shadow-lg hover: active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-sunken disabled:text-ink-muted text-white rounded-xl text-xs font-bold transition-all shadow-lg active:scale-95"
                 >
                     <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                     {loading ? 'Diagnosing...' : 'Run Diagnostics'}
@@ -111,9 +111,9 @@ export default function HealthWidget() {
                 {Object.entries(labels).map(([key, config]) => {
                     const result = checks[key];
                     const Icon = config.icon;
-                    
+
                     return (
-                        <div 
+                        <div
                             key={key}
                             style={{
                                 background: 'rgba(255, 255, 255, 0.02)',
@@ -152,9 +152,9 @@ export default function HealthWidget() {
                             </div>
 
                             {result && (
-                                <div style={{ 
-                                    fontSize: '11px', 
-                                    color: result.ok ? vq.slate[400] : vq.red[400], 
+                                <div style={{
+                                    fontSize: '11px',
+                                    color: result.ok ? vq.slate[400] : vq.red[400],
                                     lineHeight: '1.4',
                                     marginTop: '8px',
                                     borderTop: '1px solid rgba(255, 255, 255, 0.04)',

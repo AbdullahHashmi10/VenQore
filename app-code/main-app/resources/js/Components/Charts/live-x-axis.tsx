@@ -134,7 +134,7 @@ const LiveXAxisInner = memo(function LiveXAxisInner({
             bottom: 4,
           }}
         >
-          <div className="overflow-hidden rounded-full bg-zinc-900 px-4 py-1 text-white shadow-lg dark:bg-zinc-100 dark:text-zinc-900">
+          <div className="overflow-hidden rounded-full bg-chart-tooltip-background px-4 py-1 text-chart-tooltip-foreground shadow-lg">
             <span className="whitespace-nowrap font-medium text-sm">
               {pillLabel}
             </span>

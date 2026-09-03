@@ -2,706 +2,706 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { usePage } from '@inertiajs/react';
 import {
-    Search, Plus, Check, Edit2, Package, User, Loader2, ArrowUp, ArrowDown,
-    Star, AlertTriangle, TrendingUp, Clock, ShoppingBag, Truck, CreditCard,
-    BadgePercent, Wallet, MapPin, Phone, Mail
+ Search, Plus, Check, Edit2, Package, User, Loader2, ArrowUp, ArrowDown,
+ Star, AlertTriangle, TrendingUp, Clock, ShoppingBag, Truck, CreditCard,
+ BadgePercent, Wallet, MapPin, Phone, Mail
 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { formatCurrency } from '@/Utils/format';
 
 const SmartCombobox = ({
-    items = [],
-    selectedItem,
-    onSelect,
-    onAddNew,
-    placeholder = "Search...",
-    label,
-    addNewLabel = "Add New",
-    displayKey = 'name',
-    filterKey = 'name',
-    disabled = false,
-    readOnly = false,
-    onEdit,
-    onQueryChange,
-    value,
-    className = "",
-    inputClassName = "",
-    onKeyDown,
-    loading = false,
-    showTypeIcon = true,
-    /* Opt-in. When true the results list is rendered into <body> at fixed
-       coordinates instead of absolutely inside the field's own box. A list
-       positioned inside its field is clipped by the first ancestor that
-       scrolls or hides its overflow — which is exactly what happens on a
-       document screen where the item rows scroll in their own container.
-       Off by default so no existing screen changes. */
-    portal = false,
-    showDetailedView = true, // Show enhanced details
-    disableLocalFiltering = false,
-    hideCostAndMargin = false,
-    hideSearchIcon = false,
-    id
+ items = [],
+ selectedItem,
+ onSelect,
+ onAddNew,
+ placeholder = "Search...",
+ label,
+ addNewLabel = "Add New",
+ displayKey = 'name',
+ filterKey = 'name',
+ disabled = false,
+ readOnly = false,
+ onEdit,
+ onQueryChange,
+ value,
+ className = "",
+ inputClassName = "",
+ onKeyDown,
+ loading = false,
+ showTypeIcon = true,
+ /* Opt-in. When true the results list is rendered into <body> at fixed
+ coordinates instead of absolutely inside the field's own box. A list
+ positioned inside its field is clipped by the first ancestor that
+ scrolls or hides its overflow — which is exactly what happens on a
+ document screen where the item rows scroll in their own container.
+ Off by default so no existing screen changes. */
+ portal = false,
+ showDetailedView = true, // Show enhanced details
+ disableLocalFiltering = false,
+ hideCostAndMargin = false,
+ hideSearchIcon = false,
+ id
 }) => {
-    const { store, settings } = usePage().props;
-    const [isOpen, setIsOpen] = useState(false);
-    const [internalQuery, setInternalQuery] = useState('');
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+ const { store, settings } = usePage().props;
+ const [isOpen, setIsOpen] = useState(false);
+ const [internalQuery, setInternalQuery] = useState('');
+ const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-    const isControlled = value !== undefined;
-    const query = isControlled ? value : internalQuery;
+ const isControlled = value !== undefined;
+ const query = isControlled ? value : internalQuery;
 
-    const setQuery = (val) => {
-        if (!isControlled) setInternalQuery(val);
-    };
+ const setQuery = (val) => {
+ if (!isControlled) setInternalQuery(val);
+ };
 
-    const [debouncedQuery] = useDebounce(query, 300);
-    const wrapperRef = useRef(null);
-    const popRef = useRef(null);
-    const [anchor, setAnchor] = useState(null);
-    const inputRef = useRef(null);
-    const listRef = useRef(null);
+ const [debouncedQuery] = useDebounce(query, 300);
+ const wrapperRef = useRef(null);
+ const popRef = useRef(null);
+ const [anchor, setAnchor] = useState(null);
+ const inputRef = useRef(null);
+ const listRef = useRef(null);
 
-    useEffect(() => {
-        if (selectedItem) {
-            setQuery(selectedItem[displayKey] || '');
-        }
-    }, [selectedItem, displayKey]);
+ useEffect(() => {
+ if (selectedItem) {
+ setQuery(selectedItem[displayKey] || '');
+ }
+ }, [selectedItem, displayKey]);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            const inPop = popRef.current && popRef.current.contains(event.target);
-            if (!inPop && wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-                setIsOpen(false);
-                setHighlightedIndex(-1);
-                if (selectedItem) {
-                    setQuery(selectedItem[displayKey] || '');
-                } else {
-                    setQuery('');
-                }
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [selectedItem, displayKey]);
+ useEffect(() => {
+ const handleClickOutside = (event) => {
+ const inPop = popRef.current && popRef.current.contains(event.target);
+ if (!inPop && wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+ setIsOpen(false);
+ setHighlightedIndex(-1);
+ if (selectedItem) {
+ setQuery(selectedItem[displayKey] || '');
+ } else {
+ setQuery('');
+ }
+ }
+ };
+ document.addEventListener('mousedown', handleClickOutside);
+ return () => document.removeEventListener('mousedown', handleClickOutside);
+ }, [selectedItem, displayKey]);
 
-    const [openUpwards, setOpenUpwards] = useState(false);
+ const [openUpwards, setOpenUpwards] = useState(false);
 
-    useEffect(() => {
-        if (isOpen && inputRef.current) {
-            inputRef.current.focus();
-            const rect = inputRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            // If space below is less than 350px, open upwards
-            setOpenUpwards(spaceBelow < 350);
-        }
-    }, [isOpen]);
+ useEffect(() => {
+ if (isOpen && inputRef.current) {
+ inputRef.current.focus();
+ const rect = inputRef.current.getBoundingClientRect();
+ const spaceBelow = window.innerHeight - rect.bottom;
+ // If space below is less than 350px, open upwards
+ setOpenUpwards(spaceBelow < 350);
+ }
+ }, [isOpen]);
 
-    useEffect(() => {
-        setHighlightedIndex(-1);
-    }, [items]);
+ useEffect(() => {
+ setHighlightedIndex(-1);
+ }, [items]);
 
-    /* Where to put a portalled list. Re-measured on open and while anything
-       scrolls, because the field it belongs to may itself be in a scroller. */
-    useEffect(() => {
-        if (!portal || !isOpen) return undefined;
-        const measure = () => {
-            const el = inputRef.current;
-            if (el) setAnchor(el.getBoundingClientRect());
-        };
-        measure();
-        window.addEventListener('scroll', measure, true);
-        window.addEventListener('resize', measure);
-        return () => {
-            window.removeEventListener('scroll', measure, true);
-            window.removeEventListener('resize', measure);
-        };
-    }, [portal, isOpen]);
+ /* Where to put a portalled list. Re-measured on open and while anything
+ scrolls, because the field it belongs to may itself be in a scroller. */
+ useEffect(() => {
+ if (!portal || !isOpen) return undefined;
+ const measure = () => {
+ const el = inputRef.current;
+ if (el) setAnchor(el.getBoundingClientRect());
+ };
+ measure();
+ window.addEventListener('scroll', measure, true);
+ window.addEventListener('resize', measure);
+ return () => {
+ window.removeEventListener('scroll', measure, true);
+ window.removeEventListener('resize', measure);
+ };
+ }, [portal, isOpen]);
 
-    useEffect(() => {
-        if (highlightedIndex >= 0 && listRef.current) {
-            const highlightedElement = listRef.current.children[highlightedIndex];
-            if (highlightedElement) {
-                highlightedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            }
-        }
-    }, [highlightedIndex]);
+ useEffect(() => {
+ if (highlightedIndex >= 0 && listRef.current) {
+ const highlightedElement = listRef.current.children[highlightedIndex];
+ if (highlightedElement) {
+ highlightedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+ }
+ }
+ }, [highlightedIndex]);
 
-    // Filter and sort items
-    // Filter and sort items
-    const filteredItems = (items || [])
-        .filter(item => {
-            if (disableLocalFiltering) return true;
-            if (!query) return true;
-            const val = item[filterKey] ? String(item[filterKey]).toLowerCase() : '';
-            const phone = item.phone ? String(item.phone).toLowerCase() : '';
-            const sku = item.sku ? String(item.sku).toLowerCase() : '';
-            const q = query.toLowerCase();
-            return val.includes(q) || phone.includes(q) || sku.includes(q);
-        })
-        .sort((a, b) => {
-            // Prioritize exact matches
-            const aName = (a[displayKey] || '').toLowerCase();
-            const bName = (b[displayKey] || '').toLowerCase();
-            const q = query.toLowerCase();
+ // Filter and sort items
+ // Filter and sort items
+ const filteredItems = (items || [])
+ .filter(item => {
+ if (disableLocalFiltering) return true;
+ if (!query) return true;
+ const val = item[filterKey] ? String(item[filterKey]).toLowerCase() : '';
+ const phone = item.phone ? String(item.phone).toLowerCase() : '';
+ const sku = item.sku ? String(item.sku).toLowerCase() : '';
+ const q = query.toLowerCase();
+ return val.includes(q) || phone.includes(q) || sku.includes(q);
+ })
+ .sort((a, b) => {
+ // Prioritize exact matches
+ const aName = (a[displayKey] || '').toLowerCase();
+ const bName = (b[displayKey] || '').toLowerCase();
+ const q = query.toLowerCase();
 
-            if (aName.startsWith(q) && !bName.startsWith(q)) return -1;
-            if (!aName.startsWith(q) && bName.startsWith(q)) return 1;
+ if (aName.startsWith(q) && !bName.startsWith(q)) return -1;
+ if (!aName.startsWith(q) && bName.startsWith(q)) return 1;
 
-            return aName.localeCompare(bName);
-        });
+ return aName.localeCompare(bName);
+ });
 
-    const handleKeyDown = (e) => {
-        if (onKeyDown) onKeyDown(e);
+ const handleKeyDown = (e) => {
+ if (onKeyDown) onKeyDown(e);
 
-        if (!isOpen) {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                setIsOpen(true);
-                e.preventDefault();
-            }
-            return;
-        }
+ if (!isOpen) {
+ if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+ setIsOpen(true);
+ e.preventDefault();
+ }
+ return;
+ }
 
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setHighlightedIndex(prev =>
-                    prev < filteredItems.length - 1 ? prev + 1 : prev
-                );
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setHighlightedIndex(prev => prev > 0 ? prev - 1 : 0);
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (highlightedIndex >= 0 && filteredItems[highlightedIndex]) {
-                    onSelect(filteredItems[highlightedIndex]);
-                    setIsOpen(false);
-                    setHighlightedIndex(-1);
-                }
-                break;
-            case 'Escape':
-                e.preventDefault();
-                setIsOpen(false);
-                setHighlightedIndex(-1);
-                break;
-        }
-    };
+ switch (e.key) {
+ case 'ArrowDown':
+ e.preventDefault();
+ setHighlightedIndex(prev =>
+ prev < filteredItems.length - 1 ? prev + 1 : prev
+ );
+ break;
+ case 'ArrowUp':
+ e.preventDefault();
+ setHighlightedIndex(prev => prev > 0 ? prev - 1 : 0);
+ break;
+ case 'Enter':
+ e.preventDefault();
+ if (highlightedIndex >= 0 && filteredItems[highlightedIndex]) {
+ onSelect(filteredItems[highlightedIndex]);
+ setIsOpen(false);
+ setHighlightedIndex(-1);
+ }
+ break;
+ case 'Escape':
+ e.preventDefault();
+ setIsOpen(false);
+ setHighlightedIndex(-1);
+ break;
+ }
+ };
 
-    // Highlight matching text
-    const highlightMatch = (text, query) => {
-        if (!query || !text) return text;
-        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        const parts = String(text).split(regex);
-        return parts.map((part, i) =>
-            regex.test(part) ? (
-                <mark key={i} className="bg-yellow-200 dark:bg-yellow-500/30 text-inherit px-0.5 rounded font-bold">
-                    {part}
-                </mark>
-            ) : part
-        );
-    };
+ // Highlight matching text
+ const highlightMatch = (text, query) => {
+ if (!query || !text) return text;
+ const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+ const parts = String(text).split(regex);
+ return parts.map((part, i) =>
+ regex.test(part) ? (
+ <mark key={i} className="bg-yellow-200 dark:bg-yellow-500/30 text-inherit px-0.5 rounded font-bold">
+ {part}
+ </mark>
+ ) : part
+ );
+ };
 
-    // Get party type badge
-    const getTypeBadge = (item) => {
-        if (item.type === 'customer') {
-            return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
-                    <ShoppingBag size={10} />
-                    Customer
-                </span>
-            );
-        }
-        if (item.type === 'supplier') {
-            return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
-                    <Truck size={10} />
-                    Supplier
-                </span>
-            );
-        }
-        return null;
-    };
+ // Get party type badge
+ const getTypeBadge = (item) => {
+ if (item.type === 'customer') {
+ return (
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+ <ShoppingBag size={10} />
+ Customer
+ </span>
+ );
+ }
+ if (item.type === 'supplier') {
+ return (
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-500/30">
+ <Truck size={10} />
+ Supplier
+ </span>
+ );
+ }
+ return null;
+ };
 
-    // Get balance display with proper color coding
-    const getBalanceDisplay = (item) => {
-        if (item.current_balance === undefined && item.balance === undefined) return null;
+ // Get balance display with proper color coding
+ const getBalanceDisplay = (item) => {
+ if (item.current_balance === undefined && item.balance === undefined) return null;
 
-        const balance = item.current_balance ?? item.balance ?? 0;
-        const isCustomer = item.type === 'customer';
-        const isSupplier = item.type === 'supplier';
+ const balance = item.current_balance ?? item.balance ?? 0;
+ const isCustomer = item.type === 'customer';
+ const isSupplier = item.type === 'supplier';
 
-        // For Customers: Positive = They owe us (To Receive - Green), Negative = We owe them (Rare)
-        // For Suppliers: Positive = We owe them (To Pay - Red), Negative = They owe us (Advance paid)
+ // For Customers: Positive = They owe us (To Receive - Green), Negative = We owe them (Rare)
+ // For Suppliers: Positive = We owe them (To Pay - Red), Negative = They owe us (Advance paid)
 
-        let label, colorClass, icon;
+ let label, colorClass, icon;
 
-        if (isCustomer) {
-            if (balance > 0) {
-                // Customer owes us money - TO RECEIVE
-                label = 'To Receive';
-                colorClass = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30';
-                icon = <TrendingUp size={12} />;
-            } else if (balance < 0) {
-                // We owe customer (advance/credit)
-                label = 'Advance';
-                colorClass = 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30';
-                icon = <Wallet size={12} />;
-            } else {
-                label = 'Settled';
-                colorClass = 'text-ink-muted bg-sunken border-line dark:border-line';
-                icon = <Check size={12} />;
-            }
-        } else if (isSupplier) {
-            if (balance > 0) {
-                // We owe supplier money - TO PAY
-                label = 'To Pay';
-                colorClass = 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30';
-                icon = <CreditCard size={12} />;
-            } else if (balance < 0) {
-                // Supplier owes us (advance paid)
-                label = 'Advance Paid';
-                colorClass = 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30';
-                icon = <Wallet size={12} />;
-            } else {
-                label = 'Settled';
-                colorClass = 'text-ink-muted bg-sunken border-line dark:border-line';
-                icon = <Check size={12} />;
-            }
-        } else {
-            // Generic balance display
-            if (balance > 0) {
-                label = 'Balance';
-                colorClass = 'text-emerald-600 bg-emerald-50 border-emerald-200';
-                icon = <Wallet size={12} />;
-            } else if (balance < 0) {
-                label = 'Due';
-                colorClass = 'text-red-600 bg-red-50 border-red-200';
-                icon = <AlertTriangle size={12} />;
-            } else {
-                return null;
-            }
-        }
+ if (isCustomer) {
+ if (balance > 0) {
+ // Customer owes us money - TO RECEIVE
+ label = 'To Receive';
+ colorClass = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30';
+ icon = <TrendingUp size={12} />;
+ } else if (balance < 0) {
+ // We owe customer (advance/credit)
+ label = 'Advance';
+ colorClass = 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30';
+ icon = <Wallet size={12} />;
+ } else {
+ label = 'Settled';
+ colorClass = 'text-ink-muted bg-sunken border-line dark:border-line';
+ icon = <Check size={12} />;
+ }
+ } else if (isSupplier) {
+ if (balance > 0) {
+ // We owe supplier money - TO PAY
+ label = 'To Pay';
+ colorClass = 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30';
+ icon = <CreditCard size={12} />;
+ } else if (balance < 0) {
+ // Supplier owes us (advance paid)
+ label = 'Advance Paid';
+ colorClass = 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30';
+ icon = <Wallet size={12} />;
+ } else {
+ label = 'Settled';
+ colorClass = 'text-ink-muted bg-sunken border-line dark:border-line';
+ icon = <Check size={12} />;
+ }
+ } else {
+ // Generic balance display
+ if (balance > 0) {
+ label = 'Balance';
+ colorClass = 'text-emerald-600 bg-emerald-50 border-emerald-200';
+ icon = <Wallet size={12} />;
+ } else if (balance < 0) {
+ label = 'Due';
+ colorClass = 'text-red-600 bg-red-50 border-red-200';
+ icon = <AlertTriangle size={12} />;
+ } else {
+ return null;
+ }
+ }
 
-        return (
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-1xs font-bold border ${colorClass}`}>
-                {icon}
-                {label}: {formatCurrency(Math.abs(balance), store || settings)}
-            </span>
-        );
-    };
+ return (
+ <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-1xs font-bold border ${colorClass}`}>
+ {icon}
+ {label}: {formatCurrency(Math.abs(balance), store || settings)}
+ </span>
+ );
+ };
 
-    // Get credit limit warning
-    const getCreditLimitWarning = (item) => {
-        if (!item.credit_limit || item.credit_limit <= 0) return null;
-        const balance = item.current_balance ?? item.balance ?? 0;
-        const usagePercent = (balance / item.credit_limit) * 100;
+ // Get credit limit warning
+ const getCreditLimitWarning = (item) => {
+ if (!item.credit_limit || item.credit_limit <= 0) return null;
+ const balance = item.current_balance ?? item.balance ?? 0;
+ const usagePercent = (balance / item.credit_limit) * 100;
 
-        if (usagePercent >= 90) {
-            return (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-3xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 animate-pulse">
-                    <AlertTriangle size={10} /> Credit Limit!
-                </span>
-            );
-        } else if (usagePercent >= 70) {
-            return (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-3xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">
-                    <AlertTriangle size={10} /> {Math.round(usagePercent)}% Used
-                </span>
-            );
-        }
-        return null;
-    };
+ if (usagePercent >= 90) {
+ return (
+ <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-3xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 animate-pulse">
+ <AlertTriangle size={10} /> Credit Limit!
+ </span>
+ );
+ } else if (usagePercent >= 70) {
+ return (
+ <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-3xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">
+ <AlertTriangle size={10} /> {Math.round(usagePercent)}% Used
+ </span>
+ );
+ }
+ return null;
+ };
 
-    // Get stock status badge for products
-    const getStockBadge = (item) => {
-        if (item.stock_quantity === undefined) return null;
+ // Get stock status badge for products
+ const getStockBadge = (item) => {
+ if (item.stock_quantity === undefined) return null;
 
-        const totalStock = item.stock_quantity;
-        const reserved = item.reserved_quantity || 0;
-        const available = item.available_stock !== undefined ? item.available_stock : Math.max(0, totalStock - reserved);
-        const lowStockThreshold = item.low_stock_threshold || 10;
+ const totalStock = item.stock_quantity;
+ const reserved = item.reserved_quantity || 0;
+ const available = item.available_stock !== undefined ? item.available_stock : Math.max(0, totalStock - reserved);
+ const lowStockThreshold = item.low_stock_threshold || 10;
 
-        return (
-            <span className="inline-flex items-center gap-1.5 flex-wrap">
-                {available <= 0 ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
-                        <AlertTriangle size={10} /> OUT OF STOCK
-                    </span>
-                ) : available <= lowStockThreshold ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
-                        <AlertTriangle size={10} /> Avail: {available}
-                    </span>
-                ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
-                        <Package size={10} /> Avail: {available}
-                    </span>
-                )}
-                {reserved > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
-                        🔒 Reserved: {reserved}
-                    </span>
-                )}
-            </span>
-        );
-    };
+ return (
+ <span className="inline-flex items-center gap-1.5 flex-wrap">
+ {available <= 0 ? (
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
+ <AlertTriangle size={10} /> OUT OF STOCK
+ </span>
+ ) : available <= lowStockThreshold ? (
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+ <AlertTriangle size={10} /> Avail: {available}
+ </span>
+ ) : (
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+ <Package size={10} /> Avail: {available}
+ </span>
+ )}
+ {reserved > 0 && (
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-500/30">
+ 🔒 Reserved: {reserved}
+ </span>
+ )}
+ </span>
+ );
+ };
 
-    // Get profit margin indicator
-    const getProfitMargin = (item) => {
-        if (item.price === undefined || item.cost === undefined) return null;
+ // Get profit margin indicator
+ const getProfitMargin = (item) => {
+ if (item.price === undefined || item.cost === undefined) return null;
 
-        const margin = item.price - item.cost;
-        const marginPercent = item.cost > 0 ? ((margin / item.cost) * 100).toFixed(0) : 0;
+ const margin = item.price - item.cost;
+ const marginPercent = item.cost > 0 ? ((margin / item.cost) * 100).toFixed(0) : 0;
 
-        if (margin <= 0) {
-            return (
-                <span className="text-2xs text-red-500 font-bold">
-                    ⚠️ No Profit
-                </span>
-            );
-        }
+ if (margin <= 0) {
+ return (
+ <span className="text-2xs text-red-500 font-bold">
+ ⚠️ No Profit
+ </span>
+ );
+ }
 
-        return (
-            <span className="text-2xs text-ink-muted">
-                Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
-                <span className="text-neutral-300 ml-1">({marginPercent}%)</span>
-            </span>
-        );
-    };
+ return (
+ <span className="text-2xs text-ink-muted">
+ Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
+ <span className="text-neutral-300 ml-1">({marginPercent}%)</span>
+ </span>
+ );
+ };
 
-    // Get last activity indicator
-    const getLastActivity = (item) => {
-        if (!item.last_transaction_date && !item.updated_at) return null;
+ // Get last activity indicator
+ const getLastActivity = (item) => {
+ if (!item.last_transaction_date && !item.updated_at) return null;
 
-        const date = new Date(item.last_transaction_date || item.updated_at);
-        const now = new Date();
-        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+ const date = new Date(item.last_transaction_date || item.updated_at);
+ const now = new Date();
+ const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
-        let timeText;
-        if (diffDays === 0) timeText = 'Today';
-        else if (diffDays === 1) timeText = 'Yesterday';
-        else if (diffDays < 7) timeText = `${diffDays}d ago`;
-        else if (diffDays < 30) timeText = `${Math.floor(diffDays / 7)}w ago`;
-        else if (diffDays < 365) timeText = `${Math.floor(diffDays / 30)}m ago`;
-        else timeText = `${Math.floor(diffDays / 365)}y ago`;
+ let timeText;
+ if (diffDays === 0) timeText = 'Today';
+ else if (diffDays === 1) timeText = 'Yesterday';
+ else if (diffDays < 7) timeText = `${diffDays}d ago`;
+ else if (diffDays < 30) timeText = `${Math.floor(diffDays / 7)}w ago`;
+ else if (diffDays < 365) timeText = `${Math.floor(diffDays / 30)}m ago`;
+ else timeText = `${Math.floor(diffDays / 365)}y ago`;
 
-        return (
-            <span className="inline-flex items-center gap-1 text-2xs text-ink-muted">
-                <Clock size={10} /> {timeText}
-            </span>
-        );
-    };
+ return (
+ <span className="inline-flex items-center gap-1 text-2xs text-ink-muted">
+ <Clock size={10} /> {timeText}
+ </span>
+ );
+ };
 
-    // Get item icon based on type
-    const getItemIcon = (item) => {
-        if (item.type === 'customer') {
-            return <User size={18} className="text-blue-500" />;
-        }
-        if (item.type === 'supplier') {
-            return <Truck size={18} className="text-purple-500" />;
-        }
-        if (item.stock_quantity !== undefined || item.sku) {
-            return <Package size={18} className="text-brand-500" />;
-        }
-        return <Package size={18} className="text-ink-muted" />;
-    };
+ // Get item icon based on type
+ const getItemIcon = (item) => {
+ if (item.type === 'customer') {
+ return <User size={18} className="text-blue-500" />;
+ }
+ if (item.type === 'supplier') {
+ return <Truck size={18} className="text-brand-500" />;
+ }
+ if (item.stock_quantity !== undefined || item.sku) {
+ return <Package size={18} className="text-brand-500" />;
+ }
+ return <Package size={18} className="text-ink-muted" />;
+ };
 
-    /* A portalled list escapes every clipping ancestor; an inline one keeps
-       the old behaviour exactly. */
-    const renderList = (node) => (portal && typeof document !== 'undefined'
-        ? createPortal(node, document.body)
-        : node);
+ /* A portalled list escapes every clipping ancestor; an inline one keeps
+ the old behaviour exactly. */
+ const renderList = (node) => (portal && typeof document !== 'undefined'
+ ? createPortal(node, document.body)
+ : node);
 
-    // Check if item is a party (customer/supplier)
-    const isParty = (item) => item.type === 'customer' || item.type === 'supplier' || item.phone;
+ // Check if item is a party (customer/supplier)
+ const isParty = (item) => item.type === 'customer' || item.type === 'supplier' || item.phone;
 
-    // Check if item is a product
-    const isProduct = (item) => item.stock_quantity !== undefined || item.sku || item.price !== undefined;
+ // Check if item is a product
+ const isProduct = (item) => item.stock_quantity !== undefined || item.sku || item.price !== undefined;
 
-    return (
-        <div id={id} className={`relative ${className}`} ref={wrapperRef}>
-            {label && <label className="text-xs text-ink-muted font-bold uppercase block mb-1">{label}</label>}
+ return (
+ <div id={id} className={`relative ${className}`} ref={wrapperRef}>
+ {label && <label className="text-xs text-ink-muted font-bold uppercase block mb-1">{label}</label>}
 
-            <div className={`relative flex items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                {!hideSearchIcon && <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10" />}
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={query}
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        setQuery(val);
-                        if (onQueryChange) onQueryChange(val);
-                        if (!isOpen) setIsOpen(true);
-                        setHighlightedIndex(-1);
-                    }}
-                    onFocus={() => !readOnly && setIsOpen(true)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    readOnly={readOnly}
-                    className={`
-                        w-full ${hideSearchIcon ? 'pl-4' : 'pl-11'} pr-4 py-3 
-                        bg-surface 
-                        border border-line 
-                        rounded-xl 
-                        focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 
-                        text-sm font-bold text-ink 
-                        placeholder-slate-400 
-                        transition-all shadow-sm
-                        ${inputClassName}
+ <div className={`relative flex items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+ {!hideSearchIcon && <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10" />}
+ <input
+ ref={inputRef}
+ type="text"
+ value={query}
+ onChange={(e) => {
+ const val = e.target.value;
+ setQuery(val);
+ if (onQueryChange) onQueryChange(val);
+ if (!isOpen) setIsOpen(true);
+ setHighlightedIndex(-1);
+ }}
+ onFocus={() => !readOnly && setIsOpen(true)}
+ onKeyDown={handleKeyDown}
+ placeholder={placeholder}
+ disabled={disabled}
+ readOnly={readOnly}
+ className={`
+ w-full ${hideSearchIcon ? 'pl-4' : 'pl-11'} pr-4 py-3 
+ bg-surface 
+ border border-line 
+ rounded-xl 
+ focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 
+ text-sm font-bold text-ink 
+ placeholder-slate-400 
+ transition-all shadow-sm
+ ${inputClassName}
 `}
-                />
-                {loading && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <Loader2 size={18} className="animate-spin text-brand-500" />
-                    </div>
-                )}
-            </div>
+ />
+ {loading && (
+ <div className="absolute right-4 top-1/2 -translate-y-1/2">
+ <Loader2 size={18} className="animate-spin text-brand-500" />
+ </div>
+ )}
+ </div>
 
-            {/* Keyboard Hint */}
-            {isOpen && filteredItems.length > 0 && (
-                <div className={`absolute right-0 text-3xs text-ink-muted flex items-center gap-2 ${openUpwards ? '-top-5' : '-bottom-5'}`}>
-                    <span className="flex items-center gap-0.5"><ArrowUp size={10} /><ArrowDown size={10} /></span>
-                    <span>↵ Select</span>
-                    <span>Esc Close</span>
-                </div>
-            )}
+ {/* Keyboard Hint */}
+ {isOpen && filteredItems.length > 0 && (
+ <div className={`absolute right-0 text-3xs text-ink-muted flex items-center gap-2 ${openUpwards ? '-top-5' : '-bottom-5'}`}>
+ <span className="flex items-center gap-0.5"><ArrowUp size={10} /><ArrowDown size={10} /></span>
+ <span>↵ Select</span>
+ <span>Esc Close</span>
+ </div>
+ )}
 
-            {/* Dropdown */}
-            {isOpen && renderList(
-                <div
-                    ref={popRef}
-                    className={portal
-                        ? 'fixed bg-surface border border-line rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-fast'
-                        : `absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-surface border border-line rounded-2xl shadow-2xl z-drawer animate-in fade-in zoom-in-95 duration-fast`}
-                    style={portal && anchor ? {
-                        left: anchor.left + anchor.width / 2,
-                        transform: 'translateX(-50%)',
-                        minWidth: anchor.width,
-                        maxWidth: Math.max(anchor.width, 350),
-                        zIndex: 700,
-                        ...(openUpwards
-                            ? { bottom: Math.max(8, window.innerHeight - anchor.top + 4) }
-                            : { top: anchor.bottom + 4 }),
-                    } : undefined}
-                >
+ {/* Dropdown */}
+ {isOpen && renderList(
+ <div
+ ref={popRef}
+ className={portal
+ ? 'fixed bg-surface border border-line rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-fast'
+ : `absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-surface border border-line rounded-2xl shadow-2xl z-drawer animate-in fade-in zoom-in-95 duration-fast`}
+ style={portal && anchor ? {
+ left: anchor.left + anchor.width / 2,
+ transform: 'translateX(-50%)',
+ minWidth: anchor.width,
+ maxWidth: Math.max(anchor.width, 350),
+ zIndex: 700,
+ ...(openUpwards
+ ? { bottom: Math.max(8, window.innerHeight - anchor.top + 4) }
+ : { top: anchor.bottom + 4 }),
+ } : undefined}
+ >
 
-                    {/* Results Count Header */}
-                    {filteredItems.length > 0 && (
-                        <div className="px-4 py-2 bg-app border-b border-line flex items-center justify-between">
-                            <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider">
-                                {filteredItems.length} Result{filteredItems.length !== 1 ? 's' : ''}
-                            </span>
-                            {query && (
-                                <span className="text-2xs text-ink-muted">
-                                    Searching: "<span className="text-brand-500 font-bold">{query}</span>"
-                                </span>
-                            )}
-                        </div>
-                    )}
+ {/* Results Count Header */}
+ {filteredItems.length > 0 && (
+ <div className="px-4 py-2 bg-app border-b border-line flex items-center justify-between">
+ <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider">
+ {filteredItems.length} Result{filteredItems.length !== 1 ? 's' : ''}
+ </span>
+ {query && (
+ <span className="text-2xs text-ink-muted">
+ Searching: "<span className="text-brand-500 font-bold">{query}</span>"
+ </span>
+ )}
+ </div>
+ )}
 
-                    {/* Scrollable List */}
-                    <div ref={listRef} className="max-h-[320px] overflow-y-auto custom-scrollbar">
-                        {/* Loading State */}
-                        {loading && filteredItems.length === 0 && (
-                            <div className="px-4 py-8 text-center">
-                                <Loader2 size={32} className="mx-auto animate-spin text-brand-500 mb-2" />
-                                <p className="text-sm text-ink-muted font-medium">Searching...</p>
-                            </div>
-                        )}
+ {/* Scrollable List */}
+ <div ref={listRef} className="max-h-[320px] overflow-y-auto custom-scrollbar">
+ {/* Loading State */}
+ {loading && filteredItems.length === 0 && (
+ <div className="px-4 py-8 text-center">
+ <Loader2 size={32} className="mx-auto animate-spin text-brand-500 mb-2" />
+ <p className="text-sm text-ink-muted font-medium">Searching...</p>
+ </div>
+ )}
 
-                        {/* Empty State */}
-                        {!loading && filteredItems.length === 0 && query && (
-                            <div className="px-4 py-6 text-center">
-                                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center">
-                                    <Search size={28} className="text-neutral-300 dark:text-ink-secondary" />
-                                </div>
-                                <p className="text-sm font-bold text-ink-secondary">No results for "{query}"</p>
-                                <p className="text-xs text-ink-muted mt-1">Try a different search term</p>
-                            </div>
-                        )}
+ {/* Empty State */}
+ {!loading && filteredItems.length === 0 && query && (
+ <div className="px-4 py-6 text-center">
+ <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center">
+ <Search size={28} className="text-neutral-300 dark:text-ink-secondary" />
+ </div>
+ <p className="text-sm font-bold text-ink-secondary">No results for "{query}"</p>
+ <p className="text-xs text-ink-muted mt-1">Try a different search term</p>
+ </div>
+ )}
 
-                        {/* Initial Empty State */}
-                        {!loading && filteredItems.length === 0 && !query && (
-                            <div className="px-4 py-6 text-center">
-                                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-brand-100 to-purple-100 dark:from-brand-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                                    <Package size={28} className="text-brand-400" />
-                                </div>
-                                <p className="text-sm font-medium text-ink-muted">Start typing to search</p>
-                                <p className="text-xs text-ink-muted mt-1">Search by name, phone, SKU, or email</p>
-                            </div>
-                        )}
+ {/* Initial Empty State */}
+ {!loading && filteredItems.length === 0 && !query && (
+ <div className="px-4 py-6 text-center">
+ <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+ <Package size={28} className="text-brand-400" />
+ </div>
+ <p className="text-sm font-medium text-ink-muted">Start typing to search</p>
+ <p className="text-xs text-ink-muted mt-1">Search by name, phone, SKU, or email</p>
+ </div>
+ )}
 
-                        {filteredItems.map((item, idx) => (
-                            <div
-                                key={item.id || idx}
-                                className={`
-                                    px-4 py-3 flex items-start justify-between gap-3 
-                                    border-b border-line last:border-0
-                                    cursor-pointer transition-all duration-fast
-                                    ${highlightedIndex === idx
-                                        ? 'bg-brand-50 dark:bg-brand-600/20 scale-[1.01]'
-                                        : selectedItem?.id === item.id
-                                            ? 'bg-emerald-50 dark:bg-emerald-600/10'
-                                            : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover'
-                                    }
+ {filteredItems.map((item, idx) => (
+ <div
+ key={item.id || idx}
+ className={`
+ px-4 py-3 flex items-start justify-between gap-3 
+ border-b border-line last:border-0
+ cursor-pointer transition-all duration-fast
+ ${highlightedIndex === idx
+ ? 'bg-brand-50 dark:bg-brand-600/20 scale-[1.01]'
+ : selectedItem?.id === item.id
+ ? 'bg-emerald-50 dark:bg-emerald-600/10'
+ : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover'
+ }
 `}
-                                onMouseEnter={() => setHighlightedIndex(idx)}
-                            >
-                                {/* Left: Icon + Main Info */}
-                                <div
-                                    className="flex items-start gap-3 flex-1 min-w-0"
-                                    onClick={() => {
-                                        onSelect(item);
-                                        setIsOpen(false);
-                                        setHighlightedIndex(-1);
-                                    }}
-                                >
-                                    {/* Type Icon */}
-                                    {showTypeIcon && (
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'customer' ? 'bg-blue-100 dark:bg-blue-500/20' :
-                                            item.type === 'supplier' ? 'bg-purple-100 dark:bg-purple-500/20' :
-                                                'bg-sunken'
-                                            }`}>
-                                            {getItemIcon(item)}
-                                        </div>
-                                    )}
+ onMouseEnter={() => setHighlightedIndex(idx)}
+ >
+ {/* Left: Icon + Main Info */}
+ <div
+ className="flex items-start gap-3 flex-1 min-w-0"
+ onClick={() => {
+ onSelect(item);
+ setIsOpen(false);
+ setHighlightedIndex(-1);
+ }}
+ >
+ {/* Type Icon */}
+ {showTypeIcon && (
+ <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'customer' ? 'bg-blue-100 dark:bg-blue-500/20' :
+ item.type === 'supplier' ? 'bg-brand-100 dark:bg-brand-500/20' :
+ 'bg-sunken'
+ }`}>
+ {getItemIcon(item)}
+ </div>
+ )}
 
-                                    <div className="flex-1 min-w-0">
-                                        {/* Row 1: Name + Type Badge + Price */}
-                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                            <span className={`font-bold text-base truncate ${highlightedIndex === idx || selectedItem?.id === item.id ? 'text-brand-600 dark:text-brand-400' : 'text-ink'}`}>
-                                                {highlightMatch(item[displayKey], query)}
-                                            </span>
-                                            {getTypeBadge(item)}
-                                            {item.is_vip && (
-                                                <Star size={14} className="text-amber-500 fill-amber-500" />
-                                            )}
-                                            {item.price !== undefined && (
-                                                <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400 ml-auto shrink-0">
-                                                    {formatCurrency(item.price, store || settings)}
-                                                </span>
-                                            )}
-                                        </div>
+ <div className="flex-1 min-w-0">
+ {/* Row 1: Name + Type Badge + Price */}
+ <div className="flex items-center gap-2 mb-1 flex-wrap">
+ <span className={`font-bold text-base truncate ${highlightedIndex === idx || selectedItem?.id === item.id ? 'text-brand-600 dark:text-brand-400' : 'text-ink'}`}>
+ {highlightMatch(item[displayKey], query)}
+ </span>
+ {getTypeBadge(item)}
+ {item.is_vip && (
+ <Star size={14} className="text-amber-500 fill-amber-500" />
+ )}
+ {item.price !== undefined && (
+ <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400 ml-auto shrink-0">
+ {formatCurrency(item.price, store || settings)}
+ </span>
+ )}
+ </div>
 
-                                        {/* Row 2: Contact Info */}
-                                        {isParty(item) && (
-                                            <div className="flex items-center gap-3 text-xs text-ink-muted mb-1.5">
-                                                {item.phone && (
-                                                    <span className="flex items-center gap-1">
-                                                        <Phone size={11} /> {item.phone}
-                                                    </span>
-                                                )}
-                                                {item.email && (
-                                                    <span className="flex items-center gap-1 truncate max-w-[150px]">
-                                                        <Mail size={11} /> {item.email}
-                                                    </span>
-                                                )}
-                                                {item.address && (
-                                                    <span className="flex items-center gap-1 truncate max-w-[150px]" title={item.address}>
-                                                        <MapPin size={11} /> {item.address}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
+ {/* Row 2: Contact Info */}
+ {isParty(item) && (
+ <div className="flex items-center gap-3 text-xs text-ink-muted mb-1.5">
+ {item.phone && (
+ <span className="flex items-center gap-1">
+ <Phone size={11} /> {item.phone}
+ </span>
+ )}
+ {item.email && (
+ <span className="flex items-center gap-1 truncate max-w-[150px]">
+ <Mail size={11} /> {item.email}
+ </span>
+ )}
+ {item.address && (
+ <span className="flex items-center gap-1 truncate max-w-[150px]" title={item.address}>
+ <MapPin size={11} /> {item.address}
+ </span>
+ )}
+ </div>
+ )}
 
-                                        {/* Row 3: Balance & Credit Info (for Parties) */}
-                                        {isParty(item) && (
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                {getBalanceDisplay(item)}
-                                                {getCreditLimitWarning(item)}
-                                                {getLastActivity(item)}
-                                            </div>
-                                        )}
+ {/* Row 3: Balance & Credit Info (for Parties) */}
+ {isParty(item) && (
+ <div className="flex items-center gap-2 flex-wrap">
+ {getBalanceDisplay(item)}
+ {getCreditLimitWarning(item)}
+ {getLastActivity(item)}
+ </div>
+ )}
 
-                                        {/* Row 2: Product Info */}
-                                        {isProduct(item) && (
-                                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                {item.sku && (
-                                                    <span className="font-mono text-ink-muted bg-sunken px-1.5 py-0.5 rounded text-2xs">
-                                                        SKU: {item.sku}
-                                                    </span>
-                                                )}
-                                                {item.category?.name && (
-                                                    <span className="text-2xs px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold">
-                                                        {item.category.name}
-                                                    </span>
-                                                )}
-                                                {getStockBadge(item)}
-                                            </div>
-                                        )}
+ {/* Row 2: Product Info */}
+ {isProduct(item) && (
+ <div className="flex items-center gap-2 flex-wrap mb-1">
+ {item.sku && (
+ <span className="font-mono text-ink-muted bg-sunken px-1.5 py-0.5 rounded text-2xs">
+ SKU: {item.sku}
+ </span>
+ )}
+ {item.category?.name && (
+ <span className="text-2xs px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold">
+ {item.category.name}
+ </span>
+ )}
+ {getStockBadge(item)}
+ </div>
+ )}
 
-                                        {/* Row 3: Cost & Margin (for Products) */}
-                                        {isProduct(item) && !hideCostAndMargin && (
-                                            <div className="flex items-center gap-3">
-                                                {item.cost !== undefined && (
-                                                    <span className="text-1xs text-ink-muted">
-                                                        Cost: <span className="text-ink-secondary font-semibold">{formatCurrency(item.cost, store || settings)}</span>
-                                                    </span>
-                                                )}
-                                                {getProfitMargin(item)}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+ {/* Row 3: Cost & Margin (for Products) */}
+ {isProduct(item) && !hideCostAndMargin && (
+ <div className="flex items-center gap-3">
+ {item.cost !== undefined && (
+ <span className="text-1xs text-ink-muted">
+ Cost: <span className="text-ink-secondary font-semibold">{formatCurrency(item.cost, store || settings)}</span>
+ </span>
+ )}
+ {getProfitMargin(item)}
+ </div>
+ )}
+ </div>
+ </div>
 
-                                {/* Right: Actions */}
-                                <div className="flex flex-col items-end gap-1 shrink-0">
-                                    {/* Edit Button */}
-                                    {onEdit && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onEdit(item);
-                                                setIsOpen(false);
-                                            }}
-                                            className="p-2 rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted hover:text-brand-500 transition-colors"
-                                            title="Edit"
-                                        >
-                                            <Edit2 size={14} />
-                                        </button>
-                                    )}
+ {/* Right: Actions */}
+ <div className="flex flex-col items-end gap-1 shrink-0">
+ {/* Edit Button */}
+ {onEdit && (
+ <button
+ onClick={(e) => {
+ e.stopPropagation();
+ onEdit(item);
+ setIsOpen(false);
+ }}
+ className="p-2 rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted hover:text-brand-500 transition-colors"
+ title="Edit"
+ >
+ <Edit2 size={14} />
+ </button>
+ )}
 
-                                    {/* Check mark for selected */}
-                                    {selectedItem?.id === item.id && (
-                                        <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-                                            <Check size={12} className="text-white" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+ {/* Check mark for selected */}
+ {selectedItem?.id === item.id && (
+ <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+ <Check size={12} className="text-white" />
+ </div>
+ )}
+ </div>
+ </div>
+ ))}
+ </div>
 
-                    {/* Sticky Footer: Add New Button */}
-                    {onAddNew && (
-                        <div className="border-t-2 border-line bg-gradient-to-r from-neutral-50 to-brand-50 dark:from-neutral-800/80 dark:to-brand-900/20">
-                            <button
-                                id="tour-add-new-party-btn"
-                                onClick={() => {
-                                    onAddNew(query);
-                                    setIsOpen(false);
-                                }}
-                                className="w-full px-4 py-3.5 flex items-center gap-3 text-brand-600 dark:text-brand-400 hover:bg-brand-100/50 dark:hover:bg-brand-500/10 transition-colors group"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center group-hover:bg-brand-200 dark:group-hover:bg-brand-500/30 transition-colors">
-                                    <Plus size={20} className="text-brand-600 dark:text-brand-400" />
-                                </div>
-                                <div className="text-left">
-                                    <span className="font-bold text-sm block">
-                                        {addNewLabel}
-                                        {query && <span className="text-ink-muted font-normal ml-1">"{query}"</span>}
-                                    </span>
-                                    <span className="text-2xs text-ink-muted">Create a new entry</span>
-                                </div>
-                            </button>
-                        </div>
-                    )}
-                </div>,
-            )}
-        </div>
-    );
+ {/* Sticky Footer: Add New Button */}
+ {onAddNew && (
+ <div className="border-t-2 border-line bg-gradient-to-r from-neutral-50 to-brand-50 dark:from-neutral-800/80 dark:to-brand-900/20">
+ <button
+ id="tour-add-new-party-btn"
+ onClick={() => {
+ onAddNew(query);
+ setIsOpen(false);
+ }}
+ className="w-full px-4 py-3.5 flex items-center gap-3 text-brand-600 dark:text-brand-400 hover:bg-brand-100/50 dark:hover:bg-brand-500/10 transition-colors group"
+ >
+ <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center group-hover:bg-brand-200 dark:group-hover:bg-brand-500/30 transition-colors">
+ <Plus size={20} className="text-brand-600 dark:text-brand-400" />
+ </div>
+ <div className="text-left">
+ <span className="font-bold text-sm block">
+ {addNewLabel}
+ {query && <span className="text-ink-muted font-normal ml-1">"{query}"</span>}
+ </span>
+ <span className="text-2xs text-ink-muted">Create a new entry</span>
+ </div>
+ </button>
+ </div>
+ )}
+ </div>,
+ )}
+ </div>
+ );
 };
 
 export default SmartCombobox;

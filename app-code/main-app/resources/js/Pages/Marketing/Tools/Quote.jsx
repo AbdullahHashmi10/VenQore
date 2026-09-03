@@ -231,14 +231,14 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                     <button
                         type="button"
                         onClick={() => setMeta((m) => ({ ...m, document_label: 'QUOTATION' }))}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${!isEstimate ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${!isEstimate ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}
                     >
                         Quotation
                     </button>
                     <button
                         type="button"
                         onClick={() => setMeta((m) => ({ ...m, document_label: 'ESTIMATE' }))}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${isEstimate ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${isEstimate ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}
                     >
                         Estimate
                     </button>
@@ -284,14 +284,14 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                     <button
                         type="button"
                         onClick={() => setOrientation('portrait')}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'portrait' ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'portrait' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}
                     >
                         Portrait
                     </button>
                     <button
                         type="button"
                         onClick={() => setOrientation('landscape')}
-                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'landscape' ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]' : 'text-ink-muted'}`}
+                        className={`px-3 py-1.5 rounded-lg transition-colors ${orientation === 'landscape' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}
                     >
                         Landscape
                     </button>
@@ -303,7 +303,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : `Download PDF`}

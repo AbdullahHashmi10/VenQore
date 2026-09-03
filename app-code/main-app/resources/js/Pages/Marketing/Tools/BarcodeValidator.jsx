@@ -87,7 +87,7 @@ export default function BarcodeValidatorTool({ prefill = '', toolGroups = [] }) 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-7 py-3 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 shrink-0"
+                        className="px-7 py-3 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 shrink-0"
                     >
                         {loading ? 'Checking…' : 'Validate'}
                     </button>

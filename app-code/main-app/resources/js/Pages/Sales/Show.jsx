@@ -428,7 +428,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                             const colorClasses = {
                                                 emerald: isSelected ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : '',
                                                 blue: isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : '',
-                                                purple: isSelected ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-600' : ''
+                                                purple: isSelected ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-600' : ''
                                             };
                                             return (
                                                 <button

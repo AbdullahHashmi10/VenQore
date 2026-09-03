@@ -80,7 +80,7 @@ const PLATFORM_THEMES = {
 
 const FULFILLMENT_LABELS = {
     fbm: { label: 'FBM — Home Warehouse',      badge: 'bg-blue-900/40 text-blue-300 border-blue-700' },
-    fba: { label: 'FBA — Platform Warehouse',  badge: 'bg-purple-900/40 text-purple-300 border-purple-700' },
+    fba: { label: 'FBA — Platform Warehouse',  badge: 'bg-brand-900/40 text-brand-300 border-brand-700' },
     jit: { label: 'JIT — Buy Day-Of',          badge: 'bg-amber-900/40 text-amber-300 border-amber-700' },
 };
 

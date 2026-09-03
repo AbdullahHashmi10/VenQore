@@ -6,7 +6,7 @@ export default function DemoLanding() {
     const { post, processing } = useForm();
 
     const roles = [
-        { id: 'owner', name: 'Store Owner', icon: Shield, desc: 'Full access to all features', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+        { id: 'owner', name: 'Store Owner', icon: Shield, desc: 'Full access to all features', color: 'text-brand-500', bg: 'bg-brand-500/10' },
         { id: 'admin', name: 'Store Admin', icon: Briefcase, desc: 'Operations & staff management', color: 'text-brand-500', bg: 'bg-brand-500/10' },
         { id: 'manager', name: 'Manager', icon: User, desc: 'Reports and floor supervision', color: 'text-blue-500', bg: 'bg-blue-500/10' },
         { id: 'cashier', name: 'Cashier', icon: ShoppingCart, desc: 'POS checkout only', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },

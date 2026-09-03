@@ -73,10 +73,10 @@ export default function BusinessSettingsSection({ data, setData }) {
 
                 {/* Regional Settings (Compact Side Panel) */}
                 <div className="col-span-12 xl:col-span-4 p-6 bg-neutral-900 text-white rounded-xl shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full blur-[40px] translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 rounded-full blur-[40px] translate-x-1/2 -translate-y-1/2"></div>
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-6">
-                            <Globe size={18} className="text-purple-400" />
+                            <Globe size={18} className="text-brand-400" />
                             <h3 className="font-bold">Regional Settings</h3>
                         </div>
 
@@ -103,7 +103,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                                                 currency_symbol: symbolMap[newCurr] || data.currency_symbol,
                                             });
                                         }}
-                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition-all text-white appearance-none cursor-pointer hover:bg-white/20"
+                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-white appearance-none cursor-pointer hover:bg-white/20"
                                     >
                                         <option className="bg-neutral-800 text-white" value="PKR">PKR - Pakistani Rupee</option>
                                         <option className="bg-neutral-800 text-white" value="USD">USD - US Dollar</option>
@@ -113,7 +113,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                                         <option className="bg-neutral-800 text-white" value="SAR">SAR - Saudi Riyal</option>
                                         <option className="bg-neutral-800 text-white" value="INR">INR - Indian Rupee</option>
                                     </select>
-                                    <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none" size={16} />
+                                    <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" size={16} />
                                     <ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted rotate-90 pointer-events-none" size={14} />
                                 </div>
                             </div>
@@ -125,10 +125,10 @@ export default function BusinessSettingsSection({ data, setData }) {
                                         type="text"
                                         value={data.currency_symbol}
                                         onChange={(e) => setData('currency_symbol', e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition-all text-white placeholder:text-ink-secondary"
+                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-white placeholder:text-ink-secondary"
                                         placeholder="e.g. Rs. or $"
                                     />
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 font-bold text-xs">SYM</div>
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-400 font-bold text-xs">SYM</div>
                                 </div>
                             </div>
 
@@ -138,7 +138,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                                     <select
                                         value={data.timezone}
                                         onChange={(e) => setData('timezone', e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition-all text-white appearance-none cursor-pointer hover:bg-white/20"
+                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-white appearance-none cursor-pointer hover:bg-white/20"
                                     >
                                         <option className="bg-neutral-800 text-white" value="Asia/Karachi">Asia/Karachi (PKT)</option>
                                         <option className="bg-neutral-800 text-white" value="Asia/Dubai">Asia/Dubai (GST)</option>
@@ -151,7 +151,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                                         <option className="bg-neutral-800 text-white" value="Australia/Sydney">Australia/Sydney (AEST)</option>
                                         <option className="bg-neutral-800 text-white" value="UTC">Universal Time (UTC)</option>
                                     </select>
-                                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none" size={16} />
+                                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" size={16} />
                                     <ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted rotate-90 pointer-events-none" size={14} />
                                 </div>
                                 <p className="text-2xs text-ink-muted mt-2">

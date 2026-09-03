@@ -74,7 +74,7 @@ export const Num = ({ end, prefix = '', suffix = '', d = 0, dur = 1600 }) => {
 
 /* ── App-window frame that wraps each simulated product screen ────────────── */
 const ACCENTS = {
-    indigo: 'text-brand-300', emerald: 'text-emerald-300', violet: 'text-violet-300',
+    indigo: 'text-brand-300', emerald: 'text-emerald-300', violet: 'text-brand-300',
     blue: 'text-blue-300', amber: 'text-amber-300', cyan: 'text-cyan-300',
 };
 export function DemoFrame({ title, url, badge = 'LIVE DEMO', accent = 'indigo', children }) {
@@ -200,15 +200,15 @@ export const ProfitLossDemo = () => {
 
                 <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2"><Sparkles size={14} className="text-violet-300" /><span className="text-[13px] font-bold text-ink">AI Analysis</span></div>
+                        <div className="flex items-center gap-2"><Sparkles size={14} className="text-brand-300" /><span className="text-[13px] font-bold text-ink">AI Analysis</span></div>
                         {phase !== 'done' && (
                             <button onClick={analyze} disabled={phase === 'analyzing'}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-400/30 text-violet-200 text-1xs font-bold hover:bg-violet-500/25 transition-colors disabled:opacity-60">
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-500/15 border border-brand-400/30 text-brand-200 text-1xs font-bold hover:bg-brand-500/25 transition-colors disabled:opacity-60">
                                 {phase === 'analyzing' ? <><Loader2 size={12} className="animate-spin" /> Analyzing…</> : <><Brain size={12} /> Analyze with AI</>}
                             </button>
                         )}
                     </div>
-                    {phase === 'idle' && <p className="text-ink-muted text-[12px] leading-relaxed">Click <span className="text-violet-300 font-semibold">Analyze with AI</span> — VenQore reads this statement and returns plain-English insights and a health score.</p>}
+                    {phase === 'idle' && <p className="text-ink-muted text-[12px] leading-relaxed">Click <span className="text-brand-300 font-semibold">Analyze with AI</span> — VenQore reads this statement and returns plain-English insights and a health score.</p>}
                     {phase === 'analyzing' && (
                         <div className="space-y-2 animate-pulse">
                             <div className="h-3 w-3/4 bg-sunken dark:bg-white/5 rounded" /><div className="h-3 w-2/3 bg-sunken dark:bg-white/5 rounded" /><div className="h-3 w-1/2 bg-sunken dark:bg-white/5 rounded" />
@@ -354,7 +354,7 @@ const SC_AUDIO = {
 const Waveform = ({ active }) => (
     <div className="flex items-end gap-1 h-10">
         {Array.from({ length: 28 }).map((_, i) => (
-            <span key={i} className={`w-1 rounded-full ${active ? 'bg-violet-400 vqf-wave' : 'bg-white/15'}`}
+            <span key={i} className={`w-1 rounded-full ${active ? 'bg-brand-400 vqf-wave' : 'bg-white/15'}`}
                 style={{ height: active ? undefined : '20%', animationDelay: `${(i % 7) * 0.09}s` }} />
         ))}
     </div>
@@ -376,7 +376,7 @@ export const SmartCaptureDemo = () => {
         <DemoFrame title="Smart Capture" url="app.venqore.com/capture" badge="AI · BYOK" accent="violet">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-5 rounded-full bg-violet-500" />
+                    <span className="w-1.5 h-5 rounded-full bg-brand-500" />
                     <div>
                         <div className="text-[15px] font-bold text-ink tracking-tight">Smart Capture</div>
                         <div className="text-2xs text-ink-muted">Snap a bill or speak — AI turns it into a transaction</div>
@@ -396,13 +396,13 @@ export const SmartCaptureDemo = () => {
                                     {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-1 bg-sunken rounded mb-1" style={{ width: `${90 - i * 9}%` }} />)}
                                     <div className="h-1.5 w-12 bg-emerald-500 rounded mt-1.5 ml-auto" />
                                 </div>
-                                {phase === 'working' && !reduced && <div className="absolute left-0 right-0 h-0.5 bg-violet-400 shadow-[0_0_14px_2px_rgba(167,139,250,0.9)] vqf-scan" />}
+                                {phase === 'working' && !reduced && <div className="absolute left-0 right-0 h-0.5 bg-brand-400 shadow-[0_0_14px_2px_rgba(167,139,250,0.9)] vqf-scan" />}
                                 <div className="mt-3 text-2xs text-ink-muted">Sample supplier invoice</div>
                             </>
                         ) : (
                             <>
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${phase === 'working' ? 'bg-violet-500/20 vqf-pulse' : 'bg-white/[0.04]'}`}>
-                                    <Mic size={26} className={phase === 'working' ? 'text-violet-300' : 'text-ink-muted'} />
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${phase === 'working' ? 'bg-brand-500/20 vqf-pulse' : 'bg-white/[0.04]'}`}>
+                                    <Mic size={26} className={phase === 'working' ? 'text-brand-300' : 'text-ink-muted'} />
                                 </div>
                                 <Waveform active={phase === 'working'} />
                                 <div className="mt-2 text-1xs font-mono text-ink-muted">{phase === 'working' ? `00:0${t}` : '00:00'}</div>
@@ -410,7 +410,7 @@ export const SmartCaptureDemo = () => {
                         )}
                     </div>
                     {phase === 'idle' && (
-                        <button onClick={run} className="mt-3 w-full py-2.5 rounded-xl bg-violet-500/15 border border-violet-400/30 text-violet-200 font-bold text-[12px] hover:bg-violet-500/25 transition-colors flex items-center justify-center gap-2">
+                        <button onClick={run} className="mt-3 w-full py-2.5 rounded-xl bg-brand-500/15 border border-brand-400/30 text-brand-200 font-bold text-[12px] hover:bg-brand-500/25 transition-colors flex items-center justify-center gap-2">
                             {tab === 'Image' ? <><Upload size={14} /> Scan sample invoice</> : <><Mic size={14} /> Record sample voice note</>}
                         </button>
                     )}
@@ -425,7 +425,7 @@ export const SmartCaptureDemo = () => {
                 <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 min-h-[208px]">
                     {phase === 'idle' || phase === 'working' ? (
                         <div className="h-full flex flex-col items-center justify-center text-center">
-                            <Sparkles size={22} className="text-violet-300 mb-2" />
+                            <Sparkles size={22} className="text-brand-300 mb-2" />
                             <div className="text-[13px] font-bold text-ink mb-1">AI extraction</div>
                             <p className="text-1xs text-ink-muted max-w-xs">Your own AI key reads the {tab === 'Image' ? 'photo' : 'audio'}, detects whether it’s a sale, purchase or expense, and matches every line to a product in your catalog.</p>
                         </div>
@@ -439,7 +439,7 @@ export const SmartCaptureDemo = () => {
                                 </div>
                                 {phase === 'confirmed' && <span className="inline-flex items-center gap-1 text-2xs font-bold text-emerald-300"><Check size={12} /> Draft created</span>}
                             </div>
-                            {data.transcript && <div className="mb-2 text-1xs italic text-violet-200/80">{data.transcript}</div>}
+                            {data.transcript && <div className="mb-2 text-1xs italic text-brand-200/80">{data.transcript}</div>}
                             <div className="space-y-1.5 mb-3">
                                 {data.items.map((it, i) => (
                                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-line dark:border-white/5 vqf-in" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -743,14 +743,14 @@ export const GrowthEngineDemo = () => {
         <DemoFrame title="Intelligence Engine" url="app.venqore.com/growth-engine" badge="LIVE DEMO" accent="violet">
             <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-5 rounded-full bg-violet-500" />
+                    <span className="w-1.5 h-5 rounded-full bg-brand-500" />
                     <div>
                         <div className="text-[15px] font-bold text-ink tracking-tight">Intelligence Engine</div>
                         <div className="text-2xs text-ink-muted">Four brains reading your ledger — every insight tracked and scored afterwards</div>
                     </div>
                 </div>
                 <button onClick={() => setShowProof(p => !p)}
-                    className={`px-3 py-1.5 rounded-lg border text-2xs font-bold flex items-center gap-1.5 transition-all ${showProof ? 'bg-violet-500/15 text-violet-300 border-violet-400/40' : 'bg-white/[0.04] text-ink-muted border-line dark:border-white/10 hover:text-neutral-200'}`}>
+                    className={`px-3 py-1.5 rounded-lg border text-2xs font-bold flex items-center gap-1.5 transition-all ${showProof ? 'bg-brand-500/15 text-brand-300 border-brand-400/40' : 'bg-white/[0.04] text-ink-muted border-line dark:border-white/10 hover:text-neutral-200'}`}>
                     <ShieldCheck size={12} /> {overall}% accurate
                 </button>
             </div>
@@ -776,7 +776,7 @@ export const GrowthEngineDemo = () => {
                 /* ── THE LEARNING LOOP ─────────────────────────────────── */
                 <div className="vqf-in rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                     <div className="flex items-center gap-2 mb-1">
-                        <Target size={14} className="text-violet-300" />
+                        <Target size={14} className="text-brand-300" />
                         <span className="text-[13px] font-bold text-ink">It scores itself</span>
                     </div>
                     <p className="text-1xs text-ink-muted leading-relaxed mb-4">

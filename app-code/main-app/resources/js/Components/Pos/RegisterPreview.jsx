@@ -32,7 +32,7 @@ export const PREVIEW_DEVICES = [
 /* A pane's identity, in one place, so the preview and its legend agree. */
 const TONES = {
     catalog: { fill: 'bg-sky-100 dark:bg-sky-950/50',       line: 'border-sky-300 dark:border-sky-800',       text: 'text-sky-800 dark:text-sky-300' },
-    floor:   { fill: 'bg-violet-100 dark:bg-violet-950/50', line: 'border-violet-300 dark:border-violet-800', text: 'text-violet-800 dark:text-violet-300' },
+    floor:   { fill: 'bg-brand-100 dark:bg-brand-950/50', line: 'border-brand-300 dark:border-brand-800', text: 'text-brand-800 dark:text-brand-300' },
     cart:    { fill: 'bg-emerald-100 dark:bg-emerald-950/50', line: 'border-emerald-300 dark:border-emerald-800', text: 'text-emerald-800 dark:text-emerald-300' },
     tender:  { fill: 'bg-amber-100 dark:bg-amber-950/50',   line: 'border-amber-300 dark:border-amber-800',   text: 'text-amber-800 dark:text-amber-300' },
 };
@@ -45,7 +45,7 @@ function Pane({ kind, label, sub, style, className = '' }) {
             className={`${t.fill} ${t.line} border rounded-md min-w-0 min-h-0 overflow-hidden
                         flex flex-col items-center justify-center gap-0.5 px-1 ${className}`}
         >
-            <span className={`text-[9px] font-extrabold uppercase tracking-wide ${t.text} truncate max-w-full`}>
+            <span className={`text-[9px] font-bold uppercase tracking-wide ${t.text} truncate max-w-full`}>
                 {label}
             </span>
             {sub && (
@@ -162,15 +162,15 @@ export default function RegisterPreview({
                 {layout.tender.mode === 'bar' ? (
                     <div className="h-5 shrink-0 rounded-md border border-amber-300 dark:border-amber-800
                                     bg-amber-100 dark:bg-amber-950/50 flex items-center justify-between px-1.5">
-                        <span className="text-[8px] font-extrabold text-amber-800 dark:text-amber-300">TOTAL</span>
-                        <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-600 text-white">Pay</span>
+                        <span className="text-[8px] font-bold text-amber-800 dark:text-amber-300">TOTAL</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white">Pay</span>
                     </div>
                 ) : dockLabels.length > 0 && (
                     <div className="h-4 shrink-0 flex items-center gap-1">
                         {layout.dock.map(d => (
                             <span
                                 key={d.id}
-                                className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded truncate
+                                className={`text-[8px] font-bold px-1.5 py-0.5 rounded truncate
                                             ${d.primary
                                                 ? 'bg-emerald-600 text-white flex-1 text-center'
                                                 : 'bg-surface border border-line text-ink-secondary'}`}

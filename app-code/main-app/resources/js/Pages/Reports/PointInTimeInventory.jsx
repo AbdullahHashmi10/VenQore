@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
-import { vq } from '@/theme/runtime';
+import { series, vq } from '@/theme/runtime';
 export default function PointInTimeInventory({ data = [], stats = [], meta = {} }) {
     const { store } = usePage().props;
     const [asOfDate, setAsOfDate] = useState(meta.as_of_date || new Date().toISOString().split('T')[0]);
@@ -71,7 +71,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
             categoriesMap[catName] = (categoriesMap[catName] || 0) + val;
         });
 
-        const COLORS = [vq.indigo[500], vq.emerald[500], vq.amber[500], vq.blue[500], vq.pink[500], vq.violet[500]];
+        const COLORS = series.light.slice(0, 6);
         const list = Object.entries(categoriesMap)
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value);

@@ -535,7 +535,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="font-mono text-brand-600 dark:text-brand-400 font-semibold">{row.invoice_number || row.reference_number || '-'}</span>
                                                                     {vensynq_enabled && row.is_jit && row.approval_status === 'draft' && (
-                                                                        <span className="text-2xs font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                                                        <span className="text-2xs font-bold bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-1.5 py-0.5 rounded uppercase tracking-wide">
                                                                             JIT Draft
                                                                         </span>
                                                                     )}
@@ -682,7 +682,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                         {/* Row 1: Supplier Name (Left), Invoice Reference & Date (Right) */}
                                         <div className="flex items-start justify-between">
                                             <div>
-                                                <h3 className="font-extrabold text-ink text-sm">
+                                                <h3 className="font-bold text-ink text-sm">
                                                     {row.supplier?.name || 'Unknown Supplier'}
                                                 </h3>
                                                 {row.supplier?.phone && (
@@ -701,11 +701,11 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
 
                                         {/* Row 2: Badges (Transaction type & payment status) */}
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-3xs font-black uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
+                                            <span className="text-3xs font-bold uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
                                                 Purchase
                                             </span>
                                             {isJitDraft && (
-                                                <span className="text-3xs font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded uppercase tracking-wide">
+                                                <span className="text-3xs font-bold bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded uppercase tracking-wide">
                                                     JIT Draft
                                                 </span>
                                             )}
@@ -719,14 +719,14 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                             <div className="flex items-center gap-6">
                                                 <div>
                                                     <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Total</span>
-                                                    <span className="text-xs font-black text-ink">
+                                                    <span className="text-xs font-bold text-ink">
                                                         {renderCurrency(total, store)}
                                                     </span>
                                                 </div>
                                                 <div>
                                                     <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Balance</span>
                                                     {balance > 1 ? (
-                                                        <span className="text-xs font-black text-rose-600">
+                                                        <span className="text-xs font-bold text-rose-600">
                                                             {renderCurrency(balance, store)}
                                                         </span>
                                                     ) : (
@@ -813,9 +813,9 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
             </div>
             {/* Quick View Modal - Centered Popup */}
             {quickViewItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setQuickViewItem(null)}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-normal" onClick={() => setQuickViewItem(null)}>
                     <div
-                        className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                        className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -823,7 +823,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             <div className="flex items-center gap-4">
                                 <div>
                                     <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Purchase Preview</p>
-                                    <h3 className="text-xl font-black text-brand-600 dark:text-brand-400">{quickViewItem.invoice_number || quickViewItem.reference_number}</h3>
+                                    <h3 className="text-xl font-bold text-brand-600 dark:text-brand-400">{quickViewItem.invoice_number || quickViewItem.reference_number}</h3>
                                 </div>
                                 {(() => {
                                     const statusStyles = {
@@ -883,7 +883,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                 </div>
                                 <div className="bg-brand-500/10 p-3 rounded-xl border border-brand-500/20">
                                     <p className="text-2xs font-bold text-brand-600 dark:text-brand-400 uppercase mb-1">Total</p>
-                                    <p className="font-black text-brand-600 dark:text-brand-400 text-lg">{renderCurrency(quickViewItem.total, store)}</p>
+                                    <p className="font-bold text-brand-600 dark:text-brand-400 text-lg">{renderCurrency(quickViewItem.total, store)}</p>
                                 </div>
                             </div>
 
@@ -956,7 +956,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                         </div>
                                         <div className="text-right border-l border-line pl-6">
                                             <p className="text-2xs text-brand-600 dark:text-brand-400 uppercase font-bold">Grand Total</p>
-                                            <p className="font-black text-lg text-brand-600 dark:text-brand-400">{renderCurrency(quickViewItem.total, store)}</p>
+                                            <p className="font-bold text-lg text-brand-600 dark:text-brand-400">{renderCurrency(quickViewItem.total, store)}</p>
                                         </div>
                                     </div>
                                 </div>

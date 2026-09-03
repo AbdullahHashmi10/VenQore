@@ -77,7 +77,7 @@ export default function DocsShow({
             <div className="min-h-screen text-ink-muted font-sans relative overflow-hidden pt-24 pb-20">
                 {/* Background glow effects */}
                 <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full bg-brand-500/[0.02] blur-[150px] pointer-events-none" />
-                <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] rounded-full bg-purple-500/[0.02] blur-[180px] pointer-events-none" />
+                <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] rounded-full bg-brand-500/[0.02] blur-[180px] pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     {/* Header Banner */}

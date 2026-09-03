@@ -1,13 +1,44 @@
-import { Head, useForm } from '@inertiajs/react';
-import InputError from '@/Components/InputError';
-import { ShieldCheck, ArrowRight, Loader2, KeyRound } from 'lucide-react';
-import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { ArrowRight, KeyRound, Loader2 } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthField, AuthForm, AuthStack } from '@/Components/Auth';
 
+/**
+ * Two-factor setup — scan the QR, confirm with a code.
+ *
+ * This was one of the two screens (with TwoFactorVerify) that had **no logo
+ * block at all**, so a user sent here mid-session lost every signal of which
+ * product they were in. The shell supplies it now, for free.
+ *
+ * What went, and why:
+ *   · The `void` page ground, two ambient 160px blur clouds and an inline 30px
+ *     dot pattern — §13 and §14 both forbid the lot.
+ *   · The 2%-white glass card with `backdrop-blur-sm`, and the responsive radius
+ *     — 28px on a phone, 36px above it — that made the card a different shape
+ *     on the two.
+ *   · Two arbitrary-value glows written as literal rgba — a 20px one on the
+ *     focused field, a 30px one under the button on hover. Both triplets are
+ *     raw **indigo**: the pre-teal brand colour, left behind by the rebrand and
+ *     still glowing on the screen that guards the account.
+ *   · A left-to-right teal-600 → plum-600 gradient on the primary, i.e. the
+ *     old brand and the new one blended into each other. It is a plain primary
+ *     now. (A codemod had already folded it into the `bg-gradient-brand` alias;
+ *     the alias goes with it.)
+ *   · The hand-rolled field wrapper with its own focus state, replaced by the
+ *     ds input, which already implements §13's focus contract.
+ *
+ * `back={false}`: this screen is reached from inside the app, and "Back to
+ * venqore.com" is not the escape hatch a half-enrolled user wants.
+ *
+ * The QR and the shared key both stay — they are the two ways to enrol an
+ * authenticator, and dropping either strands anyone whose camera is refused.
+ * The key is set in `font-numeric`, the face the design system reserves for
+ * characters that get read out and typed in one at a time.
+ */
 export default function TwoFactorSetup({ secret, qrCodeUrl }) {
     const { data, setData, post, processing, errors } = useForm({
         code: '',
     });
-    const [focused, setFocused] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -15,86 +46,66 @@ export default function TwoFactorSetup({ secret, qrCodeUrl }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-brand-500/40 p-4 sm:p-6 relative overflow-hidden">
-            <Head title="Setup Two-Factor Authentication" />
+        <AuthLayout
+            title="Setup Two-Factor Authentication"
+            heading="Secure your account"
+            subheading="Enable two-factor authentication"
+            back={false}
+        >
+            <AuthStack gap={6}>
+                <p className="text-sm text-ink-secondary">
+                    To protect your store and financial data, 2FA is required for your role.
+                </p>
 
-            {/* Ambient */}
-            <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-brand-900/15 rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] bg-violet-900/10 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
-                backgroundSize: '30px 30px',
-            }} />
-
-            <div className="relative z-10 w-full max-w-md">
-                {/* Card */}
-                <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-6 sm:p-10 backdrop-blur-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400">
-                            <ShieldCheck size={20} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>Secure Your Account</h2>
-                            <p className="text-xs text-ink-muted">Enable Two-Factor Authentication</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6 text-sm text-neutral-300">
-                        <p>
-                            To protect your store and financial data, 2FA is required for your role.
-                        </p>
-
-                        {/* QR Code Container */}
-                        <div className="flex flex-col items-center justify-center p-6 bg-white/[0.03] border border-white/[0.06] rounded-2xl">
-                            <img src={qrCodeUrl} alt="2FA QR Code" className="w-48 h-48 rounded-xl border border-white/10 mb-4 bg-white p-2" />
-                            <span className="text-xs text-ink-muted text-center select-all">
-                                Key: <code className="text-white font-mono bg-white/5 px-2 py-1 rounded">{secret}</code>
-                            </span>
-                        </div>
-
-                        <p className="text-xs text-ink-muted leading-relaxed">
-                            Scan the QR code with an authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code below to confirm setup.
-                        </p>
-
-                        <form onSubmit={submit} className="space-y-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Verification Code</label>
-                                <div className={`flex items-center gap-3 bg-white/[0.03] border rounded-2xl px-4 py-4 transition-all duration-slow ${focused ? 'border-brand-500 bg-brand-500/[0.02] shadow-[0_0_20px_rgba(99,102,241,0.1)]' : 'border-white/[0.08] hover:border-white/[0.15]'}`}>
-                                    <KeyRound size={20} className={focused ? 'text-brand-400' : 'text-ink-muted'} />
-                                    <input
-                                        type="text"
-                                        placeholder="000000"
-                                        maxLength={6}
-                                        value={data.code}
-                                        onChange={(e) => setData('code', e.target.value)}
-                                        onFocus={() => setFocused(true)}
-                                        onBlur={() => setFocused(false)}
-                                        className="bg-transparent border-0 outline-none text-white text-base tracking-widest font-mono p-0 w-full placeholder:text-ink-secondary focus:ring-0 focus:outline-none"
-                                        required
-                                        autoFocus
-                                    />
-                                </div>
-                                <InputError message={errors.code} className="mt-2 text-red-400 text-xs" />
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-500 hover:to-violet-500 text-white rounded-2xl font-bold text-sm transition-all duration-slow hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:scale-100"
-                            >
-                                {processing ? (
-                                    <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                    <>
-                                        Confirm & Enable
-                                        <ArrowRight size={16} />
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
+                {/* The QR block. `bg-surface` + a hairline rather than the old
+                    white-alpha wash, so it reads as a panel in both modes —
+                    and the code image keeps its own quiet zone. */}
+                <div className="flex flex-col items-center gap-4 rounded-md border border-line bg-surface p-6">
+                    <img src={qrCodeUrl} alt="2FA QR Code" className="h-48 w-48 rounded-md" />
+                    <span className="select-all text-center text-xs text-ink-muted">
+                        Key:{' '}
+                        <code className="rounded-sm bg-sunken px-2 py-1 font-numeric text-ink">{secret}</code>
+                    </span>
                 </div>
-            </div>
-        </div>
+
+                <p className="text-xs leading-relaxed text-ink-muted">
+                    Scan the QR code with an authenticator app (Google Authenticator, Authy, etc.),
+                    then enter the 6-digit code below to confirm setup.
+                </p>
+
+                <AuthForm onSubmit={submit}>
+                    <AuthField
+                        label="Verification code"
+                        type="text"
+                        name="code"
+                        value={data.code}
+                        onChange={(e) => setData('code', e.target.value)}
+                        placeholder="000000"
+                        maxLength={6}
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        className="tracking-widest"
+                        prefix={<KeyRound size={16} />}
+                        error={errors.code}
+                        required
+                        autoFocus
+                    />
+
+                    <AuthButton
+                        type="submit"
+                        disabled={processing}
+                        iconAfter={processing ? null : <ArrowRight size={16} />}
+                    >
+                        {processing ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" /> Confirming…
+                            </>
+                        ) : (
+                            'Confirm & Enable'
+                        )}
+                    </AuthButton>
+                </AuthForm>
+            </AuthStack>
+        </AuthLayout>
     );
 }

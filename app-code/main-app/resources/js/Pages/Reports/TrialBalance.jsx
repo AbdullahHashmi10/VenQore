@@ -139,7 +139,7 @@ export default function TrialBalance({
                         onKeyDown={(e) => e.key === 'Enter' && applyDate()}
                         className="border border-line dark:border-line rounded-lg px-3 py-1.5 text-sm
  bg-surface text-ink
- focus:ring-2 focus:ring-violet-500 outline-none"
+ focus:ring-2 focus:ring-brand-500 outline-none"
                     />
                 </div>
             ),

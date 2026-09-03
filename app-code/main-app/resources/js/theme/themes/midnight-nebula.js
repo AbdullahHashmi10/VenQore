@@ -348,7 +348,7 @@ const RAMPS = {
    Which ramp each Tailwind colour family resolves to. This is the mechanism
    that makes ~40,000 pre-existing classes theme-aware without touching a single
    component: Tailwind is told that `indigo` means "whatever ramp the theme
-   binds to indigo", and every `bg-indigo-600` in the codebase follows.
+   binds to indigo", and every `bg-brand-600` in the codebase follows.
 
    Midnight Nebula binds one-to-one, preserving the current appearance exactly.
    A new theme is free to collapse families together — pointing violet, purple

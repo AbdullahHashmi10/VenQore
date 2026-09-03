@@ -232,7 +232,7 @@ export default function About() {
                                 { e: 1000, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
                                 { e: 4000, s: '+', l: 'Integrity Checks', ic: Database, c: 'text-brand-300' },
                                 { e: 13, s: '', l: 'E2E Scenarios', ic: Activity, c: 'text-cyan-300' },
-                                { e: 0, s: '', disp: 'DECIMAL(20,4)', l: 'Ledger Precision', ic: Scale, c: 'text-violet-300' },
+                                { e: 0, s: '', disp: 'DECIMAL(20,4)', l: 'Ledger Precision', ic: Scale, c: 'text-brand-300' },
                             ].map((x, i) => (
                                 <div key={i} className="p-6 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:border-brand-400/20 transition-colors duration-slower">
                                     <x.ic size={22} className={`${x.c} mb-4`} />

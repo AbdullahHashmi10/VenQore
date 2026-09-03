@@ -20,21 +20,21 @@ import {
  */
 
 const PLAN_CONFIG = {
-    trial:    { label: 'Trial',    color: 'text-amber-400',   bg: 'bg-amber-400/10',   border: 'border-amber-400/20' },
-    starter:  { label: 'Starter',  color: 'text-neutral-300',   bg: 'bg-neutral-400/10',   border: 'border-line-strong' },
-    growth:   { label: 'Growth',   color: 'text-brand-300',  bg: 'bg-brand-400/10',  border: 'border-brand-400/20' },
-    business: { label: 'Business', color: 'text-purple-300',  bg: 'bg-purple-400/10',  border: 'border-purple-400/20' },
+    trial:    { label: 'Trial', color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
+    starter:  { label: 'Starter', color: 'text-neutral-300', bg: 'bg-neutral-400/10', border: 'border-line-strong' },
+    growth:   { label: 'Growth', color: 'text-brand-300', bg: 'bg-brand-400/10', border: 'border-brand-400/20' },
+    business: { label: 'Business', color: 'text-brand-300', bg: 'bg-brand-400/10', border: 'border-brand-400/20' },
     ltd:      { label: 'Lifetime', color: 'text-emerald-300', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
 };
 
 const ROLE_LABELS = {
-    owner:   { label: 'Owner',   icon: Crown,   color: 'text-amber-400' },
-    admin:   { label: 'Admin',   icon: Zap,     color: 'text-brand-400' },
-    manager: { label: 'Manager', icon: Users,   color: 'text-blue-400' },
-    cashier: { label: 'Cashier', icon: Store,   color: 'text-emerald-400' },
-    viewer:            { label: 'Viewer',            icon: Building2,    color: 'text-ink-muted' },
+    owner:   { label: 'Owner', icon: Crown,   color: 'text-amber-400' },
+    admin:   { label: 'Admin', icon: Zap,     color: 'text-brand-400' },
+    manager: { label: 'Manager', icon: Users, color: 'text-blue-400' },
+    cashier: { label: 'Cashier', icon: Store, color: 'text-emerald-400' },
+    viewer:            { label: 'Viewer', icon: Building2,    color: 'text-ink-muted' },
     // PROBLEM 8 FIX: Added missing roles so they don't fall back to "Viewer"
-    accountant:        { label: 'Accountant',       icon: Calculator,   color: 'text-blue-400' },
+    accountant:        { label: 'Accountant', icon: Calculator,   color: 'text-blue-400' },
     purchasing_officer:{ label: 'Purchasing Officer', icon: ShoppingBag, color: 'text-orange-400' },
 };
 
@@ -73,7 +73,7 @@ function StoreCard({ membership, isLast }) {
         <button
             onClick={go}
             disabled={navigating}
-            className={`group w-full text-left rounded-2xl border p-5 transition-all duration-normal hover:shadow-xl hover: active:scale-[0.99] disabled:opacity-60 ${
+            className={`group w-full text-left rounded-2xl border p-5 transition-all duration-normal hover:shadow-xl active:scale-[0.99] disabled:opacity-60 ${
                 isLast
                     ? 'border-brand-500/40 bg-brand-500/5 hover:bg-brand-500/10 hover:border-brand-400/60'
                     : 'border-white/8 bg-white/3 hover:bg-white/6 hover:border-white/15'
@@ -205,7 +205,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
             {/* Ambient background */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-brand-900/20 rounded-full blur-[120px]" />
-                <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-900/15 rounded-full blur-[100px]" />
+                <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-brand-900/15 rounded-full blur-[100px]" />
             </div>
 
             <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-6">
@@ -213,9 +213,9 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
 
                     {/* Top right action */}
                     <div className="absolute top-0 right-0 p-6">
-                        <Link 
-                            href={route('logout')} 
-                            method="post" 
+                        <Link
+                            href={route('logout')}
+                            method="post"
                             as="button"
                             className="text-xs font-bold text-ink-muted hover:text-white transition-colors flex items-center gap-2 group"
                         >
@@ -241,11 +241,11 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
 
                     {/* Check Invites Button */}
                     <div className="flex justify-center mb-6">
-                        <button 
+                        <button
                             onClick={() => setShowCodeModal(true)}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 font-bold text-sm hover:bg-brand-500/20 transition-all relative"
                         >
-                            <Mail size={16} /> 
+                            <Mail size={16} />
                             {invites.length > 0 ? `View Pending Invites (${invites.length})` : 'Check for Invites'}
                             {invites.length > 0 && (
                                 <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
@@ -308,10 +308,10 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
             {showCodeModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col max-h-[85vh]">
-                        
+
                         {/* Modal Bg Decals */}
                         <div className="absolute top-0 right-0 p-8 pt-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
-                        
+
                         <div className="p-8 shrink-0">
                             <h2 className="text-xl font-bold text-white mb-2">
                                 Pending Invitations
@@ -320,7 +320,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                                 Manage your pending store invitations or join via short code.
                             </p>
                         </div>
-                        
+
                         <div className="px-8 pb-4 overflow-y-auto min-h-0 space-y-3 custom-scrollbar">
                             {invites.length > 0 ? (
                                 invites.map(invite => (
@@ -353,7 +353,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                                         <AlertCircle size={12} /> {codeError}
                                     </p>
                                 )}
-                                
+
                                 <div className="flex gap-3 mt-6">
                                     <button
                                         type="button"

@@ -142,7 +142,7 @@ export default function LockedFeature({
                     <Modal show={showComingSoon} onClose={() => setShowComingSoon(false)} maxWidth="sm">
                         <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-lg shadow-2xl">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
+                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-600/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
 
                             <div className="p-8 text-center relative z-10">
                                 <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3 transform hover:rotate-6 transition-transform">

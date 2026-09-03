@@ -665,24 +665,60 @@ body { margin: 0; background: var(--vq-bg); }
 .vqc--c1-icon{ padding: 0; }
 .vqc--c1-icon .vqc-bd{ justify-content: center; }
 
-/* ══ C2 · Strip ════ 3×2 → 6×2 · one KPI, label left, value right ══════════ */
-/* C2 · the strip. The inline form is a three-column grid — label | value |
-   window — because a flex row lets the label push the number off the end. The
-   stacked form is the same three parts in a column. Both are centred in the
-   card: a strip's whole job is one line of value, so leaving it at the top of a
-   two-row box is two thirds of the card doing nothing.
-   (An earlier variant here keyed the stacked form off `.vqc--c2-stacked`, a
-   class no renderer has emitted since; it is folded into `.is-stacked`.) */
+/* ══ C2 · Strip ════ 3×1 → 6×2 · one KPI, label left, number right ═════════
+   THE canonical strip. Two zones, no floating middle:
+   · INLINE (one row) — left zone stacks the label over a quiet timeframe
+     caption; right zone is the number and its change pill, pinned to the
+     right edge. The number never shrinks and never clips (fitValues steps it
+     down to its abbreviated form first); the caption hides next; the label
+     truncates last.
+   · STACKED (two rows) — label, then the number with its pill, then the
+     caption, left-aligned like a small metric card.
+   Every other strip rule in this file was superseded by this block. */
 .vqc--c2 .vqc-eyebrow{ white-space: nowrap; }
 .vqc-bd--strip{ gap: 2px; }
 .vqc-bd--strip.is-inline{
   display: grid;
   align-items: center;
-  grid-template-columns: minmax(0, max-content) max-content minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--vq-space-4);
 }
-.vqc-bd--strip.is-inline .vqc-head{ flex: 0 0 auto; flex-wrap: nowrap; white-space: nowrap; }
-.vqc-bd--strip.is-inline .vqc-when{ text-align: right; margin: 0; }
+.vqc-strip-left{
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 1px; min-width: 0;
+}
+/* the caption sits under the label, left-aligned — the app-level V6 cards.css
+   right-aligns a bare strip caption, so this out-specifies it */
+.vqc-bd--strip.is-inline .vqc-strip-left .vqc-when{
+  font-size: var(--vq-fs-eyebrow);
+  color: var(--vq-text-3, var(--vq-text-2));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin: 0; text-align: left; opacity: 1;
+}
+.vqc-bd--strip.is-inline .vqc-head{
+  flex-wrap: nowrap; white-space: nowrap;
+  justify-content: flex-end;
+  gap: var(--vq-space-2);
+  min-width: 0;
+}
+/* the caption lives on the left now — it never needs to dodge the tools */
+.vqc--c2:hover .vqc-bd--strip.is-inline .vqc-strip-left .vqc-when,
+.vqc--c2:focus-within .vqc-bd--strip.is-inline .vqc-strip-left .vqc-when{ opacity: 1; }
+/* a phone-width strip drops the caption before it touches the number */
+.vqc-bd--strip.is-tight-strip .vqc-strip-left .vqc-when{ display: none; }
+/* stacked form — label / number+pill / caption */
+.vqc-bd--strip.is-stacked{ display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.vqc-bd--strip.is-stacked .vqc-head{ flex-wrap: nowrap; white-space: nowrap; }
+.vqc-bd--strip.is-stacked .vqc-when{
+  font-size: var(--vq-fs-eyebrow);
+  color: var(--vq-text-3, var(--vq-text-2));
+  margin: 0; text-align: left;
+}
+/* the fitted-number ladder — never clip, step down instead */
+.vqc-value.is-tight{ font-size: calc(var(--vq-fs-metric-sm) * 0.78); }
+.vqc-value--sm.is-tight{ font-size: calc(var(--vq-fs-metric-sm) * 0.78); }
+.vqc-value--xs.is-tight{ font-size: calc(var(--vq-fs-h3) * 0.8); }
+.vqc-bd:not(.vqc-bd--strip):not(.vqc-bd--tile) .vqc-value.is-tight{ font-size: calc(var(--vq-fs-metric) * 0.7); }
 
 /* ══ C3 · Metric ═══ 2×3 → 6×4 · KPI + delta / sparkline / comparison ═════ */
 .vqc--c3 .vqc-bd{ justify-content: center; gap: var(--vq-space-1); }
@@ -1015,9 +1051,9 @@ body{
 .pg-io-c--out{ background: var(--vq-danger-bg);  border-color: var(--vq-danger-line); }
 .pg-io-c .vqc-eyebrow{ color: var(--vq-text-2); }
 
-@media (max-width: 1100px){
-  .vq-grid{ --vq-cols: 6; }
-  .vq-w8,.vq-w12{ grid-column: span 6; }
+@media (max-width: 1023px){
+  .vq-grid{ --vq-cols: 8; }
+  .vq-w9,.vq-w10,.vq-w11,.vq-w12{ grid-column: span 8; }
 }
 @media (max-width: 700px){
   .vq-grid{ --vq-cols: 4; }
@@ -1162,14 +1198,20 @@ body{
   font-weight: var(--vq-fw-semi); color: var(--vq-success-ink);
   background: var(--vq-success-bg); padding:3px var(--vq-space-2); border-radius: var(--vq-r-full); }
 
-/* ══ rolling numerals ══════════════════════════════════════════════════════ */
+/* ══ rolling numerals ══════════════════════════════════════════════════════
+   The transform is written in em (translateY(-N em)), never in % of the
+   column: a percentage depends on the column measuring exactly 10 digit-rows,
+   and one stray line-height from the app cascade makes every digit land
+   between rows — the overlapping-digits glitch. Each row is pinned to 1em
+   here and the slide moves in the same unit, so the two cannot disagree. */
 .nf{ display:inline-flex; align-items:baseline; line-height:1;
   font-variant-numeric: tabular-nums; font-feature-settings:"tnum" 1; }
 .nf-c{ display:inline-block; }
-.nf-d{ height:1em; overflow:hidden; }
+.nf-d{ height:1em; overflow:hidden; line-height:1; }
 .nf-col{ display:flex; flex-direction:column;
   transition: transform 560ms var(--vq-ease-out); will-change:transform; }
-.nf-col i{ display:block; height:1em; line-height:1em; font-style:normal; }
+.nf-col i{ display:block; height:1em; line-height:1; font-style:normal;
+  padding:0; margin:0; }
 
 /* ══ the date ticker under the crosshair ══════════════════════════════════ */
 .dt{ display:inline-flex; gap:5px; align-items:center; }
@@ -1250,9 +1292,16 @@ body{
 .ck-notch.is-on{ stroke: var(--vq-series-1-ink); }
 @keyframes ckFade{ from{ opacity:0 } to{ opacity:1 } }
 
-/* legend with progress bars — hovering a row re-reads the centre */
+/* legend with progress bars — hovering a row re-reads the centre.
+   The renderer only emits rows that fit, so the legend never scrolls;
+   overflow:hidden is the belt to that suspender. */
 .ck-leg{ display:flex; flex-direction:column; gap:2px; width:100%; min-width:0;
-  overflow-y:auto; max-height:44%; }
+  overflow:hidden; }
+.ck-leg-more{
+  font-family: var(--vq-font-sans); font-size: var(--vq-fs-eyebrow);
+  color: var(--vq-text-3, var(--vq-text-2));
+  padding: 2px var(--vq-space-2); white-space:nowrap;
+}
 .ck-leg-r{ display:grid; grid-template-columns:auto 1fr auto auto; align-items:center;
   gap: var(--vq-space-2) var(--vq-space-3); width:100%; text-align:left; cursor:pointer;
   background:none; border:0; border-radius: var(--vq-r-sm);
@@ -1289,8 +1338,9 @@ body{
 .ck-fnr b{ font-family: var(--vq-font-numeric); color: var(--vq-text); margin-left:auto; }
 .ck-fnr em{ font-style:normal; opacity:.7; min-width:32px; text-align:right; }
 
+/* rows are counted to fit before render — the list never scrolls in a card */
 .ck-tb{ display:flex; flex-direction:column; gap: var(--vq-space-1); width:100%;
-  overflow-y:auto; max-height:100%; }
+  overflow:hidden; max-height:100%; }
 .ck-tr{ display:grid; grid-template-columns:auto 1fr auto auto; align-items:center;
   gap: var(--vq-space-2) var(--vq-space-3); font-size: var(--vq-fs-caption);
   color: var(--vq-text-2); padding: var(--vq-space-2) 0;
@@ -1521,18 +1571,15 @@ body.is-reordering{ user-select:none; }
   .ck-leg-bar i, .ck-tbar i, .ck-notch, .ck-hd2 i{ animation:none !important; }
 }
 
-/* C2 strip — one row when inline, stacked otherwise */
-.vqc-bd--strip.is-inline{ flex-direction:row; align-items:center;
-  justify-content:space-between; gap: var(--vq-space-3); }
-.vqc-bd--strip.is-inline .vqc-eyebrow{ flex:1 1 auto; min-width:0;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.vqc-bd--strip.is-inline .vqc-head{ flex:0 0 auto; flex-wrap:nowrap; }
+/* C2 strip — layout is owned by the canonical block in section C2 above.
+   Only the hover-tools ground lives here: it arrives WITH the controls. */
 .vqc--c2 .vqc-tools{ top:50%; transform:translateY(-50%); right:8px;
   background: var(--vq-surface); border-radius: var(--vq-r-full); padding:2px; }
 .vqc--c2.vqc--accent .vqc-tools{ background: var(--vq-accent); }
 .vqc--c1 .vqc-label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 /* keep the C2 value clear of the hover tools */
-.vqc--c2:hover .vqc-bd--strip.is-inline .vqc-head{ padding-right: 76px; }
+.vqc--c2:hover .vqc-bd--strip.is-inline .vqc-head,
+.vqc--c2:focus-within .vqc-bd--strip.is-inline .vqc-head{ padding-right: 76px; }
 .vqc-bd--strip.is-inline .vqc-head{ transition: padding-right var(--vq-dur-2) var(--vq-ease-out); }
 
 /* region grid — tinted fill behind normal text */
@@ -1564,8 +1611,9 @@ body.is-reordering{ user-select:none; }
 :root[data-bg="mesh"] .vqc--accent{ background: var(--vq-accent); backdrop-filter:none; }
 :root[data-bg="mesh"] .ck-tip{ background: rgb(16 20 26 / .95); backdrop-filter: blur(12px);
   border-color: rgb(139 200 210 / .22); }
-:root[data-bg="mesh"] .vqc-bd, :root[data-bg="mesh"] .lib-row,
-:root[data-bg="mesh"] .ed-ser, :root[data-bg="mesh"] .ck-geo-c{ background: rgb(255 255 255 / .04); }
+/* the card BODY is part of the card — never its own lighter box */
+:root[data-bg="mesh"] .lib-row,
+:root[data-bg="mesh"] .ed-ser{ background: rgb(255 255 255 / .04); }
 :root[data-bg="mesh"] .ed-in, :root[data-bg="mesh"] .lib-find{ background: rgb(255 255 255 / .05); }
 :root[data-bg="mesh"] .ed-seg{ background: rgb(255 255 255 / .06); }
 :root[data-bg="mesh"] .ed-seg-i[aria-pressed="true"]{ background: rgb(255 255 255 / .12); }
@@ -1692,23 +1740,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   .ck-dotstate i::after, .vqc-per-m{ animation:none !important; transition:none !important; }
 }
 
-/* One row, three cells: label and period both give way before anything
-   bleeds; the value never shrinks. */
-/* Priority when space runs short: the value never shrinks, the period
-   truncates next, the label gives way first. */
-.vqc-bd--strip.is-inline{ display:grid; align-items:center;
-  grid-template-columns: minmax(0,max-content) max-content minmax(0,1fr);
-  gap: var(--vq-space-4); }
-.vqc-bd--strip.is-inline .vqc-head{ flex:0 0 auto; }
-.vqc-bd--strip.is-inline .nf{ flex:0 0 auto; white-space:nowrap; }
+/* (strip layout is owned by the canonical C2 block — see "C2 · Strip".) */
 .vqc-bd--strip.is-inline > *{ min-width:0; }
-.vqc-bd--strip.is-inline .vqc-eyebrow,
-.vqc-bd--strip.is-inline .vqc-when{ overflow:hidden; text-overflow:ellipsis;
-  white-space:nowrap; margin:0; }
-.vqc-bd--strip.is-inline .vqc-when{ opacity:.85; text-align:right; }
-.vqc-bd--strip.is-inline .vqc-head{ flex-wrap:nowrap; white-space:nowrap; }
-.vqc--c2:hover .vqc-bd--strip.is-inline .vqc-when{ opacity:0;
-  transition: opacity var(--vq-dur-1) var(--vq-ease-out); }
+.vqc-bd--strip.is-inline .nf{ flex:0 0 auto; white-space:nowrap; }
 .vqc--c1 .vqc-when, .vqc--c2 .vqc-when{ font-size: var(--vq-fs-eyebrow); }
 
 /* nothing may render outside its own card, whatever the content */
@@ -2257,7 +2291,16 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   box-sizing: border-box;
 }
 
-.vq-canvas { width: 100%; max-width: 100%; }
+/* The Law's stated margin: 24px of air on every side of the canvas — between
+   the nav and the first card, the header and the first row, the last row and
+   the bottom, the cards and the right edge. The old `.vq-shell .app` padding
+   rule targeted an element this page never renders, which is why production
+   drew the board flush against the sidebar. */
+.vq-canvas {
+  width: 100%; max-width: 100%;
+  padding: 24px 24px 48px;
+  box-sizing: border-box;
+}
 
 .vq-grid {
   display: grid;
@@ -2274,24 +2317,15 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   max-width: 100%;
 }
 
-/* The ladder, taken at the CONTENT width rather than the window width, so the
-   nav's own state cannot push a screen onto the wrong rung. */
+/* FIXED 12-COLUMN GRID (settled 2 Sep 2026, round 6).
+   The column COUNT never follows the nav or the side panel: collapsing the
+   nav stretches the same twelve columns wider; opening the panel squeezes
+   them narrower. A board composed once always reads the same way on the
+   same screen. Only genuinely small screens step down — to 8 (tablet)
+   and 4 (phone) — where a 12-wide composition cannot physically read. */
 .vq-shell                     { --vq-cols: 12; }
-@media (max-width: 599px)     { .vq-shell { --vq-cols: 4;  } }
-@media (min-width: 600px) and (max-width: 899px)   { .vq-shell { --vq-cols: 6;  } }
-@media (min-width: 900px) and (max-width: 1215px)  { .vq-shell { --vq-cols: 8;  } }
-/* from here the nav takes its cut, so each nav state has its own rungs */
-@media (min-width: 1216px) { .vq-shell[data-nav="rail"]     { --vq-cols: 8;  } }
-@media (min-width: 1560px) { .vq-shell[data-nav="rail"]     { --vq-cols: 10; } }
-@media (min-width: 1880px) { .vq-shell[data-nav="rail"]     { --vq-cols: 12; } }
-@media (min-width: 2480px) { .vq-shell[data-nav="rail"]     { --vq-cols: 16; } }
-@media (min-width: 3280px) { .vq-shell[data-nav="rail"]     { --vq-cols: 24; } }
-
-@media (min-width: 1216px) { .vq-shell[data-nav="expanded"] { --vq-cols: 8;  } }
-@media (min-width: 1752px) { .vq-shell[data-nav="expanded"] { --vq-cols: 10; } }
-@media (min-width: 2072px) { .vq-shell[data-nav="expanded"] { --vq-cols: 12; } }
-@media (min-width: 2672px) { .vq-shell[data-nav="expanded"] { --vq-cols: 16; } }
-@media (min-width: 3472px) { .vq-shell[data-nav="expanded"] { --vq-cols: 24; } }
+@media (max-width: 599px)     { .vq-shell { --vq-cols: 4; } }
+@media (min-width: 600px) and (max-width: 1023px) { .vq-shell { --vq-cols: 8; } }
 
 /* The gutter is 24px on BOTH axes at every width, and it is not decoration —
    it is the pitch. Row height is n·64 + (n−1)·24, so a 2-row card is 152px and
@@ -3995,8 +4029,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 /* The mesh ground is painted on <body>; the shell and its regions must let it
    through rather than each painting their own opaque copy of --vq-bg. */
 :root[data-bg="mesh"] body { background: #0A0B0F; }
+:root[data-bg="mesh"] .vq-shell { position: relative; z-index: 1; }
 :root[data-bg="mesh"] body::before {
-  content: ''; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+  content: ''; position: fixed; inset: -20%; z-index: 0; pointer-events: none;
   background:
     radial-gradient(45% 45% at 18% 12%, rgb(35 196 166 / .30), transparent 68%),
     radial-gradient(42% 42% at 82% 78%, rgb(43 165 209 / .24), transparent 68%),
@@ -4314,3 +4349,603 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   background: rgb(255 255 255 / .12); border-color: rgb(255 255 255 / .16); color: #edf2ef;
 }
 .vqc--tone-ink .vqc-per-b:hover { background: rgb(255 255 255 / .2); color: #fff; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   WIZARD 2026-09 — plain-language picker, drag-to-resize preview, presets.
+   No backend keys, no shape tags, no C1–C6, no steppers anywhere below.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* the three families, as tabs under the modal title */
+.vq-family-tabs{
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px; padding: 0 clamp(16px, 3vw, 32px) 14px;
+  flex: 0 0 auto;
+}
+.vq-family-tab{
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  text-align: left; cursor: pointer;
+  padding: 10px 14px;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-md, 14px);
+  background: var(--vq-surface); color: var(--vq-text);
+  transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+              background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-family-tab:hover{ border-color: var(--vq-accent-quiet-line); }
+.vq-family-tab.is-active{
+  border-color: var(--vq-accent, #0baa8f);
+  background: var(--vq-accent-quiet);
+}
+.vq-family-tab-title{
+  font: 700 var(--vq-fs-small)/1.3 var(--vq-font-sans);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vq-family-tab-sub{
+  font: 500 var(--vq-fs-eyebrow)/1.35 var(--vq-font-sans);
+  color: var(--vq-text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* shortcut glyph inside a picker card */
+.vq-item-glyph{
+  display: grid; place-items: center; flex: 0 0 auto;
+  width: 26px; height: 26px; border-radius: var(--vq-r-md, 14px);
+  color: #fff;
+}
+
+/* identity meta — the description carries the meaning now */
+.vq-identity-meta{ display: block; }
+.vq-identity-opens{ color: var(--vq-text-3, var(--vq-text-2)); }
+
+/* the preview's resize handle — seated on the card corner by the effect */
+.vq-preview-frame{ position: relative; }
+.vq-preview-handle{
+  position: absolute; display: none;
+  width: 16px; height: 16px; padding: 0;
+  border: 2px solid var(--vq-surface);
+  border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-accent, #0baa8f);
+  box-shadow: var(--vq-elev-1, 0 1px 3px rgb(0 0 0 / .2));
+  cursor: nwse-resize; z-index: 3;
+}
+.vq-preview-handle:hover{ transform: scale(1.15); }
+
+/* starting layouts */
+.vq-modal-card.vq-preset-modal{
+  max-width: 720px !important;      /* the base card pins its box with !important */
+  height: auto !important; max-height: 82vh !important;
+}
+.vq-preset-note{
+  padding: 0 clamp(16px, 3vw, 32px) 14px;
+  font: 500 var(--vq-fs-caption)/1.5 var(--vq-font-sans);
+  color: var(--vq-text-2);
+}
+.vq-preset-grid{
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px; padding: 0 clamp(16px, 3vw, 32px) 24px;
+  overflow-y: auto;
+}
+@media (max-width: 640px){
+  .vq-preset-grid{ grid-template-columns: 1fr; }
+  .vq-family-tabs{ grid-template-columns: 1fr; }
+}
+
+/* the header's add button reads as a primary action */
+.vq-header-right .vq-quick-btn.vq-add-card-btn{
+  background: var(--vq-accent, #0baa8f);
+  border-color: var(--vq-accent, #0baa8f);
+  color: #fff;
+}
+.vq-header-right .vq-quick-btn.vq-add-card-btn:hover{ filter: brightness(1.06); }
+
+/* identity: the description may wrap — it is the whole point of the panel */
+.vq-identity-meta{
+  white-space: normal; overflow: visible; text-overflow: clip;
+  line-height: 1.45;
+}
+/* word labels take the UI face, not the numeric face */
+.vq-size-card-title{ font-family: var(--vq-font-sans); }
+
+/* phone-width modal: the action bar wraps rather than clipping its button */
+@media (max-width: 480px){
+  .vq-modal-bottom-bar{ flex-wrap: wrap; }
+  .vq-modal-bottom-actions{ flex: 1 1 100%; display: flex; gap: 10px; }
+  .vq-modal-bottom-actions .vqb--primary{ flex: 1 1 auto; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SIDE PANEL (2026-09) — the composable right rail. 24px gutters everywhere;
+   the rail is a fixed 312px column and the board re-derives its column count
+   from measured width (inline --vq-cols) while it is open.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vq-canvas-body{ display: block; }
+.vq-canvas-body.has-rails{
+  display: flex; align-items: flex-start; gap: 24px;
+}
+.vq-board-zone{ flex: 1 1 auto; min-width: 0; }
+.vq-rails{
+  flex: 0 0 312px; width: 312px; min-width: 0;
+  display: flex; flex-direction: column; gap: 24px;
+}
+.vq-rails-head{
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 28px;
+}
+.vq-rails-title{
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans);
+  letter-spacing: var(--vq-ls-eyebrow); text-transform: uppercase;
+  color: var(--vq-text-2);
+}
+.vq-rails-edit{
+  border: 1px solid var(--vq-line); background: var(--vq-surface);
+  color: var(--vq-text-2); cursor: pointer;
+  font: 600 var(--vq-fs-eyebrow)/1 var(--vq-font-sans);
+  padding: 5px 10px; border-radius: var(--vq-r-full, 999px);
+  transition: color var(--vq-dur-1) var(--vq-ease-out), border-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-rails-edit:hover{ color: var(--vq-text); border-color: var(--vq-line-strong, var(--vq-line)); }
+
+/* one rail card — same surface law as a board card */
+.vq-rail-card{
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-lg, 14px);
+  box-shadow: var(--vq-elev-1);
+  padding: var(--vq-space-5, 20px);
+  display: flex; flex-direction: column; gap: 12px;
+  min-width: 0;
+}
+.vq-rail-h{
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.vq-rail-h > span{
+  font: 700 var(--vq-fs-eyebrow)/1.2 var(--vq-font-sans);
+  letter-spacing: var(--vq-ls-eyebrow); text-transform: uppercase;
+  color: var(--vq-text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vq-rail-link{
+  font: 600 var(--vq-fs-eyebrow)/1 var(--vq-font-sans);
+  color: var(--vq-accent-text); text-decoration: none; flex: 0 0 auto;
+}
+.vq-rail-link:hover{ text-decoration: underline; }
+.vq-rail-sub{
+  font: 700 10px/1 var(--vq-font-sans); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--vq-text-3, var(--vq-text-2));
+}
+
+/* hero number (cash in hand) */
+.vq-rail-hero{ display: flex; flex-direction: column; gap: 3px; }
+.vq-rail-hero-l{ font: 600 var(--vq-fs-caption)/1.3 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-rail-hero-v{
+  font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold);
+  font-size: var(--vq-fs-metric-sm); line-height: 1.05; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; color: var(--vq-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vq-rail-hero-s{ font: 500 var(--vq-fs-eyebrow)/1.3 var(--vq-font-sans); color: var(--vq-text-3, var(--vq-text-2)); }
+
+/* rows */
+.vq-rail-list{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.vq-rail-row{
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--vq-line-soft, var(--vq-line));
+  min-width: 0;
+}
+.vq-rail-list > li:last-child .vq-rail-row,
+.vq-rail-list > .vq-rail-row:last-child{ border-bottom: 0; }
+.vq-rail-row-n{
+  flex: 1 1 auto; min-width: 0;
+  font: 600 var(--vq-fs-caption)/1.3 var(--vq-font-sans); color: var(--vq-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; flex-direction: column;
+}
+.vq-rail-row-n em{
+  font: 500 var(--vq-fs-eyebrow)/1.3 var(--vq-font-sans); font-style: normal;
+  color: var(--vq-text-3, var(--vq-text-2));
+}
+.vq-rail-row-v{
+  flex: 0 0 auto; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+  font-weight: var(--vq-fw-semi); font-size: var(--vq-fs-caption); color: var(--vq-text);
+  white-space: nowrap;
+}
+.vq-rail-row-v.is-in{ color: var(--vq-success-ink); }
+.vq-rail-row-v.is-out{ color: var(--vq-text-2); }
+.vq-rail-dot{ flex: 0 0 auto; width: 8px; height: 8px; border-radius: var(--vq-r-full); background: var(--vq-line-strong, var(--vq-line)); }
+.vq-rail-dot.is-in{ background: var(--vq-success-ink); }
+.vq-rail-dot.is-out{ background: var(--vq-danger-ink); }
+.vq-rail-dot.is-bad{ background: var(--vq-danger-ink); }
+.vq-rail-dot.is-warn{ background: #d99a06; }
+.vq-rail-dot.is-info{ background: var(--vq-series-3, #2ba5d1); }
+
+/* total line */
+.vq-rail-total{
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-top: 10px; border-top: 1px solid var(--vq-line);
+  font: 600 var(--vq-fs-caption)/1.3 var(--vq-font-sans); color: var(--vq-text-2);
+}
+.vq-rail-total strong{
+  font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+  font-size: var(--vq-fs-small); color: var(--vq-text);
+}
+
+/* today mini-grid */
+.vq-rail-minigrid{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vq-rail-mini{
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--vq-sunken); border-radius: var(--vq-r-md, 14px);
+  padding: 10px 12px; min-width: 0;
+}
+.vq-rail-mini span{ font: 600 var(--vq-fs-eyebrow)/1.2 var(--vq-font-sans); color: var(--vq-text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vq-rail-mini strong{
+  font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+  font-size: var(--vq-fs-small); color: var(--vq-text); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+/* alerts */
+.vq-rail-alert{
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; margin: 2px 0; border-radius: var(--vq-r-md, 14px);
+  background: var(--vq-sunken); text-decoration: none; color: var(--vq-text);
+  transition: background var(--vq-dur-1) var(--vq-ease-out);
+  min-width: 0;
+}
+.vq-rail-alert:hover{ background: var(--vq-accent-quiet); }
+.vq-rail-alert .vq-rail-dot{ background: var(--vq-series-3, #2ba5d1); }
+.vq-rail-alert.is-warn .vq-rail-dot{ background: #d99a06; }
+.vq-rail-alert.is-bad .vq-rail-dot{ background: var(--vq-danger-ink); }
+.vq-rail-alert-m{
+  font: 500 var(--vq-fs-caption)/1.35 var(--vq-font-sans); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* quick actions */
+.vq-rail-actions{ display: grid; grid-template-columns: 1fr; gap: 8px; }
+.vq-rail-act{
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  text-align: center; text-decoration: none; cursor: pointer;
+  font: 600 var(--vq-fs-caption)/1 var(--vq-font-sans); color: var(--vq-text);
+  background: var(--vq-sunken); border: 1px solid transparent;
+  padding: 11px 12px; border-radius: var(--vq-r-md, 14px);
+  transition: background var(--vq-dur-1) var(--vq-ease-out);
+  white-space: nowrap; min-width: 0;
+}
+.vq-rail-act svg{ flex: 0 0 auto; }
+.vq-rail-act span{ overflow: hidden; text-overflow: ellipsis; }
+.vq-rail-act:hover{ background: var(--vq-accent-quiet); }
+.vq-rail-act.is-primary{ background: var(--vq-accent, #0baa8f); color: #fff; }
+.vq-rail-act.is-primary:hover{ filter: brightness(1.06); }
+
+/* meters (growth) */
+.vq-rail-meter{ display: flex; flex-direction: column; gap: 4px; }
+.vq-rail-meter-t{
+  display: flex; align-items: baseline; justify-content: space-between;
+  font: 600 var(--vq-fs-caption)/1.3 var(--vq-font-sans); color: var(--vq-text);
+}
+.vq-rail-meter-t strong{
+  font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums;
+}
+.vq-rail-bar{ height: 6px; border-radius: var(--vq-r-full); background: var(--vq-chart-track, var(--vq-sunken)); overflow: hidden; }
+.vq-rail-bar i{ display: block; height: 100%; border-radius: var(--vq-r-full); background: var(--vq-series-1-ink, var(--vq-accent)); }
+.vq-rail-meter-s{ font: 500 var(--vq-fs-eyebrow)/1.3 var(--vq-font-sans); color: var(--vq-text-3, var(--vq-text-2)); }
+
+/* ranks (top performers) */
+.vq-rail-rank{
+  display: grid; grid-template-columns: minmax(0, 1fr) 64px auto;
+  align-items: center; gap: 8px; padding: 6px 0; min-width: 0;
+}
+.vq-rail-track{ height: 5px; border-radius: var(--vq-r-full); background: var(--vq-chart-track, var(--vq-sunken)); overflow: hidden; }
+.vq-rail-track i{ display: block; height: 100%; border-radius: var(--vq-r-full); background: var(--vq-series-1-ink, var(--vq-accent)); }
+
+/* rails options modal */
+.vq-rails-options{
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  padding: 0 clamp(16px, 3vw, 32px) 8px; overflow-y: auto;
+}
+@media (max-width: 640px){ .vq-rails-options{ grid-template-columns: 1fr; } }
+.vq-rail-option{
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  text-align: left; cursor: pointer; min-width: 0;
+  background: var(--vq-surface); border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md, 14px); padding: 12px 14px;
+  transition: border-color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-rail-option:hover{ border-color: var(--vq-accent-quiet-line); }
+.vq-rail-option.is-on{ border-color: var(--vq-accent, #0baa8f); background: var(--vq-accent-quiet); }
+.vq-rail-option-text{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vq-rail-option-name{ font: 700 var(--vq-fs-small)/1.3 var(--vq-font-sans); color: var(--vq-text); }
+.vq-rail-option-desc{ font: 500 var(--vq-fs-eyebrow)/1.4 var(--vq-font-sans); color: var(--vq-text-2); }
+
+/* preset cards: thumbnail + text row, side-panel note */
+.vq-preset-row{ display: flex; align-items: flex-start; gap: 14px; min-width: 0; }
+.vq-preset-thumb{ flex: 0 0 auto; color: var(--vq-accent, #0baa8f); margin-top: 2px; }
+.vq-preset-text{ display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 auto; }
+.vq-preset-rails{
+  font: 600 var(--vq-fs-eyebrow)/1.4 var(--vq-font-sans);
+  color: var(--vq-text-3, var(--vq-text-2));
+}
+
+/* launchpad hub */
+.vqc-launchpad{
+  display: grid; gap: 8px; flex: 1 1 auto; min-height: 0;
+  align-content: stretch;
+}
+.vqc-launchpad-btn{ min-height: 40px; }
+
+/* the side-panel menu item can be disabled on narrow screens */
+.vq-dropdown-item:disabled{ opacity: .45; cursor: default; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ROUND 5 (2026-09) — plain numerals, light-first theme, quiet inner
+   surfaces, the containerized sticky side panel, foldable nav groups.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── numerals: plain text, soft pulse on change ── */
+.nf{ display:inline-block; line-height:1; white-space:nowrap;
+  font-variant-numeric: tabular-nums; font-feature-settings:"tnum" 1; }
+.nf-pulse{ animation: nfPulse 340ms var(--vq-ease-out); }
+@keyframes nfPulse{ from{ opacity:.35 } to{ opacity:1 } }
+@media (prefers-reduced-motion: reduce){ .nf-pulse{ animation:none; } }
+
+/* ── inner surfaces: one quiet recipe, both themes, 14px corners ──
+   The dark theme's --vq-sunken read as grey slabs floating inside grey
+   cards. Inside a card, an inner surface is a TINT of the card, not a
+   second card: near-invisible fill, hairline line, the one radius. */
+.vqc-alert-item, .vqc-bank-box, .vqc-growth-stat,
+.vqc-hub-btn--quiet,
+.vq-rail-mini, .vq-rail-alert, .vq-rail-act:not(.is-primary){
+  border-radius: var(--vq-r-md, 14px);
+}
+[data-theme="dark"] .vqc-alert-item,
+[data-theme="dark"] .vqc-bank-box:not(.is-total),
+[data-theme="dark"] .vqc-growth-stat,
+[data-theme="dark"] .vqc-hub-btn--quiet,
+[data-theme="dark"] .vq-rail-mini,
+[data-theme="dark"] .vq-rail-alert,
+[data-theme="dark"] .vq-rail-act:not(.is-primary){
+  background: rgb(255 255 255 / .045);
+  border: 1px solid rgb(255 255 255 / .07);
+}
+[data-theme="dark"] .vqc-alert-item:hover,
+[data-theme="dark"] .vq-rail-alert:hover,
+[data-theme="dark"] .vq-rail-act:not(.is-primary):hover{
+  background: rgb(255 255 255 / .08);
+  border-color: rgb(255 255 255 / .12);
+}
+[data-theme="dark"] .vqc-bank-box.is-total{
+  background: rgb(11 170 143 / .14);
+  border: 1px solid rgb(11 170 143 / .3);
+}
+/* light theme: the same idea — tint, hairline, no slab */
+:root:not([data-theme="dark"]) .vqc-alert-item,
+:root:not([data-theme="dark"]) .vqc-bank-box:not(.is-total),
+:root:not([data-theme="dark"]) .vqc-growth-stat{
+  background: var(--vq-sunken);
+  border: 1px solid var(--vq-line-soft, var(--vq-line));
+}
+
+/* ── the side panel is ONE container, like the old dashboard's ── */
+.vq-rails{ flex: 0 0 var(--vq-rails-w, 340px); width: var(--vq-rails-w, 340px); }
+.vq-rails-shell{
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-lg, 14px);
+  box-shadow: var(--vq-elev-1);
+  overflow: hidden;
+}
+.vq-rails-head{
+  flex: 0 0 auto;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--vq-line);
+  min-height: 0;
+}
+.vq-rails-head-acts{ display: inline-flex; align-items: center; gap: 6px; }
+.vq-rails-collapse{
+  display: grid; place-items: center; width: 26px; height: 26px;
+  border: 1px solid var(--vq-line); border-radius: var(--vq-r-full, 999px);
+  background: var(--vq-surface); color: var(--vq-text-2); cursor: pointer;
+}
+.vq-rails-collapse:hover{ color: var(--vq-text); }
+.vq-rails-scroll{
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column;
+  padding: 6px 18px 18px;
+}
+/* rails inside the shell are sections, not floating cards */
+.vq-rails-scroll .vq-rail-card{
+  background: transparent; border: 0; box-shadow: none;
+  border-radius: 0; padding: 16px 0;
+  border-bottom: 1px solid var(--vq-line-soft, var(--vq-line));
+}
+.vq-rails-scroll .vq-rail-card:last-child{ border-bottom: 0; padding-bottom: 4px; }
+
+/* sticky: the panel takes the full viewport height and scrolls inside */
+.vq-rails.is-sticky{ align-self: flex-start; position: sticky; top: 0; }
+.vq-rails.is-sticky .vq-rails-shell{
+  max-height: calc(100vh - var(--vq-header-h, 64px) - 48px);
+  display: flex;
+}
+.vq-rails.is-sticky .vq-rails-scroll{ overflow-y: auto; overscroll-behavior: contain; }
+.vq-rails.is-sticky .vq-rails-scroll::-webkit-scrollbar{ width: 6px; }
+.vq-rails.is-sticky .vq-rails-scroll::-webkit-scrollbar-thumb{
+  background: var(--vq-line-strong, var(--vq-line)); border-radius: var(--vq-r-full, 999px);
+}
+
+/* the reopen tab when the panel is collapsed */
+.vq-rails-tab{
+  position: sticky; top: 12px; align-self: flex-start;
+  flex: 0 0 auto;
+  display: grid; place-items: center;
+  width: 28px; height: 44px;
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-md, 14px);
+  background: var(--vq-surface); color: var(--vq-text-2); cursor: pointer;
+  box-shadow: var(--vq-elev-1);
+}
+.vq-rails-tab:hover{ color: var(--vq-text); }
+
+/* side-panel layout options row in the modal */
+.vq-rails-layoutbar{
+  display: flex; flex-wrap: wrap; gap: 10px 24px;
+  padding: 0 clamp(16px, 3vw, 32px) 14px;
+}
+.vq-rails-opt-group{ display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.vq-rails-opt-label{
+  font: 700 var(--vq-fs-eyebrow)/1 var(--vq-font-sans);
+  letter-spacing: var(--vq-ls-eyebrow); text-transform: uppercase;
+  color: var(--vq-text-2); margin-right: 4px;
+}
+
+/* ── foldable nav groups ── */
+.vq-nav-group-toggle{
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; cursor: pointer; border: 0; background: transparent;
+  text-align: left; color: inherit;
+}
+.vq-nav-group-toggle svg{
+  transition: transform var(--vq-dur-1) var(--vq-ease-out);
+  opacity: .55; flex: 0 0 auto;
+}
+.vq-nav-group.is-folded .vq-nav-group-toggle svg{ transform: rotate(-90deg); }
+.vq-nav-group.is-folded .vq-nav-list{ display: none; }
+
+
+/* ══ ROUND 6 ══════════════════════════════════════════════════════════════ */
+
+/* mesh: inner pieces sink INTO the glass instead of floating lighter on it */
+:root[data-bg="mesh"] .vqc-alert-item,
+:root[data-bg="mesh"] .vqc-bank-box:not(.is-total),
+:root[data-bg="mesh"] .vqc-growth-stat,
+:root[data-bg="mesh"] .vqc-hub-btn--quiet,
+:root[data-bg="mesh"] .ck-geo-c,
+:root[data-bg="mesh"] .vq-rail-mini,
+:root[data-bg="mesh"] .vq-rail-alert,
+:root[data-bg="mesh"] .vq-rail-act:not(.is-primary){
+  background: rgb(0 0 0 / .25);
+  border: 1px solid rgb(255 255 255 / .06);
+}
+:root[data-bg="mesh"] .vqc-alert-item:hover,
+:root[data-bg="mesh"] .vq-rail-alert:hover,
+:root[data-bg="mesh"] .vq-rail-act:not(.is-primary):hover{
+  background: rgb(0 0 0 / .38);
+  border-color: rgb(255 255 255 / .12);
+}
+:root[data-bg="mesh"] .vqc-bank-box.is-total{
+  background: rgb(11 170 143 / .16);
+  border: 1px solid rgb(11 170 143 / .32);
+}
+
+/* ── free placement: the snap ghost and the edit-mode hand ── */
+.vq-drop-ghost{
+  border: 2px dashed var(--vq-accent, #0baa8f);
+  border-radius: var(--vq-r-lg, 14px);
+  background: var(--vq-accent-quiet, rgb(11 170 143 / .08));
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--vq-dur-1, 120ms) var(--vq-ease-out);
+  min-height: 0;
+}
+.vq-drop-ghost.is-on{ opacity: 1; }
+.vq-shell.is-editing .vqc{ cursor: grab; }
+.vq-shell.is-editing .vqc.is-dragging{ cursor: grabbing; opacity: .6; }
+
+/* ── the panel: ONE deep container, rails as their own rounded cards ── */
+.vq-rails-shell{
+  background: var(--vq-sunken, #eef2f0);
+  border: 1px solid var(--vq-line);
+  padding: 12px;
+}
+[data-theme="dark"] .vq-rails-shell{
+  background: #0d1411;
+  border-color: #1c2822;
+}
+:root[data-bg="mesh"] .vq-rails-shell{
+  background: rgb(8 12 10 / .55);
+  border-color: rgb(255 255 255 / .08);
+  backdrop-filter: blur(14px);
+}
+.vq-rails-scroll{ padding: 0; gap: 10px; }
+.vq-rails-scroll .vq-rail-card{
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  border-radius: var(--vq-r-lg, 14px);
+  box-shadow: none;
+  padding: 16px;
+  border-bottom: 1px solid var(--vq-line);
+  margin: 0;
+}
+.vq-rails-scroll .vq-rail-card:last-child{ border-bottom: 1px solid var(--vq-line); padding-bottom: 16px; }
+[data-theme="dark"] .vq-rails-scroll .vq-rail-card{
+  background: rgb(255 255 255 / .04);
+  border-color: rgb(255 255 255 / .07);
+}
+:root[data-bg="mesh"] .vq-rails-scroll .vq-rail-card{
+  background: rgb(255 255 255 / .05);
+  border-color: rgb(255 255 255 / .08);
+}
+/* rail sub-pieces inside the already-tinted rail cards go darker on dark */
+[data-theme="dark"] .vq-rails-scroll .vq-rail-mini,
+[data-theme="dark"] .vq-rails-scroll .vq-rail-alert,
+[data-theme="dark"] .vq-rails-scroll .vq-rail-act:not(.is-primary){
+  background: rgb(0 0 0 / .25);
+  border-color: rgb(255 255 255 / .06);
+}
+
+/* the action trio — the old dashboard's three round buttons */
+.vq-rail-card--trio{ padding: 12px 16px; }
+.vq-rail-trio{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.vq-trio-btn{
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px 6px; min-width: 0; cursor: pointer; text-decoration: none;
+  border-radius: var(--vq-r-full, 999px);
+  font: 700 10px/1 var(--vq-font-sans); letter-spacing: .08em; text-transform: uppercase;
+  background: transparent;
+  border: 1.5px solid var(--vq-line-strong, var(--vq-line));
+  color: var(--vq-text-2);
+  transition: background var(--vq-dur-1) var(--vq-ease-out), color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-trio-ic{ display: grid; place-items: center; }
+.vq-trio-btn.is-sale{ border-color: var(--vq-accent, #0baa8f); color: var(--vq-accent-text, #0a8a74); }
+.vq-trio-btn.is-sale:hover{ background: var(--vq-accent-quiet); }
+.vq-trio-btn.is-purchase{ border-color: #e0763f; color: #c95f2b; }
+.vq-trio-btn.is-purchase:hover{ background: rgb(224 118 63 / .1); }
+.vq-trio-btn.is-actions:hover{ background: var(--vq-sunken); }
+[data-theme="dark"] .vq-trio-btn.is-sale{ color: #35d3b5; }
+[data-theme="dark"] .vq-trio-btn.is-purchase{ color: #f0915d; }
+[data-theme="dark"] .vq-trio-btn.is-actions{ color: #b8c4be; border-color: rgb(255 255 255 / .18); }
+
+
+/* narrow bank/growth hubs (≤3 cols): the boxes become ROWS — label left,
+   figure right — and the title block steps aside; nothing can clip */
+.vqc--bank-liquidity[data-w="3"] .vqc-hub-title-wrap,
+.vqc--growth-engine[data-w="3"] .vqc-hub-title-wrap{ display: none; }
+.vqc[data-w="3"] .vqc-bank-grid,
+.vqc[data-w="2"] .vqc-bank-grid,
+.vqc[data-w="3"] .vqc-growth-grid,
+.vqc[data-w="2"] .vqc-growth-grid{
+  grid-template-columns: 1fr;
+  align-content: center;
+  gap: 4px;
+}
+.vqc[data-w="3"] .vqc-bank-box, .vqc[data-w="2"] .vqc-bank-box,
+.vqc[data-w="3"] .vqc-growth-stat, .vqc[data-w="2"] .vqc-growth-stat{
+  flex-direction: row; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 7px 10px; max-height: none; min-height: 0; overflow: hidden;
+}
+.vqc[data-w="3"] .vqc-bank-sub, .vqc[data-w="2"] .vqc-bank-sub,
+.vqc[data-w="3"] .vqc-growth-sub, .vqc[data-w="2"] .vqc-growth-sub{ display: none; }
+.vqc[data-w="3"] .vqc-bank-val, .vqc[data-w="2"] .vqc-bank-val,
+.vqc[data-w="3"] .vqc-growth-val, .vqc[data-w="2"] .vqc-growth-val{
+  font-size: var(--vq-fs-small); flex: 0 0 auto;
+}
+.vqc[data-w="3"] .vqc-bank-label, .vqc[data-w="2"] .vqc-bank-label,
+.vqc[data-w="3"] .vqc-growth-label, .vqc[data-w="2"] .vqc-growth-label{
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* the tile's row: the label gives way, the figure never does */
+.vqc--c1 .vqc-bd > *{ min-width: 0; }
+.vqc--c1 .vqc-label{ flex: 1 1 auto; }
+.vqc--c1 .vqc-value{ flex: 0 0 auto; }

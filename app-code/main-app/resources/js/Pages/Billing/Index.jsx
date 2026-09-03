@@ -5,11 +5,11 @@ import Modal from '@/Components/Modal';
 import { openLemonCheckout, closeLemonCheckout, preloadLemonCheckout } from '@/lib/lemonCheckout';
 import { vq } from '@/theme/runtime';
 import {
-    Zap, Crown, Shield, CheckCircle2, XCircle, AlertTriangle,
-    ArrowRight, Calendar, Users, Package, BarChart2, Globe2,
-    Cpu, GitBranch, ExternalLink, Sparkles, Lock, Infinity,
-    Receipt, Download, Info, HelpCircle, MessageSquare, Monitor,
-    BadgeCheck, ScanFace, RefreshCw, History, CreditCard, FileText, Clock
+ Zap, Crown, Shield, CheckCircle2, XCircle, AlertTriangle,
+ ArrowRight, Calendar, Users, Package, BarChart2, Globe2,
+ Cpu, GitBranch, ExternalLink, Sparkles, Lock, Infinity,
+ Receipt, Download, Info, HelpCircle, MessageSquare, Monitor,
+ BadgeCheck, ScanFace, RefreshCw, History, CreditCard, FileText, Clock
 } from 'lucide-react';
 
 // ── PKR MASTER SWITCH (see Pricing.jsx) — OFF for USD-only launch ──────
@@ -17,2694 +17,2694 @@ const PKR_ENABLED = false;
 
 // --- Plan metadata (display-only) -------------------------------------------
 const PLAN_META = {
-    counter:  { label: 'Counter Engine',  price: '$18/mo',  color: vq.blue[500], Icon: Monitor },
-    starter:  { label: 'Starter Engine',  price: '$36/mo',  color: vq.indigo[500], Icon: Shield },
-    growth:   { label: 'Growth Engine',   price: '$63/mo',  color: vq.violet[500], Icon: Zap },
-    business: { label: 'Business Engine', price: '$129/mo', color: vq.amber[500], Icon: Crown },
-    ltd_1:    { label: 'LTD — Starter',  price: '$99',      color: vq.emerald[500], Icon: Sparkles },
-    ltd_2:    { label: 'LTD — Growth',   price: '$199',     color: vq.emerald[500], Icon: Sparkles },
-    ltd_3:    { label: 'LTD — Business', price: '$349',     color: vq.emerald[500], Icon: Sparkles },
+ counter: { label: 'Counter Engine', price: '$18/mo', color: vq.blue[500], Icon: Monitor },
+ starter: { label: 'Starter Engine', price: '$36/mo', color: vq.indigo[500], Icon: Shield },
+ growth: { label: 'Growth Engine', price: '$63/mo', color: vq.violet[500], Icon: Zap },
+ business: { label: 'Business Engine', price: '$129/mo', color: vq.amber[500], Icon: Crown },
+ ltd_1: { label: 'LTD — Starter', price: '$99', color: vq.emerald[500], Icon: Sparkles },
+ ltd_2: { label: 'LTD — Growth', price: '$199', color: vq.emerald[500], Icon: Sparkles },
+ ltd_3: { label: 'LTD — Business', price: '$349', color: vq.emerald[500], Icon: Sparkles },
 };
 
 const FEATURES = [
-    { key: 'staff_limit',   icon: Users,         label: 'Staff Members' },
-    { key: 'sku_limit',     icon: Package,       label: 'Products (SKUs)' },
-    { key: 'locations',     icon: GitBranch,     label: 'Locations / Warehouses' },
-    { key: 'woocommerce',   icon: Globe2,        label: 'WooCommerce Sync' },
-    { key: 'api_access',    icon: Cpu,           label: 'API Access' },
-    { key: 'growth_engine', icon: Sparkles,      label: 'AI Growth Engine' },
-    { key: 'chat_support',  icon: MessageSquare, label: 'Live Agent Support' },
-    { key: 'reports',       icon: BarChart2,     label: 'Advanced Reports' },
-    { key: 'multi_branch',  icon: GitBranch,     label: 'Multi-Branch' },
+ { key: 'staff_limit', icon: Users, label: 'Staff Members' },
+ { key: 'sku_limit', icon: Package, label: 'Products (SKUs)' },
+ { key: 'locations', icon: GitBranch, label: 'Locations / Warehouses' },
+ { key: 'woocommerce', icon: Globe2, label: 'WooCommerce Sync' },
+ { key: 'api_access', icon: Cpu, label: 'API Access' },
+ { key: 'growth_engine', icon: Sparkles, label: 'AI Growth Engine' },
+ { key: 'chat_support', icon: MessageSquare, label: 'Live Agent Support' },
+ { key: 'reports', icon: BarChart2, label: 'Advanced Reports' },
+ { key: 'multi_branch', icon: GitBranch, label: 'Multi-Branch' },
 ];
 
 const FEATURE_UPGRADE_TARGET = {
-    growth_engine: 'growth',
-    multi_branch: 'growth',
-    api_access: 'business',
-    bill_of_materials: 'business',
-    fixed_asset_depreciation: 'business',
-    fiscal_year_closing: 'business',
-    recurring_invoicing: 'business',
-    chat_support: 'growth',
-    feature_serials: 'business',
-    whatsapp_reminders: 'growth',
-    loyalty_points: 'business',
-    wholesale_pricing: 'business',
-    dedicated_account_manager: 'business',
+ growth_engine: 'growth',
+ multi_branch: 'growth',
+ api_access: 'business',
+ bill_of_materials: 'business',
+ fixed_asset_depreciation: 'business',
+ fiscal_year_closing: 'business',
+ recurring_invoicing: 'business',
+ chat_support: 'growth',
+ feature_serials: 'business',
+ whatsapp_reminders: 'growth',
+ loyalty_points: 'business',
+ wholesale_pricing: 'business',
+ dedicated_account_manager: 'business',
 };
 
 // --- Onboarding Service Tiers ---
 const SERVICE_TIERS = {
-    basic:        { name: 'Basic Upload',        priceUSD: 1.00, pricePKR: 100,  extraUSD: 0.50, extraPKR: 50,  sla: '2–3 business days', desc: 'Product data uploaded with all core fields. Up to 5 variants per product included.' },
-    descriptions: { name: '+ Rich Descriptions', priceUSD: 1.50, pricePKR: 150,  extraUSD: 0.50, extraPKR: 50,  sla: '3–5 business days', desc: 'Everything in Basic + long descriptions, SEO copy, and full product detail. You provide images.' },
-    images:       { name: '+ AI Images',         priceUSD: 2.00, pricePKR: 200,  extraUSD: 0.50, extraPKR: 50,  sla: '4–6 business days', desc: 'Everything in Descriptions + we source or AI-generate product images for you.' },
+ basic: { name: 'Basic Upload', priceUSD: 1.00, pricePKR: 100, extraUSD: 0.50, extraPKR: 50, sla: '2–3 business days', desc: 'Product data uploaded with all core fields. Up to 5 variants per product included.' },
+ descriptions: { name: '+ Rich Descriptions', priceUSD: 1.50, pricePKR: 150, extraUSD: 0.50, extraPKR: 50, sla: '3–5 business days', desc: 'Everything in Basic + long descriptions, SEO copy, and full product detail. You provide images.' },
+ images: { name: '+ AI Images', priceUSD: 2.00, pricePKR: 200, extraUSD: 0.50, extraPKR: 50, sla: '4–6 business days', desc: 'Everything in Descriptions + we source or AI-generate product images for you.' },
 };
 
 function formatLimit(val) {
-    if (val === null || val === undefined) return <><Infinity size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Unlimited</>;
-    if (val === false) return <XCircle size={14} color={vq.red[500]} style={{ display: 'inline', verticalAlign: 'middle' }} />;
-    if (val === true) return <CheckCircle2 size={14} color={vq.emerald[500]} style={{ display: 'inline', verticalAlign: 'middle' }} />;
-    if (val === 'basic') return 'Basic';
-    if (val === 'advanced') return 'Advanced';
-    return val;
+ if (val === null || val === undefined) return <><Infinity size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Unlimited</>;
+ if (val === false) return <XCircle size={14} color={vq.red[500]} style={{ display: 'inline', verticalAlign: 'middle' }} />;
+ if (val === true) return <CheckCircle2 size={14} color={vq.emerald[500]} style={{ display: 'inline', verticalAlign: 'middle' }} />;
+ if (val === 'basic') return 'Basic';
+ if (val === 'advanced') return 'Advanced';
+ return val;
 }
 
 // --- Usage Meter -------------------------------------------------------------
 function UsageMeter({ icon: Icon, label, used, limit, color }) {
-    const pct = limit === null ? 0 : Math.min(100, Math.round((used / limit) * 100));
-    const isUnlimited = limit === null;
-    const isCritical  = !isUnlimited && pct >= 90;
-    const isWarning   = !isUnlimited && pct >= 70;
-    const barColor = isCritical ? vq.red[500] : isWarning ? vq.amber[500] : color;
+ const pct = limit === null ? 0 : Math.min(100, Math.round((used / limit) * 100));
+ const isUnlimited = limit === null;
+ const isCritical = !isUnlimited && pct >= 90;
+ const isWarning = !isUnlimited && pct >= 70;
+ const barColor = isCritical ? vq.red[500] : isWarning ? vq.amber[500] : color;
 
-    return (
-        <div className="bg-neutral-950/40 border border-white/[0.06] rounded-2xl p-5 shadow-inner">
-            <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.03]">
-                        <Icon size={16} color={color} />
-                    </div>
-                    <span className="text-xs font-bold text-neutral-300">{label}</span>
-                </div>
-                {isCritical && <AlertTriangle size={14} className="text-red-500" />}
-            </div>
+ return (
+ <div className="bg-neutral-950/40 border border-white/[0.06] rounded-2xl p-5 shadow-inner">
+ <div className="flex items-center justify-between mb-3">
+ <div className="flex items-center gap-2">
+ <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.03]">
+ <Icon size={16} color={color} />
+ </div>
+ <span className="text-xs font-bold text-neutral-300">{label}</span>
+ </div>
+ {isCritical && <AlertTriangle size={14} className="text-red-500" />}
+ </div>
 
-            <div className={`text-2xl font-bold mb-1 ${isCritical ? 'text-red-500' : 'text-white'}`}>
-                {isUnlimited
-                    ? <span className="flex items-center gap-1.5">{used} <span className="text-xs text-ink-muted font-medium">/ ∞</span></span>
-                    : <span>{used} <span className="text-sm font-medium text-ink-muted">/ {limit}</span></span>
-                }
-            </div>
+ <div className={`text-2xl font-bold mb-1 ${isCritical ? 'text-red-500' : 'text-white'}`}>
+ {isUnlimited
+ ? <span className="flex items-center gap-1.5">{used} <span className="text-xs text-ink-muted font-medium">/ ∞</span></span>
+ : <span>{used} <span className="text-sm font-medium text-ink-muted">/ {limit}</span></span>
+ }
+ </div>
 
-            {isUnlimited ? (
-                <div className="text-2xs text-emerald-400 font-bold uppercase tracking-wider">Unlimited</div>
-            ) : (
-                <>
-                    <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden mb-1.5 mt-2">
-                        <div style={{ width: `${pct}%`, backgroundColor: barColor }} className="h-full rounded-full transition-all duration-slower" />
-                    </div>
-                    <div className={`text-2xs font-bold ${isCritical ? 'text-red-500' : 'text-ink-muted'} uppercase tracking-wider`}>
-                        {pct}% used
-                    </div>
-                </>
-            )}
-        </div>
-    );
+ {isUnlimited ? (
+ <div className="text-2xs text-emerald-400 font-bold uppercase tracking-wider">Unlimited</div>
+ ) : (
+ <>
+ <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden mb-1.5 mt-2">
+ <div style={{ width: `${pct}%`, backgroundColor: barColor }} className="h-full rounded-full transition-all duration-slower" />
+ </div>
+ <div className={`text-2xs font-bold ${isCritical ? 'text-red-500' : 'text-ink-muted'} uppercase tracking-wider`}>
+ {pct}% used
+ </div>
+ </>
+ )}
+ </div>
+ );
 }
 
 // --- Plan Card ----------------------------------------------------------------
 function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, onCheckout, checkoutBusy = null, plans, billingCycle = 'monthly', currencyDisplay = 'USD' }) {
-    const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
-    const isPK = PKR_ENABLED && geo.currency === 'PKR';
-    const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
-        const usdVal = parseFloat(usdAmount) || 0;
-        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
-        
-        if (isPK && currencyDisplay === 'PKR') {
-            return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix} (billed as $${usdVal.toLocaleString()})`;
-        }
-        
-        let str = `$${usdVal.toLocaleString()}${suffix}`;
-        if (isPK) {
-            str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
-        }
-        return str;
-    };
+ const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
+ const isPK = PKR_ENABLED && geo.currency === 'PKR';
+ const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
+ const usdVal = parseFloat(usdAmount) || 0;
+ const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
 
-    const meta = PLAN_META[planKey] ?? { label: planKey, price: '—', color: vq.indigo[500], Icon: Shield };
-    const { Icon } = meta;
-    const isLtd = planKey.startsWith('ltd');
+ if (isPK && currencyDisplay === 'PKR') {
+ return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix} (billed as $${usdVal.toLocaleString()})`;
+ }
 
-    const dbPlan = plans?.find(p => p.slug === planKey);
-    const planName = dbPlan?.name ? `${dbPlan.name} Engine` : meta.label;
+ let str = `$${usdVal.toLocaleString()}${suffix}`;
+ if (isPK) {
+ str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
+ }
+ return str;
+ };
 
-    // --- Cycle-aware pricing ---
-    const isAnnual = billingCycle === 'annual';
+ const meta = PLAN_META[planKey] ?? { label: planKey, price: '—', color: vq.indigo[500], Icon: Shield };
+ const { Icon } = meta;
+ const isLtd = planKey.startsWith('ltd');
 
-    // Pick the right prices based on cycle and region (Option A: USD primary, PKR estimate)
-    let displayMonthly, displayAnnualNote, savingsNote, pkrEstimate;
-    const usdMonthly = dbPlan ? parseFloat(dbPlan.price_monthly_usd || dbPlan.price_monthly || 0) : 0;
-    const usdAnnual = dbPlan ? parseFloat(dbPlan.price_annual_usd || dbPlan.price_annual || 0) : 0;
+ const dbPlan = plans?.find(p => p.slug === planKey);
+ const planName = dbPlan?.name ? `${dbPlan.name} Engine` : meta.label;
 
-    if (isAnnual) {
-        if (isPK && currencyDisplay === 'PKR') {
-            const pkrAnnualTotal = dbPlan?.price_annual ? parseFloat(dbPlan.price_annual) : Math.round(usdAnnual * 280);
-            const pkrPerMonth = Math.round(pkrAnnualTotal / 12);
-            displayMonthly = `Rs ${pkrPerMonth.toLocaleString()}/mo`;
-            displayAnnualNote = `billed Rs ${Math.round(pkrAnnualTotal).toLocaleString()}/yr`;
-            savingsNote = `SAVE ~17%`;
-            pkrEstimate = null;
-        } else {
-            if (usdAnnual > 0) {
-                const perMonth = Math.round(usdAnnual / 12);
-                const saved = usdMonthly ? Math.round(usdMonthly * 12 - usdAnnual) : null;
-                displayMonthly = `$${perMonth}/mo`;
-                displayAnnualNote = `billed $${usdAnnual}/yr`;
-                savingsNote = saved && saved > 0 ? `Save $${saved}/yr` : null;
-                pkrEstimate = null;
-            }
-        }
-    } else {
-        if (isPK && currencyDisplay === 'PKR') {
-            const pkrMonthly = dbPlan?.price_monthly ? parseFloat(dbPlan.price_monthly) : Math.round(usdMonthly * 280);
-            displayMonthly = `Rs ${Math.round(pkrMonthly).toLocaleString()}/mo`;
-            displayAnnualNote = null;
-            savingsNote = null;
-            pkrEstimate = null;
-        } else {
-            displayMonthly = dbPlan ? (usdMonthly ? `$${usdMonthly}/mo` : 'Free') : meta.price;
-            displayAnnualNote = null;
-            savingsNote = null;
-            pkrEstimate = null;
-        }
-    }
+ // --- Cycle-aware pricing ---
+ const isAnnual = billingCycle === 'annual';
 
-    if (isLtd && !isCurrent) return null;
-    const planOrder = ['counter', 'starter', 'growth', 'business'];
-    const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
-    const thisIdx    = planOrder.indexOf(planKey);
+ // Pick the right prices based on cycle and region (Option A: USD primary, PKR estimate)
+ let displayMonthly, displayAnnualNote, savingsNote, pkrEstimate;
+ const usdMonthly = dbPlan ? parseFloat(dbPlan.price_monthly_usd || dbPlan.price_monthly || 0) : 0;
+ const usdAnnual = dbPlan ? parseFloat(dbPlan.price_annual_usd || dbPlan.price_annual || 0) : 0;
 
-    const checkoutCycle = isAnnual ? 'annual' : 'monthly';
-    const isCheckingOut = checkoutBusy === planKey;
+ if (isAnnual) {
+ if (isPK && currencyDisplay === 'PKR') {
+ const pkrAnnualTotal = dbPlan?.price_annual ? parseFloat(dbPlan.price_annual) : Math.round(usdAnnual * 280);
+ const pkrPerMonth = Math.round(pkrAnnualTotal / 12);
+ displayMonthly = `Rs ${pkrPerMonth.toLocaleString()}/mo`;
+ displayAnnualNote = `billed Rs ${Math.round(pkrAnnualTotal).toLocaleString()}/yr`;
+ savingsNote = `SAVE ~17%`;
+ pkrEstimate = null;
+ } else {
+ if (usdAnnual > 0) {
+ const perMonth = Math.round(usdAnnual / 12);
+ const saved = usdMonthly ? Math.round(usdMonthly * 12 - usdAnnual) : null;
+ displayMonthly = `$${perMonth}/mo`;
+ displayAnnualNote = `billed $${usdAnnual}/yr`;
+ savingsNote = saved && saved > 0 ? `Save $${saved}/yr` : null;
+ pkrEstimate = null;
+ }
+ }
+ } else {
+ if (isPK && currencyDisplay === 'PKR') {
+ const pkrMonthly = dbPlan?.price_monthly ? parseFloat(dbPlan.price_monthly) : Math.round(usdMonthly * 280);
+ displayMonthly = `Rs ${Math.round(pkrMonthly).toLocaleString()}/mo`;
+ displayAnnualNote = null;
+ savingsNote = null;
+ pkrEstimate = null;
+ } else {
+ displayMonthly = dbPlan ? (usdMonthly ? `$${usdMonthly}/mo` : 'Free') : meta.price;
+ displayAnnualNote = null;
+ savingsNote = null;
+ pkrEstimate = null;
+ }
+ }
 
-    return (
-        <div 
-            className={`relative p-6 rounded-2xl border transition-all duration-slow ${
-                isCurrent 
-                ? 'bg-purple-950/10 border-purple-500/35 shadow-[0_0_30px_rgba(168,85,247,0.06)]' 
-                : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.035] hover:border-white/10'
-            }`}
-        >
-            {isCurrent && (
-                <div 
-                    className="absolute -top-3 left-6 px-3 py-1 rounded-full text-2xs font-bold tracking-widest text-white bg-purple-600"
-                >
-                    CURRENT PLAN
-                </div>
-            )}
-            {savingsNote && (
-                <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-2xs font-bold tracking-widest text-white bg-emerald-600">
-                    {savingsNote}
-                </div>
-            )}
-            
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: meta.color + '15' }}>
-                    <Icon size={24} color={meta.color} />
-                </div>
-                <div>
-                    <div className="font-bold text-base text-white leading-tight">{planName}</div>
-                    <div className="text-sm font-bold mt-1" style={{ color: meta.color }}>
-                        {displayMonthly}
-                        {displayAnnualNote && (
-                            <span className="text-2xs text-ink-muted font-semibold block mt-0.5">
-                                {displayAnnualNote}
-                            </span>
-                        )}
-                        {pkrEstimate && (
-                            <span className="text-2xs text-emerald-400 font-semibold block mt-0.5">
-                                {pkrEstimate}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            </div>
+ if (isLtd && !isCurrent) return null;
+ const planOrder = ['counter', 'starter', 'growth', 'business'];
+ const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
+ const thisIdx = planOrder.indexOf(planKey);
 
-            <div className="space-y-3 mb-8">
-                {FEATURES.map(f => {
-                    const val = planConfig[f.key];
-                    const enabled = val !== false && val !== '0' && val !== 0 && val !== undefined;
-                    return (
-                        <div key={f.key} className="flex items-center gap-3 text-xs">
-                            {enabled
-                                ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                                : <XCircle size={14} className="text-ink-secondary shrink-0" />}
-                            <span className={`font-medium ${enabled ? 'text-neutral-300' : 'text-ink-muted line-through opacity-50'}`}>
-                                {f.label}
-                                {typeof val === 'number' ? `: ${val}` : ''}
-                                {val === null ? ': Unlimited' : ''}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
+ const checkoutCycle = isAnnual ? 'annual' : 'monthly';
+ const isCheckingOut = checkoutBusy === planKey;
 
-            {isCurrent ? (
-                (tenant?.status === 'trial' || tenant?.status === 'suspended') ? (
-                    <button
-                        onClick={() => onCheckout?.(planKey, checkoutCycle, currencyDisplay)}
-                        disabled={isCheckingOut}
-                        className="w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white shadow-lg "
-                    >
-                        {isCheckingOut ? 'Opening secure checkout…' : <>Activate Subscription <ArrowRight size={16} /></>}
-                    </button>
-                ) : (
-                    <div className="text-center py-3 text-xs font-bold text-purple-400 uppercase tracking-widest bg-purple-500/5 border border-purple-500/10 rounded-2xl flex items-center justify-center gap-2">
-                        <CheckCircle2 size={14} /> Active Plan
-                    </div>
-                )
-            ) : isLtd ? (
-                <div className="text-center py-3 text-xs font-bold text-ink-muted uppercase tracking-widest bg-white/5 rounded-2xl">
-                    Lifetime Supporter
-                </div>
-            ) : (
-                <button
-                    onClick={() => onSelectPlan(planKey)}
-                    className={`w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 ${
-                        thisIdx > currentIdx
-                        ? 'bg-white text-void-950 hover:bg-interactive-hover'
-                        : 'border border-neutral-700 hover:border-line-strong text-neutral-300 hover:bg-interactive-hover'
-                    }`}
-                >
-                    {thisIdx > currentIdx ? `Upgrade to ${meta.label}` : `Downgrade to ${meta.label}`} <ArrowRight size={16} />
-                </button>
-            )}
-        </div>
-    );
+ return (
+ <div
+ className={`relative p-6 rounded-2xl border transition-all duration-slow ${
+ isCurrent
+ ? 'bg-brand-950/10 border-brand-500/35 shadow-[0_0_30px_rgba(168,85,247,0.06)]'
+ : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.035] hover:border-white/10'
+ }`}
+ >
+ {isCurrent && (
+ <div
+ className="absolute -top-3 left-6 px-3 py-1 rounded-full text-2xs font-bold tracking-widest text-white bg-brand-600"
+ >
+ CURRENT PLAN
+ </div>
+ )}
+ {savingsNote && (
+ <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-2xs font-bold tracking-widest text-white bg-emerald-600">
+ {savingsNote}
+ </div>
+ )}
+
+ <div className="flex items-center gap-3 mb-6">
+ <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: meta.color + '15' }}>
+ <Icon size={24} color={meta.color} />
+ </div>
+ <div>
+ <div className="font-bold text-base text-white leading-tight">{planName}</div>
+ <div className="text-sm font-bold mt-1" style={{ color: meta.color }}>
+ {displayMonthly}
+ {displayAnnualNote && (
+ <span className="text-2xs text-ink-muted font-semibold block mt-0.5">
+ {displayAnnualNote}
+ </span>
+ )}
+ {pkrEstimate && (
+ <span className="text-2xs text-emerald-400 font-semibold block mt-0.5">
+ {pkrEstimate}
+ </span>
+ )}
+ </div>
+ </div>
+ </div>
+
+ <div className="space-y-3 mb-8">
+ {FEATURES.map(f => {
+ const val = planConfig[f.key];
+ const enabled = val !== false && val !== '0' && val !== 0 && val !== undefined;
+ return (
+ <div key={f.key} className="flex items-center gap-3 text-xs">
+ {enabled
+ ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+ : <XCircle size={14} className="text-ink-secondary shrink-0" />}
+ <span className={`font-medium ${enabled ? 'text-neutral-300' : 'text-ink-muted line-through opacity-50'}`}>
+ {f.label}
+ {typeof val === 'number' ? `: ${val}` : ''}
+ {val === null ? ': Unlimited' : ''}
+ </span>
+ </div>
+ );
+ })}
+ </div>
+
+ {isCurrent ? (
+ (tenant?.status === 'trial' || tenant?.status === 'suspended') ? (
+ <button
+ onClick={() => onCheckout?.(planKey, checkoutCycle, currencyDisplay)}
+ disabled={isCheckingOut}
+ className="w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-brand-600 hover:bg-brand-500 disabled:opacity-60 disabled:cursor-wait text-white shadow-lg "
+ >
+ {isCheckingOut ? 'Opening secure checkout…' : <>Activate Subscription <ArrowRight size={16} /></>}
+ </button>
+ ) : (
+ <div className="text-center py-3 text-xs font-bold text-brand-400 uppercase tracking-widest bg-brand-500/5 border border-brand-500/10 rounded-2xl flex items-center justify-center gap-2">
+ <CheckCircle2 size={14} /> Active Plan
+ </div>
+ )
+ ) : isLtd ? (
+ <div className="text-center py-3 text-xs font-bold text-ink-muted uppercase tracking-widest bg-white/5 rounded-2xl">
+ Lifetime Supporter
+ </div>
+ ) : (
+ <button
+ onClick={() => onSelectPlan(planKey)}
+ className={`w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 ${
+ thisIdx > currentIdx
+ ? 'bg-white text-void-950 hover:bg-interactive-hover'
+ : 'border border-neutral-700 hover:border-line-strong text-neutral-300 hover:bg-interactive-hover'
+ }`}
+ >
+ {thisIdx > currentIdx ? `Upgrade to ${meta.label}` : `Downgrade to ${meta.label}`} <ArrowRight size={16} />
+ </button>
+ )}
+ </div>
+ );
 }
 
 // --- Main Page Component ---
 export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification, trial_credit = null }) {
-    const { store, pricing } = usePage().props;
-    const aiTiers = pricing?.ai_tiers || {};
-    const storeSlug = store?.slug;
-    const isPK = PKR_ENABLED && country === 'PK' && pk_verification?.status === 'approved';
-    const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
-        const usdVal = parseFloat(usdAmount) || 0;
-        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
-        
-        if (isPK && currencyDisplay === 'PKR') {
-            return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix}`;
-        }
-        
-        return `$${usdVal.toLocaleString()}${suffix}`;
-    };
-
-    const fmtCost = (usdAmount, pkrAmount = null) => {
-        const usdVal = parseFloat(usdAmount) || 0;
-        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
-
-        if (isPK && currencyDisplay === 'PKR') {
-            return `Rs ${Math.round(pkrVal).toLocaleString()}`;
-        }
-
-        return `$${usdVal.toFixed(2)}`;
-    };
-
-    const [activeTab, setActiveTab] = useState('subscription');
-
-    // ── Payment history ──────────────────────────────────────────────────────
-    // Read live from Lemon Squeezy, fetched the first time the tab is opened so
-    // the rest of this page never waits on an external API.
-    const [history, setHistory] = useState(null);
-    const [historyLoading, setHistoryLoading] = useState(false);
-    const [historyError, setHistoryError] = useState(null);
-
-    const loadHistory = async (fresh = false) => {
-        setHistoryLoading(true);
-        setHistoryError(null);
-        try {
-            const res = await fetch(
-                route('store.billing.payment-history', { store_slug: storeSlug, ...(fresh ? { fresh: 1 } : {}) }),
-                { headers: { Accept: 'application/json' } }
-            );
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            setHistory(await res.json());
-        } catch (err) {
-            console.error('[billing] payment history failed', err);
-            setHistoryError('Could not load your payment history. Please try again.');
-        } finally {
-            setHistoryLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (activeTab === 'payments' && !history && !historyLoading) {
-            loadHistory();
-        }
-    }, [activeTab]);
-
-    const fmtDay = (iso) => iso
-        ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        : '—';
-
-    /**
-     * True when our own subscription_ends_at disagrees with the renewal date
-     * Lemon Squeezy reports. Worth surfacing rather than hiding: it means a
-     * webhook was missed or the plan was applied locally without a real
-     * payment, and the local column is the one that's wrong.
-     */
-    const historyDateMismatch = (() => {
-        const remote = history?.subscription?.expires_at;
-        const local = history?.local?.subscription_ends_at;
-        if (!remote || !local) return false;
-        // Same calendar day is a match; we only care about real drift.
-        return new Date(remote).toDateString() !== new Date(local).toDateString();
-    })();
-    const [billingCycle, setBillingCycle] = useState('monthly');
-    const [currencyDisplay, setCurrencyDisplay] = useState(isPK ? 'PKR' : 'USD');
-
-    // Onboarding Setup Service States
-    const [calcProducts, setCalcProducts] = useState('');
-    const [calcVariants, setCalcVariants] = useState('');
-    const [selectedService, setSelectedService] = useState('basic');
-    const [isOrderingService, setIsOrderingService] = useState(false);
-
-    // ── In-app checkout plumbing ────────────────────────────────────────────
-    // Lemon Squeezy is our Merchant of Record, so the card form has to be
-    // theirs. Everything below keeps that form INSIDE VenQore: the server
-    // hands back a branded, prefilled checkout URL and we render it as an
-    // overlay on top of the current page rather than navigating away.
-
-    const toast = (message, type = 'info') => {
-        window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message, type } }));
-    };
-
-    // Warm lemon.js up as soon as the billing screen mounts so the overlay
-    // appears instantly on click instead of after a script download.
-    useEffect(() => {
-        preloadLemonCheckout();
-    }, []);
-
-    const [congratsModalOpen, setCongratsModalOpen] = useState(false);
-    const [congratsPlanSlug, setCongratsPlanSlug] = useState('');
-
-    useEffect(() => {
-        const justUpgraded = sessionStorage.getItem('vq_just_upgraded');
-        const upgradedToPlan = sessionStorage.getItem('vq_upgraded_to_plan');
-        if (justUpgraded === 'true' && upgradedToPlan) {
-            sessionStorage.removeItem('vq_just_upgraded');
-            sessionStorage.removeItem('vq_upgraded_to_plan');
-            setCongratsPlanSlug(upgradedToPlan);
-            setCongratsModalOpen(true);
-        }
-    }, [tenant.plan, tenant.status]);
-
-    /**
-     * Pull subscription state straight from the Lemon Squeezy API.
-     *
-     * Provisioning normally rides in on a webhook, but a webhook can be
-     * undeliverable (local dev), delayed, or dropped — which leaves someone who
-     * genuinely paid still sitting on a trial. Rather than trust the push, we
-     * pull. Runs automatically right after a successful payment, and is also
-     * available as a manual "Already paid?" button.
-     */
-    const [isSyncing, setIsSyncing] = useState(false);
-
-    const runSubscriptionSync = async ({ silent = false } = {}) => {
-        setIsSyncing(true);
-        try {
-            const res = await fetch(route('store.billing.sync-subscription', { store_slug: storeSlug }), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                },
-            });
-
-            const data = await res.json().catch(() => ({}));
-
-            if (data?.synced) {
-                // If plan changed, or status changed, flag for congrats!
-                if (data.plan !== tenant.plan || tenant.status !== 'active') {
-                    sessionStorage.setItem('vq_just_upgraded', 'true');
-                    sessionStorage.setItem('vq_upgraded_to_plan', data.plan || tenant.plan);
-                }
-                if (!silent) {
-                    toast(data.message || 'Subscription synced.', 'success');
-                    router.reload({ preserveScroll: true });
-                }
-                return true;
-            }
-
-            if (!silent) {
-                toast(data?.message || data?.error || 'No subscription found to sync yet.', 'info');
-            }
-            return false;
-        } catch (err) {
-            console.error('[billing] subscription sync failed', err);
-            if (!silent) {
-                toast('Could not reach the server to sync your subscription.', 'error');
-            }
-            return false;
-        } finally {
-            setIsSyncing(false);
-        }
-    };
-
-    /**
-     * Shared handler: fetch a checkout URL from our own backend, then open it
-     * as an overlay. `onDone` runs when the overlay closes or fails so the
-     * caller can clear its loading state.
-     */
-    const launchCheckout = async (fetchUrl, { context = 'purchase', successMessage, onDone } = {}) => {
-        try {
-            const url = await fetchUrl();
-
-            if (!url) {
-                onDone?.();
-                return;
-            }
-
-            await openLemonCheckout(url, {
-                onSuccess: () => {
-                    toast(successMessage || 'Payment received — activating your plan…', 'success');
-
-                    // Reconcile against the Lemon Squeezy API rather than waiting
-                    // on a webhook that may be slow or may never arrive.
-                    //
-                    // This used to fire exactly once, 2.2s after payment. Lemon
-                    // Squeezy frequently has not finished creating the
-                    // subscription by then, so the single attempt found nothing,
-                    // gave up silently, and left the customer staring at a stale
-                    // page — the delay reported after checkout. Now it retries on
-                    // a backoff until the subscription actually appears.
-                    (async () => {
-                        const delays = [1200, 2000, 3000, 4000, 5000, 6000];
-
-                        for (const wait of delays) {
-                            await new Promise(r => setTimeout(r, wait));
-
-                            if (await runSubscriptionSync({ silent: true })) {
-                                closeLemonCheckout();
-                                toast('Your plan is active.', 'success');
-                                router.reload({ preserveScroll: true });
-                                onDone?.();
-                                return;
-                            }
-                        }
-
-                        // ~21s and still nothing. Stop guessing and hand the user
-                        // an explicit control rather than failing silently.
-                        closeLemonCheckout();
-                        toast(
-                            'Payment received. Your plan is taking longer than usual to activate — tap "Already Paid?" to retry.',
-                            'info'
-                        );
-                        router.reload({ preserveScroll: true });
-                        onDone?.();
-                    })();
-                },
-                onClose: () => {
-                    onDone?.();
-                },
-                onError: () => {
-                    // openLemonCheckout already falls back to a hard redirect,
-                    // so this is only for state cleanup.
-                    onDone?.();
-                },
-            });
-        } catch (err) {
-            console.error(`[billing] ${context} checkout failed`, err);
-            toast('Could not open the checkout. Please check your connection and try again.', 'error');
-            onDone?.();
-        }
-    };
-
-    const postForCheckoutUrl = async (routeName, payload) => {
-        const res = await fetch(route(routeName, { store_slug: storeSlug }), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (data?.url) return data.url;
-
-        toast(data?.error || 'An unexpected error occurred. Please try again.', 'error');
-        return null;
-    };
-
-    const handleOrderSetupService = () => {
-        setIsOrderingService(true);
-        launchCheckout(
-            () => postForCheckoutUrl('store.billing.checkout-upload-service', {
-                tier: selectedService,
-                products: calcProductsNum,
-                variants: calcVariantsNum
-            }),
-            {
-                context: 'setup-service',
-                successMessage: 'Order received — our catalog team will be in touch shortly.',
-                onDone: () => setIsOrderingService(false)
-            }
-        );
-    };
-
-    // Plan Change Confirmation States
-    const [selectedPlan, setSelectedPlan] = useState(null);
-    const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
-
-    const currentPlanKey = tenant?.plan ?? 'starter';
-    const currentMeta    = PLAN_META[currentPlanKey] ?? PLAN_META.starter;
-    const isLtd          = currentPlanKey.startsWith('ltd');
-    
-    const subEndsAt = tenant?.subscription_ends_at
-        ? new Date(tenant.subscription_ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-        : null;
-
-    // Days until the paid period ends. A bare date ("Renews on August 8") makes
-    // the reader do the arithmetic; the countdown is what actually tells them
-    // whether they need to act.
-    const subDaysLeft = tenant?.subscription_ends_at
-        ? Math.max(0, Math.ceil((new Date(tenant.subscription_ends_at) - new Date()) / 86400000))
-        : null;
-
-    // ── Trial / paying state ────────────────────────────────────────────────
-    //
-    // Lemon Squeezy is the authority on whether money has actually been taken.
-    // Our `tenants.status` column is a cache of webhook outcomes and can drift,
-    // so once the Payment History tab has loaded we prefer what Lemon Squeezy
-    // says. Before that we fall back to the local column.
-    //
-    // A store whose Lemon Squeezy subscription is `on_trial` has a card on file
-    // but has NOT been charged (that is what happens when the purchased variant
-    // carries a free-trial period). It must keep every trial affordance —
-    // above all the Pay Now button.
-    const lsStatus       = history?.subscription?.status ?? null;
-    const lsIsTrialling  = lsStatus === 'on_trial';
-    const lsIsPaying     = lsStatus ? ['active', 'past_due', 'cancelled'].includes(lsStatus) : null;
-
-    // Union of both sources. A false positive here merely offers a payment
-    // button to someone who doesn't need one; a false negative locks a customer
-    // out of paying us — which is exactly the bug this replaces.
-    const isTrial = tenant?.status === 'trial' || lsIsTrialling;
-
-    // Only ever true when we have positive evidence of a real charge.
-    const confirmedPaying = lsIsPaying ?? (tenant?.status === 'active');
-
-    // The local column and Lemon Squeezy disagree about whether this store pays.
-    const statusMismatch = lsStatus !== null
-        && ((tenant?.status === 'active') !== !!lsIsPaying);
-
-    // Trial countdown. Prefer Lemon Squeezy's own trial end date, since a
-    // Lemon-Squeezy-side trial has nothing to do with our local trial_ends_at.
-    const trialEndsAt = (lsIsTrialling
-        && (history?.subscription?.trial_ends_at || history?.subscription?.expires_at))
-        || (tenant?.status === 'trial' ? tenant?.trial_ends_at : null);
-
-    const trialDaysLeft = isTrial && trialEndsAt
-        ? Math.max(0, Math.ceil((new Date(trialEndsAt) - new Date()) / 86400000))
-        : null;
-
-    /**
-     * Trial credit for a given billing cycle, or null when there is nothing to
-     * credit. The percentages are computed server-side by TrialCreditService —
-     * the same code that mints the real Lemon Squeezy discount — so anything we
-     * quote here is exactly what the customer will be charged. Never recompute
-     * the percentage on the client: rounding drift would make the confirmation
-     * a lie.
-     */
-    const trialCreditFor = (cycle = billingCycle) => {
-        if (!trial_credit) return null;
-
-        const percent = cycle === 'annual'
-            ? trial_credit.percent_annual
-            : trial_credit.percent_monthly;
-
-        if (!percent || percent <= 0) return null;
-
-        return { percent, daysRemaining: trial_credit.days_remaining };
-    };
-
-    const isViewOnly = tenant?.view_only_since !== null;
-    const viewOnlyDaysLeft = tenant?.view_only_since
-        ? Math.max(0, 30 - Math.ceil((new Date() - new Date(tenant.view_only_since)) / 86400000))
-        : 30;
-
-    const usageData = usage ?? {};
-    const hasLockedActive = feature_status?.some(f => f.is_active && f.is_locked);
-
-    // Calculate setup service estimate
-    const calcProductsNum = Math.max(0, parseInt(calcProducts) || 0);
-    const calcVariantsNum = Math.max(1, parseInt(calcVariants) || 1);
-    const serviceTier = SERVICE_TIERS[selectedService];
-    const extraBlocks = calcVariantsNum > 5 ? Math.ceil((calcVariantsNum - 5) / 5) : 0;
-    const usdPricePerProduct = serviceTier
-        ? serviceTier.priceUSD + extraBlocks * serviceTier.extraUSD
-        : 0;
-    const pkrPricePerProduct = serviceTier
-        ? serviceTier.pricePKR + extraBlocks * serviceTier.extraPKR
-        : 0;
-    const usdTotalSetupCost = calcProductsNum * usdPricePerProduct;
-    const pkrTotalSetupCost = calcProductsNum * pkrPricePerProduct;
-
-    // Handle cancel trial
-    const handleCancelTrial = () => {
-        if (confirm("Are you sure you want to cancel your free trial? Your store will immediately transition to View-Only mode for 30 days, locking all modifications and sales. You can restore access anytime by subscribing.")) {
-            router.post(route('store.billing.cancel-trial', { store_slug: storeSlug }));
-        }
-    };
-
-    // ── Subscription cancel / resume ────────────────────────────────────────
-    //
-    // Cancelling does not end access immediately: Lemon Squeezy keeps the
-    // subscription running to the end of the period already paid for. The modal
-    // says so explicitly, because "Cancel" on a paid plan otherwise reads as
-    // "lose everything now" and stops people who simply want to stop renewing.
-    const [cancelOpen, setCancelOpen]   = useState(false);
-    const [cancelBusy, setCancelBusy]   = useState(false);
-    const [resumeBusy, setResumeBusy]   = useState(false);
-
-    const paidUntilLabel = history?.subscription?.expires_at
-        ? fmtDay(history.subscription.expires_at)
-        : (subEndsAt || null);
-
-    const submitCancelSubscription = () => {
-        setCancelBusy(true);
-        router.post(route('store.billing.cancel-subscription', { store_slug: storeSlug }), {}, {
-            preserveScroll: true,
-            onFinish: () => {
-                setCancelBusy(false);
-                setCancelOpen(false);
-                // The tab caches for 2 minutes; force a re-read so the status
-                // card reflects the cancellation immediately.
-                setHistory(null);
-                if (activeTab === 'payments') loadHistory(true);
-            },
-        });
-    };
-
-    const submitResumeSubscription = () => {
-        setResumeBusy(true);
-        router.post(route('store.billing.resume-subscription', { store_slug: storeSlug }), {}, {
-            preserveScroll: true,
-            onFinish: () => {
-                setResumeBusy(false);
-                setHistory(null);
-                if (activeTab === 'payments') loadHistory(true);
-            },
-        });
-    };
-
-    // Handle activation of addon free trial (e.g. WooCommerce sync or AI assistant during main store trial)
-    const handleAddonTrial = (addonType) => {
-        router.post(route('store.billing.checkout-addon', { store_slug: storeSlug }), {
-            addon_type: addonType,
-            trial_mode: true
-        });
-    };
-
-
-    const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
-
-    // Handle checkout for AI or Sync add-ons — opens in-app, no redirect.
-    const handlePurchaseAddon = (addonType) => {
-        setIsPurchasingAddon(addonType);
-        launchCheckout(
-            () => postForCheckoutUrl('store.billing.checkout-addon', { addon_type: addonType }),
-            {
-                context: 'addon',
-                successMessage: 'Payment received — activating your add-on…',
-                onDone: () => setIsPurchasingAddon(null)
-            }
-        );
-    };
-
-    // Subscription / plan checkout. Asks our backend for a branded, prefilled
-    // checkout URL (?format=json) and opens it as an overlay over the app.
-    const [checkoutBusy, setCheckoutBusy] = useState(null);
-
-    // Trial-credit confirmation. A trialling store that pays early keeps the
-    // value of its unused free days as a one-off discount on the first payment,
-    // so before opening the checkout we show exactly what will be charged
-    // today and what the renewal will be. Gated here rather than on the button
-    // so every entry point into checkout (header, plan cards) gets it.
-    const [pendingCheckout, setPendingCheckout] = useState(null);
-
-    const handlePlanCheckout = (planKey, cycle = billingCycle, currency = currencyDisplay) => {
-        if (checkoutBusy) return;
-
-        if (trialCreditFor(cycle)) {
-            setPendingCheckout({ planKey, cycle, currency });
-            return;
-        }
-
-        startPlanCheckout(planKey, cycle, currency);
-    };
-
-    const startPlanCheckout = (planKey, cycle = billingCycle, currency = currencyDisplay) => {
-        setPendingCheckout(null);
-        setCheckoutBusy(planKey);
-
-        launchCheckout(
-            async () => {
-                const res = await fetch(route('store.billing.upgrade', {
-                    store_slug: storeSlug,
-                    plan: planKey,
-                    cycle: cycle === 'annual' ? 'annual' : 'monthly',
-                    currency,
-                    format: 'json',
-                }), {
-                    headers: { 'Accept': 'application/json' },
-                });
-
-                const data = await res.json().catch(() => ({}));
-
-                if (data?.url) return data.url;
-
-                toast(data?.error || 'Checkout is unavailable right now. Please try again shortly.', 'error');
-                return null;
-            },
-            {
-                context: 'plan',
-                successMessage: 'Payment received — applying your new plan…',
-                onDone: () => setCheckoutBusy(null)
-            }
-        );
-    };
-
-    // Open change plan confirmation modal
-    const handleSelectPlan = (planKey) => {
-        setSelectedPlan(planKey);
-        setIsChangeModalOpen(true);
-    };
-
-    // Submit simulated local plan change
-    const handleConfirmPlanChange = () => {
-        router.post(route('store.billing.change-plan', { store_slug: storeSlug }), { plan: selectedPlan }, {
-            onSuccess: () => {
-                setIsChangeModalOpen(false);
-            }
-        });
-    };
-
-    // Cancel scheduled plan downgrade
-    const handleCancelDowngrade = () => {
-        if (confirm("Are you sure you want to cancel your scheduled plan downgrade? You will remain on your current plan and continue to be billed normally.")) {
-            router.post(route('store.billing.change-plan', { store_slug: storeSlug }), { cancel_downgrade: true });
-        }
-    };
-
-    // Deactivate feature in DB to self-heal limits warnings
-    const handleDeactivateFeature = (key, name) => {
-        if (confirm(`Are you sure you want to deactivate ${name}? This will permanently delete the active records and configurations in your store database for this feature, allowing you to return below limits. This cannot be undone.`)) {
-            router.post(route('store.billing.deactivate-feature', { store_slug: storeSlug }), { feature: key });
-        }
-    };
-
-    // Handle redirect to billing portal (standard navigation / direct redirect to LS or toast warning)
-    const handlePortalClick = () => {
-        if (!tenant?.has_customer_id) {
-            window.dispatchEvent(new CustomEvent('amd:toast', {
-                detail: {
-                    message: 'No active Lemon Squeezy subscription found. Please subscribe to a paid plan first to access the billing portal.',
-                    type: 'info'
-                }
-            }));
-            return;
-        }
-
-        // The Lemon Squeezy customer portal is a full account area and cannot be
-        // embedded, so open it in a new tab. The user keeps VenQore open behind
-        // it instead of losing their place in the app.
-        window.open(
-            route('store.billing.portal', { store_slug: storeSlug }),
-            '_blank',
-            'noopener,noreferrer'
-        );
-    };
-
-    /**
-     * Figures for the trial-credit confirmation. Every amount is derived from
-     * the server-supplied percentage, so "you pay X today" cannot disagree with
-     * what Lemon Squeezy charges.
-     */
-    const pendingCreditSummary = (() => {
-        if (!pendingCheckout) return null;
-
-        const credit = trialCreditFor(pendingCheckout.cycle);
-        if (!credit) return null;
-
-        const plan = plans?.find(p => p.slug === pendingCheckout.planKey);
-        const isAnnualPending = pendingCheckout.cycle === 'annual';
-
-        const fullUsd = parseFloat(
-            (isAnnualPending ? plan?.price_annual_usd : plan?.price_monthly_usd) || 0
-        );
-        const fullPkr = parseFloat(
-            (isAnnualPending ? plan?.price_annual : plan?.price_monthly) || 0
-        );
-
-        const ratio = credit.percent / 100;
-
-        // Renewal falls one full calendar cycle after payment, at full price —
-        // the discount's duration is "once".
-        const renewal = new Date();
-        if (isAnnualPending) {
-            renewal.setFullYear(renewal.getFullYear() + 1);
-        } else {
-            renewal.setMonth(renewal.getMonth() + 1);
-        }
-
-        return {
-            planKey: pendingCheckout.planKey,
-            planLabel: PLAN_META[pendingCheckout.planKey]?.label ?? plan?.name ?? pendingCheckout.planKey,
-            cycleLabel: isAnnualPending ? 'year' : 'month',
-            percent: credit.percent,
-            daysRemaining: credit.daysRemaining,
-            fullPrice: fmtCost(fullUsd, fullPkr),
-            creditAmount: fmtCost(fullUsd * ratio, fullPkr * ratio),
-            dueToday: fmtCost(fullUsd * (1 - ratio), fullPkr * (1 - ratio)),
-            renewalDate: renewal.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-        };
-    })();
-
-    // Calculate dynamic proration details for confirmation modal
-    const targetPlanModel = plans?.find(p => p.slug === selectedPlan);
-    const currentPlanModel = plans?.find(p => p.slug === currentPlanKey);
-
-    // Fallbacks must mirror config/pricing.php values (starter: 36, growth: 63, business: 129)
-    const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'counter' ? 18 : selectedPlan === 'starter' ? 36 : selectedPlan === 'growth' ? 63 : selectedPlan === 'business' ? 129 : 0);
-    const targetPricePKR = targetPlanModel ? parseFloat(targetPlanModel.price_monthly) : Math.round(targetPriceUSD * 280);
-
-    const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'counter' ? 18 : currentPlanKey === 'starter' ? 36 : currentPlanKey === 'growth' ? 63 : currentPlanKey === 'business' ? 129 : 0);
-    const currentPricePKR = currentPlanModel ? parseFloat(currentPlanModel.price_monthly) : Math.round(currentPriceUSD * 280);
-
-    const diffUSD = targetPriceUSD - currentPriceUSD;
-    const diffPKR = targetPricePKR - currentPricePKR;
-    
-    let proratedEstUSD = 0;
-    let proratedEstPKR = 0;
-    let remainingDays = 0;
-    let nextBillingDateStr = "";
-
-    const planOrder = ['counter', 'starter', 'growth', 'business'];
-    const currentIdx = planOrder.indexOf(currentPlanKey);
-    const targetIdx = planOrder.indexOf(selectedPlan);
-    const isUpgrade = targetIdx > currentIdx;
-
-    if (tenant?.subscription_ends_at) {
-        const cycleEnd = new Date(tenant.subscription_ends_at);
-        nextBillingDateStr = cycleEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        
-        const now = new Date();
-        const cycleStart = new Date(cycleEnd);
-        cycleStart.setMonth(cycleStart.getMonth() - 1);
-        
-        const totalMs = cycleEnd - cycleStart;
-        const remainingMs = cycleEnd - now;
-        remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
-        const ratio = Math.max(0, Math.min(1, remainingMs / totalMs));
-        
-        if (isUpgrade) {
-            proratedEstUSD = diffUSD * ratio;
-            proratedEstPKR = diffPKR * ratio;
-        }
-    } else {
-        const nextBilling = new Date();
-        nextBilling.setDate(nextBilling.getDate() + 30);
-        nextBillingDateStr = nextBilling.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        proratedEstUSD = targetPriceUSD;
-        proratedEstPKR = targetPricePKR;
-    }
-
-    // Modal features comparison listing
-    const FEATURES_GAIN_LOSS = {
-        growth: {
-            gained: [
-                'WooCommerce Sync (Unlimited)',
-                'AI Chatbot & Retention engine',
-                'Multi-Branch warehouse support',
-                'Up to 10 staff member accounts (Starter: 3)',
-                'Unlimited products/SKUs (Starter: 1,000)',
-                'Advanced reporting structures'
-            ],
-            lost: [
-                'WooCommerce Sync connections',
-                'AI Chatbot key configurations',
-                'Multi-Branch warehouse settings',
-                'Warehouse locations limit (reduced to 3)',
-                'Staff accounts limit (reduced to 10)',
-                'Product/SKUs count capped at 1,000 SKUs',
-                'Advanced reporting modules'
-            ]
-        },
-        business: {
-            gained: [
-                'Full Public REST API Access',
-                'Unlimited warehouse locations (Growth: 3)',
-                'Unlimited staff member accounts (Growth: 10)',
-                'Bill of Materials (BOM) & Manufacturing',
-                'Fixed asset depreciation postings',
-                'Fiscal year closing automated wizard',
-                'Recurring invoicing automation'
-            ],
-            lost: [
-                'Public REST API keys & access',
-                'Warehouse locations cap of 3 (Business: Unlimited)',
-                'Staff accounts cap of 10 (Business: Unlimited)',
-                'BOM records and manufacturing actions',
-                'Asset depreciation posting calculations',
-                'Fiscal year close zeroing wizard',
-                'Recurring invoicing records'
-            ]
-        },
-        starter: {
-            lost: [
-                'WooCommerce Sync connections',
-                'AI Chatbot key configurations',
-                'Multi-Branch warehouse settings',
-                'Warehouse locations cap of 1 (Growth: 3)',
-                'Staff accounts cap of 3 (Growth: 10)',
-                'Product/SKUs count capped at 1,000 SKUs',
-                'Advanced reporting modules',
-                'BOM records and manufacturing actions',
-                'Asset depreciation posting calculations',
-                'Fiscal year close zeroing wizard',
-                'Recurring invoicing records',
-                'Public REST API keys & access'
-            ]
-        }
-    };
-
-    let modalFeatures = [];
-    if (isUpgrade) {
-        if (selectedPlan === 'growth') {
-            modalFeatures = FEATURES_GAIN_LOSS.growth.gained;
-        } else if (selectedPlan === 'business') {
-            if (currentPlanKey === 'starter') {
-                modalFeatures = [...FEATURES_GAIN_LOSS.growth.gained, ...FEATURES_GAIN_LOSS.business.gained];
-            } else {
-                modalFeatures = FEATURES_GAIN_LOSS.business.gained;
-            }
-        }
-    } else {
-        if (selectedPlan === 'growth') {
-            modalFeatures = FEATURES_GAIN_LOSS.business.lost;
-        } else if (selectedPlan === 'starter') {
-            if (currentPlanKey === 'business') {
-                modalFeatures = FEATURES_GAIN_LOSS.starter.lost;
-            } else {
-                modalFeatures = FEATURES_GAIN_LOSS.growth.lost;
-            }
-        }
-    }
-
-    return (
-        <OneGlanceLayout title="Billing & Subscription" mode="admin">
-            <Head title="Billing & Subscription" />
-
-            <div className="max-w-6xl mx-auto p-4 md:p-8">
-
-                {/* View-Only Mode Warning Banner */}
-                {isViewOnly && (
-                    <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-red-900/80 via-red-950 to-black border border-red-500/30 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0 mt-1">
-                                    <AlertTriangle size={24} className="text-red-400" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-white leading-none mb-2">View-Only Mode Active</h2>
-                                    <p className="text-xs text-neutral-300 max-w-xl leading-relaxed">
-                                        Your evaluation period or subscription has expired. You can view reports and download your database backup, but writing transactions and inventory is locked. 
-                                        <span className="text-red-400 font-bold block mt-1">Your store data will be permanently deleted in {viewOnlyDaysLeft} days if you do not subscribe.</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => window.location.href = route('store.admin.data', { store_slug: storeSlug }) + '?tab=backup'}
-                                    className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap flex items-center gap-1.5"
-                                >
-                                    <Download size={14} /> Full System Backup & Restore
-                                </button>
-                                <button
-                                    onClick={() => handleSelectPlan('growth')}
-                                    className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap"
-                                >
-                                    Activate Store Now
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Header Profile Summary */}
-                <div className={`mb-8 p-6 md:p-8 rounded-2xl border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-void-950 border-white/[0.06]`}>
-                    <div className="flex items-center gap-5 relative z-10">
-                        <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg" style={{ background: currentMeta.color + '15' }}>
-                            <currentMeta.Icon size={32} color={currentMeta.color} />
-                        </div>
-                        <div>
-                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-[0.2em] mb-1">Active Plan</div>
-                            <div className="text-2xl font-bold text-white">{currentMeta.label}</div>
-                            <div className="text-xs font-bold text-ink-muted mt-1">
-                                {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)`
-                                    : tenant?.status === 'suspended' ? 'Trial Expired / Suspended'
-                                    : isTrial ? (trialDaysLeft !== null
-                                        ? `Free trial — ${trialDaysLeft} ${trialDaysLeft === 1 ? 'day' : 'days'} left. No payment taken yet.`
-                                        : 'Free trial — no payment taken yet.')
-                                    : isLtd ? 'Lifetime License'
-                                    : subEndsAt ? `Renews on ${subEndsAt}`
-                                    : 'Active Subscription'}
-                            </div>
-
-                            {/* Trial badge. Driven by the union of both sources, so
-                                it can no longer vanish just because the local status
-                                column drifted to 'active' while Lemon Squeezy still
-                                had the subscription on trial. */}
-                            {isTrial && !isViewOnly && trialDaysLeft !== null && (
-                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span className={`text-1xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                                        trialDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
-                                        : trialDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
-                                        : 'bg-purple-500/10 text-purple-300'
-                                    }`}>
-                                        Trial · {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left
-                                    </span>
-                                    <button
-                                        onClick={() => setActiveTab('payments')}
-                                        className="text-1xs font-bold text-ink-muted hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
-                                    >
-                                        View payment history
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Renewal countdown + a way straight to the receipts.
-                                The date alone doesn't tell anyone how long they
-                                have left, and there was previously no route from
-                                here to proof of payment. */}
-                            {!isTrial && !isLtd && !isViewOnly && subDaysLeft !== null && (
-                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span className={`text-1xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                                        subDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
-                                        : subDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
-                                        : 'bg-emerald-500/10 text-emerald-400'
-                                    }`}>
-                                        {subDaysLeft} {subDaysLeft === 1 ? 'day' : 'days'} left
-                                    </span>
-                                    <button
-                                        onClick={() => setActiveTab('payments')}
-                                        className="text-1xs font-bold text-ink-muted hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
-                                    >
-                                        View payment history
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Reassurance that paying early costs them nothing —
-                                shown before they click, not buried in the modal. */}
-                            {isTrial && !isViewOnly && trialCreditFor(billingCycle) && (
-                                <div className="text-1xs font-bold text-emerald-400 mt-1.5 flex items-center gap-1.5">
-                                    <Zap size={11} className="fill-emerald-400" />
-                                    Pay early and your unused days become a {trialCreditFor(billingCycle).percent}% credit — you lose nothing.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10">
-                        {/* PAY NOW.
-                            Shown whenever we cannot positively confirm a real
-                            charge — NOT merely when the local status column reads
-                            'trial'. Gating this on the local flag alone is what
-                            left a store marked 'active' but unpaid with no way to
-                            give us money: the column had drifted, so every payment
-                            control disappeared at once. There must always be a
-                            route to paying. */}
-                        {!confirmedPaying && !isLtd && !isViewOnly && (
-                            <>
-                                {isTrial && (
-                                    <button
-                                        onClick={handleCancelTrial}
-                                        className="px-4 py-3 bg-transparent hover:bg-white/[0.04] text-ink-muted hover:text-white rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
-                                    >
-                                        Cancel Trial
-                                    </button>
-                                )}
-                                <button
-                                    disabled={checkoutBusy === currentPlanKey}
-                                    onClick={() => handlePlanCheckout(currentPlanKey, billingCycle, currencyDisplay)}
-                                    className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
-                                >
-                                    <Zap size={14} className="fill-white" />
-                                    {checkoutBusy === currentPlanKey ? 'Opening…' : 'Pay Now'}
-                                </button>
-                            </>
-                        )}
-
-                        {/* BILLING PORTAL.
-                            Offered to anyone who has a Lemon Squeezy subscription
-                            at all, trialling or paying — a trialling customer still
-                            needs to update a card or cancel. */}
-                        {/* UPDATE CARD.
-                            Replaces the old generic "Billing Portal" button. That
-                            one sent people to app.lemonsqueezy.com/my-orders and
-                            asked them to log in again with their purchase email —
-                            unusable for guest checkouts, and it buried cancelling
-                            behind a third-party UI. This link is Lemon Squeezy's
-                            signed, single-purpose card form for this subscription
-                            only: no login, nothing else exposed.
-
-                            Cancelling now lives in-app (next to this), so the only
-                            thing left that genuinely needs Lemon Squeezy's own UI
-                            is entering new card details — which must be hosted by
-                            them so card data never touches our servers (PCI). */}
-                        {history?.subscription?.update_card_url && !isViewOnly && (
-                            <a
-                                href={history.subscription.update_card_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-neutral-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
-                            >
-                                <CreditCard size={14} /> Update Card
-                            </a>
-                        )}
-
-                        {/* CANCEL SUBSCRIPTION.
-                            In-app, so cancelling no longer requires a second login
-                            at app.lemonsqueezy.com — a dead end for guest checkouts.
-                            Hidden once already cancelled; Resume takes its place. */}
-                        {confirmedPaying && !isLtd && !isViewOnly && !history?.subscription?.is_cancelled && (
-                            <button
-                                onClick={() => setCancelOpen(true)}
-                                className="px-4 py-3 bg-transparent hover:bg-red-500/10 text-ink-muted hover:text-red-400 rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
-                            >
-                                Cancel Subscription
-                            </button>
-                        )}
-
-                        {/* RESUME. Only reachable while cancelled but not yet lapsed. */}
-                        {history?.subscription?.is_cancelled && !isLtd && !isViewOnly && (
-                            <button
-                                onClick={submitResumeSubscription}
-                                disabled={resumeBusy}
-                                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
-                            >
-                                <RefreshCw size={14} className={resumeBusy ? 'animate-spin' : ''} />
-                                {resumeBusy ? 'Resuming…' : 'Resume Subscription'}
-                            </button>
-                        )}
-
-                        {/* Escape hatch: if a payment succeeded but the webhook
-                            never landed, this pulls the subscription from
-                            Lemon Squeezy and applies it immediately.
-                            Also offered on a status mismatch — the case where the
-                            local column says 'active' but Lemon Squeezy disagrees,
-                            which previously hid this button precisely when it was
-                            the one thing that would have fixed the row. */}
-                        {!isLtd && (tenant?.status !== 'active' || statusMismatch) && (
-                            <button
-                                onClick={() => runSubscriptionSync()}
-                                disabled={isSyncing}
-                                title="Already paid but your plan hasn't updated? Click to re-check with Lemon Squeezy."
-                                className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-ink-muted hover:text-white font-bold text-xs transition-all flex items-center gap-2 whitespace-nowrap"
-                            >
-                                <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
-                                {isSyncing ? 'Checking…' : 'Already Paid?'}
-                            </button>
-                        )}
-                        <div className="px-5 py-2 rounded-full font-bold text-xs tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 text-purple-300">
-                            {currentPlanKey}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Scheduled Downgrade Warning Banner */}
-                {tenant?.plan_limits?.pending_downgrade && (
-                    <div className="mb-8 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
-                        <div className="flex items-center gap-3">
-                            <AlertTriangle className="text-amber-400 shrink-0" size={20} />
-                            <div>
-                                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Scheduled Downgrade Pending</h4>
-                                <p className="text-xs text-neutral-300 mt-1">
-                                    Your plan is scheduled to downgrade to <span className="font-bold text-amber-300 uppercase">{tenant.plan_limits.pending_downgrade.plan}</span> on <span className="font-bold text-white">{new Date(tenant.plan_limits.pending_downgrade.effective_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>.
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleCancelDowngrade}
-                            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-xl text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
-                        >
-                            Cancel Downgrade
-                        </button>
-                    </div>
-                )}
-
-                {/* Tabs Selector */}
-                <div className="flex border-b border-white/[0.06] mb-8 overflow-x-auto gap-2">
-                    {[
-                        { id: 'subscription', label: 'Subscription & Usage', icon: Receipt },
-                        { id: 'payments', label: 'Payment History', icon: History },
-                        { id: 'extra_features', label: 'Extra Features', icon: Lock },
-                        { id: 'addons', label: 'AI & Sync Add-ons', icon: Sparkles },
-                        { id: 'services', label: 'Onboarding Services', icon: Calendar },
-                        { id: 'desktop_app', label: 'Windows Application', icon: Monitor },
-                    ].map((tab) => {
-                        const TabIcon = tab.icon;
-                        const isActive = activeTab === tab.id;
-                        const showWarningDot = tab.id === 'extra_features' && hasLockedActive;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all whitespace-nowrap
-                                    ${isActive 
-                                        ? 'border-purple-500 text-white' 
-                                        : 'border-transparent text-ink-muted hover:text-neutral-300'
-                                    }`}
-                            >
-                                <TabIcon size={14} /> {tab.label}
-                                {showWarningDot && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* TAB CONTENT 1: SUBSCRIPTION & USAGE */}
-                {activeTab === 'subscription' && (
-                    <div className="space-y-8 animate-fadeIn">
-                        {PKR_ENABLED && country === 'PK' && (
-                            <PkVerificationPanel
-                                tenant={tenant}
-                                pk_verification={pk_verification}
-                                storeSlug={storeSlug}
-                            />
-                        )}
-
-                        {/* Usage meters */}
-                        <div>
-                            <div className="text-xs font-bold text-ink-muted uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
-                                 <BarChart2 size={16} /> Plan Resource Usage
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <UsageMeter
-                                    icon={Users} label="Staff Members" color={vq.indigo[500]}
-                                    used={usageData.staff_count ?? 0}
-                                    limit={usageData.staff_limit}
-                                />
-                                <UsageMeter
-                                    icon={Package} label="Products (SKUs)" color={vq.emerald[500]}
-                                    used={usageData.product_count ?? 0}
-                                    limit={usageData.sku_limit}
-                                />
-                                <UsageMeter
-                                    icon={GitBranch} label="Locations" color={vq.amber[500]}
-                                    used={usageData.location_count ?? 1}
-                                    limit={usageData.locations}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Upgrade Options */}
-                        <div className="pt-6">
-                            <div className="text-xs font-bold text-ink-muted uppercase tracking-[0.3em] mb-6 text-center">
-                                {isLtd ? 'Your Early Supporter Perks' : '🚀 Scale your system as you grow'}
-                            </div>
-
-                            {/* Pakistan Regional Pricing Unlocked Banner */}
-                            {isPK && (
-                                <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-neutral-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
-                                    <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-                                    
-                                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-2xl shadow-inner">
-                                                🇵🇰
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-widest bg-emerald-500 text-black">
-                                                        SPECIAL GIFT UNLOCKED 🎁
-                                                    </span>
-                                                    <span className="text-xs font-bold text-emerald-400">Exclusive Regional Pricing</span>
-                                                </div>
-                                                <h3 className="text-base font-bold text-white tracking-tight">
-                                                    Special Pakistan Business Subsidized Rates Active!
-                                                </h3>
-                                                <p className="text-xs text-ink-muted mt-0.5">
-                                                    Because you operate in Pakistan, we have unlocked special subsidized local PKR rates for your business.
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 shrink-0">
-                                            <button
-                                                onClick={() => setCurrencyDisplay('PKR')}
-                                                className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
-                                                    currencyDisplay === 'PKR'
-                                                        ? 'bg-emerald-500 text-black shadow-lg  scale-[1.02]'
-                                                        : 'text-ink-muted hover:text-white'
-                                                }`}
-                                            >
-                                                🇵🇰 Subsidized PKR Price
-                                            </button>
-                                            <button
-                                                onClick={() => setCurrencyDisplay('USD')}
-                                                className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
-                                                    currencyDisplay === 'USD'
-                                                        ? 'bg-brand-600 text-white shadow-lg  scale-[1.02]'
-                                                        : 'text-ink-muted hover:text-white'
-                                                }`}
-                                            >
-                                                🌐 Global USD Price
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Billing Cycle Toggle */}
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10 mb-8">
-                                {!isLtd && (
-                                    <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.07]">
-                                        <button
-                                            onClick={() => setBillingCycle('monthly')}
-                                            className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                                                billingCycle === 'monthly'
-                                                    ? 'bg-white text-void-950 shadow-md'
-                                                    : 'text-ink-muted hover:text-white'
-                                            }`}
-                                        >
-                                            Monthly
-                                        </button>
-                                        <button
-                                            onClick={() => setBillingCycle('annual')}
-                                            className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-                                                billingCycle === 'annual'
-                                                    ? 'bg-emerald-600 text-white shadow-md'
-                                                    : 'text-ink-muted hover:text-white'
-                                            }`}
-                                        >
-                                            Annual
-                                            <span className={`text-3xs px-1.5 py-0.5 rounded-full font-bold ${
-                                                billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-400'
-                                            }`}>SAVE ~17%</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
-                                {isTrial || isViewOnly ? (
-                                     ['counter', 'starter', 'growth', 'business'].map(key => (
-                                        <PlanCard
-                                            key={key}
-                                            planKey={key}
-                                            planConfig={plans?.find(p => p.slug === key)?.limits ?? {}}
-                                            isCurrent={key === currentPlanKey}
-                                            storeSlug={storeSlug}
-                                            tenant={tenant}
-                                            onSelectPlan={handleSelectPlan}
-                                            onCheckout={handlePlanCheckout}
-                                            checkoutBusy={checkoutBusy}
-                                            plans={plans}
-                                            billingCycle={billingCycle}
-                                            currencyDisplay={currencyDisplay}
-                                        />
-                                     ))
-                                ) : (
-                                    plans?.map((plan) => (
-                                        <PlanCard
-                                            key={plan.slug}
-                                            planKey={plan.slug}
-                                            planConfig={plan.limits}
-                                            isCurrent={plan.slug === currentPlanKey}
-                                            storeSlug={storeSlug}
-                                            tenant={tenant}
-                                            onSelectPlan={handleSelectPlan}
-                                            onCheckout={handlePlanCheckout}
-                                            checkoutBusy={checkoutBusy}
-                                            plans={plans}
-                                            billingCycle={billingCycle}
-                                            currencyDisplay={currencyDisplay}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* TAB CONTENT 2: EXTRA FEATURES */}
-                {/* TAB CONTENT: PAYMENT HISTORY
-                    Read live from Lemon Squeezy. Shows what was paid, and
-                    critically WHAT PERIOD each payment covered — which is how
-                    you verify a 30-day plan really billed for 30 days. */}
-                {activeTab === 'payments' && (
-                    <div className="space-y-6 animate-fadeIn">
-                        <div className="flex items-center justify-between flex-wrap gap-3">
-                            <h3 className="text-1xs font-bold text-ink-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                                <History size={14} /> Billing Period & Payments
-                            </h3>
-                            <button
-                                onClick={() => loadHistory(true)}
-                                disabled={historyLoading}
-                                className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-ink-muted hover:text-white font-bold text-xs transition-all flex items-center gap-2"
-                            >
-                                <RefreshCw size={13} className={historyLoading ? 'animate-spin' : ''} />
-                                {historyLoading ? 'Loading…' : 'Refresh'}
-                            </button>
-                        </div>
-
-                        {historyLoading && !history && (
-                            <div className="space-y-3">
-                                {[0, 1, 2].map(i => (
-                                    <div key={i} className="h-16 rounded-2xl bg-white/[0.02] border border-white/[0.05] animate-pulse" />
-                                ))}
-                            </div>
-                        )}
-
-                        {historyError && (
-                            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 text-xs font-bold text-red-400 flex items-center gap-2">
-                                <AlertTriangle size={14} /> {historyError}
-                            </div>
-                        )}
-
-                        {history && (
-                            <>
-                                {/* Current period — the "when does this expire" answer */}
-                                {history.subscription && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                                <BadgeCheck size={12} /> Status
-                                            </div>
-                                            <div className="text-lg font-bold text-white capitalize">
-                                                {history.subscription.status_formatted || history.subscription.status || '—'}
-                                            </div>
-                                            {history.subscription.is_cancelled && (
-                                                <div className="text-1xs font-bold text-amber-400 mt-1">
-                                                    Cancelled — access runs to the date below
-                                                </div>
-                                            )}
-                                            {history.subscription.test_mode && (
-                                                <div className="text-1xs font-bold text-amber-400 mt-1">Test mode</div>
-                                            )}
-                                        </div>
-
-                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                                <Clock size={12} /> {history.subscription.is_cancelled ? 'Access Ends' : 'Next Charge'}
-                                            </div>
-                                            <div className="text-lg font-bold text-white">
-                                                {fmtDay(history.subscription.expires_at)}
-                                            </div>
-                                            {history.subscription.days_until_expiry !== null && (
-                                                <div className={`text-1xs font-bold mt-1 ${
-                                                    history.subscription.days_until_expiry <= 3 ? 'text-red-400'
-                                                    : history.subscription.days_until_expiry <= 7 ? 'text-amber-400'
-                                                    : 'text-emerald-400'
-                                                }`}>
-                                                    {history.subscription.days_until_expiry} days remaining
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                                <CreditCard size={12} /> Payment Method
-                                            </div>
-                                            <div className="text-lg font-bold text-white">
-                                                {history.subscription.card || 'Not on file'}
-                                            </div>
-                                        </div>
-
-                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                                <Receipt size={12} /> Total Paid
-                                            </div>
-                                            <div className="text-lg font-bold text-white">
-                                                {history.lifetime_usd || '$0.00'}
-                                            </div>
-                                            <div className="text-1xs font-bold text-ink-muted mt-1">
-                                                {history.invoice_count} {history.invoice_count === 1 ? 'invoice' : 'invoices'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Lemon Squeezy says trialling, we recorded paying (or
-                                    vice versa). This is the drift that used to hide every
-                                    payment control, so it gets stated plainly with the fix
-                                    attached. */}
-                                {statusMismatch && (
-                                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
-                                        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                                        <span>
-                                            Lemon Squeezy reports this subscription as{''}
-                                            <span className="font-bold">{history.subscription?.status_formatted || lsStatus}</span>,
-                                            but this store is saved locally as{''}
-                                            <span className="font-bold">{tenant?.status}</span>.
-                                            {lsIsTrialling
-                                                ? ' No payment has been taken yet — Pay Now is available above.'
-                                                : ' Lemon Squeezy is correct.'}{''}
-                                            Click <span className="font-bold">Already Paid?</span> to re-sync the record.
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* A $0 first invoice means the purchased variant carries its
-                                    own free trial in Lemon Squeezy. Worth calling out: it
-                                    delays all revenue and cancels out any trial credit,
-                                    because there is nothing on the invoice to discount. */}
-                                {lsIsTrialling && history.invoices?.length > 0 && (
-                                    <div className="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/20 text-xs leading-relaxed text-purple-200 flex items-start gap-2">
-                                        <Info size={14} className="shrink-0 mt-0.5" />
-                                        <span>
-                                            This subscription is in a Lemon&nbsp;Squeezy free-trial period, so the
-                                            first invoice is <span className="font-bold">$0.00</span>. The first real
-                                            charge happens on{''}
-                                            <span className="font-bold">{fmtDay(history.subscription?.expires_at)}</span>.
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Our stored date disagrees with Lemon Squeezy — say so loudly. */}
-                                {historyDateMismatch && (
-                                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
-                                        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                                        <span>
-                                            This store's saved renewal date (<span className="font-bold">{fmtDay(history.local?.subscription_ends_at)}</span>)
-                                            doesn't match what Lemon Squeezy reports (<span className="font-bold">{fmtDay(history.subscription?.expires_at)}</span>).
-                                            Lemon Squeezy is correct. Use <span className="font-bold">Already Paid?</span> to re-sync.
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* No real subscription linked — explains a fabricated local date. */}
-                                {history.local && !history.local.has_subscription_id && history.local.status === 'active' && (
-                                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
-                                        <Info size={14} className="shrink-0 mt-0.5" />
-                                        <span>
-                                            This store is marked active but has no Lemon Squeezy subscription ID, so no real payment is
-                                            recorded against it. Its renewal date was set locally, not by a purchase.
-                                        </span>
-                                    </div>
-                                )}
-
-                                {history.message && (
-                                    <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-center">
-                                        <Receipt size={28} className="mx-auto text-ink-secondary mb-3" />
-                                        <p className="text-xs font-bold text-ink-muted">{history.message}</p>
-                                    </div>
-                                )}
-
-                                {/* The ledger */}
-                                {history.invoices?.length > 0 && (
-                                    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden">
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left">
-                                                <thead>
-                                                    <tr className="border-b border-white/[0.06]">
-                                                        {['Paid On', 'Period Covered', 'Days', 'Amount', 'Credit Applied', 'Status', ''].map(h => (
-                                                            <th key={h} className="px-5 py-3.5 text-2xs font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap">
-                                                                {h}
-                                                            </th>
-                                                        ))}
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-white/[0.04]">
-                                                    {history.invoices.map(inv => (
-                                                        <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
-                                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                                <div className="text-xs font-bold text-white">{fmtDay(inv.paid_at)}</div>
-                                                                <div className="text-2xs font-bold text-ink-muted capitalize mt-0.5">
-                                                                    {inv.billing_reason === 'initial' ? 'First payment'
-                                                                        : inv.billing_reason === 'renewal' ? 'Renewal'
-                                                                        : inv.billing_reason === 'updated' ? 'Plan change'
-                                                                        : inv.billing_reason}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap text-xs font-bold text-neutral-300">
-                                                                {inv.period_end
-                                                                    ? `${fmtDay(inv.period_start)} → ${fmtDay(inv.period_end)}`
-                                                                    : fmtDay(inv.period_start)}
-                                                            </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                                {inv.period_days !== null ? (
-                                                                    <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 text-1xs font-bold">
-                                                                        {inv.period_days} days
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-1xs font-bold text-ink-secondary">—</span>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                                <div className="text-xs font-bold text-white">{inv.total}</div>
-                                                                {inv.has_discount && (
-                                                                    <div className="text-2xs font-bold text-ink-muted mt-0.5 line-through">
-                                                                        {inv.subtotal}
-                                                                    </div>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                                {inv.has_discount ? (
-                                                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-1xs font-bold flex items-center gap-1 w-fit">
-                                                                        <Zap size={10} className="fill-emerald-400" /> −{inv.discount_total}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-1xs font-bold text-ink-secondary">—</span>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                                <span className={`px-2.5 py-1 rounded-lg text-1xs font-bold border ${
-                                                                    inv.refunded || inv.status === 'refunded'
-                                                                        ? 'bg-neutral-500/10 border-line-strong text-ink-muted'
-                                                                        : inv.status === 'paid'
-                                                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                                                                        : inv.status === 'pending'
-                                                                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-                                                                        : 'bg-red-500/10 border-red-500/20 text-red-400'
-                                                                }`}>
-                                                                    {inv.status_formatted || inv.status}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap text-right">
-                                                                {inv.invoice_url && (
-                                                                    <a
-                                                                        href={inv.invoice_url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-ink-muted hover:text-white text-1xs font-bold transition-all"
-                                                                    >
-                                                                        <FileText size={11} /> Invoice
-                                                                    </a>
-                                                                )}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <p className="text-2xs font-bold text-ink-secondary text-center">
-                                    Read live from Lemon Squeezy · updated {history.fetched_at ? new Date(history.fetched_at).toLocaleTimeString() : '—'}
-                                </p>
-                            </>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'extra_features' && (
-                    <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Lock className="text-purple-400" size={24} />
-                                <h3 className="text-lg font-bold text-white">Extra Features Control</h3>
-                            </div>
-                            <p className="text-xs text-ink-muted leading-relaxed mb-8 max-w-xl">
-                                If you have configured features that are not included in your current plan, you can deactivate/remove them here to restore normal operations. Alternatively, upgrade your plan to unlock full access.
-                            </p>
-
-                            <div className="space-y-4">
-                                {feature_status?.map((feat) => {
-                                    const targetPlan = FEATURE_UPGRADE_TARGET[feat.key] || 'growth';
-                                    return (
-                                        <div 
-                                            key={feat.key} 
-                                            className={`p-5 rounded-2xl border transition-all duration-slow flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                                                feat.is_active && feat.is_locked
-                                                ? 'bg-red-500/[0.02] border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.03)]'
-                                                : feat.is_active
-                                                ? 'bg-emerald-500/[0.02] border-emerald-500/20'
-                                                : 'bg-white/[0.01] border-white/[0.04]'
-                                            }`}
-                                        >
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="text-sm font-bold text-white">{feat.name}</span>
-                                                    
-                                                    {feat.is_active && feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
-                                                            <AlertTriangle size={10} /> Active & Locked (Limits Exceeded)
-                                                        </span>
-                                                    )}
-                                                    {feat.is_active && !feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                                                            <CheckCircle2 size={10} /> Active & Subscribed
-                                                        </span>
-                                                    )}
-                                                    {!feat.is_active && feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-neutral-800 text-ink-muted border border-neutral-700">
-                                                            Locked (Upgrade to unlock)
-                                                        </span>
-                                                    )}
-                                                    {!feat.is_active && !feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-neutral-800 text-emerald-400 border border-neutral-700">
-                                                            Available
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-ink-muted mt-2 leading-relaxed max-w-xl">{feat.description}</p>
-                                            </div>
-
-                                            <div className="flex items-center gap-3 self-end md:self-center">
-                                                {feat.is_active && feat.is_locked && (
-                                                    <button
-                                                        onClick={() => handleDeactivateFeature(feat.key, feat.name)}
-                                                        className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors"
-                                                    >
-                                                        Deactivate Feature
-                                                    </button>
-                                                )}
-                                                {feat.is_locked && (
-                                                    <button
-                                                        onClick={() => handleSelectPlan(targetPlan)}
-                                                        className="px-4 py-2 bg-white text-void-950 hover:bg-interactive-hover rounded-xl font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md"
-                                                    >
-                                                        <Sparkles size={12} /> Keep & Upgrade
-                                                    </button>
-                                                )}
-                                                {!feat.is_locked && feat.is_active && (
-                                                    <span className="text-xs font-semibold text-ink-muted">Configured & Healthy</span>
-                                                )}
-                                                {!feat.is_locked && !feat.is_active && (
-                                                    <span className="text-xs font-semibold text-ink-muted">Not Configured</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* TAB CONTENT 3: AI & SYNC ADD-ONS */}
-                {activeTab === 'addons' && (
-                    <div className="space-y-8 animate-fadeIn">
-                        <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                            <div className="flex items-center gap-3 mb-4">
-                                <Cpu className="text-purple-400" size={24} />
-                                <h3 className="text-lg font-bold text-white">AI Engine Add-on</h3>
-                            </div>
-                            <p className="text-xs text-ink-muted leading-relaxed mb-6">
-                                Supercharge your store with AI-powered scanning (SmartCapture) and interactive assistant tools. Every store starts with 10 free credits to test out the capabilities.
-                            </p>
-
-                            {/* Status Card & Progress */}
-                            <div className="p-5 rounded-2xl bg-neutral-950/40 border border-white/[0.05] mb-8">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div>
-                                        <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Active Level</span>
-                                        <div className="text-2xl font-bold text-white mt-1 capitalize">
-                                            {tenant?.ai_status === 'none' ? 'Free Starter Tier (10 Credits)' : tenant?.ai_status}
-                                        </div>
-                                    </div>
-
-                                    {tenant?.ai_status === 'none' && (
-                                        <div className="flex-1 max-w-xs">
-                                            <div className="flex justify-between text-xs text-ink-muted mb-1">
-                                                <span>Free Pages Used:</span>
-                                                <span className="font-bold text-white">{(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / 10</span>
-                                            </div>
-                                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                                <div 
-                                                    className="h-full bg-gradient-to-r from-purple-500 to-brand-500 transition-all duration-slower" 
-                                                    style={{ width: `${Math.min(100, (((tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)) / 10) * 100)}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {tenant?.ai_status === 'managed' && (
-                                        <div className="flex gap-4">
-                                            <div className="text-right">
-                                                <div className="text-2xs text-ink-muted font-bold uppercase">Pages</div>
-                                                <div className="text-sm font-bold text-white">
-                                                    {(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / {(tenant?.ai_pages_limit ?? tenant?.plan_limits?.ai_pages_limit ?? 500)}
-                                                </div>
-                                            </div>
-                                            <div className="text-right border-l border-white/10 pl-4">
-                                                <div className="text-2xs text-ink-muted font-bold uppercase">Queries</div>
-                                                <div className="text-sm font-bold text-white">
-                                                    {(tenant?.ai_queries_used ?? tenant?.plan_limits?.ai_queries_used ?? 0)} / {(tenant?.ai_queries_limit ?? tenant?.plan_limits?.ai_queries_limit ?? 2500)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {tenant?.ai_status === 'byok' && (
-                                        <div className="text-xs text-amber-300 font-bold flex items-center gap-1.5">
-                                            <CheckCircle2 size={14} /> Bring Your Own Key License Active
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Upgrade Options Header */}
-                            <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                                <Sparkles size={16} className="text-amber-400" /> Choose Your Upgrade Path
-                            </h4>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Option 1: BYOK */}
-                                <div className="lg:col-span-1 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                                Bring Your Own Key
-                                            </span>
-                                            <div className="text-xl font-bold text-white">$5 <span className="text-xs font-normal text-ink-muted">once</span></div>
-                                        </div>
-                                        <h5 className="text-sm font-bold text-white mb-2">Lifetime BYOK License</h5>
-                                        <p className="text-1xs text-ink-muted leading-relaxed">
-                                            Bypass platform scanning fees forever. Provide your own API keys for Gemini, Claude, OpenAI, or DeepSeek and pay nothing else.
-                                        </p>
-                                    </div>
-                                    <div className="mt-6">
-                                        {tenant?.ai_status === 'byok' ? (
-                                            <button disabled className="w-full py-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold uppercase tracking-wider cursor-default">
-                                                Already Purchased
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handlePurchaseAddon('ai_byok')}
-                                                disabled={isPurchasingAddon !== null}
-                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-void-950 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                {isPurchasingAddon === 'ai_byok' ? <Loader2 size={14} className="animate-spin" /> : 'Buy BYOK Unlock'}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Option 2: Managed Plans */}
-                                <div className="lg:col-span-2 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                                                Managed API
-                                            </span>
-                                            <span className="text-xs text-ink-muted">Monthly Subscriptions</span>
-                                        </div>
-                                        <h5 className="text-sm font-bold text-white mb-2">Managed AI Subscriptions</h5>
-                                        <p className="text-1xs text-ink-muted leading-relaxed mb-4">
-                                            No developer keys or setup required. Use our fast platform credentials directly. Pick the tier that matches your monthly volume:
-                                        </p>
-
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {Object.entries(aiTiers).map(([key, tier]) => (
-                                                <div 
-                                                    key={key} 
-                                                    onClick={() => handlePurchaseAddon(`ai_${key}`)}
-                                                    className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-purple-500/30 hover:bg-purple-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
-                                                >
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <span className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">AI {tier.name || key.toUpperCase()}</span>
-                                                        <span className="text-xs font-bold text-purple-400">${tier.price_monthly}</span>
-                                                    </div>
-                                                    <div className="text-3xs text-ink-muted">
-                                                        {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Synchronizations Sync Section */}
-                        <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                            <div className="flex items-center gap-3 mb-4">
-                                <Globe2 className="text-brand-400" size={24} />
-                                <h3 className="text-lg font-bold text-white">Platform Sync Channels</h3>
-                            </div>
-                            <p className="text-xs text-ink-muted leading-relaxed mb-6">
-                                Keep your inventory in sync with WooCommerce and other platforms automatically.
-                            </p>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="p-5 rounded-2xl bg-neutral-950/40 border border-white/[0.05]">
-                                    <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Subscribed Channels</span>
-                                    <div className="space-y-2 mt-3">
-                                        {tenant?.sync_channels && tenant.sync_channels.length > 0 ? (
-                                            tenant.sync_channels.map(ch => (
-                                                <div key={ch} className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                                    {ch} Channel
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-xs text-ink-muted">No active sync channels.</div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
-                                    <div>
-                                        <span className="text-2xs font-bold text-brand-400 uppercase tracking-widest">Platform Sync</span>
-                                        <h4 className="text-sm font-bold text-white mt-1">WooCommerce Sync Add-on</h4>
-                                        <p className="text-1xs text-ink-muted mt-2 leading-relaxed">
-                                            Automatic inventory and order syncing with WooCommerce.
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="mt-4">
-                                        {tenant?.sync_channels && tenant.sync_channels.includes('woocommerce') ? (
-                                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
-                                                <CheckCircle2 size={14} /> WooCommerce Sync Active
-                                            </span>
-                                        ) : (
-                                            <button
-                                                onClick={() => handlePurchaseAddon('sync_woocommerce')}
-                                                className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
-                                            >
-                                                Subscribe to WooCommerce Sync ($10/mo)
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
-                                    <div>
-                                        <span className="text-2xs font-bold text-amber-400 uppercase tracking-widest">Marketplace Sync</span>
-                                        <h4 className="text-sm font-bold text-white mt-1">Amazon SP-API Sync Add-on</h4>
-                                        <p className="text-1xs text-ink-muted mt-2 leading-relaxed">
-                                            2-way stock, order, and FBA/FBM inventory sync with Amazon.
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="mt-4">
-                                        {tenant?.sync_channels && tenant.sync_channels.includes('amazon') ? (
-                                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
-                                                <CheckCircle2 size={14} /> Amazon Sync Active
-                                            </span>
-                                        ) : (
-                                            <button
-                                                onClick={() => handlePurchaseAddon('sync_amazon')}
-                                                className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
-                                            >
-                                                Subscribe to Amazon Sync ($10/mo)
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* TAB CONTENT 4: ONBOARDING SERVICES */}
-                {activeTab === 'services' && (
-                    <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-b from-neutral-950 to-black border border-white/[0.06]">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Calendar className="text-purple-400" size={24} />
-                                <h3 className="text-lg font-bold text-white">Professional Product Upload Service</h3>
-                            </div>
-                            <p className="text-xs text-ink-muted leading-relaxed mb-8 max-w-xl">
-                                Let our catalog engineering team structure and upload your inventory. Use the calculator below to estimate the dynamic cost of importing your products.
-                            </p>
-
-                            {/* Service Tiers Selection */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                                {Object.entries(SERVICE_TIERS).map(([key, tier]) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => setSelectedService(key)}
-                                        className={`text-left p-5 rounded-2xl border transition-all duration-slow flex flex-col justify-between min-h-[140px]
-                                            ${selectedService === key 
-                                                ? 'bg-purple-600/10 border-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.06)]' 
-                                                : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/10'
-                                            }`}
-                                    >
-                                        <div>
-                                            <div className="text-white font-bold text-sm">{tier.name}</div>
-                                            <div className="text-2xs text-ink-muted mt-1 leading-relaxed">{tier.desc}</div>
-                                        </div>
-                                        <div className="flex justify-between items-baseline mt-4 pt-3 border-t border-white/[0.04] w-full">
-                                            <span className="text-2xs text-purple-400 font-semibold">{tier.sla}</span>
-                                            <span className="text-white font-bold text-sm">{fmt(tier.priceUSD, tier.pricePKR)}<span className="text-2xs text-ink-muted font-medium">/ea</span></span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Calculator inputs */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pt-6 border-t border-white/[0.06]">
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">How many products?</label>
-                                        <input
-                                            type="number"
-                                            placeholder="e.g. 100"
-                                            value={calcProducts}
-                                            onChange={(e) => setCalcProducts(e.target.value)}
-                                            className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-white text-sm outline-none focus:border-purple-500 transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Average variants per product?</label>
-                                        <input
-                                            type="number"
-                                            placeholder="First 5 variants free (e.g. 8)"
-                                            value={calcVariants}
-                                            onChange={(e) => setCalcVariants(e.target.value)}
-                                            className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-white text-sm outline-none focus:border-purple-500 transition-colors"
-                                        />
-                                        <span className="text-3xs text-ink-muted mt-1 block">First 5 variants included. {fmt(serviceTier.extraUSD, serviceTier.extraPKR)} per block of 5 extra variants.</span>
-                                    </div>
-                                </div>
-
-                                <div className="p-5 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col justify-between">
-                                    <div>
-                                        <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Cost Estimate Details</span>
-                                        <div className="space-y-2 mt-4">
-                                            <div className="flex justify-between text-xs text-ink-muted">
-                                                <span>Tier Base Rate:</span>
-                                                <span className="text-white font-bold">{fmt(serviceTier.priceUSD, serviceTier.pricePKR)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-xs text-ink-muted">
-                                                <span>Extra Variant Surcharge:</span>
-                                                <span className="text-white font-bold">+{fmt(extraBlocks * serviceTier.extraUSD, extraBlocks * serviceTier.extraPKR)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-xs text-ink-muted">
-                                                <span>Final Price Per Product:</span>
-                                                <span className="text-white font-bold">{fmt(usdPricePerProduct, pkrPricePerProduct)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4 border-t border-white/[0.05] flex justify-between items-center mt-4">
-                                        <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Estimated Total</span>
-                                        <span className="text-2xl font-bold text-purple-400">{fmt(usdTotalSetupCost, pkrTotalSetupCost)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* CTA */}
-                            <div className="flex justify-end pt-4 border-t border-white/[0.06]">
-                                <button
-                                    onClick={handleOrderSetupService}
-                                    disabled={calcProductsNum === 0 || isOrderingService}
-                                    className="px-8 py-3.5 bg-white text-void-950 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-50 disabled:shadow-none rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2"
-                                >
-                                    {isOrderingService ? (
-                                        <>
-                                            <span className="w-3.5 h-3.5 border-2 border-void-950 border-t-transparent rounded-full animate-spin"></span>
-                                            Redirecting...
-                                        </>
-                                    ) : (
-                                        `Order Setup Service (${fmt(usdTotalSetupCost, pkrTotalSetupCost)})`
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* TAB CONTENT 5: DESKTOP APPLICATION */}
-                {activeTab === 'desktop_app' && (
-                    <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-b from-neutral-950 to-black border border-white/[0.06] relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-                            
-                            <div className="flex items-start gap-4 mb-8">
-                                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center shrink-0 border border-purple-500/20">
-                                    <Monitor className="text-purple-400" size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-white">VenQore Station for Windows</h3>
-                                    <p className="text-xs text-ink-muted leading-relaxed mt-1 max-w-2xl">
-                                        VenQore Station is our native enterprise desktop application that acts as a direct hardware bridge to your registers. It enables raw receipt printing, automatic cash drawer kicks, barcode scanning, scale readings, and cashier security audits with focus-loss tracking.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Download Action Cards */}
-                            <div className="max-w-xl mb-8">
-                                {/* Setup Installer */}
-                                <div className="p-6 rounded-2xl border border-white/[0.05] bg-white/[0.01] hover:border-purple-500/20 transition-all flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-sm font-bold text-white">Windows Setup Installer</span>
-                                            <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">Official Build</span>
-                                        </div>
-                                        <p className="text-xs text-ink-muted leading-relaxed mb-6">
-                                            Official setup installer. Establishes secure system directories, registers start menu entries, registers shell protocol endpoints, and supports silent auto-updates. Requires standard system installation to prevent unapproved cashier portable copies.
-                                        </p>
-                                    </div>
-                                    <a
-                                        href="/downloads/VenQore_Station_Setup.exe"
-                                        download
-                                        className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest text-center transition-all flex items-center justify-center gap-2 shadow-lg hover:"
-                                    >
-                                        <Download size={14} /> Download Setup Installer (.exe)
-                                    </a>
-                                </div>
-                            </div>
-
-                            {/* Pairing and Quick Start Guide */}
-                            <div className="pt-6 border-t border-white/[0.06]">
-                                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Quick Setup &amp; Pairing Instructions</h4>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                    {[
-                                        { step: '1', title: 'Install & Boot', desc: 'Download the setup installer above, run it on your register, and launch the VenQore Station app.' },
-                                        { step: '2', title: 'Store Pairing', desc: `Enter your store's display slug: ${storeSlug || 'my-store'} on the pairing screen and click Connect.` },
-                                        { step: '3', title: 'Accept Consent', desc: 'Accept the native employee security tracking consent when prompted by the manager configuration.' },
-                                        { step: '4', title: 'Configure Hardware', desc: 'Click the Gear icon in the top notch bar to set receipt printers, scale baud rates, or exit passcodes.' },
-                                    ].map((guide) => (
-                                        <div key={guide.step} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.04]">
-                                            <div className="w-6 h-6 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs mb-3">
-                                                {guide.step}
-                                            </div>
-                                            <h5 className="text-xs font-bold text-white mb-1">{guide.title}</h5>
-                                            <p className="text-2xs text-ink-muted leading-relaxed">{guide.desc}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* AppSumo Promo Banner */}
-                {false && (
-                    <div className="mt-16 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.04] text-center">
-                        <p className="text-xs text-ink-muted font-medium">
-                            Have an AppSumo promo code? Redeem your codes at{''}
-                            <a href="/redeem" className="text-purple-400 font-bold underline decoration-2 underline-offset-4">
-                                /redeem
-                            </a>.
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            {/* Change Plan Confirmation Modal */}
-            <Modal show={isChangeModalOpen} onClose={() => setIsChangeModalOpen(false)} maxWidth="md">
-                <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-                    
-                    <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-4">
-                        <Sparkles className="text-purple-400" size={20} />
-                        Confirm Subscription {isUpgrade ? 'Upgrade' : 'Downgrade'}
-                    </h3>
-
-                    {/* Proration Detail & Summary */}
-                    <div className="space-y-4 mb-6">
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                            <div className="text-center flex-1">
-                                <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider">Current Plan</div>
-                                <div className="text-sm font-bold mt-1 capitalize text-neutral-300">{currentPlanKey}</div>
-                                <div className="text-xs text-ink-muted mt-0.5">{fmt(currentPriceUSD, currentPricePKR)}/mo</div>
-                            </div>
-                            <ArrowRight className="text-ink-secondary shrink-0" size={16} />
-                            <div className="text-center flex-1">
-                                <div className="text-2xs text-purple-400 font-bold uppercase tracking-wider">New Plan</div>
-                                <div className="text-sm font-bold mt-1 capitalize text-purple-300">{selectedPlan}</div>
-                                <div className="text-xs text-purple-400 mt-0.5">{fmt(targetPriceUSD, targetPricePKR)}/mo</div>
-                            </div>
-                        </div>
-
-                        {/* gained or lost features list */}
-                        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                            <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-2">
-                                {isUpgrade ? '🎁 Features You Will Unlock:' : '⚠️ Features You Will Lose after billing cycle:'}
-                            </div>
-                            <div className="space-y-2">
-                                {modalFeatures.map((feat, i) => (
-                                    <div key={i} className="flex items-start gap-2 text-xs">
-                                        {isUpgrade ? (
-                                            <CheckCircle2 size={12} className="text-emerald-400 shrink-0 mt-0.5" />
-                                        ) : (
-                                            <AlertTriangle size={12} className="text-amber-500 shrink-0 mt-0.5" />
-                                        )}
-                                        <span className="text-neutral-300">{feat}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Billing schedule description */}
-                        <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 text-xs leading-relaxed text-neutral-300">
-                            {isTrial ? (
-                                <p>
-                                    Your store is currently in the **Evaluation Period**. Switching to the <span className="font-bold text-white capitalize">{selectedPlan}</span> trial is **free of charge** and will take effect immediately. Your free trial ends on <span className="text-white font-semibold">{tenant.trial_ends_at ? new Date(tenant.trial_ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>.
-                                </p>
-                            ) : isUpgrade ? (
-                                <p>
-                                    Your upgrade takes effect **instantly**. Today you will only be charged a prorated surplus difference of <span className="text-emerald-400 font-bold text-sm">{fmt(proratedEstUSD, proratedEstPKR)}</span> for the remaining <span className="text-white font-semibold">{remainingDays} days</span> of your current billing month. Starting <span className="text-white font-semibold">{nextBillingDateStr}</span>, you will be charged the full price of <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
-                                </p>
-                            ) : (
-                                <p>
-                                    Your downgrade is **scheduled** and will take effect on <span className="text-amber-400 font-bold">{nextBillingDateStr}</span> at the end of your paid billing month. You will keep your current features and limits until then. Starting on that date, your plan will become <span className="text-white font-bold capitalize">{selectedPlan}</span>, and your monthly billing will drop to <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 justify-end">
-                        <button
-                            onClick={() => setIsChangeModalOpen(false)}
-                            className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white font-semibold text-xs transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleConfirmPlanChange}
-                            className={`px-5 py-2.5 rounded-xl text-black font-bold text-xs uppercase tracking-wider transition-all hover:shadow-lg ${
-                                isUpgrade 
-                                ? 'bg-white hover:bg-interactive-hover'
-                                : 'bg-amber-500 hover:bg-amber-400'
-                            }`}
-                        >
-                            Confirm {isUpgrade ? 'Upgrade' : 'Downgrade'}
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* Trial Credit Confirmation Modal
-                Shown when a trialling store chooses to pay before its free days
-                are up. Their unused days are converted into a one-off discount
-                on the first payment, so the honest pitch is "pay now, lose
-                nothing" — and every number below comes from the same
-                server-side percentage that mints the real discount. */}
-            <Modal show={!!pendingCreditSummary} onClose={() => setPendingCheckout(null)} maxWidth="md">
-                {pendingCreditSummary && (
-                    <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                        <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-2">
-                            <Zap className="text-emerald-400 fill-emerald-400" size={20} />
-                            You keep your {pendingCreditSummary.daysRemaining} free {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'}
-                        </h3>
-                        <p className="text-xs text-ink-muted leading-relaxed mb-5">
-                            You still have {pendingCreditSummary.daysRemaining} unused {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'} of
-                            free trial. Rather than lose {pendingCreditSummary.daysRemaining === 1 ? 'it' : 'them'}, we take{''}
-                            {pendingCreditSummary.percent}% off your first payment — the exact value of the time you have not used.
-                        </p>
-
-                        <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] divide-y divide-white/[0.05] mb-5">
-                            <div className="flex items-center justify-between px-4 py-3">
-                                <span className="text-xs font-bold text-ink-muted">
-                                    {pendingCreditSummary.planLabel} — per {pendingCreditSummary.cycleLabel}
-                                </span>
-                                <span className="text-xs font-bold text-neutral-300">{pendingCreditSummary.fullPrice}</span>
-                            </div>
-                            <div className="flex items-center justify-between px-4 py-3">
-                                <span className="text-xs font-bold text-emerald-400">
-                                    Unused trial credit ({pendingCreditSummary.percent}%)
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400">− {pendingCreditSummary.creditAmount}</span>
-                            </div>
-                            <div className="flex items-center justify-between px-4 py-3.5 bg-white/[0.02]">
-                                <span className="text-xs font-bold uppercase tracking-wider text-white">Due today</span>
-                                <span className="text-lg font-bold text-white">{pendingCreditSummary.dueToday}</span>
-                            </div>
-                        </div>
-
-                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-xs leading-relaxed text-neutral-300 mb-6">
-                            Your plan activates immediately and nothing about your access changes. Your next
-                            payment is the full <span className="text-white font-semibold">{pendingCreditSummary.fullPrice}</span> on{''}
-                            <span className="text-white font-semibold">{pendingCreditSummary.renewalDate}</span>, and every payment after
-                            that renews normally. The credit applies once.
-                        </div>
-
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => setPendingCheckout(null)}
-                                className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white font-semibold text-xs transition-colors"
-                            >
-                                Not yet
-                            </button>
-                            <button
-                                onClick={() => startPlanCheckout(
-                                    pendingCheckout.planKey,
-                                    pendingCheckout.cycle,
-                                    pendingCheckout.currency
-                                )}
-                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-interactive-hover text-black font-bold text-xs uppercase tracking-wider transition-all hover:shadow-lg"
-                            >
-                                Pay {pendingCreditSummary.dueToday} now
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
-
-            {/* CANCEL SUBSCRIPTION CONFIRMATION.
-                The wording matters as much as the button. Cancelling in Lemon
-                Squeezy stops future renewals but does NOT revoke the period
-                already paid for, so leading with the date they keep access
-                until prevents the panic that makes people avoid cancelling —
-                and prevents the support ticket asking for a refund of time
-                they never actually lost. */}
-            <Modal show={cancelOpen} onClose={() => setCancelOpen(false)} maxWidth="md">
-                <div className="p-8 bg-neutral-950 text-white">
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                            <AlertTriangle size={20} className="text-red-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold">Cancel your subscription?</h3>
-                            <p className="text-1xs font-bold text-ink-muted uppercase tracking-wider">
-                                {currentMeta.label}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 mb-4">
-                        <p className="text-xs font-bold text-emerald-300 leading-relaxed flex items-start gap-2">
-                            <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
-                            <span>
-                                You keep full access
-                                {paidUntilLabel ? <> until <span className="font-bold">{paidUntilLabel}</span></> : ' until the end of your current paid period'}.
-                                Nothing is lost today and no refund is needed — you already paid for this time.
-                            </span>
-                        </p>
-                    </div>
-
-                    <ul className="space-y-2 mb-6 text-xs font-bold text-ink-muted">
-                        <li className="flex items-start gap-2">
-                            <XCircle size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
-                            No further payments will be taken.
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <XCircle size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
-                            After that date your store moves to View-Only — your data stays intact,
-                            but sales and edits are locked until you subscribe again.
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <RefreshCw size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
-                            You can resume any time before that date, with no new card details.
-                        </li>
-                    </ul>
-
-                    <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
-                        <button
-                            onClick={() => setCancelOpen(false)}
-                            disabled={cancelBusy}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 text-ink-faint font-bold text-xs uppercase tracking-wider transition-all"
-                        >
-                            Keep my subscription
-                        </button>
-                        <button
-                            onClick={submitCancelSubscription}
-                            disabled={cancelBusy}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider transition-all"
-                        >
-                            {cancelBusy ? 'Cancelling…' : 'Yes, cancel it'}
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* CONGRATULATIONS / SUCCESS MODAL */}
-            <Modal show={congratsModalOpen} onClose={() => setCongratsModalOpen(false)} maxWidth="md">
-                <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-8 text-white animate-fadeIn">
-                    {/* Ambient Glow Orbs */}
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-600/25 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50" />
-
-                    <div className="relative z-10">
-                        {/* Celebrate Header */}
-                        <div className="flex flex-col items-center text-center mb-6">
-                            <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mb-4 animate-bounce">
-                                <Crown className="text-purple-400" size={32} />
-                            </div>
-                            <h3 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-300 to-brand-200">
-                                Congratulations!
-                            </h3>
-                            <p className="text-xs text-ink-muted mt-1">
-                                Your store is successfully upgraded and active
-                            </p>
-                        </div>
-
-                        {/* Plan Info */}
-                        {(() => {
-                            const congratsPlan = plans?.find(p => p.slug === congratsPlanSlug) || {
-                                name: congratsPlanSlug ? (PLAN_META[congratsPlanSlug]?.label || congratsPlanSlug) : 'Starter Engine',
-                                limits: {}
-                            };
-                            return (
-                                <>
-                                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] mb-5">
-                                        <div className="flex items-center justify-between mb-3 border-b border-white/[0.05] pb-3">
-                                            <span className="text-xs text-ink-muted font-bold">ACTIVE PLAN</span>
-                                            <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">{congratsPlan.name || congratsPlanSlug}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-ink-muted font-bold">RENEWAL DATE</span>
-                                            <span className="text-xs font-bold text-emerald-400">
-                                                {tenant.subscription_ends_at ? fmtDay(tenant.subscription_ends_at) : '—'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Limits Grid */}
-                                    <div className="mb-6">
-                                        <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-3">
-                                            What's Included in Your Plan:
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Staff Limit</span>
-                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.staff_limit)}</span>
-                                            </div>
-                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Product (SKU) Limit</span>
-                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.sku_limit)}</span>
-                                            </div>
-                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Locations Limit</span>
-                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.locations)}</span>
-                                            </div>
-                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Transactions/mo</span>
-                                                <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.transactions_per_month)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Gated features unlocked list */}
-                                    <div className="mb-6">
-                                        <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-2">
-                                            Premium Upgrades Activated:
-                                        </div>
-                                        <div className="space-y-2">
-                                            {congratsPlanSlug === 'business' && (
-                                                <>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>Unlimited Branches / Warehouses</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>Full Public REST API Access</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>Bill of Materials & Manufacturing</span>
-                                                    </div>
-                                                </>
-                                            )}
-                                            {congratsPlanSlug === 'growth' && (
-                                                <>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>Multi-Branch Support (up to 3)</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>AI Growth Engine Access</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>Recurring Invoicing Gating Lifted</span>
-                                                    </div>
-                                                </>
-                                            )}
-                                            {congratsPlanSlug === 'starter' && (
-                                                <>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>Access to Core POS & Retail Features</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                        <span>Sales History Tracking</span>
-                                                    </div>
-                                                </>
-                                            )}
-                                            <div className="flex items-center gap-2 text-xs text-neutral-300">
-                                                <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
-                                                <span>Instant Real-Time Webhook Synchronization</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            );
-                        })()}
-
-                        <div className="flex justify-center mt-6">
-                            <button
-                                onClick={() => setCongratsModalOpen(false)}
-                                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-widest transition-all hover:shadow-lg hover: active:scale-95"
-                            >
-                                Let's Go!
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
-        </OneGlanceLayout>
-    );
+ const { store, pricing } = usePage().props;
+ const aiTiers = pricing?.ai_tiers || {};
+ const storeSlug = store?.slug;
+ const isPK = PKR_ENABLED && country === 'PK' && pk_verification?.status === 'approved';
+ const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
+ const usdVal = parseFloat(usdAmount) || 0;
+ const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+
+ if (isPK && currencyDisplay === 'PKR') {
+ return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix}`;
+ }
+
+ return `$${usdVal.toLocaleString()}${suffix}`;
+ };
+
+ const fmtCost = (usdAmount, pkrAmount = null) => {
+ const usdVal = parseFloat(usdAmount) || 0;
+ const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+
+ if (isPK && currencyDisplay === 'PKR') {
+ return `Rs ${Math.round(pkrVal).toLocaleString()}`;
+ }
+
+ return `$${usdVal.toFixed(2)}`;
+ };
+
+ const [activeTab, setActiveTab] = useState('subscription');
+
+ // ── Payment history ──────────────────────────────────────────────────────
+ // Read live from Lemon Squeezy, fetched the first time the tab is opened so
+ // the rest of this page never waits on an external API.
+ const [history, setHistory] = useState(null);
+ const [historyLoading, setHistoryLoading] = useState(false);
+ const [historyError, setHistoryError] = useState(null);
+
+ const loadHistory = async (fresh = false) => {
+ setHistoryLoading(true);
+ setHistoryError(null);
+ try {
+ const res = await fetch(
+ route('store.billing.payment-history', { store_slug: storeSlug, ...(fresh ? { fresh: 1 } : {}) }),
+ { headers: { Accept: 'application/json' } }
+ );
+ if (!res.ok) throw new Error(`HTTP ${res.status}`);
+ setHistory(await res.json());
+ } catch (err) {
+ console.error('[billing] payment history failed', err);
+ setHistoryError('Could not load your payment history. Please try again.');
+ } finally {
+ setHistoryLoading(false);
+ }
+ };
+
+ useEffect(() => {
+ if (activeTab === 'payments' && !history && !historyLoading) {
+ loadHistory();
+ }
+ }, [activeTab]);
+
+ const fmtDay = (iso) => iso
+ ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+ : '—';
+
+ /**
+ * True when our own subscription_ends_at disagrees with the renewal date
+ * Lemon Squeezy reports. Worth surfacing rather than hiding: it means a
+ * webhook was missed or the plan was applied locally without a real
+ * payment, and the local column is the one that's wrong.
+ */
+ const historyDateMismatch = (() => {
+ const remote = history?.subscription?.expires_at;
+ const local = history?.local?.subscription_ends_at;
+ if (!remote || !local) return false;
+ // Same calendar day is a match; we only care about real drift.
+ return new Date(remote).toDateString() !== new Date(local).toDateString();
+ })();
+ const [billingCycle, setBillingCycle] = useState('monthly');
+ const [currencyDisplay, setCurrencyDisplay] = useState(isPK ? 'PKR' : 'USD');
+
+ // Onboarding Setup Service States
+ const [calcProducts, setCalcProducts] = useState('');
+ const [calcVariants, setCalcVariants] = useState('');
+ const [selectedService, setSelectedService] = useState('basic');
+ const [isOrderingService, setIsOrderingService] = useState(false);
+
+ // ── In-app checkout plumbing ────────────────────────────────────────────
+ // Lemon Squeezy is our Merchant of Record, so the card form has to be
+ // theirs. Everything below keeps that form INSIDE VenQore: the server
+ // hands back a branded, prefilled checkout URL and we render it as an
+ // overlay on top of the current page rather than navigating away.
+
+ const toast = (message, type = 'info') => {
+ window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message, type } }));
+ };
+
+ // Warm lemon.js up as soon as the billing screen mounts so the overlay
+ // appears instantly on click instead of after a script download.
+ useEffect(() => {
+ preloadLemonCheckout();
+ }, []);
+
+ const [congratsModalOpen, setCongratsModalOpen] = useState(false);
+ const [congratsPlanSlug, setCongratsPlanSlug] = useState('');
+
+ useEffect(() => {
+ const justUpgraded = sessionStorage.getItem('vq_just_upgraded');
+ const upgradedToPlan = sessionStorage.getItem('vq_upgraded_to_plan');
+ if (justUpgraded === 'true' && upgradedToPlan) {
+ sessionStorage.removeItem('vq_just_upgraded');
+ sessionStorage.removeItem('vq_upgraded_to_plan');
+ setCongratsPlanSlug(upgradedToPlan);
+ setCongratsModalOpen(true);
+ }
+ }, [tenant.plan, tenant.status]);
+
+ /**
+ * Pull subscription state straight from the Lemon Squeezy API.
+ *
+ * Provisioning normally rides in on a webhook, but a webhook can be
+ * undeliverable (local dev), delayed, or dropped — which leaves someone who
+ * genuinely paid still sitting on a trial. Rather than trust the push, we
+ * pull. Runs automatically right after a successful payment, and is also
+ * available as a manual "Already paid?" button.
+ */
+ const [isSyncing, setIsSyncing] = useState(false);
+
+ const runSubscriptionSync = async ({ silent = false } = {}) => {
+ setIsSyncing(true);
+ try {
+ const res = await fetch(route('store.billing.sync-subscription', { store_slug: storeSlug }), {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ 'Accept': 'application/json',
+ 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+ },
+ });
+
+ const data = await res.json().catch(() => ({}));
+
+ if (data?.synced) {
+ // If plan changed, or status changed, flag for congrats!
+ if (data.plan !== tenant.plan || tenant.status !== 'active') {
+ sessionStorage.setItem('vq_just_upgraded', 'true');
+ sessionStorage.setItem('vq_upgraded_to_plan', data.plan || tenant.plan);
+ }
+ if (!silent) {
+ toast(data.message || 'Subscription synced.', 'success');
+ router.reload({ preserveScroll: true });
+ }
+ return true;
+ }
+
+ if (!silent) {
+ toast(data?.message || data?.error || 'No subscription found to sync yet.', 'info');
+ }
+ return false;
+ } catch (err) {
+ console.error('[billing] subscription sync failed', err);
+ if (!silent) {
+ toast('Could not reach the server to sync your subscription.', 'error');
+ }
+ return false;
+ } finally {
+ setIsSyncing(false);
+ }
+ };
+
+ /**
+ * Shared handler: fetch a checkout URL from our own backend, then open it
+ * as an overlay. `onDone` runs when the overlay closes or fails so the
+ * caller can clear its loading state.
+ */
+ const launchCheckout = async (fetchUrl, { context = 'purchase', successMessage, onDone } = {}) => {
+ try {
+ const url = await fetchUrl();
+
+ if (!url) {
+ onDone?.();
+ return;
+ }
+
+ await openLemonCheckout(url, {
+ onSuccess: () => {
+ toast(successMessage || 'Payment received — activating your plan…', 'success');
+
+ // Reconcile against the Lemon Squeezy API rather than waiting
+ // on a webhook that may be slow or may never arrive.
+ //
+ // This used to fire exactly once, 2.2s after payment. Lemon
+ // Squeezy frequently has not finished creating the
+ // subscription by then, so the single attempt found nothing,
+ // gave up silently, and left the customer staring at a stale
+ // page — the delay reported after checkout. Now it retries on
+ // a backoff until the subscription actually appears.
+ (async () => {
+ const delays = [1200, 2000, 3000, 4000, 5000, 6000];
+
+ for (const wait of delays) {
+ await new Promise(r => setTimeout(r, wait));
+
+ if (await runSubscriptionSync({ silent: true })) {
+ closeLemonCheckout();
+ toast('Your plan is active.', 'success');
+ router.reload({ preserveScroll: true });
+ onDone?.();
+ return;
+ }
+ }
+
+ // ~21s and still nothing. Stop guessing and hand the user
+ // an explicit control rather than failing silently.
+ closeLemonCheckout();
+ toast(
+ 'Payment received. Your plan is taking longer than usual to activate — tap "Already Paid?" to retry.',
+ 'info'
+ );
+ router.reload({ preserveScroll: true });
+ onDone?.();
+ })();
+ },
+ onClose: () => {
+ onDone?.();
+ },
+ onError: () => {
+ // openLemonCheckout already falls back to a hard redirect,
+ // so this is only for state cleanup.
+ onDone?.();
+ },
+ });
+ } catch (err) {
+ console.error(`[billing] ${context} checkout failed`, err);
+ toast('Could not open the checkout. Please check your connection and try again.', 'error');
+ onDone?.();
+ }
+ };
+
+ const postForCheckoutUrl = async (routeName, payload) => {
+ const res = await fetch(route(routeName, { store_slug: storeSlug }), {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ 'Accept': 'application/json',
+ 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+ },
+ body: JSON.stringify(payload)
+ });
+
+ const data = await res.json().catch(() => ({}));
+
+ if (data?.url) return data.url;
+
+ toast(data?.error || 'An unexpected error occurred. Please try again.', 'error');
+ return null;
+ };
+
+ const handleOrderSetupService = () => {
+ setIsOrderingService(true);
+ launchCheckout(
+ () => postForCheckoutUrl('store.billing.checkout-upload-service', {
+ tier: selectedService,
+ products: calcProductsNum,
+ variants: calcVariantsNum
+ }),
+ {
+ context: 'setup-service',
+ successMessage: 'Order received — our catalog team will be in touch shortly.',
+ onDone: () => setIsOrderingService(false)
+ }
+ );
+ };
+
+ // Plan Change Confirmation States
+ const [selectedPlan, setSelectedPlan] = useState(null);
+ const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
+
+ const currentPlanKey = tenant?.plan ?? 'starter';
+ const currentMeta = PLAN_META[currentPlanKey] ?? PLAN_META.starter;
+ const isLtd = currentPlanKey.startsWith('ltd');
+
+ const subEndsAt = tenant?.subscription_ends_at
+ ? new Date(tenant.subscription_ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+ : null;
+
+ // Days until the paid period ends. A bare date ("Renews on August 8") makes
+ // the reader do the arithmetic; the countdown is what actually tells them
+ // whether they need to act.
+ const subDaysLeft = tenant?.subscription_ends_at
+ ? Math.max(0, Math.ceil((new Date(tenant.subscription_ends_at) - new Date()) / 86400000))
+ : null;
+
+ // ── Trial / paying state ────────────────────────────────────────────────
+ //
+ // Lemon Squeezy is the authority on whether money has actually been taken.
+ // Our `tenants.status` column is a cache of webhook outcomes and can drift,
+ // so once the Payment History tab has loaded we prefer what Lemon Squeezy
+ // says. Before that we fall back to the local column.
+ //
+ // A store whose Lemon Squeezy subscription is `on_trial` has a card on file
+ // but has NOT been charged (that is what happens when the purchased variant
+ // carries a free-trial period). It must keep every trial affordance —
+ // above all the Pay Now button.
+ const lsStatus = history?.subscription?.status ?? null;
+ const lsIsTrialling = lsStatus === 'on_trial';
+ const lsIsPaying = lsStatus ? ['active', 'past_due', 'cancelled'].includes(lsStatus) : null;
+
+ // Union of both sources. A false positive here merely offers a payment
+ // button to someone who doesn't need one; a false negative locks a customer
+ // out of paying us — which is exactly the bug this replaces.
+ const isTrial = tenant?.status === 'trial' || lsIsTrialling;
+
+ // Only ever true when we have positive evidence of a real charge.
+ const confirmedPaying = lsIsPaying ?? (tenant?.status === 'active');
+
+ // The local column and Lemon Squeezy disagree about whether this store pays.
+ const statusMismatch = lsStatus !== null
+ && ((tenant?.status === 'active') !== !!lsIsPaying);
+
+ // Trial countdown. Prefer Lemon Squeezy's own trial end date, since a
+ // Lemon-Squeezy-side trial has nothing to do with our local trial_ends_at.
+ const trialEndsAt = (lsIsTrialling
+ && (history?.subscription?.trial_ends_at || history?.subscription?.expires_at))
+ || (tenant?.status === 'trial' ? tenant?.trial_ends_at : null);
+
+ const trialDaysLeft = isTrial && trialEndsAt
+ ? Math.max(0, Math.ceil((new Date(trialEndsAt) - new Date()) / 86400000))
+ : null;
+
+ /**
+ * Trial credit for a given billing cycle, or null when there is nothing to
+ * credit. The percentages are computed server-side by TrialCreditService —
+ * the same code that mints the real Lemon Squeezy discount — so anything we
+ * quote here is exactly what the customer will be charged. Never recompute
+ * the percentage on the client: rounding drift would make the confirmation
+ * a lie.
+ */
+ const trialCreditFor = (cycle = billingCycle) => {
+ if (!trial_credit) return null;
+
+ const percent = cycle === 'annual'
+ ? trial_credit.percent_annual
+ : trial_credit.percent_monthly;
+
+ if (!percent || percent <= 0) return null;
+
+ return { percent, daysRemaining: trial_credit.days_remaining };
+ };
+
+ const isViewOnly = tenant?.view_only_since !== null;
+ const viewOnlyDaysLeft = tenant?.view_only_since
+ ? Math.max(0, 30 - Math.ceil((new Date() - new Date(tenant.view_only_since)) / 86400000))
+ : 30;
+
+ const usageData = usage ?? {};
+ const hasLockedActive = feature_status?.some(f => f.is_active && f.is_locked);
+
+ // Calculate setup service estimate
+ const calcProductsNum = Math.max(0, parseInt(calcProducts) || 0);
+ const calcVariantsNum = Math.max(1, parseInt(calcVariants) || 1);
+ const serviceTier = SERVICE_TIERS[selectedService];
+ const extraBlocks = calcVariantsNum > 5 ? Math.ceil((calcVariantsNum - 5) / 5) : 0;
+ const usdPricePerProduct = serviceTier
+ ? serviceTier.priceUSD + extraBlocks * serviceTier.extraUSD
+ : 0;
+ const pkrPricePerProduct = serviceTier
+ ? serviceTier.pricePKR + extraBlocks * serviceTier.extraPKR
+ : 0;
+ const usdTotalSetupCost = calcProductsNum * usdPricePerProduct;
+ const pkrTotalSetupCost = calcProductsNum * pkrPricePerProduct;
+
+ // Handle cancel trial
+ const handleCancelTrial = () => {
+ if (confirm("Are you sure you want to cancel your free trial? Your store will immediately transition to View-Only mode for 30 days, locking all modifications and sales. You can restore access anytime by subscribing.")) {
+ router.post(route('store.billing.cancel-trial', { store_slug: storeSlug }));
+ }
+ };
+
+ // ── Subscription cancel / resume ────────────────────────────────────────
+ //
+ // Cancelling does not end access immediately: Lemon Squeezy keeps the
+ // subscription running to the end of the period already paid for. The modal
+ // says so explicitly, because "Cancel" on a paid plan otherwise reads as
+ // "lose everything now" and stops people who simply want to stop renewing.
+ const [cancelOpen, setCancelOpen] = useState(false);
+ const [cancelBusy, setCancelBusy] = useState(false);
+ const [resumeBusy, setResumeBusy] = useState(false);
+
+ const paidUntilLabel = history?.subscription?.expires_at
+ ? fmtDay(history.subscription.expires_at)
+ : (subEndsAt || null);
+
+ const submitCancelSubscription = () => {
+ setCancelBusy(true);
+ router.post(route('store.billing.cancel-subscription', { store_slug: storeSlug }), {}, {
+ preserveScroll: true,
+ onFinish: () => {
+ setCancelBusy(false);
+ setCancelOpen(false);
+ // The tab caches for 2 minutes; force a re-read so the status
+ // card reflects the cancellation immediately.
+ setHistory(null);
+ if (activeTab === 'payments') loadHistory(true);
+ },
+ });
+ };
+
+ const submitResumeSubscription = () => {
+ setResumeBusy(true);
+ router.post(route('store.billing.resume-subscription', { store_slug: storeSlug }), {}, {
+ preserveScroll: true,
+ onFinish: () => {
+ setResumeBusy(false);
+ setHistory(null);
+ if (activeTab === 'payments') loadHistory(true);
+ },
+ });
+ };
+
+ // Handle activation of addon free trial (e.g. WooCommerce sync or AI assistant during main store trial)
+ const handleAddonTrial = (addonType) => {
+ router.post(route('store.billing.checkout-addon', { store_slug: storeSlug }), {
+ addon_type: addonType,
+ trial_mode: true
+ });
+ };
+
+
+ const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
+
+ // Handle checkout for AI or Sync add-ons — opens in-app, no redirect.
+ const handlePurchaseAddon = (addonType) => {
+ setIsPurchasingAddon(addonType);
+ launchCheckout(
+ () => postForCheckoutUrl('store.billing.checkout-addon', { addon_type: addonType }),
+ {
+ context: 'addon',
+ successMessage: 'Payment received — activating your add-on…',
+ onDone: () => setIsPurchasingAddon(null)
+ }
+ );
+ };
+
+ // Subscription / plan checkout. Asks our backend for a branded, prefilled
+ // checkout URL (?format=json) and opens it as an overlay over the app.
+ const [checkoutBusy, setCheckoutBusy] = useState(null);
+
+ // Trial-credit confirmation. A trialling store that pays early keeps the
+ // value of its unused free days as a one-off discount on the first payment,
+ // so before opening the checkout we show exactly what will be charged
+ // today and what the renewal will be. Gated here rather than on the button
+ // so every entry point into checkout (header, plan cards) gets it.
+ const [pendingCheckout, setPendingCheckout] = useState(null);
+
+ const handlePlanCheckout = (planKey, cycle = billingCycle, currency = currencyDisplay) => {
+ if (checkoutBusy) return;
+
+ if (trialCreditFor(cycle)) {
+ setPendingCheckout({ planKey, cycle, currency });
+ return;
+ }
+
+ startPlanCheckout(planKey, cycle, currency);
+ };
+
+ const startPlanCheckout = (planKey, cycle = billingCycle, currency = currencyDisplay) => {
+ setPendingCheckout(null);
+ setCheckoutBusy(planKey);
+
+ launchCheckout(
+ async () => {
+ const res = await fetch(route('store.billing.upgrade', {
+ store_slug: storeSlug,
+ plan: planKey,
+ cycle: cycle === 'annual' ? 'annual' : 'monthly',
+ currency,
+ format: 'json',
+ }), {
+ headers: { 'Accept': 'application/json' },
+ });
+
+ const data = await res.json().catch(() => ({}));
+
+ if (data?.url) return data.url;
+
+ toast(data?.error || 'Checkout is unavailable right now. Please try again shortly.', 'error');
+ return null;
+ },
+ {
+ context: 'plan',
+ successMessage: 'Payment received — applying your new plan…',
+ onDone: () => setCheckoutBusy(null)
+ }
+ );
+ };
+
+ // Open change plan confirmation modal
+ const handleSelectPlan = (planKey) => {
+ setSelectedPlan(planKey);
+ setIsChangeModalOpen(true);
+ };
+
+ // Submit simulated local plan change
+ const handleConfirmPlanChange = () => {
+ router.post(route('store.billing.change-plan', { store_slug: storeSlug }), { plan: selectedPlan }, {
+ onSuccess: () => {
+ setIsChangeModalOpen(false);
+ }
+ });
+ };
+
+ // Cancel scheduled plan downgrade
+ const handleCancelDowngrade = () => {
+ if (confirm("Are you sure you want to cancel your scheduled plan downgrade? You will remain on your current plan and continue to be billed normally.")) {
+ router.post(route('store.billing.change-plan', { store_slug: storeSlug }), { cancel_downgrade: true });
+ }
+ };
+
+ // Deactivate feature in DB to self-heal limits warnings
+ const handleDeactivateFeature = (key, name) => {
+ if (confirm(`Are you sure you want to deactivate ${name}? This will permanently delete the active records and configurations in your store database for this feature, allowing you to return below limits. This cannot be undone.`)) {
+ router.post(route('store.billing.deactivate-feature', { store_slug: storeSlug }), { feature: key });
+ }
+ };
+
+ // Handle redirect to billing portal (standard navigation / direct redirect to LS or toast warning)
+ const handlePortalClick = () => {
+ if (!tenant?.has_customer_id) {
+ window.dispatchEvent(new CustomEvent('amd:toast', {
+ detail: {
+ message: 'No active Lemon Squeezy subscription found. Please subscribe to a paid plan first to access the billing portal.',
+ type: 'info'
+ }
+ }));
+ return;
+ }
+
+ // The Lemon Squeezy customer portal is a full account area and cannot be
+ // embedded, so open it in a new tab. The user keeps VenQore open behind
+ // it instead of losing their place in the app.
+ window.open(
+ route('store.billing.portal', { store_slug: storeSlug }),
+ '_blank',
+ 'noopener,noreferrer'
+ );
+ };
+
+ /**
+ * Figures for the trial-credit confirmation. Every amount is derived from
+ * the server-supplied percentage, so "you pay X today" cannot disagree with
+ * what Lemon Squeezy charges.
+ */
+ const pendingCreditSummary = (() => {
+ if (!pendingCheckout) return null;
+
+ const credit = trialCreditFor(pendingCheckout.cycle);
+ if (!credit) return null;
+
+ const plan = plans?.find(p => p.slug === pendingCheckout.planKey);
+ const isAnnualPending = pendingCheckout.cycle === 'annual';
+
+ const fullUsd = parseFloat(
+ (isAnnualPending ? plan?.price_annual_usd : plan?.price_monthly_usd) || 0
+ );
+ const fullPkr = parseFloat(
+ (isAnnualPending ? plan?.price_annual : plan?.price_monthly) || 0
+ );
+
+ const ratio = credit.percent / 100;
+
+ // Renewal falls one full calendar cycle after payment, at full price —
+ // the discount's duration is "once".
+ const renewal = new Date();
+ if (isAnnualPending) {
+ renewal.setFullYear(renewal.getFullYear() + 1);
+ } else {
+ renewal.setMonth(renewal.getMonth() + 1);
+ }
+
+ return {
+ planKey: pendingCheckout.planKey,
+ planLabel: PLAN_META[pendingCheckout.planKey]?.label ?? plan?.name ?? pendingCheckout.planKey,
+ cycleLabel: isAnnualPending ? 'year' : 'month',
+ percent: credit.percent,
+ daysRemaining: credit.daysRemaining,
+ fullPrice: fmtCost(fullUsd, fullPkr),
+ creditAmount: fmtCost(fullUsd * ratio, fullPkr * ratio),
+ dueToday: fmtCost(fullUsd * (1 - ratio), fullPkr * (1 - ratio)),
+ renewalDate: renewal.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+ };
+ })();
+
+ // Calculate dynamic proration details for confirmation modal
+ const targetPlanModel = plans?.find(p => p.slug === selectedPlan);
+ const currentPlanModel = plans?.find(p => p.slug === currentPlanKey);
+
+ // Fallbacks must mirror config/pricing.php values (starter: 36, growth: 63, business: 129)
+ const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'counter' ? 18 : selectedPlan === 'starter' ? 36 : selectedPlan === 'growth' ? 63 : selectedPlan === 'business' ? 129 : 0);
+ const targetPricePKR = targetPlanModel ? parseFloat(targetPlanModel.price_monthly) : Math.round(targetPriceUSD * 280);
+
+ const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'counter' ? 18 : currentPlanKey === 'starter' ? 36 : currentPlanKey === 'growth' ? 63 : currentPlanKey === 'business' ? 129 : 0);
+ const currentPricePKR = currentPlanModel ? parseFloat(currentPlanModel.price_monthly) : Math.round(currentPriceUSD * 280);
+
+ const diffUSD = targetPriceUSD - currentPriceUSD;
+ const diffPKR = targetPricePKR - currentPricePKR;
+
+ let proratedEstUSD = 0;
+ let proratedEstPKR = 0;
+ let remainingDays = 0;
+ let nextBillingDateStr = "";
+
+ const planOrder = ['counter', 'starter', 'growth', 'business'];
+ const currentIdx = planOrder.indexOf(currentPlanKey);
+ const targetIdx = planOrder.indexOf(selectedPlan);
+ const isUpgrade = targetIdx > currentIdx;
+
+ if (tenant?.subscription_ends_at) {
+ const cycleEnd = new Date(tenant.subscription_ends_at);
+ nextBillingDateStr = cycleEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+ const now = new Date();
+ const cycleStart = new Date(cycleEnd);
+ cycleStart.setMonth(cycleStart.getMonth() - 1);
+
+ const totalMs = cycleEnd - cycleStart;
+ const remainingMs = cycleEnd - now;
+ remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+ const ratio = Math.max(0, Math.min(1, remainingMs / totalMs));
+
+ if (isUpgrade) {
+ proratedEstUSD = diffUSD * ratio;
+ proratedEstPKR = diffPKR * ratio;
+ }
+ } else {
+ const nextBilling = new Date();
+ nextBilling.setDate(nextBilling.getDate() + 30);
+ nextBillingDateStr = nextBilling.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+ proratedEstUSD = targetPriceUSD;
+ proratedEstPKR = targetPricePKR;
+ }
+
+ // Modal features comparison listing
+ const FEATURES_GAIN_LOSS = {
+ growth: {
+ gained: [
+ 'WooCommerce Sync (Unlimited)',
+ 'AI Chatbot & Retention engine',
+ 'Multi-Branch warehouse support',
+ 'Up to 10 staff member accounts (Starter: 3)',
+ 'Unlimited products/SKUs (Starter: 1,000)',
+ 'Advanced reporting structures'
+ ],
+ lost: [
+ 'WooCommerce Sync connections',
+ 'AI Chatbot key configurations',
+ 'Multi-Branch warehouse settings',
+ 'Warehouse locations limit (reduced to 3)',
+ 'Staff accounts limit (reduced to 10)',
+ 'Product/SKUs count capped at 1,000 SKUs',
+ 'Advanced reporting modules'
+ ]
+ },
+ business: {
+ gained: [
+ 'Full Public REST API Access',
+ 'Unlimited warehouse locations (Growth: 3)',
+ 'Unlimited staff member accounts (Growth: 10)',
+ 'Bill of Materials (BOM) & Manufacturing',
+ 'Fixed asset depreciation postings',
+ 'Fiscal year closing automated wizard',
+ 'Recurring invoicing automation'
+ ],
+ lost: [
+ 'Public REST API keys & access',
+ 'Warehouse locations cap of 3 (Business: Unlimited)',
+ 'Staff accounts cap of 10 (Business: Unlimited)',
+ 'BOM records and manufacturing actions',
+ 'Asset depreciation posting calculations',
+ 'Fiscal year close zeroing wizard',
+ 'Recurring invoicing records'
+ ]
+ },
+ starter: {
+ lost: [
+ 'WooCommerce Sync connections',
+ 'AI Chatbot key configurations',
+ 'Multi-Branch warehouse settings',
+ 'Warehouse locations cap of 1 (Growth: 3)',
+ 'Staff accounts cap of 3 (Growth: 10)',
+ 'Product/SKUs count capped at 1,000 SKUs',
+ 'Advanced reporting modules',
+ 'BOM records and manufacturing actions',
+ 'Asset depreciation posting calculations',
+ 'Fiscal year close zeroing wizard',
+ 'Recurring invoicing records',
+ 'Public REST API keys & access'
+ ]
+ }
+ };
+
+ let modalFeatures = [];
+ if (isUpgrade) {
+ if (selectedPlan === 'growth') {
+ modalFeatures = FEATURES_GAIN_LOSS.growth.gained;
+ } else if (selectedPlan === 'business') {
+ if (currentPlanKey === 'starter') {
+ modalFeatures = [...FEATURES_GAIN_LOSS.growth.gained, ...FEATURES_GAIN_LOSS.business.gained];
+ } else {
+ modalFeatures = FEATURES_GAIN_LOSS.business.gained;
+ }
+ }
+ } else {
+ if (selectedPlan === 'growth') {
+ modalFeatures = FEATURES_GAIN_LOSS.business.lost;
+ } else if (selectedPlan === 'starter') {
+ if (currentPlanKey === 'business') {
+ modalFeatures = FEATURES_GAIN_LOSS.starter.lost;
+ } else {
+ modalFeatures = FEATURES_GAIN_LOSS.growth.lost;
+ }
+ }
+ }
+
+ return (
+ <OneGlanceLayout title="Billing & Subscription" mode="admin">
+ <Head title="Billing & Subscription" />
+
+ <div className="max-w-6xl mx-auto p-4 md:p-8">
+
+ {/* View-Only Mode Warning Banner */}
+ {isViewOnly && (
+ <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-red-900/80 via-red-950 to-black border border-red-500/30 shadow-2xl relative overflow-hidden">
+ <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+ <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+ <div className="flex items-start gap-4">
+ <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+ <AlertTriangle size={24} className="text-red-400" />
+ </div>
+ <div>
+ <h2 className="text-xl font-bold text-white leading-none mb-2">View-Only Mode Active</h2>
+ <p className="text-xs text-neutral-300 max-w-xl leading-relaxed">
+ Your evaluation period or subscription has expired. You can view reports and download your database backup, but writing transactions and inventory is locked.
+ <span className="text-red-400 font-bold block mt-1">Your store data will be permanently deleted in {viewOnlyDaysLeft} days if you do not subscribe.</span>
+ </p>
+ </div>
+ </div>
+ <div className="flex gap-3">
+ <button
+ onClick={() => window.location.href = route('store.admin.data', { store_slug: storeSlug }) + '?tab=backup'}
+ className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap flex items-center gap-1.5"
+ >
+ <Download size={14} /> Full System Backup & Restore
+ </button>
+ <button
+ onClick={() => handleSelectPlan('growth')}
+ className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap"
+ >
+ Activate Store Now
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* Header Profile Summary */}
+ <div className={`mb-8 p-6 md:p-8 rounded-2xl border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-void-950 border-white/[0.06]`}>
+ <div className="flex items-center gap-5 relative z-10">
+ <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg" style={{ background: currentMeta.color + '15' }}>
+ <currentMeta.Icon size={32} color={currentMeta.color} />
+ </div>
+ <div>
+ <div className="text-2xs font-bold text-ink-muted uppercase tracking-[0.2em] mb-1">Active Plan</div>
+ <div className="text-2xl font-bold text-white">{currentMeta.label}</div>
+ <div className="text-xs font-bold text-ink-muted mt-1">
+ {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)`
+ : tenant?.status === 'suspended' ? 'Trial Expired / Suspended'
+ : isTrial ? (trialDaysLeft !== null
+ ? `Free trial — ${trialDaysLeft} ${trialDaysLeft === 1 ? 'day' : 'days'} left. No payment taken yet.`
+ : 'Free trial — no payment taken yet.')
+ : isLtd ? 'Lifetime License'
+ : subEndsAt ? `Renews on ${subEndsAt}`
+ : 'Active Subscription'}
+ </div>
+
+ {/* Trial badge. Driven by the union of both sources, so
+ it can no longer vanish just because the local status
+ column drifted to 'active' while Lemon Squeezy still
+ had the subscription on trial. */}
+ {isTrial && !isViewOnly && trialDaysLeft !== null && (
+ <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+ <span className={`text-1xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+ trialDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
+ : trialDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
+ : 'bg-brand-500/10 text-brand-300'
+ }`}>
+ Trial · {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left
+ </span>
+ <button
+ onClick={() => setActiveTab('payments')}
+ className="text-1xs font-bold text-ink-muted hover:text-brand-300 underline decoration-dotted underline-offset-2 transition-colors"
+ >
+ View payment history
+ </button>
+ </div>
+ )}
+
+ {/* Renewal countdown + a way straight to the receipts.
+ The date alone doesn't tell anyone how long they
+ have left, and there was previously no route from
+ here to proof of payment. */}
+ {!isTrial && !isLtd && !isViewOnly && subDaysLeft !== null && (
+ <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+ <span className={`text-1xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+ subDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
+ : subDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
+ : 'bg-emerald-500/10 text-emerald-400'
+ }`}>
+ {subDaysLeft} {subDaysLeft === 1 ? 'day' : 'days'} left
+ </span>
+ <button
+ onClick={() => setActiveTab('payments')}
+ className="text-1xs font-bold text-ink-muted hover:text-brand-300 underline decoration-dotted underline-offset-2 transition-colors"
+ >
+ View payment history
+ </button>
+ </div>
+ )}
+
+ {/* Reassurance that paying early costs them nothing —
+ shown before they click, not buried in the modal. */}
+ {isTrial && !isViewOnly && trialCreditFor(billingCycle) && (
+ <div className="text-1xs font-bold text-emerald-400 mt-1.5 flex items-center gap-1.5">
+ <Zap size={11} className="fill-emerald-400" />
+ Pay early and your unused days become a {trialCreditFor(billingCycle).percent}% credit — you lose nothing.
+ </div>
+ )}
+ </div>
+ </div>
+
+ <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10">
+ {/* PAY NOW.
+ Shown whenever we cannot positively confirm a real
+ charge — NOT merely when the local status column reads
+ 'trial'. Gating this on the local flag alone is what
+ left a store marked 'active' but unpaid with no way to
+ give us money: the column had drifted, so every payment
+ control disappeared at once. There must always be a
+ route to paying. */}
+ {!confirmedPaying && !isLtd && !isViewOnly && (
+ <>
+ {isTrial && (
+ <button
+ onClick={handleCancelTrial}
+ className="px-4 py-3 bg-transparent hover:bg-white/[0.04] text-ink-muted hover:text-white rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
+ >
+ Cancel Trial
+ </button>
+ )}
+ <button
+ disabled={checkoutBusy === currentPlanKey}
+ onClick={() => handlePlanCheckout(currentPlanKey, billingCycle, currencyDisplay)}
+ className="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+ >
+ <Zap size={14} className="fill-white" />
+ {checkoutBusy === currentPlanKey ? 'Opening…' : 'Pay Now'}
+ </button>
+ </>
+ )}
+
+ {/* BILLING PORTAL.
+ Offered to anyone who has a Lemon Squeezy subscription
+ at all, trialling or paying — a trialling customer still
+ needs to update a card or cancel. */}
+ {/* UPDATE CARD.
+ Replaces the old generic "Billing Portal" button. That
+ one sent people to app.lemonsqueezy.com/my-orders and
+ asked them to log in again with their purchase email —
+ unusable for guest checkouts, and it buried cancelling
+ behind a third-party UI. This link is Lemon Squeezy's
+ signed, single-purpose card form for this subscription
+ only: no login, nothing else exposed.
+
+ Cancelling now lives in-app (next to this), so the only
+ thing left that genuinely needs Lemon Squeezy's own UI
+ is entering new card details — which must be hosted by
+ them so card data never touches our servers (PCI). */}
+ {history?.subscription?.update_card_url && !isViewOnly && (
+ <a
+ href={history.subscription.update_card_url}
+ target="_blank"
+ rel="noopener noreferrer"
+ className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-neutral-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
+ >
+ <CreditCard size={14} /> Update Card
+ </a>
+ )}
+
+ {/* CANCEL SUBSCRIPTION.
+ In-app, so cancelling no longer requires a second login
+ at app.lemonsqueezy.com — a dead end for guest checkouts.
+ Hidden once already cancelled; Resume takes its place. */}
+ {confirmedPaying && !isLtd && !isViewOnly && !history?.subscription?.is_cancelled && (
+ <button
+ onClick={() => setCancelOpen(true)}
+ className="px-4 py-3 bg-transparent hover:bg-red-500/10 text-ink-muted hover:text-red-400 rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
+ >
+ Cancel Subscription
+ </button>
+ )}
+
+ {/* RESUME. Only reachable while cancelled but not yet lapsed. */}
+ {history?.subscription?.is_cancelled && !isLtd && !isViewOnly && (
+ <button
+ onClick={submitResumeSubscription}
+ disabled={resumeBusy}
+ className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+ >
+ <RefreshCw size={14} className={resumeBusy ? 'animate-spin' : ''} />
+ {resumeBusy ? 'Resuming…' : 'Resume Subscription'}
+ </button>
+ )}
+
+ {/* Escape hatch: if a payment succeeded but the webhook
+ never landed, this pulls the subscription from
+ Lemon Squeezy and applies it immediately.
+ Also offered on a status mismatch — the case where the
+ local column says 'active' but Lemon Squeezy disagrees,
+ which previously hid this button precisely when it was
+ the one thing that would have fixed the row. */}
+ {!isLtd && (tenant?.status !== 'active' || statusMismatch) && (
+ <button
+ onClick={() => runSubscriptionSync()}
+ disabled={isSyncing}
+ title="Already paid but your plan hasn't updated? Click to re-check with Lemon Squeezy."
+ className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-ink-muted hover:text-white font-bold text-xs transition-all flex items-center gap-2 whitespace-nowrap"
+ >
+ <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
+ {isSyncing ? 'Checking…' : 'Already Paid?'}
+ </button>
+ )}
+ <div className="px-5 py-2 rounded-full font-bold text-xs tracking-widest uppercase border border-brand-500/20 bg-brand-500/10 text-brand-300">
+ {currentPlanKey}
+ </div>
+ </div>
+ </div>
+
+ {/* Scheduled Downgrade Warning Banner */}
+ {tenant?.plan_limits?.pending_downgrade && (
+ <div className="mb-8 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
+ <div className="flex items-center gap-3">
+ <AlertTriangle className="text-amber-400 shrink-0" size={20} />
+ <div>
+ <h4 className="text-xs font-bold text-white uppercase tracking-wider">Scheduled Downgrade Pending</h4>
+ <p className="text-xs text-neutral-300 mt-1">
+ Your plan is scheduled to downgrade to <span className="font-bold text-amber-300 uppercase">{tenant.plan_limits.pending_downgrade.plan}</span> on <span className="font-bold text-white">{new Date(tenant.plan_limits.pending_downgrade.effective_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>.
+ </p>
+ </div>
+ </div>
+ <button
+ onClick={handleCancelDowngrade}
+ className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-xl text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
+ >
+ Cancel Downgrade
+ </button>
+ </div>
+ )}
+
+ {/* Tabs Selector */}
+ <div className="flex border-b border-white/[0.06] mb-8 overflow-x-auto gap-2">
+ {[
+ { id: 'subscription', label: 'Subscription & Usage', icon: Receipt },
+ { id: 'payments', label: 'Payment History', icon: History },
+ { id: 'extra_features', label: 'Extra Features', icon: Lock },
+ { id: 'addons', label: 'AI & Sync Add-ons', icon: Sparkles },
+ { id: 'services', label: 'Onboarding Services', icon: Calendar },
+ { id: 'desktop_app', label: 'Windows Application', icon: Monitor },
+ ].map((tab) => {
+ const TabIcon = tab.icon;
+ const isActive = activeTab === tab.id;
+ const showWarningDot = tab.id === 'extra_features' && hasLockedActive;
+ return (
+ <button
+ key={tab.id}
+ onClick={() => setActiveTab(tab.id)}
+ className={`flex items-center gap-2 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all whitespace-nowrap
+ ${isActive
+ ? 'border-brand-500 text-white'
+ : 'border-transparent text-ink-muted hover:text-neutral-300'
+ }`}
+ >
+ <TabIcon size={14} /> {tab.label}
+ {showWarningDot && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+ </button>
+ );
+ })}
+ </div>
+
+ {/* TAB CONTENT 1: SUBSCRIPTION & USAGE */}
+ {activeTab === 'subscription' && (
+ <div className="space-y-8 animate-fadeIn">
+ {PKR_ENABLED && country === 'PK' && (
+ <PkVerificationPanel
+ tenant={tenant}
+ pk_verification={pk_verification}
+ storeSlug={storeSlug}
+ />
+ )}
+
+ {/* Usage meters */}
+ <div>
+ <div className="text-xs font-bold text-ink-muted uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
+ <BarChart2 size={16} /> Plan Resource Usage
+ </div>
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+ <UsageMeter
+ icon={Users} label="Staff Members" color={vq.indigo[500]}
+ used={usageData.staff_count ?? 0}
+ limit={usageData.staff_limit}
+ />
+ <UsageMeter
+ icon={Package} label="Products (SKUs)" color={vq.emerald[500]}
+ used={usageData.product_count ?? 0}
+ limit={usageData.sku_limit}
+ />
+ <UsageMeter
+ icon={GitBranch} label="Locations" color={vq.amber[500]}
+ used={usageData.location_count ?? 1}
+ limit={usageData.locations}
+ />
+ </div>
+ </div>
+
+ {/* Upgrade Options */}
+ <div className="pt-6">
+ <div className="text-xs font-bold text-ink-muted uppercase tracking-[0.3em] mb-6 text-center">
+ {isLtd ? 'Your Early Supporter Perks' : '🚀 Scale your system as you grow'}
+ </div>
+
+ {/* Pakistan Regional Pricing Unlocked Banner */}
+ {isPK && (
+ <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-neutral-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
+ <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+ <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+ <div className="flex items-center gap-4">
+ <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-2xl shadow-inner">
+ 🇵🇰
+ </div>
+ <div>
+ <div className="flex items-center gap-2 mb-1">
+ <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-widest bg-emerald-500 text-black">
+ SPECIAL GIFT UNLOCKED 🎁
+ </span>
+ <span className="text-xs font-bold text-emerald-400">Exclusive Regional Pricing</span>
+ </div>
+ <h3 className="text-base font-bold text-white tracking-tight">
+ Special Pakistan Business Subsidized Rates Active!
+ </h3>
+ <p className="text-xs text-ink-muted mt-0.5">
+ Because you operate in Pakistan, we have unlocked special subsidized local PKR rates for your business.
+ </p>
+ </div>
+ </div>
+
+ <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 shrink-0">
+ <button
+ onClick={() => setCurrencyDisplay('PKR')}
+ className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
+ currencyDisplay === 'PKR'
+ ? 'bg-emerald-500 text-black shadow-lg scale-[1.02]'
+ : 'text-ink-muted hover:text-white'
+ }`}
+ >
+ 🇵🇰 Subsidized PKR Price
+ </button>
+ <button
+ onClick={() => setCurrencyDisplay('USD')}
+ className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center gap-1.5 ${
+ currencyDisplay === 'USD'
+ ? 'bg-brand-600 text-white shadow-lg scale-[1.02]'
+ : 'text-ink-muted hover:text-white'
+ }`}
+ >
+ 🌐 Global USD Price
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* Billing Cycle Toggle */}
+ <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10 mb-8">
+ {!isLtd && (
+ <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.07]">
+ <button
+ onClick={() => setBillingCycle('monthly')}
+ className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+ billingCycle === 'monthly'
+ ? 'bg-white text-void-950 shadow-md'
+ : 'text-ink-muted hover:text-white'
+ }`}
+ >
+ Monthly
+ </button>
+ <button
+ onClick={() => setBillingCycle('annual')}
+ className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
+ billingCycle === 'annual'
+ ? 'bg-emerald-600 text-white shadow-md'
+ : 'text-ink-muted hover:text-white'
+ }`}
+ >
+ Annual
+ <span className={`text-3xs px-1.5 py-0.5 rounded-full font-bold ${
+ billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-400'
+ }`}>SAVE ~17%</span>
+ </button>
+ </div>
+ )}
+ </div>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
+ {isTrial || isViewOnly ? (
+ ['counter', 'starter', 'growth', 'business'].map(key => (
+ <PlanCard
+ key={key}
+ planKey={key}
+ planConfig={plans?.find(p => p.slug === key)?.limits ?? {}}
+ isCurrent={key === currentPlanKey}
+ storeSlug={storeSlug}
+ tenant={tenant}
+ onSelectPlan={handleSelectPlan}
+ onCheckout={handlePlanCheckout}
+ checkoutBusy={checkoutBusy}
+ plans={plans}
+ billingCycle={billingCycle}
+ currencyDisplay={currencyDisplay}
+ />
+ ))
+ ) : (
+ plans?.map((plan) => (
+ <PlanCard
+ key={plan.slug}
+ planKey={plan.slug}
+ planConfig={plan.limits}
+ isCurrent={plan.slug === currentPlanKey}
+ storeSlug={storeSlug}
+ tenant={tenant}
+ onSelectPlan={handleSelectPlan}
+ onCheckout={handlePlanCheckout}
+ checkoutBusy={checkoutBusy}
+ plans={plans}
+ billingCycle={billingCycle}
+ currencyDisplay={currencyDisplay}
+ />
+ ))
+ )}
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* TAB CONTENT 2: EXTRA FEATURES */}
+ {/* TAB CONTENT: PAYMENT HISTORY
+ Read live from Lemon Squeezy. Shows what was paid, and
+ critically WHAT PERIOD each payment covered — which is how
+ you verify a 30-day plan really billed for 30 days. */}
+ {activeTab === 'payments' && (
+ <div className="space-y-6 animate-fadeIn">
+ <div className="flex items-center justify-between flex-wrap gap-3">
+ <h3 className="text-1xs font-bold text-ink-muted uppercase tracking-[0.2em] flex items-center gap-2">
+ <History size={14} /> Billing Period & Payments
+ </h3>
+ <button
+ onClick={() => loadHistory(true)}
+ disabled={historyLoading}
+ className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-ink-muted hover:text-white font-bold text-xs transition-all flex items-center gap-2"
+ >
+ <RefreshCw size={13} className={historyLoading ? 'animate-spin' : ''} />
+ {historyLoading ? 'Loading…' : 'Refresh'}
+ </button>
+ </div>
+
+ {historyLoading && !history && (
+ <div className="space-y-3">
+ {[0, 1, 2].map(i => (
+ <div key={i} className="h-16 rounded-2xl bg-white/[0.02] border border-white/[0.05] animate-pulse" />
+ ))}
+ </div>
+ )}
+
+ {historyError && (
+ <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 text-xs font-bold text-red-400 flex items-center gap-2">
+ <AlertTriangle size={14} /> {historyError}
+ </div>
+ )}
+
+ {history && (
+ <>
+ {/* Current period — the "when does this expire" answer */}
+ {history.subscription && (
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+ <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+ <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
+ <BadgeCheck size={12} /> Status
+ </div>
+ <div className="text-lg font-bold text-white capitalize">
+ {history.subscription.status_formatted || history.subscription.status || '—'}
+ </div>
+ {history.subscription.is_cancelled && (
+ <div className="text-1xs font-bold text-amber-400 mt-1">
+ Cancelled — access runs to the date below
+ </div>
+ )}
+ {history.subscription.test_mode && (
+ <div className="text-1xs font-bold text-amber-400 mt-1">Test mode</div>
+ )}
+ </div>
+
+ <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+ <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
+ <Clock size={12} /> {history.subscription.is_cancelled ? 'Access Ends' : 'Next Charge'}
+ </div>
+ <div className="text-lg font-bold text-white">
+ {fmtDay(history.subscription.expires_at)}
+ </div>
+ {history.subscription.days_until_expiry !== null && (
+ <div className={`text-1xs font-bold mt-1 ${
+ history.subscription.days_until_expiry <= 3 ? 'text-red-400'
+ : history.subscription.days_until_expiry <= 7 ? 'text-amber-400'
+ : 'text-emerald-400'
+ }`}>
+ {history.subscription.days_until_expiry} days remaining
+ </div>
+ )}
+ </div>
+
+ <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+ <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
+ <CreditCard size={12} /> Payment Method
+ </div>
+ <div className="text-lg font-bold text-white">
+ {history.subscription.card || 'Not on file'}
+ </div>
+ </div>
+
+ <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+ <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
+ <Receipt size={12} /> Total Paid
+ </div>
+ <div className="text-lg font-bold text-white">
+ {history.lifetime_usd || '$0.00'}
+ </div>
+ <div className="text-1xs font-bold text-ink-muted mt-1">
+ {history.invoice_count} {history.invoice_count === 1 ? 'invoice' : 'invoices'}
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* Lemon Squeezy says trialling, we recorded paying (or
+ vice versa). This is the drift that used to hide every
+ payment control, so it gets stated plainly with the fix
+ attached. */}
+ {statusMismatch && (
+ <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
+ <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+ <span>
+ Lemon Squeezy reports this subscription as{''}
+ <span className="font-bold">{history.subscription?.status_formatted || lsStatus}</span>,
+ but this store is saved locally as{''}
+ <span className="font-bold">{tenant?.status}</span>.
+ {lsIsTrialling
+ ? ' No payment has been taken yet — Pay Now is available above.'
+ : ' Lemon Squeezy is correct.'}{''}
+ Click <span className="font-bold">Already Paid?</span> to re-sync the record.
+ </span>
+ </div>
+ )}
+
+ {/* A $0 first invoice means the purchased variant carries its
+ own free trial in Lemon Squeezy. Worth calling out: it
+ delays all revenue and cancels out any trial credit,
+ because there is nothing on the invoice to discount. */}
+ {lsIsTrialling && history.invoices?.length > 0 && (
+ <div className="p-4 rounded-2xl bg-brand-500/5 border border-brand-500/20 text-xs leading-relaxed text-brand-200 flex items-start gap-2">
+ <Info size={14} className="shrink-0 mt-0.5" />
+ <span>
+ This subscription is in a Lemon&nbsp;Squeezy free-trial period, so the
+ first invoice is <span className="font-bold">$0.00</span>. The first real
+ charge happens on{''}
+ <span className="font-bold">{fmtDay(history.subscription?.expires_at)}</span>.
+ </span>
+ </div>
+ )}
+
+ {/* Our stored date disagrees with Lemon Squeezy — say so loudly. */}
+ {historyDateMismatch && (
+ <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
+ <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+ <span>
+ This store's saved renewal date (<span className="font-bold">{fmtDay(history.local?.subscription_ends_at)}</span>)
+ doesn't match what Lemon Squeezy reports (<span className="font-bold">{fmtDay(history.subscription?.expires_at)}</span>).
+ Lemon Squeezy is correct. Use <span className="font-bold">Already Paid?</span> to re-sync.
+ </span>
+ </div>
+ )}
+
+ {/* No real subscription linked — explains a fabricated local date. */}
+ {history.local && !history.local.has_subscription_id && history.local.status === 'active' && (
+ <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
+ <Info size={14} className="shrink-0 mt-0.5" />
+ <span>
+ This store is marked active but has no Lemon Squeezy subscription ID, so no real payment is
+ recorded against it. Its renewal date was set locally, not by a purchase.
+ </span>
+ </div>
+ )}
+
+ {history.message && (
+ <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-center">
+ <Receipt size={28} className="mx-auto text-ink-secondary mb-3" />
+ <p className="text-xs font-bold text-ink-muted">{history.message}</p>
+ </div>
+ )}
+
+ {/* The ledger */}
+ {history.invoices?.length > 0 && (
+ <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden">
+ <div className="overflow-x-auto">
+ <table className="w-full text-left">
+ <thead>
+ <tr className="border-b border-white/[0.06]">
+ {['Paid On', 'Period Covered', 'Days', 'Amount', 'Credit Applied', 'Status', ''].map(h => (
+ <th key={h} className="px-5 py-3.5 text-2xs font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap">
+ {h}
+ </th>
+ ))}
+ </tr>
+ </thead>
+ <tbody className="divide-y divide-white/[0.04]">
+ {history.invoices.map(inv => (
+ <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
+ <td className="px-5 py-4 whitespace-nowrap">
+ <div className="text-xs font-bold text-white">{fmtDay(inv.paid_at)}</div>
+ <div className="text-2xs font-bold text-ink-muted capitalize mt-0.5">
+ {inv.billing_reason === 'initial' ? 'First payment'
+ : inv.billing_reason === 'renewal' ? 'Renewal'
+ : inv.billing_reason === 'updated' ? 'Plan change'
+ : inv.billing_reason}
+ </div>
+ </td>
+ <td className="px-5 py-4 whitespace-nowrap text-xs font-bold text-neutral-300">
+ {inv.period_end
+ ? `${fmtDay(inv.period_start)} → ${fmtDay(inv.period_end)}`
+ : fmtDay(inv.period_start)}
+ </td>
+ <td className="px-5 py-4 whitespace-nowrap">
+ {inv.period_days !== null ? (
+ <span className="px-2.5 py-1 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-300 text-1xs font-bold">
+ {inv.period_days} days
+ </span>
+ ) : (
+ <span className="text-1xs font-bold text-ink-secondary">—</span>
+ )}
+ </td>
+ <td className="px-5 py-4 whitespace-nowrap">
+ <div className="text-xs font-bold text-white">{inv.total}</div>
+ {inv.has_discount && (
+ <div className="text-2xs font-bold text-ink-muted mt-0.5 line-through">
+ {inv.subtotal}
+ </div>
+ )}
+ </td>
+ <td className="px-5 py-4 whitespace-nowrap">
+ {inv.has_discount ? (
+ <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-1xs font-bold flex items-center gap-1 w-fit">
+ <Zap size={10} className="fill-emerald-400" /> −{inv.discount_total}
+ </span>
+ ) : (
+ <span className="text-1xs font-bold text-ink-secondary">—</span>
+ )}
+ </td>
+ <td className="px-5 py-4 whitespace-nowrap">
+ <span className={`px-2.5 py-1 rounded-lg text-1xs font-bold border ${
+ inv.refunded || inv.status === 'refunded'
+ ? 'bg-neutral-500/10 border-line-strong text-ink-muted'
+ : inv.status === 'paid'
+ ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+ : inv.status === 'pending'
+ ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+ : 'bg-red-500/10 border-red-500/20 text-red-400'
+ }`}>
+ {inv.status_formatted || inv.status}
+ </span>
+ </td>
+ <td className="px-5 py-4 whitespace-nowrap text-right">
+ {inv.invoice_url && (
+ <a
+ href={inv.invoice_url}
+ target="_blank"
+ rel="noopener noreferrer"
+ className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-ink-muted hover:text-white text-1xs font-bold transition-all"
+ >
+ <FileText size={11} /> Invoice
+ </a>
+ )}
+ </td>
+ </tr>
+ ))}
+ </tbody>
+ </table>
+ </div>
+ </div>
+ )}
+
+ <p className="text-2xs font-bold text-ink-secondary text-center">
+ Read live from Lemon Squeezy · updated {history.fetched_at ? new Date(history.fetched_at).toLocaleTimeString() : '—'}
+ </p>
+ </>
+ )}
+ </div>
+ )}
+
+ {activeTab === 'extra_features' && (
+ <div className="space-y-6 animate-fadeIn">
+ <div className="p-6 md:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+ <div className="flex items-center gap-3 mb-2">
+ <Lock className="text-brand-400" size={24} />
+ <h3 className="text-lg font-bold text-white">Extra Features Control</h3>
+ </div>
+ <p className="text-xs text-ink-muted leading-relaxed mb-8 max-w-xl">
+ If you have configured features that are not included in your current plan, you can deactivate/remove them here to restore normal operations. Alternatively, upgrade your plan to unlock full access.
+ </p>
+
+ <div className="space-y-4">
+ {feature_status?.map((feat) => {
+ const targetPlan = FEATURE_UPGRADE_TARGET[feat.key] || 'growth';
+ return (
+ <div
+ key={feat.key}
+ className={`p-5 rounded-2xl border transition-all duration-slow flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+ feat.is_active && feat.is_locked
+ ? 'bg-red-500/[0.02] border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.03)]'
+ : feat.is_active
+ ? 'bg-emerald-500/[0.02] border-emerald-500/20'
+ : 'bg-white/[0.01] border-white/[0.04]'
+ }`}
+ >
+ <div className="flex-1">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="text-sm font-bold text-white">{feat.name}</span>
+
+ {feat.is_active && feat.is_locked && (
+ <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
+ <AlertTriangle size={10} /> Active & Locked (Limits Exceeded)
+ </span>
+ )}
+ {feat.is_active && !feat.is_locked && (
+ <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+ <CheckCircle2 size={10} /> Active & Subscribed
+ </span>
+ )}
+ {!feat.is_active && feat.is_locked && (
+ <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-neutral-800 text-ink-muted border border-neutral-700">
+ Locked (Upgrade to unlock)
+ </span>
+ )}
+ {!feat.is_active && !feat.is_locked && (
+ <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-neutral-800 text-emerald-400 border border-neutral-700">
+ Available
+ </span>
+ )}
+ </div>
+ <p className="text-xs text-ink-muted mt-2 leading-relaxed max-w-xl">{feat.description}</p>
+ </div>
+
+ <div className="flex items-center gap-3 self-end md:self-center">
+ {feat.is_active && feat.is_locked && (
+ <button
+ onClick={() => handleDeactivateFeature(feat.key, feat.name)}
+ className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors"
+ >
+ Deactivate Feature
+ </button>
+ )}
+ {feat.is_locked && (
+ <button
+ onClick={() => handleSelectPlan(targetPlan)}
+ className="px-4 py-2 bg-white text-void-950 hover:bg-interactive-hover rounded-xl font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md"
+ >
+ <Sparkles size={12} /> Keep & Upgrade
+ </button>
+ )}
+ {!feat.is_locked && feat.is_active && (
+ <span className="text-xs font-semibold text-ink-muted">Configured & Healthy</span>
+ )}
+ {!feat.is_locked && !feat.is_active && (
+ <span className="text-xs font-semibold text-ink-muted">Not Configured</span>
+ )}
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* TAB CONTENT 3: AI & SYNC ADD-ONS */}
+ {activeTab === 'addons' && (
+ <div className="space-y-8 animate-fadeIn">
+ <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+ <div className="flex items-center gap-3 mb-4">
+ <Cpu className="text-brand-400" size={24} />
+ <h3 className="text-lg font-bold text-white">AI Engine Add-on</h3>
+ </div>
+ <p className="text-xs text-ink-muted leading-relaxed mb-6">
+ Supercharge your store with AI-powered scanning (SmartCapture) and interactive assistant tools. Every store starts with 10 free credits to test out the capabilities.
+ </p>
+
+ {/* Status Card & Progress */}
+ <div className="p-5 rounded-2xl bg-neutral-950/40 border border-white/[0.05] mb-8">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+ <div>
+ <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Active Level</span>
+ <div className="text-2xl font-bold text-white mt-1 capitalize">
+ {tenant?.ai_status === 'none' ? 'Free Starter Tier (10 Credits)' : tenant?.ai_status}
+ </div>
+ </div>
+
+ {tenant?.ai_status === 'none' && (
+ <div className="flex-1 max-w-xs">
+ <div className="flex justify-between text-xs text-ink-muted mb-1">
+ <span>Free Pages Used:</span>
+ <span className="font-bold text-white">{(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / 10</span>
+ </div>
+ <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+ <div
+ className="h-full bg-gradient-brand transition-all duration-slower"
+ style={{ width: `${Math.min(100, (((tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)) / 10) * 100)}%` }}
+ />
+ </div>
+ </div>
+ )}
+
+ {tenant?.ai_status === 'managed' && (
+ <div className="flex gap-4">
+ <div className="text-right">
+ <div className="text-2xs text-ink-muted font-bold uppercase">Pages</div>
+ <div className="text-sm font-bold text-white">
+ {(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / {(tenant?.ai_pages_limit ?? tenant?.plan_limits?.ai_pages_limit ?? 500)}
+ </div>
+ </div>
+ <div className="text-right border-l border-white/10 pl-4">
+ <div className="text-2xs text-ink-muted font-bold uppercase">Queries</div>
+ <div className="text-sm font-bold text-white">
+ {(tenant?.ai_queries_used ?? tenant?.plan_limits?.ai_queries_used ?? 0)} / {(tenant?.ai_queries_limit ?? tenant?.plan_limits?.ai_queries_limit ?? 2500)}
+ </div>
+ </div>
+ </div>
+ )}
+
+ {tenant?.ai_status === 'byok' && (
+ <div className="text-xs text-amber-300 font-bold flex items-center gap-1.5">
+ <CheckCircle2 size={14} /> Bring Your Own Key License Active
+ </div>
+ )}
+ </div>
+ </div>
+
+ {/* Upgrade Options Header */}
+ <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+ <Sparkles size={16} className="text-amber-400" /> Choose Your Upgrade Path
+ </h4>
+
+ <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+ {/* Option 1: BYOK */}
+ <div className="lg:col-span-1 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
+ <div>
+ <div className="flex justify-between items-start mb-4">
+ <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+ Bring Your Own Key
+ </span>
+ <div className="text-xl font-bold text-white">$5 <span className="text-xs font-normal text-ink-muted">once</span></div>
+ </div>
+ <h5 className="text-sm font-bold text-white mb-2">Lifetime BYOK License</h5>
+ <p className="text-1xs text-ink-muted leading-relaxed">
+ Bypass platform scanning fees forever. Provide your own API keys for Gemini, Claude, OpenAI, or DeepSeek and pay nothing else.
+ </p>
+ </div>
+ <div className="mt-6">
+ {tenant?.ai_status === 'byok' ? (
+ <button disabled className="w-full py-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold uppercase tracking-wider cursor-default">
+ Already Purchased
+ </button>
+ ) : (
+ <button
+ onClick={() => handlePurchaseAddon('ai_byok')}
+ disabled={isPurchasingAddon !== null}
+ className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-void-950 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+ >
+ {isPurchasingAddon === 'ai_byok' ? <Loader2 size={14} className="animate-spin" /> : 'Buy BYOK Unlock'}
+ </button>
+ )}
+ </div>
+ </div>
+
+ {/* Option 2: Managed Plans */}
+ <div className="lg:col-span-2 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
+ <div>
+ <div className="flex justify-between items-start mb-4">
+ <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-400 border border-brand-500/20">
+ Managed API
+ </span>
+ <span className="text-xs text-ink-muted">Monthly Subscriptions</span>
+ </div>
+ <h5 className="text-sm font-bold text-white mb-2">Managed AI Subscriptions</h5>
+ <p className="text-1xs text-ink-muted leading-relaxed mb-4">
+ No developer keys or setup required. Use our fast platform credentials directly. Pick the tier that matches your monthly volume:
+ </p>
+
+ <div className="grid grid-cols-2 gap-3">
+ {Object.entries(aiTiers).map(([key, tier]) => (
+ <div
+ key={key}
+ onClick={() => handlePurchaseAddon(`ai_${key}`)}
+ className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-brand-500/30 hover:bg-brand-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
+ >
+ <div className="flex justify-between items-center mb-1">
+ <span className="text-xs font-bold text-white group-hover:text-brand-300 transition-colors">AI {tier.name || key.toUpperCase()}</span>
+ <span className="text-xs font-bold text-brand-400">${tier.price_monthly}</span>
+ </div>
+ <div className="text-3xs text-ink-muted">
+ {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {/* Synchronizations Sync Section */}
+ <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+ <div className="flex items-center gap-3 mb-4">
+ <Globe2 className="text-brand-400" size={24} />
+ <h3 className="text-lg font-bold text-white">Platform Sync Channels</h3>
+ </div>
+ <p className="text-xs text-ink-muted leading-relaxed mb-6">
+ Keep your inventory in sync with WooCommerce and other platforms automatically.
+ </p>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div className="p-5 rounded-2xl bg-neutral-950/40 border border-white/[0.05]">
+ <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Subscribed Channels</span>
+ <div className="space-y-2 mt-3">
+ {tenant?.sync_channels && tenant.sync_channels.length > 0 ? (
+ tenant.sync_channels.map(ch => (
+ <div key={ch} className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
+ <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+ {ch} Channel
+ </div>
+ ))
+ ) : (
+ <div className="text-xs text-ink-muted">No active sync channels.</div>
+ )}
+ </div>
+ </div>
+
+ <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
+ <div>
+ <span className="text-2xs font-bold text-brand-400 uppercase tracking-widest">Platform Sync</span>
+ <h4 className="text-sm font-bold text-white mt-1">WooCommerce Sync Add-on</h4>
+ <p className="text-1xs text-ink-muted mt-2 leading-relaxed">
+ Automatic inventory and order syncing with WooCommerce.
+ </p>
+ </div>
+
+ <div className="mt-4">
+ {tenant?.sync_channels && tenant.sync_channels.includes('woocommerce') ? (
+ <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+ <CheckCircle2 size={14} /> WooCommerce Sync Active
+ </span>
+ ) : (
+ <button
+ onClick={() => handlePurchaseAddon('sync_woocommerce')}
+ className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
+ >
+ Subscribe to WooCommerce Sync ($10/mo)
+ </button>
+ )}
+ </div>
+ </div>
+
+ <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
+ <div>
+ <span className="text-2xs font-bold text-amber-400 uppercase tracking-widest">Marketplace Sync</span>
+ <h4 className="text-sm font-bold text-white mt-1">Amazon SP-API Sync Add-on</h4>
+ <p className="text-1xs text-ink-muted mt-2 leading-relaxed">
+ 2-way stock, order, and FBA/FBM inventory sync with Amazon.
+ </p>
+ </div>
+
+ <div className="mt-4">
+ {tenant?.sync_channels && tenant.sync_channels.includes('amazon') ? (
+ <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+ <CheckCircle2 size={14} /> Amazon Sync Active
+ </span>
+ ) : (
+ <button
+ onClick={() => handlePurchaseAddon('sync_amazon')}
+ className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
+ >
+ Subscribe to Amazon Sync ($10/mo)
+ </button>
+ )}
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* TAB CONTENT 4: ONBOARDING SERVICES */}
+ {activeTab === 'services' && (
+ <div className="space-y-6 animate-fadeIn">
+ <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-b from-neutral-950 to-black border border-white/[0.06]">
+ <div className="flex items-center gap-3 mb-2">
+ <Calendar className="text-brand-400" size={24} />
+ <h3 className="text-lg font-bold text-white">Professional Product Upload Service</h3>
+ </div>
+ <p className="text-xs text-ink-muted leading-relaxed mb-8 max-w-xl">
+ Let our catalog engineering team structure and upload your inventory. Use the calculator below to estimate the dynamic cost of importing your products.
+ </p>
+
+ {/* Service Tiers Selection */}
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+ {Object.entries(SERVICE_TIERS).map(([key, tier]) => (
+ <button
+ key={key}
+ onClick={() => setSelectedService(key)}
+ className={`text-left p-5 rounded-2xl border transition-all duration-slow flex flex-col justify-between min-h-[140px]
+ ${selectedService === key
+ ? 'bg-brand-600/10 border-brand-500/60 shadow-[0_0_20px_rgba(168,85,247,0.06)]'
+ : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/10'
+ }`}
+ >
+ <div>
+ <div className="text-white font-bold text-sm">{tier.name}</div>
+ <div className="text-2xs text-ink-muted mt-1 leading-relaxed">{tier.desc}</div>
+ </div>
+ <div className="flex justify-between items-baseline mt-4 pt-3 border-t border-white/[0.04] w-full">
+ <span className="text-2xs text-brand-400 font-semibold">{tier.sla}</span>
+ <span className="text-white font-bold text-sm">{fmt(tier.priceUSD, tier.pricePKR)}<span className="text-2xs text-ink-muted font-medium">/ea</span></span>
+ </div>
+ </button>
+ ))}
+ </div>
+
+ {/* Calculator inputs */}
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pt-6 border-t border-white/[0.06]">
+ <div className="space-y-4">
+ <div>
+ <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">How many products?</label>
+ <input
+ type="number"
+ placeholder="e.g. 100"
+ value={calcProducts}
+ onChange={(e) => setCalcProducts(e.target.value)}
+ className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-white text-sm outline-none focus:border-brand-500 transition-colors"
+ />
+ </div>
+ <div>
+ <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Average variants per product?</label>
+ <input
+ type="number"
+ placeholder="First 5 variants free (e.g. 8)"
+ value={calcVariants}
+ onChange={(e) => setCalcVariants(e.target.value)}
+ className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-white text-sm outline-none focus:border-brand-500 transition-colors"
+ />
+ <span className="text-3xs text-ink-muted mt-1 block">First 5 variants included. {fmt(serviceTier.extraUSD, serviceTier.extraPKR)} per block of 5 extra variants.</span>
+ </div>
+ </div>
+
+ <div className="p-5 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col justify-between">
+ <div>
+ <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Cost Estimate Details</span>
+ <div className="space-y-2 mt-4">
+ <div className="flex justify-between text-xs text-ink-muted">
+ <span>Tier Base Rate:</span>
+ <span className="text-white font-bold">{fmt(serviceTier.priceUSD, serviceTier.pricePKR)}</span>
+ </div>
+ <div className="flex justify-between text-xs text-ink-muted">
+ <span>Extra Variant Surcharge:</span>
+ <span className="text-white font-bold">+{fmt(extraBlocks * serviceTier.extraUSD, extraBlocks * serviceTier.extraPKR)}</span>
+ </div>
+ <div className="flex justify-between text-xs text-ink-muted">
+ <span>Final Price Per Product:</span>
+ <span className="text-white font-bold">{fmt(usdPricePerProduct, pkrPricePerProduct)}</span>
+ </div>
+ </div>
+ </div>
+
+ <div className="pt-4 border-t border-white/[0.05] flex justify-between items-center mt-4">
+ <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Estimated Total</span>
+ <span className="text-2xl font-bold text-brand-400">{fmt(usdTotalSetupCost, pkrTotalSetupCost)}</span>
+ </div>
+ </div>
+ </div>
+
+ {/* CTA */}
+ <div className="flex justify-end pt-4 border-t border-white/[0.06]">
+ <button
+ onClick={handleOrderSetupService}
+ disabled={calcProductsNum === 0 || isOrderingService}
+ className="px-8 py-3.5 bg-white text-void-950 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-50 disabled:shadow-none rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2"
+ >
+ {isOrderingService ? (
+ <>
+ <span className="w-3.5 h-3.5 border-2 border-void-950 border-t-transparent rounded-full animate-spin"></span>
+ Redirecting...
+ </>
+ ) : (
+ `Order Setup Service (${fmt(usdTotalSetupCost, pkrTotalSetupCost)})`
+ )}
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* TAB CONTENT 5: DESKTOP APPLICATION */}
+ {activeTab === 'desktop_app' && (
+ <div className="space-y-6 animate-fadeIn">
+ <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-b from-neutral-950 to-black border border-white/[0.06] relative overflow-hidden">
+ <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
+
+ <div className="flex items-start gap-4 mb-8">
+ <div className="w-12 h-12 rounded-2xl bg-brand-500/10 flex items-center justify-center shrink-0 border border-brand-500/20">
+ <Monitor className="text-brand-400" size={24} />
+ </div>
+ <div>
+ <h3 className="text-lg font-bold text-white">VenQore Station for Windows</h3>
+ <p className="text-xs text-ink-muted leading-relaxed mt-1 max-w-2xl">
+ VenQore Station is our native enterprise desktop application that acts as a direct hardware bridge to your registers. It enables raw receipt printing, automatic cash drawer kicks, barcode scanning, scale readings, and cashier security audits with focus-loss tracking.
+ </p>
+ </div>
+ </div>
+
+ {/* Download Action Cards */}
+ <div className="max-w-xl mb-8">
+ {/* Setup Installer */}
+ <div className="p-6 rounded-2xl border border-white/[0.05] bg-white/[0.01] hover:border-brand-500/20 transition-all flex flex-col justify-between">
+ <div>
+ <div className="flex items-center gap-2 mb-2">
+ <span className="text-sm font-bold text-white">Windows Setup Installer</span>
+ <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase bg-brand-500/10 text-brand-300 border border-brand-500/20">Official Build</span>
+ </div>
+ <p className="text-xs text-ink-muted leading-relaxed mb-6">
+ Official setup installer. Establishes secure system directories, registers start menu entries, registers shell protocol endpoints, and supports silent auto-updates. Requires standard system installation to prevent unapproved cashier portable copies.
+ </p>
+ </div>
+ <a
+ href="/downloads/VenQore_Station_Setup.exe"
+ download
+ className="w-full py-3.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest text-center transition-all flex items-center justify-center gap-2 shadow-lg"
+ >
+ <Download size={14} /> Download Setup Installer (.exe)
+ </a>
+ </div>
+ </div>
+
+ {/* Pairing and Quick Start Guide */}
+ <div className="pt-6 border-t border-white/[0.06]">
+ <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Quick Setup &amp; Pairing Instructions</h4>
+
+ <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+ {[
+ { step: '1', title: 'Install & Boot', desc: 'Download the setup installer above, run it on your register, and launch the VenQore Station app.' },
+ { step: '2', title: 'Store Pairing', desc: `Enter your store's display slug: ${storeSlug || 'my-store'} on the pairing screen and click Connect.` },
+ { step: '3', title: 'Accept Consent', desc: 'Accept the native employee security tracking consent when prompted by the manager configuration.' },
+ { step: '4', title: 'Configure Hardware', desc: 'Click the Gear icon in the top notch bar to set receipt printers, scale baud rates, or exit passcodes.' },
+ ].map((guide) => (
+ <div key={guide.step} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.04]">
+ <div className="w-6 h-6 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 font-bold text-xs mb-3">
+ {guide.step}
+ </div>
+ <h5 className="text-xs font-bold text-white mb-1">{guide.title}</h5>
+ <p className="text-2xs text-ink-muted leading-relaxed">{guide.desc}</p>
+ </div>
+ ))}
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* AppSumo Promo Banner */}
+ {false && (
+ <div className="mt-16 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.04] text-center">
+ <p className="text-xs text-ink-muted font-medium">
+ Have an AppSumo promo code? Redeem your codes at{''}
+ <a href="/redeem" className="text-brand-400 font-bold underline decoration-2 underline-offset-4">
+ /redeem
+ </a>.
+ </p>
+ </div>
+ )}
+ </div>
+
+ {/* Change Plan Confirmation Modal */}
+ <Modal show={isChangeModalOpen} onClose={() => setIsChangeModalOpen(false)} maxWidth="md">
+ <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
+ <div className="absolute top-0 right-0 w-48 h-48 bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
+
+ <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-4">
+ <Sparkles className="text-brand-400" size={20} />
+ Confirm Subscription {isUpgrade ? 'Upgrade' : 'Downgrade'}
+ </h3>
+
+ {/* Proration Detail & Summary */}
+ <div className="space-y-4 mb-6">
+ <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+ <div className="text-center flex-1">
+ <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider">Current Plan</div>
+ <div className="text-sm font-bold mt-1 capitalize text-neutral-300">{currentPlanKey}</div>
+ <div className="text-xs text-ink-muted mt-0.5">{fmt(currentPriceUSD, currentPricePKR)}/mo</div>
+ </div>
+ <ArrowRight className="text-ink-secondary shrink-0" size={16} />
+ <div className="text-center flex-1">
+ <div className="text-2xs text-brand-400 font-bold uppercase tracking-wider">New Plan</div>
+ <div className="text-sm font-bold mt-1 capitalize text-brand-300">{selectedPlan}</div>
+ <div className="text-xs text-brand-400 mt-0.5">{fmt(targetPriceUSD, targetPricePKR)}/mo</div>
+ </div>
+ </div>
+
+ {/* gained or lost features list */}
+ <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+ <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-2">
+ {isUpgrade ? '🎁 Features You Will Unlock:' : '⚠️ Features You Will Lose after billing cycle:'}
+ </div>
+ <div className="space-y-2">
+ {modalFeatures.map((feat, i) => (
+ <div key={i} className="flex items-start gap-2 text-xs">
+ {isUpgrade ? (
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0 mt-0.5" />
+ ) : (
+ <AlertTriangle size={12} className="text-amber-500 shrink-0 mt-0.5" />
+ )}
+ <span className="text-neutral-300">{feat}</span>
+ </div>
+ ))}
+ </div>
+ </div>
+
+ {/* Billing schedule description */}
+ <div className="p-4 rounded-xl bg-brand-500/5 border border-brand-500/10 text-xs leading-relaxed text-neutral-300">
+ {isTrial ? (
+ <p>
+ Your store is currently in the **Evaluation Period**. Switching to the <span className="font-bold text-white capitalize">{selectedPlan}</span> trial is **free of charge** and will take effect immediately. Your free trial ends on <span className="text-white font-semibold">{tenant.trial_ends_at ? new Date(tenant.trial_ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>.
+ </p>
+ ) : isUpgrade ? (
+ <p>
+ Your upgrade takes effect **instantly**. Today you will only be charged a prorated surplus difference of <span className="text-emerald-400 font-bold text-sm">{fmt(proratedEstUSD, proratedEstPKR)}</span> for the remaining <span className="text-white font-semibold">{remainingDays} days</span> of your current billing month. Starting <span className="text-white font-semibold">{nextBillingDateStr}</span>, you will be charged the full price of <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
+ </p>
+ ) : (
+ <p>
+ Your downgrade is **scheduled** and will take effect on <span className="text-amber-400 font-bold">{nextBillingDateStr}</span> at the end of your paid billing month. You will keep your current features and limits until then. Starting on that date, your plan will become <span className="text-white font-bold capitalize">{selectedPlan}</span>, and your monthly billing will drop to <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
+ </p>
+ )}
+ </div>
+ </div>
+
+ <div className="flex gap-3 justify-end">
+ <button
+ onClick={() => setIsChangeModalOpen(false)}
+ className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white font-semibold text-xs transition-colors"
+ >
+ Cancel
+ </button>
+ <button
+ onClick={handleConfirmPlanChange}
+ className={`px-5 py-2.5 rounded-xl text-black font-bold text-xs uppercase tracking-wider transition-all hover:shadow-lg ${
+ isUpgrade
+ ? 'bg-white hover:bg-interactive-hover'
+ : 'bg-amber-500 hover:bg-amber-400'
+ }`}
+ >
+ Confirm {isUpgrade ? 'Upgrade' : 'Downgrade'}
+ </button>
+ </div>
+ </div>
+ </Modal>
+
+ {/* Trial Credit Confirmation Modal
+ Shown when a trialling store chooses to pay before its free days
+ are up. Their unused days are converted into a one-off discount
+ on the first payment, so the honest pitch is "pay now, lose
+ nothing" — and every number below comes from the same
+ server-side percentage that mints the real discount. */}
+ <Modal show={!!pendingCreditSummary} onClose={() => setPendingCheckout(null)} maxWidth="md">
+ {pendingCreditSummary && (
+ <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
+ <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+ <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-2">
+ <Zap className="text-emerald-400 fill-emerald-400" size={20} />
+ You keep your {pendingCreditSummary.daysRemaining} free {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'}
+ </h3>
+ <p className="text-xs text-ink-muted leading-relaxed mb-5">
+ You still have {pendingCreditSummary.daysRemaining} unused {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'} of
+ free trial. Rather than lose {pendingCreditSummary.daysRemaining === 1 ? 'it' : 'them'}, we take{''}
+ {pendingCreditSummary.percent}% off your first payment — the exact value of the time you have not used.
+ </p>
+
+ <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] divide-y divide-white/[0.05] mb-5">
+ <div className="flex items-center justify-between px-4 py-3">
+ <span className="text-xs font-bold text-ink-muted">
+ {pendingCreditSummary.planLabel} — per {pendingCreditSummary.cycleLabel}
+ </span>
+ <span className="text-xs font-bold text-neutral-300">{pendingCreditSummary.fullPrice}</span>
+ </div>
+ <div className="flex items-center justify-between px-4 py-3">
+ <span className="text-xs font-bold text-emerald-400">
+ Unused trial credit ({pendingCreditSummary.percent}%)
+ </span>
+ <span className="text-xs font-bold text-emerald-400">− {pendingCreditSummary.creditAmount}</span>
+ </div>
+ <div className="flex items-center justify-between px-4 py-3.5 bg-white/[0.02]">
+ <span className="text-xs font-bold uppercase tracking-wider text-white">Due today</span>
+ <span className="text-lg font-bold text-white">{pendingCreditSummary.dueToday}</span>
+ </div>
+ </div>
+
+ <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-xs leading-relaxed text-neutral-300 mb-6">
+ Your plan activates immediately and nothing about your access changes. Your next
+ payment is the full <span className="text-white font-semibold">{pendingCreditSummary.fullPrice}</span> on{''}
+ <span className="text-white font-semibold">{pendingCreditSummary.renewalDate}</span>, and every payment after
+ that renews normally. The credit applies once.
+ </div>
+
+ <div className="flex gap-3 justify-end">
+ <button
+ onClick={() => setPendingCheckout(null)}
+ className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white font-semibold text-xs transition-colors"
+ >
+ Not yet
+ </button>
+ <button
+ onClick={() => startPlanCheckout(
+ pendingCheckout.planKey,
+ pendingCheckout.cycle,
+ pendingCheckout.currency
+ )}
+ className="px-5 py-2.5 rounded-xl bg-white hover:bg-interactive-hover text-black font-bold text-xs uppercase tracking-wider transition-all hover:shadow-lg"
+ >
+ Pay {pendingCreditSummary.dueToday} now
+ </button>
+ </div>
+ </div>
+ )}
+ </Modal>
+
+ {/* CANCEL SUBSCRIPTION CONFIRMATION.
+ The wording matters as much as the button. Cancelling in Lemon
+ Squeezy stops future renewals but does NOT revoke the period
+ already paid for, so leading with the date they keep access
+ until prevents the panic that makes people avoid cancelling —
+ and prevents the support ticket asking for a refund of time
+ they never actually lost. */}
+ <Modal show={cancelOpen} onClose={() => setCancelOpen(false)} maxWidth="md">
+ <div className="p-8 bg-neutral-950 text-white">
+ <div className="flex items-center gap-3 mb-5">
+ <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+ <AlertTriangle size={20} className="text-red-400" />
+ </div>
+ <div>
+ <h3 className="text-lg font-bold">Cancel your subscription?</h3>
+ <p className="text-1xs font-bold text-ink-muted uppercase tracking-wider">
+ {currentMeta.label}
+ </p>
+ </div>
+ </div>
+
+ <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 mb-4">
+ <p className="text-xs font-bold text-emerald-300 leading-relaxed flex items-start gap-2">
+ <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+ <span>
+ You keep full access
+ {paidUntilLabel ? <> until <span className="font-bold">{paidUntilLabel}</span></> : ' until the end of your current paid period'}.
+ Nothing is lost today and no refund is needed — you already paid for this time.
+ </span>
+ </p>
+ </div>
+
+ <ul className="space-y-2 mb-6 text-xs font-bold text-ink-muted">
+ <li className="flex items-start gap-2">
+ <XCircle size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
+ No further payments will be taken.
+ </li>
+ <li className="flex items-start gap-2">
+ <XCircle size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
+ After that date your store moves to View-Only — your data stays intact,
+ but sales and edits are locked until you subscribe again.
+ </li>
+ <li className="flex items-start gap-2">
+ <RefreshCw size={13} className="shrink-0 mt-0.5 text-ink-secondary" />
+ You can resume any time before that date, with no new card details.
+ </li>
+ </ul>
+
+ <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+ <button
+ onClick={() => setCancelOpen(false)}
+ disabled={cancelBusy}
+ className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 text-ink-faint font-bold text-xs uppercase tracking-wider transition-all"
+ >
+ Keep my subscription
+ </button>
+ <button
+ onClick={submitCancelSubscription}
+ disabled={cancelBusy}
+ className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait text-white font-bold text-xs uppercase tracking-wider transition-all"
+ >
+ {cancelBusy ? 'Cancelling…' : 'Yes, cancel it'}
+ </button>
+ </div>
+ </div>
+ </Modal>
+
+ {/* CONGRATULATIONS / SUCCESS MODAL */}
+ <Modal show={congratsModalOpen} onClose={() => setCongratsModalOpen(false)} maxWidth="md">
+ <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-8 text-white animate-fadeIn">
+ {/* Ambient Glow Orbs */}
+ <div className="absolute top-0 right-0 w-48 h-48 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
+ <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-600/25 rounded-full blur-3xl pointer-events-none" />
+ <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
+ <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-hairline opacity-50" />
+
+ <div className="relative z-10">
+ {/* Celebrate Header */}
+ <div className="flex flex-col items-center text-center mb-6">
+ <div className="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center mb-4 animate-bounce">
+ <Crown className="text-brand-400" size={32} />
+ </div>
+ <h3 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-brand">
+ Congratulations!
+ </h3>
+ <p className="text-xs text-ink-muted mt-1">
+ Your store is successfully upgraded and active
+ </p>
+ </div>
+
+ {/* Plan Info */}
+ {(() => {
+ const congratsPlan = plans?.find(p => p.slug === congratsPlanSlug) || {
+ name: congratsPlanSlug ? (PLAN_META[congratsPlanSlug]?.label || congratsPlanSlug) : 'Starter Engine',
+ limits: {}
+ };
+ return (
+ <>
+ <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] mb-5">
+ <div className="flex items-center justify-between mb-3 border-b border-white/[0.05] pb-3">
+ <span className="text-xs text-ink-muted font-bold">ACTIVE PLAN</span>
+ <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">{congratsPlan.name || congratsPlanSlug}</span>
+ </div>
+ <div className="flex items-center justify-between">
+ <span className="text-xs text-ink-muted font-bold">RENEWAL DATE</span>
+ <span className="text-xs font-bold text-emerald-400">
+ {tenant.subscription_ends_at ? fmtDay(tenant.subscription_ends_at) : '—'}
+ </span>
+ </div>
+ </div>
+
+ {/* Limits Grid */}
+ <div className="mb-6">
+ <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-3">
+ What's Included in Your Plan:
+ </div>
+ <div className="grid grid-cols-2 gap-3">
+ <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+ <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Staff Limit</span>
+ <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.staff_limit)}</span>
+ </div>
+ <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+ <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Product (SKU) Limit</span>
+ <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.sku_limit)}</span>
+ </div>
+ <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+ <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Locations Limit</span>
+ <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.locations)}</span>
+ </div>
+ <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+ <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Transactions/mo</span>
+ <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.transactions_per_month)}</span>
+ </div>
+ </div>
+ </div>
+
+ {/* Gated features unlocked list */}
+ <div className="mb-6">
+ <div className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-2">
+ Premium Upgrades Activated:
+ </div>
+ <div className="space-y-2">
+ {congratsPlanSlug === 'business' && (
+ <>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Unlimited Branches / Warehouses</span>
+ </div>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Full Public REST API Access</span>
+ </div>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Bill of Materials & Manufacturing</span>
+ </div>
+ </>
+ )}
+ {congratsPlanSlug === 'growth' && (
+ <>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Multi-Branch Support (up to 3)</span>
+ </div>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>AI Growth Engine Access</span>
+ </div>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Recurring Invoicing Gating Lifted</span>
+ </div>
+ </>
+ )}
+ {congratsPlanSlug === 'starter' && (
+ <>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Access to Core POS & Retail Features</span>
+ </div>
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Sales History Tracking</span>
+ </div>
+ </>
+ )}
+ <div className="flex items-center gap-2 text-xs text-neutral-300">
+ <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+ <span>Instant Real-Time Webhook Synchronization</span>
+ </div>
+ </div>
+ </div>
+ </>
+ );
+ })()}
+
+ <div className="flex justify-center mt-6">
+ <button
+ onClick={() => setCongratsModalOpen(false)}
+ className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs uppercase tracking-widest transition-all hover:shadow-lg active:scale-95"
+ >
+ Let's Go!
+ </button>
+ </div>
+ </div>
+ </div>
+ </Modal>
+ </OneGlanceLayout>
+ );
 }
 
 function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
-    const [cnic, setCnic] = useState('');
-    const [phone, setPhone] = useState('');
-    const [imageFront, setImageFront] = useState(null);
-    const [imageBack, setImageBack] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [msg, setMsg] = useState(null);
+ const [cnic, setCnic] = useState('');
+ const [phone, setPhone] = useState('');
+ const [imageFront, setImageFront] = useState(null);
+ const [imageBack, setImageBack] = useState(null);
+ const [loading, setLoading] = useState(false);
+ const [msg, setMsg] = useState(null);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setMsg(null);
+ const handleSubmit = (e) => {
+ e.preventDefault();
+ setLoading(true);
+ setMsg(null);
 
-        const formData = new FormData();
-        formData.append('tenant_id', tenant.id);
-        formData.append('cnic', cnic);
-        formData.append('phone', phone);
-        formData.append('image_front', imageFront);
-        formData.append('image_back', imageBack);
+ const formData = new FormData();
+ formData.append('tenant_id', tenant.id);
+ formData.append('cnic', cnic);
+ formData.append('phone', phone);
+ formData.append('image_front', imageFront);
+ formData.append('image_back', imageBack);
 
-        router.post(route('platform.pk-verifications.submit'), formData, {
-            onSuccess: () => {
-                setLoading(false);
-                setMsg({ type: 'success', text: 'Verification submitted successfully! Under review.' });
-            },
-            onError: (errs) => {
-                setLoading(false);
-                const firstErr = Object.values(errs)[0] || 'Verification submission failed.';
-                setMsg({ type: 'error', text: firstErr });
-            }
-        });
-    };
+ router.post(route('platform.pk-verifications.submit'), formData, {
+ onSuccess: () => {
+ setLoading(false);
+ setMsg({ type: 'success', text: 'Verification submitted successfully! Under review.' });
+ },
+ onError: (errs) => {
+ setLoading(false);
+ const firstErr = Object.values(errs)[0] || 'Verification submission failed.';
+ setMsg({ type: 'error', text: firstErr });
+ }
+ });
+ };
 
-    if (pk_verification?.status === 'approved') {
-        return (
-            <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-8">
-                <div className="flex gap-3 items-start">
-                    <CheckCircle2 className="shrink-0 mt-0.5 animate-pulse" size={18} />
-                    <div>
-                        <h4 className="font-bold text-sm uppercase tracking-wide">Regional Pricing Unlocked</h4>
-                        <p className="text-xs text-emerald-300/80 mt-1">
-                            Your CNIC verification has been approved. Regional Pakistani Rupees (PKR) pricing is fully unlocked for checkout.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+ if (pk_verification?.status === 'approved') {
+ return (
+ <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-8">
+ <div className="flex gap-3 items-start">
+ <CheckCircle2 className="shrink-0 mt-0.5 animate-pulse" size={18} />
+ <div>
+ <h4 className="font-bold text-sm uppercase tracking-wide">Regional Pricing Unlocked</h4>
+ <p className="text-xs text-emerald-300/80 mt-1">
+ Your CNIC verification has been approved. Regional Pakistani Rupees (PKR) pricing is fully unlocked for checkout.
+ </p>
+ </div>
+ </div>
+ </div>
+ );
+ }
 
-    if (pk_verification?.status === 'pending') {
-        return (
-            <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mb-8">
-                <div className="flex gap-3 items-start">
-                    <ScanFace className="shrink-0 mt-0.5 animate-pulse" size={18} />
-                    <div>
-                        <h4 className="font-bold text-sm uppercase tracking-wide">Verification Request Pending</h4>
-                        <p className="text-xs text-amber-300/80 mt-1">
-                            Your CNIC front/back documents are currently being reviewed by our compliance team. Regional PKR pricing checkouts will unlock as soon as your identity is verified.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+ if (pk_verification?.status === 'pending') {
+ return (
+ <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mb-8">
+ <div className="flex gap-3 items-start">
+ <ScanFace className="shrink-0 mt-0.5 animate-pulse" size={18} />
+ <div>
+ <h4 className="font-bold text-sm uppercase tracking-wide">Verification Request Pending</h4>
+ <p className="text-xs text-amber-300/80 mt-1">
+ Your CNIC front/back documents are currently being reviewed by our compliance team. Regional PKR pricing checkouts will unlock as soon as your identity is verified.
+ </p>
+ </div>
+ </div>
+ </div>
+ );
+ }
 
-    return (
-        <div className="p-6 rounded-2xl bg-neutral-900 border border-white/[0.04] mb-8">
-            <div className="flex gap-3 items-start mb-4">
-                <BadgeCheck className="text-purple-400 shrink-0 mt-0.5" size={20} />
-                <div>
-                    <h4 className="font-bold text-sm text-white uppercase tracking-wide">Verify Identity for Regional Pricing</h4>
-                    <p className="text-xs text-ink-muted mt-1">
-                        Pakistani stores qualify for special regional pricing (in PKR). Submit your CNIC and contact details below to unlock PKR checkouts. Limit of 1 store per CNIC.
-                    </p>
-                </div>
-            </div>
+ return (
+ <div className="p-6 rounded-2xl bg-neutral-900 border border-white/[0.04] mb-8">
+ <div className="flex gap-3 items-start mb-4">
+ <BadgeCheck className="text-brand-400 shrink-0 mt-0.5" size={20} />
+ <div>
+ <h4 className="font-bold text-sm text-white uppercase tracking-wide">Verify Identity for Regional Pricing</h4>
+ <p className="text-xs text-ink-muted mt-1">
+ Pakistani stores qualify for special regional pricing (in PKR). Submit your CNIC and contact details below to unlock PKR checkouts. Limit of 1 store per CNIC.
+ </p>
+ </div>
+ </div>
 
-            {pk_verification?.status === 'rejected' && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-4 text-xs">
-                    <strong>Rejection Reason:</strong> {pk_verification.rejection_reason}
-                </div>
-            )}
+ {pk_verification?.status === 'rejected' && (
+ <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-4 text-xs">
+ <strong>Rejection Reason:</strong> {pk_verification.rejection_reason}
+ </div>
+ )}
 
-            {msg && (
-                <div className={`p-4 rounded-xl mb-4 text-xs ${msg.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
-                    {msg.text}
-                </div>
-            )}
+ {msg && (
+ <div className={`p-4 rounded-xl mb-4 text-xs ${msg.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+ {msg.text}
+ </div>
+ )}
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
-                    <input
-                        type="text"
-                        pattern="^[0-9]{5}-?[0-9]{7}-?[0-9]{1}$"
-                        value={cnic}
-                        onChange={e => setCnic(e.target.value)}
-                        placeholder="e.g. 42101-1234567-1"
-                        required
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
-                    />
-                </div>
-                <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">Phone Number</label>
-                    <input
-                        type="text"
-                        value={phone}
-                        onChange={e => setPhone(e.target.value)}
-                        placeholder="e.g. +92 300 1234567"
-                        required
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
-                    />
-                </div>
-                <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Front Side Image</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={e => setImageFront(e.target.files[0])}
-                        required
-                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
-                    />
-                </div>
-                <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Back Side Image</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={e => setImageBack(e.target.files[0])}
-                        required
-                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
-                    />
-                </div>
-                <div className="md:col-span-2 mt-2">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
-                    >
-                        {loading ? 'Submitting...' : 'Submit Documents'}
-                    </button>
-                </div>
-            </form>
-        </div>
-    );
+ <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
+ <input
+ type="text"
+ pattern="^[0-9]{5}-?[0-9]{7}-?[0-9]{1}$"
+ value={cnic}
+ onChange={e => setCnic(e.target.value)}
+ placeholder="e.g. 42101-1234567-1"
+ required
+ className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-brand-500 transition-colors"
+ />
+ </div>
+ <div>
+ <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">Phone Number</label>
+ <input
+ type="text"
+ value={phone}
+ onChange={e => setPhone(e.target.value)}
+ placeholder="e.g. +92 300 1234567"
+ required
+ className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-brand-500 transition-colors"
+ />
+ </div>
+ <div>
+ <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Front Side Image</label>
+ <input
+ type="file"
+ accept="image/*"
+ onChange={e => setImageFront(e.target.files[0])}
+ required
+ className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+ />
+ </div>
+ <div>
+ <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Back Side Image</label>
+ <input
+ type="file"
+ accept="image/*"
+ onChange={e => setImageBack(e.target.files[0])}
+ required
+ className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+ />
+ </div>
+ <div className="md:col-span-2 mt-2">
+ <button
+ type="submit"
+ disabled={loading}
+ className="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
+ >
+ {loading ? 'Submitting...' : 'Submit Documents'}
+ </button>
+ </div>
+ </form>
+ </div>
+ );
 }

@@ -1,15 +1,34 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Mail, ArrowRight, Loader2, CheckCircle2, LogOut, RefreshCw } from 'lucide-react';
+import { router, useForm } from '@inertiajs/react';
+import { Loader2, LogOut, RefreshCw } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthNotice, AuthStack } from '@/Components/Auth';
 
-/* ═══════════════════════════════════════════════════════════════════════
-   VERIFY EMAIL — Premium Dark Cinematic
-   ═══════════════════════════════════════════════════════════════════════ */
-
+/**
+ * The wait-for-the-link screen.
+ *
+ * What went, and why:
+ *   · The dark card on the dark void ground, its two ambient blur blobs and
+ *     the inline 60px grid `backgroundImage`. §13: no hero art.
+ *   · The standalone logo tile and the Mail badge above the heading — the
+ *     shell's wordmark is the only mark this page needs.
+ *   · The bespoke green "link sent" panel, now `AuthNotice tone="success"`.
+ *   · `<style>{'* { font-family: Inter }'}</style>`.
+ *
+ * There is no form here — nothing is typed and nothing is validated — so the
+ * body is an `AuthStack` of two buttons rather than an `AuthForm`. Both keep
+ * the request they always made: a POST to
+ * `/email/verification-notification`, and a POST to `route('logout')`. Log out
+ * goes through `router.post` instead of `<Link method="post" as="button">`
+ * because a link styled as a button is exactly the drift the shared primitives
+ * exist to stop; the method and the URL are unchanged.
+ *
+ * `back={false}`: the user is signed in and one step from being done. The exit
+ * that belongs here is the log-out button, not a trip to the marketing site.
+ */
 export default function VerifyEmail({ status }) {
     const { post, processing } = useForm({});
 
-    const submit = (e) => {
-        e.preventDefault();
+    const submit = () => {
         post('/email/verification-notification', {
             preserveState: true,
             preserveScroll: true,
@@ -17,69 +36,38 @@ export default function VerifyEmail({ status }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-brand-500/40 p-4 sm:p-6 relative overflow-hidden">
-            <Head title="Verify Email" />
+        <AuthLayout
+            title="Verify your email"
+            heading="Verify your email"
+            subheading="We've sent a verification link to your email address. Click the link to activate your account and get started."
+            back={false}
+            footer="Didn't receive the email? Check your spam folder or try resending."
+        >
+            <AuthStack gap={6}>
+                {status === 'verification-link-sent' ? (
+                    <AuthNotice tone="success">
+                        A new verification link has been sent!
+                    </AuthNotice>
+                ) : null}
 
-            {/* Ambient */}
-            <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-brand-900/15 rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] bg-violet-900/10 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
-                backgroundSize: '60px 60px',
-            }} />
+                <AuthStack gap={2}>
+                    <AuthButton
+                        disabled={processing}
+                        onClick={submit}
+                        icon={processing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                    >
+                        {processing ? 'Sending…' : 'Resend verification email'}
+                    </AuthButton>
 
-            <div className="relative z-10 w-full max-w-md">
-                {/* Logo */}
-                <div className="flex justify-center mb-6 sm:mb-10">
-                    <Link href="/" className="w-14 h-14 sm:w-16 sm:h-16 bg-white/[0.04] rounded-2xl flex items-center justify-center border border-white/[0.08] transition-transform">
-                        <img src="/images/logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
-                    </Link>
-                </div>
-
-                {/* Card */}
-                <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-6 sm:p-10 backdrop-blur-sm text-center">
-                    {/* Icon */}
-                    <div className="flex justify-center mb-4 sm:mb-6">
-                        <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
-                            <Mail size={22} className="text-brand-400" />
-                        </div>
-                    </div>
-
-                    <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mb-2 sm:mb-3" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
-                        Check Your Email
-                    </h2>
-                    <p className="text-ink-muted text-sm leading-relaxed mb-6 sm:mb-8 max-w-sm mx-auto">
-                        We've sent a verification link to your email address. Click the link to activate your account and get started.
-                    </p>
-
-                    {/* Success message */}
-                    {status === 'verification-link-sent' && (
-                        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-6 flex items-center justify-center gap-2">
-                            <CheckCircle2 size={16} />
-                            A new verification link has been sent!
-                        </div>
-                    )}
-
-                    <form onSubmit={submit} className="space-y-3 sm:space-y-4">
-                        <button type="submit" disabled={processing}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-void-950 rounded-2xl font-bold text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all duration-slow disabled:opacity-50">
-                            {processing ? <><Loader2 size={18} className="animate-spin" /> Sending...</> : <><RefreshCw size={16} /> Resend Verification Email</>}
-                        </button>
-
-                        <Link href={route('logout')} method="post" as="button"
-                            className="w-full flex items-center justify-center gap-2 py-3 sm:py-3.5 px-4 bg-white/[0.03] border border-white/[0.06] text-ink-muted hover:text-white hover:bg-white/[0.06] rounded-2xl font-bold text-sm transition-all active:scale-[0.98]">
-                            <LogOut size={16} /> Sign Out
-                        </Link>
-                    </form>
-                </div>
-
-                {/* Help text */}
-                <p className="text-center text-xs text-ink-muted mt-4 sm:mt-6">
-                    Didn't receive the email? Check your spam folder or try resending.
-                </p>
-            </div>
-
-            <style>{`* { font-family: 'Inter', 'Figtree', system-ui, sans-serif; }`}</style>
-        </div>
+                    <AuthButton
+                        variant="ghost"
+                        onClick={() => router.post(route('logout'))}
+                        icon={<LogOut size={16} />}
+                    >
+                        Log out
+                    </AuthButton>
+                </AuthStack>
+            </AuthStack>
+        </AuthLayout>
     );
 }

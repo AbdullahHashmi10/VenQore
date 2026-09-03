@@ -148,12 +148,12 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                     </div>
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Timer size={16} />
                             </div>
                             <p className="text-xs font-bold text-ink-muted uppercase">Hours Today</p>
                         </div>
-                        <p className="text-lg font-bold text-purple-600">{stats.totalHoursToday.toFixed(1)}h</p>
+                        <p className="text-lg font-bold text-brand-600">{stats.totalHoursToday.toFixed(1)}h</p>
                     </div>
                 </div>
 

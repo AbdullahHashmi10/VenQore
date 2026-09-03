@@ -264,14 +264,14 @@ export default function Categories({ categories: serverCategories = [], stats, f
 
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">
-                            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg shrink-0">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
                                 <BarChart3 size={16} />
                             </div>
                             <div className="min-w-0">
                                 <p className="text-xs font-bold text-ink-muted uppercase truncate">Top Category</p>
                             </div>
                         </div>
-                        <p className="text-sm font-bold text-purple-600 truncate max-w-[50%]" title={stats?.most_populated?.name}>
+                        <p className="text-sm font-bold text-brand-600 truncate max-w-[50%]" title={stats?.most_populated?.name}>
                             {stats?.most_populated?.name || '-'}
                         </p>
                     </div>

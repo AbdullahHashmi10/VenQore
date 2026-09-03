@@ -160,7 +160,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
             expense: { label: 'Expense', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', icon: ArrowUpCircle },
             payment_in: { label: 'Received', color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400', icon: ArrowDownCircle },
             payment_out: { label: 'Paid', color: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400', icon: ArrowUpCircle },
-            return: { label: 'Return', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', icon: CornerUpRight }
+            return: { label: 'Return', color: 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400', icon: CornerUpRight }
         };
         return configs[type] || { label: type, color: 'bg-neutral-100 text-ink-secondary', icon: FileText };
     };

@@ -104,7 +104,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                 title="Active Customers"
                                 value={(stats.active_customers || 0).toLocaleString()}
                                 icon={Users}
-                                color="bg-purple-500"
+                                color="bg-brand-500"
                                 subValue="Last 30 Days"
                             />
                         </div>

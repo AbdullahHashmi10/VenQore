@@ -76,7 +76,7 @@ export default function ChartOfAccounts({ accounts = [] }) {
         const configs = {
             asset: { label: 'Asset', color: 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400', icon: Briefcase },
             liability: { label: 'Liability', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400', icon: ArrowDownCircle },
-            equity: { label: 'Equity', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', icon: PieChart },
+            equity: { label: 'Equity', color: 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400', icon: PieChart },
             income: { label: 'Income', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', icon: TrendingUp },
             expense: { label: 'Expense', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', icon: ArrowUpCircle }
         };

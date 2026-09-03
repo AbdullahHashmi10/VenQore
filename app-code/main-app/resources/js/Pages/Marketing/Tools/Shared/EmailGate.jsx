@@ -108,7 +108,7 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full py-3.5 bg-white text-void-900 rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
+                                className="w-full py-3.5 bg-white text-void-900 rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
                             >
                                 {processing ? 'Sending…' : 'Download my PDF'}
                             </button>

@@ -20,7 +20,7 @@ const NebulaBackground = () => (
 
         {/* Animated Gradient Orbs */}
         <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-brand-900/20 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-violet-900/10 rounded-full blur-[120px] animate-pulse-slow delay-1000 mix-blend-screen" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-brand-900/10 rounded-full blur-[120px] animate-pulse-slow delay-1000 mix-blend-screen" />
 
         {/* Cinematic Grid Floor */}
         <div
@@ -358,8 +358,8 @@ export default function Welcome() {
                             icon={Brain}
                             title="AI Insights"
                             description="Predictive algorithms that decode market trends before they happen."
-                            colorClass="bg-violet-600"
-                            glowColor="text-violet-400 "
+                            colorClass="bg-brand-600"
+                            glowColor="text-brand-400 "
                         />
                         <FeatureCard
                             icon={TrendingUp}
@@ -372,8 +372,8 @@ export default function Welcome() {
                             icon={BarChart3}
                             title="Vision Analytics"
                             description="40+ comprehensive reports giving you X-ray vision into your business."
-                            colorClass="bg-pink-600"
-                            glowColor="text-pink-400 shadow-pink-500/20"
+                            colorClass="bg-brand-600"
+                            glowColor="text-brand-400 shadow-brand-500/20"
                         />
                     </div>
                 </div>
@@ -401,7 +401,7 @@ export default function Welcome() {
                             title="Smart Inventory"
                             description="Real-time stock tracking with low-stock alerts across warehouses."
                             colorClass="bg-cyan-600"
-                            glowColor="text-cyan-400 shadow-cyan-500/20"
+                            glowColor="text-cyan-400 shadow-glow"
                         />
                         <FeatureCard
                             icon={Layers}
@@ -428,8 +428,8 @@ export default function Welcome() {
                             icon={Users}
                             title="Customer Intel"
                             description="Know your customers better than they know themselves. Build loyalty that lasts."
-                            colorClass="bg-fuchsia-600"
-                            glowColor="text-fuchsia-400 shadow-fuchsia-500/20"
+                            colorClass="bg-brand-600"
+                            glowColor="text-brand-400 shadow-brand-500/20"
                         />
                         <FeatureCard
                             icon={WifiOff}

@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
-import { vq } from '@/theme/runtime';
+import { series, vq } from '@/theme/runtime';
 export default function CustomerInsights({ data = [], stats = [], filters = {} }) {
     const { store } = usePage().props;
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -58,7 +58,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
     // Top 5 Customers by spend for Bar Chart
     const chartData = useMemo(() => {
-        const COLORS = [vq.indigo[500], vq.violet[500], vq.purple[500], vq.fuchsia[500], vq.pink[500]];
+        const COLORS = series.light.slice(0, 5);
         return [...data]
             .sort((a, b) => (b.total_spend || 0) - (a.total_spend || 0))
             .slice(0, 5)

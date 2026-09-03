@@ -157,7 +157,7 @@ export default function ToolShell({
                                 <div className="flex items-center justify-center gap-3 flex-wrap">
                                     <Link
                                         href="/pricing"
-                                        className="px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-void-900 rounded-full text-sm font-bold uppercase tracking-wide transition-transform"
+                                        className="px-6 py-3 bg-accent-fill text-accent-on rounded-full text-sm font-bold uppercase tracking-wide transition-transform"
                                     >
                                         Start your 14-day free trial
                                     </Link>

@@ -90,7 +90,7 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
                     {/* Form Card */}
                     <div className="col-span-2 bg-surface rounded-2xl border border-line p-6 relative overflow-hidden">
                         {/* Background Effect */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                             {/* Product Selection */}

@@ -85,16 +85,16 @@ export default function SellModuleTabs({ activeTab }) {
                     <span>{activeGroupObj?.label}: {activeItemObj?.label || activeTab}</span>
                     <ChevronDown size={16} className={`transition-transform duration-normal ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
-                
+
                 {!isExpanded && (
                     <div className="shrink-0 flex items-center">
                         <Link
                             href={route('store.sales.invoice.create', { store_slug: store?.slug })}
-                            className="relative px-4 py-2 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl hover:"
+                            className="relative px-4 py-2 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl"
                         >
                             <div className="absolute inset-0 bg-neutral-900 z-0">
                                 <div className="absolute top-0 right-0 w-10 h-10 bg-brand-600/50 rounded-full blur-lg -translate-y-1/2 translate-x-1/4"></div>
-                                <div className="absolute bottom-0 left-0 w-8 h-8 bg-purple-600/40 rounded-full blur-lg translate-y-1/3 -translate-x-1/3"></div>
+                                <div className="absolute bottom-0 left-0 w-8 h-8 bg-brand-600/40 rounded-full blur-lg translate-y-1/3 -translate-x-1/3"></div>
                             </div>
                             <Plus size={18} strokeWidth={3} className="relative z-10" />
                         </Link>
@@ -205,12 +205,12 @@ export default function SellModuleTabs({ activeTab }) {
                 <div className="shrink-0 self-stretch flex items-center">
                     <Link
                         href={route('store.sales.invoice.create', { store_slug: store?.slug })}
-                        className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl hover:"
+                        className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl"
                     >
                         {/* Midnight Nebula Background */}
                         <div className="absolute inset-0 bg-neutral-900 z-0">
                             <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors"></div>
-                            <div className="absolute bottom-0 left-0 w-16 h-16 bg-purple-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-purple-500/50 transition-colors"></div>
+                            <div className="absolute bottom-0 left-0 w-16 h-16 bg-brand-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-brand-500/50 transition-colors"></div>
                             <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
                         </div>
                         {/* Content */}

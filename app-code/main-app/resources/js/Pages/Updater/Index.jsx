@@ -927,9 +927,9 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                 <p className="mt-2 text-2xs text-ink-muted">Note: Some shared hosts may have lower hard limits. Contact your hosting provider if the values don&apos;t change.</p>
                             </div>
 
-                            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
-                                <h4 className="font-bold text-purple-400 mb-3 flex items-center gap-2">
-                                    <span className="w-5 h-5 rounded bg-purple-500/30 flex items-center justify-center text-2xs font-bold">3</span>
+                            <div className="bg-brand-500/10 border border-brand-500/20 rounded-xl p-4">
+                                <h4 className="font-bold text-brand-400 mb-3 flex items-center gap-2">
+                                    <span className="w-5 h-5 rounded bg-brand-500/30 flex items-center justify-center text-2xs font-bold">3</span>
                                     Linux Server (VPS / Dedicated)
                                 </h4>
                                 <ol className="space-y-2 text-ink-muted list-decimal list-inside">

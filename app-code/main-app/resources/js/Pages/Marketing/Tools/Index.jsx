@@ -80,14 +80,14 @@ export default function ToolsIndex({ toolGroups = [] }) {
                 point, so it should hand readers a route into the product and
                 industry clusters rather than dead-ending on a tool list. */}
             <div className="mt-6 p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 text-sm text-ink-secondary leading-relaxed">
-                Doing this by hand every day? These tools come from{''}
+                Doing this by hand every day? These tools come from{' '}
                 <InlineLink href="/features/point-of-sale">VenQore's point of sale</InlineLink>, which
-                generates the same documents automatically and posts each one to a{''}
-                <InlineLink href="/features/accounting">real double-entry ledger</InlineLink> with{''}
+                generates the same documents automatically and posts each one to a{' '}
+                <InlineLink href="/features/accounting">real double-entry ledger</InlineLink> with{' '}
                 <InlineLink href="/features/inventory-management">FIFO stock costing</InlineLink>. See how it
-                fits your trade — <InlineLink href="/solutions/pharmacy">pharmacy</InlineLink>,{''}
-                <InlineLink href="/solutions/grocery">grocery</InlineLink>,{''}
-                <InlineLink href="/solutions/wholesale">wholesale</InlineLink> — or{''}
+                fits your trade — <InlineLink href="/solutions/pharmacy">pharmacy</InlineLink>,{' '}
+                <InlineLink href="/solutions/grocery">grocery</InlineLink>,{' '}
+                <InlineLink href="/solutions/wholesale">wholesale</InlineLink> — or{' '}
                 <InlineLink href="/compare">compare it against what you use now</InlineLink>.
             </div>
         </ToolShell>

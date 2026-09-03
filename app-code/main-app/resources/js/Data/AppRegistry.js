@@ -921,11 +921,11 @@ export function getCategoryLabel(category) {
 // ============================================
 export function getCategoryColor(category) {
     switch (category) {
-        case CATEGORIES.NAVIGATION: return 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400';
+        case CATEGORIES.NAVIGATION: return 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400';
         case CATEGORIES.ACTION: return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400';
         case CATEGORIES.REPORT: return 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400';
         case CATEGORIES.SETTING: return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-        case CATEGORIES.RECORD: return 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400';
+        case CATEGORIES.RECORD: return 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400';
         default: return 'bg-slate-50 text-slate-500';
     }
 }

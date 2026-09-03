@@ -454,7 +454,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     <button
                         type="button"
                         onClick={exportCsv}
-                        className="px-4 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-[#05030f] text-xs font-bold uppercase tracking-wide transition-transform inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl bg-accent-fill text-accent-on text-xs font-bold uppercase tracking-wide transition-transform inline-flex items-center gap-1.5"
                     >
                         <Download size={14} /> Export CSV
                     </button>

@@ -49,7 +49,7 @@ export default function ProposalShow({ proposal }) {
             accepted: 'bg-emerald-100 text-emerald-700',
             declined: 'bg-red-100 text-red-700',
             expired: 'bg-amber-100 text-amber-700',
-            converted: 'bg-purple-100 text-purple-700'
+            converted: 'bg-brand-100 text-brand-700'
         };
         return colors[status] || colors.draft;
     };

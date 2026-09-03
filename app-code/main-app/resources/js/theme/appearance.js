@@ -11,8 +11,8 @@
  * them in step when the user changes something without a page load.
  *
  * The exception is the two custom colours. A user-chosen primary is not one
- * colour, it is an eleven-stop ramp — the codebase writes `bg-indigo-600`,
- * `text-indigo-400` and `ring-indigo-500/30`, and all of them have to move
+ * colour, it is an eleven-stop ramp — the codebase writes `bg-brand-600`,
+ * `text-brand-400` and `ring-brand-500/30`, and all of them have to move
  * together or the result is a button whose hover state is from a different
  * palette. Generating that ramp needs the perceptual curve in `color.js`, which
  * is why it happens in JavaScript and is written as inline custom properties on
@@ -70,8 +70,8 @@ export function resolveDarkMode(mode) {
  *
  * Writing `--vq-ramp-<role>-<shade>` rather than `--vq-indigo-<shade>` is
  * deliberate: the palette bindings already point every pigment name at its role
- * ramp, so overriding the ramp reaches `bg-indigo-600`, `bg-brand-600`,
- * `bg-violet-500` and everything else bound to it in one move. Overriding the
+ * ramp, so overriding the ramp reaches `bg-brand-600`, `bg-brand-600`,
+ * `bg-brand-500` and everything else bound to it in one move. Overriding the
  * pigment names instead would mean writing 250 properties and still missing the
  * role vocabulary.
  */

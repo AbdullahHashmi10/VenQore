@@ -73,7 +73,7 @@ export default function InventoryDashboard({ stats, topMoving, expiringBatches =
                             title="Warehouses"
                             value={stats.total_warehouses}
                             icon={Warehouse}
-                            color="bg-purple-500"
+                            color="bg-brand-500"
                         />
                     </div>
  

@@ -49,7 +49,7 @@ export default function DigitalProducts({ products, stats }) {
                     style={{ transform: `translate(${(mousePosition.x - window.innerWidth / 2) * -0.02}px, ${(mousePosition.y - window.innerHeight / 2) * -0.02}px)` }}
                 >
                     <div className="absolute top-[-10%] left-[20%] w-[800px] h-[800px] bg-brand-600/10 rounded-full blur-[180px]" />
-                    <div className="absolute top-[40%] right-[-10%] w-[600px] h-[600px] bg-purple-700/10 rounded-full blur-[150px]" />
+                    <div className="absolute top-[40%] right-[-10%] w-[600px] h-[600px] bg-brand-700/10 rounded-full blur-[150px]" />
                     <div className="absolute bottom-[-10%] left-[10%] w-[700px] h-[700px] bg-emerald-600/5 rounded-full blur-[150px]" />
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
                 </div>
@@ -167,8 +167,8 @@ export default function DigitalProducts({ products, stats }) {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                                                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
-                                                        <Layers className="w-5 h-5 text-purple-400" />
+                                                    <div className="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0">
+                                                        <Layers className="w-5 h-5 text-brand-400" />
                                                     </div>
                                                     <div>
                                                         <h4 className="text-sm font-bold text-white mb-1">Component Expansion</h4>

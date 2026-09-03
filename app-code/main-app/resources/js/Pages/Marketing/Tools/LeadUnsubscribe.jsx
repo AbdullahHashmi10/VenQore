@@ -26,7 +26,7 @@ export default function LeadUnsubscribe({ token }) {
                             <button
                                 onClick={submit}
                                 disabled={processing}
-                                className="px-7 py-3 bg-sunken dark:bg-white text-white dark:text-void-900 rounded-full text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                                className="px-7 py-3 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-full text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
                             >
                                 {processing ? 'Unsubscribing…' : 'Confirm unsubscribe'}
                             </button>

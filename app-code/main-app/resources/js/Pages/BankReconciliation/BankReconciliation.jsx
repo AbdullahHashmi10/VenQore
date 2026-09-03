@@ -213,11 +213,11 @@ export default function BankReconciliationIndex({
 
                             {/* System Side */}
                             <div className="bg-surface rounded-xl border border-line flex flex-col h-full overflow-hidden shadow-sm">
-                                <div className="px-4 py-3 bg-purple-50/50 dark:bg-purple-900/10 border-b border-purple-100 dark:border-purple-900/30 flex justify-between items-center shrink-0">
-                                    <h3 className="font-bold text-purple-700 dark:text-purple-400 flex items-center gap-2 text-sm">
+                                <div className="px-4 py-3 bg-brand-50/50 dark:bg-brand-900/10 border-b border-brand-100 dark:border-brand-900/30 flex justify-between items-center shrink-0">
+                                    <h3 className="font-bold text-brand-700 dark:text-brand-400 flex items-center gap-2 text-sm">
                                         <ArrowUpDown size={16} /> Unmatched (System)
                                     </h3>
-                                    <span className="text-xs font-bold bg-surface text-purple-600 px-2 py-0.5 rounded-md shadow-sm border border-purple-100 dark:border-purple-900/30">{systemList.length}</span>
+                                    <span className="text-xs font-bold bg-surface text-brand-600 px-2 py-0.5 rounded-md shadow-sm border border-brand-100 dark:border-brand-900/30">{systemList.length}</span>
                                 </div>
                                 <div className="flex-1 overflow-y-auto">
                                     {systemList.length === 0 ? (
@@ -228,7 +228,7 @@ export default function BankReconciliationIndex({
                                     ) : (
                                         <div className="divide-y divide-line">
                                             {systemList.map((item, idx) => (
-                                                <div key={idx} className="p-3 hover:bg-purple-50/30 dark:hover:bg-purple-900/10 cursor-pointer transition-colors group">
+                                                <div key={idx} className="p-3 hover:bg-brand-50/30 dark:hover:bg-brand-900/10 cursor-pointer transition-colors group">
                                                     <div className="flex justify-between items-start gap-3">
                                                         <div className="min-w-0">
                                                             <p className="font-semibold text-ink text-sm truncate">{item.description || item.reference || 'Transaction'}</p>

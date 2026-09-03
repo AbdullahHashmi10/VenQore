@@ -1,52 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { usePage, Head, Link, useForm, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { ArrowLeft, ArrowRight, CheckCircle, Key, Loader2, Mail, Store } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
 import {
-    Key, ArrowRight, ArrowLeft, Loader2, AlertCircle, Store, Mail, CheckCircle, RefreshCw, X
-} from 'lucide-react';
-
-function InviteCard({ invite, onDismiss }) {
-    const [accepting, setAccepting] = useState(false);
-
-    return (
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-                <Mail size={16} className="text-emerald-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">
-                    Invited to <span className="text-emerald-300">{invite.store_name}</span>
-                </p>
-                <p className="text-xs text-ink-muted mt-0.5">
-                    As <span className="capitalize font-medium text-neutral-300">{invite.role}</span> · {invite.plan} plan
-                </p>
-                <div className="flex gap-2 mt-3">
-                    <Link
-                        href={invite.accept_url}
-                        onClick={() => setAccepting(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-400 transition-colors"
-                    >
-                        <CheckCircle size={12} /> Accept
-                    </Link>
-                    <button
-                        onClick={onDismiss}
-                        className="px-3 py-1.5 rounded-lg text-ink-muted text-xs hover:text-neutral-200 hover:bg-white/5 transition-colors"
-                    >
-                        Ignore
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
+    AuthButton, AuthField, AuthForm, AuthNotice, AuthStack,
+} from '@/Components/Auth';
+import { Button } from '@/Components/ds/core/Button';
 
 /**
- * Store/Join.jsx — Definitive Plan
+ * Store/Join.jsx — join an existing store, at /join.
  *
- * Join a store by entering its 7-character join code (e.g. VQ-A3F9).
- * Anyone with the code becomes a Cashier in that store (default role).
- * Store owner can upgrade the role later from the Staff page.
+ * Enter the store's 7-character join code (VQ-A3F9) and you become a Cashier
+ * there; the owner can raise the role later from the Staff page. The same
+ * screen also surfaces any invitations already addressed to this account, in a
+ * dialog that opens by itself when there are some.
  *
- * URL: /join
+ * What went, and why:
+ *   · The page chrome, which was the same app shell with its own header bar,
+ *     raster wordmark and back link that Store/Create carried, on the same
+ *     forced near-black ground with two large ambient colour clouds. §13 asks
+ *     for one centred card; §14 forbids ambient art inside the product.
+ *   · **The info panel's fill and hairline, both written at opacity steps
+ *     Tailwind does not have** — the same invented fractional steps as its
+ *     sibling, so the panel has been rendering as loose grey text with no well
+ *     and no edge behind it.
+ *   · The dialog's raw grey surfaces. It was built out of a neutral ramp rather
+ *     than the surface tokens, so it stayed dark when the rest of the product
+ *     went light, and its inner field was a third grey again. Card, well,
+ *     divider and scrim are all tokens now, so the dialog follows the mode.
+ *   · The blurred colour decal in the dialog's top corner, and the pulsing ring
+ *     on the invites button. Ambient motion is a §14 never inside the product;
+ *     the count in the button's own label already says there are invites.
+ *   · The hand-rolled code field — its own label, its own error row, its own
+ *     focus ring — and the two hand-rolled dialog buttons.
+ *   · The gradient submit, green at one end and teal at the other. Now a plain
+ *     primary, and the only primary on the page.
+ *   · `Want to create your own store?{''}` — an empty expression where a space
+ *     was meant, which rendered the question and the link with nothing between
+ *     them. A real space now.
+ *
+ * NOTE: none of the class names behind those descriptions are written out
+ * above. Tailwind scans raw file text, so a class quoted in a comment is a
+ * class that gets generated — naming the ones you just deleted puts them back
+ * into the bundle.
+ *
+ * One deliberate typographic loss: the code field no longer renders in the
+ * monospace face. The ds input states its font as a shorthand in a style
+ * attribute, which an inline style wins against any utility class, so a
+ * monospace face here would need an importance escape hatch that no other
+ * field in the family uses. Wide tracking, centred, upper-case — the three
+ * things that actually make a code readable — all survive.
+ *
+ * Behaviour is untouched: same `useForm` field, same POST to
+ * `store.join.submit`, same code-validation call and the visit it triggers on
+ * success, same auto-opening dialog, same dismiss, same upper-casing filter,
+ * same two `id` hooks on the field and the submit button.
  */
 export default function JoinStore({ pending_invites = [] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -59,7 +67,7 @@ export default function JoinStore({ pending_invites = [] }) {
     const [checkingCode, setCheckingCode] = useState(false);
     const [codeError, setCodeError] = useState('');
 
-    // Auto-show modal if there are pending invites on load
+    // Auto-show the dialog if there are pending invites on load.
     useEffect(() => {
         if (invites.length > 0) {
             setShowCodeModal(true);
@@ -97,204 +105,227 @@ export default function JoinStore({ pending_invites = [] }) {
     };
 
     return (
-        <div className="min-h-screen bg-void-950 text-white font-sans flex flex-col">
-            <Head title="Join a Store — VenQore" />
-
-            {/* Ambient */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 right-1/3 w-[500px] h-[500px] bg-emerald-900/15 rounded-full blur-[120px]" />
-                <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-brand-900/10 rounded-full blur-[100px]" />
-            </div>
-
-            {/* Nav */}
-            <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                    <img src="/images/logo.png" alt="VenQore" className="h-8 w-8 object-contain" />
-                    <span className="font-bold text-lg text-white">VenQore<span className="text-brand-400">.</span></span>
-                </div>
-                <Link
-                    href={route('store.create-or-join')}
-                    className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-white transition-colors"
+        <AuthLayout
+            title="Join a Store — VenQore"
+            heading="Join a Store"
+            subheading="Ask your store owner for the 7-character join code."
+            back={false}
+            footer={
+                <>
+                    <span className="block">
+                        Want to create your own store?{' '}
+                        <Link
+                            href={route('store.create')}
+                            className="font-medium text-accent-text transition-colors duration-fast hover:text-accent-fill-hover"
+                        >
+                            Create a store
+                        </Link>
+                    </span>
+                    <span className="mt-3 block">
+                        <Link
+                            href={route('store.create-or-join')}
+                            className="inline-flex items-center gap-1.5 text-ink-faint transition-colors duration-fast hover:text-ink-muted"
+                        >
+                            <ArrowLeft size={14} /> Back
+                        </Link>
+                    </span>
+                </>
+            }
+        >
+            <AuthStack gap={6}>
+                <AuthButton
+                    variant="soft"
+                    onClick={() => setShowCodeModal(true)}
+                    icon={<Mail size={16} />}
                 >
-                    <ArrowLeft size={14} /> Back
-                </Link>
-            </header>
+                    {invites.length > 0
+                        ? `View Pending Invites (${invites.length})`
+                        : 'Check for Invites'}
+                </AuthButton>
 
-            <div className="relative z-10 flex-1 flex items-center justify-center p-6">
-                <div className="w-full max-w-md">
+                <AuthForm onSubmit={handleSubmit}>
+                    <AuthField
+                        id="join-code"
+                        label="Store join code"
+                        type="text"
+                        name="join_code"
+                        value={data.join_code}
+                        onChange={(e) => setData('join_code', formatCode(e.target.value))}
+                        placeholder="VQ-XXXX"
+                        maxLength={7}
+                        required
+                        autoFocus
+                        className="text-center uppercase tracking-widest"
+                        error={errors.join_code}
+                    />
 
-                    {/* Header */}
-                    <div className="text-center mb-10">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 mb-5">
-                            <Key size={24} className="text-emerald-400" />
-                        </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-                            Join a Store
-                        </h1>
-                        <p className="text-ink-muted text-sm">
-                            Ask your store owner for the 7-character join code.
+                    <div className="flex flex-col gap-2 rounded-lg bg-sunken p-4 text-xs text-ink-muted">
+                        <p className="flex items-start gap-2">
+                            <Store size={12} className="mt-0.5 shrink-0 text-accent-text" />
+                            <span>
+                                You&apos;ll join as a <strong className="font-semibold text-ink-secondary">Cashier</strong>{' '}
+                                by default. The store owner can update your role.
+                            </span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                            <Key size={12} className="mt-0.5 shrink-0 text-accent-text" />
+                            <span>
+                                The code can be found in the store&apos;s{' '}
+                                <strong className="font-semibold text-ink-secondary">Staff Settings</strong> page.
+                            </span>
                         </p>
                     </div>
 
-                    {/* Check Invites Button */}
-                    <div className="flex justify-center mb-10">
-                        <button 
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setShowCodeModal(true);
-                            }}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 font-bold text-sm hover:bg-brand-500/20 transition-all relative"
-                        >
-                            <Mail size={16} /> 
-                            {invites.length > 0 ? `View Pending Invites (${invites.length})` : 'Check for Invites'}
-                            {invites.length > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-500"></span>
-                                </span>
-                            )}
-                        </button>
+                    <AuthButton
+                        id="join-store-submit"
+                        type="submit"
+                        disabled={processing || data.join_code.length < 6}
+                        icon={processing ? null : <Key size={16} />}
+                        iconAfter={processing ? null : <ArrowRight size={16} />}
+                    >
+                        {processing ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" /> Joining…
+                            </>
+                        ) : (
+                            'Join Store'
+                        )}
+                    </AuthButton>
+                </AuthForm>
+            </AuthStack>
+
+            {showCodeModal && (
+                <InviteDialog
+                    invites={invites}
+                    onDismissInvite={dismissInvite}
+                    onClose={() => setShowCodeModal(false)}
+                    code={inviteCode}
+                    onCodeChange={setInviteCode}
+                    codeError={codeError}
+                    checking={checkingCode}
+                    onCheck={handleCheckCode}
+                />
+            )}
+        </AuthLayout>
+    );
+}
+
+/**
+ * The invitations dialog. §13's modal contract: 28px corner, elevation 3, at
+ * the modal level with the scrim one step below it. It keeps its own scroll
+ * region so a long invite list never pushes the short-code form off screen.
+ *
+ * The scrim does not close on click, because it never did — this dialog opens
+ * by itself when invites exist, and a stray click dismissing it would lose the
+ * one thing the user came here for. Close is the labelled button.
+ */
+function InviteDialog({ invites, onDismissInvite, onClose, code, onCodeChange, codeError, checking, onCheck }) {
+    return (
+        <>
+            <div className="fixed inset-0 z-modal-scrim bg-scrim" aria-hidden="true" />
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Pending Invitations"
+                className="fixed inset-0 z-modal flex items-center justify-center p-4"
+            >
+                <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-surface shadow-xl">
+                    <div className="shrink-0 p-6 sm:p-8">
+                        <h2 className="font-display text-xl font-bold text-ink">Pending Invitations</h2>
+                        <p className="mt-2 text-sm text-ink-muted">
+                            Manage your pending store invitations or join via short code.
+                        </p>
                     </div>
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div>
-                            <label className="block text-sm font-semibold text-neutral-300 mb-2">
-                                Store Join Code <span className="text-red-400">*</span>
-                            </label>
-                            <input
-                                id="join-code"
+                    <div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-6 pb-4 sm:px-8">
+                        {invites.length > 0 ? (
+                            invites.map(invite => (
+                                <InviteCard
+                                    key={invite.token}
+                                    invite={invite}
+                                    onDismiss={() => onDismissInvite(invite.token)}
+                                />
+                            ))
+                        ) : (
+                            <div className="rounded-lg bg-sunken py-6 text-center">
+                                <Mail size={24} className="mx-auto mb-2 text-ink-faint" />
+                                <p className="text-sm text-ink-muted">You have no pending invitations.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="shrink-0 border-t border-line bg-sunken p-6 sm:p-8">
+                        <form onSubmit={onCheck} className="flex flex-col gap-5">
+                            <AuthField
+                                label="Have a short code?"
                                 type="text"
-                                value={data.join_code}
-                                onChange={e => setData('join_code', formatCode(e.target.value))}
-                                placeholder="VQ-XXXX"
-                                maxLength={7}
-                                className={`w-full px-5 py-4 rounded-xl bg-white/5 border text-white placeholder-slate-500
-                                    font-mono text-2xl tracking-[0.25em] text-center uppercase
-                                    focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-colors
-                                    ${errors.join_code ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}`}
-                                autoFocus
+                                value={code}
+                                onChange={(e) => onCodeChange(e.target.value.toUpperCase())}
+                                placeholder="e.g. VQ-A3X9"
+                                className="text-center uppercase tracking-widest"
                             />
-                            {errors.join_code && (
-                                <div className="flex items-center gap-2 mt-2 text-red-400 text-xs">
-                                    <AlertCircle size={12} /> {errors.join_code}
+
+                            {codeError ? <AuthNotice tone="danger">{codeError}</AuthNotice> : null}
+
+                            <div className="flex gap-3">
+                                <div className="flex-1">
+                                    <AuthButton variant="secondary" onClick={onClose}>
+                                        Close
+                                    </AuthButton>
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Info */}
-                        <div className="rounded-xl border border-white/8 bg-white/3 p-4 text-xs text-ink-muted space-y-1.5">
-                            <div className="flex items-start gap-2">
-                                <Store size={12} className="text-emerald-400 mt-0.5 shrink-0" />
-                                <span>You'll join as a <strong className="text-neutral-200">Cashier</strong> by default. The store owner can update your role.</span>
+                                <div className="flex-1">
+                                    <AuthButton type="submit" disabled={checking || !code}>
+                                        {checking ? 'Checking...' : 'Check Code'}
+                                    </AuthButton>
+                                </div>
                             </div>
-                            <div className="flex items-start gap-2">
-                                <Key size={12} className="text-emerald-400 mt-0.5 shrink-0" />
-                                <span>The code can be found in the store's <strong className="text-neutral-200">Staff Settings</strong> page.</span>
-                            </div>
-                        </div>
-
-                        {/* Submit */}
-                        <button
-                            id="join-store-submit"
-                            type="submit"
-                            disabled={processing || data.join_code.length < 6}
-                            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
- bg-gradient-to-r from-emerald-500 to-teal-600
- hover:from-emerald-400 hover:to-teal-500
- text-white font-bold text-base transition-all
- hover:shadow-xl hover:
- disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
-                        >
-                            {processing ? (
-                                <><Loader2 size={18} className="animate-spin" /> Joining…</>
-                            ) : (
-                                <><Key size={18} /> Join Store <ArrowRight size={16} /></>
-                            )}
-                        </button>
-                    </form>
-
-                    <p className="text-center text-xs text-ink-muted mt-6">
-                        Want to create your own store?{''}
-                        <Link href={route('store.create')} className="text-ink-muted hover:text-brand-400 transition-colors underline underline-offset-2">
-                            Create a store
-                        </Link>
-                    </p>
-
+                        </form>
+                    </div>
                 </div>
             </div>
+        </>
+    );
+}
 
-            {/* Invite Code Modal */}
-            {showCodeModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col max-h-[85vh]">
-                        
-                        {/* Modal Bg Decals */}
-                        <div className="absolute top-0 right-0 p-8 pt-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
-                        
-                        <div className="p-5 sm:p-8 shrink-0">
-                            <h2 className="text-xl font-bold text-white mb-2">
-                                Pending Invitations
-                            </h2>
-                            <p className="text-sm text-ink-muted">
-                                Manage your pending store invitations or join via short code.
-                            </p>
-                        </div>
-                        
-                        <div className="px-8 pb-4 overflow-y-auto min-h-0 space-y-3 custom-scrollbar text-left">
-                            {invites.length > 0 ? (
-                                invites.map(invite => (
-                                    <InviteCard
-                                        key={invite.token}
-                                        invite={invite}
-                                        onDismiss={() => dismissInvite(invite.token)}
-                                    />
-                                ))
-                            ) : (
-                                <div className="text-center py-6 rounded-2xl border border-neutral-800 bg-neutral-800/30">
-                                    <Mail size={24} className="text-ink-muted mx-auto mb-2" />
-                                    <p className="text-ink-muted text-sm">You have no pending invitations.</p>
-                                </div>
-                            )}
-                        </div>
+/**
+ * One invitation. The two actions are the ds button at its small size rather
+ * than the 48px full-width auth button, because they sit side by side inside a
+ * list row — the same reasoning that keeps the password reveal a bare control
+ * in its sibling screens. Accept navigates to the same `accept_url` the anchor
+ * used to carry; Inertia's visit and its link do the same thing.
+ */
+function InviteCard({ invite, onDismiss }) {
+    const [accepting, setAccepting] = useState(false);
 
-                        <div className="p-5 sm:p-8 shrink-0 border-t border-neutral-800 bg-neutral-900/50">
-                            <h3 className="text-sm font-bold text-neutral-300 mb-3 text-left">Have a short code?</h3>
-                            <form onSubmit={handleCheckCode}>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. VQ-A3X9"
-                                    value={inviteCode}
-                                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                                    className="w-full bg-neutral-800 border items-center text-center font-mono tracking-[0.2em] border-neutral-700 text-white text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors shadow-inner"
-                                />
-                                {codeError && (
-                                    <p className="text-xs font-bold text-red-400 mt-2 flex items-center gap-1 justify-center">
-                                        <AlertCircle size={12} /> {codeError}
-                                    </p>
-                                )}
-                                
-                                <div className="flex gap-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCodeModal(false)}
-                                        className="flex-1 py-3 rounded-xl border border-neutral-700 hover:bg-interactive-hover text-neutral-300 font-bold transition-colors"
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={checkingCode || !inviteCode}
-                                        className="flex-1 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white font-bold transition-colors shadow-lg "
-                                    >
-                                        {checkingCode ? 'Checking...' : 'Check Code'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    return (
+        <div className="flex items-start gap-3 rounded-lg bg-success-50 p-4 dark:bg-success-500/10">
+            <Mail size={16} className="mt-0.5 shrink-0 text-success-600 dark:text-success-400" />
+            <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink">
+                    Invited to{' '}
+                    <span className="text-success-700 dark:text-success-300">{invite.store_name}</span>
+                </p>
+                <p className="mt-0.5 text-xs text-ink-muted">
+                    As <span className="font-medium capitalize text-ink-secondary">{invite.role}</span> ·{' '}
+                    {invite.plan} plan
+                </p>
+                <div className="mt-3 flex gap-2">
+                    <Button
+                        size="sm"
+                        icon={<CheckCircle size={12} />}
+                        disabled={accepting}
+                        onClick={() => {
+                            setAccepting(true);
+                            router.visit(invite.accept_url);
+                        }}
+                    >
+                        Accept
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={onDismiss}>
+                        Ignore
+                    </Button>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

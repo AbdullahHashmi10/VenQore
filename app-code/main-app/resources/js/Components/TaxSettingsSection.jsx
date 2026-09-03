@@ -54,7 +54,7 @@ export default function TaxSettingsSection({ data, setData }) {
                 {(data.tax_rates || []).map((tax, i) => (
                     <div
                         key={tax.id}
-                        className="group relative p-6 bg-surface border border-line rounded-xl hover:border-emerald-500 dark:hover:border-emerald-500/50 hover:shadow-xl hover: transition-all duration-slow"
+                        className="group relative p-6 bg-surface border border-line rounded-xl hover:border-emerald-500 dark:hover:border-emerald-500/50 hover:shadow-xl transition-all duration-slow"
                     >
                         {/* Background Decor */}
                         <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">

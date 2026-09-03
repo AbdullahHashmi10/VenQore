@@ -15,9 +15,9 @@ import {
 const ACCENT_PRESETS = ['#4f46e5', '#0ea5e9', '#059669', '#d97706', '#dc2626', '#7c3aed'];
 
 const TEMPLATES = {
-  clean:   { name: 'Clean',   description: 'Minimalist white template' },
-  modern:  { name: 'Modern',  description: 'Accent color band at top'  },
-  classic: { name: 'Classic', description: 'Bordered table format'     },
+  clean:   { name: 'Clean', description: 'Minimalist white template' },
+  modern:  { name: 'Modern', description: 'Accent color band at top' },
+  classic: { name: 'Classic', description: 'Bordered table format' },
   compact: { name: 'Compact', description: 'Dense layout for many items'},
 };
 
@@ -117,17 +117,17 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
   // ── Branding logos ─────────────────────────────────────────────────────────
   const LOGOS = [
-    { id: 'apex',    name: 'Apex Retail',     color: 'rgb(var(--vq-emerald-500))', symbol: <Store  className="w-5 h-5 text-emerald-500" /> },
-    { id: 'nova',    name: 'Nova Logistics',  color: 'rgb(var(--vq-amber-500))', symbol: <Truck  className="w-5 h-5 text-amber-500"  /> },
-    { id: 'quantum', name: 'Quantum Tech',    color: 'rgb(var(--vq-violet-500))', symbol: <Cpu    className="w-5 h-5 text-brand-500" /> },
+    { id: 'apex', name: 'Apex Retail', color: 'rgb(var(--vq-emerald-500))', symbol: <Store className="w-5 h-5 text-emerald-500" /> },
+    { id: 'nova', name: 'Nova Logistics', color: 'rgb(var(--vq-amber-500))', symbol: <Truck className="w-5 h-5 text-amber-500" /> },
+    { id: 'quantum', name: 'Quantum Tech', color: 'rgb(var(--vq-violet-500))', symbol: <Cpu className="w-5 h-5 text-brand-500" /> },
   ];
 
   // ── Document state ─────────────────────────────────────────────────────────
   const [company, setCompany] = useState({ name: '', address: '', email: '', phone: '', tax_id: '', logo_base64: null });
   const [client,  setClient]  = useState({ name: '', address: '', email: '' });
   const [items,   setItems]   = useState([
-    { description: 'Wireless Optical Mouse',   quantity: 3, unit_price: 15.00, tax_rate: 5,  discount_pct: 0  },
-    { description: 'USB-C Fast Charger Hub',   quantity: 2, unit_price: 29.90, tax_rate: 5,  discount_pct: 10 },
+    { description: 'Wireless Optical Mouse', quantity: 3, unit_price: 15.00, tax_rate: 5,  discount_pct: 0  },
+    { description: 'USB-C Fast Charger Hub', quantity: 2, unit_price: 29.90, tax_rate: 5,  discount_pct: 10 },
   ]);
   const [meta, setMeta] = useState({
     invoice_number: 'INV-2026-8849',
@@ -241,17 +241,17 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
     if (sample === 'handwritten') return {
       vendor_name: 'Al-Madina Grocers', invoice_no: 'HW-9921', date: today, due_date: dueDateStr,
       items: [
-        { description: 'Premium Basmati Rice (5 kg)', quantity: 2,  unit_price: 18.50, tax_rate: 0, discount_pct: 0 },
-        { description: 'Cooking Oil (3 Litres)',       quantity: 1,  unit_price: 22.00, tax_rate: 8, discount_pct: 0 },
-        { description: 'Brown Sugar (1 kg)',            quantity: 5,  unit_price: 3.20,  tax_rate: 0, discount_pct: 0 },
+        { description: 'Premium Basmati Rice (5 kg)', quantity: 2, unit_price: 18.50, tax_rate: 0, discount_pct: 0 },
+        { description: 'Cooking Oil (3 Litres)', quantity: 1,  unit_price: 22.00, tax_rate: 8, discount_pct: 0 },
+        { description: 'Brown Sugar (1 kg)', quantity: 5,  unit_price: 3.20,  tax_rate: 0, discount_pct: 0 },
       ],
     };
     if (sample === 'printed') return {
       vendor_name: 'Metro Hypermarket', invoice_no: 'POS-774921', date: today, due_date: dueDateStr,
       items: [
-        { description: 'Wireless Optical Mouse',  quantity: 3, unit_price: 15.00, tax_rate: 5, discount_pct: 0  },
-        { description: 'USB-C Fast Charger Hub',  quantity: 2, unit_price: 29.90, tax_rate: 5, discount_pct: 10 },
-        { description: 'Bluetooth Earbuds Pro',   quantity: 1, unit_price: 89.00, tax_rate: 8, discount_pct: 0  },
+        { description: 'Wireless Optical Mouse', quantity: 3, unit_price: 15.00, tax_rate: 5, discount_pct: 0  },
+        { description: 'USB-C Fast Charger Hub', quantity: 2, unit_price: 29.90, tax_rate: 5, discount_pct: 10 },
+        { description: 'Bluetooth Earbuds Pro', quantity: 1, unit_price: 89.00, tax_rate: 8, discount_pct: 0  },
       ],
     };
     return {
@@ -259,7 +259,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
       items: [
         { description: 'Enterprise Server Rack 12U', quantity: 1, unit_price: 499.00, tax_rate: 10, discount_pct: 5 },
         { description: 'Cat6 Ethernet Cable (300 m)', quantity: 2, unit_price: 125.00, tax_rate: 10, discount_pct: 0 },
-        { description: 'Gigabit Switch 24-Port',      quantity: 1, unit_price: 180.00, tax_rate: 10, discount_pct: 0 },
+        { description: 'Gigabit Switch 24-Port', quantity: 1, unit_price: 180.00, tax_rate: 10, discount_pct: 0 },
       ],
     };
   };
@@ -355,8 +355,8 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
         subtext:  'When Smart Capture connects to your live VenQore inventory and ledger, every scanned bill auto-posts to your accounts payable and adjusts stock — zero manual entry from receipt to reconciliation.',
       }}
       related={[
-        { href: '/tools/invoice-generator',        label: 'Invoice Generator'        },
-        { href: '/tools/receipt-generator',        label: 'Receipt Generator'        },
+        { href: '/tools/invoice-generator', label: 'Invoice Generator' },
+        { href: '/tools/receipt-generator', label: 'Receipt Generator' },
         { href: '/tools/purchase-order-generator', label: 'Purchase Order Generator' },
       ]}
       wide
@@ -403,9 +403,9 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
             <div className="grid grid-cols-2 gap-3 shrink-0">
               {[
                 { icon: <ScanLine className="w-4 h-4 text-brand-400" />, val: '95%+', label: 'Avg. Accuracy' },
-                { icon: <Clock    className="w-4 h-4 text-brand-400" />, val: '<3s',  label: 'Extraction Time' },
-                { icon: <FileText className="w-4 h-4 text-emerald-400"/>, val: '15+',  label: 'Doc Types' },
-                { icon: <Globe    className="w-4 h-4 text-amber-400"  />, val: '10+',  label: 'Languages' },
+                { icon: <Clock    className="w-4 h-4 text-brand-400" />, val: '<3s', label: 'Extraction Time' },
+                { icon: <FileText className="w-4 h-4 text-emerald-400"/>, val: '15+', label: 'Doc Types' },
+                { icon: <Globe    className="w-4 h-4 text-amber-400" />, val: '10+', label: 'Languages' },
               ].map((s) => (
                 <div key={s.label} className="p-3.5 rounded-2xl bg-white/[0.07] border border-white/[0.12] text-center min-w-[100px]">
                   <div className="flex justify-center mb-1">{s.icon}</div>
@@ -419,9 +419,9 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
           {/* how it works steps */}
           <div className="relative z-10 mt-10 pt-8 border-t border-white/[0.06] grid sm:grid-cols-3 gap-6">
             {[
-              { n: '01', icon: <Upload className="w-5 h-5" />,     title: 'Upload Your Document',   desc: 'Drag a photo, PDF, or scanned image — up to 5 pages per submission.' },
-              { n: '02', icon: <Brain  className="w-5 h-5" />,     title: 'AI Extracts Everything', desc: 'Reads vendor, client, items, quantities, prices, tax and totals automatically.' },
-              { n: '03', icon: <Download className="w-5 h-5" />,   title: 'Edit & Download PDF',    desc: 'Review in the live workspace, click to fix anything, then download a clean PDF.' },
+              { n: '01', icon: <Upload className="w-5 h-5" />, title: 'Upload Your Document', desc: 'Drag a photo, PDF, or scanned image — up to 5 pages per submission.' },
+              { n: '02', icon: <Brain className="w-5 h-5" />, title: 'AI Extracts Everything', desc: 'Reads vendor, client, items, quantities, prices, tax and totals automatically.' },
+              { n: '03', icon: <Download className="w-5 h-5" />, title: 'Edit & Download PDF', desc: 'Review in the live workspace, click to fix anything, then download a clean PDF.' },
             ].map((step, i) => (
               <div key={step.n} className="flex items-start gap-4">
                 <div className="shrink-0 w-10 h-10 rounded-xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center text-brand-300">
@@ -490,13 +490,13 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                   {[
-                    { value: 'invoice',       label: 'Invoice'     },
-                    { value: 'purchase',      label: 'Purchase'    },
-                    { value: 'expense',       label: 'Receipt'     },
-                    { value: 'quotation',     label: 'Quote'       },
-                    { value: 'packing_slip',  label: 'Packing'     },
-                    { value: 'credit_note',   label: 'Credit Note' },
-                    { value: 'purchase_order',label: 'PO'          },
+                    { value: 'invoice', label: 'Invoice' },
+                    { value: 'purchase', label: 'Purchase' },
+                    { value: 'expense', label: 'Receipt' },
+                    { value: 'quotation', label: 'Quote' },
+                    { value: 'packing_slip', label: 'Packing' },
+                    { value: 'credit_note', label: 'Credit Note' },
+                    { value: 'purchase_order',label: 'PO' },
                   ].map((opt) => (
                     <button key={opt.value} type="button" onClick={() => setDocType(opt.value)}
                       className={`p-3 rounded-xl border text-center transition-all duration-normal focus:outline-none text-2xs font-bold uppercase tracking-wider ${
@@ -654,7 +654,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                         <div key={logo.id} onClick={() => setSelectedLogo(logo.id)}
                           className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all duration-normal flex flex-col items-center justify-center gap-1.5 ${
                             selectedLogo === logo.id
-                              ? 'border-brand-500 bg-brand-500/[0.04] shadow-md  ring-1 ring-brand-500/30'
+                              ? 'border-brand-500 bg-brand-500/[0.04] shadow-md ring-1 ring-brand-500/30'
                               : 'border-line dark:border-white/[0.04] hover:border-line dark:hover:border-white/10'
                           }`}>
                           <div className="p-2 rounded-lg bg-surface dark:bg-white/5 border border-line dark:border-white/5">
@@ -786,9 +786,9 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               <div className="w-36"><Select value={meta.currency} onChange={(v) => setMeta((m) => ({ ...m, currency: v }))} options={currencyOptions} /></div>
               <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
                 <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'portrait' }))}
-                  className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>Portrait</button>
+                  className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}>Portrait</button>
                 <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'landscape' }))}
-                  className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-neutral-900 text-white dark:bg-white dark:text-[#05030f]' : 'text-ink-muted'}`}>Landscape</button>
+                  className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'landscape' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}>Landscape</button>
               </div>
               {isModern && (
                 <div className="flex items-center gap-1.5">
@@ -810,7 +810,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
               <div className="ml-auto">
                 <button type="button" onClick={generatePdf} disabled={generatingPdf}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:">
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50">
                   {generatingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   {generatingPdf ? 'Generating…' : 'Download PDF'}
                 </button>
@@ -866,11 +866,11 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                   <thead>
                     <tr className={`text-left text-2xs font-bold uppercase tracking-wide text-ink-muted ${isClassic ? 'border-b-2 border-neutral-900' : 'border-b border-neutral-900'}`}>
                       <th className="pb-2 pr-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted" /></th>
-                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.quantity}   onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))}   pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.quantity} onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))}   pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
                       <th className="pb-2 px-2 text-right w-24"><EditableText value={headers.unit_price} onChange={(v) => setHeaders((h) => ({ ...h, unit_price: v }))} pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
-                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount}   onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))}   pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
-                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.tax}        onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))}        pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
-                      <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount}     onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))}     pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount} onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))}   pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.tax} onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))}        pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
+                      <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount} onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))}     pulse={false} className="text-2xs font-bold uppercase tracking-wide text-ink-muted text-right" /></th>
                       <th className="w-8" />
                     </tr>
                   </thead>
@@ -878,10 +878,10 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                     {items.map((item, idx) => (
                       <tr key={idx} className="border-b border-line group">
                         <td className="py-2 pr-2"><EditableText value={item.description} onChange={(v) => updateItem(idx, 'description', v)} placeholder="Item description" className="block" /></td>
-                        <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.quantity}     onChange={(v) => updateItem(idx, 'quantity',     v)} className="text-right w-12" /></td>
-                        <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.unit_price}   onChange={(v) => updateItem(idx, 'unit_price',   v)} formatDisplay={fmtMoney} className="text-right w-16" /></td>
+                        <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.quantity} onChange={(v) => updateItem(idx, 'quantity', v)} className="text-right w-12" /></td>
+                        <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.unit_price} onChange={(v) => updateItem(idx, 'unit_price', v)} formatDisplay={fmtMoney} className="text-right w-16" /></td>
                         <td className="py-2 px-2 text-right"><EditableText as="number" min="0" max="100" value={item.discount_pct} onChange={(v) => updateItem(idx, 'discount_pct', v)} formatDisplay={(v) => (v > 0 ? `${v}%` : '—')} className="text-right w-12" /></td>
-                        <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.tax_rate}     onChange={(v) => updateItem(idx, 'tax_rate',     v)} formatDisplay={(v) => (v > 0 ? `${v}%` : '—')} className="text-right w-12" /></td>
+                        <td className="py-2 px-2 text-right"><EditableText as="number" min="0" value={item.tax_rate} onChange={(v) => updateItem(idx, 'tax_rate', v)} formatDisplay={(v) => (v > 0 ? `${v}%` : '—')} className="text-right w-12" /></td>
                         <td className="py-2 pl-2 text-right font-bold">{fmtMoney(lineTotals[idx]?.lineTotal)}</td>
                         <td className="py-2 pl-1 text-right">
                           <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1}
@@ -1019,10 +1019,10 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { name: 'Spark',  pages: 500,  price: '$3',  desc: 'Perfect for small stores',             popular: false },
-              { name: 'Shop',   pages: 1000, price: '$6',  desc: 'Most popular — growing businesses',    popular: true  },
-              { name: 'Pro',    pages: 2000, price: '$12', desc: 'For scaling multi-location operations', popular: false },
-              { name: 'Max',    pages: 4000, price: '$24', desc: 'Enterprise-volume processing',          popular: false },
+              { name: 'Spark', pages: 500,  price: '$3', desc: 'Perfect for small stores', popular: false },
+              { name: 'Shop', pages: 1000, price: '$6', desc: 'Most popular — growing businesses', popular: true  },
+              { name: 'Pro', pages: 2000, price: '$12', desc: 'For scaling multi-location operations', popular: false },
+              { name: 'Max', pages: 4000, price: '$24', desc: 'Enterprise-volume processing', popular: false },
             ].map((plan) => (
               <div key={plan.name}
                 className={`relative p-5 rounded-2xl border flex flex-col justify-between transition-all ${

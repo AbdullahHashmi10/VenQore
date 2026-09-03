@@ -20,7 +20,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
             {/* Ambient */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-1/3 left-1/3 w-[600px] h-[600px] bg-brand-900/15 rounded-full blur-[130px]" />
-                <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-[100px]" />
+                <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-brand-900/10 rounded-full blur-[100px]" />
             </div>
 
             {/* Nav */}
@@ -62,7 +62,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                         {/* Create store */}
                         <Link
                             href={route('store.create')}
-                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-brand-500/8 hover:border-brand-500/40 p-5 sm:p-8 flex flex-col transition-all duration-normal hover:shadow-2xl hover:"
+                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-brand-500/8 hover:border-brand-500/40 p-5 sm:p-8 flex flex-col transition-all duration-normal hover:shadow-2xl"
                         >
                             <div className="w-14 h-14 rounded-2xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center mb-6 group-hover:bg-brand-500/25 transition-colors">
                                 <Store size={24} className="text-brand-400" />
@@ -102,7 +102,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                         {/* Join store */}
                         <Link
                             href={route('store.join')}
-                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-emerald-500/5 hover:border-emerald-500/30 p-5 sm:p-8 flex flex-col transition-all duration-normal hover:shadow-2xl hover:"
+                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-emerald-500/5 hover:border-emerald-500/30 p-5 sm:p-8 flex flex-col transition-all duration-normal hover:shadow-2xl"
                         >
                             <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors">
                                 <Key size={24} className="text-emerald-400" />

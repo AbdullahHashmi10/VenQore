@@ -17,15 +17,15 @@ const PaymentModal = ({
     if (!isOpen) return null;
 
     const [payments, setPayments] = useState([
-        { 
-            method: 'cash', 
-            amount: '', 
-            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+        {
+            method: 'cash',
+            amount: '',
+            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null
         },
-        { 
-            method: 'bank', 
-            amount: '', 
-            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+        {
+            method: 'bank',
+            amount: '',
+            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null
         }
     ]);
     const [notes, setNotes] = useState('');
@@ -73,7 +73,7 @@ const PaymentModal = ({
         { id: 'cash', name: 'Cash', icon: Banknote, color: 'bg-emerald-500' },
         { id: 'bank', name: 'Bank Transfer', icon: Smartphone, color: 'bg-brand-500' },
         { id: 'card', name: 'Card', icon: CreditCard, color: 'bg-blue-500' },
-        { id: 'upi', name: 'UPI / QR', icon: Smartphone, color: 'bg-purple-500' },
+        { id: 'upi', name: 'UPI / QR', icon: Smartphone, color: 'bg-brand-500' },
         { id: 'credit', name: 'Credit (Udhaar)', icon: CheckCircle, color: 'bg-amber-500' },
     ].filter(m => m.id !== 'credit' || customer !== null); // Filter out credit if no customer
 
@@ -84,19 +84,19 @@ const PaymentModal = ({
 
     const addPaymentMethod = () => {
         const remaining = Math.max(0, totalAmount - totalPaid);
-        setPayments([...payments, { 
-            method: 'cash', 
-            amount: remaining > 0 ? remaining : '', 
-            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+        setPayments([...payments, {
+            method: 'cash',
+            amount: remaining > 0 ? remaining : '',
+            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null
         }]);
     };
 
     const removePaymentMethod = (index) => {
         const newPayments = payments.filter((_, i) => i !== index);
-        setPayments(newPayments.length ? newPayments : [{ 
-            method: 'cash', 
-            amount: '', 
-            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+        setPayments(newPayments.length ? newPayments : [{
+            method: 'cash',
+            amount: '',
+            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null
         }]);
     };
 
@@ -107,7 +107,7 @@ const PaymentModal = ({
     };
 
     const handleComplete = () => {
-        // If credit sale, we allow "underpayment" (the rest is implicitly credit if not explicitly set, 
+        // If credit sale, we allow "underpayment" (the rest is implicitly credit if not explicitly set,
         // but here we want explicit credit entry for clarity, or we can auto-calculate).
         // For now, enforce total >= amount unless it's a credit sale where we might track the balance differently.
         // Actually, if "Credit" is a payment method, it counts towards the totalPaid.
@@ -222,7 +222,7 @@ const PaymentModal = ({
                                      </div>
                                      {['bank', 'card', 'online', 'upi'].includes(payment.method) && bankAccounts.length > 0 && (
                                          <div className="mt-1.5 animate-in slide-in-from-top-1 duration-normal relative">
-                                             <button 
+                                             <button
                                                  type="button"
                                                  onClick={() => setActiveAccountDropdownIndex(activeAccountDropdownIndex === index ? null : index)}
                                                  className="w-full bg-sunken rounded-lg py-1.5 px-3 text-2xs font-bold text-ink-secondary focus:ring-1 focus:ring-brand-500/50 outline-none flex items-center justify-between cursor-pointer transition-all"
@@ -315,7 +315,7 @@ const PaymentModal = ({
                             w-full h-14 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all
                             ${totalPaid < totalAmount && !isCreditSale
                                 ? 'bg-sunken text-ink-muted cursor-not-allowed'
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white hover: active:scale-[0.98]'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-[0.98]'
                             }
 `}
                     >

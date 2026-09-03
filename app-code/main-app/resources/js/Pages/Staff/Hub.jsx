@@ -16,14 +16,14 @@ import { vq } from '@/theme/runtime';
    ═══════════════════════════════════════════════════════════════════════ */
 
 const PLATFORM_ROLES = {
-    platform_owner:         { label: 'Hashmi Dashboard', icon: Crown, color: 'text-amber-400',  bg: 'bg-amber-400/10',  border: 'border-amber-400/20' },
-    platform_manager:       { label: 'Platform Manager', icon: Crown, color: 'text-amber-400',  bg: 'bg-amber-400/10',  border: 'border-amber-400/20' },
-    support_director:       { label: 'Support Director', icon: Zap,   color: 'text-brand-400', bg: 'bg-brand-400/10', border: 'border-brand-400/20' },
-    support_dept_manager:   { label: 'Support Manager',  icon: Zap,   color: 'text-brand-400', bg: 'bg-brand-400/10', border: 'border-brand-400/20' },
-    support_agent:          { label: 'Support Agent',    icon: Users, color: 'text-blue-400',   bg: 'bg-blue-400/10',   border: 'border-blue-400/20' },
-    content_writer:         { label: 'Content Writer',   icon: BookOpen, color: 'text-teal-400', bg: 'bg-teal-400/10', border: 'border-teal-400/20' },
-    marketing_manager:      { label: 'Marketing Lead',   icon: Megaphone, color: 'text-pink-400', bg: 'bg-pink-400/10', border: 'border-pink-400/20' },
-    platform_finance:       { label: 'Finance Officer',  icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
+    platform_owner:         { label: 'Hashmi Dashboard', icon: Crown, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
+    platform_manager:       { label: 'Platform Manager', icon: Crown, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
+    support_director:       { label: 'Support Director', icon: Zap, color: 'text-brand-400', bg: 'bg-brand-400/10', border: 'border-brand-400/20' },
+    support_dept_manager:   { label: 'Support Manager', icon: Zap,   color: 'text-brand-400', bg: 'bg-brand-400/10', border: 'border-brand-400/20' },
+    support_agent:          { label: 'Support Agent', icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
+    content_writer:         { label: 'Content Writer', icon: BookOpen, color: 'text-teal-400', bg: 'bg-teal-400/10', border: 'border-teal-400/20' },
+    marketing_manager:      { label: 'Marketing Lead', icon: Megaphone, color: 'text-brand-400', bg: 'bg-brand-400/10', border: 'border-brand-400/20' },
+    platform_finance:       { label: 'Finance Officer', icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
 };
 
 function RoleBadge({ role }) {
@@ -92,23 +92,23 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
     const hasSupportAccess = ['platform_owner', 'platform_manager', 'support_director', 'support_dept_manager', 'support_agent', 'support', 'owner'].includes(employee.role);
 
     return (
-        <div className="min-h-screen bg-void-950 text-white font-sans selection:bg-violet-500/40 selection:text-white relative overflow-hidden">
+        <div className="min-h-screen bg-void-950 text-white font-sans selection:bg-brand-500/40 selection:text-white relative overflow-hidden">
             <Head title="Platform Employee Cockpit" />
 
             {/* Ambient Background Glows */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[140px]" />
+                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[140px]" />
                 <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-brand-600/8 rounded-full blur-[120px]" />
             </div>
 
             {/* Header */}
             <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between border-b border-white/[0.04]">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-violet-500/10 rounded-xl flex items-center justify-center border border-violet-500/20 shadow-xl">
-                        <Sparkles size={18} className="text-violet-400" />
+                    <div className="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center border border-brand-500/20 shadow-xl">
+                        <Sparkles size={18} className="text-brand-400" />
                     </div>
                     <div>
-                        <span className="text-2xs font-bold text-violet-400 uppercase tracking-widest block">VenQore Internal</span>
+                        <span className="text-2xs font-bold text-brand-400 uppercase tracking-widest block">VenQore Internal</span>
                         <span className="text-sm font-bold text-white tracking-tight">Team Command Cockpit</span>
                     </div>
                 </div>
@@ -126,15 +126,15 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
 
             {/* Dashboard Container */}
             <main className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* ── Left Column — Welcome & Active Rooms ── */}
                 <div className="lg:col-span-2 space-y-8">
-                    
+
                     {/* Welcome Card */}
                     <div className="relative rounded-xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-8 overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 right-0 p-8 w-48 h-48 bg-violet-600/10 rounded-full blur-[50px] -mt-16 -mr-16 pointer-events-none" />
-                        
-                        <span className="text-3xs font-bold text-violet-400 uppercase tracking-[0.2em] block mb-2">VenQore Platform Staff</span>
+                        <div className="absolute top-0 right-0 p-8 w-48 h-48 bg-brand-600/10 rounded-full blur-[50px] -mt-16 -mr-16 pointer-events-none" />
+
+                        <span className="text-3xs font-bold text-brand-400 uppercase tracking-[0.2em] block mb-2">VenQore Platform Staff</span>
                         <h1 className="text-3xl font-bold tracking-tight text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                             {employee.name}
                         </h1>
@@ -150,9 +150,9 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                     {/* Operational Rooms Section */}
                     <div className="space-y-4">
                         <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2.5">
-                            <Store size={18} className="text-violet-400" /> Cockpit Rooms
+                            <Store size={18} className="text-brand-400" /> Cockpit Rooms
                         </h2>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Support Room (Active if Support Role) */}
                             <div className="group rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 transition-all duration-slow flex flex-col justify-between shadow-lg">
@@ -167,7 +167,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                     </div>
                                     <h3 className="font-bold text-white mb-1 group-hover:text-brand-300 transition-colors">Support Room</h3>
                                     <p className="text-xs text-ink-muted mb-4">Manage global customer inbox sessions and co-pilot with Vena AI.</p>
-                                    
+
                                     {/* Real-time support cockpit stats */}
                                     <div className="grid grid-cols-3 gap-2 mb-6">
                                         <div className="bg-white/5 border border-white/[0.04] p-2.5 rounded-xl text-center">
@@ -187,7 +187,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                 </div>
 
                                 {hasSupportAccess ? (
-                                    <Link href={route('platform.chatbot.inbox')} className="w-full text-center py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white shadow-lg hover: transition-all flex items-center justify-center gap-1.5">
+                                    <Link href={route('platform.chatbot.inbox')} className="w-full text-center py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-bold text-white shadow-lg transition-all flex items-center justify-center gap-1.5">
                                         Enter Support Command <ArrowRight size={12} />
                                     </Link>
                                 ) : (
@@ -220,7 +220,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             <div className="group rounded-2xl bg-white/[0.01] border border-white/[0.03] p-5 opacity-60 flex flex-col justify-between shadow-lg">
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-pink-500/5 flex items-center justify-center text-sm font-bold text-pink-500">
+                                        <div className="w-10 h-10 rounded-lg bg-brand-500/5 flex items-center justify-center text-sm font-bold text-brand-500">
                                             <Megaphone size={18} />
                                         </div>
                                         <span className="text-4xs bg-neutral-800 border border-neutral-700 text-ink-muted font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -260,7 +260,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                     {hasSupportAccess && (
                         <div className="space-y-4">
                             <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2.5">
-                                <MessageSquare size={18} className="text-violet-400" /> Referred Platform Queue
+                                <MessageSquare size={18} className="text-brand-400" /> Referred Platform Queue
                             </h2>
 
                             {referred_chats.length === 0 ? (
@@ -274,7 +274,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                     {referred_chats.map(chat => (
                                         <div key={chat.id} className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-white/[0.03] transition-colors">
                                             <div className="flex items-start gap-3.5">
-                                                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0 border border-violet-500/20 text-violet-400">
+                                                <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center shrink-0 border border-brand-500/20 text-brand-400">
                                                     <MessageSquare size={16} />
                                                 </div>
                                                 <div className="min-w-0">
@@ -298,7 +298,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                                 </div>
                                             </div>
 
-                                            <Link href={chat.url} className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 hover:border-violet-400/40 text-violet-400 hover:text-violet-300 font-bold text-xs transition-all">
+                                            <Link href={chat.url} className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/20 hover:border-brand-400/40 text-brand-400 hover:text-brand-300 font-bold text-xs transition-all">
                                                 Open Conversation <ArrowRight size={12} />
                                             </Link>
                                         </div>
@@ -311,12 +311,12 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
 
                 {/* ── Right Column — Duties & Platform Checklist ── */}
                 <div className="space-y-8">
-                    
+
                     {/* Task Checklist card */}
                     <div className="rounded-xl bg-gradient-to-b from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-6 shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="font-bold text-white text-base tracking-tight flex items-center gap-2">
-                                <ListTodo size={18} className="text-violet-400" /> Platform Duties
+                                <ListTodo size={18} className="text-brand-400" /> Platform Duties
                             </h2>
                             <span className="text-2xs bg-neutral-800 text-ink-muted font-bold px-2 py-0.5 rounded-full">
                                 {activeTasks.filter(t => t.completed).length}/{activeTasks.length} Completed
@@ -329,8 +329,8 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                     key={task.id}
                                     onClick={() => toggleTask(task.id)}
                                     className={`w-full text-left p-4 rounded-xl border flex items-start gap-3 transition-all duration-slow group ${
-                                        task.completed 
-                                            ? 'bg-emerald-500/[0.02] border-emerald-500/15 text-ink-muted line-through' 
+                                        task.completed
+                                            ? 'bg-emerald-500/[0.02] border-emerald-500/15 text-ink-muted line-through'
                                             : 'bg-white/[0.01] border-white/[0.05] hover:border-white/[0.1] text-neutral-300'
                                     }`}
                                 >
@@ -338,13 +338,13 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                         {task.completed ? (
                                             <CheckCircle2 size={16} className="text-emerald-500" />
                                         ) : (
-                                            <div className="w-4 h-4 rounded border border-neutral-700 flex items-center justify-center group-hover:border-violet-500 transition-colors" />
+                                            <div className="w-4 h-4 rounded border border-neutral-700 flex items-center justify-center group-hover:border-brand-500 transition-colors" />
                                         )}
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-xs leading-relaxed font-medium">{task.text}</p>
                                         <span className={`text-4xs font-bold uppercase tracking-widest mt-1.5 inline-block ${
-                                            task.priority === 'high' ? 'text-red-400' : task.priority === 'medium' ? 'text-violet-400' : 'text-ink-muted'
+                                            task.priority === 'high' ? 'text-red-400' : task.priority === 'medium' ? 'text-brand-400' : 'text-ink-muted'
                                         }`}>
                                             {task.priority} Priority
                                         </span>
@@ -357,9 +357,9 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                     {/* Operational Notice Box */}
                     <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] p-6 relative overflow-hidden">
                         <div className="absolute -top-12 -right-12 w-24 h-24 bg-brand-500/10 rounded-full blur-xl pointer-events-none" />
-                        
+
                         <h3 className="font-bold text-white text-xs tracking-wide uppercase mb-2 flex items-center gap-1.5">
-                            <ShieldAlert size={14} className="text-violet-400" /> Platform Security
+                            <ShieldAlert size={14} className="text-brand-400" /> Platform Security
                         </h3>
                         <p className="text-ink-muted text-xs leading-relaxed">
                             Support agent logs, learning database inputs, and co-pilot suggestions are audited under platform administration standards to maintain VenQore system integrity.
@@ -376,12 +376,12 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                             <div>
                                 <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                                    <Sparkles className="text-purple-400" size={24} /> Vena AI Autonomy Dashboard
+                                    <Sparkles className="text-brand-400" size={24} /> Vena AI Autonomy Dashboard
                                 </h2>
                                 <p className="text-ink-muted text-xs mt-1">Monitor autonomous resolve rates and manage self-improving escalation boundaries</p>
                             </div>
                             <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.05] p-3 rounded-2xl shrink-0">
-                                <span className="text-2xs bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                <span className="text-2xs bg-brand-500/10 border border-brand-500/20 text-brand-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                     Learning Active
                                 </span>
                             </div>
@@ -409,8 +409,8 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
                                                 <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
                                                 <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                                                <Tooltip 
-                                                    contentStyle={{ backgroundColor: vq.slate[950], borderColor: 'rgba(255,255,255,0.08)', borderRadius: '1rem', color: '#fff' }} 
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: vq.slate[950], borderColor: 'rgba(255,255,255,0.08)', borderRadius: '1rem', color: '#fff' }}
                                                     itemStyle={{ fontSize: '11px', fontWeight: 'bold' }}
                                                     labelStyle={{ fontSize: '10px', color: vq.purple[500], fontWeight: 'black', textTransform: 'uppercase' }}
                                                 />
@@ -451,7 +451,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                                 onClick={() => handleToggleAutonomy(cat.category, cat.ai_autonomous)}
                                                 className={`px-3 py-1.5 rounded-xl text-3xs font-bold uppercase tracking-wider transition-all border shrink-0 ${
                                                     cat.ai_autonomous
-                                                        ? 'bg-purple-600/10 border-purple-500/30 text-purple-400 shadow-lg '
+                                                        ? 'bg-brand-600/10 border-brand-500/30 text-brand-400 shadow-lg '
                                                         : 'bg-neutral-900 border-white/5 text-ink-muted hover:text-white hover:border-white/10'
                                                 }`}
                                             >

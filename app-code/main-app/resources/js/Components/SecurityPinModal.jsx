@@ -143,7 +143,7 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                     /* PIN Entry Content */
                     <>
                         <div className="p-8 text-center border-b border-line space-y-4">
-                            <div className={`w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-lg flex items-center justify-center mx-auto text-violet-600 dark:text-violet-400 transition-transform duration-slow ${loading ? 'animate-pulse scale-90' : ''}`}>
+                            <div className={`w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-lg flex items-center justify-center mx-auto text-brand-600 dark:text-brand-400 transition-transform duration-slow ${loading ? 'animate-pulse scale-90' : ''}`}>
                                 <Shield size={32} />
                             </div>
                             <div>
@@ -159,7 +159,7 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                                     <div
                                         key={i}
                                         className={`w-4 h-4 rounded-full transition-all duration-slow ${i < input.length
-                                            ? 'bg-violet-600 scale-125 shadow-lg '
+                                            ? 'bg-brand-600 scale-125 shadow-lg '
                                             : 'bg-sunken'
                                             } ${error ? 'bg-red-500' : ''}`}
                                     />
@@ -177,7 +177,7 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                                     key={num}
                                     disabled={loading}
                                     onClick={() => handleNumberClick(num.toString())}
-                                    className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50"
+                                    className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 transition-all active:scale-95 disabled:opacity-50"
                                 >
                                     {num}
                                 </button>
@@ -192,14 +192,14 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
                             <button
                                 disabled={loading}
                                 onClick={() => handleNumberClick('0')}
-                                className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50"
+                                className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 transition-all active:scale-95 disabled:opacity-50"
                             >
                                 0
                             </button>
                             <button
                                 disabled={loading || input.length !== 6}
                                 onClick={() => verifySecurityPin(input)}
-                                className={`h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${input.length === 6 ? 'bg-violet-600 text-white shadow-lg  hover:bg-violet-700' : 'bg-sunken text-ink-faint cursor-not-allowed'}`}
+                                className={`h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${input.length === 6 ? 'bg-brand-600 text-white shadow-lg  hover:bg-brand-700' : 'bg-sunken text-ink-faint cursor-not-allowed'}`}
                             >
                                 <Check size={28} />
                             </button>

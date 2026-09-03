@@ -102,7 +102,7 @@ function emitRamps(theme) {
  * Each Tailwind colour family points at whichever ramp the theme bound it to.
  * This is the single mechanism that makes ~40,000 pre-existing classes follow
  * the theme without any component being edited: Tailwind compiles
- * `bg-indigo-600` to `rgb(var(--vq-indigo-600) / 1)`, and this block decides
+ * `bg-brand-600` to `rgb(var(--vq-indigo-600) / 1)`, and this block decides
  * what `--vq-indigo-600` means.
  */
 function emitPaletteBindings(theme) {
@@ -245,7 +245,7 @@ function emitThemeTokens(theme) {
         '',
         '    /* ═══════════════ COLOUR RAMPS ═══════════════',
         '       Stored as bare "R G B" channel triplets, not hex, so that Tailwind\'s',
-        '       opacity modifiers keep working: bg-indigo-500/30 compiles to',
+        '       opacity modifiers keep working: bg-brand-500/30 compiles to',
         '       rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every',
         '       /opacity class in the codebase. */',
         ...emitRamps(theme),

@@ -10,7 +10,7 @@
  *
  * 1. PALETTE RAMPS (`ramps` + `palettes`)
  *    The ~40,000 existing Tailwind colour classes in this codebase — things
- *    like `bg-indigo-600` and `dark:text-slate-400` — are rewired so that the
+ *    like `bg-brand-600` and `dark:text-slate-400` — are rewired so that the
  *    *name* `indigo` resolves to whatever ramp the active theme binds to it.
  *    Ramps are NOT mode-dependent: light/dark is already handled throughout the
  *    app by picking different stops (`bg-white dark:bg-slate-900`), so flipping
@@ -154,14 +154,20 @@ export const TYPOGRAPHY_TOKENS = {
         '2xl', '3xl', '4xl', '5xl',
     ],
 
-    weights: ['light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black'],
+    // `extrabold` and `black` are deliberately absent. §6 caps weight at 700,
+    // and while both used to be aliased to 700 anyway, keeping the names alive
+    // meant `font-black` compiled and read as intentional. It no longer does.
+    weights: ['light', 'normal', 'medium', 'semibold', 'bold'],
     leading: ['none', 'tight', 'snug', 'normal', 'relaxed', 'loose'],
     tracking: ['tighter', 'tight', 'normal', 'wide', 'wider', 'widest'],
 };
 
 /** Corner radii and elevation. */
 export const SHAPE_TOKENS = {
-    radius: ['none', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', 'full'],
+    // `3xl` is deliberately absent. §7 puts the ceiling at 36px, which is `2xl`;
+    // `3xl` was aliased to the same 36px, so it added no shape and only a way to
+    // write a class the rules forbid.
+    radius: ['none', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', 'full'],
     shadow: ['none', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', 'inner', 'glow'],
     border: ['hairline', 'thin', 'thick'],
 };

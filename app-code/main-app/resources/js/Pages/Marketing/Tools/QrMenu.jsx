@@ -328,7 +328,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                         <button
                             onClick={handleDownload}
                             disabled={loading}
-                            className="w-full py-4 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-2xl text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                            className="w-full py-4 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-2xl text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
                         >
                             <Download size={18} /> {loading ? 'Generating PDF...' : 'Download Printable PDF'}
                         </button>

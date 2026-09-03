@@ -9,8 +9,8 @@
  * triplet" string — e.g. "99 102 241" — because that is the only format that
  * lets Tailwind's `<alpha-value>` placeholder work:
  *
- *     bg-indigo-500      -> rgb(var(--vq-indigo-500) / 1)
- *     bg-indigo-500/30   -> rgb(var(--vq-indigo-500) / 0.3)
+ *     bg-brand-500      -> rgb(var(--vq-indigo-500) / 1)
+ *     bg-brand-500/30   -> rgb(var(--vq-indigo-500) / 0.3)
  *
  * Store a plain hex in the variable instead and every `/opacity` modifier in
  * the codebase silently breaks, so all conversion funnels through `toTriplet`.

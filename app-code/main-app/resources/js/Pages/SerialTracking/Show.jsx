@@ -9,7 +9,7 @@ const statusConfig = {
     sold: { label: 'Sold', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: ShoppingCart },
     returned: { label: 'Returned', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', icon: RotateCcw },
     defective: { label: 'Defective', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: AlertTriangle },
-    transfer: { label: 'In Transfer', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', icon: ArrowRightLeft },
+    transfer: { label: 'In Transfer', color: 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400', icon: ArrowRightLeft },
 };
 
 export default function SerialShow({ serial }) {

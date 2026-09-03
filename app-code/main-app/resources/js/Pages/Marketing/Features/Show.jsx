@@ -120,7 +120,7 @@ const DEMO_BY_FEATURE = {
     'growth-engine': {
         Component: GrowthEngineDemo,
         eyebrow: 'Try it now',
-        title: <>Every insight <span className="text-violet-400">shows its working.</span></>,
+        title: <>Every insight <span className="text-brand-400">shows its working.</span></>,
         lead: 'Four brains read your customers, stock, margin and cash. Each one exposes the numbers behind its call, and each prediction is scored afterwards against what actually happened.',
     },
 };

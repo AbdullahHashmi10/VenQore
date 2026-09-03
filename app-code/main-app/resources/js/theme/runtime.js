@@ -90,18 +90,55 @@ export const gradients = { ...(theme.gradients || {}) };
  * distinguishable. Reach for this instead of hand-picking colours per chart —
  * that is how a product ends up with eleven different blues.
  */
-export const chartSeries = [
-    role.brand[500],
-    role.success[500],
-    role.warning[500],
-    role.info[400],
-    role.accent[500],
-    role.danger[500],
-    role.highlight[400],
-    role.brand[300],
-    role.success[700],
-    role.warning[700],
-];
+const ramp = (name) => buildScale(name);
+
+/**
+ * Categorical data colour — DESIGN-RULES §5, the eight slots, in order.
+ *
+ * Fixed order, never cycled. Slot 1 is the brand, so the first series in every
+ * chart is VenQore teal. A ninth series folds into "Other", becomes small
+ * multiples, or the chart is wrong.
+ *
+ * Light marks take the 600 stop, not 500: §5 records that `--vq-series-1`
+ * (#0BAA8F) measures 2.93:1 on a white card, under the 3:1 floor for a mark that
+ * encodes a quantity. Dark takes the 400 stop for the same reason inverted.
+ *
+ * Every value here comes from the active theme's ramps, so a rebrand moves the
+ * charts with it. Do NOT hand-pick chart colours at the call site — that is how
+ * a product ends up with eleven different blues, and how five palettes in this
+ * codebase came to render four identical slices (violet, purple, fuchsia and
+ * pink all resolve to the same plum ramp).
+ */
+const SERIES_RAMPS = ['teal', 'coral', 'sky', 'butter', 'lime', 'plum', 'teal', 'ink'];
+
+export const series = {
+    light: SERIES_RAMPS.map((r, i) => ramp(r)[i === 6 ? 900 : i === 7 ? 500 : 600]),
+    dark:  SERIES_RAMPS.map((r, i) => ramp(r)[i === 6 ? 100 : i === 7 ? 400 : 400]),
+};
+
+/** The categorical series for the current mode. Pass `isDarkMode`. */
+export const seriesFor = (isDark) => (isDark ? series.dark : series.light);
+
+/**
+ * Sequential — magnitude, one hue (§5). Use for a single measure ramped by size,
+ * never for unrelated categories.
+ */
+export const sequential = {
+    light: [100, 300, 500, 700, 900].map((s) => ramp('teal')[s]),
+    dark:  [900, 700, 500, 300, 100].map((s) => ramp('teal')[s]),
+};
+
+/**
+ * Diverging — polarity, two hues with a NEUTRAL midpoint (§5). Never a hue in
+ * the middle: a third colour reads as a third category.
+ */
+export const diverging = {
+    light: [ramp('danger')[600], ramp('danger')[300], ramp('ink')[100], ramp('teal')[300], ramp('teal')[600]],
+    dark:  [ramp('danger')[400], ramp('danger')[200], ramp('ink')[800], ramp('teal')[300], ramp('teal')[500]],
+};
+
+/** @deprecated Use `series` / `seriesFor(isDark)`. Kept so old imports resolve. */
+export const chartSeries = series.light;
 
 /** Metadata, occasionally useful for debug panels and support screenshots. */
 export const themeInfo = {

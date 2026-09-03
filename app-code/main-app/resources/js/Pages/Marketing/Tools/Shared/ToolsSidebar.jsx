@@ -67,7 +67,7 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
             <nav className="space-y-6">
                 {smartCaptureTool && (
                     <div>
-                        <p className="text-2xs font-bold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400 mb-2 px-3 flex items-center gap-1">
+                        <p className="text-2xs font-bold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 mb-2 px-3 flex items-center gap-1">
                             <span>Premium AI Feature</span>
                         </p>
                         <div className="space-y-0.5">
@@ -76,15 +76,15 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
                                 onClick={() => setOpen(false)}
                                 className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-all duration-slow border ${
                                     currentSlug === 'smart-capture'
-                                        ? 'bg-gradient-to-r from-brand-600/20 to-brand-600/10 text-violet-700 dark:text-violet-300 font-bold border-violet-500/40 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
-                                        : 'bg-gradient-to-r from-brand-500/[0.04] to-brand-500/[0.01] hover:from-brand-500/[0.08] hover:to-brand-500/[0.05] border-violet-500/15 hover:border-violet-500/30 text-ink dark:text-ink-secondary hover:text-violet-600 dark:hover:text-violet-400 font-bold'
+                                        ? 'bg-gradient-to-r from-brand-600/20 to-brand-600/10 text-brand-700 dark:text-brand-300 font-bold border-brand-500/40 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
+                                        : 'bg-gradient-to-r from-brand-500/[0.04] to-brand-500/[0.01] hover:from-brand-500/[0.08] hover:to-brand-500/[0.05] border-brand-500/15 hover:border-brand-500/30 text-ink dark:text-ink-secondary hover:text-brand-600 dark:hover:text-brand-400 font-bold'
                                 }`}
                             >
                                 <span className="flex items-center gap-2 truncate">
                                     <span className="animate-pulse">✨</span>
                                     <span className="truncate">{smartCaptureTool.short}</span>
                                 </span>
-                                <span className="px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400 text-3xs font-bold uppercase tracking-wider shrink-0 scale-90">
+                                <span className="px-1.5 py-0.5 rounded bg-brand-500/15 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-wider shrink-0 scale-90">
                                     PRO
                                 </span>
                             </Link>

@@ -1,40 +1,46 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
-import { ShieldX, ArrowLeft, Clock } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { ArrowLeft, Clock, ShieldX } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { AuthButton, AuthStack } from '@/Components/Auth';
+
+/**
+ * Invite/Invalid.jsx — the dead end for a link that no longer works.
+ *
+ * Same shell as Invite/Accept, which is the point: a user who clicks a stale
+ * link should land somewhere that plainly belongs to the same product as the
+ * page they expected, not on a differently-built error screen.
+ *
+ * What went: the full-page ink → teal → ink gradient, the 5%-white
+ * `backdrop-blur-xl` card, `shadow-2xl`, three 36px corners, `animate-fade-in`,
+ * and the white-alpha button standing in for a real one. The reason-specific
+ * glyph and all three messages stay verbatim.
+ *
+ * `back` stays on — this screen's whole job is to point somewhere else.
+ */
+const MESSAGES = {
+    expired:   { title: 'Invite Expired', body: 'This invite link was only valid for 48 hours. Ask your store admin to resend it.' },
+    not_found: { title: 'Invalid Link',   body: "This invite link doesn't exist or has already been used. Contact your store admin for a new one." },
+    revoked:   { title: 'Invite Revoked', body: 'The store admin has cancelled this invitation. Contact them for a new invite.' },
+};
 
 export default function InviteInvalid({ reason = 'not_found' }) {
-    const messages = {
-        expired:   { title: 'Invite Expired', body: 'This invite link was only valid for 48 hours. Ask your store admin to resend it.' },
-        not_found: { title: 'Invalid Link',   body: 'This invite link doesn\'t exist or has already been used. Contact your store admin for a new one.' },
-        revoked:   { title: 'Invite Revoked', body: 'The store admin has cancelled this invitation. Contact them for a new invite.' },
-    };
-    const msg = messages[reason] || messages.not_found;
+    const msg = MESSAGES[reason] || MESSAGES.not_found;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-brand-950 to-neutral-900 flex items-center justify-center p-4 sm:p-6">
-            <Head title="Invalid Invitation — VenQore" />
-
-            <div className="w-full max-w-md">
-                {/* Card */}
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl text-center animate-fade-in">
-                    {/* Icon */}
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-xl ">
-                        {reason === 'expired' ? (
-                            <Clock className="text-red-400 w-8 h-8 sm:w-10 sm:h-10" />
-                        ) : (
-                            <ShieldX className="text-red-400 w-8 h-8 sm:w-10 sm:h-10" />
-                        )}
-                    </div>
-
-                    <h1 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">{msg.title}</h1>
-                    <p className="text-ink-muted text-sm leading-relaxed mb-6 sm:mb-8 max-w-sm mx-auto">{msg.body}</p>
-
-                    <Link href="/login"
-                        className="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold text-sm transition-all active:scale-98">
-                        <ArrowLeft size={16} /> Back to Login
-                    </Link>
+        <AuthLayout title="Invalid Invitation — VenQore" heading={msg.title} subheading={msg.body}>
+            <AuthStack gap={6}>
+                <div className="flex justify-center">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-md bg-danger-50 text-danger-600 dark:bg-danger-500/10 dark:text-danger-300">
+                        {reason === 'expired' ? <Clock size={24} /> : <ShieldX size={24} />}
+                    </span>
                 </div>
-            </div>
-        </div>
+
+                {/* `router.visit` rather than an anchor: the ds button is the only
+                    button on these screens, and Inertia navigation is preserved. */}
+                <AuthButton variant="secondary" onClick={() => router.visit('/login')} icon={<ArrowLeft size={16} />}>
+                    Back to Login
+                </AuthButton>
+            </AuthStack>
+        </AuthLayout>
     );
 }

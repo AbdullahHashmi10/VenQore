@@ -209,7 +209,7 @@ export default function BarcodeLabelSheetTool({
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50 disabled:"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -221,7 +221,7 @@ export default function BarcodeLabelSheetTool({
                 <div className="mb-8">
                     <label className={labelCls}>Paste one product per line: name,value,format,price</label>
                     <textarea className={`${inputCls} font-mono text-xs`} rows={8} value={bulkText} onChange={(e) => setBulkText(e.target.value)} />
-                    <button type="button" onClick={parseBulk} disabled={parsing} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sunken dark:bg-white text-white dark:text-ink text-xs font-bold uppercase tracking-wide disabled:opacity-50">
+                    <button type="button" onClick={parseBulk} disabled={parsing} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accent-fill text-accent-on hover:bg-accent-fill-hover text-xs font-bold uppercase tracking-wide disabled:opacity-50">
                         {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Parse into label grid
                     </button>
                 </div>

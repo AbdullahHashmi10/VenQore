@@ -270,14 +270,16 @@ export default {
             },
 
             fontSize: fontSizeMap,
-            fontWeight: varMap(TYPOGRAPHY_TOKENS.weights, cssVar.weight),
             lineHeight: varMap(TYPOGRAPHY_TOKENS.leading, cssVar.leading),
             letterSpacing: varMap(TYPOGRAPHY_TOKENS.tracking, cssVar.tracking),
 
             /* ───────────────────────────────────────────────────────────────
                SHAPE
+               ───────────────────────────────────────────────────────────────
+               `boxShadow` stays under extend so bare `shadow` keeps Tailwind's
+               stock value — 131 live classes depend on it. `borderRadius` is
+               closed below, outside extend.
                ─────────────────────────────────────────────────────────────── */
-            borderRadius: varMap(SHAPE_TOKENS.radius, cssVar.radius),
             boxShadow: varMap(SHAPE_TOKENS.shadow, cssVar.shadow),
 
             /* ───────────────────────────────────────────────────────────────
@@ -366,8 +368,9 @@ export default {
 
             /* ───────────────────────────────────────────────────────────────
                MOTION
+               ───────────────────────────────────────────────────────────────
+               `transitionDuration` is closed below, outside extend.
                ─────────────────────────────────────────────────────────────── */
-            transitionDuration: varMap(MOTION_TOKENS.duration, cssVar.duration),
             transitionTimingFunction: varMap(MOTION_TOKENS.easing, cssVar.easing),
 
             /* ───────────────────────────────────────────────────────────────
@@ -392,6 +395,35 @@ export default {
                 'gradient-warm': `var(${cssVar.gradient('warm')})`,
             },
         },
+
+        /* ───────────────────────────────────────────────────────────────────────
+           CLOSED SCALES — these three REPLACE Tailwind's, they do not extend it
+           ───────────────────────────────────────────────────────────────────────
+           Everything above sits under `theme.extend`, which means Tailwind's own
+           values survive alongside the tokens. That is right for most scales — 474
+           classes still say bare `rounded`, and closing `zIndex` today would strip
+           the stacking off 501 live `z-10` / `z-50` call sites.
+
+           It is wrong for these three. `rounded-3xl`, `font-black` and
+           `duration-300` all COMPILED, so nothing ever complained, and each one
+           rendered something plausible enough that nobody looked. Closing the scale
+           is what turns "the reviewer might notice" into "the build does".
+
+           Two things this does NOT do, so the greps in DESIGN-RULES §16 stay the
+           guard for both:
+             · Arbitrary values (`rounded-[20px]`, `duration-[400ms]`) compile no
+               matter what the theme says.
+             · `zIndex` is still open. Closing it waits on migrating those 501 stock
+               stops to the named ladder.
+           ─────────────────────────────────────────────────────────────────────── */
+        borderRadius: {
+            ...varMap(SHAPE_TOKENS.radius, cssVar.radius),
+            // Bare `rounded` keeps Tailwind's 0.25rem — see the note at the top of
+            // this file about not moving what 474 classes depend on.
+            DEFAULT: defaultTheme.borderRadius.DEFAULT,
+        },
+        fontWeight: varMap(TYPOGRAPHY_TOKENS.weights, cssVar.weight),
+        transitionDuration: varMap(MOTION_TOKENS.duration, cssVar.duration),
     },
 
     plugins: [forms],

@@ -92,7 +92,7 @@ export const MagneticButton = ({ children, href, className = '', variant = 'prim
     const handleMouseLeave = useCallback(() => { if (btnRef.current) btnRef.current.style.transform = ''; }, []);
 
     const baseClass = variant === 'primary'
-        ? 'px-9 py-4 bg-void-900 dark:bg-white text-white dark:text-void-900 font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-400)/0.55)]'
+        ? 'px-9 py-4 bg-accent-fill text-accent-on font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-400)/0.55)]'
         : variant === 'ghost'
             ? 'px-8 py-4 bg-void-900/[0.04] dark:bg-white/[0.04] border border-void-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md'
             : 'px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-full shadow-xl ';
@@ -110,17 +110,20 @@ export const MagneticButton = ({ children, href, className = '', variant = 'prim
 };
 
 /* ── Section label ───────────────────────────────────────────────────────── */
-export const SectionLabel = ({ children, icon: Icon }) => (
+// `text` is accepted alongside `children` because seven call sites pass it and
+// were rendering an empty pill. Reading both is one line; chasing the call
+// sites is seven files that will drift again.
+export const SectionLabel = ({ children, text, icon: Icon }) => (
     <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 dark:border-brand-400/20 text-brand-600 dark:text-brand-300 text-2xs font-bold tracking-[0.3em] uppercase mb-8 backdrop-blur-sm">
         {Icon && <Icon size={13} />}
-        {children}
+        {children ?? text}
     </div>
 );
 
 /* ── Glass card ──────────────────────────────────────────────────────────── */
 export const GlassCard = ({ children, className = '', hover = true, padding = 'p-8', ...props }) => (
     <div
-        className={`relative ${padding} rounded-xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/[0.07] backdrop-blur-sm ${hover ? 'hover:bg-interactive-hover/[0.05] dark:hover:bg-white/[0.06] hover:border-brand-500/30 dark:hover:border-brand-500/20 hover:shadow-2xl hover: dark:hover: hover:-translate-y-1' : ''} transition-all duration-slower group ${className}`}
+        className={`relative ${padding} rounded-xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/[0.07] backdrop-blur-sm ${hover ? 'hover:bg-interactive-hover/[0.05] dark:hover:bg-white/[0.06] hover:border-brand-500/30 dark:hover:border-brand-500/20 hover:shadow-2xl hover:-translate-y-1' : ''} transition-all duration-slower group ${className}`}
         {...props}
     >
         {children}
@@ -164,25 +167,31 @@ const MkAmbient = ({ isDarkMode }) => (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute inset-0" style={{
             background: isDarkMode
-                ? 'radial-gradient(120% 95% at 50% -10%, #0c0922 0%, #070518 46%, #040210 100%)'
-                : 'radial-gradient(125% 100% at 50% -12%, #eef0ff 0%, #f7f6fd 38%, #fdfdff 72%, #ffffff 100%)',
+                ? 'radial-gradient(120% 95% at 50% -10%, rgb(var(--vq-ramp-teal-950)) 0%, rgb(var(--vq-ramp-ink-950)) 46%, rgb(var(--vq-ramp-ink-950)) 100%)'
+                : 'radial-gradient(125% 100% at 50% -12%, rgb(var(--vq-ramp-teal-50)) 0%, rgb(var(--vq-ramp-ink-50)) 38%, rgb(var(--vq-ramp-ink-50)) 72%, rgb(var(--vq-bg)) 100%)',
         }} />
         <div className={`absolute -top-[10%] left-1/2 w-[140vw] h-[85vh] -translate-x-1/2 ${isDarkMode ? 'vqm-beams' : 'vqm-beams-light'}`} />
         <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vqm-blob" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / ${isDarkMode ? 0.15 : 0.22}), transparent 62%)` }} />
         <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vqm-blob2" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-400) / ${isDarkMode ? 0.12 : 0.18}), transparent 62%)` }} />
-        <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vqm-blob" style={{ background: `radial-gradient(circle, rgba(34,211,238,${isDarkMode ? 0.07 : 0.14}), transparent 62%)` }} />
+        <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vqm-blob" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-sky-400) / ${isDarkMode ? 0.07 : 0.14}), transparent 62%)` }} />
         {!isDarkMode && (
-            <div className="absolute top-[18%] right-[6%] w-[34vw] h-[34vw] rounded-full blur-[200px] vqm-blob2" style={{ background: 'radial-gradient(circle, rgba(244,114,182,0.10), transparent 64%)' }} />
+            <div className="absolute top-[18%] right-[6%] w-[34vw] h-[34vw] rounded-full blur-[200px] vqm-blob2" style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-lime-400) / 0.10), transparent 64%)' }} />
         )}
         <div className={`absolute inset-0 vqm-grid ${isDarkMode ? 'opacity-[0.35]' : 'opacity-[0.65]'}`} />
         <div className="absolute inset-0" style={{
             background: isDarkMode
-                ? 'radial-gradient(95% 75% at 50% 40%, rgba(4,2,12,0) 0%, rgba(4,2,12,0.5) 100%)'
+                ? 'radial-gradient(95% 75% at 50% 40%, rgb(var(--vq-ramp-ink-950) / 0) 0%, rgb(var(--vq-ramp-ink-950) / 0.5) 100%)'
                 : 'radial-gradient(100% 80% at 50% 34%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 52%, rgb(var(--vq-ramp-teal-500) / 0.06) 100%)',
         }} />
         <div className={`absolute inset-0 vqm-grain ${isDarkMode ? 'opacity-[0.3]' : 'opacity-[0.18]'}`} />
     </div>
 );
+
+/** `#59dbc0` -> `rgba(89,219,192,` — canvas cannot resolve a CSS custom property. */
+const triplet = (hex) => {
+    const n = parseInt(hex.replace('#', ''), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},`;
+};
 
 /* ── particle field ──────────────────────────────────────────────────────── */
 const MkParticles = ({ isDarkMode }) => {
@@ -197,8 +206,8 @@ const MkParticles = ({ isDarkMode }) => {
         // indigo dot vanishes on white but glows on black. These are tuned
         // by eye so both themes read as the same "drifting stars" idea.
         const COLORS = isDarkMode
-            ? ['rgba(129,140,248,', 'rgba(167,139,250,', 'rgba(34,211,238,']
-            : ['rgba(79,70,229,', 'rgba(124,58,237,', 'rgba(8,145,178,'];
+            ? [triplet(vq.teal[300]), triplet(vq.sky[300]), triplet(vq.lime[300])]
+            : [triplet(vq.teal[600]), triplet(vq.sky[600]), triplet(vq.lime[600])];
         const resize = () => {
             w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
             const count = Math.min(60, Math.floor(w / 32));
@@ -618,14 +627,12 @@ export default function MarketingLayout({ children, title, description }) {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-void-900 text-ink font-sans selection:bg-brand-500/30 dark:selection:bg-brand-500/40 overflow-x-clip antialiased transition-colors duration-slow">
+        <div className="min-h-screen bg-app text-ink font-sans selection:bg-brand-500/30 dark:selection:bg-brand-500/40 overflow-x-clip antialiased transition-colors duration-slow">
             <Head>
                 <title>{title || `${appName}`}</title>
                 {description && <meta name="description" content={description} />}
-                <meta name="theme-color" content={isDarkMode ? vq.void[900] : '#ffffff'} />
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <meta name="theme-color" content={isDarkMode ? vq.void[900] : vq.slate[50]} />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
             </Head>
 
             <MkScrollProgress />
@@ -662,7 +669,7 @@ export default function MarketingLayout({ children, title, description }) {
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         {isExceptionPath(currentPath) && <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />}
                         <Link href="/login" className="hidden sm:block px-5 py-2.5 text-1xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-ink dark:hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-void-900 dark:bg-white text-white dark:text-void-900 rounded-full text-2xs sm:text-1xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
+                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-accent-fill text-accent-on rounded-full text-2xs sm:text-1xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-ink-secondary hover:text-ink dark:hover:text-white transition-colors" aria-label="Menu" aria-expanded={mobileMenu}>
                             {mobileMenu ? <X size={22} /> : <Menu size={22} />}
                         </button>
@@ -686,7 +693,7 @@ export default function MarketingLayout({ children, title, description }) {
             <main className="relative z-10">{children}</main>
 
             {/* Footer */}
-            <footer className="border-t border-line dark:border-white/[0.06] pt-24 pb-12 px-6 relative z-10 bg-white dark:bg-void-900">
+            <footer className="border-t border-line dark:border-white/[0.06] pt-24 pb-12 px-6 relative z-10 bg-app">
                 {/* Brand + CTA rail */}
                 <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
                     <div className="lg:col-span-5">

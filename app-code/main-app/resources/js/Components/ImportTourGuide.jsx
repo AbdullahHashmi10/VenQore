@@ -142,7 +142,7 @@ export default function ImportTourGuide({ store }) {
                     <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                        <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <div className="p-8 flex flex-col items-center text-center relative z-10">
                             <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-brand-500 rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">

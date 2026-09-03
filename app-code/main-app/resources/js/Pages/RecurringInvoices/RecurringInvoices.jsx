@@ -162,12 +162,12 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                     </div>
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <DollarSign size={16} />
                             </div>
                             <p className="text-xs font-bold text-ink-muted uppercase">Monthly Revenue</p>
                         </div>
-                        <p className="text-base font-bold text-purple-600">{(stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0)}</p>
+                        <p className="text-base font-bold text-brand-600">{(stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0)}</p>
                     </div>
                 </div>
 
@@ -308,7 +308,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                         <p className="text-ink-muted text-sm mt-1">Create one to automate your billing</p>
                                         <Link
                                             href={route('store.recurring-invoices.create', { store_slug: store.slug })}
-                                            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium shadow-md"
+                                            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors font-medium shadow-md"
                                         >
                                             <Plus size={18} />
                                             Create Recurring Invoice
@@ -325,8 +325,8 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                         </td>
                                         <td className="px-6 py-3">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-                                                    <Users size={14} className="text-purple-600 dark:text-purple-400" />
+                                                <div className="w-8 h-8 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center">
+                                                    <Users size={14} className="text-brand-600 dark:text-brand-400" />
                                                 </div>
                                                 <span className="font-medium text-ink-secondary">
                                                     {invoice.customer?.name || 'Unknown'}
@@ -339,7 +339,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                             </span>
                                         </td>
                                         <td className="px-6 py-3 text-center">
-                                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg text-xs font-bold">
+                                            <span className="px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 rounded-lg text-xs font-bold">
                                                 {getFrequencyLabel(invoice.frequency)}
                                             </span>
                                         </td>

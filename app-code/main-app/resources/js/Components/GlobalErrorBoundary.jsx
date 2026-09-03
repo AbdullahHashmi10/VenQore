@@ -76,7 +76,7 @@ class GlobalErrorBoundary extends React.Component {
                             <div className="flex flex-wrap justify-center gap-4 w-full">
                                 <button
                                     onClick={this.handleReload}
-                                    className="flex items-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg hover: active:scale-95"
+                                    className="flex items-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95"
                                 >
                                     <RefreshCw size={20} />
                                     Reload Application

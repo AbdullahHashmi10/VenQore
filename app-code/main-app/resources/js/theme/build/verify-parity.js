@@ -7,7 +7,7 @@
  * theme engine change how any of them render?
  *
  * For the baseline theme (Midnight Nebula) the answer must be no. Every
- * `bg-indigo-600` in the codebase has to resolve to exactly the value Tailwind
+ * `bg-brand-600` in the codebase has to resolve to exactly the value Tailwind
  * would have produced on its own, or the migration was not the no-op it claims
  * to be. This script compares all 23 bound palettes × 11 stops against
  * Tailwind's own colour table and fails on any mismatch.

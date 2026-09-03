@@ -66,7 +66,7 @@ export const ROLE_PALETTES = {
  * ------------------------------------------------------------------ *
  * Carried over from Daylight Calm, including the two decisions that did
  * the most for readability: no step below 11px, and flattened top-end
- * weights so `font-black` (2,023 usages) stops shouting.
+ * weights so `font-bold` (2,023 usages) stops shouting.
  */
 const SYSTEM_SANS =
     "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";

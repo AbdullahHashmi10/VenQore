@@ -178,7 +178,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                         onClick={() => setMode(key)}
                         className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${
                             mode === key
-                                ? 'bg-neutral-900 dark:bg-white text-white dark:text-[#05030f]'
+                                ? 'bg-accent-fill text-accent-on'
                                 : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary'
                         }`}
                     >

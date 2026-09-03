@@ -196,3 +196,237 @@ at the cost of a board that re-flows its own row heights.
 `routes/web.php` renders `NewDashboard` with no props on the store route. Passing
 the real `store` (with `slug`) and `auth` would let the page drop its URL
 fallback. It works either way.
+
+---
+
+# Round 3 — 2 Sep 2026 · production pass
+
+**Files:** `resources/js/Pages/NewDashboard.jsx`, `resources/js/Pages/NewDashboard.css` (only).
+**Verified:** headless Chromium — 6 viewport widths (390→2100) × 3 themes (light / dark / mesh)
+× a 34-card matrix covering every reading shape, every card family, floors, maxima and all
+four tones: **0 content cut, 0 in-card scrollbars, 0 clipped values.** Add → persist →
+reload → edit → delete → preset-switch all pass end to end.
+
+## The no-clip contract
+
+A number is never cut, anywhere, ever. `headlineOf` now carries both the full and the
+abbreviated figure; every value lands through one `valueHTML()` with `data-full` /
+`data-compact`, and `fitValues()` walks the board after every layout-affecting event
+(draw, relayout, resize drag, period change, preview render) stepping each value down:
+**full figure → abbreviated (Rs 4.8M) → abbreviated at a smaller rung.** Measured against
+real layout, deterministic, no scrolling. The bank hub's boxes joined the same contract.
+Hover re-reads honour the fitted form (`headCompact()`), so a crosshair can no longer
+push a fitted headline past its box.
+
+## The strip, settled
+
+The old inline strip was a three-column grid that stranded the timeframe caption in the
+middle of the card. The canonical form is now **two zones**: left stacks the label over a
+quiet timeframe caption (both truncate), right is the number and its change pill, pinned
+to the right edge, never shrunk. Stacked (2-row) form: label / number+pill / caption.
+The app-level V6 `cards.css` still right-aligns a bare strip caption, so the page block
+out-specifies it deliberately. The two later "patch layers" that re-declared strip layout
+in this file are gone; one block owns it.
+
+## Lists never scroll
+
+Radial legends emit only the rows that fit and fold the rest into one quiet
+"+N more in the full view" line. Table/feed capacity is counted at the real row pitch
+(38px, was 32) and `.ck-tb` / `.ck-leg` are `overflow:hidden` — the belt to the counted
+suspender.
+
+## The wizard speaks user
+
+- The folder launcher is gone. **Add card** (a real button now) opens one picker with
+  three family tabs: *Metrics & charts · Smart panels · Shortcuts*.
+- Every reading carries a hand-written plain-language description (`READING_DESC`, 110+
+  entries) — the picker and the editor show the name and that sentence. **No backend key,
+  no SCALAR/SERIES tag, no module name, anywhere a user looks.**
+- Step 2 ("Make it yours") replaced the C1–C6 category tabs, fit names, column/row
+  steppers and px readouts with a handful of **named sizes** (One-line / Compact /
+  Standard / Large / Extra large) plus **drag-the-corner resize on the live preview** —
+  the handle lives outside the re-rendered host, snaps through the Law's legality tables,
+  auto-promotes the interior (a strip dragged taller becomes a metric with its sparkline)
+  and a drag that ends over the overlay is squelched so it can't read as a close-click.
+- Chart names: Stat→Number, Composed→Combo. "Visual variant"→"Style".
+
+## Boards persist, and start from somewhere
+
+- Every change writes to `localStorage` (`vq-dashboard-v6:<store-slug>`, schema v2) and
+  comes back on the next visit. Unknown keys are dropped on load.
+- **Starting layouts** (`PRESETS`): Retail overview (default), Money & accounts,
+  Stock & purchasing, Start simple. "Reset layout" is now "Start fresh…" — a picker that
+  says plainly it replaces the board.
+- New library entries the old dashboard had and this one lacked: **Expense trend**
+  (series) and **Recent activity** (feed).
+
+## Also fixed on the way through
+
+- `wirePeriod` wrote the new value into `.vqc-head-val .nf` — a selector no markup has
+  emitted in weeks. Period changes now update value, delta pill and caption, and re-fit.
+- The board subtitle no longer explains grid columns and crosshairs to shopkeepers.
+- Preset modal, phone-width action bar wrap, identity description wraps instead of
+  truncating.
+
+## Known, accepted
+
+- The app-level `venqore-v6/cards.css` still paints `.vqc--accent::before/::after` at
+  300% width; it is clipped invisible by the card's `overflow:hidden` and only inflates
+  scroll metrics, not paint. Left alone because it is shared chrome for other pages.
+- The engine's legacy side-drawer editor (`openEdit`) is unreachable from the UI (the
+  React editor owns the pencil); it still knows reading keys. Dead weight, not debt.
+
+---
+
+# Round 4 — 2 Sep 2026 · the platform pass
+
+**Files:** the same two. **Verified:** sweep re-run (6 widths × 3 themes × 34-card
+matrix — 0 violations), all 8 side-panel rails overflow-checked at 1360/1520/1920,
+add → persist → edit → delete → preset e2e green.
+
+## Two production bugs from the first live screenshot
+
+- **The board touched the sidebar.** The 24px canvas margin lived on a
+  `.vq-shell .app` selector this page never renders. `.vq-canvas` now carries
+  `padding: 24px 24px 48px` itself — 24px of air on all four sides at every width.
+- **Overlapping digits in the headline roller.** The digit columns slid by
+  `translateY(-N × 10%)` — a percentage of the column, which is only correct while
+  every digit row measures exactly 1em against the full app cascade. The slide is
+  now written in the same unit the rows are sized in: `translateY(-N em)`, with
+  `line-height: 1` pinned on the rows. The two can no longer disagree.
+
+## The side panel (right rails)
+
+The old dashboard's fixed right panel is back as an **opt-in, composable side
+panel**: eight rail designs — Cash & accounts, Today at a glance, Recent activity,
+Actions required, Quick actions, Growth & targets, Top performers, Payment
+reminders — toggled from ⋯ → Side panel…, stacked in a fixed 312px column with
+24px gutters, persisted per store. Needs ≥1360px; below that the cards take the
+full width. While the panel is open the board's column count is re-derived from
+its **measured** width and written as an inline `--vq-cols` (the stylesheet's
+viewport media queries can't know about the panel), and removed again when it
+closes.
+
+## Module gating — the library fits the business
+
+Every reading carries the module key(s) that produce its data (`READING_MODULE_RULES`,
+same keys as `config/modules.php`). The engine takes the shared Inertia `modules`
+prop at boot: a five-module kiryana sees ~56 cards instead of 112, area chips it
+can't use disappear, hubs gate too (`bank_liquidity` needs `bank_accounts`),
+presets and saved boards silently drop cards whose module is off, and alert rows
+inside the alerts hub and alerts rail filter individually. No prop → no gating
+(dev harness, store-less route).
+
+## The real left sidebar
+
+When the shared `nav` prop is present the sidebar is **derived from it** — same
+contract, groups and lucide icon names as QoreShell (`Catalog / Sell / Stock /
+Buy / Make / Money / Grow`), Ziggy-guarded hrefs — so this shell can never
+disagree with the module switches. The hardcoded groups remain only as the
+fallback for the store-less route.
+
+## Presets: six, drawn, and one for migrants
+
+The preset picker now shows a **layout thumbnail per preset** (the grid's own
+auto-placement simulated at 8 columns) plus which side panel it ships with.
+New: **Familiar (like the old dashboard)** — KPI strips on top, trend + alerts
+mid, top products + recent purchases below, Cash & accounts + Recent activity
+rails: the migration path for old-dashboard users. And **Command centre** — the
+revenue chart front and centre. Applying a preset sets the board AND its panel.
+
+## Also
+
+- **Launchpad** — a second operations hub with a fixed four actions at every
+  size, for people who found the growing-lane hub unsettling. The original hub's
+  description now says plainly that it grows.
+- New library cards: **Total Liquid Net**, **Recent purchases** — and the bank
+  figures (Total Balance, Cash on Hand) were already standalone readings, so
+  every number in the liquidity hub can now live as its own card.
+- Alert copy, hub rows and rails all speak module-aware truth.
+
+---
+
+# Round 5 — 2 Sep 2026 · light-first, one panel, honest numbers
+
+**Verified:** sweep 6 widths × 3 themes — 0 violations; e2e green; sticky panel,
+collapse, theme cycle and mesh ground all screenshot-checked.
+
+- **Numbers are plain text now.** The per-digit rolling columns survived one
+  production cascade bug and immediately met another; the mechanism was fragile
+  by construction (every digit row had to measure exactly 1em against whatever
+  CSS the app ships next). `buildRoller`/`setRoller` keep their API but render
+  plain tabular text with a 340ms opacity pulse on change. A number that is
+  always readable beats one that sometimes dances.
+- **Light is the default, and the theme is React state.** The engine no longer
+  binds the theme button. `themeMode` (light → dark → mesh, persisted per
+  browser as `vq-dashboard-v6-theme`) writes `data-theme`/`data-bg` and asks the
+  engine to repaint. The button shows sun / moon / sparkle per mode. The mesh
+  ground was invisible in-shell (its fixed layer sat at z −1 behind the body's
+  own background); the shell now lifts to z 1 over a z 0 mesh.
+- **Inner surfaces are tints, not slabs.** Everything that sits inside a card —
+  alert rows, bank boxes, hub buttons, rail minis — shares one recipe: on dark,
+  4.5% white fill with a 7% hairline; on light, the sunken tone with a soft
+  hairline; 14px corners everywhere, per the shape law.
+- **The side panel is ONE container** (like the old dashboard's): a single
+  surface with a header row (Customize · collapse chevron) and the rails as
+  divided sections inside. It is **sticky by default** — full viewport height,
+  its own inner scroll — with options in the Customize sheet: width (Cosy 300 /
+  Comfortable 340 / Wide 380) and Stays-in-place vs Scrolls-with-cards. The
+  chevron collapses it to a slim reopen tab; everything persists
+  (`{ids, sticky, width, collapsed}`, old array payloads migrate).
+- **Quick actions rail = the old three:** New Invoice (primary), New Purchase,
+  More actions (opens the Quick Actions sheet).
+- **The "Your dashboard" header block is gone.** Cards start 24px below the app
+  header; the page breadcrumb already names the place. ~90px of height returned
+  to the board.
+- **Nav groups fold.** Every derived group (Catalog / Sell / Stock / Buy / Make /
+  Money / Grow) collapses from its header, remembered per browser; Main and
+  System stay pinned open, POS is pinned into Main when the module is on, and a
+  System → Settings entry closes the sidebar.
+
+---
+
+# Round 6 — 3 Sep 2026 · the grid settles, the panel becomes a product
+
+**Verified:** sweep 6 widths × 3 themes × 34-card matrix — 0 violations (one tile
+truncation-priority bug found by the sweep and fixed); add → persist → edit →
+delete → preset e2e green; free placement, panel designs, mesh, and the fixed
+grid all screenshot-checked.
+
+## The grid is a fixed 12 columns
+Collapsing the nav or opening the side panel now STRETCHES/SQUEEZES the same
+twelve tracks — the arrangement never re-flows. Only real device classes step
+down: 8 columns under 1024px, 4 under 600px. The per-nav-state column ladders
+are gone from both the stylesheet and the engine. Presets are composed for 12
+and every band sums to 12 — symmetric at any width; on the 8-column tablet the
+composition scales by 8/12.
+
+## Place any card anywhere
+In edit mode the whole card face is a drag handle (the grip still works
+everywhere). While dragging, a dashed ghost shows the snapped 12-column cell;
+dropping pins the card there (`gx`/`gy`), pinned cards keep their spot, unpinned
+cards flow around them, and collisions nudge to the next free row. Phones and
+tablets ignore pins and stack in order — a desktop arrangement is never forced
+onto a screen that cannot hold it. Presets clear pins.
+
+## Six pre-built side panels, pick one
+The compose-your-own rail toggles are gone. `PANEL_DESIGNS`: **Money desk**
+(the old dashboard's panel — Sale/Purchase/Actions round buttons, cash &
+accounts, activity), **Operations desk**, **Sales pulse**, **Credit control**,
+**Growth**, **Minimal**, plus "No side panel". The panel is one deep container
+(sunken in light, near-black in dark, glass over mesh) with each rail as its own
+rounded card inside — the old dashboard's look. The in-panel Customize button
+and the floating collapse tab are gone: a panel icon in the top header toggles
+it, and ⋯ → Side panel… opens the chooser (width and sticky options live there).
+
+## Mesh, blended
+The legacy rule that painted every card BODY as its own lighter box in mesh is
+deleted; inner pieces in mesh now sink darker into the glass
+(`rgb(0 0 0 / .25)` + hairline) instead of floating lighter on it.
+
+## Answers of record (theming)
+- **Accent colour**: one place — `resources/css/venqore-v6/tokens/colors.css` /
+  `theme.css`. Every accent in this page resolves through `var(--vq-accent…)`
+  (all 10 hex occurrences are var() fallbacks only).
+- **Corner radius**: one place — `tokens/radius.css`; every rung resolves to
+  `--vq-r-*`. Change `--vq-r-md/lg` and the whole product follows.

@@ -121,8 +121,8 @@ const RAMPS = {
    Where Midnight Nebula kept 22 separate families, this theme collapses them
    onto 9 roles. That is the intended direction of travel: eight nearly
    identical purples and four nearly identical greens is how an interface starts
-   looking accidental. Existing classes keep working — `bg-purple-500` and
-   `bg-violet-500` simply now resolve to the same considered accent.
+   looking accidental. Existing classes keep working — `bg-brand-500` and
+   `bg-brand-500` simply now resolve to the same considered accent.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const PALETTES = {
@@ -275,7 +275,7 @@ const TYPOGRAPHY = {
     },
 
     /**
-     * Deliberately flattened at the top. `font-black` appears 2,023 times in
+     * Deliberately flattened at the top. `font-bold` appears 2,023 times in
      * this codebase and `font-bold` 5,334 — when almost everything is heavy,
      * nothing reads as emphasised, and the overall impression is shouting.
      *

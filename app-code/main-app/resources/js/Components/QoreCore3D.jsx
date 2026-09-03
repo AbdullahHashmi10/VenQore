@@ -518,7 +518,7 @@ export default function QoreCore3D() {
                 >
                     QORE
                 </div>
-                <div className="text-[7px] sm:text-4xs font-bold uppercase tracking-[0.3em] text-violet-100/90 drop-shadow-[0_1px_6px_rgba(76,29,149,0.9)]">
+                <div className="text-[7px] sm:text-4xs font-bold uppercase tracking-[0.3em] text-brand-100/90 drop-shadow-[0_1px_6px_rgba(76,29,149,0.9)]">
                     Intelligence Core
                 </div>
             </div>

@@ -412,7 +412,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                         type="button"
                         onClick={() => setData('adjustment_type', 'add')}
                         className={`px-3 py-1.5 text-xs font-bold uppercase rounded-full transition-all flex items-center gap-1.5 ${data.adjustment_type === 'add'
-                                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30'
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-glow'
                                 : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
                             }`}
                     >
@@ -822,7 +822,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
                                         <span className="font-medium text-ink-secondary dark:text-ink">{item.name}</span>
                                         <div className="flex gap-2 text-xs font-bold">
                                             {item.stock > 0 && <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">Stock: {item.stock}</span>}
-                                            {item.has_sales && <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">Has Sales</span>}
+                                            {item.has_sales && <span className="px-2 py-1 bg-brand-100 text-brand-700 rounded">Has Sales</span>}
                                         </div>
                                     </li>
                                 ))}
@@ -1012,7 +1012,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
 
                                 <button
                                     onClick={handleSubmitAudit}
-                                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-all shadow-lg hover: active:scale-95"
+                                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-all shadow-lg active:scale-95"
                                     title="Save Changes"
                                 >
                                     <Save size={24} />

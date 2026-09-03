@@ -119,7 +119,7 @@ export default function FormModal({
                 >
                     {/* Midnight Nebula Background Effect */}
                     <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-600/20 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[130px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[130px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
 
                     {/* Header: Elevated with glass effect */}
                     <div className="px-10 py-8 border-b-2 border-line shrink-0 relative z-10 bg-white/70 dark:bg-app backdrop-blur-xl">

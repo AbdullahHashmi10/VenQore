@@ -11,9 +11,13 @@ import {
 } from 'lucide-react';
 import { useT, Panel, KpiCard, Button, Badge, EmptyState, StatusBadge } from '@/Platform/ui';
 import { BRAND, GRADIENTS, fmtCurrency, fmtNumber, statusColor } from '@/Platform/theme';
+import { series } from '@/theme/runtime';
 import { resolveHref } from '@/Platform/nav';
 
-const PLAN_COLORS = [BRAND.indigo, BRAND.violet, BRAND.sky, BRAND.emerald, BRAND.amber, BRAND.fuchsia, BRAND.rose];
+// DESIGN-RULES §5 — the eight categorical slots, in order. The old list drew
+// BRAND.violet and BRAND.fuchsia from adjacent stops of one ramp, so two plan
+// bands rendered near-identically.
+const PLAN_COLORS = series.light.slice(0, 7);
 
 export default function Overview({ stats = {}, revenue = {}, store_trend = [], plan_distribution = [], recent_stores = [], expiring_stores = [], activity_feed = [] }) {
     const t = useT();

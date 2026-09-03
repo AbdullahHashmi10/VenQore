@@ -186,7 +186,7 @@ export default function Create({ invoices = [] }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors font-bold shadow-lg shadow-orange-500/20 disabled:opacity-50"
+                                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors font-bold shadow-lg shadow-glow disabled:opacity-50"
                                 >
                                     <Clock size={18} />
                                     {processing ? 'Scheduling...' : 'Schedule Reminder'}

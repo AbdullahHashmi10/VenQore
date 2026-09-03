@@ -30,7 +30,7 @@ import {
 } from 'recharts';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 
-import { vq } from '@/theme/runtime';
+import { series, vq } from '@/theme/runtime';
 /**
  * MASTER REPORT COMPONENT (The "Report Factory")
  * 
@@ -409,7 +409,7 @@ const MasterReport = ({
                                         cursor={{ fill: vq.slate[100] }}
                                     />
                                     {Array.isArray(chartConfig.dataKey) ? chartConfig.dataKey.map((key, i) => (
-                                        <Bar key={key} dataKey={key} fill={[vq.indigo[500], vq.purple[500], vq.pink[500]][i % 3]} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                        <Bar key={key} dataKey={key} fill={series.light[i % 8]} radius={[4, 4, 0, 0]} maxBarSize={40} />
                                     )) : (
                                         <Bar dataKey={chartConfig.dataKey} fill={chartConfig.color} radius={[4, 4, 0, 0]} maxBarSize={40} />
                                     )}

@@ -30,9 +30,9 @@ const ERROR_CONFIGS = {
 };
 
 const COLOR_CLASSES = {
-    red:    { bg: 'bg-red-50 dark:bg-red-900/10',    icon: 'text-red-500',    border: 'border-red-100 dark:border-red-800',    bar: 'from-red-500 to-rose-600',    badge: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' },
-    amber:  { bg: 'bg-amber-50 dark:bg-amber-900/10', icon: 'text-amber-500',  border: 'border-amber-100 dark:border-amber-800', bar: 'from-amber-500 to-orange-500', badge: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
-    blue:   { bg: 'bg-blue-50 dark:bg-blue-900/10',   icon: 'text-blue-500',   border: 'border-blue-100 dark:border-blue-800',   bar: 'from-blue-500 to-brand-500',  badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+    red:    { bg: 'bg-red-50 dark:bg-red-900/10', icon: 'text-red-500', border: 'border-red-100 dark:border-red-800', bar: 'from-red-500 to-rose-600', badge: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' },
+    amber:  { bg: 'bg-amber-50 dark:bg-amber-900/10', icon: 'text-amber-500', border: 'border-amber-100 dark:border-amber-800', bar: 'from-amber-500 to-orange-500', badge: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
+    blue:   { bg: 'bg-blue-50 dark:bg-blue-900/10', icon: 'text-blue-500', border: 'border-blue-100 dark:border-blue-800', bar: 'from-blue-500 to-brand-500', badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
     orange: { bg: 'bg-orange-50 dark:bg-orange-900/10',icon: 'text-orange-500',border: 'border-orange-100 dark:border-orange-800',bar: 'from-orange-500 to-amber-500', badge: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
 };
 
@@ -83,7 +83,7 @@ export default function Error({ status = 500, message }) {
                                 /* For CSRF/session expired — reload is the correct fix */
                                 <button
                                     onClick={handleReload}
-                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg hover: active:scale-95"
+                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95"
                                 >
                                     <RefreshCw size={18} />
                                     Refresh Page
@@ -99,7 +99,7 @@ export default function Error({ status = 500, message }) {
                                     </button>
                                     <button
                                         onClick={handleHome}
-                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg hover: active:scale-95"
+                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95"
                                     >
                                         <Home size={18} />
                                         Dashboard

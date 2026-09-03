@@ -3627,7 +3627,7 @@ const POSInterface = ({
     const renderCartLine = (item, index) => (
         <div key={item.cartItemId} className="vq-line bg-surface border border-line hover:border-brand-300 shadow-xs hover:shadow-md group transition-all py-3">
             {/* Index Badge */}
-            <span className="vq-line-idx vq-num text-xs sm:text-sm font-extrabold text-brand-800 dark:text-brand-300 bg-brand-50/80 dark:bg-brand-950/50 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 border border-brand-200/60 font-mono">
+            <span className="vq-line-idx vq-num text-xs sm:text-sm font-bold text-brand-800 dark:text-brand-300 bg-brand-50/80 dark:bg-brand-950/50 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 border border-brand-200/60 font-mono">
                 {index + 1}
             </span>
 
@@ -3699,7 +3699,7 @@ const POSInterface = ({
                             }}
                             aria-label={`Unit price of ${item.name}`}
                             title="Type a new unit price"
-                            className="vq-num vq-line-rate w-24 text-right text-xs sm:text-sm font-extrabold
+                            className="vq-num vq-line-rate w-24 text-right text-xs sm:text-sm font-bold
                                        text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40
                                        border border-brand-200/80 dark:border-brand-800 px-2.5 py-1.5 rounded-xl
                                        focus:outline-none focus:ring-2 focus:ring-brand-500/40"
@@ -3710,7 +3710,7 @@ const POSInterface = ({
                         type="button"
                         onClick={() => openItemDiscountModal(item)}
                         title="Click to edit line discount"
-                        className="vq-num text-xs sm:text-sm font-extrabold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200/80 dark:border-brand-800 px-3 py-1.5 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/60 transition-all flex flex-col items-end cursor-pointer shadow-xs"
+                        className="vq-num text-xs sm:text-sm font-bold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200/80 dark:border-brand-800 px-3 py-1.5 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/60 transition-all flex flex-col items-end cursor-pointer shadow-xs"
                     >
                         {item.discount > 0 ? (
                             <>
@@ -3720,7 +3720,7 @@ const POSInterface = ({
                         ) : money(item.price)}
                     </button>
                 ) : (
-                    <span className="vq-num text-xs sm:text-sm font-extrabold text-ink px-3 py-1.5 rounded-xl bg-sunken border border-line">
+                    <span className="vq-num text-xs sm:text-sm font-bold text-ink px-3 py-1.5 rounded-xl bg-sunken border border-line">
                         {money(item.price)}
                     </span>
                 )}
@@ -3768,7 +3768,7 @@ const POSInterface = ({
                             if (e.key === 'Escape') { setQtyDraft(null); e.currentTarget.blur(); }
                         }}
                         aria-label={`Quantity of ${item.name}`}
-                        className="vq-num vq-line-qty w-12 text-center font-extrabold text-ink text-sm sm:text-base
+                        className="vq-num vq-line-qty w-12 text-center font-bold text-ink text-sm sm:text-base
                                    bg-transparent border-0 rounded-lg focus:outline-none
                                    focus:bg-surface focus:ring-2 focus:ring-brand-500/40"
                     />
@@ -3793,7 +3793,7 @@ const POSInterface = ({
                             <MinusCircle size={15} />
                         </button>
                         <div className="flex flex-col items-center w-10 leading-none shrink-0">
-                            <span className="vq-num font-extrabold text-xs text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{item.freeQuantity || 0}</span>
+                            <span className="vq-num font-bold text-xs text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{item.freeQuantity || 0}</span>
                             <span className="text-3xs font-bold text-emerald-500 uppercase whitespace-nowrap">Free</span>
                         </div>
                         <button
@@ -3810,8 +3810,8 @@ const POSInterface = ({
 
             {/* Line Total */}
             <div className="vq-line-total text-right shrink-0 min-w-[85px]">
-                <span className="text-2xs font-extrabold text-ink-muted uppercase tracking-wider block leading-none mb-1">Total</span>
-                <span className="vq-num font-extrabold text-ink block leading-tight text-base sm:text-lg">
+                <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-1">Total</span>
+                <span className="vq-num font-bold text-ink block leading-tight text-base sm:text-lg">
                     {money(item.price * item.qty)}
                 </span>
                 {showMargin && item.cost_price > 0 && (
@@ -3998,7 +3998,7 @@ const POSInterface = ({
                                 <User size={20} />
                             </div>
                             <div className="min-w-0">
-                                <span className="text-xs uppercase font-extrabold text-ink-muted block leading-none mb-1 tracking-wider">Customer</span>
+                                <span className="text-xs uppercase font-bold text-ink-muted block leading-none mb-1 tracking-wider">Customer</span>
                                 <span className="vq-clip font-bold text-ink text-base sm:text-lg block">
                                     {activeSale.customer?.name || 'Walk-in customer'}
                                 </span>
@@ -4020,8 +4020,8 @@ const POSInterface = ({
                         })}
                         className="bg-surface p-4 rounded-2xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex flex-col justify-center cursor-pointer"
                     >
-                        <span className="text-xs uppercase font-extrabold text-ink-muted block mb-1 tracking-wider">Bill Discount</span>
-                        <span className="vq-clip vq-num text-base sm:text-lg font-extrabold text-brand-600 dark:text-brand-400">
+                        <span className="text-xs uppercase font-bold text-ink-muted block mb-1 tracking-wider">Bill Discount</span>
+                        <span className="vq-clip vq-num text-base sm:text-lg font-bold text-brand-600 dark:text-brand-400">
                             {activeSale.discountType === 'percentage'
                                 ? `${activeSale.discountValue}% (${money(globalDiscount)})`
                                 : money(globalDiscount)}
@@ -4036,11 +4036,11 @@ const POSInterface = ({
                         className="w-full h-full bg-surface p-4 rounded-2xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex flex-col justify-center cursor-pointer"
                     >
                         <span className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-xs uppercase font-extrabold text-ink-muted tracking-wider">Payment Method</span>
+                            <span className="text-xs uppercase font-bold text-ink-muted tracking-wider">Payment Method</span>
                         </span>
                         <span className="flex items-center gap-2 min-w-0">
                             <CreditCard size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />
-                            <span className="vq-clip text-sm sm:text-base font-extrabold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 px-2.5 py-0.5 rounded-md uppercase">
+                            <span className="vq-clip text-sm sm:text-base font-bold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 px-2.5 py-0.5 rounded-md uppercase">
                                 {paymentMethod}
                             </span>
                         </span>
@@ -4089,7 +4089,7 @@ const POSInterface = ({
                 <div className="relative">
                     <label
                         htmlFor="pos-warehouse"
-                        className="text-xs uppercase font-extrabold text-ink-muted block mb-1 tracking-wider"
+                        className="text-xs uppercase font-bold text-ink-muted block mb-1 tracking-wider"
                     >
                         Location
                     </label>
@@ -4238,16 +4238,16 @@ const POSInterface = ({
                     )}
                     <div className="h-px bg-teal-600/40 my-1" />
                     <div className="flex justify-between items-center gap-2 pt-0.5">
-                        <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-teal-200">Total Payable</span>
-                        <span className="vq-num font-extrabold text-white tracking-tight drop-shadow-sm" style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
+                        <span className="text-sm sm:text-base font-bold uppercase tracking-wider text-teal-200">Total Payable</span>
+                        <span className="vq-num font-bold text-white tracking-tight drop-shadow-sm" style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
                             {money(cartTotal)}
                         </span>
                     </div>
                 </div>
             ) : (
                 <div className="bg-gradient-to-br from-[#062421] via-[#0A5049] to-[#076B5E] text-white rounded-2xl p-4 sm:p-5 border border-teal-700/50 shadow-lg flex justify-between items-center gap-2">
-                    <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-teal-200">Total Payable</span>
-                    <span className="vq-num font-extrabold text-white tracking-tight drop-shadow-sm" style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
+                    <span className="text-sm sm:text-base font-bold uppercase tracking-wider text-teal-200">Total Payable</span>
+                    <span className="vq-num font-bold text-white tracking-tight drop-shadow-sm" style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
                         {money(cartTotal)}
                     </span>
                 </div>
@@ -4255,7 +4255,7 @@ const POSInterface = ({
 
             <div id="tour-pos-paid" className="bg-surface p-4 rounded-2xl border border-line/80 shadow-xs">
                 <div className="flex justify-between items-center gap-2 mb-2.5">
-                    <span className="text-xs sm:text-sm uppercase font-extrabold text-ink-muted tracking-wider">
+                    <span className="text-xs sm:text-sm uppercase font-bold text-ink-muted tracking-wider">
                         {returnMode ? 'Amount to refund' : 'Amount tendered'}
                     </span>
                     {/* Split payment now lives inside the Payment Method dropdown above
@@ -4272,14 +4272,14 @@ const POSInterface = ({
                         onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
                         onKeyDown={handleTenderedKeyDown}
                         placeholder="0.00"
-                        className="vq-num w-full bg-sunken/60 focus:bg-surface border border-line/90 rounded-xl pl-11 pr-24 font-extrabold text-ink focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 outline-none transition-all no-spinner h-14"
+                        className="vq-num w-full bg-sunken/60 focus:bg-surface border border-line/90 rounded-xl pl-11 pr-24 font-bold text-ink focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 outline-none transition-all no-spinner h-14"
                         style={{ fontSize: 'var(--vq-t-num)' }}
                         disabled={activeSale.cart.length === 0}
                     />
                     <button
                         type="button"
                         onClick={() => updateActiveSale({ cashReceived: cartTotal })}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-surface hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-xs sm:text-sm text-ink font-extrabold px-3.5 py-2 rounded-lg border border-line cursor-pointer transition-all shadow-xs"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-surface hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-xs sm:text-sm text-ink font-bold px-3.5 py-2 rounded-lg border border-line cursor-pointer transition-all shadow-xs"
                     >
                         Exact
                     </button>
@@ -4287,7 +4287,7 @@ const POSInterface = ({
 
                 {paymentMethod === 'cash' && cartTotal > 0 && (
                     <div className="flex items-center gap-2 pt-3 flex-wrap">
-                        <span className="text-xs font-extrabold text-ink-muted uppercase tracking-wider">Quick:</span>
+                        <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Quick:</span>
                         {[
                             Math.ceil(cartTotal / 100) * 100,
                             Math.ceil(cartTotal / 500) * 500,
@@ -4303,7 +4303,7 @@ const POSInterface = ({
                                     key={amt}
                                     type="button"
                                     onClick={() => updateActiveSale({ cashReceived: amt })}
-                                    className="vq-num text-sm font-extrabold px-3.5 py-1.5 bg-surface hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-ink border border-line/80 rounded-xl transition-all cursor-pointer shadow-xs hover:shadow-xs hover:-translate-y-0.5"
+                                    className="vq-num text-sm font-bold px-3.5 py-1.5 bg-surface hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-ink border border-line/80 rounded-xl transition-all cursor-pointer shadow-xs hover:shadow-xs hover:-translate-y-0.5"
                                 >
                                     {money(amt)}
                                 </button>
@@ -4317,10 +4317,10 @@ const POSInterface = ({
                     changeDue >= 0 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'
                 }`}>
                     <div className="flex justify-between items-center gap-2">
-                        <span className={`text-sm sm:text-base font-extrabold uppercase tracking-wider ${changeDue >= 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'}`}>
+                        <span className={`text-sm sm:text-base font-bold uppercase tracking-wider ${changeDue >= 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'}`}>
                             {changeDue >= 0 ? 'Change due' : 'Shortage'}
                         </span>
-                        <span className={`vq-num font-extrabold ${changeDue >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} style={{ fontSize: 'var(--vq-t-num)' }}>
+                        <span className={`vq-num font-bold ${changeDue >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} style={{ fontSize: 'var(--vq-t-num)' }}>
                             {money(Math.abs(changeDue))}
                         </span>
                     </div>
@@ -4374,7 +4374,7 @@ const POSInterface = ({
                     type="button"
                     onClick={completeReturn}
                     disabled={returnProcessing || activeSale.cart.length === 0}
-                    className="w-full rounded-2xl font-extrabold text-white bg-rose-600 hover:bg-rose-700 active:scale-[0.98] disabled:opacity-50 transition-all uppercase tracking-wider h-14 shadow-md cursor-pointer text-base sm:text-lg"
+                    className="w-full rounded-2xl font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-[0.98] disabled:opacity-50 transition-all uppercase tracking-wider h-14 shadow-md cursor-pointer text-base sm:text-lg"
                 >
                     {returnProcessing ? 'Processing…' : '↩ Complete return'}
                 </button>
@@ -4387,13 +4387,13 @@ const POSInterface = ({
                     style={{
                         boxShadow: '0 6px 24px -4px rgba(11, 170, 143, 0.45)'
                     }}
-                    className={`w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600 active:scale-[0.98] text-white rounded-2xl font-extrabold flex items-center justify-center gap-3 transition-all h-14 cursor-pointer text-lg sm:text-xl ${processingPayment || activeSale.cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600 active:scale-[0.98] text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all h-14 cursor-pointer text-lg sm:text-xl ${processingPayment || activeSale.cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {processingPayment
                         ? <Loader2 size={22} className="shrink-0 animate-spin" />
                         : printOnComplete ? <Printer size={22} className="shrink-0" /> : <Check size={22} className="shrink-0" />}
-                    <span className="vq-clip font-extrabold">{processingPayment ? 'Processing…' : (printOnComplete ? 'Complete & Print' : 'Complete Sale')}</span>
-                    <span className="vq-num px-3 py-1 rounded-xl font-extrabold bg-white/20 border border-white/20 shrink-0 text-base sm:text-lg backdrop-blur-sm">
+                    <span className="vq-clip font-bold">{processingPayment ? 'Processing…' : (printOnComplete ? 'Complete & Print' : 'Complete Sale')}</span>
+                    <span className="vq-num px-3 py-1 rounded-xl font-bold bg-white/20 border border-white/20 shrink-0 text-base sm:text-lg backdrop-blur-sm">
                         {money(cartTotal)}
                     </span>
                 </button>
@@ -4408,7 +4408,7 @@ const POSInterface = ({
                     <button
                         type="button"
                         onClick={backToFloor}
-                        className="flex-1 bg-surface hover:bg-brand-50 text-ink-secondary hover:text-brand-700 border border-line hover:border-brand-300 active:scale-[0.98] rounded-xl font-extrabold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs"
+                        className="flex-1 bg-surface hover:bg-brand-50 text-ink-secondary hover:text-brand-700 border border-line hover:border-brand-300 active:scale-[0.98] rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs"
                     >
                         <ArrowLeft size={17} /> Floor
                     </button>
@@ -4418,7 +4418,7 @@ const POSInterface = ({
                         type="button"
                         onClick={handleParkBill}
                         disabled={parkingBill || activeSale.cart.length === 0}
-                        className={`flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-[0.98] text-white rounded-xl font-extrabold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs ${parkingBill || activeSale.cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-[0.98] text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs ${parkingBill || activeSale.cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <Pause size={17} /> {parkingBill ? 'Holding…' : 'Hold'}
                     </button>
@@ -4426,7 +4426,7 @@ const POSInterface = ({
                 <button
                     type="button"
                     onClick={handleClearCartWithUndo}
-                    className="flex-1 bg-surface hover:bg-rose-50 text-ink-secondary hover:text-rose-600 border border-line hover:border-rose-200 active:scale-[0.98] rounded-xl font-extrabold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs"
+                    className="flex-1 bg-surface hover:bg-rose-50 text-ink-secondary hover:text-rose-600 border border-line hover:border-rose-200 active:scale-[0.98] rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs"
                 >
                     <X size={17} /> Cancel
                 </button>
@@ -4773,7 +4773,7 @@ const POSInterface = ({
                                         >
                                             <Pause size={17} />
                                             {parkedSales.length > 0 && (
-                                                <span className="vq-num text-2xs font-extrabold">{parkedSales.length}</span>
+                                                <span className="vq-num text-2xs font-bold">{parkedSales.length}</span>
                                             )}
                                         </button>
                                     )}
@@ -4870,7 +4870,7 @@ const POSInterface = ({
                                         >
                                             <Printer size={16} />
                                             {printerState === 'ready' && printerCount > 1 && (
-                                                <span className="vq-num text-2xs font-extrabold">{printerCount}</span>
+                                                <span className="vq-num text-2xs font-bold">{printerCount}</span>
                                             )}
                                             {printerState === 'no-printer' && (
                                                 <AlertTriangle size={12} className="shrink-0" />
@@ -4948,7 +4948,7 @@ const POSInterface = ({
                                 ? (
                                     <section className="vq-pane bg-surface border border-line/80 shadow-md" data-pane="floor">
                                         <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
-                                            <Users size={15} className="text-violet-500 dark:text-violet-400" />
+                                            <Users size={15} className="text-brand-500 dark:text-brand-400" />
                                             <span>Pick a table</span>
                                             <span className="vq-num ml-auto text-2xs opacity-80 font-bold">
                                                 {tables.counts.open} open · {tables.counts.free} free
@@ -5780,7 +5780,7 @@ const POSInterface = ({
         )}
         {/* ── Cart Undo Floating Banner ────────────────────────────────────────────── */}
         {lastClearedCart && (
-            <div className="fixed bottom-14 left-1/2 -translate-x-1/2 z-toast bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl border border-white/15 flex items-center gap-4 vq-anim-rise">
+            <div className="fixed bottom-14 left-1/2 -translate-x-1/2 z-toast bg-overlay text-ink px-5 py-3 rounded-2xl shadow-2xl border border-white/15 flex items-center gap-4 vq-anim-rise">
                 <span className="text-xs font-bold">Cart cleared ({lastClearedCart.cart.length} items removed)</span>
                 <button
                     onClick={handleRestoreClearedCart}

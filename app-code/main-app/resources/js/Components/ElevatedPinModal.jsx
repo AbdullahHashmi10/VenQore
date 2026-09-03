@@ -108,7 +108,7 @@ export default function ElevatedPinModal({ isOpen, onClose, onSuccess, permissio
                 {step === 'select' ? (
                     <div className="p-8 space-y-6">
                         <div className="text-center space-y-2">
-                            <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-lg flex items-center justify-center mx-auto text-violet-600">
+                            <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-lg flex items-center justify-center mx-auto text-brand-600">
                                 <Shield size={32} />
                             </div>
                             <h3 className="text-xl font-bold text-ink">Authorization Required</h3>
@@ -125,9 +125,9 @@ export default function ElevatedPinModal({ isOpen, onClose, onSuccess, permissio
                                     <button
                                         key={m.user_id}
                                         onClick={() => { setSelectedMember(m); setStep('pin'); }}
-                                        className="w-full flex items-center gap-3 p-3 rounded-2xl border border-line hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all text-left"
+                                        className="w-full flex items-center gap-3 p-3 rounded-2xl border border-line hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all text-left"
                                     >
-                                        <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-600 font-bold text-sm">
+                                        <div className="w-9 h-9 rounded-xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-brand-600 font-bold text-sm">
                                             {m.name.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
@@ -142,10 +142,10 @@ export default function ElevatedPinModal({ isOpen, onClose, onSuccess, permissio
                 ) : (
                     <>
                         <div className="p-8 text-center border-b border-line space-y-2">
-                            <button onClick={() => { setStep('select'); setInput(''); setError(''); }} className="text-xs text-violet-500 font-bold mb-2 flex items-center gap-1 mx-auto">
+                            <button onClick={() => { setStep('select'); setInput(''); setError(''); }} className="text-xs text-brand-500 font-bold mb-2 flex items-center gap-1 mx-auto">
                                 ← {selectedMember?.name}
                             </button>
-                            <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-lg flex items-center justify-center mx-auto text-violet-600">
+                            <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-lg flex items-center justify-center mx-auto text-brand-600">
                                 <Shield size={32} />
                             </div>
                             <h3 className="text-lg font-bold text-ink">Enter PIN</h3>
@@ -155,7 +155,7 @@ export default function ElevatedPinModal({ isOpen, onClose, onSuccess, permissio
                         <div className={`py-8 bg-app flex flex-col items-center gap-4`}>
                             <div className="flex gap-3">
                                 {[...Array(6)].map((_, i) => (
-                                    <div key={i} className={`w-4 h-4 rounded-full transition-all duration-slow ${i < input.length ? 'bg-violet-600 scale-125' : 'bg-sunken'} ${error ? 'bg-red-500 animate-pulse' : ''}`} />
+                                    <div key={i} className={`w-4 h-4 rounded-full transition-all duration-slow ${i < input.length ? 'bg-brand-600 scale-125' : 'bg-sunken'} ${error ? 'bg-red-500 animate-pulse' : ''}`} />
                                 ))}
                             </div>
                             {error && <p className="text-red-500 text-xs font-bold uppercase tracking-wider">{error}</p>}
@@ -164,16 +164,16 @@ export default function ElevatedPinModal({ isOpen, onClose, onSuccess, permissio
                         <div className="p-8 grid grid-cols-3 gap-3 bg-surface">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                                 <button key={num} disabled={loading} onClick={() => handleNumberClick(num.toString())}
-                                    className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50">
+                                    className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600 transition-all active:scale-95 disabled:opacity-50">
                                     {num}
                                 </button>
                             ))}
                             <button disabled={loading} onClick={handleDelete} className="h-14 rounded-2xl flex items-center justify-center text-ink-muted hover:text-red-500 hover:bg-red-50 transition-all active:scale-95">
                                 <Delete size={24} />
                             </button>
-                            <button disabled={loading} onClick={() => handleNumberClick('0')} className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-violet-50 hover:text-violet-600 transition-all active:scale-95 disabled:opacity-50">0</button>
+                            <button disabled={loading} onClick={() => handleNumberClick('0')} className="h-14 rounded-2xl bg-app text-xl font-bold text-ink-secondary dark:text-white hover:bg-brand-50 hover:text-brand-600 transition-all active:scale-95 disabled:opacity-50">0</button>
                             <button disabled={loading || input.length !== 6} onClick={() => verifyPin(input)}
-                                className={`h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${input.length === 6 ? 'bg-violet-600 text-white shadow-lg  hover:bg-violet-700' : 'bg-sunken text-ink-faint cursor-not-allowed'}`}>
+                                className={`h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${input.length === 6 ? 'bg-brand-600 text-white shadow-lg  hover:bg-brand-700' : 'bg-sunken text-ink-faint cursor-not-allowed'}`}>
                                 <Check size={28} />
                             </button>
                         </div>

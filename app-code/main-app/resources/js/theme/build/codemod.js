@@ -242,7 +242,7 @@ function transformArbitraryClasses(src) {
 /**
  * 2. Shades that do not exist.
  *
- *    bg-indigo-650  →  bg-indigo-600
+ *    bg-brand-650  →  bg-brand-600
  *
  * Tailwind has no 650, 205 or 705 stop, so these classes compile to nothing and
  * the elements carrying them are rendering unstyled today. Found during the
@@ -416,7 +416,7 @@ function main() {
 
     console.log('  Conversions');
     console.log(`    arbitrary colour classes  bg-[#hex] → bg-void-900     ${stats.arbitraryClasses}`);
-    console.log(`    non-existent shades       bg-indigo-650 → -600        ${stats.brokenShades}`);
+    console.log(`    non-existent shades       bg-brand-650 → -600        ${stats.brokenShades}`);
     console.log(`    arbitrary font sizes      text-[10px] → text-2xs      ${stats.fontSizes}`);
     console.log(`    inline hex                "#6366f1" → vq.indigo[500]   ${stats.inlineHex}`);
     console.log(`    runtime imports added                                 ${stats.importsAdded}`);

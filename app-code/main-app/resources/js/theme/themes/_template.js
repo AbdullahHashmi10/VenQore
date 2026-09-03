@@ -241,7 +241,7 @@ const TYPOGRAPHY = {
     },
 
     /**
-     * `font-bold` appears 5,334 times in this codebase and `font-black` 2,023.
+     * `font-bold` appears 5,334 times in this codebase and `font-bold` 2,023.
      * When almost everything is heavy, nothing reads as emphasised. Lowering
      * what these names resolve to is a legitimate way to calm the interface
      * without editing 7,000 class names.

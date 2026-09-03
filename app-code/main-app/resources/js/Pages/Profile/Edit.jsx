@@ -3,796 +3,796 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PlatformLayout from '@/Layouts/PlatformLayout';
 import {
-    User,
-    Mail,
-    Lock,
-    Save,
-    AlertTriangle,
-    Trash2,
-    CheckCircle,
-    ArrowLeft,
-    Key,
-    Eye,
-    EyeOff,
-    Smartphone,
-    Moon,
-    Sun,
-    Type,
-    Shield
+ User,
+ Mail,
+ Lock,
+ Save,
+ AlertTriangle,
+ Trash2,
+ CheckCircle,
+ ArrowLeft,
+ Key,
+ Eye,
+ EyeOff,
+ Smartphone,
+ Moon,
+ Sun,
+ Type,
+ Shield
 } from 'lucide-react';
 
 export default function Edit({ mustVerifyEmail, status }) {
-    const {
-        store
-    } = usePage().props;
+ const {
+ store
+ } = usePage().props;
 
-    const { auth, settings } = usePage().props;
-    const user = auth.user;
-    const myRole = usePage().props.my_role || user?.role;
-    const needsPasscode = ['owner', 'admin', 'manager', 'accountant', 'shift_supervisor'].includes(myRole);
+ const { auth, settings } = usePage().props;
+ const user = auth.user;
+ const myRole = usePage().props.my_role || user?.role;
+ const needsPasscode = ['owner', 'admin', 'manager', 'accountant', 'shift_supervisor'].includes(myRole);
 
-    // Profile form
-    const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
-        name: user.name || '',
-        email: user.email || '',
-    });
+ // Profile form
+ const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
+ name: user.name || '',
+ email: user.email || '',
+ });
 
-    // Password form
-    const { data: passwordData, setData: setPasswordData, put: putPassword, errors: passwordErrors, processing: passwordProcessing, recentlySuccessful: passwordRecentlySuccessful, reset: resetPassword } = useForm({
-        current_password: '',
-        password: '',
-        password_confirmation: '',
-    });
+ // Password form
+ const { data: passwordData, setData: setPasswordData, put: putPassword, errors: passwordErrors, processing: passwordProcessing, recentlySuccessful: passwordRecentlySuccessful, reset: resetPassword } = useForm({
+ current_password: '',
+ password: '',
+ password_confirmation: '',
+ });
 
-    // Personal Passcode form
-    const [passcodeData, setPasscodeData] = useState({
-        enable_passcode: user.has_passcode ? true : false,
-        passcode: '',
-        confirm_passcode: '',
-    });
-    const [passcodeError, setPasscodeError] = useState('');
-    const [passcodeSaved, setPasscodeSaved] = useState(false);
-    const [passcodeSaving, setPasscodeSaving] = useState(false);
-    const [showPasscode, setShowPasscode] = useState(false);
+ // Personal Passcode form
+ const [passcodeData, setPasscodeData] = useState({
+ enable_passcode: user.has_passcode ? true : false,
+ passcode: '',
+ confirm_passcode: '',
+ });
+ const [passcodeError, setPasscodeError] = useState('');
+ const [passcodeSaved, setPasscodeSaved] = useState(false);
+ const [passcodeSaving, setPasscodeSaving] = useState(false);
+ const [showPasscode, setShowPasscode] = useState(false);
 
-    // Security PIN form (for sensitive operations)
-    const [securityPinData, setSecurityPinData] = useState({
-        enable_security_pin: user.security_pin ? true : false,
-        security_pin: '',
-        confirm_security_pin: '',
-    });
-    const [securityPinError, setSecurityPinError] = useState('');
-    const [securityPinSaved, setSecurityPinSaved] = useState(false);
-    const [securityPinSaving, setSecurityPinSaving] = useState(false);
-    const [showSecurityPin, setShowSecurityPin] = useState(false);
+ // Security PIN form (for sensitive operations)
+ const [securityPinData, setSecurityPinData] = useState({
+ enable_security_pin: user.security_pin ? true : false,
+ security_pin: '',
+ confirm_security_pin: '',
+ });
+ const [securityPinError, setSecurityPinError] = useState('');
+ const [securityPinSaved, setSecurityPinSaved] = useState(false);
+ const [securityPinSaving, setSecurityPinSaving] = useState(false);
+ const [showSecurityPin, setShowSecurityPin] = useState(false);
 
-    // Delete account
-    const { delete: destroy, processing: deleteProcessing } = useForm({
-        password: '',
-    });
+ // Delete account
+ const { delete: destroy, processing: deleteProcessing } = useForm({
+ password: '',
+ });
 
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletePassword, setDeletePassword] = useState('');
+ const [showDeleteModal, setShowDeleteModal] = useState(false);
+ const [deletePassword, setDeletePassword] = useState('');
 
-    // Preferences
-    const [preferences, setPreferences] = useState({
-        // Fall back to the live <html> class: with no saved choice the theme
-        // is resolved per-route by ThemeContext, so localStorage may be empty
-        // while the app is still rendering in dark.
-        dark_mode: localStorage.getItem('amd_theme')
-            ? localStorage.getItem('amd_theme') === 'dark'
-            : document.documentElement.classList.contains('dark'),
-        senior_mode: settings?.senior_mode === '1',
-    });
+ // Preferences
+ const [preferences, setPreferences] = useState({
+ // Fall back to the live <html> class: with no saved choice the theme
+ // is resolved per-route by ThemeContext, so localStorage may be empty
+ // while the app is still rendering in dark.
+ dark_mode: localStorage.getItem('amd_theme')
+ ? localStorage.getItem('amd_theme') === 'dark'
+ : document.documentElement.classList.contains('dark'),
+ senior_mode: settings?.senior_mode === '1',
+ });
 
-    const submit = (e) => {
-        e.preventDefault();
-        if (store) {
-            patch(route('store.profile.update', { store_slug: store.slug }));
-        } else {
-            patch(route('account.update'));
-        }
-    };
+ const submit = (e) => {
+ e.preventDefault();
+ if (store) {
+ patch(route('store.profile.update', { store_slug: store.slug }));
+ } else {
+ patch(route('account.update'));
+ }
+ };
 
-    const submitPassword = (e) => {
-        e.preventDefault();
-        putPassword(route('password.update'), {
-            onSuccess: () => resetPassword(),
-        });
-    };
+ const submitPassword = (e) => {
+ e.preventDefault();
+ putPassword(route('password.update'), {
+ onSuccess: () => resetPassword(),
+ });
+ };
 
-    const submitPasscode = async (e) => {
-        e.preventDefault();
-        setPasscodeError('');
+ const submitPasscode = async (e) => {
+ e.preventDefault();
+ setPasscodeError('');
 
-        if (passcodeData.enable_passcode) {
-            if (!passcodeData.passcode || passcodeData.passcode.length < 4) {
-                setPasscodeError('Passcode must be at least 4 digits');
-                return;
-            }
-            if (passcodeData.passcode !== passcodeData.confirm_passcode) {
-                setPasscodeError('Passcodes do not match');
-                return;
-            }
-        }
+ if (passcodeData.enable_passcode) {
+ if (!passcodeData.passcode || passcodeData.passcode.length < 4) {
+ setPasscodeError('Passcode must be at least 4 digits');
+ return;
+ }
+ if (passcodeData.passcode !== passcodeData.confirm_passcode) {
+ setPasscodeError('Passcodes do not match');
+ return;
+ }
+ }
 
-        setPasscodeSaving(true);
-        const url = store
-            ? route('store.profile.passcode', { store_slug: store.slug })
-            : route('account.passcode');
-        try {
-            await router.post(url, {
-                passcode: passcodeData.enable_passcode ? passcodeData.passcode : null,
-            }, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setPasscodeSaved(true);
-                    setPasscodeData(prev => ({ ...prev, passcode: '', confirm_passcode: '' }));
-                    setTimeout(() => setPasscodeSaved(false), 3000);
-                },
-                onError: (errors) => {
-                    setPasscodeError(errors.passcode || 'Failed to update passcode');
-                }
-            });
-        } finally {
-            setPasscodeSaving(false);
-        }
-    };
+ setPasscodeSaving(true);
+ const url = store
+ ? route('store.profile.passcode', { store_slug: store.slug })
+ : route('account.passcode');
+ try {
+ await router.post(url, {
+ passcode: passcodeData.enable_passcode ? passcodeData.passcode : null,
+ }, {
+ preserveScroll: true,
+ onSuccess: () => {
+ setPasscodeSaved(true);
+ setPasscodeData(prev => ({ ...prev, passcode: '', confirm_passcode: '' }));
+ setTimeout(() => setPasscodeSaved(false), 3000);
+ },
+ onError: (errors) => {
+ setPasscodeError(errors.passcode || 'Failed to update passcode');
+ }
+ });
+ } finally {
+ setPasscodeSaving(false);
+ }
+ };
 
-    const submitSecurityPin = async (e) => {
-        e.preventDefault();
-        setSecurityPinError('');
+ const submitSecurityPin = async (e) => {
+ e.preventDefault();
+ setSecurityPinError('');
 
-        if (securityPinData.enable_security_pin) {
-            if (!securityPinData.security_pin || securityPinData.security_pin.length !== 6) {
-                setSecurityPinError('Security PIN must be exactly 6 digits');
-                return;
-            }
-            if (securityPinData.security_pin !== securityPinData.confirm_security_pin) {
-                setSecurityPinError('Security PINs do not match');
-                return;
-            }
-        }
+ if (securityPinData.enable_security_pin) {
+ if (!securityPinData.security_pin || securityPinData.security_pin.length !== 6) {
+ setSecurityPinError('Security PIN must be exactly 6 digits');
+ return;
+ }
+ if (securityPinData.security_pin !== securityPinData.confirm_security_pin) {
+ setSecurityPinError('Security PINs do not match');
+ return;
+ }
+ }
 
-        setSecurityPinSaving(true);
-        const url = store
-            ? route('store.profile.security-pin', { store_slug: store.slug })
-            : route('account.security-pin');
-        try {
-            await router.post(url, {
-                security_pin: securityPinData.enable_security_pin ? securityPinData.security_pin : null,
-            }, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setSecurityPinSaved(true);
-                    setSecurityPinData(prev => ({ ...prev, security_pin: '', confirm_security_pin: '' }));
-                    setTimeout(() => setSecurityPinSaved(false), 3000);
-                },
-                onError: (errors) => {
-                    setSecurityPinError(errors.security_pin || 'Failed to update security PIN');
-                }
-            });
-        } finally {
-            setSecurityPinSaving(false);
-        }
-    };
+ setSecurityPinSaving(true);
+ const url = store
+ ? route('store.profile.security-pin', { store_slug: store.slug })
+ : route('account.security-pin');
+ try {
+ await router.post(url, {
+ security_pin: securityPinData.enable_security_pin ? securityPinData.security_pin : null,
+ }, {
+ preserveScroll: true,
+ onSuccess: () => {
+ setSecurityPinSaved(true);
+ setSecurityPinData(prev => ({ ...prev, security_pin: '', confirm_security_pin: '' }));
+ setTimeout(() => setSecurityPinSaved(false), 3000);
+ },
+ onError: (errors) => {
+ setSecurityPinError(errors.security_pin || 'Failed to update security PIN');
+ }
+ });
+ } finally {
+ setSecurityPinSaving(false);
+ }
+ };
 
-    const deleteAccount = (e) => {
-        e.preventDefault();
-        const url = store
-            ? route('store.profile.destroy', { store_slug: store.slug })
-            : route('account.destroy');
-        destroy(url, {
-            data: { password: deletePassword },
-        });
-    };
+ const deleteAccount = (e) => {
+ e.preventDefault();
+ const url = store
+ ? route('store.profile.destroy', { store_slug: store.slug })
+ : route('account.destroy');
+ destroy(url, {
+ data: { password: deletePassword },
+ });
+ };
 
-    const toggleDarkMode = () => {
-        const newMode = !preferences.dark_mode;
-        setPreferences(prev => ({ ...prev, dark_mode: newMode }));
-        localStorage.setItem('amd_theme', newMode ? 'dark' : 'light');
-        if (newMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    };
+ const toggleDarkMode = () => {
+ const newMode = !preferences.dark_mode;
+ setPreferences(prev => ({ ...prev, dark_mode: newMode }));
+ localStorage.setItem('amd_theme', newMode ? 'dark' : 'light');
+ if (newMode) {
+ document.documentElement.classList.add('dark');
+ } else {
+ document.documentElement.classList.remove('dark');
+ }
+ };
 
-    const toggleSeniorMode = () => {
-        const newValue = !preferences.senior_mode;
-        setPreferences(prev => ({ ...prev, senior_mode: newValue }));
-        if (store) {
-            router.post(route("store.settings.update", {
-                store_slug: store.slug
-            }), {
-                settings: { ...settings, senior_mode: newValue ? '1' : '0' }
-            }, { preserveScroll: true });
-        }
-    };
+ const toggleSeniorMode = () => {
+ const newValue = !preferences.senior_mode;
+ setPreferences(prev => ({ ...prev, senior_mode: newValue }));
+ if (store) {
+ router.post(route("store.settings.update", {
+ store_slug: store.slug
+ }), {
+ settings: { ...settings, senior_mode: newValue ? '1' : '0' }
+ }, { preserveScroll: true });
+ }
+ };
 
-    const Layout = store ? OneGlanceLayout : PlatformLayout;
+ const Layout = store ? OneGlanceLayout : PlatformLayout;
 
-    return (
-        <Layout {...(store ? { title: "Profile Settings", activeMenu: "System" } : { title: "Profile Settings" })}>
-            <Head title="Profile Settings" />
-            {/* Main scrollable container */}
-            <div className="h-full overflow-y-auto">
-                <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8 pb-24">
-                    {/* Back Link */}
-                    <Link
-                        href={store ? route('store.home', { store_slug: store.slug }) : '/VenQore'}
-                        className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-brand-600 transition-colors"
-                    >
-                        <ArrowLeft size={16} />
-                        Back to Dashboard
-                    </Link>
+ return (
+ <Layout {...(store ? { title: "Profile Settings", activeMenu: "System" } : { title: "Profile Settings" })}>
+ <Head title="Profile Settings" />
+ {/* Main scrollable container */}
+ <div className="h-full overflow-y-auto">
+ <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8 pb-24">
+ {/* Back Link */}
+ <Link
+ href={store ? route('store.home', { store_slug: store.slug }) : '/VenQore'}
+ className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-brand-600 transition-colors"
+ >
+ <ArrowLeft size={16} />
+ Back to Dashboard
+ </Link>
 
-                    {/* Profile Information Card */}
-                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
-                        {/* Header */}
-                        <div className="p-6 bg-gradient-to-br from-brand-600 to-violet-700 text-white relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                            <div className="relative z-10 flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl font-bold">
-                                    {(user.name || user.email).substring(0, 2).toUpperCase()}
-                                </div>
-                                <div>
-                                    <h1 className="text-2xl font-bold">Profile Information</h1>
-                                    <p className="text-brand-100 text-sm">Update your account's profile information and email address.</p>
-                                </div>
-                            </div>
-                        </div>
+ {/* Profile Information Card */}
+ <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+ {/* Header */}
+ <div className="p-6 bg-gradient-brand text-white relative overflow-hidden">
+ <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+ <div className="relative z-10 flex items-center gap-4">
+ <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl font-bold">
+ {(user.name || user.email).substring(0, 2).toUpperCase()}
+ </div>
+ <div>
+ <h1 className="text-2xl font-bold">Profile Information</h1>
+ <p className="text-brand-100 text-sm">Update your account's profile information and email address.</p>
+ </div>
+ </div>
+ </div>
 
-                        {/* Form */}
-                        <form onSubmit={submit} className="p-6 space-y-6">
-                            {/* Success Message */}
-                            {recentlySuccessful && (
-                                <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
-                                    <CheckCircle size={20} />
-                                    <span className="text-sm font-medium">Profile updated successfully!</span>
-                                </div>
-                            )}
+ {/* Form */}
+ <form onSubmit={submit} className="p-6 space-y-6">
+ {/* Success Message */}
+ {recentlySuccessful && (
+ <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
+ <CheckCircle size={20} />
+ <span className="text-sm font-medium">Profile updated successfully!</span>
+ </div>
+ )}
 
-                            {/* Name */}
-                            <div>
-                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
-                                    <User size={14} className="inline mr-2" />
-                                    Name
-                                </label>
-                                <input
-                                    type="text"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                                    placeholder="Your name"
-                                />
-                                {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name}</p>}
-                            </div>
+ {/* Name */}
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
+ <User size={14} className="inline mr-2" />
+ Name
+ </label>
+ <input
+ type="text"
+ value={data.name}
+ onChange={(e) => setData('name', e.target.value)}
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+ placeholder="Your name"
+ />
+ {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name}</p>}
+ </div>
 
-                            {/* Email */}
-                            <div>
-                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
-                                    <Mail size={14} className="inline mr-2" />
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                                    placeholder="your@email.com"
-                                />
-                                {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email}</p>}
-                            </div>
+ {/* Email */}
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
+ <Mail size={14} className="inline mr-2" />
+ Email
+ </label>
+ <input
+ type="email"
+ value={data.email}
+ onChange={(e) => setData('email', e.target.value)}
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+ placeholder="your@email.com"
+ />
+ {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email}</p>}
+ </div>
 
-                            {mustVerifyEmail && user.email_verified_at === null && (
-                                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl">
-                                    <p className="text-sm text-amber-700 dark:text-amber-400">
-                                        Your email address is unverified.{''}
-                                        <Link
-                                            href={route('verification.send')}
-                                            method="post"
-                                            as="button"
-                                            className="underline hover:text-amber-900 dark:hover:text-amber-300"
-                                        >
-                                            Click here to re-send the verification email.
-                                        </Link>
-                                    </p>
-                                    {status === 'verification-link-sent' && (
-                                        <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
-                                            A new verification link has been sent to your email address.
-                                        </p>
-                                    )}
-                                </div>
-                            )}
+ {mustVerifyEmail && user.email_verified_at === null && (
+ <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl">
+ <p className="text-sm text-amber-700 dark:text-amber-400">
+ Your email address is unverified.{''}
+ <Link
+ href={route('verification.send')}
+ method="post"
+ as="button"
+ className="underline hover:text-amber-900 dark:hover:text-amber-300"
+ >
+ Click here to re-send the verification email.
+ </Link>
+ </p>
+ {status === 'verification-link-sent' && (
+ <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
+ A new verification link has been sent to your email address.
+ </p>
+ )}
+ </div>
+ )}
 
-                            {/* Save Button */}
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
-                                >
-                                    <Save size={18} />
-                                    {processing ? 'Saving...' : 'Save Changes'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+ {/* Save Button */}
+ <div className="flex justify-end">
+ <button
+ type="submit"
+ disabled={processing}
+ className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
+ >
+ <Save size={18} />
+ {processing ? 'Saving...' : 'Save Changes'}
+ </button>
+ </div>
+ </form>
+ </div>
 
-                    {/* Onboarding Progress Card */}
-                    {store && (
-                        <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
-                            <div className="p-6 border-b border-line">
-                                <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-                                    <CheckCircle className="text-brand-500" />
-                                    Onboarding Setup Progress
-                                </h2>
-                                <p className="text-sm text-ink-muted mt-1">Track the setup steps required to unlock your dashboard analytics.</p>
-                            </div>
-                            <div className="p-6 space-y-4">
-                                {/* Checklist of steps */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[
-                                        { key: 'inventory', label: 'Catalog First Product', isDone: usePage().props.onboarding_metrics?.has_products, desc: 'Add at least one product to your store inventory.', route: 'store.inventory.index' },
-                                        { key: 'purchase', label: 'Record First Purchase', isDone: usePage().props.onboarding_metrics?.has_purchases, desc: 'Add stock to your inventory by recording a purchase.', route: 'store.purchases.create' },
-                                        { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: usePage().props.onboarding_metrics?.has_sales, desc: 'Make a POS sale or generate a customer invoice.', route: 'store.sales.invoice.create' },
-                                        { key: 'expense', label: 'Record Store Expense', isDone: usePage().props.onboarding_metrics?.has_expenses, desc: 'Keep track of daily business costs by adding an expense.', route: 'store.expenses.index' },
-                                        { key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: usePage().props.onboarding_metrics?.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected, desc: 'Link your Google Drive for automated database backups.', route: 'store.admin.data', tab: 'drive_sync' }
-                                    ].map((item, idx) => (
-                                        <div key={idx} className={`p-4 rounded-2xl border transition-all ${item.isDone ? 'bg-emerald-500/5 border-emerald-100 dark:border-emerald-950/50' : 'bg-app border-line'}`}>
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="flex items-start gap-3">
-                                                    <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${item.isDone ? 'bg-emerald-500/15 text-emerald-500' : 'bg-sunken text-ink-muted'}`}>
-                                                        {item.isDone ? <CheckCircle size={12} className="fill-emerald-500/10" /> : <div className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-raised" />}
-                                                    </div>
-                                                    <div>
-                                                        <p className={`font-bold text-sm ${item.isDone ? 'text-ink-muted line-through' : 'text-ink-secondary dark:text-ink'}`}>
-                                                            {item.label}
-                                                        </p>
-                                                        <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">
-                                                            {item.desc}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <span className={`text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-brand-500/10 text-brand-500'}`}>
-                                                    {item.isDone ? 'Done' : 'Pending'}
-                                                </span>
-                                            </div>
-                                            {!item.isDone && (
-                                                <div className="mt-3 flex justify-end">
-                                                    <Link
-                                                        href={route(item.route, { store_slug: store.slug, ...(item.tab ? { tab: item.tab } : {}) })}
-                                                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
-                                                    >
-                                                        Start Task &rarr;
-                                                    </Link>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+ {/* Onboarding Progress Card */}
+ {store && (
+ <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+ <div className="p-6 border-b border-line">
+ <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+ <CheckCircle className="text-brand-500" />
+ Onboarding Setup Progress
+ </h2>
+ <p className="text-sm text-ink-muted mt-1">Track the setup steps required to unlock your dashboard analytics.</p>
+ </div>
+ <div className="p-6 space-y-4">
+ {/* Checklist of steps */}
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ {[
+ { key: 'inventory', label: 'Catalog First Product', isDone: usePage().props.onboarding_metrics?.has_products, desc: 'Add at least one product to your store inventory.', route: 'store.inventory.index' },
+ { key: 'purchase', label: 'Record First Purchase', isDone: usePage().props.onboarding_metrics?.has_purchases, desc: 'Add stock to your inventory by recording a purchase.', route: 'store.purchases.create' },
+ { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: usePage().props.onboarding_metrics?.has_sales, desc: 'Make a POS sale or generate a customer invoice.', route: 'store.sales.invoice.create' },
+ { key: 'expense', label: 'Record Store Expense', isDone: usePage().props.onboarding_metrics?.has_expenses, desc: 'Keep track of daily business costs by adding an expense.', route: 'store.expenses.index' },
+ { key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: usePage().props.onboarding_metrics?.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected, desc: 'Link your Google Drive for automated database backups.', route: 'store.admin.data', tab: 'drive_sync' }
+ ].map((item, idx) => (
+ <div key={idx} className={`p-4 rounded-2xl border transition-all ${item.isDone ? 'bg-emerald-500/5 border-emerald-100 dark:border-emerald-950/50' : 'bg-app border-line'}`}>
+ <div className="flex items-start justify-between gap-3">
+ <div className="flex items-start gap-3">
+ <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${item.isDone ? 'bg-emerald-500/15 text-emerald-500' : 'bg-sunken text-ink-muted'}`}>
+ {item.isDone ? <CheckCircle size={12} className="fill-emerald-500/10" /> : <div className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-raised" />}
+ </div>
+ <div>
+ <p className={`font-bold text-sm ${item.isDone ? 'text-ink-muted line-through' : 'text-ink-secondary dark:text-ink'}`}>
+ {item.label}
+ </p>
+ <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">
+ {item.desc}
+ </p>
+ </div>
+ </div>
+ <span className={`text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-brand-500/10 text-brand-500'}`}>
+ {item.isDone ? 'Done' : 'Pending'}
+ </span>
+ </div>
+ {!item.isDone && (
+ <div className="mt-3 flex justify-end">
+ <Link
+ href={route(item.route, { store_slug: store.slug, ...(item.tab ? { tab: item.tab } : {}) })}
+ className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
+ >
+ Start Task &rarr;
+ </Link>
+ </div>
+ )}
+ </div>
+ ))}
+ </div>
+ </div>
+ </div>
+ )}
 
-                    {/* Personal Preferences Card */}
-                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
-                        <div className="p-6 border-b border-line">
-                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-                                <Smartphone size={20} className="text-brand-500" />
-                                Personal Preferences
-                            </h2>
-                            <p className="text-sm text-ink-muted mt-1">Customize your experience with these personal settings.</p>
-                        </div>
+ {/* Personal Preferences Card */}
+ <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+ <div className="p-6 border-b border-line">
+ <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+ <Smartphone size={20} className="text-brand-500" />
+ Personal Preferences
+ </h2>
+ <p className="text-sm text-ink-muted mt-1">Customize your experience with these personal settings.</p>
+ </div>
 
-                        <div className="p-6 space-y-4">
-                            {/* Dark Mode Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
-                                        {preferences.dark_mode ? <Moon size={20} className="text-brand-500" /> : <Sun size={20} className="text-amber-500" />}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-ink">Dark Mode</p>
-                                        <p className="text-xs text-ink-muted">Switch between light and dark themes</p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={toggleDarkMode}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-slow ${preferences.dark_mode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
-                                >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${preferences.dark_mode ? 'left-8' : 'left-1'}`} />
-                                </button>
-                            </div>
+ <div className="p-6 space-y-4">
+ {/* Dark Mode Toggle */}
+ <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex items-center gap-4">
+ <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
+ {preferences.dark_mode ? <Moon size={20} className="text-brand-500" /> : <Sun size={20} className="text-amber-500" />}
+ </div>
+ <div>
+ <p className="font-bold text-ink">Dark Mode</p>
+ <p className="text-xs text-ink-muted">Switch between light and dark themes</p>
+ </div>
+ </div>
+ <button
+ type="button"
+ onClick={toggleDarkMode}
+ className={`relative w-14 h-7 rounded-full transition-all duration-slow ${preferences.dark_mode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
+ >
+ <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${preferences.dark_mode ? 'left-8' : 'left-1'}`} />
+ </button>
+ </div>
 
-                            {/* Senior Mode Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
-                                        <Type size={20} className="text-brand-500" />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-ink">Senior Mode (Large Text)</p>
-                                        <p className="text-xs text-ink-muted">Increase text size for better readability</p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={toggleSeniorMode}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-slow ${preferences.senior_mode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
-                                >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${preferences.senior_mode ? 'left-8' : 'left-1'}`} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+ {/* Senior Mode Toggle */}
+ <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex items-center gap-4">
+ <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
+ <Type size={20} className="text-brand-500" />
+ </div>
+ <div>
+ <p className="font-bold text-ink">Senior Mode (Large Text)</p>
+ <p className="text-xs text-ink-muted">Increase text size for better readability</p>
+ </div>
+ </div>
+ <button
+ type="button"
+ onClick={toggleSeniorMode}
+ className={`relative w-14 h-7 rounded-full transition-all duration-slow ${preferences.senior_mode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
+ >
+ <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${preferences.senior_mode ? 'left-8' : 'left-1'}`} />
+ </button>
+ </div>
+ </div>
+ </div>
 
-                    {/* Personal Passcode Card */}
-                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
-                        <div className="p-6 border-b border-line">
-                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-                                <Key size={20} className="text-brand-500" />
-                                Personal Passcode (Quick Login PIN)
-                            </h2>
-                            <p className="text-sm text-ink-muted mt-1">Set up a 4-6 digit PIN for quick login instead of email/password.</p>
-                        </div>
+ {/* Personal Passcode Card */}
+ <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+ <div className="p-6 border-b border-line">
+ <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+ <Key size={20} className="text-brand-500" />
+ Personal Passcode (Quick Login PIN)
+ </h2>
+ <p className="text-sm text-ink-muted mt-1">Set up a 4-6 digit PIN for quick login instead of email/password.</p>
+ </div>
 
-                        <form onSubmit={submitPasscode} className="p-6 space-y-6">
-                            {passcodeSaved && (
-                                <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
-                                    <CheckCircle size={20} />
-                                    <span className="text-sm font-medium">Passcode updated successfully!</span>
-                                </div>
-                            )}
+ <form onSubmit={submitPasscode} className="p-6 space-y-6">
+ {passcodeSaved && (
+ <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
+ <CheckCircle size={20} />
+ <span className="text-sm font-medium">Passcode updated successfully!</span>
+ </div>
+ )}
 
-                            {passcodeError && (
-                                <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400">
-                                    <AlertTriangle size={20} />
-                                    <span className="text-sm font-medium">{passcodeError}</span>
-                                </div>
-                            )}
+ {passcodeError && (
+ <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400">
+ <AlertTriangle size={20} />
+ <span className="text-sm font-medium">{passcodeError}</span>
+ </div>
+ )}
 
-                            {/* Enable Passcode Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
-                                        <Shield size={20} className="text-brand-600" />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-ink">Enable Quick Login PIN</p>
-                                        <p className="text-xs text-ink-muted">
-                                            {user.has_passcode ? 'You have a passcode set. Update or disable it below.' : 'No passcode set yet.'}
-                                        </p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setPasscodeData(prev => ({ ...prev, enable_passcode: !prev.enable_passcode }))}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-slow ${passcodeData.enable_passcode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
-                                >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${passcodeData.enable_passcode ? 'left-8' : 'left-1'}`} />
-                                </button>
-                            </div>
+ {/* Enable Passcode Toggle */}
+ <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex items-center gap-4">
+ <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+ <Shield size={20} className="text-brand-600" />
+ </div>
+ <div>
+ <p className="font-bold text-ink">Enable Quick Login PIN</p>
+ <p className="text-xs text-ink-muted">
+ {user.has_passcode ? 'You have a passcode set. Update or disable it below.' : 'No passcode set yet.'}
+ </p>
+ </div>
+ </div>
+ <button
+ type="button"
+ onClick={() => setPasscodeData(prev => ({ ...prev, enable_passcode: !prev.enable_passcode }))}
+ className={`relative w-14 h-7 rounded-full transition-all duration-slow ${passcodeData.enable_passcode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
+ >
+ <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${passcodeData.enable_passcode ? 'left-8' : 'left-1'}`} />
+ </button>
+ </div>
 
-                            {passcodeData.enable_passcode && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-slow">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
-                                                New Passcode (4-6 digits)
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type={showPasscode ? "text" : "password"}
-                                                    value={passcodeData.passcode}
-                                                    onChange={(e) => setPasscodeData(prev => ({ ...prev, passcode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                    className="w-full px-4 py-3 pr-12 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
-                                                    placeholder="••••••"
-                                                    maxLength={6}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPasscode(!showPasscode)}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary"
-                                                >
-                                                    {showPasscode ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
-                                                Confirm Passcode
-                                            </label>
-                                            <input
-                                                type={showPasscode ? "text" : "password"}
-                                                value={passcodeData.confirm_passcode}
-                                                onChange={(e) => setPasscodeData(prev => ({ ...prev, confirm_passcode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
-                                                placeholder="••••••"
-                                                maxLength={6}
-                                            />
-                                        </div>
-                                    </div>
+ {passcodeData.enable_passcode && (
+ <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-slow">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
+ New Passcode (4-6 digits)
+ </label>
+ <div className="relative">
+ <input
+ type={showPasscode ? "text" : "password"}
+ value={passcodeData.passcode}
+ onChange={(e) => setPasscodeData(prev => ({ ...prev, passcode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+ className="w-full px-4 py-3 pr-12 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+ placeholder="••••••"
+ maxLength={6}
+ />
+ <button
+ type="button"
+ onClick={() => setShowPasscode(!showPasscode)}
+ className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary"
+ >
+ {showPasscode ? <EyeOff size={18} /> : <Eye size={18} />}
+ </button>
+ </div>
+ </div>
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
+ Confirm Passcode
+ </label>
+ <input
+ type={showPasscode ? "text" : "password"}
+ value={passcodeData.confirm_passcode}
+ onChange={(e) => setPasscodeData(prev => ({ ...prev, confirm_passcode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+ placeholder="••••••"
+ maxLength={6}
+ />
+ </div>
+ </div>
 
-                                    <div className="p-4 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl">
-                                        <p className="text-sm text-brand-700 dark:text-brand-300">
-                                            <strong>Tip:</strong> This PIN allows you to quickly log in from the login screen using just a 4-6 digit code instead of your email and password.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+ <div className="p-4 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl">
+ <p className="text-sm text-brand-700 dark:text-brand-300">
+ <strong>Tip:</strong> This PIN allows you to quickly log in from the login screen using just a 4-6 digit code instead of your email and password.
+ </p>
+ </div>
+ </div>
+ )}
 
-                            {(passcodeData.enable_passcode || user.has_passcode) && (
-                                <div className="flex justify-end">
-                                    <button
-                                        type="submit"
-                                        disabled={passcodeSaving}
-                                        className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
-                                            passcodeData.enable_passcode
-                                                ? 'bg-brand-600 hover:bg-brand-700 '
-                                                : 'bg-red-500 hover:bg-red-600 '
-                                        }`}
-                                    >
-                                        <Key size={18} />
-                                        {passcodeSaving
-                                            ? 'Saving...'
-                                            : passcodeData.enable_passcode
-                                                ? (user.has_passcode ? 'Update Passcode' : 'Save Passcode')
-                                                : 'Disable Passcode'}
-                                    </button>
-                                </div>
-                            )}
-                        </form>
-                    </div>
+ {(passcodeData.enable_passcode || user.has_passcode) && (
+ <div className="flex justify-end">
+ <button
+ type="submit"
+ disabled={passcodeSaving}
+ className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
+ passcodeData.enable_passcode
+ ? 'bg-brand-600 hover:bg-brand-700 '
+ : 'bg-red-500 hover:bg-red-600 '
+ }`}
+ >
+ <Key size={18} />
+ {passcodeSaving
+ ? 'Saving...'
+ : passcodeData.enable_passcode
+ ? (user.has_passcode ? 'Update Passcode' : 'Save Passcode')
+ : 'Disable Passcode'}
+ </button>
+ </div>
+ )}
+ </form>
+ </div>
 
-                    {/* Security Passcode Card (6 Digits) */}
-                    {needsPasscode && (
-                        <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden" id="security-pin-section">
-                            <div className="p-6 border-b border-line bg-violet-50/30 dark:bg-violet-900/10">
-                                <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-                                    <Shield size={20} className="text-violet-600" />
-                                    Security Passcode (Transaction PIN)
-                                </h2>
-                                <p className="text-sm text-ink-muted mt-1">Set up a mandatory 6-digit PIN for sensitive tasks like adding capital, deleting records, or changing settings.</p>
-                            </div>
+ {/* Security Passcode Card (6 Digits) */}
+ {needsPasscode && (
+ <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden" id="security-pin-section">
+ <div className="p-6 border-b border-line bg-brand-50/30 dark:bg-brand-900/10">
+ <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+ <Shield size={20} className="text-brand-600" />
+ Security Passcode (Transaction PIN)
+ </h2>
+ <p className="text-sm text-ink-muted mt-1">Set up a mandatory 6-digit PIN for sensitive tasks like adding capital, deleting records, or changing settings.</p>
+ </div>
 
-                            <form onSubmit={submitSecurityPin} className="p-6 space-y-6">
-                                {securityPinSaved && (
-                                    <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
-                                        <CheckCircle size={20} />
-                                        <span className="text-sm font-medium">Security PIN updated successfully!</span>
-                                    </div>
-                                )}
+ <form onSubmit={submitSecurityPin} className="p-6 space-y-6">
+ {securityPinSaved && (
+ <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
+ <CheckCircle size={20} />
+ <span className="text-sm font-medium">Security PIN updated successfully!</span>
+ </div>
+ )}
 
-                                {securityPinError && (
-                                    <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400">
-                                        <AlertTriangle size={20} />
-                                        <span className="text-sm font-medium">{securityPinError}</span>
-                                    </div>
-                                )}
+ {securityPinError && (
+ <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400">
+ <AlertTriangle size={20} />
+ <span className="text-sm font-medium">{securityPinError}</span>
+ </div>
+ )}
 
-                                {/* Enable Security PIN Toggle */}
-                                <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-                                            <Lock size={20} className="text-violet-600" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-ink">Enable Transaction Security</p>
-                                            <p className="text-xs text-ink-muted">
-                                                {user.security_pin ? 'Security PIN is currently active.' : 'Security PIN is not set yet.'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setSecurityPinData(prev => ({ ...prev, enable_security_pin: !prev.enable_security_pin }))}
-                                        className={`relative w-14 h-7 rounded-full transition-all duration-slow ${securityPinData.enable_security_pin ? 'bg-violet-600 shadow-lg ' : 'bg-sunken'}`}
-                                    >
-                                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${securityPinData.enable_security_pin ? 'left-8' : 'left-1'}`} />
-                                    </button>
-                                </div>
+ {/* Enable Security PIN Toggle */}
+ <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex items-center gap-4">
+ <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+ <Lock size={20} className="text-brand-600" />
+ </div>
+ <div>
+ <p className="font-bold text-ink">Enable Transaction Security</p>
+ <p className="text-xs text-ink-muted">
+ {user.security_pin ? 'Security PIN is currently active.' : 'Security PIN is not set yet.'}
+ </p>
+ </div>
+ </div>
+ <button
+ type="button"
+ onClick={() => setSecurityPinData(prev => ({ ...prev, enable_security_pin: !prev.enable_security_pin }))}
+ className={`relative w-14 h-7 rounded-full transition-all duration-slow ${securityPinData.enable_security_pin ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
+ >
+ <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-slow ${securityPinData.enable_security_pin ? 'left-8' : 'left-1'}`} />
+ </button>
+ </div>
 
-                                {securityPinData.enable_security_pin && (
-                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-slow">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
-                                                    New Security PIN (Exactly 6 digits)
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type={showSecurityPin ? "text" : "password"}
-                                                        value={securityPinData.security_pin}
-                                                        onChange={(e) => setSecurityPinData(prev => ({ ...prev, security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                        className="w-full px-4 py-3 pr-12 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
-                                                        placeholder="••••••"
-                                                        maxLength={6}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowSecurityPin(!showSecurityPin)}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary"
-                                                    >
-                                                        {showSecurityPin ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
-                                                    Confirm Security PIN
-                                                </label>
-                                                <input
-                                                    type={showSecurityPin ? "text" : "password"}
-                                                    value={securityPinData.confirm_security_pin}
-                                                    onChange={(e) => setSecurityPinData(prev => ({ ...prev, confirm_security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
-                                                    placeholder="••••••"
-                                                    maxLength={6}
-                                                />
-                                            </div>
-                                        </div>
+ {securityPinData.enable_security_pin && (
+ <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-slow">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
+ New Security PIN (Exactly 6 digits)
+ </label>
+ <div className="relative">
+ <input
+ type={showSecurityPin ? "text" : "password"}
+ value={securityPinData.security_pin}
+ onChange={(e) => setSecurityPinData(prev => ({ ...prev, security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+ className="w-full px-4 py-3 pr-12 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+ placeholder="••••••"
+ maxLength={6}
+ />
+ <button
+ type="button"
+ onClick={() => setShowSecurityPin(!showSecurityPin)}
+ className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary"
+ >
+ {showSecurityPin ? <EyeOff size={18} /> : <Eye size={18} />}
+ </button>
+ </div>
+ </div>
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">
+ Confirm Security PIN
+ </label>
+ <input
+ type={showSecurityPin ? "text" : "password"}
+ value={securityPinData.confirm_security_pin}
+ onChange={(e) => setSecurityPinData(prev => ({ ...prev, confirm_security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
+ placeholder="••••••"
+ maxLength={6}
+ />
+ </div>
+ </div>
 
-                                        <div className="p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-2xl">
-                                            <p className="text-sm text-violet-700 dark:text-violet-300">
-                                                <strong>Safety First:</strong> This PIN is separate from your login code. It provides an extra layer of protection for your business capital and sensitive records.
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
+ <div className="p-4 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl">
+ <p className="text-sm text-brand-700 dark:text-brand-300">
+ <strong>Safety First:</strong> This PIN is separate from your login code. It provides an extra layer of protection for your business capital and sensitive records.
+ </p>
+ </div>
+ </div>
+ )}
 
-                                {(securityPinData.enable_security_pin || user.security_pin) && (
-                                    <div className="flex justify-end">
-                                        <button
-                                            type="submit"
-                                            disabled={securityPinSaving}
-                                            className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
-                                                securityPinData.enable_security_pin
-                                                    ? 'bg-violet-600 hover:bg-violet-700 '
-                                                    : 'bg-red-500 hover:bg-red-600 '
-                                            }`}
-                                        >
-                                            <Shield size={18} />
-                                            {securityPinSaving
-                                                ? 'Saving...'
-                                                : securityPinData.enable_security_pin
-                                                    ? (user.security_pin ? 'Update Security PIN' : 'Save Security PIN')
-                                                    : 'Disable Security PIN'}
-                                        </button>
-                                    </div>
-                                )}
-                            </form>
-                        </div>
-                    )}
+ {(securityPinData.enable_security_pin || user.security_pin) && (
+ <div className="flex justify-end">
+ <button
+ type="submit"
+ disabled={securityPinSaving}
+ className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
+ securityPinData.enable_security_pin
+ ? 'bg-brand-600 hover:bg-brand-700 '
+ : 'bg-red-500 hover:bg-red-600 '
+ }`}
+ >
+ <Shield size={18} />
+ {securityPinSaving
+ ? 'Saving...'
+ : securityPinData.enable_security_pin
+ ? (user.security_pin ? 'Update Security PIN' : 'Save Security PIN')
+ : 'Disable Security PIN'}
+ </button>
+ </div>
+ )}
+ </form>
+ </div>
+ )}
 
-                    {/* Update Password Card */}
-                    <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
-                        <div className="p-6 border-b border-line">
-                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-                                <Lock size={20} className="text-brand-500" />
-                                Update Password
-                            </h2>
-                            <p className="text-sm text-ink-muted mt-1">Ensure your account is using a long, random password to stay secure.</p>
-                        </div>
+ {/* Update Password Card */}
+ <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">
+ <div className="p-6 border-b border-line">
+ <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+ <Lock size={20} className="text-brand-500" />
+ Update Password
+ </h2>
+ <p className="text-sm text-ink-muted mt-1">Ensure your account is using a long, random password to stay secure.</p>
+ </div>
 
-                        <form onSubmit={submitPassword} className="p-6 space-y-6">
-                            {passwordRecentlySuccessful && (
-                                <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
-                                    <CheckCircle size={20} />
-                                    <span className="text-sm font-medium">Password updated successfully!</span>
-                                </div>
-                            )}
+ <form onSubmit={submitPassword} className="p-6 space-y-6">
+ {passwordRecentlySuccessful && (
+ <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
+ <CheckCircle size={20} />
+ <span className="text-sm font-medium">Password updated successfully!</span>
+ </div>
+ )}
 
-                            {!user.google_id && (
-                                <div>
-                                    <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">Current Password</label>
-                                    <input
-                                        type="password"
-                                        value={passwordData.current_password}
-                                        onChange={(e) => setPasswordData('current_password', e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                                    />
-                                    {passwordErrors.current_password && <p className="mt-2 text-sm text-red-500">{passwordErrors.current_password}</p>}
-                                </div>
-                            )}
+ {!user.google_id && (
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">Current Password</label>
+ <input
+ type="password"
+ value={passwordData.current_password}
+ onChange={(e) => setPasswordData('current_password', e.target.value)}
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+ />
+ {passwordErrors.current_password && <p className="mt-2 text-sm text-red-500">{passwordErrors.current_password}</p>}
+ </div>
+ )}
 
-                            <div>
-                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">New Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.password}
-                                    onChange={(e) => setPasswordData('password', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                                />
-                                {passwordErrors.password && <p className="mt-2 text-sm text-red-500">{passwordErrors.password}</p>}
-                            </div>
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">New Password</label>
+ <input
+ type="password"
+ value={passwordData.password}
+ onChange={(e) => setPasswordData('password', e.target.value)}
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+ />
+ {passwordErrors.password && <p className="mt-2 text-sm text-red-500">{passwordErrors.password}</p>}
+ </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.password_confirmation}
-                                    onChange={(e) => setPasswordData('password_confirmation', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                                />
-                                {passwordErrors.password_confirmation && <p className="mt-2 text-sm text-red-500">{passwordErrors.password_confirmation}</p>}
-                            </div>
+ <div>
+ <label className="block text-sm font-bold text-ink-secondary dark:text-ink mb-2">Confirm Password</label>
+ <input
+ type="password"
+ value={passwordData.password_confirmation}
+ onChange={(e) => setPasswordData('password_confirmation', e.target.value)}
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+ />
+ {passwordErrors.password_confirmation && <p className="mt-2 text-sm text-red-500">{passwordErrors.password_confirmation}</p>}
+ </div>
 
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    disabled={passwordProcessing}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-sunken dark:bg-raised hover:bg-interactive-hover dark:hover:bg-interactive-hover text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
-                                >
-                                    <Lock size={18} />
-                                    {passwordProcessing ? 'Updating...' : 'Update Password'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+ <div className="flex justify-end">
+ <button
+ type="submit"
+ disabled={passwordProcessing}
+ className="inline-flex items-center gap-2 px-6 py-3 bg-sunken dark:bg-raised hover:bg-interactive-hover dark:hover:bg-interactive-hover text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
+ >
+ <Lock size={18} />
+ {passwordProcessing ? 'Updating...' : 'Update Password'}
+ </button>
+ </div>
+ </form>
+ </div>
 
-                    {/* Delete Account Card */}
-                    <div className="bg-surface rounded-2xl shadow-xl border border-red-200 dark:border-red-900/50 overflow-hidden">
-                        <div className="p-6 border-b border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10">
-                            <h2 className="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
-                                <AlertTriangle size={20} />
-                                Danger Zone
-                            </h2>
-                            <p className="text-sm text-red-500/80 mt-1">Once you delete your account, there is no going back. Please be certain.</p>
-                        </div>
+ {/* Delete Account Card */}
+ <div className="bg-surface rounded-2xl shadow-xl border border-red-200 dark:border-red-900/50 overflow-hidden">
+ <div className="p-6 border-b border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10">
+ <h2 className="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+ <AlertTriangle size={20} />
+ Danger Zone
+ </h2>
+ <p className="text-sm text-red-500/80 mt-1">Once you delete your account, there is no going back. Please be certain.</p>
+ </div>
 
-                        <div className="p-6">
-                            <button
-                                onClick={() => setShowDeleteModal(true)}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition-all"
-                            >
-                                <Trash2 size={18} />
-                                Delete Account
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="bg-surface rounded-2xl shadow-2xl border border-line w-full max-w-md p-6 m-4">
-                        <h3 className="text-xl font-bold text-ink mb-4">Are you sure?</h3>
-                        <p className="text-sm text-ink-muted mb-6">
-                            Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm.
-                        </p>
+ <div className="p-6">
+ <button
+ onClick={() => setShowDeleteModal(true)}
+ className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition-all"
+ >
+ <Trash2 size={18} />
+ Delete Account
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+ {/* Delete Confirmation Modal */}
+ {showDeleteModal && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+ <div className="bg-surface rounded-2xl shadow-2xl border border-line w-full max-w-md p-6 m-4">
+ <h3 className="text-xl font-bold text-ink mb-4">Are you sure?</h3>
+ <p className="text-sm text-ink-muted mb-6">
+ Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm.
+ </p>
 
-                        <form onSubmit={deleteAccount}>
-                            <input
-                                type="password"
-                                value={deletePassword}
-                                onChange={(e) => setDeletePassword(e.target.value)}
-                                placeholder="Enter your password"
-                                className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all mb-4"
-                            />
+ <form onSubmit={deleteAccount}>
+ <input
+ type="password"
+ value={deletePassword}
+ onChange={(e) => setDeletePassword(e.target.value)}
+ placeholder="Enter your password"
+ className="w-full px-4 py-3 rounded-xl border border-line bg-app text-ink focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all mb-4"
+ />
 
-                            <div className="flex gap-3 justify-end">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowDeleteModal(false)}
-                                    className="px-5 py-2.5 rounded-xl border border-line text-ink-secondary font-medium hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={deleteProcessing}
-                                    className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all disabled:opacity-50"
-                                >
-                                    {deleteProcessing ? 'Deleting...' : 'Delete Account'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </Layout>
-    );
+ <div className="flex gap-3 justify-end">
+ <button
+ type="button"
+ onClick={() => setShowDeleteModal(false)}
+ className="px-5 py-2.5 rounded-xl border border-line text-ink-secondary font-medium hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all"
+ >
+ Cancel
+ </button>
+ <button
+ type="submit"
+ disabled={deleteProcessing}
+ className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all disabled:opacity-50"
+ >
+ {deleteProcessing ? 'Deleting...' : 'Delete Account'}
+ </button>
+ </div>
+ </form>
+ </div>
+ </div>
+ )}
+ </Layout>
+ );
 }

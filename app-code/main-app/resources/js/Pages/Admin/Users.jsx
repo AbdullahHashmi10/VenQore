@@ -17,15 +17,15 @@ import { getCurrencySymbol } from '@/Utils/format';
 import { vq } from '@/theme/runtime';
 // ─── Role definitions ──────────────────────────────────────────────────────
 const ROLES = {
-    owner:           { name: 'Owner',           description: 'Store owner — full access',    icon: Crown,        color: 'from-amber-500 to-yellow-600',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
-    admin:           { name: 'Admin',            description: 'Full management access',    icon: Shield,       color: 'from-violet-500 to-purple-600',  badge: 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400' },
-    manager:         { name: 'Manager',          description: 'Operations manager',         icon: Star,         color: 'from-blue-500 to-cyan-600',      badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' },
-    cashier:         { name: 'Cashier',          description: 'POS & Sales only',           icon: ShoppingCart, color: 'from-emerald-500 to-teal-600',   badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' },
-    inventory_staff: { name: 'Inventory Staff',  description: 'Stock management',           icon: Package,      color: 'from-orange-500 to-red-600',     badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' },
-    accountant:      { name: 'Accountant',       description: 'Financial reporting',        icon: DollarSign,   color: 'from-green-500 to-emerald-600',  badge: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' },
-    support:         { name: 'Support',          description: 'Troubleshooting & Help',     icon: BadgeCheck,   color: 'from-pink-500 to-rose-600',      badge: 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400' },
-    custom:          { name: 'Custom',           description: 'Specific permissions',       icon: Settings,     color: 'from-neutral-500 to-neutral-600',    badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-muted' },
-    viewer:          { name: 'Viewer',           description: 'Read-only access',           icon: Eye,          color: 'from-neutral-500 to-neutral-600',      badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-secondary' },
+    owner:           { name: 'Owner', description: 'Store owner — full access', icon: Crown,        color: 'from-amber-500 to-yellow-600', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
+    admin:           { name: 'Admin', description: 'Full management access', icon: Shield,       color: 'from-brand-500 to-brand-700', badge: 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400' },
+    manager:         { name: 'Manager', description: 'Operations manager', icon: Star,         color: 'from-blue-500 to-cyan-600', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' },
+    cashier:         { name: 'Cashier', description: 'POS & Sales only', icon: ShoppingCart, color: 'from-emerald-500 to-teal-600', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' },
+    inventory_staff: { name: 'Inventory Staff', description: 'Stock management', icon: Package,      color: 'from-orange-500 to-red-600', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' },
+    accountant:      { name: 'Accountant', description: 'Financial reporting', icon: DollarSign,   color: 'from-brand-800 to-brand-900', badge: 'bg-brand-100 text-brand-800 dark:bg-brand-800/30 dark:text-brand-300' },
+    support:         { name: 'Support', description: 'Troubleshooting & Help', icon: BadgeCheck,   color: 'from-lime-500 to-lime-600', badge: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-400' },
+    custom:          { name: 'Custom', description: 'Specific permissions', icon: Settings,     color: 'from-neutral-500 to-neutral-600', badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-muted' },
+    viewer:          { name: 'Viewer', description: 'Read-only access', icon: Eye,          color: 'from-neutral-500 to-neutral-600', badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-secondary' },
 };
 
 const ROLE_PERMISSIONS = {
@@ -176,7 +176,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
     const handleToggle = (permId) => {
         if (disabled) return;
         const isSelected = selectedPermissions.includes(permId);
-        const newPerms = isSelected 
+        const newPerms = isSelected
             ? selectedPermissions.filter(p => p !== permId)
             : [...selectedPermissions, permId];
         onChange(newPerms);
@@ -216,7 +216,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                     <p className="text-3xs text-ink-muted leading-tight mt-0.5">{cat.desc}</p>
                                 </div>
                             </div>
-                            
+
                             <button
                                 type="button"
                                 disabled={disabled}
@@ -273,14 +273,14 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
 
 // ─── Status config ─────────────────────────────────────────────────────────
 const STATUS = {
-    pending:            { label: 'Pending',           color: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700',    dot: 'bg-amber-500' },
-    no_account:         { label: 'No Account',        color: 'text-ink-muted bg-neutral-50 border-line dark:bg-surface dark:text-ink-muted dark:border-line',     dot: 'bg-neutral-400' },
-    awaiting_approval:  { label: 'Awaiting Approval', color: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-700',       dot: 'bg-blue-500 animate-pulse' },
-    active:             { label: 'Active',            color: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-700', dot: 'bg-emerald-500 animate-pulse' },
-    expired:            { label: 'Expired',           color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-500' },
-    revoked:            { label: 'Revoked',           color: 'text-red-400 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-400' },
-    declined:           { label: 'Declined',          color: 'text-ink-muted bg-neutral-50 border-line dark:bg-surface dark:text-ink-muted',                          dot: 'bg-neutral-400' },
-    suspended:          { label: 'Suspended',         color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-500' },
+    pending:            { label: 'Pending', color: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700', dot: 'bg-amber-500' },
+    no_account:         { label: 'No Account', color: 'text-ink-muted bg-neutral-50 border-line dark:bg-surface dark:text-ink-muted dark:border-line', dot: 'bg-neutral-400' },
+    awaiting_approval:  { label: 'Awaiting Approval', color: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-700', dot: 'bg-blue-500 animate-pulse' },
+    active:             { label: 'Active', color: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-700', dot: 'bg-emerald-500 animate-pulse' },
+    expired:            { label: 'Expired', color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800', dot: 'bg-red-500' },
+    revoked:            { label: 'Revoked', color: 'text-red-400 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800', dot: 'bg-red-400' },
+    declined:           { label: 'Declined', color: 'text-ink-muted bg-neutral-50 border-line dark:bg-surface dark:text-ink-muted', dot: 'bg-neutral-400' },
+    suspended:          { label: 'Suspended', color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800', dot: 'bg-red-500' },
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -315,8 +315,8 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             label: 'Team',
             icon: Users,
             items: [
-                { id: 'members',     label: 'Members List', icon: Users },
-                { id: 'invitations', label: 'Invitations',  icon: Send },
+                { id: 'members', label: 'Members List', icon: Users },
+                { id: 'invitations', label: 'Invitations', icon: Send },
             ]
         },
         {
@@ -324,8 +324,8 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             label: 'Attendance & Sales',
             icon: Clock,
             items: [
-                { id: 'attendance',  label: 'Attendance Logs', icon: Clock },
-                { id: 'summaries',   label: 'Staff Summaries', icon: BarChart2 },
+                { id: 'attendance', label: 'Attendance Logs', icon: Clock },
+                { id: 'summaries', label: 'Staff Summaries', icon: BarChart2 },
             ]
         }
     ];
@@ -446,7 +446,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             const newPermissions = isSelected
                 ? d.permissions.filter(p => p !== modId)
                 : [...d.permissions, modId];
-            
+
             return {
                 ...d,
                 roles: ['custom'],
@@ -542,12 +542,12 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                     <div className="shrink-0 self-stretch flex items-center">
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="relative h-full px-5 py-2.5 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl hover:"
+                            className="relative h-full px-5 py-2.5 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl"
                         >
                             {/* Midnight Nebula Background */}
                             <div className="absolute inset-0 bg-neutral-900 z-0">
                                 <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors animate-pulse"></div>
-                                <div className="absolute bottom-0 left-0 w-16 h-16 bg-purple-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-purple-500/50 transition-colors"></div>
+                                <div className="absolute bottom-0 left-0 w-16 h-16 bg-brand-600/30 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-brand-500/40 transition-colors"></div>
                                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
                             </div>
                             {/* Content */}
@@ -560,28 +560,28 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                 {/* ── Stats ── */}
                 {['members', 'invitations'].includes(activeTab) && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-                        <StatCard title="Active Members"    value={activeMembers}    icon={<Users size={16} />}         color="bg-brand-500" />
-                        <StatCard title="Pending Invites"   value={pendingInvites}   icon={<Send size={16} />}           color="bg-amber-500" />
-                        <StatCard title="Awaiting Approval" value={awaitingApproval} icon={<AlertCircle size={16} />}    color="bg-blue-500"  subtext={awaitingApproval > 0 ? 'Action required' : ''} />
-                        <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={16} />}     color="bg-neutral-500" />
+                        <StatCard title="Active Members" value={activeMembers}    icon={<Users size={16} />}         color="bg-brand-500" />
+                        <StatCard title="Pending Invites" value={pendingInvites}   icon={<Send size={16} />}           color="bg-amber-500" />
+                        <StatCard title="Awaiting Approval" value={awaitingApproval} icon={<AlertCircle size={16} />} color="bg-blue-500" subtext={awaitingApproval > 0 ? 'Action required' : ''} />
+                        <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={16} />} color="bg-neutral-500" />
                     </div>
                 )}
 
                 {activeTab === 'attendance' && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-                        <StatCard title="On Duty Now"       value={attendanceStats.activeNow}    icon={<Clock size={16} />}         color="bg-emerald-500" />
-                        <StatCard title="Present Today"     value={attendanceStats.totalPresent} icon={<UserCheck size={16} />}     color="bg-brand-500" />
-                        <StatCard title="Total Time Logged" value={attendanceStats.totalHours}   icon={<Timer size={16} />}         color="bg-blue-500" />
-                        <StatCard title="Total Staff"       value={attendanceStats.totalStaff}   icon={<Users size={16} />}         color="bg-neutral-500" />
+                        <StatCard title="On Duty Now" value={attendanceStats.activeNow}    icon={<Clock size={16} />}         color="bg-emerald-500" />
+                        <StatCard title="Present Today" value={attendanceStats.totalPresent} icon={<UserCheck size={16} />}     color="bg-brand-500" />
+                        <StatCard title="Total Time Logged" value={attendanceStats.totalHours} icon={<Timer size={16} />}         color="bg-blue-500" />
+                        <StatCard title="Total Staff" value={attendanceStats.totalStaff}   icon={<Users size={16} />}         color="bg-neutral-500" />
                     </div>
                 )}
 
                 {activeTab === 'summaries' && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-                        <StatCard title="Active Staff"      value={stats.totalStaff}             icon={<Users size={16} />}         color="bg-brand-500" />
-                        <StatCard title="Total Sales"       value={formatCurrency(stats.totalSales)} icon={<DollarSign size={16} />}   color="bg-emerald-500" />
-                        <StatCard title="Transactions"      value={stats.totalTransactions}      icon={<Package size={16} />}       color="bg-blue-500" />
-                        <StatCard title="Top Performer"     value={stats.topPerformer.name || '-'} icon={<Award size={16} />}         color="bg-amber-500" subtext={stats.topPerformer.totalSales ? formatCurrency(stats.topPerformer.totalSales) : ''} />
+                        <StatCard title="Active Staff" value={stats.totalStaff}             icon={<Users size={16} />}         color="bg-brand-500" />
+                        <StatCard title="Total Sales" value={formatCurrency(stats.totalSales)} icon={<DollarSign size={16} />}   color="bg-emerald-500" />
+                        <StatCard title="Transactions" value={stats.totalTransactions}      icon={<Package size={16} />}       color="bg-blue-500" />
+                        <StatCard title="Top Performer" value={stats.topPerformer.name || '-'} icon={<Award size={16} />} color="bg-amber-500" subtext={stats.topPerformer.totalSales ? formatCurrency(stats.topPerformer.totalSales) : ''} />
                     </div>
                 )}
 
@@ -595,7 +595,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                             {activeTab === 'summaries' && 'Performance Summaries'}
                         </h2>
                         <div className="h-4 w-px bg-sunken dark:bg-surface mx-2" />
-                        
+
                         {activeTab === 'summaries' ? (
                             <div className="flex items-center gap-1.5">
                                 <span className="text-3xs font-bold text-ink-muted uppercase tracking-widest mr-1">Sort:</span>
@@ -616,7 +616,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                 <button
                                     onClick={() => setSortConfig('avg')}
                                     className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-md transition-all ${sortConfig === 'avg'
-                                        ? 'bg-purple-600 text-white shadow-sm font-bold'
+                                        ? 'bg-brand-600 text-white shadow-sm font-bold'
                                         : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                         }`}
                                 >Avg. Ticket</button>
@@ -667,10 +667,10 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                 )}
                 {activeTab === 'members' && <MembersTable users={users} store={store} />}
                 {activeTab === 'attendance' && (
-                    <AttendanceTable 
-                        attendance={attendance || { today: {}, history: {} }} 
-                        users={users} 
-                        onDetail={(user) => setSelectedUser(user)} 
+                    <AttendanceTable
+                        attendance={attendance || { today: {}, history: {} }}
+                        users={users}
+                        onDetail={(user) => setSelectedUser(user)}
                     />
                 )}
                 {activeTab === 'summaries' && (
@@ -691,7 +691,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
                                                     index === 1 ? 'bg-gradient-to-br from-neutral-400 to-neutral-500' :
                                                         index === 2 ? 'bg-gradient-to-br from-orange-400 to-red-500' :
-                                                            'bg-gradient-to-br from-brand-500 to-purple-600'
+                                                            'bg-gradient-brand'
                                                     }`}>
                                                     {staff.name.charAt(0)}
                                                 </div>
@@ -758,17 +758,17 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
 
             {/* ── Attendance Detail Modal ── */}
             {selectedUser && (
-                <AttendanceDetailModal 
-                    user={selectedUser} 
-                    history={attendance.history?.[selectedUser.id] || {}} 
-                    onClose={() => setSelectedUser(null)} 
+                <AttendanceDetailModal
+                    user={selectedUser}
+                    history={attendance.history?.[selectedUser.id] || {}}
+                    onClose={() => setSelectedUser(null)}
                 />
             )}
 
             {showAddModal && (
                 <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
                     <div className="bg-neutral-900 rounded-xl shadow-2xl w-full max-w-[1200px] border border-neutral-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
-                        
+
                         <button onClick={() => { setShowAddModal(false); reset(); }}
                             className="absolute top-6 right-6 p-2 rounded-full text-ink-muted hover:text-white hover:bg-interactive-hover transition-colors z-20">
                             <X size={20} />
@@ -783,13 +783,13 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                             </div>
 
                             <form id="invite-form" onSubmit={handleSubmit} className="flex flex-col gap-10 flex-1">
-                                
+
                                 {/* Credentials */}
                                 <div className="space-y-5">
                                     <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                         <User size={14} /> CREDENTIALS
                                     </h4>
-                                    
+
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                             <label className="text-2xs font-bold uppercase tracking-wider ml-1">Name</label>
@@ -806,7 +806,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                             {errors.invitee_email && <p className="text-2xs text-red-400 ml-1">{errors.invitee_email}</p>}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                         <label className="text-2xs font-bold uppercase tracking-wider ml-1">Phone Number</label>
                                         <input type="text" value={data.invitee_phone} onChange={e => setData('invitee_phone', e.target.value)}
@@ -825,7 +825,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                             {data.roles.length > 0 ? ROLES[data.roles[0]]?.name?.toUpperCase() : 'NONE'}
                                         </span>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-2 gap-3">
                                         {Object.entries(ROLES).map(([key, role]) => {
                                             const isSelected = data.roles.includes(key);
@@ -849,7 +849,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                     </div>
                                     {errors.roles && <p className="text-2xs text-red-400 ml-1">{errors.roles}</p>}
                                 </div>
-                                
+
                             </form>
                         </div>
 
@@ -857,7 +857,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                         <div className="flex-1 p-8 md:p-10 bg-neutral-900 rounded-r-xl flex flex-col relative overflow-hidden">
                             {/* Ambient glow in right panel */}
                             <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
-                            
+
                             <div className="flex items-center justify-between mb-8 relative z-10">
                                 <div className="space-y-1">
                                     <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-[0.2em]">
@@ -871,12 +871,12 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                     <Sparkles size={12} /> Live Permissions Preview
                                 </div>
                             </div>
-                            
+
                             <PermissionsSelector
                                 selectedPermissions={data.permissions}
                                 onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
                             />
-                            
+
                             {/* Bottom Footer Actions inside Right Panel */}
                             <div className="mt-8 pt-8 border-t border-neutral-800/50 flex items-center justify-between relative z-10">
                                 <div className="space-y-1">
@@ -1097,7 +1097,7 @@ function AttendanceTable({ attendance, users, onDetail }) {
                         {staff.map(user => {
                             const data = todayData?.[user.id];
                             const isActive = data?.is_active;
-                            
+
                             let totalTime = '—';
                             if (data?.total_mins !== undefined && data?.total_mins !== null) {
                                 const mins = Math.max(0, Math.round(data.total_mins));
@@ -1125,7 +1125,7 @@ function AttendanceTable({ attendance, users, onDetail }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-bold uppercase border ${
-                                            isActive 
+                                            isActive
                                                 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200'
                                                 : 'bg-app text-ink-muted border-line'
                                         }`}>
@@ -1203,8 +1203,8 @@ function AttendanceDetailModal({ user, history, onClose }) {
                             {['7', '14', '30'].map(range => (
                                 <button key={range} onClick={() => setDateRange(range)}
                                     className={`px-3 py-1 text-2xs font-bold uppercase rounded-lg transition-all ${
-                                        dateRange === range 
-                                            ? 'bg-sunken text-brand-600 shadow-sm' 
+                                        dateRange === range
+                                            ? 'bg-sunken text-brand-600 shadow-sm'
                                             : 'text-ink-muted'
                                     }`}>
                                     {range} Days
@@ -1356,7 +1356,7 @@ function EditMemberModal({ member, onClose }) {
     return (
         <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-sm z-sticky flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
             <div className="bg-neutral-900 rounded-xl shadow-2xl w-full max-w-[1200px] border border-neutral-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
-                
+
                 <button onClick={onClose}
                     className="absolute top-6 right-6 p-2 rounded-full text-ink-muted hover:text-white hover:bg-interactive-hover transition-colors z-20">
                     <X size={20} />
@@ -1371,13 +1371,13 @@ function EditMemberModal({ member, onClose }) {
                     </div>
 
                     <form id="edit-member-form" onSubmit={submit} className="flex flex-col gap-10 flex-1">
-                        
+
                         {/* Member Profile */}
                         <div className="space-y-5">
                             <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
                                 <User size={14} /> MEMBER PROFILE
                             </h4>
-                            
+
                             <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                 <label className="text-2xs font-bold uppercase tracking-wider ml-1">Display Name</label>
                                 <input type="text" value={data.display_name} onChange={e => setData('display_name', e.target.value)}
@@ -1385,7 +1385,7 @@ function EditMemberModal({ member, onClose }) {
                                     placeholder="Display Name" required />
                                 {errors.display_name && <p className="text-2xs text-red-400 ml-1">{errors.display_name}</p>}
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                     <label className="text-2xs font-bold uppercase tracking-wider ml-1">Status</label>
@@ -1397,7 +1397,7 @@ function EditMemberModal({ member, onClose }) {
                                     </select>
                                     {errors.status && <p className="text-2xs text-red-400 ml-1">{errors.status}</p>}
                                 </div>
-                                
+
                                 <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
                                     <label className="text-2xs font-bold uppercase tracking-wider ml-1">Passcode PIN</label>
                                     <input type="password" value={data.passcode} onChange={e => setData('passcode', e.target.value)}
@@ -1418,13 +1418,13 @@ function EditMemberModal({ member, onClose }) {
                                     {data.role ? ROLES[data.role]?.name?.toUpperCase() : 'NONE'}
                                 </span>
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-3">
                                 {Object.entries(ROLES).map(([key, role]) => {
                                     const isSelected = data.role === key;
                                     const isOwner = member.role === 'owner';
                                     return (
-                                        <button key={key} type="button" 
+                                        <button key={key} type="button"
                                             disabled={isOwner}
                                             onClick={() => toggleRole(key)}
                                             className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
@@ -1460,7 +1460,7 @@ function EditMemberModal({ member, onClose }) {
                             )}
                             {errors.role && <p className="text-2xs text-red-400 ml-1">{errors.role}</p>}
                         </div>
-                        
+
                     </form>
                 </div>
 
@@ -1468,7 +1468,7 @@ function EditMemberModal({ member, onClose }) {
                 <div className="flex-1 p-8 md:p-10 bg-neutral-900 rounded-r-xl flex flex-col relative overflow-hidden">
                     {/* Ambient glow in right panel */}
                     <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
-                    
+
                     <div className="flex items-center justify-between mb-8 relative z-10">
                         <div className="space-y-1">
                             <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-[0.2em]">
@@ -1482,13 +1482,13 @@ function EditMemberModal({ member, onClose }) {
                             <Sparkles size={12} /> Live Permissions Preview
                         </div>
                     </div>
-                    
+
                     <PermissionsSelector
                         selectedPermissions={data.permissions}
                         onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
                         disabled={member.role === 'owner'}
                     />
-                    
+
                     {/* Bottom Footer Actions inside Right Panel */}
                     <div className="mt-8 pt-8 border-t border-neutral-800/50 flex items-center justify-between relative z-10">
                         <div className="space-y-1">
@@ -1622,7 +1622,7 @@ function MembersTable({ users, store }) {
                                         <td className="px-6 py-4 text-sm text-ink-muted">
                                             {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </td>
-                                        
+
                                         {/* Actions Menu */}
                                         {canManage && (
                                             <td className="px-6 py-4 text-right relative">

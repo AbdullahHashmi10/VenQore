@@ -65,7 +65,7 @@ export default function HousePromo() {
 
                     <Link
                         href="/pricing"
-                        className="flex items-center justify-center gap-1.5 w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-bold uppercase tracking-wide transition-transform"
+                        className="flex items-center justify-center gap-1.5 w-full py-3 bg-accent-fill text-accent-on rounded-xl text-xs font-bold uppercase tracking-wide transition-transform"
                     >
                         Start free trial <ArrowRight size={13} />
                     </Link>

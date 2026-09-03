@@ -404,7 +404,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'expenses')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'expenses' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'expenses' ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-400' : 'text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
                     >
                         Expenses
                     </button>
@@ -471,7 +471,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                         {/* Stars/Noise Overlay */}
                                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
                                         <div className="absolute top-0 right-0 p-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors duration-slower"></div>
-                                        <div className="absolute bottom-0 left-0 p-24 bg-purple-500/10 rounded-full blur-3xl -ml-12 -mb-12 group-hover:bg-purple-500/20 transition-colors duration-slower"></div>
+                                        <div className="absolute bottom-0 left-0 p-24 bg-brand-500/10 rounded-full blur-3xl -ml-12 -mb-12 group-hover:bg-brand-500/20 transition-colors duration-slower"></div>
 
                                         <div className="relative z-10 flex flex-col justify-between h-full">
                                             <div>

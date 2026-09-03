@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 
-import { vq } from '@/theme/runtime';
+import { sequential, vq } from '@/theme/runtime';
 export default function SaleOrderItems({ items = [], filters = {} }) {
     const {
         store
@@ -119,7 +119,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
     }, [processedItems]);
 
     // Add colors for charts
-    const pieColors = [vq.violet[500], vq.violet[400], vq.violet[300], vq.violet[200], vq.violet[100]];
+    const pieColors = [...sequential.light].reverse();
 
 
     const handleSort = (key) => {
@@ -164,7 +164,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                         </Link>
                         <div>
                             <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
-                                <Layers className="text-violet-500" size={20} />
+                                <Layers className="text-brand-500" size={20} />
                                 Order Items
                             </h1>
                             <p className="text-xs text-ink-muted font-medium">Product performance in sales orders</p>
@@ -173,13 +173,13 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
 
                     <div className="flex items-center gap-3">
                         <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-violet-500 transition-colors" size={14} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-500 transition-colors" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search Item or Order #..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-violet-500/20 w-52 transition-all"
+                                className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 w-52 transition-all"
                             />
                         </div>
 
@@ -189,7 +189,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                     key={r}
                                     onClick={() => handleRangeChange(r)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${dateRange === r
-                                        ? 'bg-sunken shadow-sm text-violet-600 dark:text-violet-400'
+                                        ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400'
                                         : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                                         }`}
                                 >
@@ -201,7 +201,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                 <button
                                     onClick={() => handleRangeChange('custom')}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${dateRange === 'custom'
-                                        ? 'bg-sunken shadow-sm text-violet-600 dark:text-violet-400'
+                                        ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400'
                                         : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
                                         }`}
                                 >
@@ -213,16 +213,16 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                             type="date"
                                             value={customStart}
                                             onChange={e => setCustomStart(e.target.value)}
-                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-violet-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-brand-500"
                                         />
                                         <span className="text-ink-muted">-</span>
                                         <input
                                             type="date"
                                             value={customEnd}
                                             onChange={e => setCustomEnd(e.target.value)}
-                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-violet-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-brand-500"
                                         />
-                                        <button onClick={applyCustomRange} className="p-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700">
+                                        <button onClick={applyCustomRange} className="p-1.5 bg-brand-600 text-white rounded-lg hover:bg-brand-700">
                                             <ArrowLeft size={10} className="rotate-180" />
                                         </button>
                                     </div>
@@ -300,7 +300,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                     ) : (
                                         processedItems.map((item, idx) => (
                                             <tr key={idx} className="group hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                                <td className="px-6 py-3 font-mono text-xs text-violet-600 dark:text-violet-400 font-bold">
+                                                <td className="px-6 py-3 font-mono text-xs text-brand-600 dark:text-brand-400 font-bold">
                                                     #{item.sales_order?.order_number}
                                                 </td>
                                                 <td className="px-6 py-3 text-sm font-medium text-ink-secondary dark:text-ink">
@@ -346,7 +346,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                                 cursor={{ fill: vq.slate[100], opacity: 0.1 }}
                                                 contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                             />
-                                            <Bar dataKey="value" fill={vq.violet[500]} radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
+                                            <Bar dataKey="value" fill={sequential.light[2]} radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -399,13 +399,13 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
 // --- Components ---
 function StatCard({ title, value, icon, color, footer }) {
     const bgColors = {
-        violet: 'bg-violet-500',
+        violet: 'bg-brand-500',
         emerald: 'bg-emerald-500',
         blue: 'bg-blue-500',
         amber: 'bg-amber-500',
     };
     const textColors = {
-        violet: 'text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20',
+        violet: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20',
         emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
         blue: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
         amber: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20',
@@ -438,7 +438,7 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
         >
             <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
                 {label}
-                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-violet-500' : 'text-neutral-300 group-hover:text-ink-muted'}`}>
+                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-brand-500' : 'text-neutral-300 group-hover:text-ink-muted'}`}>
                     <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>?</span>
                     <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>?</span>
                 </div>

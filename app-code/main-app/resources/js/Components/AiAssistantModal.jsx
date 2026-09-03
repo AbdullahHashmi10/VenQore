@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePage, Link, router } from '@inertiajs/react';
 import {
-    Sparkles, X, Send, Loader2, ArrowRight, Minimize2,
-    ExternalLink, TrendingUp, Package, DollarSign, Users,
-    ChevronDown, MessageSquare
+ Sparkles, X, Send, Loader2, ArrowRight, Minimize2,
+ ExternalLink, TrendingUp, Package, DollarSign, Users,
+ ChevronDown, MessageSquare
 } from 'lucide-react';
 
 /**
  * AI Assistant Modal - Full-screen centered AI chat experience
- * 
+ *
  * Features:
  * - Midnight Nebula theme
  * - Persistent conversation across pages (via sessionStorage)
@@ -18,324 +18,324 @@ import {
  * - Action buttons in responses
  */
 export default function AiAssistantModal({
-    isOpen,
-    onClose,
-    onMinimize,
-    initialQuery = '',
-    settings = {},
-    store: propStore = null
+ isOpen,
+ onClose,
+ onMinimize,
+ initialQuery = '',
+ settings = {},
+ store: propStore = null
 }) {
-    const { store: pageStore } = usePage().props;
-    const activeStore = propStore || pageStore;
-    const [query, setQuery] = useState(initialQuery);
-    const [messages, setMessages] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const inputRef = useRef(null);
-    const messagesEndRef = useRef(null);
+ const { store: pageStore } = usePage().props;
+ const activeStore = propStore || pageStore;
+ const [query, setQuery] = useState(initialQuery);
+ const [messages, setMessages] = useState([]);
+ const [isLoading, setIsLoading] = useState(false);
+ const inputRef = useRef(null);
+ const messagesEndRef = useRef(null);
 
-    // Load persisted messages from sessionStorage
-    useEffect(() => {
-        const saved = sessionStorage.getItem('amd_ai_messages');
-        if (saved) {
-            try {
-                setMessages(JSON.parse(saved));
-            } catch (e) { }
-        }
-    }, []);
+ // Load persisted messages from sessionStorage
+ useEffect(() => {
+ const saved = sessionStorage.getItem('amd_ai_messages');
+ if (saved) {
+ try {
+ setMessages(JSON.parse(saved));
+ } catch (e) { }
+ }
+ }, []);
 
-    // Save messages to sessionStorage
-    useEffect(() => {
-        if (messages.length > 0) {
-            sessionStorage.setItem('amd_ai_messages', JSON.stringify(messages));
-        }
-    }, [messages]);
+ // Save messages to sessionStorage
+ useEffect(() => {
+ if (messages.length > 0) {
+ sessionStorage.setItem('amd_ai_messages', JSON.stringify(messages));
+ }
+ }, [messages]);
 
-    // Scroll to bottom on new messages
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+ // Scroll to bottom on new messages
+ useEffect(() => {
+ messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+ }, [messages]);
 
-    // Focus input when opened
-    useEffect(() => {
-        if (isOpen && inputRef.current) {
-            setTimeout(() => inputRef.current?.focus(), 100);
-        }
-    }, [isOpen]);
+ // Focus input when opened
+ useEffect(() => {
+ if (isOpen && inputRef.current) {
+ setTimeout(() => inputRef.current?.focus(), 100);
+ }
+ }, [isOpen]);
 
-    // Handle initial query
-    useEffect(() => {
-        if (isOpen && initialQuery) {
-            setQuery(initialQuery);
-            handleSend(initialQuery);
-        }
-    }, [isOpen, initialQuery]);
+ // Handle initial query
+ useEffect(() => {
+ if (isOpen && initialQuery) {
+ setQuery(initialQuery);
+ handleSend(initialQuery);
+ }
+ }, [isOpen, initialQuery]);
 
-    const handleSend = async (customQuery = null) => {
-        const q = customQuery || query;
-        if (!q.trim() || isLoading) return;
+ const handleSend = async (customQuery = null) => {
+ const q = customQuery || query;
+ if (!q.trim() || isLoading) return;
 
-        // Add user message
-        const userMessage = { role: 'user', content: q };
-        setMessages(prev => [...prev, userMessage]);
-        setQuery('');
-        setIsLoading(true);
+ // Add user message
+ const userMessage = { role: 'user', content: q };
+ setMessages(prev => [...prev, userMessage]);
+ setQuery('');
+ setIsLoading(true);
 
-        try {
-            console.log('AI Assistant Query:', q, 'Store:', activeStore?.slug);
-            const res = await window.axios.get(route('store.ai.query', { store_slug: activeStore?.slug }), { params: { query: q } });
-            const aiMessage = {
-                role: 'assistant',
-                content: res.data.answer,
-                relatedLinks: getRelatedLinks(q)
-            };
-            setMessages(prev => [...prev, aiMessage]);
-        } catch (err) {
-            const isLocked = err.response?.status === 402 || err.response?.data?.code === 'ai_locked';
-            const errorMessage = {
-                role: 'assistant',
-                content: err.response?.data?.message || err.response?.data?.error || "Sorry, I couldn't process that request. (" + (err.message) + ")",
-                isError: true,
-                isLocked
-            };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+ try {
+ console.log('AI Assistant Query:', q, 'Store:', activeStore?.slug);
+ const res = await window.axios.get(route('store.ai.query', { store_slug: activeStore?.slug }), { params: { query: q } });
+ const aiMessage = {
+ role: 'assistant',
+ content: res.data.answer,
+ relatedLinks: getRelatedLinks(q)
+ };
+ setMessages(prev => [...prev, aiMessage]);
+ } catch (err) {
+ const isLocked = err.response?.status === 402 || err.response?.data?.code === 'ai_locked';
+ const errorMessage = {
+ role: 'assistant',
+ content: err.response?.data?.message || err.response?.data?.error || "Sorry, I couldn't process that request. (" + (err.message) + ")",
+ isError: true,
+ isLocked
+ };
+ setMessages(prev => [...prev, errorMessage]);
+ } finally {
+ setIsLoading(false);
+ }
+ };
 
-    // Icon map for related links (to survive JSON serialization)
-    const iconMap = {
-        TrendingUp,
-        DollarSign,
-        Package,
-        Users
-    };
+ // Icon map for related links (to survive JSON serialization)
+ const iconMap = {
+ TrendingUp,
+ DollarSign,
+ Package,
+ Users
+ };
 
-    // Get related navigation links based on query
-    const getRelatedLinks = (q) => {
-        const lower = q.toLowerCase();
-        const links = [];
+ // Get related navigation links based on query
+ const getRelatedLinks = (q) => {
+ const lower = q.toLowerCase();
+ const links = [];
 
-        if (lower.includes('profit') || lower.includes('loss') || lower.includes('margin')) {
-            links.push({ label: 'View P&L Report', route: 'store.reports.profit-loss', iconName: 'TrendingUp' });
-        }
-        if (lower.includes('sales') || lower.includes('revenue') || lower.includes('sold')) {
-            links.push({ label: 'Sales Dashboard', route: 'store.sales.dashboard', iconName: 'DollarSign' });
-        }
-        if (lower.includes('stock') || lower.includes('inventory') || lower.includes('product')) {
-            links.push({ label: 'Inventory', route: 'store.inventory.dashboard', iconName: 'Package' });
-        }
-        if (lower.includes('expense') || lower.includes('cost') || lower.includes('spending')) {
-            links.push({ label: 'Expenses', route: 'expenses.index', iconName: 'DollarSign' });
-        }
-        if (lower.includes('customer') || lower.includes('party') || lower.includes('supplier') || lower.includes('owe')) {
-            links.push({ label: 'Parties', route: 'store.parties.index', iconName: 'Users' });
-        }
+ if (lower.includes('profit') || lower.includes('loss') || lower.includes('margin')) {
+ links.push({ label: 'View P&L Report', route: 'store.reports.profit-loss', iconName: 'TrendingUp' });
+ }
+ if (lower.includes('sales') || lower.includes('revenue') || lower.includes('sold')) {
+ links.push({ label: 'Sales Dashboard', route: 'store.sales.dashboard', iconName: 'DollarSign' });
+ }
+ if (lower.includes('stock') || lower.includes('inventory') || lower.includes('product')) {
+ links.push({ label: 'Inventory', route: 'store.inventory.dashboard', iconName: 'Package' });
+ }
+ if (lower.includes('expense') || lower.includes('cost') || lower.includes('spending')) {
+ links.push({ label: 'Expenses', route: 'expenses.index', iconName: 'DollarSign' });
+ }
+ if (lower.includes('customer') || lower.includes('party') || lower.includes('supplier') || lower.includes('owe')) {
+ links.push({ label: 'Parties', route: 'store.parties.index', iconName: 'Users' });
+ }
 
-        return links.slice(0, 3); // Max 3 links
-    };
+ return links.slice(0, 3); // Max 3 links
+ };
 
-    const handleClearHistory = () => {
-        setMessages([]);
-        sessionStorage.removeItem('amd_ai_messages');
-    };
+ const handleClearHistory = () => {
+ setMessages([]);
+ sessionStorage.removeItem('amd_ai_messages');
+ };
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    };
+ const handleKeyDown = (e) => {
+ if (e.key === 'Enter' && !e.shiftKey) {
+ e.preventDefault();
+ handleSend();
+ }
+ };
 
-    const suggestedQuestions = [
-        "How much profit did we make this week?",
-        "What are our best selling products?",
-        "Show me today's sales summary",
-        "What's our current stock level for milk?",
-        "How much did we spend on expenses this month?"
-    ];
+ const suggestedQuestions = [
+ "How much profit did we make this week?",
+ "What are our best selling products?",
+ "Show me today's sales summary",
+ "What's our current stock level for milk?",
+ "How much did we spend on expenses this month?"
+ ];
 
-    if (!isOpen) return null;
+ if (!isOpen) return null;
 
-    return createPortal(
-        <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
-            {/* Backdrop - Midnight Nebula */}
-            <div
-                className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-brand-950/95 to-neutral-950 backdrop-blur-xl"
-                onClick={onClose}
-            >
-                {/* Nebula effects */}
-                <div className="absolute top-10 left-1/4 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-10 right-1/4 w-[400px] h-[400px] bg-purple-600/15 rounded-full blur-[100px]" />
-                <div className="absolute top-1/2 right-10 w-[300px] h-[300px] bg-violet-500/10 rounded-full blur-[80px]" />
-            </div>
+ return createPortal(
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+ {/* Backdrop - Midnight Nebula */}
+ <div
+ className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-brand-950/95 to-neutral-950 backdrop-blur-xl"
+ onClick={onClose}
+ >
+ {/* Nebula effects */}
+ <div className="absolute top-10 left-1/4 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[120px] animate-pulse" />
+ <div className="absolute bottom-10 right-1/4 w-[400px] h-[400px] bg-brand-600/15 rounded-full blur-[100px]" />
+ <div className="absolute top-1/2 right-10 w-[300px] h-[300px] bg-brand-500/10 rounded-full blur-[80px]" />
+ </div>
 
-            {/* Chat Container */}
-            <div className="relative w-full max-w-3xl h-[80vh] flex flex-col bg-neutral-900/80 backdrop-blur-2xl rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in zoom-in-95 duration-slow">
-                {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-neutral-800/50 bg-gradient-to-r from-brand-900/30 to-purple-900/30">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl text-white shadow-lg ">
-                            <Sparkles size={24} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-white">VenQore AI Assistant</h2>
-                            <p className="text-sm text-ink-muted">Ask anything about your business</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {messages.length > 0 && (
-                            <button
-                                onClick={handleClearHistory}
-                                className="px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-white hover:bg-interactive-hover rounded-lg transition-colors"
-                            >
-                                Clear History
-                            </button>
-                        )}
-                        <button
-                            onClick={onMinimize}
-                            className="p-2 text-ink-muted hover:text-white hover:bg-interactive-hover rounded-xl transition-colors"
-                            title="Minimize"
-                        >
-                            <Minimize2 size={18} />
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="p-2 text-ink-muted hover:text-white hover:bg-interactive-hover rounded-xl transition-colors"
-                            title="Close"
-                        >
-                            <X size={18} />
-                        </button>
-                    </div>
-                </div>
+ {/* Chat Container */}
+ <div className="relative w-full max-w-3xl h-[80vh] flex flex-col bg-neutral-900/80 backdrop-blur-2xl rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in zoom-in-95 duration-slow">
+ {/* Header */}
+ <div className="flex items-center justify-between p-5 border-b border-neutral-800/50 bg-brand-900/30">
+ <div className="flex items-center gap-4">
+ <div className="p-3 bg-gradient-brand rounded-2xl text-white shadow-lg ">
+ <Sparkles size={24} />
+ </div>
+ <div>
+ <h2 className="text-xl font-bold text-white">VenQore AI Assistant</h2>
+ <p className="text-sm text-ink-muted">Ask anything about your business</p>
+ </div>
+ </div>
+ <div className="flex items-center gap-2">
+ {messages.length > 0 && (
+ <button
+ onClick={handleClearHistory}
+ className="px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-white hover:bg-interactive-hover rounded-lg transition-colors"
+ >
+ Clear History
+ </button>
+ )}
+ <button
+ onClick={onMinimize}
+ className="p-2 text-ink-muted hover:text-white hover:bg-interactive-hover rounded-xl transition-colors"
+ title="Minimize"
+ >
+ <Minimize2 size={18} />
+ </button>
+ <button
+ onClick={onClose}
+ className="p-2 text-ink-muted hover:text-white hover:bg-interactive-hover rounded-xl transition-colors"
+ title="Close"
+ >
+ <X size={18} />
+ </button>
+ </div>
+ </div>
 
-                {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                    {messages.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center">
-                            <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-brand-500/20 to-purple-500/20 flex items-center justify-center">
-                                <Sparkles size={32} className="text-brand-400" />
-                            </div>
-                            <h3 className="text-xl font-bold text-white mb-2">How can I help you today?</h3>
-                            <p className="text-ink-muted text-sm mb-8 max-w-md">
-                                Ask me about your sales, profits, stock levels, expenses, or any business data.
-                            </p>
+ {/* Messages Area */}
+ <div className="flex-1 overflow-y-auto p-5 space-y-4">
+ {messages.length === 0 ? (
+ <div className="h-full flex flex-col items-center justify-center text-center">
+ <div className="w-20 h-20 mb-6 rounded-full bg-brand-500/20 flex items-center justify-center">
+ <Sparkles size={32} className="text-brand-400" />
+ </div>
+ <h3 className="text-xl font-bold text-white mb-2">How can I help you today?</h3>
+ <p className="text-ink-muted text-sm mb-8 max-w-md">
+ Ask me about your sales, profits, stock levels, expenses, or any business data.
+ </p>
 
-                            {/* Suggested Questions */}
-                            <div className="w-full max-w-lg space-y-2">
-                                <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-3">Try asking</p>
-                                {suggestedQuestions.slice(0, 4).map((q, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => handleSend(q)}
-                                        className="w-full text-left p-3 rounded-xl bg-neutral-800/50 hover:bg-interactive-hover border border-neutral-700/50 hover:border-brand-500/30 text-neutral-300 hover:text-white transition-all text-sm"
-                                    >
-                                        "{q}"
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                            {messages.map((msg, idx) => (
-                                <div
-                                    key={idx}
-                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div className={`max-w-[80%] ${msg.role === 'user'
-                                        ? 'bg-brand-600 text-white rounded-2xl rounded-tr-md'
-                                        : msg.isError
-                                            ? 'bg-red-900/30 text-red-300 border border-red-800/50 rounded-2xl rounded-tl-md'
-                                            : 'bg-neutral-800/80 text-neutral-200 border border-neutral-700/50 rounded-2xl rounded-tl-md'
-                                        } p-4`}>
-                                        {msg.role === 'assistant' && !msg.isError && (
-                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-neutral-700/30">
-                                                <Sparkles size={14} className="text-brand-400" />
-                                                <span className="text-xs font-bold text-brand-400">AI Insight</span>
-                                            </div>
-                                        )}
-                                        <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
+ {/* Suggested Questions */}
+ <div className="w-full max-w-lg space-y-2">
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-3">Try asking</p>
+ {suggestedQuestions.slice(0, 4).map((q, idx) => (
+ <button
+ key={idx}
+ onClick={() => handleSend(q)}
+ className="w-full text-left p-3 rounded-xl bg-neutral-800/50 hover:bg-interactive-hover border border-neutral-700/50 hover:border-brand-500/30 text-neutral-300 hover:text-white transition-all text-sm"
+ >
+ "{q}"
+ </button>
+ ))}
+ </div>
+ </div>
+ ) : (
+ <>
+ {messages.map((msg, idx) => (
+ <div
+ key={idx}
+ className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+ >
+ <div className={`max-w-[80%] ${msg.role === 'user'
+ ? 'bg-brand-600 text-white rounded-2xl rounded-tr-md'
+ : msg.isError
+ ? 'bg-red-900/30 text-red-300 border border-red-800/50 rounded-2xl rounded-tl-md'
+ : 'bg-neutral-800/80 text-neutral-200 border border-neutral-700/50 rounded-2xl rounded-tl-md'
+ } p-4`}>
+ {msg.role === 'assistant' && !msg.isError && (
+ <div className="flex items-center gap-2 mb-2 pb-2 border-b border-neutral-700/30">
+ <Sparkles size={14} className="text-brand-400" />
+ <span className="text-xs font-bold text-brand-400">AI Insight</span>
+ </div>
+ )}
+ <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
 
-                                        {/* AI add-on locked — upgrade / BYOK CTA */}
-                                        {msg.isLocked && (
-                                            <div className="mt-3 pt-3 border-t border-red-800/40 flex flex-wrap gap-2">
-                                                <Link
-                                                    href={route('store.billing', { store_slug: activeStore?.slug })}
-                                                    onClick={onMinimize}
-                                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition-colors"
-                                                >
-                                                    <Sparkles size={12} />
-                                                    Unlock AI (Buy usage or BYOK)
-                                                    <ExternalLink size={10} />
-                                                </Link>
-                                            </div>
-                                        )}
+ {/* AI add-on locked — upgrade / BYOK CTA */}
+ {msg.isLocked && (
+ <div className="mt-3 pt-3 border-t border-red-800/40 flex flex-wrap gap-2">
+ <Link
+ href={route('store.billing', { store_slug: activeStore?.slug })}
+ onClick={onMinimize}
+ className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition-colors"
+ >
+ <Sparkles size={12} />
+ Unlock AI (Buy usage or BYOK)
+ <ExternalLink size={10} />
+ </Link>
+ </div>
+ )}
 
-                                        {/* Related Links */}
-                                        {msg.relatedLinks && msg.relatedLinks.length > 0 && (
-                                            <div className="mt-4 pt-3 border-t border-neutral-700/30 flex flex-wrap gap-2">
-                                                {msg.relatedLinks.map((link, linkIdx) => {
-                                                    const IconComponent = iconMap[link.iconName];
-                                                    return (
-                                                        <Link
-                                                            key={linkIdx}
-                                                            href={route(link.route, { store_slug: activeStore?.slug })}
-                                                            onClick={onMinimize}
-                                                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 text-xs font-medium transition-colors"
-                                                        >
-                                                            {IconComponent && <IconComponent size={12} />}
-                                                            {link.label}
-                                                            <ExternalLink size={10} />
-                                                        </Link>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                            {isLoading && (
-                                <div className="flex justify-start">
-                                    <div className="bg-neutral-800/80 text-neutral-200 border border-neutral-700/50 rounded-2xl rounded-tl-md p-4">
-                                        <div className="flex items-center gap-3">
-                                            <Loader2 size={16} className="animate-spin text-brand-400" />
-                                            <span className="text-sm text-ink-muted">Analyzing your data...</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            <div ref={messagesEndRef} />
-                        </>
-                    )}
-                </div>
+ {/* Related Links */}
+ {msg.relatedLinks && msg.relatedLinks.length > 0 && (
+ <div className="mt-4 pt-3 border-t border-neutral-700/30 flex flex-wrap gap-2">
+ {msg.relatedLinks.map((link, linkIdx) => {
+ const IconComponent = iconMap[link.iconName];
+ return (
+ <Link
+ key={linkIdx}
+ href={route(link.route, { store_slug: activeStore?.slug })}
+ onClick={onMinimize}
+ className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 text-xs font-medium transition-colors"
+ >
+ {IconComponent && <IconComponent size={12} />}
+ {link.label}
+ <ExternalLink size={10} />
+ </Link>
+ );
+ })}
+ </div>
+ )}
+ </div>
+ </div>
+ ))}
+ {isLoading && (
+ <div className="flex justify-start">
+ <div className="bg-neutral-800/80 text-neutral-200 border border-neutral-700/50 rounded-2xl rounded-tl-md p-4">
+ <div className="flex items-center gap-3">
+ <Loader2 size={16} className="animate-spin text-brand-400" />
+ <span className="text-sm text-ink-muted">Analyzing your data...</span>
+ </div>
+ </div>
+ </div>
+ )}
+ <div ref={messagesEndRef} />
+ </>
+ )}
+ </div>
 
-                {/* Input Area */}
-                <div className="p-5 border-t border-neutral-800/50 bg-neutral-900/50">
-                    <div className="flex items-center gap-3 bg-neutral-800/50 rounded-2xl border border-neutral-700/50 p-2 focus-within:border-brand-500/50 transition-colors">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Ask about sales, profits, stock, expenses..."
-                            className="flex-1 bg-transparent border-none outline-none text-white placeholder-slate-500 px-3 py-2"
-                            disabled={isLoading}
-                        />
-                        <button
-                            onClick={() => handleSend()}
-                            disabled={!query.trim() || isLoading}
-                            className="p-3 rounded-xl bg-gradient-to-r from-brand-600 to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover: transition-all"
-                        >
-                            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                        </button>
-                    </div>
-                    <p className="text-center text-2xs text-ink-secondary mt-3">
-                        Powered by {settings?.ai_provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini'} • Your data stays private
-                    </p>
-                </div>
-            </div>
-        </div>,
-        document.body
-    );
+ {/* Input Area */}
+ <div className="p-5 border-t border-neutral-800/50 bg-neutral-900/50">
+ <div className="flex items-center gap-3 bg-neutral-800/50 rounded-2xl border border-neutral-700/50 p-2 focus-within:border-brand-500/50 transition-colors">
+ <input
+ ref={inputRef}
+ type="text"
+ value={query}
+ onChange={(e) => setQuery(e.target.value)}
+ onKeyDown={handleKeyDown}
+ placeholder="Ask about sales, profits, stock, expenses..."
+ className="flex-1 bg-transparent border-none outline-none text-white placeholder-slate-500 px-3 py-2"
+ disabled={isLoading}
+ />
+ <button
+ onClick={() => handleSend()}
+ disabled={!query.trim() || isLoading}
+ className="p-3 rounded-xl bg-gradient-brand text-white disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+ >
+ {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+ </button>
+ </div>
+ <p className="text-center text-2xs text-ink-secondary mt-3">
+ Powered by {settings?.ai_provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini'} • Your data stays private
+ </p>
+ </div>
+ </div>
+ </div>,
+ document.body
+ );
 }

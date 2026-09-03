@@ -62,7 +62,7 @@ const CARRIER_OPTIONS = [
 
 const FULFILLMENT_LABELS = {
     fbm: { label: 'FBM — Home Warehouse',      badge: 'bg-blue-900/40 text-blue-300 border-blue-700' },
-    fba: { label: 'FBA — Platform Warehouse',  badge: 'bg-purple-900/40 text-purple-300 border-purple-700' },
+    fba: { label: 'FBA — Platform Warehouse',  badge: 'bg-brand-900/40 text-brand-300 border-brand-700' },
     jit: { label: 'JIT — Buy Day-Of',          badge: 'bg-amber-900/40 text-amber-300 border-amber-700' },
 };
 
@@ -200,7 +200,7 @@ export default function VenSynQDashboard({
                         <div className="relative overflow-hidden bg-neutral-900/90 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.25)] p-8 max-w-2xl text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-slow">
                             {/* Background glows */}
                             <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
 
                             <div className="flex flex-col items-center gap-4 relative z-10">
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 text-brand-400 text-2xs font-bold uppercase tracking-wider">

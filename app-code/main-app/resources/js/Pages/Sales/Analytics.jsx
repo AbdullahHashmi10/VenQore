@@ -64,7 +64,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
 
                         <div className="bg-surface p-6 rounded-2xl shadow-sm border border-line">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                                <div className="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400">
                                     <Package size={24} />
                                 </div>
                                 <div>

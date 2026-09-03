@@ -269,7 +269,7 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                                             disabled={disabled}
                                             className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
                                                 output === fmt
-                                                    ? 'bg-sunken dark:bg-white text-white dark:text-[#05030f]'
+                                                    ? 'bg-accent-fill text-accent-on hover:bg-accent-fill-hover'
                                                     : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted hover:text-ink dark:hover:text-white'
                                             }`}
                                         >
@@ -332,7 +332,7 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                         <button
                             onClick={download}
                             disabled={!result}
-                            className="w-full py-3.5 bg-sunken dark:bg-white text-white dark:text-[#05030f] rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-40 disabled: flex items-center justify-center gap-2"
+                            className="w-full py-3.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-40 flex items-center justify-center gap-2"
                         >
                             <Download size={16} /> Download {result ? result.file_extension.toUpperCase() : output.toUpperCase()}
                         </button>

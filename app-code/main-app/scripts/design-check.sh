@@ -54,7 +54,12 @@ ok()   { printf "  \033[32m✓\033[0m %-26s %s\n" "$1" "${2:-}"; }
 bad()  { printf "  \033[31m✗\033[0m %-26s %s\n" "$1" "${2:-}"; FAIL=1; }
 note() { printf "  \033[33m•\033[0m %-26s %s\n" "$1" "${2:-}"; }
 
-count() { grep -rnE "$1" "$SRC" --include=*.jsx 2>/dev/null | wc -l | tr -d ' '; }
+# .jsx AND .tsx/.ts. The vendored chart library under Components/Charts is
+# TypeScript, so a .jsx-only sweep reported a green zero for `yAxisId` while 72
+# of them shipped. Any rule that is about the RENDERED result has to see them.
+INCL=(--include=*.jsx --include=*.tsx --include=*.ts)
+
+count() { grep -rnE "$1" "$SRC" "${INCL[@]}" 2>/dev/null | wc -l | tr -d ' '; }
 
 blocking() {
   local name="$1" pat="$2" n
@@ -63,7 +68,7 @@ blocking() {
     ok "$name" "0"
   else
     bad "$name" "$n"
-    grep -rnE "$pat" "$SRC" --include=*.jsx 2>/dev/null | head -5 | sed 's|^|      |'
+    grep -rnE "$pat" "$SRC" "${INCL[@]}" 2>/dev/null | head -5 | sed 's|^|      |'
   fi
 }
 
@@ -84,10 +89,42 @@ blocking "arbitrary z-index"      'z-\[[0-9]+\]'
 blocking "radius above ceiling"   'rounded-(3xl|\[[0-9.]+(rem|px)\])'
 blocking "weight above 700"       'font-(extrabold|black)'
 blocking "illegal duration"       'duration-(75|100|150|300|500|700|1000)\b|duration-\[[0-9]+ms\]'
-blocking "coloured shadow"        'shadow-(indigo|violet|purple|teal|emerald|blue|sky|rose|red|amber)-[0-9]'
+# The original list omitted orange, cyan and green — and every violation in the
+# codebase was in one of those three, so the rule reported a green zero while 15
+# coloured shadows shipped. If you add a palette, add it here.
+blocking "coloured shadow"        'shadow-(indigo|violet|purple|fuchsia|pink|plum|teal|emerald|green|lime|blue|sky|cyan|rose|red|orange|coral|amber|yellow|butter)-[0-9]'
 blocking "pigment names"          '\b(bg|text|border|ring|divide|from|to|via)-(indigo|slate|zinc|gray|stone)-[0-9]{2,3}'
 blocking "dead Tailwind stops"    '-(neutral|brand|accent)-([0-9]*[13579]5|[0-9]+50)\b'
-blocking "dual-axis charts"       'yAxisId'
+# The rule is "we do not SHIP a dual-axis chart", not "no library may support
+# one". Components/Charts is the vendored bklit library — 23 files we do not
+# author, whose own API carries yAxisId. Our call sites must stay at zero.
+dual_n=$(grep -rnE 'yAxisId' "$SRC" "${INCL[@]}" 2>/dev/null | grep -vc '/Components/Charts/' || true)
+if [[ "$dual_n" -eq 0 ]]; then ok "dual-axis charts" "0"
+else bad "dual-axis charts" "$dual_n"
+  grep -rnE 'yAxisId' "$SRC" "${INCL[@]}" 2>/dev/null | grep -v '/Components/Charts/' | head -5 | sed 's|^|      |'
+fi
+
+# purple / violet / fuchsia / pink all resolve to V6's PLUM playmate. Plum is a
+# real colour — §5 slot 6 — but only for categorical DATA. As chrome it simply
+# contradicts the teal identity, which is how the product came to render teal→
+# plum gradients on its buttons, avatars and the AI bubble. Charts reach plum
+# through `series` in theme/runtime.js, never through a Tailwind class.
+# WooCommerce is the one exception: purple is WooCommerce's own brand mark.
+plum_n=$(grep -rnE '\b([a-z-]+:)*(bg|text|border|ring|divide|from|to|via|shadow|fill|stroke)-(purple|violet|fuchsia|pink)-[0-9]{2,3}' \
+           "$SRC" "${INCL[@]}" 2>/dev/null | grep -vc '/Pages/WooCommerce/' || true)
+if [[ "$plum_n" -eq 0 ]]; then
+  ok "plum as chrome" "0"
+else
+  bad "plum as chrome" "$plum_n"
+  grep -rnE '\b([a-z-]+:)*(bg|text|border|ring|divide|from|to|via|shadow|fill|stroke)-(purple|violet|fuchsia|pink)-[0-9]{2,3}' \
+    "$SRC" "${INCL[@]}" 2>/dev/null | grep -v '/Pages/WooCommerce/' | head -5 | sed 's|^|      |'
+fi
+
+# A variant with nothing after it — `hover:` , `disabled:` — is what a codemod
+# leaves when it deletes the utility and not the modifier. Tailwind emits
+# nothing for it, so the style is silently gone and the class list still reads
+# as though it were there. 80 of these were shipping.
+blocking "dangling variant"       '[a-z0-9]-[a-z0-9/.:\[\]%-]+[ \t]+([a-z-]+:)*(hover|focus|active|disabled|checked|group-hover|dark):([ \t]|"|'"'"'|`)'
 # Not a colour rule. A class that does not exist in tailwind.config.js compiles
 # to nothing and the element silently inherits — the single most expensive
 # mistake available here, and it cost two rounds during the rollout.

@@ -1169,7 +1169,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 <div className="md:col-span-2 p-5 rounded-2xl bg-surface dark:bg-white/[0.02] border border-line dark:border-white/[0.05] hover:border-line dark:hover:border-white/10 transition-all flex flex-col justify-between text-left">
                     <div>
                         <div className="flex justify-between items-start mb-3">
-                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-400 border border-brand-500/20">
                                 Managed API
                             </span>
                             <span className="text-2xs text-ink-muted">Monthly Tiers</span>
@@ -1181,14 +1181,14 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                         <div className="grid grid-cols-2 gap-2">
                             {Object.entries(aiTiers).map(([key, tier]) => (
-                                <div 
-                                    key={key} 
+                                <div
+                                    key={key}
                                     onClick={() => handlePurchaseAddon(`ai_${key}`)}
-                                    className="p-2.5 rounded-lg bg-white dark:bg-white/[0.01] border border-line dark:border-white/[0.04] hover:border-purple-500/30 hover:bg-purple-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
+                                    className="p-2.5 rounded-lg bg-white dark:bg-white/[0.01] border border-line dark:border-white/[0.04] hover:border-brand-500/30 hover:bg-brand-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
                                 >
                                     <div className="flex justify-between items-center mb-0.5">
-                                        <span className="text-1xs font-bold text-ink group-hover:text-purple-400 transition-colors">AI {tier.name || key.toUpperCase()}</span>
-                                        <span className="text-1xs font-bold text-purple-500">${tier.price_monthly}</span>
+                                        <span className="text-1xs font-bold text-ink group-hover:text-brand-400 transition-colors">AI {tier.name || key.toUpperCase()}</span>
+                                        <span className="text-1xs font-bold text-brand-500">${tier.price_monthly}</span>
                                     </div>
                                     <div className="text-4xs text-ink-muted">
                                         {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
@@ -1207,7 +1207,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             <div className="w-full max-w-4xl bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative">
                 {/* glow blobs */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
 
                 {showSettings && renderSettingsDrawer()}
                 {renderForkDialog()}
@@ -1227,7 +1227,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 )}
                                 {ctx?.learning?.total > 0 && (
                                     <span
-                                        className="text-violet-300 normal-case flex items-center gap-1"
+                                        className="text-brand-300 normal-case flex items-center gap-1"
                                         title="Corrections your team has made. AI Scan reuses them automatically."
                                     >
                                         <Brain size={11} /> {ctx.learning.total} learned
@@ -1515,7 +1515,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Learning banner — shows the memory paying off */}
                             {extractedData.meta?.learned_lines > 0 && (
-                                <div className="px-8 py-2.5 bg-violet-500/10 border-b border-violet-500/20 flex items-center gap-2 text-xs font-bold text-violet-500">
+                                <div className="px-8 py-2.5 bg-brand-500/10 border-b border-brand-500/20 flex items-center gap-2 text-xs font-bold text-brand-500">
                                     <Brain size={13} />
                                     {extractedData.meta.learned_lines} line{extractedData.meta.learned_lines > 1 ? 's were' : ' was'} matched
                                     from what your store taught AI Scan previously — already filled in below.
@@ -1569,7 +1569,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                         return (
                                             <div
                                                 key={idx}
-                                                className={`p-4 rounded-2xl border transition-all flex flex-col gap-3 ${isLearned ? 'bg-violet-500/5 border-violet-500/25' :
+                                                className={`p-4 rounded-2xl border transition-all flex flex-col gap-3 ${isLearned ? 'bg-brand-500/5 border-brand-500/25' :
                                                     isNew ? 'bg-brand-500/5 border-brand-500/20' :
                                                         isHigh ? 'bg-emerald-500/5 border-emerald-500/10' :
                                                             isMedium ? 'bg-amber-500/5 border-amber-500/10' :
@@ -1586,7 +1586,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                             )}
                                                         </div>
                                                         {isLearned && item.match_reason && (
-                                                            <span className="text-2xs font-bold text-violet-500 flex items-center gap-1 mt-0.5">
+                                                            <span className="text-2xs font-bold text-brand-500 flex items-center gap-1 mt-0.5">
                                                                 <Brain size={10} /> Remembered — {item.match_reason}
                                                             </span>
                                                         )}
@@ -1676,7 +1676,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                             />
                                                         </div>
                                                         <div className="pt-4 flex items-center gap-2">
-                                                            <span className={`px-2 py-1 text-4xs font-bold uppercase rounded-full ${isLearned ? 'bg-violet-500/15 text-violet-600' :
+                                                            <span className={`px-2 py-1 text-4xs font-bold uppercase rounded-full ${isLearned ? 'bg-brand-500/15 text-brand-600' :
                                                                 isNew ? 'bg-brand-100 text-brand-700' :
                                                                     isHigh ? 'bg-emerald-100 text-emerald-700' :
                                                                         isMedium ? 'bg-amber-100 text-amber-700' :
@@ -1709,7 +1709,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             {isExpense ? 'Select an expense category to continue.' : `Select the ${partyType} to continue.`}
                                         </span>
                                     ) : (
-                                        <span className="block text-2xs text-violet-500 font-bold mt-0.5 flex items-center gap-1">
+                                        <span className="block text-2xs text-brand-500 font-bold mt-0.5 flex items-center gap-1">
                                             <Brain size={10} /> Your choices here are remembered for this store — next scan will fill them in for you.
                                         </span>
                                     )}
@@ -1725,7 +1725,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     <button
                                         onClick={() => handleConfirmTransaction()}
                                         disabled={confirming || !itemsReady || !partyReady || !appendReady}
-                                        className="px-8 py-2.5 bg-sunken hover:bg-interactive-hover dark:bg-brand-600 dark:hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 disabled:opacity-30 disabled:"
+                                        className="px-8 py-2.5 bg-sunken hover:bg-interactive-hover dark:bg-brand-600 dark:hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 disabled:opacity-30"
                                     >
                                         {confirming ? (
                                             <div className="flex items-center gap-1.5">
@@ -1869,7 +1869,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={selectedFiles.length === 0 || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30 disabled:"
+                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30"
                                             >
                                                 {loading ? 'Scanning…' : `Scan ${selectedFiles.length || ''} ${selectedFiles.length === 1 ? 'page' : 'pages'} — 1 AI request`}
                                             </button>
@@ -1962,7 +1962,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={!audioBlob || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30 disabled:"
+                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30"
                                             >
                                                 Proceed to Extract
                                             </button>
@@ -1991,7 +1991,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={!textInput.trim() || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30 disabled:"
+                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30"
                                             >
                                                 Proceed to Extract
                                             </button>
@@ -2057,12 +2057,12 @@ function CustomSelect({
     const filteredOptions = useMemo(() => {
         if (!options) return [];
         if (!search.trim()) return options;
-        
+
         const query = search.toLowerCase();
-        
+
         return options.map(opt => {
             if (opt.groupLabel) {
-                const subFiltered = (opt.options || []).filter(subOpt => 
+                const subFiltered = (opt.options || []).filter(subOpt =>
                     String(subOpt.label || '').toLowerCase().includes(query) ||
                     String(subOpt.value || '').toLowerCase().includes(query) ||
                     String(subOpt.sku || '').toLowerCase().includes(query)
@@ -2105,7 +2105,7 @@ function CustomSelect({
                 <div className="flex-1 truncate">
                     {selectedOption ? (
                         <div className="flex items-center gap-1.5 truncate">
-                            {selectedOption.learned && <Brain size={12} className="text-violet-400 shrink-0" />}
+                            {selectedOption.learned && <Brain size={12} className="text-brand-400 shrink-0" />}
                             <span className="truncate">{selectedOption.label}</span>
                             {selectedOption.confidence !== undefined && (
                                 <span className="text-3xs bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded font-bold shrink-0">
@@ -2180,7 +2180,7 @@ function CustomSelect({
                                                         >
                                                             <div className="flex flex-col gap-0.5 truncate">
                                                                 <div className="flex items-center gap-1.5 truncate">
-                                                                    {subOpt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-violet-400'} />}
+                                                                    {subOpt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-brand-400'} />}
                                                                     <span className="truncate">{subOpt.label}</span>
                                                                     {subOpt.confidence !== undefined && (
                                                                         <span className={`text-3xs px-1 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
@@ -2220,7 +2220,7 @@ function CustomSelect({
                                         >
                                             <div className="flex flex-col gap-0.5 truncate">
                                                 <div className="flex items-center gap-1.5 truncate">
-                                                    {opt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-violet-400'} />}
+                                                    {opt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-brand-400'} />}
                                                     <span className="truncate">{opt.label}</span>
                                                     {opt.confidence !== undefined && (
                                                         <span className={`text-3xs px-1 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>

@@ -65,9 +65,9 @@ export default function CashFlow({ operating, investing, financing, filters = {}
                         <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2">Investing Activities</p>
                         <p className="text-2xl font-bold text-blue-900 dark:text-white">{formatCurrency(investing, store)}</p>
                     </div>
-                    <div className="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-100 dark:border-purple-800">
-                        <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-2">Financing Activities</p>
-                        <p className="text-2xl font-bold text-purple-900 dark:text-white">{formatCurrency(financing, store)}</p>
+                    <div className="p-6 bg-brand-50 dark:bg-brand-900/20 rounded-2xl border border-brand-100 dark:border-brand-800">
+                        <p className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-2">Financing Activities</p>
+                        <p className="text-2xl font-bold text-brand-900 dark:text-white">{formatCurrency(financing, store)}</p>
                     </div>
                 </div>
 

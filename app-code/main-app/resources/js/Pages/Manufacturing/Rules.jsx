@@ -166,14 +166,14 @@ const ManufacturingRules = () => {
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h1 className="text-3xl font-bold text-ink flex items-center gap-3">
-                            <Beaker className="text-purple-500" size={32} />
+                            <Beaker className="text-brand-500" size={32} />
                             Auto-Manufacturing Rules
                         </h1>
                         <p className="text-sm text-ink-muted mt-1">Define composite products & ingredient auto-deduction</p>
                     </div>
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-bold flex items-center gap-2"
+                        className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold flex items-center gap-2"
                     >
                         <Plus size={18} /> Create Rule
                     </button>
@@ -188,7 +188,7 @@ const ManufacturingRules = () => {
                             <p className="text-ink-muted mb-4">Create your first rule to enable auto-deduction of ingredients</p>
                             <button
                                 onClick={() => setShowCreateModal(true)}
-                                className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-bold"
+                                className="px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-bold"
                             >
                                 Create First Rule
                             </button>
@@ -241,7 +241,7 @@ const ManufacturingRules = () => {
                                     <p className="text-xs font-bold text-ink-muted uppercase mb-2">Ingredients:</p>
                                     {rule.ingredients && rule.ingredients.map((ing, i) => (
                                         <div key={i} className="flex items-center gap-2 text-sm">
-                                            <span className="w-16 text-right font-bold text-purple-600">{ing.quantity_per_unit}{ing.unit}</span>
+                                            <span className="w-16 text-right font-bold text-brand-600">{ing.quantity_per_unit}{ing.unit}</span>
                                             <ArrowRight size={14} className="text-ink-muted" />
                                             <span className="text-ink-secondary">{ing.ingredient_name || `Product #${ing.ingredient_product_id}`}</span>
                                         </div>
@@ -268,7 +268,7 @@ const ManufacturingRules = () => {
                                     <select
                                         value={newRule.product_id}
                                         onChange={(e) => setNewRule({ ...newRule, product_id: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-purple-500"
+                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-brand-500"
                                     >
                                         <option value="">Select product...</option>
                                         {products.map(p => (
@@ -285,7 +285,7 @@ const ManufacturingRules = () => {
                                         value={newRule.name}
                                         onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
                                         placeholder="e.g., Garam Masala Production"
-                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-purple-500"
+                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-brand-500"
                                     />
                                 </div>
 
@@ -297,7 +297,7 @@ const ManufacturingRules = () => {
                                         onChange={(e) => setNewRule({ ...newRule, description: e.target.value })}
                                         placeholder="Optional description..."
                                         rows="2"
-                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-purple-500"
+                                        className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-brand-500"
                                     />
                                 </div>
 
@@ -307,7 +307,7 @@ const ManufacturingRules = () => {
                                         <label className="block text-sm font-bold text-ink-secondary">Ingredients *</label>
                                         <button
                                             onClick={addIngredient}
-                                            className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-sm font-bold flex items-center gap-1"
+                                            className="px-3 py-1 bg-brand-100 hover:bg-brand-200 text-brand-700 rounded-lg text-sm font-bold flex items-center gap-1"
                                         >
                                             <Plus size={14} /> Add
                                         </button>
@@ -379,7 +379,7 @@ const ManufacturingRules = () => {
                                 <button
                                     onClick={saveRule}
                                     disabled={!newRule.product_id || !newRule.name || newRule.ingredients.length === 0}
-                                    className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-sunken disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center gap-2"
+                                    className="px-4 py-2 bg-brand-500 hover:bg-brand-600 disabled:bg-sunken disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center gap-2"
                                 >
                                     <Save size={18} /> Save Rule
                                 </button>
