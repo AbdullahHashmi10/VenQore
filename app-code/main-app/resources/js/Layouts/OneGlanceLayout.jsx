@@ -1511,16 +1511,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
      </button>
  )}
 
- {/* Quick Actions Header Button */}
- <button
-  type="button"
-  onClick={() => window.dispatchEvent(new CustomEvent('vq:open-quick-actions'))}
-  className="hidden sm:flex items-center gap-2 h-11 px-3.5 rounded-xl border border-line bg-surface text-ink-secondary hover:text-brand-600 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all text-sm font-bold shadow-sm"
-  title="Quick Actions"
- >
-  <span aria-hidden="true">⚡</span><span>Quick Actions</span>
- </button>
-
  {/* Quick Theme Toggle Button (Light/Dark mode direct toggle matching new dashboard) */}
  <button
      onClick={toggleAppTheme}
