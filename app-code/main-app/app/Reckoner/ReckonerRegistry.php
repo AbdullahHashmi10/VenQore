@@ -636,7 +636,15 @@ final class ReckonerRegistry
                 source: PurchasingSource::class,
                 method: 'spend',
                 drillRoute: 'purchases.index',
-            ), ['additive' => true]),
+            ), [
+                'additive' => true,
+                'dimensions' => [
+                    'group_by' => ['enum' => ['none', 'supplier'], 'default' => 'none'],
+                ],
+                'filters' => [
+                    'supplier' => ['type' => 'entity', 'model' => 'App\\Models\\Party'],
+                ],
+            ]),
 
             'purchasing.count' => array_merge(self::scalar(
                 key: 'purchasing.count',
@@ -651,7 +659,15 @@ final class ReckonerRegistry
                 source: PurchasingSource::class,
                 method: 'count',
                 drillRoute: 'purchases.index',
-            ), ['additive' => true]),
+            ), [
+                'additive' => true,
+                'dimensions' => [
+                    'group_by' => ['enum' => ['none', 'supplier'], 'default' => 'none'],
+                ],
+                'filters' => [
+                    'supplier' => ['type' => 'entity', 'model' => 'App\\Models\\Party'],
+                ],
+            ]),
 
             'finance.paid_to_suppliers' => array_merge(self::scalar(
                 key: 'finance.paid_to_suppliers',

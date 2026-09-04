@@ -62,7 +62,7 @@ final class FinanceSource implements ReckonerSource
             if (in_array($key, $plKeys, true)) {
                 $windowKey = $period->start->toDateString().'|'.$period->end->toDateString();
                 $plByWindow[$windowKey]['period'] = $period;
-                $plByWindow[$windowKey]['items'][] = ['id' => $id, 'key' => $key];
+                $plByWindow[$windowKey]['items'][] = ['id' => $id, 'key' => $key, 'args' => $request['args'] ?? []];
 
                 continue;
             }
@@ -286,9 +286,38 @@ final class FinanceSource implements ReckonerSource
             foreach ($window['items'] as $item) {
                 $id = $item['id'];
                 $key = $item['key'];
+                $args = $item['args'] ?? [];
                 $out[$id] = match ($key) {
                     'finance.net_profit' => $netProfit,
-                    'finance.expenses_total' => $expensesTotal,
+                    'finance.expenses_total' => (function () use ($expensesTotal, $args, $ctx, $period) {
+                        $groupBy = $args['group_by'] ?? 'none';
+                        if ($groupBy === 'category') {
+                            $cogsId = DB::table('accounts')->where('tenant_id', $ctx->tenant->id)->where('code', '5000')->value('id');
+                            $expenseRows = DB::table('journal_items as ji')
+                                ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                                ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                                ->where('ji.tenant_id', $ctx->tenant->id)
+                                ->where('je.tenant_id', $ctx->tenant->id)
+                                ->where('je.is_reversed', 0)
+                                ->whereBetween('je.date', [$period->start->toDateString(), $period->end->toDateString()])
+                                ->where('a.type', 'expense')
+                                ->when($cogsId, fn($q) => $q->where('a.id', '!=', $cogsId))
+                                ->select('a.name as label', DB::raw('SUM(ji.debit) - SUM(ji.credit) as val'))
+                                ->groupBy('a.name')
+                                ->get();
+                            $rows = [];
+                            foreach ($expenseRows as $row) {
+                                $val = (float) $row->val;
+                                if ($val <= 0) continue;
+                                $rows[] = ['name' => $row->label ?: 'General', 'value' => $val];
+                            }
+                            return [
+                                'rows' => $rows,
+                                'total' => (float) array_sum(array_column($rows, 'value')),
+                            ];
+                        }
+                        return $expensesTotal;
+                    })(),
                     'finance.gross_profit' => $grossProfit,
                     'sales.gross_margin_pct' => $revenue > 0 ? round(($grossProfit / $revenue) * 100, 2) : null,
                     'finance.net_margin_pct' => $revenue > 0 ? round(($netProfit / $revenue) * 100, 2) : null,

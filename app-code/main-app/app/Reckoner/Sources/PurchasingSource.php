@@ -54,17 +54,51 @@ final class PurchasingSource implements ReckonerSource
             $period = $request['period'];
 
             $out[$id] = match ($key) {
-                'purchasing.spend' => (float) DB::table('purchases')
-                    ->where('tenant_id', $tenantId)
-                    ->where('workflow_status', '!=', 'cancelled')
-                    ->whereBetween('purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
-                    ->sum('total'),
+                'purchasing.spend' => (function() use ($tenantId, $period, $args) {
+                    $groupBy = $args['group_by'] ?? 'none';
+                    if ($groupBy === 'supplier') {
+                        $rows = DB::table('purchases')
+                            ->leftJoin('parties', 'purchases.party_id', '=', 'parties.id')
+                            ->where('purchases.tenant_id', $tenantId)
+                            ->where('purchases.workflow_status', '!=', 'cancelled')
+                            ->whereBetween('purchases.purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
+                            ->select('parties.name as label', DB::raw('SUM(purchases.total) as value'))
+                            ->groupBy('parties.name')
+                            ->get();
+                        return [
+                            'rows' => $rows->map(fn($r) => ['name' => $r->label ?: 'Unknown Supplier', 'value' => (float)$r->value])->all(),
+                            'total' => (float) $rows->sum('value')
+                        ];
+                    }
+                    return (float) DB::table('purchases')
+                        ->where('tenant_id', $tenantId)
+                        ->where('workflow_status', '!=', 'cancelled')
+                        ->whereBetween('purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
+                        ->sum('total');
+                })(),
 
-                'purchasing.count' => DB::table('purchases')
-                    ->where('tenant_id', $tenantId)
-                    ->where('workflow_status', '!=', 'cancelled')
-                    ->whereBetween('purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
-                    ->count(),
+                'purchasing.count' => (function() use ($tenantId, $period, $args) {
+                    $groupBy = $args['group_by'] ?? 'none';
+                    if ($groupBy === 'supplier') {
+                        $rows = DB::table('purchases')
+                            ->leftJoin('parties', 'purchases.party_id', '=', 'parties.id')
+                            ->where('purchases.tenant_id', $tenantId)
+                            ->where('purchases.workflow_status', '!=', 'cancelled')
+                            ->whereBetween('purchases.purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
+                            ->select('parties.name as label', DB::raw('COUNT(*) as value'))
+                            ->groupBy('parties.name')
+                            ->get();
+                        return [
+                            'rows' => $rows->map(fn($r) => ['name' => $r->label ?: 'Unknown Supplier', 'value' => (int)$r->value])->all(),
+                            'total' => (int) $rows->sum('value')
+                        ];
+                    }
+                    return (int) DB::table('purchases')
+                        ->where('tenant_id', $tenantId)
+                        ->where('workflow_status', '!=', 'cancelled')
+                        ->whereBetween('purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
+                        ->count();
+                })(),
 
                 'purchase_orders.count' => \Illuminate\Support\Facades\Schema::hasTable('purchase_orders')
                     ? (int) DB::table('purchase_orders')
