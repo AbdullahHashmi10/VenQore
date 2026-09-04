@@ -26,6 +26,10 @@ final class SalesSource implements ReckonerSource
             'sales.hourly_heatmap',
             'sales.live_feed',
             'sales.max_sale',
+            'sales_orders.count',
+            'returns.count',
+            'returns.qty',
+            'returns.value',
         ];
     }
 
@@ -179,11 +183,46 @@ final class SalesSource implements ReckonerSource
                         break;
 
                     case 'sales.max_sale':
-                        $out[$item['id']] = (float) DB::table('sales')
+                        $out[$item['id']] = (float) (DB::table('sales')
                             ->where('tenant_id', $ctx->tenant->id)
                             ->where('status', 'posted')
                             ->whereBetween('posted_at', [$period->start, $period->end])
-                            ->max('net_sales') ?? 0.0;
+                            ->max('net_sales') ?? 0.0);
+                        break;
+
+                    case 'sales_orders.count':
+                        $status = $item['args']['status'] ?? 'all';
+                        $out[$item['id']] = \Illuminate\Support\Facades\Schema::hasTable('sales_orders')
+                            ? (int) DB::table('sales_orders')
+                                ->where('tenant_id', $ctx->tenant->id)
+                                ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+                                ->count()
+                            : 0;
+                        break;
+
+                    case 'returns.count':
+                        $out[$item['id']] = (int) DB::table('sales')
+                            ->where('tenant_id', $ctx->tenant->id)
+                            ->where('status', 'returned')
+                            ->whereBetween('created_at', [$period->start, $period->end])
+                            ->count();
+                        break;
+
+                    case 'returns.qty':
+                        $out[$item['id']] = (float) (DB::table('sale_items')
+                            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+                            ->where('sales.tenant_id', $ctx->tenant->id)
+                            ->where('sales.status', 'returned')
+                            ->whereBetween('sales.created_at', [$period->start, $period->end])
+                            ->sum('sale_items.quantity') ?? 0.0);
+                        break;
+
+                    case 'returns.value':
+                        $out[$item['id']] = (float) (DB::table('sales')
+                            ->where('tenant_id', $ctx->tenant->id)
+                            ->where('status', 'returned')
+                            ->whereBetween('sales.created_at', [$period->start, $period->end])
+                            ->sum('total') ?? 0.0);
                         break;
                 }
             }

@@ -125,8 +125,9 @@ final class Reckoner
 
         // Requests that pass all gates and need resolving, grouped by Source
         // class so each Source gets exactly one resolveBatch() call.
-        $toResolve = []; // sourceClass => [ ['id'=>, 'key'=>, 'period'=>, 'args'=>, 'definition'=>], ... ]
-        $cached = [];    // id => ReckonerResult already served from cache
+        $toResolve  = []; // sourceClass => [ ['id'=>, 'key'=>, 'period'=>, 'args'=>, 'definition'=>], ... ]
+        $toDerive   = []; // derived reading items (resolved after all source reads)
+        $cached     = []; // id => ReckonerResult already served from cache
         $comparisonValues = []; // id => comparison_value loaded from cache
 
         foreach ($requests as $request) {
@@ -207,6 +208,37 @@ final class Reckoner
                 continue;
             }
 
+            // 6b. Arg whitelist — reject any arg not declared in dimensions or filters.
+            // A reading with no 'dimensions' key accepts no args; one with 'dimensions'
+            // allows exactly the declared keys plus 'filter' (which is validated separately).
+            if (! empty($request->args)) {
+                $declaredDims    = $definition['dimensions'] ?? null;
+                $declaredFilters = $definition['filters'] ?? [];
+
+                if ($declaredDims === null) {
+                    // Reading declares no dimension schema at all — no args accepted.
+                    $results[$id] = ReckonerResult::failure($id, $key, 'invalid_args', "'{$key}' does not accept arguments.");
+                    continue;
+                }
+
+                foreach (array_keys($request->args) as $argKey) {
+                    if ($argKey === 'filter') {
+                        // Validate each filter sub-key against declared filters.
+                        foreach (array_keys((array) $request->args['filter']) as $filterKey) {
+                            if (! array_key_exists($filterKey, $declaredFilters)) {
+                                $results[$id] = ReckonerResult::failure($id, $key, 'invalid_args', "Filter '{$filterKey}' is not declared for '{$key}'.");
+                                continue 3;
+                            }
+                        }
+                        continue;
+                    }
+                    if (! array_key_exists($argKey, $declaredDims)) {
+                        $results[$id] = ReckonerResult::failure($id, $key, 'invalid_args', "Argument '{$argKey}' is not declared for '{$key}'.");
+                        continue 2;
+                    }
+                }
+            }
+
             // Cache lookup.
             $ttl = $definition['cache_ttl'] ?? 60;
             $cacheKey = $this->cacheKey($t?->id, $key, $period, $request->granularity, $request->args);
@@ -223,6 +255,23 @@ final class Reckoner
                     ['cached' => true],
                 );
 
+                continue;
+            }
+
+            // 6c. Derived reading — resolve after all source reads complete.
+            // A definition with 'derived' carries no source/method; its 'compute' closure
+            // receives already-resolved scalar values keyed by reading key.
+            if (isset($definition['derived'])) {
+                $toDerive[] = [
+                    'id'         => $id,
+                    'key'        => $key,
+                    'period'     => $period,
+                    'args'       => $request->args,
+                    'definition' => $definition,
+                    'ttl'        => $ttl,
+                    'cacheKey'   => $cacheKey,
+                    'request'    => $request,
+                ];
                 continue;
             }
 
@@ -380,6 +429,96 @@ final class Reckoner
                 $item['period'],
                 $data,
                 ['cached' => false],
+            );
+        }
+
+        // ── Derived reading resolution ────────────────────────────────────────
+        // All source-backed reads are complete; now compute derived readings
+        // whose 'compute' closure receives already-resolved scalar dep values.
+        foreach ($toDerive as $item) {
+            $depKeys = $item['definition']['derived'];   // ['sales.revenue', 'finance.net_profit', ...]
+            $compute = $item['definition']['compute'];   // fn(array $r): ?float
+
+            $depValues = [];
+            $depsOk    = true;
+
+            foreach ($depKeys as $depKey) {
+                // Look up the dep in already-resolved results (any composite ID that
+                // matches this dep key with the same period window).
+                $depFound = false;
+                foreach ($results as $resolvedId => $resolvedResult) {
+                    // The composite ID format is "{key}|{period}|{from}|{to}|{args_hash}"
+                    // We match by prefix (key) for the same period context.
+                    if ($resolvedResult->ok && str_starts_with($resolvedId, $depKey . '|')) {
+                        $d = $resolvedResult->data;
+                        $depValues[$depKey] = is_array($d) ? ($d['value'] ?? null) : $d;
+                        $depFound = true;
+                        break;
+                    }
+                }
+
+                if (! $depFound) {
+                    // Dep was not in this batch — resolve it now as a sub-read.
+                    $depDef = ReckonerRegistry::find($depKey);
+                    if ($depDef === null) {
+                        $results[$item['id']] = ReckonerResult::failure($item['id'], $item['key'], 'resolver_failed', "Derived dep '{$depKey}' not found in registry.");
+                        $depsOk = false;
+                        break;
+                    }
+
+                    $depRequest = new ReckonerRequest(
+                        key:    $depKey,
+                        period: $item['period']->key ?? 'today',
+                        custom: $item['request']->custom,
+                        args:   [],
+                    );
+                    $depResults  = $this->readMany([$depRequest], $u, $t);
+                    $depResult   = array_values($depResults)[0] ?? null;
+
+                    if ($depResult === null || ! $depResult->ok) {
+                        // Dep unavailable (permission, plan, capability, etc.) → derived not_applicable.
+                        $results[$item['id']] = ReckonerResult::failure($item['id'], $item['key'], 'not_applicable', "Derived dep '{$depKey}' is not available.");
+                        $depsOk = false;
+                        break;
+                    }
+
+                    $d = $depResult->data;
+                    $depValues[$depKey] = is_array($d) ? ($d['value'] ?? null) : $d;
+                }
+            }
+
+            if (! $depsOk) {
+                continue;
+            }
+
+            // Call the compute closure. null return means not_applicable (e.g. ÷0 guard).
+            try {
+                $computed = $compute($depValues);
+            } catch (Throwable $e) {
+                report($e);
+                $results[$item['id']] = ReckonerResult::failure($item['id'], $item['key'], 'resolver_failed', 'Derived compute failed.');
+                continue;
+            }
+
+            if ($computed === null) {
+                $results[$item['id']] = ReckonerResult::failure($item['id'], $item['key'], 'not_applicable', 'Derived reading has no applicable value (e.g. revenue is zero).');
+                continue;
+            }
+
+            $data = $this->shapeScalarPayload($computed, null, $item['definition'], $item['period']);
+
+            if ($item['ttl'] > 0) {
+                Cache::put($item['cacheKey'], $data, $item['ttl']);
+            }
+
+            $results[$item['id']] = ReckonerResult::success(
+                $item['id'],
+                $item['key'],
+                $item['definition']['shape'],
+                $item['definition'],
+                $item['period'],
+                $data,
+                ['cached' => false, 'derived' => true],
             );
         }
 

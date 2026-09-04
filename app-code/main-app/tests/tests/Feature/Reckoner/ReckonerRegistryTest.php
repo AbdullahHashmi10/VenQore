@@ -32,7 +32,11 @@ class ReckonerRegistryTest extends TestCase
     public function test_every_definition_has_every_required_field(): void
     {
         foreach (ReckonerRegistry::all() as $key => $definition) {
+            $isDerived = isset($definition['derived']);
             foreach (self::REQUIRED_FIELDS as $field) {
+                if ($isDerived && in_array($field, ['source', 'method'], true)) {
+                    continue; // derived metrics declare compute and derived instead
+                }
                 $this->assertArrayHasKey($field, $definition, "Metric '{$key}' is missing field '{$field}'.");
             }
         }
@@ -76,6 +80,9 @@ class ReckonerRegistryTest extends TestCase
     public function test_every_source_class_exists_and_implements_reckoner_source(): void
     {
         foreach (ReckonerRegistry::all() as $key => $definition) {
+            if (isset($definition['derived'])) {
+                continue;
+            }
             $this->assertTrue(class_exists($definition['source']), "Metric '{$key}' references a source class that does not exist: {$definition['source']}.");
             $this->assertTrue(
                 is_subclass_of($definition['source'], ReckonerSource::class),
@@ -88,6 +95,9 @@ class ReckonerRegistryTest extends TestCase
     {
         $bySource = [];
         foreach (ReckonerRegistry::all() as $key => $definition) {
+            if (isset($definition['derived'])) {
+                continue;
+            }
             $bySource[$definition['source']][] = $key;
         }
 

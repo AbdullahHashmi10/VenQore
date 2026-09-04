@@ -159,6 +159,17 @@ final class ReckonerRegistry
                 'method' => 'revenue',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.sales',
+                'dimensions' => [
+                    'group_by' => ['enum' => ['none','customer','product','category','channel','payment_method'], 'default' => 'none'],
+                    'metric'   => ['enum' => ['value','qty','count'], 'default' => 'value'],
+                    'limit'    => ['int'  => [1, 50], 'default' => 10],
+                ],
+                'filters' => [
+                    'product'  => ['type' => 'entity', 'model' => 'App\\Models\\Product'],
+                    'customer' => ['type' => 'entity', 'model' => 'App\\Models\\Party'],
+                    'category' => ['type' => 'entity', 'model' => 'App\\Models\\Category'],
+                ],
+                'additive' => true,
             ],
 
             'sales.max_sale' => [
@@ -187,6 +198,9 @@ final class ReckonerRegistry
                 'cache_ttl' => 60,
                 'drill_route' => 'sales.index',
                 'implemented' => true,
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'sales.gross_margin_pct' => [
@@ -215,6 +229,9 @@ final class ReckonerRegistry
                 'method' => 'grossMarginPct',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             /* ── Finance ──────────────────────────────────────────────── */
@@ -244,6 +261,9 @@ final class ReckonerRegistry
                 'method' => 'netProfit',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => true,
             ],
 
             'finance.gross_profit' => [
@@ -273,6 +293,9 @@ final class ReckonerRegistry
                 'method' => 'grossProfit',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => true,
             ],
 
             'finance.cogs' => [
@@ -300,6 +323,9 @@ final class ReckonerRegistry
                 'method' => 'cogs',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => true,
             ],
 
             'finance.net_margin_pct' => [
@@ -328,6 +354,9 @@ final class ReckonerRegistry
                 'method' => 'netMarginPct',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.expenses_total' => [
@@ -356,6 +385,13 @@ final class ReckonerRegistry
                 'method' => 'expensesTotal',
                 'cache_ttl' => 60,
                 'drill_route' => 'expenses.index',
+                'dimensions' => [
+                    'group_by' => ['enum' => ['none','category'], 'default' => 'none'],
+                ],
+                'filters' => [
+                    'category' => ['type' => 'string'],
+                ],
+                'additive'   => true,
             ],
 
             'finance.receivables' => [
@@ -384,6 +420,9 @@ final class ReckonerRegistry
                 'method' => 'receivables',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.payables' => [
@@ -412,6 +451,9 @@ final class ReckonerRegistry
                 'method' => 'payables',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.total_liquidity' => [
@@ -439,6 +481,9 @@ final class ReckonerRegistry
                 'method' => 'totalLiquidity',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.balance_sheet_ok' => [
@@ -468,6 +513,9 @@ final class ReckonerRegistry
                 'method' => 'balanceSheetStatus',
                 'cache_ttl' => 60,
                 'drill_route' => 'accounting.trial-balance',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             /* ── Inventory ────────────────────────────────────────────── */
@@ -563,7 +611,7 @@ final class ReckonerRegistry
             ),
 
             /* ── Purchasing ───────────────────────────────────────────── */
-            'purchasing.spend' => self::scalar(
+            'purchasing.spend' => array_merge(self::scalar(
                 key: 'purchasing.spend',
                 domain: 'purchasing',
                 label: 'Purchases',
@@ -578,9 +626,9 @@ final class ReckonerRegistry
                 source: PurchasingSource::class,
                 method: 'spend',
                 drillRoute: 'purchases.index',
-            ),
+            ), ['additive' => true]),
 
-            'purchasing.count' => self::scalar(
+            'purchasing.count' => array_merge(self::scalar(
                 key: 'purchasing.count',
                 domain: 'purchasing',
                 label: 'Purchase Bills',
@@ -593,9 +641,9 @@ final class ReckonerRegistry
                 source: PurchasingSource::class,
                 method: 'count',
                 drillRoute: 'purchases.index',
-            ),
+            ), ['additive' => true]),
 
-            'finance.paid_to_suppliers' => self::scalar(
+            'finance.paid_to_suppliers' => array_merge(self::scalar(
                 key: 'finance.paid_to_suppliers',
                 domain: 'finance',
                 label: 'Paid to Suppliers',
@@ -610,7 +658,7 @@ final class ReckonerRegistry
                 source: PurchasingSource::class,
                 method: 'paidToSuppliers',
                 drillRoute: 'purchases.index',
-            ),
+            ), ['additive' => true]),
 
             /* ── Party ────────────────────────────────────────────────── */
             'party.customer_count' => self::scalar(
@@ -682,7 +730,7 @@ final class ReckonerRegistry
             ),
 
             /* ── Production ───────────────────────────────────────────── */
-            'production.total_cost' => self::scalar(
+            'production.total_cost' => array_merge(self::scalar(
                 key: 'production.total_cost',
                 domain: 'production',
                 label: 'Production Cost',
@@ -698,9 +746,9 @@ final class ReckonerRegistry
                 source: ProductionSource::class,
                 method: 'totalCost',
                 drillRoute: 'production.index',
-            ),
+            ), ['additive' => true]),
 
-            'production.run_count' => self::scalar(
+            'production.run_count' => array_merge(self::scalar(
                 key: 'production.run_count',
                 domain: 'production',
                 label: 'Production Runs',
@@ -714,7 +762,7 @@ final class ReckonerRegistry
                 source: ProductionSource::class,
                 method: 'runCount',
                 drillRoute: 'production.index',
-            ),
+            ), ['additive' => true]),
 
             /* ── Staff ────────────────────────────────────────────────── */
             'staff.on_shift_count' => self::scalar(
@@ -805,7 +853,7 @@ final class ReckonerRegistry
             ),
 
             /* ── Tax ──────────────────────────────────────────────────── */
-            'tax.collected' => self::scalar(
+            'tax.collected' => array_merge(self::scalar(
                 key: 'tax.collected',
                 domain: 'tax',
                 label: 'Tax Collected',
@@ -820,7 +868,7 @@ final class ReckonerRegistry
                 source: TaxSource::class,
                 method: 'collected',
                 drillRoute: 'reports.financial',
-            ),
+            ), ['additive' => true]),
 
             /* ── Restaurant ───────────────────────────────────────────── */
             'restaurant.tables_occupied' => self::scalar(
@@ -922,6 +970,9 @@ final class ReckonerRegistry
                 'method' => 'revenueTrend',
                 'cache_ttl' => 60,
                 'drill_route' => 'sales.index',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.profit_trend' => [
@@ -949,6 +1000,9 @@ final class ReckonerRegistry
                 'method' => 'profitTrend',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'sales.payment_breakdown' => [
@@ -976,6 +1030,9 @@ final class ReckonerRegistry
                 'method' => 'paymentBreakdown',
                 'cache_ttl' => 60,
                 'drill_route' => 'sales.index',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.expenses_by_category' => [
@@ -1003,6 +1060,9 @@ final class ReckonerRegistry
                 'method' => 'expensesByCategory',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'sales.top_products' => [
@@ -1030,6 +1090,9 @@ final class ReckonerRegistry
                 'method' => 'topProducts',
                 'cache_ttl' => 60,
                 'drill_route' => 'sales.index',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'sales.top_customers' => [
@@ -1057,6 +1120,9 @@ final class ReckonerRegistry
                 'method' => 'topCustomers',
                 'cache_ttl' => 60,
                 'drill_route' => 'parties.index',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'inventory.low_stock_list' => [
@@ -1084,6 +1150,9 @@ final class ReckonerRegistry
                 'method' => 'lowStockList',
                 'cache_ttl' => 60,
                 'drill_route' => 'inventory.index',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.receivables_aging' => [
@@ -1111,6 +1180,9 @@ final class ReckonerRegistry
                 'method' => 'receivablesAging',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'finance.cash_flow_trend' => [
@@ -1138,6 +1210,9 @@ final class ReckonerRegistry
                 'method' => 'cashFlowTrend',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.financial',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'sales.hourly_heatmap' => [
@@ -1165,6 +1240,9 @@ final class ReckonerRegistry
                 'method' => 'hourlySalesHeatmap',
                 'cache_ttl' => 60,
                 'drill_route' => 'sales.index',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'plan.usage_summary' => [
@@ -1192,6 +1270,9 @@ final class ReckonerRegistry
                 'method' => 'planUsageSummary',
                 'cache_ttl' => 60,
                 'drill_route' => 'superadmin.billing',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
             ],
 
             'sales.live_feed' => [
@@ -1219,6 +1300,423 @@ final class ReckonerRegistry
                 'method' => 'liveSalesFeed',
                 'cache_ttl' => 60,
                 'drill_route' => 'sales.index',
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
+            ],
+
+            'finance.net_margin_pct_derived' => [
+                'key'                 => 'finance.net_margin_pct_derived',
+                'domain'              => 'finance',
+                'label'               => 'Net Margin (computed)',
+                'generic'             => 'Net Margin',
+                'description'         => 'Net profit ÷ revenue, guaranteed consistent with the ledger figures.',
+                'help'                => 'Derived: net_profit / revenue × 100. Cannot disagree with either component.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'percent',
+                'precision'           => 2,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'this_month',
+                'supports_comparison' => true,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['finance.balances', 'reports.financial'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'reports.financial',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => false,
+                'derived'             => ['finance.net_profit', 'sales.revenue'],
+                'compute'             => function (array $r): ?float {
+                    $revenue = $r['sales.revenue'] ?? null;
+                    $netProfit = $r['finance.net_profit'] ?? null;
+                    return ($revenue !== null && $revenue > 0.0 && $netProfit !== null)
+                        ? round(($netProfit / $revenue) * 100, 2)
+                        : null;
+                },
+            ],
+
+            'finance.expense_ratio' => [
+                'key'                 => 'finance.expense_ratio',
+                'domain'              => 'finance',
+                'label'               => 'Expense Ratio',
+                'generic'             => 'Expense Ratio',
+                'description'         => 'Operating expenses as a percentage of revenue.',
+                'help'                => 'Derived: expenses_total / revenue × 100. A rising ratio signals cost pressure.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'percent',
+                'precision'           => 2,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'this_month',
+                'supports_comparison' => true,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['finance.balances', 'finance.transactions', 'reports.financial'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'reports.financial',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => false,
+                'derived'             => ['finance.expenses_total', 'sales.revenue'],
+                'compute'             => function (array $r): ?float {
+                    $revenue = $r['sales.revenue'] ?? null;
+                    $expenses = $r['finance.expenses_total'] ?? null;
+                    return ($revenue !== null && $revenue > 0.0 && $expenses !== null)
+                        ? round(($expenses / $revenue) * 100, 2)
+                        : null;
+                },
+            ],
+
+            'reminders.count' => [
+                'key'                 => 'reminders.count',
+                'domain'              => 'operations',
+                'label'               => 'Invoice Reminders',
+                'generic'             => 'Reminders',
+                'description'         => 'Count of invoice payment reminders.',
+                'help'                => 'Filtered by status: all, scheduled, pending, sent, overdue.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'integer',
+                'precision'           => 0,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ['live', 'today', 'this_month'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['reports.summary', 'sales.view'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => OperationsSource::class,
+                'method'              => 'reminderCount',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales.index',
+                'dimensions'          => [
+                    'status' => ['enum' => ['all', 'scheduled', 'pending', 'sent', 'overdue'], 'default' => 'all'],
+                ],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'recurring_invoices.count' => [
+                'key'                 => 'recurring_invoices.count',
+                'domain'              => 'operations',
+                'label'               => 'Recurring Invoices',
+                'generic'             => 'Recurring Invoices',
+                'description'         => 'Count of recurring invoice schedules.',
+                'help'                => 'Filtered by status: all, active, paused.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'integer',
+                'precision'           => 0,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ['live'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['reports.summary', 'sales.view'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => OperationsSource::class,
+                'method'              => 'recurringInvoiceCount',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales.index',
+                'dimensions'          => [
+                    'status' => ['enum' => ['all', 'active', 'paused'], 'default' => 'all'],
+                ],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'recurring_invoices.revenue' => [
+                'key'                 => 'recurring_invoices.revenue',
+                'domain'              => 'operations',
+                'label'               => 'Recurring Monthly Revenue',
+                'generic'             => 'Recurring Revenue',
+                'description'         => 'Monthly recurring revenue from active schedules.',
+                'help'                => 'Sum of amount on active recurring invoice schedules.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'currency',
+                'precision'           => 2,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ['live'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['reports.financial', 'sales.view'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => OperationsSource::class,
+                'method'              => 'recurringInvoiceRevenue',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales.index',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'batch_tracking.count' => [
+                'key'                 => 'batch_tracking.count',
+                'domain'              => 'inventory',
+                'label'               => 'Inventory Batches',
+                'generic'             => 'Batches',
+                'description'         => 'Count of active inventory batches.',
+                'help'                => 'Filtered by status: all, expiring_soon, expired.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'integer',
+                'precision'           => 0,
+                'direction'           => 'neutral',
+                'signed'              => false,
+                'periods'             => ['live'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['inventory.view'],
+                'feature'             => null,
+                'capability'          => 'has_inventory',
+                'scope'               => 'tenant',
+                'source'              => OperationsSource::class,
+                'method'              => 'batchCount',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'inventory.index',
+                'dimensions'          => [
+                    'status' => ['enum' => ['all', 'expiring_soon', 'expired'], 'default' => 'all'],
+                ],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'batch_tracking.qty' => [
+                'key'                 => 'batch_tracking.qty',
+                'domain'              => 'inventory',
+                'label'               => 'Batched Stock Quantity',
+                'generic'             => 'Batched Qty',
+                'description'         => 'Total unit quantity across all inventory batches.',
+                'help'                => 'Sum of batch quantities currently held.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'decimal',
+                'precision'           => 2,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ['live'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['inventory.view'],
+                'feature'             => null,
+                'capability'          => 'has_inventory',
+                'scope'               => 'tenant',
+                'source'              => OperationsSource::class,
+                'method'              => 'batchQuantity',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'inventory.index',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'proposals.count' => [
+                'key'                 => 'proposals.count',
+                'domain'              => 'sales',
+                'label'               => 'Proposals',
+                'generic'             => 'Proposals',
+                'description'         => 'Count of customer proposals and quotes.',
+                'help'                => 'Filtered by status: all, accepted, pending.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'integer',
+                'precision'           => 0,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ['live', 'today', 'this_month'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['sales.view'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => OperationsSource::class,
+                'method'              => 'proposalCount',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales.index',
+                'dimensions'          => [
+                    'status' => ['enum' => ['all', 'accepted', 'pending'], 'default' => 'all'],
+                ],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'purchase_orders.count' => [
+                'key'                 => 'purchase_orders.count',
+                'domain'              => 'purchasing',
+                'label'               => 'Purchase Orders',
+                'generic'             => 'Purchase Orders',
+                'description'         => 'Count of purchase orders.',
+                'help'                => 'Filtered by status: all, pending, received.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'integer',
+                'precision'           => 0,
+                'direction'           => 'neutral',
+                'signed'              => false,
+                'periods'             => ['live', 'today', 'this_month'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['purchases.view'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => PurchasingSource::class,
+                'method'              => 'purchaseOrderCount',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'purchases.index',
+                'dimensions'          => [
+                    'status' => ['enum' => ['all', 'pending', 'received'], 'default' => 'all'],
+                ],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'sales_orders.count' => [
+                'key'                 => 'sales_orders.count',
+                'domain'              => 'sales',
+                'label'               => 'Sales Orders',
+                'generic'             => 'Sales Orders',
+                'description'         => 'Count of sales orders.',
+                'help'                => 'Filtered by status: all, confirmed, pending.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'integer',
+                'precision'           => 0,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ['live', 'today', 'this_month'],
+                'default_period'      => 'live',
+                'supports_comparison' => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['sales.view'],
+                'feature'             => null,
+                'capability'          => 'has_sales_orders',
+                'scope'               => 'tenant',
+                'source'              => SalesSource::class,
+                'method'              => 'salesOrderCount',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales-orders.index',
+                'dimensions'          => [
+                    'status' => ['enum' => ['all', 'confirmed', 'pending'], 'default' => 'all'],
+                ],
+                'filters'             => [],
+                'additive'            => false,
+            ],
+
+            'returns.count' => [
+                'key'                 => 'returns.count',
+                'domain'              => 'sales',
+                'label'               => 'Sales Returns',
+                'generic'             => 'Returns',
+                'description'         => 'Count of return transactions within the period.',
+                'help'                => 'Number of posted return invoices.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'integer',
+                'precision'           => 0,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'this_month',
+                'supports_comparison' => true,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['sales.view', 'reports.summary'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => SalesSource::class,
+                'method'              => 'returnsCount',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales.index',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => true,
+            ],
+
+            'returns.qty' => [
+                'key'                 => 'returns.qty',
+                'domain'              => 'sales',
+                'label'               => 'Returned Units',
+                'generic'             => 'Returned Qty',
+                'description'         => 'Total unit quantity returned within the period.',
+                'help'                => 'Sum of item quantities on return transactions.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'decimal',
+                'precision'           => 2,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'this_month',
+                'supports_comparison' => true,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['sales.view', 'reports.summary'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => SalesSource::class,
+                'method'              => 'returnsQty',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales.index',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => true,
+            ],
+
+            'returns.value' => [
+                'key'                 => 'returns.value',
+                'domain'              => 'sales',
+                'label'               => 'Returned Value',
+                'generic'             => 'Returns Value',
+                'description'         => 'Total refunded monetary amount for returns within the period.',
+                'help'                => 'Sum of grand totals across return transactions.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'currency',
+                'precision'           => 2,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'this_month',
+                'supports_comparison' => true,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['sales.view', 'reports.financial'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'source'              => SalesSource::class,
+                'method'              => 'returnsValue',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'sales.index',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => true,
             ],
         ];
 
@@ -1283,6 +1781,9 @@ final class ReckonerRegistry
             'cache_ttl' => 60,
             'drill_route' => $drillRoute,
             'implemented' => true,
+            'dimensions' => [],
+            'filters'    => [],
+            'additive'   => false,
         ];
     }
 

@@ -36,6 +36,7 @@ final class PurchasingSource implements ReckonerSource
             'purchasing.spend',
             'finance.paid_to_suppliers',
             'purchasing.count',
+            'purchase_orders.count',
         ];
     }
 
@@ -45,8 +46,10 @@ final class PurchasingSource implements ReckonerSource
         $tenantId = $ctx->tenant->id;
 
         foreach ($requests as $request) {
-            $key = $request['key'];
-            $id = $request['id'];
+            $key    = $request['key'];
+            $id     = $request['id'];
+            $args   = $request['args'] ?? [];
+            $status = $args['status'] ?? 'all';
             /** @var ReckonerPeriod $period */
             $period = $request['period'];
 
@@ -62,6 +65,13 @@ final class PurchasingSource implements ReckonerSource
                     ->where('workflow_status', '!=', 'cancelled')
                     ->whereBetween('purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
                     ->count(),
+
+                'purchase_orders.count' => \Illuminate\Support\Facades\Schema::hasTable('purchase_orders')
+                    ? (int) DB::table('purchase_orders')
+                        ->where('tenant_id', $tenantId)
+                        ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+                        ->count()
+                    : 0,
 
                 'finance.paid_to_suppliers' => (float) DB::table('allocations')
                     ->join('purchases', 'allocations.purchase_id', '=', 'purchases.id')

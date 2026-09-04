@@ -39,7 +39,11 @@ class ReckonerRegistryTest extends TestCase
         ];
 
         foreach ($this->registry as $key => $def) {
+            $isDerived = isset($def['derived']);
             foreach ($required as $field) {
+                if ($isDerived && $field === 'source') {
+                    continue;
+                }
                 $this->assertArrayHasKey(
                     $field,
                     $def,
@@ -346,9 +350,9 @@ class ReckonerRegistryTest extends TestCase
 
     public function test_registry_has_expected_key_count(): void
     {
-        // 46 base/shapes + plan.usage_summary + sales.live_feed = 48 total.
+        // 48 base/shapes + 2 derived + 11 C2 status-count readings = 61 total.
         $this->assertCount(
-            48,
+            61,
             $this->registry,
             'Registry key count changed unexpectedly. Update this test if you intentionally added or removed a key.'
         );
