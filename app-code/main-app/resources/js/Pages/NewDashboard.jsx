@@ -36,19 +36,6 @@ const NAV_GROUP_ORDER = ['A','B','C','D','E','F','G'];
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
 import RECKONER_CATALOG from './ReckonerCatalog.json';
 
-function runCardBuilder(opts) {
-  /* Inertia remounts this page on every client-side navigation back to it. The
-     engine registers document-level listeners, so running it twice would double
-     every pointerup and leak a listener per visit. Re-boot the board instead. */
-  if (typeof window !== "undefined" && window.VenQoreCards && window.__vqCardEngine){
-    window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
-    window.VenQoreCards.setEnabledModules(opts && opts.modules);
-    window.VenQoreCards.boot();
-    return;
-  }
-  if (typeof window !== "undefined") window.__vqCardEngine = true;
-
-const READINGS = (typeof window !== "undefined" && window.__VENQORE_READINGS__) || RECKONER_CATALOG;
 /* ══ human copy ════════════════════════════════════════════════════════════
    Every reading carries a plain-language description. The wizard shows ONLY
    the name and this sentence — never the backend key, never the shape, never
@@ -169,31 +156,6 @@ const READING_DESC = {
   "operations.activity_feed": "Everything that just happened — sales, purchases, payments and stock moves.",
 };
 
-/* Cards the old dashboard had that the library was missing.
-   Only pushed in demo mode so tenant mode never sees uncomputed readings. */
-if (typeof window !== "undefined" && window.__VENQORE_DEMO_MODE__) {
-  READINGS.push(
-    { key:"finance.expenses_trend", label:"Expense trend", shape:"SERIES", unit:"currency",
-      area:"Finance", module:"Extra", short:"Expense trend", extra:true,
-      rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
-      sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
-    { key:"operations.activity_feed", label:"Recent activity", shape:"FEED", unit:"currency",
-      area:"Operations", module:"Extra", short:"Recent activity", extra:true,
-      rowNames:["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],
-      sliceNames:["New","Returning","Dormant"] },
-    { key:"bank_accounts.liquid_net", label:"Total Liquid Net", shape:"SCALAR", unit:"currency",
-      area:"Finance", module:"BankAccounts", short:"Total Liquid Net", extra:true,
-      rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
-      sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
-    { key:"purchasing.recent", label:"Recent purchases", shape:"FEED", unit:"currency",
-      area:"Purchasing", module:"Extra", short:"Recent purchases", extra:true,
-      rowNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],
-      sliceNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"] },
-  );
-  READING_DESC["bank_accounts.liquid_net"] = "Bank balances and cash in hand, added up — everything liquid.";
-  READING_DESC["purchasing.recent"] = "The latest purchases from your suppliers, newest first.";
-}
-
 /* A description for anything the table above missed — built from what the
    reading is, still free of jargon. */
 function readingDesc(r){
@@ -201,7 +163,6 @@ function readingDesc(r){
   const noun = r.unit === "currency" ? "value" : r.unit === "percent" ? "rate" : "count";
   return `${r.label} — a live ${noun} from ${r.area.toLowerCase()}.`;
 }
-READINGS.forEach(r => { r.desc = readingDesc(r); });
 
 /* ══ module gating ═════════════════════════════════════════════════════════
    Every reading belongs to the product module(s) that produce its data —
@@ -240,7 +201,56 @@ function modulesOf(key){
   for (const [re, mods] of READING_MODULE_RULES) if (re.test(key)) return mods;
   return [];
 }
-READINGS.forEach(r => { r.modules = modulesOf(r.key); });
+
+function prepareReadings(source) {
+  const list = (Array.isArray(source) && source.length > 0) ? [...source] : [...RECKONER_CATALOG];
+  if (typeof window !== "undefined" && window.__VENQORE_DEMO_MODE__) {
+    list.push(
+      { key:"finance.expenses_trend", label:"Expense trend", shape:"SERIES", unit:"currency",
+        area:"Finance", module:"Extra", short:"Expense trend", extra:true,
+        rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
+        sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
+      { key:"operations.activity_feed", label:"Recent activity", shape:"FEED", unit:"currency",
+        area:"Operations", module:"Extra", short:"Recent activity", extra:true,
+        rowNames:["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],
+        sliceNames:["New","Returning","Dormant"] },
+      { key:"bank_accounts.liquid_net", label:"Total Liquid Net", shape:"SCALAR", unit:"currency",
+        area:"Finance", module:"BankAccounts", short:"Total Liquid Net", extra:true,
+        rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
+        sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
+      { key:"purchasing.recent", label:"Recent purchases", shape:"FEED", unit:"currency",
+        area:"Purchasing", module:"Extra", short:"Recent purchases", extra:true,
+        rowNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],
+        sliceNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"] },
+    );
+    READING_DESC["bank_accounts.liquid_net"] = "Bank balances and cash in hand, added up — everything liquid.";
+    READING_DESC["purchasing.recent"] = "The latest purchases from your suppliers, newest first.";
+  }
+  list.forEach(r => {
+    r.desc = readingDesc(r);
+    r.modules = modulesOf(r.key);
+  });
+  return list;
+}
+
+function runCardBuilder(opts) {
+  /* Inertia remounts this page on every client-side navigation back to it. The
+     engine registers document-level listeners, so running it twice would double
+     every pointerup and leak a listener per visit. Re-boot the board instead. */
+  if (typeof window !== "undefined" && window.VenQoreCards && window.__vqCardEngine){
+    window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
+    window.VenQoreCards.setEnabledModules(opts && opts.modules);
+    if (opts && opts.readings && window.VenQoreCards.setReadings) {
+      window.VenQoreCards.setReadings(opts.readings);
+    }
+    window.VenQoreCards.boot();
+    return;
+  }
+  if (typeof window !== "undefined") window.__vqCardEngine = true;
+
+  let READINGS = prepareReadings(
+    (opts && opts.readings) || (typeof window !== "undefined" && window.__VENQORE_READINGS__) || RECKONER_CATALOG
+  );
 
 let ENABLED_MODULES = null;    /* null = ungated (no tenant / dev harness) */
 function setEnabledModules(list){
@@ -2882,6 +2892,14 @@ window.VenQoreCards = {
     Object.assign(c, patch); normaliseCard(c); draw(); return c;
   },
   getReadings: () => READINGS,
+  getAvailableReadings: () => availableReadings(),
+  setReadings: (newReadings) => {
+    if (Array.isArray(newReadings) && newReadings.length > 0) {
+      READINGS = prepareReadings(newReadings);
+      if (typeof window !== 'undefined') window.__VENQORE_READINGS__ = newReadings;
+      draw();
+    }
+  },
   getCats: () => CATS,
   getCatNames: () => CAT_NAME,
   getCatDescs: () => CAT_DESC,
@@ -3382,6 +3400,10 @@ export default function NewDashboard(props) {
   const auth = props?.auth || {};
   const user = auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
   const settings = props?.settings || {};
+  const readingsProp = props?.readings || null;
+  if (typeof window !== 'undefined' && Array.isArray(readingsProp) && readingsProp.length > 0) {
+    window.__VENQORE_READINGS__ = readingsProp;
+  }
   const [seniorMode, setSeniorMode] = useState(() => String(settings?.senior_mode) === '1');
 
   useEffect(() => {
@@ -3597,9 +3619,9 @@ export default function NewDashboard(props) {
     [props?.modules]);
 
   useEffect(() => {
-    runCardBuilder({ storeSlug, modules: enabledModules });
+    runCardBuilder({ storeSlug, modules: enabledModules, readings: readingsProp });
     setEngineReady(true);
-  }, [storeSlug, enabledModules]);
+  }, [storeSlug, enabledModules, readingsProp]);
 
   /* Edit mode is a page state; the engine paints from a class on the shell. */
   useEffect(() => {
@@ -4086,30 +4108,30 @@ export default function NewDashboard(props) {
   /* ── catalogue ───────────────────────────────────────────────────────── */
   const readings = engineReady
     ? ((engine()?.getAvailableReadings?.() ?? engine()?.getReadings?.()) || [])
-    : [];
+    : (Array.isArray(readingsProp) && readingsProp.length > 0 ? readingsProp : ((typeof window !== 'undefined' && window.__VENQORE_READINGS__) || []));
   const visibleTemplates = engineReady
     ? OPERATIONAL_TEMPLATES.filter(t => engine()?.specialAvailable?.(t.type) !== false)
     : OPERATIONAL_TEMPLATES;
 
   const availableAreas = useMemo(
-    () => ['All', ...Array.from(new Set(readings.map(r => r.area).filter(Boolean)))],
+    () => ['All', ...Array.from(new Set(readings.map(r => r?.area).filter(Boolean)))],
     [readings]);
 
   const filteredReadings = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return readings.filter(r =>
-      (selectedArea === 'All' || r.area === selectedArea) &&
-      (!q || r.label.toLowerCase().includes(q) || r.module.toLowerCase().includes(q) || r.key.toLowerCase().includes(q)));
+      r && (selectedArea === 'All' || r.area === selectedArea) &&
+      (!q || (r.label && r.label.toLowerCase().includes(q)) || (r.module && r.module.toLowerCase().includes(q)) || (r.key && r.key.toLowerCase().includes(q))));
   }, [readings, selectedArea, searchQuery]);
 
   const groupedSections = useMemo(() => {
     const groups = {};
-    filteredReadings.forEach(r => { (groups[r.area || 'General'] ||= []).push(r); });
+    filteredReadings.forEach(r => { (groups[r?.area || 'General'] ||= []).push(r); });
     return groups;
   }, [filteredReadings]);
 
   const legalMap = engine()?.getLegalCharts?.() || {};
-  const legalCharts = (selectedReading ? legalMap[selectedReading.shape] : null)
+  const legalCharts = (selectedReading ? legalMap[selectedReading?.shape] : null)
     || ['area', 'bar', 'line', 'stat', 'gauge', 'funnel', 'table', 'feed', 'heatmap'];
   const chartNames = engine()?.getChartNames?.() || {};
 

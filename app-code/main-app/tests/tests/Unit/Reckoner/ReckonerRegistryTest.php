@@ -350,9 +350,9 @@ class ReckonerRegistryTest extends TestCase
 
     public function test_registry_has_expected_key_count(): void
     {
-        // 48 base/shapes + 2 derived + 11 C2 status-count readings = 61 total.
+        // 58 tenant readings + 2 platform readings = 60 total (after finance.net_margin_pct canonical collapse).
         $this->assertCount(
-            61,
+            60,
             $this->registry,
             'Registry key count changed unexpectedly. Update this test if you intentionally added or removed a key.'
         );
