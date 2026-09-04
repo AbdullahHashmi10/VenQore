@@ -41,8 +41,8 @@ class TruthGateTest extends VenQoreTestCase
         $v6Catalog = ReckonerRegistry::v6Catalog();
         $catalogKeys = array_column($v6Catalog, 'key');
 
-        // Currently 59 verified tenant-scoped readings
-        $this->assertCount(59, $v6Catalog);
+        // Currently 58 verified tenant-scoped readings (after collapsing net_margin_pct_derived)
+        $this->assertCount(58, $v6Catalog);
 
         // Platform-scoped readings must never be in V6 tenant dashboard catalog
         $this->assertNotContains('platform.active_tenant_count', $catalogKeys);
@@ -83,6 +83,6 @@ class TruthGateTest extends VenQoreTestCase
 
         $pageProps = $response->viewData('page')['props'] ?? [];
         $this->assertArrayHasKey('readings', $pageProps);
-        $this->assertCount(59, $pageProps['readings']);
+        $this->assertCount(58, $pageProps['readings']);
     }
 }

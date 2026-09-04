@@ -598,19 +598,6 @@
         "sliceNames": []
     },
     {
-        "key": "finance.net_margin_pct_derived",
-        "label": "Net Margin (computed)",
-        "shape": "SCALAR",
-        "unit": "percent",
-        "area": "Finance",
-        "module": "Finance",
-        "short": "Net Margin",
-        "extra": false,
-        "desc": "Net profit \u00f7 revenue, guaranteed consistent with the ledger figures.",
-        "rowNames": [],
-        "sliceNames": []
-    },
-    {
         "key": "finance.expense_ratio",
         "label": "Expense Ratio",
         "shape": "SCALAR",

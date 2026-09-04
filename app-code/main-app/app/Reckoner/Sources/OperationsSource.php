@@ -83,14 +83,23 @@ final class OperationsSource implements ReckonerSource
                 'batch_tracking.count' => \Illuminate\Support\Facades\Schema::hasTable('inventory_batches')
                     ? (int) \Illuminate\Support\Facades\DB::table('inventory_batches')
                         ->where('tenant_id', $tenantId)
-                        ->when($status === 'expiring_soon', fn ($q) => $q->whereBetween('expires_at', [now(), now()->addDays(30)]))
-                        ->when($status === 'expired', fn ($q) => $q->where('expires_at', '<', now()))
+                        ->when($status === 'expiring_soon', function ($q) {
+                            $col = \Illuminate\Support\Facades\Schema::hasColumn('inventory_batches', 'expiry_date') ? 'expiry_date' : 'expires_at';
+                            $q->whereBetween($col, [now(), now()->addDays(30)]);
+                        })
+                        ->when($status === 'expired', function ($q) {
+                            $col = \Illuminate\Support\Facades\Schema::hasColumn('inventory_batches', 'expiry_date') ? 'expiry_date' : 'expires_at';
+                            $q->where($col, '<', now());
+                        })
                         ->count()
                     : 0,
                 'batch_tracking.qty' => \Illuminate\Support\Facades\Schema::hasTable('inventory_batches')
-                    ? (float) \Illuminate\Support\Facades\DB::table('inventory_batches')
-                        ->where('tenant_id', $tenantId)
-                        ->sum('quantity')
+                    ? (float) (function () use ($tenantId) {
+                        $col = \Illuminate\Support\Facades\Schema::hasColumn('inventory_batches', 'remaining_qty') ? 'remaining_qty' : 'quantity';
+                        return \Illuminate\Support\Facades\DB::table('inventory_batches')
+                            ->where('tenant_id', $tenantId)
+                            ->sum($col);
+                    })()
                     : 0.0,
                 'proposals.count' => \Illuminate\Support\Facades\Schema::hasTable('proposals')
                     ? (int) \Illuminate\Support\Facades\DB::table('proposals')

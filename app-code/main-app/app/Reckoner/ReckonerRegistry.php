@@ -204,34 +204,39 @@ final class ReckonerRegistry
             ],
 
             'sales.gross_margin_pct' => [
-                'key' => 'sales.gross_margin_pct',
-                'domain' => 'sales',
-                'label' => 'Gross Margin',
-                'generic' => 'Gross Margin',
-                'description' => 'Gross profit as a percentage of revenue.',
-                'help' => 'Gross profit ÷ revenue. "Margin" always names which margin — this is the '
-                    .'gross figure, before operating expenses. Yearly periods run on the calendar year.',
-                'shape' => ReckonerShape::SCALAR,
-                'unit' => 'percent',
-                'precision' => 2,
-                'direction' => 'higher_is_better',
-                'signed' => false,  // Percentage — no accounting-term alternate label (not "Gross Loss Margin").
-                'periods' => ReckonerPeriod::KEYS,
-                'default_period' => 'this_month',
+                'key'                 => 'sales.gross_margin_pct',
+                'domain'              => 'sales',
+                'label'               => 'Gross Margin',
+                'generic'             => 'Gross Margin',
+                'description'         => 'Gross profit as a percentage of revenue.',
+                'help'                => 'Derived: gross_profit / revenue × 100. Cannot disagree with either component.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'percent',
+                'precision'           => 2,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'this_month',
                 'supports_comparison' => true,
-                'supports_series' => true,
-                'series_granularity' => ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
-                'permissions' => ['reports.financial', 'sales.view'],
-                'feature' => null,
-                'capability' => null,
-                'scope' => 'tenant',
-                'source' => FinanceSource::class,
-                'method' => 'grossMarginPct',
-                'cache_ttl' => 60,
-                'drill_route' => 'reports.financial',
-                'dimensions' => [],
-                'filters'    => [],
-                'additive'   => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['reports.financial', 'sales.view'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'reports.financial',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => false,
+                'derived'             => ['finance.gross_profit', 'sales.revenue'],
+                'compute'             => function (array $r): ?float {
+                    $revenue = $r['sales.revenue'] ?? null;
+                    $grossProfit = $r['finance.gross_profit'] ?? null;
+                    return ($revenue !== null && $revenue > 0.0 && $grossProfit !== null)
+                        ? round(($grossProfit / $revenue) * 100, 2)
+                        : null;
+                },
             ],
 
             /* ── Finance ──────────────────────────────────────────────── */
@@ -329,34 +334,39 @@ final class ReckonerRegistry
             ],
 
             'finance.net_margin_pct' => [
-                'key' => 'finance.net_margin_pct',
-                'domain' => 'finance',
-                'label' => 'Net Margin',
-                'generic' => 'Net Margin',
-                'description' => 'Net profit as a percentage of revenue.',
-                'help' => 'Net profit ÷ revenue. "Margin" always names which margin — this is the '
-                    .'net figure, after operating expenses. Yearly periods run on the calendar year.',
-                'shape' => ReckonerShape::SCALAR,
-                'unit' => 'percent',
-                'precision' => 2,
-                'direction' => 'higher_is_better',
-                'signed' => false,  // Percentage — no accounting-term alternate label.
-                'periods' => ReckonerPeriod::KEYS,
-                'default_period' => 'this_month',
+                'key'                 => 'finance.net_margin_pct',
+                'domain'              => 'finance',
+                'label'               => 'Net Margin',
+                'generic'             => 'Net Margin',
+                'description'         => 'Net profit as a percentage of revenue.',
+                'help'                => 'Derived: net_profit / revenue × 100. Cannot disagree with either component.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'percent',
+                'precision'           => 2,
+                'direction'           => 'higher_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'this_month',
                 'supports_comparison' => true,
-                'supports_series' => true,
-                'series_granularity' => ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
-                'permissions' => ['finance.balances', 'reports.financial'],
-                'feature' => null,
-                'capability' => null,
-                'scope' => 'tenant',
-                'source' => FinanceSource::class,
-                'method' => 'netMarginPct',
-                'cache_ttl' => 60,
-                'drill_route' => 'reports.financial',
-                'dimensions' => [],
-                'filters'    => [],
-                'additive'   => false,
+                'supports_series'     => false,
+                'series_granularity'  => [],
+                'permissions'         => ['finance.balances', 'reports.financial'],
+                'feature'             => null,
+                'capability'          => null,
+                'scope'               => 'tenant',
+                'cache_ttl'           => 60,
+                'drill_route'         => 'reports.financial',
+                'dimensions'          => [],
+                'filters'             => [],
+                'additive'            => false,
+                'derived'             => ['finance.net_profit', 'sales.revenue'],
+                'compute'             => function (array $r): ?float {
+                    $revenue = $r['sales.revenue'] ?? null;
+                    $netProfit = $r['finance.net_profit'] ?? null;
+                    return ($revenue !== null && $revenue > 0.0 && $netProfit !== null)
+                        ? round(($netProfit / $revenue) * 100, 2)
+                        : null;
+                },
             ],
 
             'finance.expenses_total' => [
@@ -1305,41 +1315,6 @@ final class ReckonerRegistry
                 'additive'   => false,
             ],
 
-            'finance.net_margin_pct_derived' => [
-                'key'                 => 'finance.net_margin_pct_derived',
-                'domain'              => 'finance',
-                'label'               => 'Net Margin (computed)',
-                'generic'             => 'Net Margin',
-                'description'         => 'Net profit ÷ revenue, guaranteed consistent with the ledger figures.',
-                'help'                => 'Derived: net_profit / revenue × 100. Cannot disagree with either component.',
-                'shape'               => ReckonerShape::SCALAR,
-                'unit'                => 'percent',
-                'precision'           => 2,
-                'direction'           => 'higher_is_better',
-                'signed'              => false,
-                'periods'             => ReckonerPeriod::KEYS,
-                'default_period'      => 'this_month',
-                'supports_comparison' => true,
-                'supports_series'     => false,
-                'series_granularity'  => [],
-                'permissions'         => ['finance.balances', 'reports.financial'],
-                'feature'             => null,
-                'capability'          => null,
-                'scope'               => 'tenant',
-                'cache_ttl'           => 60,
-                'drill_route'         => 'reports.financial',
-                'dimensions'          => [],
-                'filters'             => [],
-                'additive'            => false,
-                'derived'             => ['finance.net_profit', 'sales.revenue'],
-                'compute'             => function (array $r): ?float {
-                    $revenue = $r['sales.revenue'] ?? null;
-                    $netProfit = $r['finance.net_profit'] ?? null;
-                    return ($revenue !== null && $revenue > 0.0 && $netProfit !== null)
-                        ? round(($netProfit / $revenue) * 100, 2)
-                        : null;
-                },
-            ],
 
             'finance.expense_ratio' => [
                 'key'                 => 'finance.expense_ratio',
