@@ -229,6 +229,12 @@ function prepareReadings(source) {
   list.forEach(r => {
     r.desc = readingDesc(r);
     r.modules = modulesOf(r.key);
+    if (!Array.isArray(r.rowNames) || r.rowNames.length === 0) {
+      r.rowNames = ["Cash", "Card", "Credit", "Bank", "Online", "Other"];
+    }
+    if (!Array.isArray(r.sliceNames) || r.sliceNames.length === 0) {
+      r.sliceNames = ["Cash", "Card", "Credit", "Bank", "Online"];
+    }
   });
   return list;
 }
@@ -412,15 +418,38 @@ function buildSeries(keys, period){
 function buildParts(key, period, names){
   const r = seed(key + "|parts|" + period);
   const rd = readingOf(key);
-  const list = (names || ["Cash","Card","Credit","Bank"]).map((n, i) => ({
-    name: n, value: Math.round((unitBase(rd.unit)) * (0.3 + r())), color: `var(--vq-series-${(i%8)+1})`
+  const rawNames = (Array.isArray(names) && names.length > 0)
+    ? names
+    : ((Array.isArray(rd?.rowNames) && rd.rowNames.length > 0)
+      ? rd.rowNames
+      : ["Cash", "Card", "Credit", "Bank", "Online", "Other"]);
+  const list = rawNames.map((n, i) => ({
+    name: n, value: Math.round((unitBase(rd?.unit || "currency")) * (0.3 + r())), color: `var(--vq-series-${(i%8)+1})`
   }));
   list.sort((a,b) => b.value - a.value);
-  return { parts: list, total: list.reduce((s,x) => s + x.value, 0), unit: rd.unit };
+  if (!list.length) list.push({ name: "General", value: 100, color: "var(--vq-series-1)" });
+  return { parts: list, total: list.reduce((s,x) => s + (x.value || 0), 0) || 1, unit: rd?.unit || "currency" };
 }
 function unitBase(unit){ return unit === "currency" ? 180000 : unit === "percent" ? 22 : 320; }
 
-function readingOf(key){ return READINGS.find(r => r.key === key) || READINGS[0]; }
+function readingOf(key){
+  const found = Array.isArray(READINGS) ? READINGS.find(r => r.key === key) : null;
+  if (found) return found;
+  if (Array.isArray(READINGS) && READINGS[0]) return READINGS[0];
+  return {
+    key: key || "sales.revenue",
+    label: "Revenue",
+    shape: "SCALAR",
+    unit: "currency",
+    area: "Sales",
+    module: "Sales",
+    short: "Revenue",
+    extra: false,
+    desc: "Revenue for the period.",
+    rowNames: ["Cash", "Card", "Credit", "Bank", "Online", "Other"],
+    sliceNames: ["Cash", "Card", "Credit", "Bank", "Online"],
+  };
+}
 
 /* ══ animated numerals + the date ticker ═══════════════════════════════════
    Digits live in a 0-9 column that slides; only the digits that actually
@@ -855,8 +884,8 @@ function rangeLabel(ds){
 /* ── radial: legend hover swaps the centre, other slices dim ───────────── */
 function mountRadial(host, card){
   const { W: HW, H: HH } = hostDimensions(host, card);
-  const pd0 = buildParts(card.key, card.period, readingOf(card.key).sliceNames);
-  const legH = Math.min(HH * 0.5, pd0.parts.length * 30 + 6);
+  const pd0 = buildParts(card.key, card.period, readingOf(card.key)?.sliceNames);
+  const legH = Math.min(HH * 0.5, (pd0.parts?.length || 1) * 30 + 6);
   const size = Math.max(84, Math.min(HW, HH - legH - 8, 210));
   const pd = pd0;
   const variant = card.variant || defaultVariant(card.chart);
@@ -868,36 +897,36 @@ function mountRadial(host, card){
   let arcs = "", pdefs = "";
   if (card.chart === "ring" && variant === "thick"){
     /* one heavy ring carrying the leading share, not a stack of thin ones */
-    const frac = pd.parts[0].value / pd.total;
+    const frac = (pd.parts[0]?.value || 0) / (pd.total || 1);
     arcs = `<path class="ck-track" d="${arcPath(cx,cy,R*0.44,R,0,1)}" fill="var(--vq-chart-track-data)"/>`
-         + `<path class="ck-seg" data-i="0" d="${arcPath(cx,cy,R*0.44,R,0,frac)}" fill="${pd.parts[0].color}"/>`;
+         + `<path class="ck-seg" data-i="0" d="${arcPath(cx,cy,R*0.44,R,0,frac)}" fill="${pd.parts[0]?.color || "var(--vq-series-1)"}"/>`;
   } else if (card.chart === "sunburst" && variant === "three-level"){
     const band = (R - R*0.3) / 3;
     for (let lvl = 0; lvl < 3; lvl++){
       const r1 = R - lvl*band, r0 = r1 - band*0.86;
       const set = pd.parts.slice(0, 4 - lvl);
-      const tot = set.reduce((a,b)=>a+b.value,0) || 1;
+      const tot = set.reduce((a,b)=>a+(b?.value||0),0) || 1;
       let a = 0;
-      set.forEach((p, i) => { const f = p.value / tot;
-        arcs += `<path class="ck-seg" data-i="${i}" d="${arcPath(cx,cy,r0,r1,a,a+f)}" fill="${p.color}"
+      set.forEach((p, i) => { const f = (p?.value || 0) / tot;
+        arcs += `<path class="ck-seg" data-i="${i}" d="${arcPath(cx,cy,r0,r1,a,a+f)}" fill="${p?.color || "var(--vq-series-1)"}"
                   stroke="var(--vq-chart-surface)" stroke-width="1.5" opacity="${(1 - lvl*0.18).toFixed(2)}"/>`;
         a += f; });
     }
   } else if (card.chart === "ring" && variant !== "single"){
     /* concentric rings — one track + one value arc per part */
-    const band = (R - inner) / pd.parts.length;
+    const band = (R - inner) / Math.max(1, pd.parts.length);
     pd.parts.forEach((p, i) => {
       const r1 = R - i * band, r0 = r1 - band * 0.72;
-      const frac = p.value / pd.parts[0].value;
+      const frac = (p?.value || 0) / (pd.parts[0]?.value || 1);
       arcs += `<path class="ck-track" d="${arcPath(cx,cy,r0,r1,0,1)}" fill="var(--vq-chart-track-data)"/>`
-           +  `<path class="ck-seg" data-i="${i}" d="${arcPath(cx,cy,r0,r1,0,Math.min(1,frac))}" fill="${p.color}"/>`;
+           +  `<path class="ck-seg" data-i="${i}" d="${arcPath(cx,cy,r0,r1,0,Math.min(1,frac))}" fill="${p?.color || "var(--vq-series-1)"}"/>`;
     });
   } else {
     let a = 0;
     pd.parts.forEach((p, i) => {
-      const f = p.value / pd.total;
+      const f = (p?.value || 0) / (pd.total || 1);
       const pop = variant === "exploded" ? 4 : 0;
-      let fill = p.color;
+      let fill = p?.color || "var(--vq-series-1)";
       if (variant === "pattern"){
         const pid = `${"pt" + (++CHART_UID)}`;
         pdefs += patternDef(pid, p.color);
@@ -1033,28 +1062,28 @@ function mountFunnel(host, card){
   const H = Math.max(90, host.clientHeight);
   const LAB = 150;                                  /* the label column, in px */
   const W = Math.max(80, host.clientWidth - LAB - 16);
-  const pd = buildParts(card.key, card.period, readingOf(card.key).rowNames);
-  const rows = pd.parts.slice(0, 5), mx = rows[0].value, rh = H / rows.length;
+  const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
+  const rows = pd.parts.slice(0, 5), mx = (rows[0]?.value || 1), rh = H / Math.max(1, rows.length);
   const variant = card.variant || "centered";
   const shapes = rows.map((p, i) => {
-    const bw = (p.value / mx) * W * 0.94;
+    const bw = ((p?.value || 0) / mx) * W * 0.94;
     const x = variant === "left" ? 0 : (W - bw) / 2;
     return `<rect class="ck-fn" data-i="${i}" x="${x.toFixed(1)}" y="${(i*rh+3).toFixed(1)}"
-      width="${bw.toFixed(1)}" height="${(rh-6).toFixed(1)}" rx="${variant==="stepped"?2:6}" fill="${p.color}" style="--d:${i*70}ms"/>`;
+      width="${bw.toFixed(1)}" height="${(rh-6).toFixed(1)}" rx="${variant==="stepped"?2:6}" fill="${p?.color || "var(--vq-series-1)"}" style="--d:${i*70}ms"/>`;
   }).join("");
   host.innerHTML = `<div class="ck-fnw">
     <svg width="${W}" height="${H}" class="ck-fsvg" viewBox="0 0 ${W} ${H}">${shapes}</svg>
     <div class="ck-fnl" style="width:${LAB}px">${rows.map((p,i) => `<div class="ck-fnr" data-i="${i}">
-      <span>${p.name}</span><b>${unitPrefix(pd.unit)}${fmtValue(p.value, pd.unit, true)}</b>
-      <em>${Math.round(p.value/mx*100)}%</em></div>`).join("")}</div></div>`;
+      <span>${p.name}</span><b>${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
+      <em>${Math.round((p?.value || 0)/mx*100)}%</em></div>`).join("")}</div></div>`;
   linkRows(host, ".ck-fn", ".ck-fnr");
 }
 
 function mountRadar(host, card){
   const { W, H } = hostDimensions(host, card);
   const S = Math.max(120, Math.min(W - 20, H - 20));
-  const pd = buildParts(card.key, card.period, (readingOf(card.key).rowNames || []).slice(0,6));
-  const ax = pd.parts.slice(0,6), n = ax.length, mx = Math.max(...ax.map(p=>p.value));
+  const pd = buildParts(card.key, card.period, (readingOf(card.key)?.rowNames || []).slice(0,6));
+  const ax = pd.parts.slice(0,6), n = Math.max(1, ax.length), mx = Math.max(1, ...ax.map(p=>p?.value || 0));
   const cx = S/2, cy = S/2, R = S/2 - 38;
   const variant = card.variant || "filled";
   const pt = (i,f) => { const a = -Math.PI/2 + 2*Math.PI*i/n; return [cx + R*f*Math.cos(a), cy + R*f*Math.sin(a)]; };
@@ -1062,8 +1091,8 @@ function mountRadar(host, card){
     `<polygon class="ck-rgrid" points="${ax.map((_,i)=>pt(i,k).map(v=>v.toFixed(1)).join(",")).join(" ")}"/>`).join("");
   const spokes = ax.map((_,i)=>{ const [x,y]=pt(i,1);
     return `<line class="ck-rgrid" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`; }).join("");
-  const poly = ax.map((p,i)=>pt(i,p.value/mx).map(v=>v.toFixed(1)).join(",")).join(" ");
-  const dots = variant === "dots" ? ax.map((p,i)=>{ const [x,y]=pt(i,p.value/mx);
+  const poly = ax.map((p,i)=>pt(i,(p?.value || 0)/mx).map(v=>v.toFixed(1)).join(",")).join(" ");
+  const dots = variant === "dots" ? ax.map((p,i)=>{ const [x,y]=pt(i,(p?.value || 0)/mx);
     return `<circle class="ck-pt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="var(--vq-series-1-ink)"/>`; }).join("") : "";
   const labs = ax.map((p,i)=>{ const [x,y]=pt(i,1.17);
     return `<text class="ck-lab" x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle">${p.name.slice(0,10)}</text>`; }).join("");
@@ -1125,49 +1154,49 @@ function mountHeatmap(host, card){
 
 function mountTable(host, card){
   const { H } = hostDimensions(host, card);
-  const pd = buildParts(card.key, card.period, readingOf(card.key).rowNames);
+  const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
   const capacity = Math.max(2, Math.floor((H - 4) / 38));
-  const rows = pd.parts.slice(0, Math.min(7, capacity)), mx = rows[0].value;
+  const rows = pd.parts.slice(0, Math.min(7, capacity)), mx = (rows[0]?.value || 1);
   const variant = card.variant || "rows";
   host.innerHTML = `<div class="ck-tb">${rows.map((p,i) => `
     <div class="ck-tr" style="--d:${i*45}ms">
       ${variant === "rank" ? `<span class="ck-rank">${i+1}</span>` : ""}
       <span class="ck-tn">${p.name}</span>
-      ${variant === "bars" ? `<span class="ck-tbar"><i style="width:${(p.value/mx*100).toFixed(0)}%;background:${p.color}"></i></span>` : ""}
-      <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p.value, pd.unit, true)}</b>
+      ${variant === "bars" ? `<span class="ck-tbar"><i style="width:${((p?.value || 0)/mx*100).toFixed(0)}%;background:${p?.color || "var(--vq-series-1)"}"></i></span>` : ""}
+      <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
     </div>`).join("")}</div>`;
 }
 
 function mountFeed(host, card){
   const { H } = hostDimensions(host, card);
-  const pd = buildParts(card.key, card.period, readingOf(card.key).rowNames);
+  const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
   const times = timeline(card.period).slice(-6).reverse();
   const capacity = Math.max(2, Math.floor((H - 4) / 38));
-  const rows = pd.parts.slice(0, Math.min(6, capacity)), mx = pd.parts[0].value || 1;
+  const rows = pd.parts.slice(0, Math.min(6, capacity)), mx = (rows[0]?.value || 1);
   const bars = card.variant === "bars";
   host.innerHTML = `<div class="ck-tb ${bars ? "is-bars" : ""}">${rows.map((p,i) => `
     <div class="ck-tr" style="--d:${i*45}ms">
-      ${bars ? "" : `<span class="ck-fd" style="background:${p.color}"></span>`}
+      ${bars ? "" : `<span class="ck-fd" style="background:${p?.color || "var(--vq-series-1)"}"></span>`}
       <span class="ck-tn">${p.name}</span>
-      ${bars ? `<span class="ck-tbar"><i style="width:${(p.value/mx*100).toFixed(0)}%;background:${p.color}"></i></span>`
+      ${bars ? `<span class="ck-tbar"><i style="width:${((p?.value || 0)/mx*100).toFixed(0)}%;background:${p?.color || "var(--vq-series-1)"}"></i></span>`
              : `<span class="ck-tt">${fullLabel(times[i] || times[0], PERIOD[card.period].grain)}</span>`}
-      <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p.value, pd.unit, true)}</b>
+      <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
     </div>`).join("")}</div>`;
 }
 
 function mountSankey(host, card){
   const { W, H } = hostDimensions(host, card);
-  const pd = buildParts(card.key, card.period, readingOf(card.key).sliceNames);
-  const parts = pd.parts.slice(0,4), tot = parts.reduce((a,b)=>a+b.value,0);
+  const pd = buildParts(card.key, card.period, readingOf(card.key)?.sliceNames);
+  const parts = pd.parts.slice(0,4), tot = parts.reduce((a,b)=>a+(b?.value||0),0) || 1;
   const thin = (card.variant === "thin");
   let y = 6, links = "", nodes = "";
   parts.forEach((p, i) => {
-    const h = (p.value / tot) * (H - 12) * (thin ? 0.7 : 1);
-    nodes += `<rect x="20" y="${y.toFixed(1)}" width="11" height="${h.toFixed(1)}" rx="3" fill="${p.color}"/>`;
-    const ty = 10 + i * ((H - 20) / parts.length);
+    const h = ((p?.value || 0) / tot) * (H - 12) * (thin ? 0.7 : 1);
+    nodes += `<rect x="20" y="${y.toFixed(1)}" width="11" height="${h.toFixed(1)}" rx="3" fill="${p?.color || "var(--vq-series-1)"}"/>`;
+    const ty = 10 + i * ((H - 20) / Math.max(1, parts.length));
     links += `<path class="ck-lk" style="--d:${i*90}ms" d="M31 ${y.toFixed(1)} C${W*0.45} ${y.toFixed(1)} ${W*0.55} ${ty.toFixed(1)} ${(W-32).toFixed(1)} ${ty.toFixed(1)}
       L${(W-32).toFixed(1)} ${(ty + h*0.72).toFixed(1)} C${W*0.55} ${(ty+h*0.72).toFixed(1)} ${W*0.45} ${(y+h).toFixed(1)} 31 ${(y+h).toFixed(1)} Z"
-      fill="${p.color}" fill-opacity=".3"><title>${p.name} — ${fmtValue(p.value, pd.unit, true)}</title></path>`;
+      fill="${p?.color || "var(--vq-series-1)"}" fill-opacity=".3"><title>${p.name} — ${fmtValue(p?.value || 0, pd.unit, true)}</title></path>`;
     y += h + 5;
   });
   nodes += `<rect x="${W-31}" y="6" width="11" height="${H-12}" rx="3" fill="var(--vq-chart-track-data)"/>`;
@@ -1613,7 +1642,11 @@ function minSizeFor(card){
   }
   if (card.chart === "status") [w,h] = [3,3];
   let rows = h;
-  const parts = () => (readingOf(card.key).sliceNames || ["a","b","c","d"]).length;
+  const parts = () => {
+    const rd = readingOf(card.key);
+    const sn = (rd && Array.isArray(rd.sliceNames) && rd.sliceNames.length > 0) ? rd.sliceNames : ["Cash", "Card", "Credit", "Bank"];
+    return sn.length;
+  };
   /* header ~60px + dial ~200px + ~47px per legend row, over an 88px pitch */
   if (RADIAL.has(card.chart)) rows = Math.max(rows, 2 + Math.ceil(parts() * 0.75));
   /* a funnel is just stacked rows — it needs height per stage, not a dial */
