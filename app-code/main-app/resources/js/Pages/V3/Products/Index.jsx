@@ -1,10 +1,12 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { useTerms } from '@/lib/terms';
 
 export default function ProductIndex({ products }) {
     const { store } = usePage().props;
+    const { t, tp } = useTerms();
     const deactivate = (id) => {
-        if (confirm('Deactivate this product?')) {
+        if (confirm(`Deactivate this ${t('product', 'product').toLowerCase()}?`)) {
             router.delete(route('store.v3.products.destroy', { store_slug: store?.slug, product: id }))
         }
     }
@@ -12,12 +14,12 @@ export default function ProductIndex({ products }) {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Products</h1>
+                <h1 className="text-2xl font-bold">{tp('product', 'Products')}</h1>
                 <Link
                     href={route('store.v3.products.create', { store_slug: store?.slug })}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 >
-                    + New Product
+                    + New {t('product', 'Product')}
                 </Link>
             </div>
 

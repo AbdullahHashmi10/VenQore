@@ -27,6 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PlatformInactivityMiddleware::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\GeoPricingMiddleware::class,
+            // The Rulebook's teeth (see EnsureModule's own docblock). Appended
+            // globally so it covers all 464 registry-owned routes with no
+            // per-route edits. Fails open by design: no tenant, no route name,
+            // an always-on route, or an unclaimed route all pass straight
+            // through — see EnsureModule::handle() for the exact conditions.
+            \App\Http\Middleware\EnsureModule::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\DemoBannerMiddleware::class,
             \App\Http\Middleware\LastModifiedMiddleware::class,
@@ -47,6 +53,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'drm.license'             => \App\Http\Middleware\DrmLockMiddleware::class,
             'visitor.chat.guard'      => \App\Http\Middleware\VisitorChatGuard::class,
             'plan.feature'            => \App\Http\Middleware\EnsurePlanFeature::class,
+            // Explicit mode only — ->middleware('module:key') for a route that
+            // needs gating but does not belong to the module its name implies.
+            // The automatic mode (all 464 registry-owned routes) comes from the
+            // global append above; this alias is the escape hatch, not the gate.
+            'module'                  => \App\Http\Middleware\EnsureModule::class,
         ]);
 
         // ── Phase 1.7: Tenant-aware Rate Limiting ──────────────────────────

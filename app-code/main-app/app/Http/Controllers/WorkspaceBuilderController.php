@@ -126,12 +126,49 @@ class WorkspaceBuilderController extends Controller
         }
 
         return response()->json([
-            'success'      => true,
-            'preset_key'   => $matchedKey,
-            'preset_label' => $preset['label'] ?? 'Custom Workspace',
-            'modules'      => $preset['modules'],
-            'capabilities' => $suggestedCapabilities,
+            'success'            => true,
+            'preset_key'         => $matchedKey,
+            'preset_label'       => $preset['label'] ?? 'Custom Workspace',
+            'preset_description' => $preset['description'] ?? 'Tailored workspace built for your operational needs.',
+            'prompt'             => $request->input('prompt', ''),
+            'modules'            => $preset['modules'],
+            'capabilities'       => $suggestedCapabilities,
         ]);
+    }
+
+    /**
+     * Log user business demand / unsupported requests to the feature_requests table.
+     */
+    public function logDemand(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'prompt' => 'required|string|max:1000',
+            'email'  => 'nullable|email|max:255',
+            'source' => 'nullable|string|max:64',
+        ]);
+
+        try {
+            DB::table(config('ai_builder.demand_log.table', 'feature_requests'))->insert([
+                'tenant_id'  => null,
+                'email'      => $validated['email'] ?? null,
+                'source'     => $validated['source'] ?? 'build_workspace',
+                'raw_text'   => $validated['prompt'],
+                'normalised' => strtolower(trim($validated['prompt'])),
+                'status'     => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Thank you! Your business workflow request has been noted by our product team.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to record request: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -149,6 +186,13 @@ class WorkspaceBuilderController extends Controller
             // permanently locked the owner out of their own account.
             'password'      => 'required|string|min:8',
             'modules'       => 'required|array',
+            // The matched preset key from analyze(). Never trusted blindly —
+            // only written as business_type when it names a real, shippable
+            // preset (see $businessType below) — because this one column is
+            // what config/dashboard_presets.php keys the tenant's first
+            // dashboard board on. Left null it silently falls through to
+            // 'default', same as an unrecognised value always has.
+            'preset_key'    => 'nullable|string|max:64',
         ]);
 
         $name = $request->input('business_name');
@@ -183,6 +227,16 @@ class WorkspaceBuilderController extends Controller
             //    permanent free account. ProcessExpiredTrials / SendTrialWarnings
             //    both filter on status='trial' + trial_ends_at, so both must be
             //    set here or those commands never match this tenant.
+            // Only a real, shippable preset key becomes business_type — a preset
+            // that has drifted from the registry, or 'retail_shop' guessed by
+            // guessPreset() and never confirmed, still lands here correctly
+            // since both are real config('ai_builder.presets') keys.
+            $presetKey = $request->input('preset_key');
+            $presets = config('ai_builder.presets', []);
+            $businessType = ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by']))
+                ? $presetKey
+                : null;
+
             $tenant = Tenant::create([
                 'name'            => $name,
                 'slug'            => $slug,
@@ -192,6 +246,7 @@ class WorkspaceBuilderController extends Controller
                 'trial_ends_at'   => now()->addDays(14),
                 'setup_completed' => true,
                 'onboarding_step' => 'completed',
+                'business_type'   => $businessType,
             ]);
 
             // 3. Attach TenantUser pivot

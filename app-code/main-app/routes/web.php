@@ -885,6 +885,7 @@ Route::get('/welcome-splash', function () {
 Route::get('/build-workspace', [\App\Http\Controllers\WorkspaceBuilderController::class, 'show'])->name('workspace.build');
 Route::post('/workspace/analyze', [\App\Http\Controllers\WorkspaceBuilderController::class, 'analyze'])->middleware('throttle:30,1')->name('workspace.analyze');
 Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware('throttle:5,1')->name('workspace.provision');
+Route::post('/workspace/demand-log', [\App\Http\Controllers\WorkspaceBuilderController::class, 'logDemand'])->middleware('throttle:10,1')->name('workspace.demand');
 
 
 
@@ -1097,6 +1098,15 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/onboarding/v2/ai-discovery', [\App\Http\Controllers\OnboardingExperienceController::class, 'aiDiscovery'])->name('onboarding.v2.ai-discovery');
     Route::post('/onboarding/v2/apply-preset', [\App\Http\Controllers\OnboardingExperienceController::class, 'applyPreset'])->name('onboarding.v2.apply-preset');
     Route::post('/onboarding/v2/complete', [\App\Http\Controllers\OnboardingExperienceController::class, 'completeOnboarding'])->name('onboarding.v2.complete');
+
+    // Builder — "add modules any time" (Break 5). EnsureModule::refuse() and
+    // ReportModuleMap-gated reports both redirect to route('store.builder')
+    // the moment a customer hits something they haven't switched on.
+    Route::get('/builder', [\App\Http\Controllers\BuilderController::class, 'show'])->name('builder');
+    Route::post('/builder/preview', [\App\Http\Controllers\BuilderController::class, 'preview'])->name('builder.preview');
+    Route::get('/builder/data-at-stake/{module}', [\App\Http\Controllers\BuilderController::class, 'dataAtStake'])->name('builder.data-at-stake');
+    Route::post('/builder/apply', [\App\Http\Controllers\BuilderController::class, 'apply'])->name('builder.apply');
+    Route::post('/builder/modify', [\App\Http\Controllers\BuilderController::class, 'modify'])->name('builder.modify');
 
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
     Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
@@ -1876,6 +1886,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::post('/api/store-credit/use', [\App\Http\Controllers\GrowthEngineController::class, 'useStoreCredit'])->name('store-credit.use');
     });
     // Notifications
+    Route::get('/api/notifications/summary', [App\Http\Controllers\NotificationController::class, 'summary'])->name('notifications.summary');
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/{id}/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');

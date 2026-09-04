@@ -15,12 +15,31 @@ import {
     Scale
 } from 'lucide-react';
 
+// Mirrors app/Support/ReportModuleMap.php for this curated tab strip only —
+// null means Qore-backed/always visible. Keep in sync if a route here moves
+// to a different owning module server-side.
+const REPORT_OWNER = {
+    'store.reports.index': null,
+    'store.reports.profit-loss': 'accounting_workspace',
+    'store.reports.sales': null,
+    'store.reports.purchases': 'purchases',
+    'store.reports.expenses': 'expenses',
+    'store.reports.account-ledger': 'accounting_workspace',
+    'store.reports.day-book': null,
+    'store.reports.trial-balance': 'accounting_workspace',
+    'store.reports.inventory-valuation': 'inventory',
+    'store.reports.balance-sheet': 'accounting_workspace',
+    'store.reports.transactions': null,
+    'store.reports.party-statement': 'khata_credit',
+};
+
 export default function ReportsNavigation() {
     const { url, props } = usePage();
-    const { store } = props;
+    const { store, modules } = props;
     const scrollRef = useRef(null);
+    const enabledModules = Array.isArray(modules) ? modules : null;
 
-    const links = [
+    const allLinks = [
         { label: 'Overview', route: 'store.reports.index', icon: LayoutDashboard },
         { label: 'Profit & Loss', route: 'store.reports.profit-loss', icon: TrendingUp },
         { label: 'Sales Report', route: 'store.reports.sales', icon: ShoppingCart },
@@ -34,6 +53,17 @@ export default function ReportsNavigation() {
         { label: 'Transactions', route: 'store.reports.transactions', icon: ScrollText },
         { label: 'Party Statements', route: 'store.reports.party-statement', icon: Users },
     ];
+
+    // A report whose owning module is off never appears — otherwise it is a
+    // dead link that 403s the moment it's clicked (see EnsureModule's report
+    // gate). Unmapped (undefined) or null-owned entries stay visible, same
+    // fail-open rule as ReportModuleMap::visible() on the server.
+    const links = !enabledModules
+        ? allLinks
+        : allLinks.filter((link) => {
+            const owner = REPORT_OWNER[link.route];
+            return !owner || enabledModules.includes(owner);
+        });
 
     const isActive = (routeName) => {
         if (!store?.slug) return false;

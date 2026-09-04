@@ -10,9 +10,17 @@ export default function BuildWorkspace({ initialPrompt = '', initialPreset = '',
  const [isAnalyzing, setIsAnalyzing] = useState(true);
 
  const [presetLabel, setPresetLabel] = useState('Custom Workspace');
+ const [presetDesc, setPresetDesc] = useState('Tailored workspace built for your operational needs.');
  const [activeModules, setActiveModules] = useState(['products', 'pos', 'inventory', 'expenses', 'reports']);
  const [capabilities, setCapabilities] = useState([]);
  const [showAllFeatures, setShowAllFeatures] = useState(false);
+
+ // Demand Log state
+ const [showDemandInput, setShowDemandInput] = useState(false);
+ const [demandText, setDemandText] = useState('');
+ const [demandEmail, setDemandEmail] = useState('');
+ const [isSendingDemand, setIsSendingDemand] = useState(false);
+ const [demandSubmitted, setDemandSubmitted] = useState(false);
 
  // Identity Inputs
  const [businessName, setBusinessName] = useState('');
@@ -45,6 +53,8 @@ export default function BuildWorkspace({ initialPrompt = '', initialPreset = '',
  const data = await res.json();
  if (data.success) {
  setPresetLabel(data.preset_label);
+ if (data.preset_description) setPresetDesc(data.preset_description);
+ if (data.prompt) setPrompt(data.prompt);
  setActiveModules(data.modules);
  setCapabilities(data.capabilities);
  }
@@ -52,6 +62,34 @@ export default function BuildWorkspace({ initialPrompt = '', initialPreset = '',
  console.error(e);
  } finally {
  setIsAnalyzing(false);
+ }
+ };
+
+ const handleSendDemand = async () => {
+ if (!demandText.trim()) return;
+ setIsSendingDemand(true);
+ try {
+ const res = await fetch(route('workspace.demand'), {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ 'Accept': 'application/json',
+ 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+ },
+ body: JSON.stringify({
+ prompt: demandText,
+ email: demandEmail || null,
+ source: 'build_workspace',
+ }),
+ });
+ const data = await res.json();
+ if (data.success) {
+ setDemandSubmitted(true);
+ }
+ } catch (err) {
+ console.error(err);
+ } finally {
+ setIsSendingDemand(false);
  }
  };
 
@@ -99,6 +137,7 @@ export default function BuildWorkspace({ initialPrompt = '', initialPreset = '',
  email,
  password,
  modules: activeModules,
+ preset_key: presetKey || null,
  }),
  });
  const data = await res.json();
@@ -160,9 +199,16 @@ export default function BuildWorkspace({ initialPrompt = '', initialPreset = '',
  <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
  We Built This Setup For Your Business
  </h1>
+ {prompt ? (
+ <div className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900/90 border border-brand-500/30 rounded-2xl text-xs text-neutral-300 max-w-xl mx-auto shadow-inner">
+ <span className="text-brand-400 font-semibold shrink-0">Tailored to:</span>
+ <span className="italic text-neutral-100 truncate">“{prompt}”</span>
+ </div>
+ ) : (
  <p className="text-ink-muted text-sm max-w-lg mx-auto">
  Based on your requirements, VenQore configured this workspace with zero feature paywalls.
  </p>
+ )}
  </div>
 
  {/* Capability Stack Cards */}
@@ -177,8 +223,11 @@ export default function BuildWorkspace({ initialPrompt = '', initialPreset = '',
  <div className="p-6 md:p-8 bg-neutral-900/80 border border-neutral-800 rounded-2xl space-y-6 shadow-2xl backdrop-blur-2xl">
  <div className="flex items-center justify-between">
  <div>
+ <div className="flex items-center gap-2">
+ <span className="text-2xs font-mono uppercase tracking-wider px-2 py-0.5 bg-brand-500/20 text-brand-300 border border-brand-500/30 rounded-md">Matched Preset</span>
  <h3 className="text-xl font-bold text-white">{presetLabel}</h3>
- <p className="text-xs text-ink-muted mt-0.5">Recommended operational capabilities</p>
+ </div>
+ <p className="text-xs text-ink-muted mt-1">{presetDesc}</p>
  </div>
  <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold rounded-full">
  All Included ($0 Fee)
@@ -258,6 +307,66 @@ export default function BuildWorkspace({ initialPrompt = '', initialPreset = '',
  </div>
  );
  })}
+ </div>
+ )}
+ </div>
+
+ {/* Demand Log Section */}
+ <div className="pt-2 border-t border-neutral-800/80">
+ {!showDemandInput ? (
+ <button
+ type="button"
+ onClick={() => setShowDemandInput(true)}
+ className="text-2xs text-ink-muted hover:text-brand-400 font-medium transition-colors flex items-center gap-1 mx-auto"
+ >
+ <span>Not quite right? Tell us your exact business workflow</span>
+ <ArrowRight size={11} />
+ </button>
+ ) : (
+ <div className="p-4 bg-neutral-950/80 border border-neutral-800 rounded-2xl space-y-3 animate-fadeIn">
+ <div className="flex items-center justify-between">
+ <span className="text-xs font-bold text-neutral-200">What specific workflow or features do you need?</span>
+ <button
+ type="button"
+ onClick={() => setShowDemandInput(false)}
+ className="text-ink-muted hover:text-white text-xs px-1"
+ >
+ ✕
+ </button>
+ </div>
+ {demandSubmitted ? (
+ <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
+ <CheckCircle2 size={16} />
+ <span>Thank you! Your request has been logged. Our engineering team reviews all incoming workflow needs.</span>
+ </div>
+ ) : (
+ <div className="space-y-2">
+ <textarea
+ rows={2}
+ value={demandText}
+ onChange={(e) => setDemandText(e.target.value)}
+ placeholder="e.g., We need multi-warehouse stock transfer approvals and custom warranty cards..."
+ className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+ />
+ <div className="flex items-center justify-between gap-2">
+ <input
+ type="email"
+ value={demandEmail}
+ onChange={(e) => setDemandEmail(e.target.value)}
+ placeholder="Your email (optional, for updates)"
+ className="flex-1 px-3 py-1.5 bg-neutral-900 border border-neutral-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+ />
+ <button
+ type="button"
+ disabled={isSendingDemand || !demandText.trim()}
+ onClick={handleSendDemand}
+ className="px-4 py-1.5 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all"
+ >
+ {isSendingDemand ? 'Sending...' : 'Submit to Roadmap'}
+ </button>
+ </div>
+ </div>
+ )}
  </div>
  )}
  </div>

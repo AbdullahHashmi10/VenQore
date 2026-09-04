@@ -51,18 +51,14 @@ class Terms
         return self::$fallbacks[$key][$type] ?? ucfirst($key);
     }
 
-    /**
-     * Get the terminology mapping for a specific tenant.
-     * Returns: ['customer' => ['singular' => 'Patient', 'plural' => 'Patients'], ...]
-     */
     public static function forTenant(?int $tenantId): array
     {
         if (!$tenantId) {
-            return [];
+            return self::$fallbacks;
         }
 
         return Cache::remember("tenant_terms:{$tenantId}", 300, function () use ($tenantId) {
-            return DB::table('tenant_terminology')
+            $custom = DB::table('tenant_terminology')
                 ->where('tenant_id', $tenantId)
                 ->get()
                 ->keyBy('term_key')
@@ -71,7 +67,17 @@ class Terms
                     'plural'   => $row->plural,
                 ])
                 ->toArray();
+
+            return array_merge(self::$fallbacks, $custom);
         });
+    }
+
+    /**
+     * Get all fallback terms.
+     */
+    public static function fallbacks(): array
+    {
+        return self::$fallbacks;
     }
 
     /**

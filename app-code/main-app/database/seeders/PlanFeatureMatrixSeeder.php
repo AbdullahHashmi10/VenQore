@@ -400,6 +400,10 @@ class PlanFeatureMatrixSeeder extends Seeder
                     if ($slug === 'ltd_2' && str_starts_with($key, 'woocommerce')) $val = '0';
                     if ($slug === 'ltd_3' && str_starts_with($key, 'woocommerce')) $val = '0';
 
+                    // Launch Readiness §1.3: LTD plans receive bounded managed AI (50 pages / 250 queries) with BYOK beyond
+                    if (str_starts_with($slug, 'ltd_') && $key === 'ai_pages_limit') $val = '50';
+                    if (str_starts_with($slug, 'ltd_') && $key === 'ai_queries_limit') $val = '250';
+
                     // Write/Update using updateOrInsert to prevent duplicate constraints
                     DB::table('plan_limits')->updateOrInsert(
                         ['plan_id' => $pid, 'key' => $key],

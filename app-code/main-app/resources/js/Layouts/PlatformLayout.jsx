@@ -8,6 +8,7 @@ import {
     Search, Command, Bell, Sun, Moon, Menu, X, ChevronsLeft, ChevronsRight,
     LogOut, ChevronLeft, AlertTriangle, Mail, ArrowRight, Sparkles,
 } from 'lucide-react';
+import AiIsland from '@/Components/AiIsland';
 
 const SIDEBAR_W = 264;
 const SIDEBAR_COLLAPSED = 76;
@@ -76,17 +77,10 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
                         <Menu size={19} />
                     </button>
 
-                    {/* Search trigger → opens palette */}
-                    <button className="vq-press" onClick={() => setPaletteOpen(true)} style={{
-                        display: 'flex', alignItems: 'center', gap: 10, flex: '1 1 auto', maxWidth: 440,
-                        padding: '9px 13px', borderRadius: 12, background: t.inputBg,
-                        border: `1px solid ${t.border}`, color: t.muted, cursor: 'pointer', fontSize: 13.5,
-                        fontFamily: 'inherit',
-                    }}>
-                        <Search size={16} />
-                        <span style={{ flex: 1, textAlign: 'left' }}>Search stores, users, plans…</span>
-                        <kbd style={kbdStyle(t)}>⌘K</kbd>
-                    </button>
+                    {/* Dynamic Island Omni-Search */}
+                    <div className="flex-1 flex items-center justify-center max-w-xl">
+                        <AiIsland />
+                    </div>
 
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {/* Theme toggle */}

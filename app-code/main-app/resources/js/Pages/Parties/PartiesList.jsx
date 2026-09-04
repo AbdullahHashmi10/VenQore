@@ -10,11 +10,13 @@ import {
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import PlanGate from '@/Components/PlanGate';
+import { useTerms } from '@/lib/terms';
 import axios from 'axios';
 
 export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  const { showAlert, showConfirm } = useAlert();
  const { url, store } = usePage().props;
+ const { t, tp } = useTerms();
  const { url: currentUrl } = usePage();
  const params = new URLSearchParams(window.location.search);
  const type = params.get('type');
@@ -380,10 +382,10 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  </div>
  <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
  <div className="flex items-center gap-1.5 shrink-0">
- <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
+ <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:blue-400 rounded-lg shrink-0">
  <UserCheck size={14} />
  </div>
- <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Customers</p>
+ <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">{tp('customer', 'Customers')}</p>
  </div>
  <p className="text-sm sm:text-base md:text-lg font-bold text-blue-600 leading-none mt-1 sm:mt-0">{stats.customers || 0}</p>
  </div>
@@ -412,7 +414,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
  <div className="flex items-center justify-between px-3 py-2">
  <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
- {activeTab === 'customers' ? 'Customers' : activeTab === 'suppliers' ? 'Suppliers' : 'All'} <span className="text-brand-600">Contacts</span>
+ {activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : 'All'} <span className="text-brand-600">Contacts</span>
  </h1>
  <div className="flex items-center gap-1">
  <button
@@ -477,11 +479,11 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  <button
  onClick={() => { handleTypeFilter('customer'); setShowMobileFilters(false); }}
  className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'customer' ? 'bg-sunken text-blue-600 dark:text-blue-400 shadow-sm' : 'text-ink-muted'}`}
- >Customers</button>
+ >{tp('customer', 'Customers')}</button>
  <button
  onClick={() => { handleTypeFilter('supplier'); setShowMobileFilters(false); }}
  className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'supplier' ? 'bg-sunken text-amber-600 dark:text-amber-400 shadow-sm' : 'text-ink-muted'}`}
- >Suppliers</button>
+ >{tp('supplier', 'Suppliers')}</button>
  </div>
  </div>
  </div>
@@ -494,7 +496,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
  <div className="flex items-center gap-2">
  <h1 className="text-sm sm:text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- {activeTab === 'customers' ? 'Customers' : activeTab === 'suppliers' ? 'Suppliers' : 'All'} <span className="text-brand-600">Contacts</span>
+ {activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : 'All'} <span className="text-brand-600">Contacts</span>
  </h1>
  <div className="hidden sm:block h-4 w-px bg-sunken mx-1"></div>
  </div>
@@ -512,14 +514,14 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-sm '
  : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
  }`}
- >Customers</button>
+ >{tp('customer', 'Customers')}</button>
  <button
  onClick={() => handleTypeFilter('supplier')}
  className={`px-2 py-0.5 text-3xs sm:text-2xs font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'supplier'
  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm '
  : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
  }`}
- >Suppliers</button>
+ >{tp('supplier', 'Suppliers')}</button>
  </div>
  </div>
 

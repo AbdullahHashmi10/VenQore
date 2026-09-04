@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, usePage, router, Link } from '@inertiajs/react';
+import { useTerms } from '@/lib/terms';
 import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import '@/NewPos/newpos.css';
@@ -101,7 +102,13 @@ const POSInterface = ({
     kitchen: initialKitchen = 0,
 }) => {
     const tableMode = terminal === 'table';
-    const { auth, store } = usePage().props;
+    const { auth, store, modules = [] } = usePage().props;
+    const { t, tp } = useTerms();
+    // Module-gated surface features. Unlisted modules never hide anything
+    // here — same fail-open default EnsureModule and the nav filter use —
+    // this only ever REMOVES a control whose owning module the tenant
+    // switched off; it never adds a permission check that wasn't there.
+    const modulesEnabled = new Set(Array.isArray(modules) ? modules : []);
     const userRole = auth.user?.role;
     const userPerms = auth.user?.permissions || [];
     const hasDiscountPerm = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userPerms.some(p => p === 'pos.discounts' || p.startsWith('pos.discounts.'));
@@ -3971,10 +3978,10 @@ const POSInterface = ({
                             selectedItem={activeSale.customer}
                             onSelect={(customer) => { selectCustomer(customer); setCustomerDropdownOpen(false); }}
                             inputClassName="bg-surface border-line text-ink shadow-sm !pl-10 !pr-10 rounded-xl font-bold text-sm h-12"
-                            placeholder="Search customer (name, phone)…"
+                            placeholder={`Search ${t('customer', 'customer').toLowerCase()} (name, phone)…`}
                             onQueryChange={(val) => setCustomerSearchTerm(val)}
                             onCreateNew={() => setShowQuickPartyModal(true)}
-                            addNewLabel="Add new customer"
+                            addNewLabel={`Add new ${t('customer', 'customer').toLowerCase()}`}
                             type="customer"
                             onEdit={(customer) => { setEditingCustomer(customer); setShowQuickPartyModal(true); }}
                         />
@@ -3982,7 +3989,7 @@ const POSInterface = ({
                             type="button"
                             onClick={() => setCustomerDropdownOpen(false)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink w-8 h-8 flex items-center justify-center rounded-lg hover:bg-interactive-hover transition-colors cursor-pointer"
-                            aria-label="Close customer search"
+                            aria-label={`Close ${t('customer', 'customer').toLowerCase()} search`}
                         >
                             <X size={18} />
                         </button>
@@ -3998,9 +4005,9 @@ const POSInterface = ({
                                 <User size={20} />
                             </div>
                             <div className="min-w-0">
-                                <span className="text-xs uppercase font-bold text-ink-muted block leading-none mb-1 tracking-wider">Customer</span>
+                                <span className="text-xs uppercase font-bold text-ink-muted block leading-none mb-1 tracking-wider">{t('customer', 'Customer')}</span>
                                 <span className="vq-clip font-bold text-ink text-base sm:text-lg block">
-                                    {activeSale.customer?.name || 'Walk-in customer'}
+                                    {activeSale.customer?.name || `Walk-in ${t('customer', 'customer').toLowerCase()}`}
                                 </span>
                             </div>
                         </div>
@@ -4048,7 +4055,7 @@ const POSInterface = ({
                     {paymentDropdownOpen && (
                         <div className="absolute top-full right-0 mt-1 w-48 bg-surface rounded-xl shadow-2xl border border-line overflow-hidden z-sticky py-1">
                             {['cash', 'credit', 'bank', 'card', 'online'].map(method => {
-                                if (method === 'credit' && !activeSale.customer) return null;
+                                if (method === 'credit' && (!activeSale.customer || !modulesEnabled.has('khata_credit'))) return null;
                                 return (
                                     <button
                                         key={method}
@@ -4761,7 +4768,7 @@ const POSInterface = ({
                                         </button>
                                     )}
 
-                                    {surfaceButtons.parked && (
+                                    {surfaceButtons.parked && modulesEnabled.has('park_recall') && (
                                         <button
                                             onClick={() => { loadParkedSales(); setParkedDropdownOpen(true); }}
                                             className="h-11 min-w-11 px-3 rounded-xl bg-surface hover:bg-amber-50 dark:hover:bg-amber-950/30

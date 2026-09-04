@@ -101,6 +101,27 @@ class EnsureModule
 
         $routeName = $request->route()?->getName();
 
+        // FINE-GRAINED REPORT GATE — layered on top of the coarse check below.
+        // config/modules.php claims the whole 'store.reports.*' wildcard for
+        // the Reports module, so a tenant with Reports on can otherwise open
+        // any of the 74 report routes regardless of which OTHER module the
+        // report's own data comes from — the exact leak ReportModuleMap's
+        // docblock names ("BIGGEST GATE JOB IN THE FILE"). This runs before
+        // the coarse check so a report can be hidden by its data module even
+        // while Reports itself stays on.
+        if (!$module && $routeName && (
+            str_starts_with($routeName, 'store.reports.')
+            || str_starts_with($routeName, 'store.v3.reports.')
+        )) {
+            $suffix = str_starts_with($routeName, 'store.v3.reports.')
+                ? substr($routeName, strlen('store.v3.reports.'))
+                : substr($routeName, strlen('store.reports.'));
+
+            if (!\App\Support\ReportModuleMap::visible($tenant, $suffix)) {
+                return $this->refuseReport($request, $tenant, $suffix);
+            }
+        }
+
         // Explicit mode wins when a module was named on the route itself.
         $owners = $module ? [$module] : ModuleRouteMap::ownersOf($routeName);
 
@@ -165,5 +186,47 @@ class EnsureModule
             : route('store.dashboard', ['store_slug' => $tenant->slug]);
 
         return redirect($target)->with('info', "{$label} isn't part of your system yet. Add it?");
+    }
+
+    /**
+     * The fine-grained refusal for a single report whose OWNING MODULE (not
+     * the Reports module itself) is off — e.g. a stock report with Inventory
+     * disabled. Named after the module that would actually fix it, per
+     * ReportModuleMap::refusalFor().
+     */
+    private function refuseReport(Request $request, $tenant, string $suffix): Response
+    {
+        $owner = \App\Support\ReportModuleMap::OWNERS[$suffix] ?? null;
+
+        if ($owner === 'supplier_insights_placeholder') {
+            $owner = 'suppliers';
+        }
+
+        $label = $owner ? config("modules.{$owner}.label", $owner) : 'this module';
+        $message = \App\Support\ReportModuleMap::refusalFor($suffix);
+
+        if (
+            $request->expectsJson()
+            || $request->wantsJson()
+            || $request->header('X-Inertia')
+            || $request->ajax()
+            || app()->environment('testing')
+        ) {
+            return response()->json([
+                'success' => false,
+                'code'    => 'module_disabled',
+                'module'  => $owner,
+                'label'   => $label,
+                'message' => $message,
+                'action'  => 'add_module',
+                'upgrade' => false,
+            ], 403);
+        }
+
+        $target = \Illuminate\Support\Facades\Route::has('store.builder')
+            ? route('store.builder', ['store_slug' => $tenant->slug, 'add' => $owner])
+            : route('store.reports.index', ['store_slug' => $tenant->slug]);
+
+        return redirect($target)->with('info', $message);
     }
 }

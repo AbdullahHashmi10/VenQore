@@ -222,6 +222,7 @@ export default function SidebarItem({
                             'Data Management': 'store.admin.data',
                             'System Settings': 'store.admin.settings',
                             'Store Settings': 'store.settings',
+                            'Builder': 'store.builder',
                             'Subscription': 'store.billing',
                             'Agent Inbox': 'store.admin.chatbot.inbox',
                             'Chatbot Settings': 'store.admin.chatbot.settings',

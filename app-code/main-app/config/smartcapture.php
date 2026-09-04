@@ -254,7 +254,7 @@ return [
     | Threshold of distinct tenants required before a contributed product barcode
     | is published into the shared catalog platform-wide.
     */
-    'shared_catalog_threshold' => (int) env('SMART_CAPTURE_SHARED_CATALOG_THRESHOLD', 3),
+    'shared_catalog_threshold' => (int) env('SMART_CAPTURE_SHARED_CATALOG_THRESHOLD', 5),
 
     /*
     |--------------------------------------------------------------------------

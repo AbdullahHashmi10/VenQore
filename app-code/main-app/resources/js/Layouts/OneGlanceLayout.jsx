@@ -3,6 +3,7 @@ import { Link, usePage, router } from '@inertiajs/react';
 import SidebarItem from '@/Components/SidebarItem';
 import CommandPalette from '@/Components/CommandPalette';
 import OmniSearch from '@/Components/OmniSearch';
+import AiIsland from '@/Components/AiIsland';
 import AiAssistantModal from '@/Components/AiAssistantModal';
 import FloatingAiBubble from '@/Components/FloatingAiBubble';
 import OnboardingDriver from '@/Components/OnboardingDriver';
@@ -121,14 +122,30 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  // Store Switcher Modal State
  const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
 
- // Live Header Clock State
+ // Live Header Clock State (Default off per Launch Readiness Mandate)
+ const [showClock, setShowClock] = useState(() => {
+     try {
+         return localStorage.getItem('venqore_header_clock_visible') === 'true';
+     } catch (e) {
+         return false;
+     }
+ });
+ const toggleClockVisibility = () => {
+     const next = !showClock;
+     setShowClock(next);
+     try {
+         localStorage.setItem('venqore_header_clock_visible', String(next));
+     } catch (e) {}
+ };
+
  const [currentTime, setCurrentTime] = useState(new Date());
  useEffect(() => {
- const clockInterval = setInterval(() => {
- setCurrentTime(new Date());
- }, 1000);
- return () => clearInterval(clockInterval);
- }, []);
+     if (!showClock) return;
+     const clockInterval = setInterval(() => {
+         setCurrentTime(new Date());
+     }, 1000);
+     return () => clearInterval(clockInterval);
+ }, [showClock]);
 
  // Listen for flash messages from backend
  useEffect(() => {
@@ -248,12 +265,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const isEffectiveDarkMode = store ? isDark : isDarkMode;
 
- const toggleAppTheme = () => {
- if (store) {
- updateAppearance({ mode: isDark ? 'light' : 'dark' });
- } else {
- setIsDarkMode(!isDarkMode);
- }
+ const toggleAppTheme = (targetMode) => {
+     const nextMode = typeof targetMode === 'string' ? targetMode : (isEffectiveDarkMode ? 'light' : 'dark');
+     setIsDarkMode(nextMode === 'dark');
+     try {
+         localStorage.setItem('amd_theme', nextMode);
+     } catch (e) {}
+     if (store) {
+         updateAppearance({ theme: 'venqore-v6', mode: nextMode });
+     }
  };
 
  const handleEditLayout = () => {
@@ -572,7 +592,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const visiblePurchases = (activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases'))) ? activePurchases : [];
 	const totalActiveOps = visibleInvoices.length + userPosSessions.length + visiblePurchases.length;
 
- const appMenuItems = [
+ const appMenuItemsRaw = [
  {
  name: 'Dashboard',
  icon: LayoutDashboard,
@@ -677,13 +697,97 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  name: 'Settings',
  icon: Settings,
  subs: [
- { group: 'Store Configuration', items: ['Store Settings', 'System Settings'] },
+ { group: 'Store Configuration', items: ['Store Settings', 'System Settings', 'Builder'] },
  { group: 'AI & Automation', items: ['Chatbot Settings'] }
  ],
  route: store ? 'store.settings' : null,
  routeParams: store ? { store_slug: store.slug } : {}
  } : null,
  ].filter(Boolean);
+
+ 	// ── Dynamic Terminology Support ──────────────────────────────────────────
+	const terms = props?.terms || {};
+	const term = (key, fallback, type = 'singular') => {
+		return terms[key]?.[type] || fallback;
+	};
+
+	// ── Module-aware sub-items ──────────────────────────────────────────────
+	// Maps leaf navigation items to their owning module.
+	// When a module is turned off for the active tenant, its sub-item is removed.
+	// When all sub-items in a top-level group are gone, the entire group hides.
+	const SUBITEM_MODULE = {
+		'Orders': 'sales_orders',
+		'Quotations / Pre-Sales': 'quotations',
+		'Proposals': 'b2b_proposals',
+		'Returns History': 'sales_returns',
+		'Invoice Reminders': 'recurring_invoices',
+		'Recurring Invoices': 'recurring_invoices',
+		'Purchases': 'purchases',
+		'Purchase Orders': 'purchase_orders',
+		'Purchase Returns': 'purchase_returns',
+		'Products': 'products',
+		'Categories': 'products',
+		'Attributes': 'variants',
+		'Labels': 'barcodes_labels',
+		'Stock Levels': 'inventory',
+		'Stock Operations': 'inventory',
+		'Stock Transfers': 'stock_transfers',
+		'Stock Audit': 'stock_takes',
+		'Batch Tracking': 'batches_expiry',
+		'Serial Tracking': 'serials',
+		'Production': 'production_runs',
+		'Cookbook': 'cookbook',
+		'Customers': 'customers',
+		'Suppliers': 'suppliers',
+		'Parties': 'khata_credit',
+		'Payments': 'payments',
+		'Expenses': 'expenses',
+		'To Receive': 'khata_credit',
+		'To Pay': 'khata_credit',
+		'Fund Management': 'bank_accounts',
+		'Bank Accounts': 'bank_accounts',
+		'Bank Reconciliation': 'bank_reconciliation',
+		'VenSynQ': 'marketplace_sync',
+		'WooCommerce Sync': 'marketplace_sync',
+		'Staff Attendance': 'staff_attendance',
+	};
+	const enabledModuleSet = Array.isArray(props?.modules) ? new Set(props.modules) : null;
+	const subitemModuleVisible = (item) => {
+		if (!enabledModuleSet) return true; // no module context — never hide
+		const label = typeof item === 'string' ? item : item?.label;
+		const owner = SUBITEM_MODULE[label];
+		return !owner || enabledModuleSet.has(owner);
+	};
+
+	const appMenuItems = appMenuItemsRaw
+		.map((group) => {
+			if (!group?.subs) return group;
+			const filteredSubs = group.subs
+				.map((sub) => ({
+					...sub,
+					items: (sub.items || []).filter(subitemModuleVisible),
+				}))
+				.filter((sub) => sub.items.length > 0);
+			return {
+				...group,
+				subs: filteredSubs,
+			};
+		})
+		.filter((group) => {
+			// Always keep core platform/store sections
+			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance', 'Insights'].includes(group.name)) {
+				return true;
+			}
+			// For cashiers, keep Sell if POS is enabled
+			if (userRole === 'cashier' && group.name === 'Sell') {
+				return enabledModuleSet ? enabledModuleSet.has('pos') : true;
+			}
+			// If all sub-groups in this menu have 0 items remaining, hide the top-level group
+			if (group.subs && group.subs.length === 0) {
+				return false;
+			}
+			return true;
+		});
 
  // ── CRITICAL SECURITY: If no store context and user landed here via a legacy bare route,
  // redirect to /hub immediately. NEVER show platform links to store users.
@@ -1352,524 +1456,372 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  return null;
  })()}
 
- {/* Plan Usage Warning Banner — AppSumo LTD (80% / 95% / 100% threshold) */}
- <PlanUsageBanner />
+  {/* Plan Usage Warning Banner — AppSumo LTD (80% / 95% / 100% threshold) */}
+  <PlanUsageBanner />
 
- {/* Subscription / Gift Access Link expiry — 7-day / 2-day warnings + locked state */}
- <SubscriptionExpiryBanner />
+  {/* Subscription / Gift Access Link expiry — 7-day / 2-day warnings + locked state */}
+  <SubscriptionExpiryBanner />
 
- {/* Header */}
- {!hideHeader && !fullScreen && (
- <header className="h-16 px-4 sm:px-8 flex items-center z-nav relative shrink-0">
- {/* LEFT SECTION */}
- <div className="flex-1 flex items-center gap-3 sm:gap-6 text-ink-muted">
- <button className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors border border-line"
- onClick={() => setMobileSidebarOpen(true)}>
- <Menu size={20} />
- </button>
+  {/* Fullscreen Floating Squeezed AI Island */}
+  {fullScreen && !hideHeader && (
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-nav pointer-events-none flex items-center justify-center">
+          <div className="pointer-events-auto">
+              <AiIsland
+                  compact={true}
+                  onAskAi={(query) => {
+                      setAiModalQuery(query);
+                      setIsAiModalOpen(true);
+                      setIsAiMinimized(false);
+                  }}
+              />
+          </div>
+      </div>
+  )}
 
- {/* OmniSearch - Universal Command Palette */}
- <div id="tour-omnisearch" className="flex-1 max-w-[240px] sm:max-w-xs md:max-w-none">
- <OmniSearch
- onAskAi={(query) => {
- setAiModalQuery(query);
- setIsAiModalOpen(true);
- setIsAiMinimized(false);
- }}
- />
- </div>
- </div>
+  {/* Header */}
+  {!hideHeader && !fullScreen && (
+  <header className="h-16 px-4 sm:px-8 flex items-center justify-between z-nav relative shrink-0">
+  {/* LEFT SECTION */}
+  <div className="flex items-center gap-3 text-ink-muted min-w-[100px] z-10">
+  <button className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors border border-line"
+  onClick={() => setMobileSidebarOpen(true)}>
+  <Menu size={20} />
+  </button>
 
- {/* CENTER SECTION */}
- <div className="flex-none">
- {isTrial && !is_demo && (
- <Link
- href={route('store.billing', { store_slug: store?.slug })}
- className="hidden sm:flex items-center gap-2.5 h-11 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all group shadow-sm "
- >
- <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
- <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-[0.2em] leading-none">
- {trialDaysLeft} Days Left
- </span>
- <ArrowRight size={14} className="text-amber-500 group-hover:translate-x-1 transition-transform" />
- </Link>
- )}
- </div>
+  {/* Header Link: When on store admin subpages, quick link Back to Home */}
+  {store && !(isPlatformAdmin && !store) && mode === 'admin' && (
+  <Link
+  id="tour-sidebar-admin"
+  href={store ? route('store.home', {store_slug: store.slug}) : '#'}
+  className="hidden sm:flex group relative items-center gap-2 h-11 px-3.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
+  >
+  <Home size={16} className="text-brand-500" />
+  <span className="text-sm font-bold text-ink">
+  Home
+  </span>
+  </Link>
+  )}
+  </div>
 
- {/* RIGHT SECTION */}
- <div className="flex-1 flex items-center justify-end gap-2 sm:gap-4">
- <div className="hidden lg:block">
- <CharityButton />
- </div>
+  {/* CENTER SECTION - THE AI ISLAND (Always Dead-Center of the Screen) */}
+  <div id="tour-omnisearch" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center justify-center">
+      <div className="pointer-events-auto">
+          <AiIsland
+              onAskAi={(query) => {
+                  setAiModalQuery(query);
+                  setIsAiModalOpen(true);
+                  setIsAiMinimized(false);
+              }}
+          />
+      </div>
+  </div>
 
- {/* Actionable Intelligence (AI) Recommendation Engine */}
- <div className="hidden lg:block relative z-50" ref={growthRef}>
- {showAiPopup && !isGrowthOpen && props.growth_engine?.popup && (
- <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 h-16 bg-surface pr-3 pl-4 rounded-2xl shadow-lg border border-brand-100 dark:border-brand-800 animate-in fade-in slide-in-from-right-4 duration-slower flex items-center gap-4">
- <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-surface border-t border-r border-brand-100 dark:border-brand-800 rotate-45"></div>
+  {/* RIGHT SECTION */}
+  <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-[100px] z-10">
+  {isTrial && !is_demo && (
+  <Link
+  href={route('store.billing', { store_slug: store?.slug })}
+  className="hidden sm:flex items-center gap-2 h-11 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all group shadow-sm "
+  >
+  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+  <span className="text-2xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-[0.15em] leading-none">
+  {trialDaysLeft}d Left
+  </span>
+  </Link>
+  )}
 
- <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 shrink-0">
- <Sparkles size={18} />
- </div>
+  {/* Optional Live Header Clock (Toggled in Header Settings) */}
+  {showClock && (
+  <div className="hidden xl:flex items-center gap-2 h-11 px-3.5 rounded-xl bg-surface border border-line text-xs font-bold text-ink-secondary dark:text-ink shrink-0 font-mono shadow-sm">
+  <Clock size={14} className="text-brand-500 dark:text-brand-400 animate-[pulse_2s_infinite]" />
+  <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+  </div>
+  )}
 
- <div className="flex flex-col justify-center w-72">
- <p className="text-sm font-bold text-ink truncate">Opportunity Detected</p>
- <p className="text-xs text-ink-muted truncate">
- {props.growth_engine.popup.description || 'New insights available.'}
- </p>
- </div>
+  <div className="hidden lg:block">
+  <CharityButton />
+  </div>
 
- <div className="flex items-center gap-2 border-l border-line pl-3 h-10">
- <button
- onClick={() => { setIsGrowthOpen(true); setShowAiPopup(false); }}
- className="w-8 h-8 flex items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"
- title="View Actions"
- >
- <ArrowRight size={14} />
- </button>
- <button
- onClick={() => setShowAiPopup(false)}
- className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
- >
- <X size={14} />
- </button>
- </div>
- </div>
- )}
+  {/* Display & Dashboard Customization Settings Dropdown */}
+  <div className="hidden lg:block relative" ref={displayMenuRef}>
+      <button
+          onClick={() => setIsDisplayMenuOpen(!isDisplayMenuOpen)}
+          className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
+              ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
+              : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
+          title="Theme & Header Preferences"
+      >
+          <Settings2 size={18} />
+      </button>
 
- {/* Growth Engine - Hide in Platform HQ */}
- {!(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
- <button
- id="tour-growth-engine"
- onClick={() => setIsGrowthOpen(!isGrowthOpen)}
- className={`group relative flex items-center gap-2 h-11 px-3.5 sm:px-4 rounded-xl border transition-all duration-slow ${isGrowthOpen
- ? 'bg-brand-600 text-white border-brand-600 dark:shadow-none'
- : 'bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'}`}
- >
- <Sparkles size={16} className={isGrowthOpen ? 'text-brand-200' : 'text-brand-500'} />
- <span className={`text-sm font-bold hidden md:inline-block ${isGrowthOpen ? 'text-white' : 'bg-gradient-brand bg-clip-text text-transparent'}`}>
- Growth Engine
- </span>
- {props.growth_engine?.count > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-line"></span>}
- </button>
- )}
+      {isDisplayMenuOpen && (
+          <div className="absolute right-0 top-full mt-2 w-72 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2.5 space-y-2">
+              {/* Theme Selector */}
+              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                  Theme Appearance
+              </div>
+              <div className="flex items-center p-1 bg-sunken rounded-xl gap-1">
+                  {[
+                      { id: 'light', label: 'Light' },
+                      { id: 'dark', label: 'Dark' },
+                      { id: 'system', label: 'System' },
+                  ].map((t) => (
+                      <button
+                          key={t.id}
+                          onClick={() => toggleAppTheme(t.id)}
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold capitalize transition-all ${
+                              (appearance?.mode === t.id || (!appearance?.mode && t.id === (isEffectiveDarkMode ? 'dark' : 'light')))
+                                  ? 'bg-surface shadow-sm text-brand-600 font-bold'
+                                  : 'text-ink-muted hover:text-ink'
+                          }`}
+                      >
+                          {t.label}
+                      </button>
+                  ))}
+              </div>
 
- {/* Growth Engine Dropdown */}
- {isGrowthOpen && (
- <div className="absolute right-0 top-full mt-3 w-96 bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden animate-in fade-in zoom-in-95 origin-top-right z-dropdown">
- <div className="p-5 bg-gradient-brand text-white relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
- <h3 className="text-lg font-bold relative z-10 flex items-center gap-2">
- <Sparkles size={18} className="text-yellow-300" /> Actionable Intelligence
- </h3>
- <p className="text-brand-100 text-xs mt-1 relative z-10">{props.growth_engine?.count || 0} Opportunities detected.</p>
- </div>
+              <div className="h-px bg-line my-1" />
 
- <div className="p-2 max-h-[400px] overflow-y-auto custom-scrollbar">
- {(!props.growth_engine?.count || props.growth_engine.count === 0) ? (
- <div className="p-8 text-center text-ink-muted">
- <Sparkles size={24} className="mx-auto mb-2 text-neutral-300" />
- <p className="text-sm">No new recommendations.</p>
- </div>
- ) : (
- <div className="p-4 text-center">
- <p className="text-sm text-ink-secondary">Head to the dashboard to view detailed insights.</p>
- </div>
- )}
- </div>
+              {/* Header Controls */}
+              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                  Header Preferences
+              </div>
 
- <div className="p-3 bg-app border-t border-line text-center">
- <Link href={route('store.growth-engine.index', { store_slug: store.slug })} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center justify-center gap-1">
- View All Recommendations <ArrowRight size={12} />
- </Link>
- </div>
- </div>
- )}
- </div>
+              <button
+                  onClick={toggleClockVisibility}
+                  className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+              >
+                  <div className="flex items-center gap-2.5">
+                      <Clock size={16} className="text-brand-500 shrink-0" />
+                      <span className="text-sm font-semibold">Digital Clock</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative transition-colors ${showClock ? 'bg-brand-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${showClock ? 'left-4.5' : 'left-0.5'}`} />
+                  </div>
+              </button>
 
+              <button
+                  onClick={() => {
+                      const newValue = settings?.senior_mode === '1' ? '0' : '1';
+                      router.post(route("store.settings.update", {
+                          store_slug: store.slug
+                      }), {
+                          settings: { ...settings, senior_mode: newValue }
+                      }, { preserveScroll: true });
+                  }}
+                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${settings?.senior_mode === '1'
+                      ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                      : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+              >
+                  <div className="flex items-center gap-2.5">
+                      <Type size={16} className="shrink-0" />
+                      <span className="text-sm font-semibold">Senior Mode</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
+                  </div>
+              </button>
 
+              <div className="h-px bg-line my-1" />
 
- {/* Header Link: When on store admin subpages, quick link Back to Home */}
- {store && !(isPlatformAdmin && !store) && mode === 'admin' && (
- <Link
- id="tour-sidebar-admin"
- href={store ? route('store.home', {store_slug: store.slug}) : '#'}
- className="hidden lg:flex group relative items-center gap-2 h-11 px-4 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
- >
- <Home size={16} className="text-brand-500" />
- <span className="text-sm font-bold text-ink">
- Back to Home
- </span>
- </Link>
- )}
+              {/* Dashboard Layout Actions */}
+              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                  <span>Dashboard Customizer</span>
+              </div>
 
- {/* Live Header Clock */}
- <div className="hidden lg:flex items-center gap-2 h-11 px-4 rounded-xl bg-surface border border-line text-sm font-bold text-ink-secondary dark:text-ink shrink-0 font-mono shadow-sm hover:border-brand-300 dark:hover:border-brand-700 transition-all duration-slow">
- <Clock size={16} className="text-brand-500 dark:text-brand-400 animate-[pulse_2s_infinite]" />
- <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
- </div>
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleEditLayout();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+              >
+                  <PenLine size={16} className="text-brand-500 shrink-0" />
+                  <span className="flex-1 text-left">Edit Layout</span>
+              </button>
 
- {/* AI Scan Header Action Button */}
- {store && (
-     <button
-         onClick={() => window.dispatchEvent(new CustomEvent('amd:open-smart-capture', { detail: { tab: 'image' } }))}
-         className="hidden lg:flex items-center justify-center h-11 w-11 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
-         title="AI Scan / Smart Capture"
-     >
-         <Sparkles size={18} className="text-brand-500 group-hover:scale-110 transition-transform" />
-     </button>
- )}
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleAddCard();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+              >
+                  <Plus size={16} className="text-emerald-500 shrink-0" />
+                  <span className="flex-1 text-left">Add Card</span>
+              </button>
 
- {/* Quick Theme Toggle Button (Light/Dark mode direct toggle matching new dashboard) */}
- <button
-     onClick={toggleAppTheme}
-     className="hidden lg:flex items-center justify-center h-11 w-11 rounded-xl transition-all border shadow-sm relative bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line group"
-     title={isEffectiveDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-     aria-label="Toggle theme mode"
- >
-     {isEffectiveDarkMode ? (
-         <Sun size={18} className="text-amber-500 group-hover:rotate-45 transition-transform" />
-     ) : (
-         <Moon size={18} className="text-slate-600 dark:text-slate-300 group-hover:-rotate-12 transition-transform" />
-     )}
- </button>
+              {props.auth?.my_stores_count > 1 && (
+                  <button
+                      onClick={() => {
+                          setIsDisplayMenuOpen(false);
+                          setIsStoreSwitcherModalOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+                  >
+                      <div className="flex items-center gap-2.5">
+                          <Store size={16} className="text-brand-500 shrink-0" />
+                          <span className="text-sm font-semibold">Switch Store</span>
+                      </div>
+                      <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 max-w-[80px] truncate">
+                          {store?.name}
+                      </span>
+                  </button>
+              )}
+          </div>
+      )}
+  </div>
 
- {/* Display & Dashboard Customization Settings Dropdown */}
- <div className="hidden lg:block relative" ref={displayMenuRef}>
-     <button
-         onClick={() => setIsDisplayMenuOpen(!isDisplayMenuOpen)}
-         className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
-             ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
-             : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
-         title="Dashboard & Display Preferences"
-     >
-         <Settings2 size={18} />
-     </button>
+  {/* Mobile Options Dropdown (lg:hidden) */}
+  <div className="lg:hidden relative" ref={mobileMenuRef}>
+      <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isMobileMenuOpen
+              ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
+              : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
+          title="More Options"
+      >
+          <MoreVertical size={18} />
+      </button>
 
-     {isDisplayMenuOpen && (
-         <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
-             {/* Dashboard Layout Actions */}
-             <div className="px-2.5 pt-1.5 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
-                 <span>Dashboard Layout</span>
-                 <span className="text-4xs px-1.5 py-0.5 rounded bg-brand-50 dark:bg-brand-900/30 text-brand-600 font-mono">Customizer</span>
-             </div>
+      {isMobileMenuOpen && (
+          <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
+              {/* Store Switcher & Charity Button Row */}
+              {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+                  <div className="p-2 border-b border-line flex items-center justify-between gap-3">
+                      {props.auth?.my_stores_count > 1 ? (
+                          <button
+                              onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  setIsStoreSwitcherModalOpen(true);
+                              }}
+                              className="flex-1 flex items-center justify-between p-2 rounded-xl bg-app border border-line hover:border-brand-400 text-ink-secondary hover:text-brand-600 transition-all text-left"
+                          >
+                              <div className="flex items-center gap-2">
+                                  <Store size={15} className="text-brand-500" />
+                                  <span className="text-xs font-bold truncate max-w-[100px]">{store?.name}</span>
+                              </div>
+                              <span className="text-2xs font-bold text-brand-600">Switch</span>
+                          </button>
+                      ) : (
+                          <span className="text-xs font-semibold text-ink-secondary pl-2">Charity Donations</span>
+                      )}
+                      {(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+                          <div className="flex-none">
+                              <CharityButton />
+                          </div>
+                      )}
+                  </div>
+              )}
 
-             <button
-                 onClick={() => {
-                     setIsDisplayMenuOpen(false);
-                     handleEditLayout();
-                 }}
-                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-             >
-                 <PenLine size={16} className="text-brand-500 shrink-0" />
-                 <span className="flex-1 text-left">Edit Layout</span>
-             </button>
+              {/* Dashboard Layout Actions */}
+              <div className="space-y-1 border-b border-line pb-2">
+                  <div className="px-2 pt-1 pb-0.5 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                      Dashboard Layout
+                  </div>
 
-             <button
-                 onClick={() => {
-                     setIsDisplayMenuOpen(false);
-                     handleAddCard();
-                 }}
-                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-             >
-                 <Plus size={16} className="text-emerald-500 shrink-0" />
-                 <span className="flex-1 text-left">Add Card</span>
-             </button>
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleEditLayout();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                      <PenLine size={16} className="text-brand-500 shrink-0" />
+                      <span className="flex-1 text-left">Edit Layout</span>
+                  </button>
 
-             <button
-                 onClick={() => {
-                     setIsDisplayMenuOpen(false);
-                     handleToggleSidePanel();
-                 }}
-                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-             >
-                 <PanelRight size={16} className="text-indigo-500 shrink-0" />
-                 <span className="flex-1 text-left">Side Panel</span>
-             </button>
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleAddCard();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                      <Plus size={16} className="text-emerald-500 shrink-0" />
+                      <span className="flex-1 text-left">Add Card</span>
+                  </button>
 
-             <button
-                 onClick={() => {
-                     setIsDisplayMenuOpen(false);
-                     handleStartFresh();
-                 }}
-                 className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
-             >
-                 <RotateCcw size={16} className="text-amber-500 shrink-0" />
-                 <span className="flex-1 text-left">Start Fresh…</span>
-             </button>
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleToggleSidePanel();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                      <PanelRight size={16} className="text-indigo-500 shrink-0" />
+                      <span className="flex-1 text-left">Side Panel</span>
+                  </button>
 
-             <div className="h-px bg-line my-1.5" />
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleStartFresh();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
+                  >
+                      <RotateCcw size={16} className="text-amber-500 shrink-0" />
+                      <span className="flex-1 text-left">Start Fresh…</span>
+                  </button>
+              </div>
 
-             {/* Preferences & Store Switcher */}
-             <div className="px-2.5 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                 Preferences
-             </div>
+              {/* Display Settings */}
+              <div className="space-y-1">
+                  <button
+                      onClick={() => {
+                          const newValue = settings?.senior_mode === '1' ? '0' : '1';
+                          router.post(route("store.settings.update", {
+                              store_slug: store.slug
+                          }), {
+                              settings: { ...settings, senior_mode: newValue }
+                          }, { preserveScroll: true });
+                      }}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${settings?.senior_mode === '1'
+                          ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                          : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+                  >
+                      <div className="flex items-center gap-2">
+                          <Type size={16} />
+                          <span className="text-sm font-semibold">Senior Mode</span>
+                      </div>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
+                          <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
+                      </div>
+                  </button>
 
-             {props.auth?.my_stores_count > 1 && (
-                 <button
-                     onClick={() => {
-                         setIsDisplayMenuOpen(false);
-                         setIsStoreSwitcherModalOpen(true);
-                     }}
-                     className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
-                 >
-                     <div className="flex items-center gap-2.5">
-                         <Store size={16} className="text-brand-500 shrink-0" />
-                         <span className="text-sm font-semibold">Switch Store</span>
-                     </div>
-                     <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 max-w-[80px] truncate">
-                         {store?.name}
-                     </span>
-                 </button>
-             )}
+                  <button
+                      onClick={toggleAppTheme}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
+                          ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                          : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+                  >
+                      <div className="flex items-center gap-2">
+                          {isEffectiveDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                          <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                      </div>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-brand-500' : 'bg-sunken'}`}>
+                          <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
+                      </div>
+                  </button>
+              </div>
 
-             <button
-                 onClick={() => {
-                     const newValue = settings?.senior_mode === '1' ? '0' : '1';
-                     router.post(route("store.settings.update", {
-                         store_slug: store.slug
-                     }), {
-                         settings: { ...settings, senior_mode: newValue }
-                     }, { preserveScroll: true });
-                 }}
-                 className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${settings?.senior_mode === '1'
-                     ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
-                     : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
-             >
-                 <div className="flex items-center gap-2.5">
-                     <Type size={16} className="shrink-0" />
-                     <span className="text-sm font-semibold">Senior Mode</span>
-                 </div>
-                 <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
-                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
-                 </div>
-             </button>
-
-             <button
-                 onClick={toggleAppTheme}
-                 className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${isEffectiveDarkMode
-                     ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
-                     : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
-             >
-                 <div className="flex items-center gap-2.5">
-                     {isEffectiveDarkMode ? <Sun size={16} className="shrink-0" /> : <Moon size={16} className="shrink-0" />}
-                     <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                 </div>
-                 <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-brand-500' : 'bg-sunken'}`}>
-                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
-                 </div>
-             </button>
-         </div>
-     )}
- </div>
-
- {/* Mobile Options Dropdown (lg:hidden) */}
- <div className="lg:hidden relative" ref={mobileMenuRef}>
- <button
- onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
- className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isMobileMenuOpen
- ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
- : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
- title="More Options"
- >
- <MoreVertical size={18} />
- </button>
-
- {isMobileMenuOpen && (
- <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
- {/* Store Switcher & Charity Button Row */}
- {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
- <div className="p-2 border-b border-line flex items-center justify-between gap-3">
- {props.auth?.my_stores_count > 1 ? (
- <button
- onClick={() => {
- setIsMobileMenuOpen(false);
- setIsStoreSwitcherModalOpen(true);
- }}
- className="flex-1 flex items-center justify-between p-2 rounded-xl bg-app border border-line hover:border-brand-400 text-ink-secondary hover:text-brand-600 transition-all text-left"
- >
- <div className="flex items-center gap-2">
- <Store size={15} className="text-brand-500" />
- <span className="text-xs font-bold truncate max-w-[100px]">{store?.name}</span>
- </div>
- <span className="text-2xs font-bold text-brand-600">Switch</span>
- </button>
- ) : (
- <span className="text-xs font-semibold text-ink-secondary pl-2">Charity Donations</span>
- )}
- {(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
- <div className="flex-none">
- <CharityButton />
- </div>
- )}
- </div>
- )}
-
- {/* Dashboard Layout Actions */}
- <div className="space-y-1 border-b border-line pb-2">
-     <div className="px-2 pt-1 pb-0.5 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-         Dashboard Layout
-     </div>
-
-     <button
-         onClick={() => {
-             setIsMobileMenuOpen(false);
-             handleEditLayout();
-         }}
-         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-     >
-         <PenLine size={16} className="text-brand-500 shrink-0" />
-         <span className="flex-1 text-left">Edit Layout</span>
-     </button>
-
-     <button
-         onClick={() => {
-             setIsMobileMenuOpen(false);
-             handleAddCard();
-         }}
-         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-     >
-         <Plus size={16} className="text-emerald-500 shrink-0" />
-         <span className="flex-1 text-left">Add Card</span>
-     </button>
-
-     <button
-         onClick={() => {
-             setIsMobileMenuOpen(false);
-             handleToggleSidePanel();
-         }}
-         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-     >
-         <PanelRight size={16} className="text-indigo-500 shrink-0" />
-         <span className="flex-1 text-left">Side Panel</span>
-     </button>
-
-     <button
-         onClick={() => {
-             setIsMobileMenuOpen(false);
-             handleStartFresh();
-         }}
-         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
-     >
-         <RotateCcw size={16} className="text-amber-500 shrink-0" />
-         <span className="flex-1 text-left">Start Fresh…</span>
-     </button>
- </div>
-
- {/* Display Settings */}
- <div className="space-y-1">
- <button
- onClick={() => {
- const newValue = settings?.senior_mode === '1' ? '0' : '1';
- router.post(route("store.settings.update", {
- store_slug: store.slug
- }), {
- settings: { ...settings, senior_mode: newValue }
- }, { preserveScroll: true });
- }}
- className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${settings?.senior_mode === '1'
- ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
- : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
- >
- <div className="flex items-center gap-2">
- <Type size={16} />
- <span className="text-sm font-semibold">Senior Mode</span>
- </div>
- <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
- <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
- </div>
- </button>
-
- <button
- onClick={toggleAppTheme}
- className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
- ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
- : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
- >
- <div className="flex items-center gap-2">
- {isEffectiveDarkMode ? <Sun size={16} /> : <Moon size={16} />}
- <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
- </div>
- <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-brand-500' : 'bg-sunken'}`}>
- <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
- </div>
- </button>
- </div>
-
- {/* User Settings */}
- <div className="border-t border-line pt-2 space-y-1">
- {store && (
- <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
- <User size={16} /> Profile Settings
- </Link>
- )}
- <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
- <LogOut size={16} /> Logout
- </Link>
- </div>
- </div>
- )}
- </div>
-
- {/* Notification Button */}
- <div className="relative" ref={notificationRef}>
- <button
- onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
- className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isNotificationsOpen
- ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
- : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
- >
- <Bell size={18} />
- {props.auth.unread_notifications_count > 0 && (
- <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-line animate-pulse"></span>
- )}
- </button>
-
- {/* Notifications Dropdown */}
- {isNotificationsOpen && (
- <div className="absolute right-0 top-full mt-2 w-80 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right">
- <div className="p-4 border-b border-line flex justify-between items-center">
- <h3 className="font-bold text-ink">Notifications</h3>
- <button
- onClick={() => store && router.post(route('store.notifications.mark-all-read', { store_slug: store.slug }))}
- className="text-xs text-brand-500 font-medium hover:underline"
- >
- Mark all read
- </button>
- </div>
- <div className="max-h-64 overflow-y-auto custom-scrollbar p-2 space-y-1">
- {props.auth.notifications && props.auth.notifications.length > 0 ? (
- props.auth.notifications.map((notification) => (
- <div key={notification.id} className={`p-3 rounded-xl transition-colors ${notification.read_at ? 'hover:bg-interactive-hover dark:hover:bg-interactive-hover' : 'bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-900/20'}`}>
- <div className="flex gap-3">
- <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${notification.read_at ? 'bg-sunken text-ink-muted' : 'bg-brand-100 dark:bg-brand-800 text-brand-600'}`}>
- <Bell size={14} />
- </div>
- <div>
- <p className="text-xs font-semibold text-ink">{notification.data?.title || 'Notification'}</p>
- <p className="text-2xs text-ink-muted mt-0.5">{notification.data?.message || 'No details available'}</p>
- <p className="text-2xs text-ink-muted mt-1">{new Date(notification.created_at).toLocaleString()}</p>
- </div>
- </div>
- </div>
- ))
- ) : (
- <div className="p-6 text-center text-ink-muted">
- <p className="text-xs">No notifications yet.</p>
- </div>
- )}
- </div>
- <div className="p-2 border-t border-line bg-app text-center">
- <Link href={store ? route('store.notifications.index', { store_slug: store.slug }) : '#'} className="text-xs font-medium text-ink-muted hover:text-ink dark:hover:text-neutral-200 transition-colors">
- View All Notifications
- </Link>
- </div>
- </div>
- )}
- </div>
- </div>
- </header>
- )}
+              {/* User Settings */}
+              <div className="border-t border-line pt-2 space-y-1">
+                  {store && (
+                      <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+                          <User size={16} /> Profile Settings
+                      </Link>
+                  )}
+                  <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
+                      <LogOut size={16} /> Logout
+                  </Link>
+              </div>
+          </div>
+      )}
+  </div>
+  </div>
+  </header>
+  )}
 
 
  {/* DYNAMIC CONTENT AREA */}

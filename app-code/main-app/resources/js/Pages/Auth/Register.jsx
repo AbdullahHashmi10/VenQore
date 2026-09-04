@@ -43,6 +43,7 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
+        shared_catalog_opt_in: false,
     });
 
     const submit = (e) => {
@@ -132,6 +133,26 @@ export default function Register() {
                         prefix={<Lock size={16} />}
                         error={errors.password_confirmation}
                     />
+
+                    {/* Shared Product Catalogue Consent (Unticked by default) */}
+                    <div className="rounded-xl border border-line bg-app/50 p-3 text-xs text-ink-muted">
+                        <AuthCheckbox
+                            id="shared-catalog-checkbox"
+                            checked={data.shared_catalog_opt_in}
+                            onChange={(checked) => setData('shared_catalog_opt_in', checked)}
+                            label={
+                                <div className="space-y-1">
+                                    <span className="font-semibold text-ink">Help build the shared product catalogue</span>
+                                    <p className="text-2xs text-ink-secondary leading-relaxed">
+                                        Get thousands of common products pre-filled in your catalogue, confirmed by other shops. In return, product names you confirm are added to the shared pool.
+                                    </p>
+                                    <p className="text-2xs text-ink-faint">
+                                        <strong className="text-ink-muted">Never shared:</strong> your prices, costs, stock, margins, customers, suppliers, or your business identity.
+                                    </p>
+                                </div>
+                            }
+                        />
+                    </div>
 
                     {/* stopPropagation on the two links: the ds Checkbox wraps
                         its label in a <label>, so a click on anything inside it

@@ -245,6 +245,7 @@ return [
         'store.admin.*',           // tenant admin (staff, taxes, receipt)
         'store.system.*', 'store.health.*', 'store.heartbeat',
         'store.onboarding.*',
+        'store.builder', 'store.builder.*',   // the Rulebook's front door — must never gate itself
         'store.plugin.*',
         'store.api.*',             // in-app API used by the shell itself
         'store.global.*',

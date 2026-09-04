@@ -180,6 +180,9 @@ class HandleInertiaRequests extends Middleware
             'nav' => fn () => app()->bound('current.tenant')
                 ? \App\Support\ModuleNavBuilder::build(app('current.tenant'), $request->user())
                 : [],
+            'terms' => fn () => app()->bound('current.tenant')
+                ? \App\Support\Terms::forTenant(app('current.tenant')->id)
+                : \App\Support\Terms::fallbacks(),
             'plan' => (function () {
                 $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
                 if (!$tenant) return null;

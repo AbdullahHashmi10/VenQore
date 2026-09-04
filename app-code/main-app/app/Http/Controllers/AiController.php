@@ -155,7 +155,7 @@ class AiController extends Controller
         $user = auth()->user();
         if (!$user)
             throw new \Exception("Unauthorized");
-        if ($user->role === 'platform_admin')
+        if ($user->isPlatformAdmin() || $user->hasPermission($permission))
             return;
 
         $perms = $user->permissions ?? [];
@@ -204,7 +204,7 @@ class AiController extends Controller
             // Reckoner: sales.revenue for the custom date range.
             $rReq  = new ReckonerRequest('sales.revenue', 'custom', ['from' => $startDate, 'to' => $endDate]);
             $rResult = $reckoner->read($rReq, $user, $tenant);
-            $revenue = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
+            $revenue = $rResult->ok ? (float) (is_array($rResult->data) ? ($rResult->data['value'] ?? 0) : $rResult->data) : 0.0;
 
             $count = Sale::query()
                 ->whereIn('status', ['posted', 'partially_returned', 'returned'])
@@ -249,10 +249,12 @@ class AiController extends Controller
             $expenseResult = array_values($results)[2] ?? null;
             $marginResult  = array_values($results)[3] ?? null;
 
-            $profit  = $profitResult?->ok  ? (float) ($profitResult->payload['value']  ?? 0) : 0.0;
-            $revenue = $revenueResult?->ok ? (float) ($revenueResult->payload['value'] ?? 0) : 0.0;
-            $cost    = $expenseResult?->ok ? (float) ($expenseResult->payload['value'] ?? 0) : 0.0;
-            $margin  = $marginResult?->ok  ? (float) ($marginResult->payload['value']  ?? 0) : ($revenue > 0 ? round(($profit / $revenue) * 100, 2) : 0);
+            $extractVal = fn ($res) => $res?->ok ? (float) (is_array($res->data) ? ($res->data['value'] ?? 0) : $res->data) : 0.0;
+
+            $profit  = $extractVal($profitResult);
+            $revenue = $extractVal($revenueResult);
+            $cost    = $extractVal($expenseResult);
+            $margin  = $marginResult?->ok ? (float) (is_array($marginResult->data) ? ($marginResult->data['value'] ?? 0) : $marginResult->data) : ($revenue > 0 ? round(($profit / $revenue) * 100, 2) : 0);
 
             return json_encode([
                 'revenue'           => $revenue,
@@ -268,15 +270,15 @@ class AiController extends Controller
             $endDate   = $args['end_date'];
             $custom    = ['from' => $startDate, 'to' => $endDate];
 
-            // Reckoner headline: finance.expenses_total (operating expenses, journal-authoritative).
-            $rReq   = new ReckonerRequest('finance.expenses_total', 'custom', $custom);
+            // Reckoner: finance.expenses_total (operating expenses).
+            $rReq  = new ReckonerRequest('finance.expenses_total', 'custom', $custom);
             $rResult = $reckoner->read($rReq, $user, $tenant);
-            $operatingExpenses = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
+            $operatingExpenses = $rResult->ok ? (float) (is_array($rResult->data) ? ($rResult->data['value'] ?? 0) : $rResult->data) : 0.0;
 
             // Reckoner breakdown: finance.expenses_by_category (list shape).
             $catReq    = new ReckonerRequest('finance.expenses_by_category', 'custom', $custom);
             $catResult = $reckoner->read($catReq, $user, $tenant);
-            $byCategory = $catResult->ok ? ($catResult->payload['value'] ?? []) : [];
+            $byCategory = $catResult->ok ? (is_array($catResult->data) ? ($catResult->data['value'] ?? $catResult->data) : []) : [];
 
             // Category filter applied client-side (Reckoner returns the full breakdown).
             if (!empty($args['category'])) {
@@ -304,7 +306,7 @@ class AiController extends Controller
             $rReq    = new ReckonerRequest('sales.top_products', 'custom', $custom);
             $rResult = $reckoner->read($rReq, $user, $tenant);
 
-            $rows = $rResult->ok ? ($rResult->payload['value'] ?? []) : [];
+            $rows = $rResult->ok ? (is_array($rResult->data) ? ($rResult->data['value'] ?? $rResult->data) : []) : [];
             $top  = array_slice($rows, 0, $limit);
 
             return json_encode(['top_products' => $top]);
@@ -326,8 +328,10 @@ class AiController extends Controller
             $spendResult = array_values($results)[0] ?? null;
             $countResult = array_values($results)[1] ?? null;
 
-            $total = $spendResult?->ok ? (float) ($spendResult->payload['value'] ?? 0) : 0.0;
-            $count = $countResult?->ok ? (int) ($countResult->payload['value'] ?? 0)   : 0;
+            $extractVal = fn ($res) => $res?->ok ? (float) (is_array($res->data) ? ($res->data['value'] ?? 0) : $res->data) : 0.0;
+
+            $total = $extractVal($spendResult);
+            $count = (int) $extractVal($countResult);
 
             return json_encode(['total_purchases' => $total, 'purchase_count' => $count]);
         }
@@ -679,7 +683,7 @@ class AiController extends Controller
                 $reckoner = app(Reckoner::class);
                 $rReq = new ReckonerRequest('finance.receivables', 'today');
                 $rResult = $reckoner->read($rReq, $user, $tenant);
-                $sum = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
+                $sum = $rResult->ok ? (float) (is_array($rResult->data) ? ($rResult->data['value'] ?? 0) : $rResult->data) : 0.0;
                 return [
                     'summary' => 'Pending Customer Receivables: PKR ' . number_format($sum, 2),
                     'records' => [],
@@ -692,7 +696,7 @@ class AiController extends Controller
                 $reckoner = app(Reckoner::class);
                 $rReq = new ReckonerRequest('finance.payables', 'today');
                 $rResult = $reckoner->read($rReq, $user, $tenant);
-                $sum = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
+                $sum = $rResult->ok ? (float) (is_array($rResult->data) ? ($rResult->data['value'] ?? 0) : $rResult->data) : 0.0;
                 return [
                     'summary' => 'Pending Supplier Payables: PKR ' . number_format($sum, 2),
                     'records' => [],

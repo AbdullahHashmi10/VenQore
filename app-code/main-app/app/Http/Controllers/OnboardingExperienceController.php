@@ -20,7 +20,9 @@ class OnboardingExperienceController extends Controller
         $aiBuilderConfig = config('ai_builder', []);
 
         $presets = $aiBuilderConfig['presets'] ?? [];
-        $questions = $aiBuilderConfig['questions'] ?? [];
+        // The discovery question set lives under 'discovery' in config/ai_builder.php
+        // — 'questions' was never a real key there, so this prop always arrived empty.
+        $questions = $aiBuilderConfig['discovery'] ?? [];
 
         return Inertia::render('Onboarding/Wizard', [
             'storeSlug'    => $tenant->slug,
@@ -99,6 +101,17 @@ class OnboardingExperienceController extends Controller
                 'preset',
                 'Selected during onboarding wizard.'
             );
+        }
+
+        // Same rule as WorkspaceBuilderController::provision(): business_type
+        // only ever becomes a real, shippable preset key, never trusted raw —
+        // it drives the tenant's first dashboard board via
+        // config/dashboard_presets.php. A tenant who reconfigures through a
+        // different preset later gets their board re-keyed the same way.
+        $presetKey = $request->input('preset_key');
+        $presets = config('ai_builder.presets', []);
+        if ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by'])) {
+            $tenant->business_type = $presetKey;
         }
 
         $tenant->onboarding_step = 'building';

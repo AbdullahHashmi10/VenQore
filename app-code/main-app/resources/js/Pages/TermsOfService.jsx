@@ -102,7 +102,14 @@ export default function TermsOfService() {
                     <p>We are not liable for indirect, incidental, consequential, or punitive damages, including lost profits, data loss, or business interruption.</p>
                 </Section>
 
-                <Section title="11. Termination">
+                <Section title="11. Shared Product Catalogue (Optional Community Knowledge Base)">
+                    <p>VenQore offers an optional, privacy-first shared product knowledge base to help merchants pre-fill product descriptions and barcode metadata without manual typing.</p>
+                    <p><strong className="text-ink">What is shared:</strong> When you confirm or correct product names and barcodes during scanning or inventory management, the anonymous product name and barcode are added to a community pool. A product is only published globally once it has been independently confirmed by at least five (5) distinct, unrelated businesses.</p>
+                    <p><strong className="text-ink">What is NEVER shared:</strong> We never share or pool your pricing, purchase costs, inventory quantities, margins, sales figures, customer records, supplier names, or your business identity. Contributions are hashed and untraceable.</p>
+                    <p><strong className="text-ink">Opting Out:</strong> Participation is strictly opt-in or can be turned off at any time under Settings → Data. If you opt out, your system will not contribute any data to the shared catalogue.</p>
+                </Section>
+
+                <Section title="12. Termination">
                     <p>Either party may terminate this agreement at any time. Upon termination:</p>
                     <ul className="list-disc list-inside space-y-1 text-ink-muted">
                         <li>Your access to the Service will be revoked</li>
@@ -112,15 +119,15 @@ export default function TermsOfService() {
                     <p>You can export your data at any time from the Settings → Data Export section.</p>
                 </Section>
 
-                <Section title="12. Changes to Terms">
+                <Section title="13. Changes to Terms">
                     <p>We may update these Terms of Service from time to time. We will notify you of significant changes via email at least 14 days before they take effect. Your continued use of the Service after the effective date constitutes acceptance of the updated terms.</p>
                 </Section>
 
-                <Section title="13. Governing Law">
+                <Section title="14. Governing Law">
                     <p>These Terms of Service shall be governed by and construed in accordance with applicable international commercial law. Any disputes shall be resolved through binding arbitration.</p>
                 </Section>
 
-                <Section title="14. Contact">
+                <Section title="15. Contact">
                     <p>For questions about these Terms of Service:</p>
                     <p><a href="mailto:legal@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">legal@venqore.com</a></p>
                     <p>VenQore · support@venqore.com</p>

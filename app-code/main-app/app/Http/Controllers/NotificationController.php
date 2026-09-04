@@ -48,4 +48,45 @@ class NotificationController extends Controller
         $notification->delete();
         return back()->with('success', 'Notification deleted.');
     }
+
+    /**
+     * Return summary of unread and critical notifications for AI Island.
+     */
+    public function summary()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['unread_count' => 0, 'critical_count' => 0, 'latest' => []]);
+        }
+
+        $notifications = $user->notifications()->take(10)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
+        $criticalCount = 0;
+        $formatted = $notifications->map(function ($n) use (&$criticalCount) {
+            $data = is_array($n->data) ? $n->data : (json_decode($n->data, true) ?? []);
+            $severity = $data['severity'] ?? ($data['type'] ?? 'info');
+            if (!in_array($severity, ['info', 'important', 'critical'])) {
+                $severity = 'info';
+            }
+            if ($severity === 'critical' && is_null($n->read_at)) {
+                $criticalCount++;
+            }
+            return [
+                'id'         => $n->id,
+                'title'      => $data['title'] ?? 'Notification',
+                'message'    => $data['message'] ?? ($data['body'] ?? ''),
+                'severity'   => $severity,
+                'url'        => $data['url'] ?? ($data['action_url'] ?? null),
+                'read_at'    => $n->read_at,
+                'created_at' => $n->created_at?->diffForHumans() ?? '',
+            ];
+        });
+
+        return response()->json([
+            'unread_count'   => $unreadCount,
+            'critical_count' => $criticalCount,
+            'latest'         => $formatted,
+        ]);
+    }
 }

@@ -66,7 +66,9 @@ class KeyResolver
         $provider = strtolower($requestedProvider ?: ($profile['provider'] ?? 'gemini'));
         $model = $requestedModel ?: ($profile['model'] ?? 'gemini-2.5-flash-lite');
 
-        $isFreeTier = in_array($entitlementMode, ['free', 'staff', 'public_tool'], true)
+        // Staff operations operate on real tenant data and resolve to the platform paid key.
+        // Free tier is strictly reserved for trial/free allowance and public marketing tools.
+        $isFreeTier = in_array($entitlementMode, ['free', 'public_tool'], true)
             || $feature === 'public_tool';
 
         if ($isFreeTier) {

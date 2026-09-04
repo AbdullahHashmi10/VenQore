@@ -13,6 +13,10 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
     const [mode, setMode] = useState('ai'); // 'ai' | 'preset'
     const [selectedModules, setSelectedModules] = useState(['products', 'pos', 'inventory', 'expenses', 'reports']);
     const [selectedPresetDetail, setSelectedPresetDetail] = useState(null);
+    // Threaded through to apply-preset so the tenant's business_type gets set
+    // from whichever preset the AI matched or the user picked directly —
+    // config/dashboard_presets.php keys the first dashboard board on it.
+    const [selectedPresetKey, setSelectedPresetKey] = useState(null);
 
     const handleSelectMode = (chosenMode) => {
         setMode(chosenMode);
@@ -21,11 +25,13 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
     const handleAiResult = (presetKey, modules, presetDetail) => {
         setSelectedModules(modules);
         setSelectedPresetDetail(presetDetail);
+        setSelectedPresetKey(presetKey || null);
     };
 
     const handleSelectPreset = (key, modules, presetDetail) => {
         setSelectedModules(modules);
         setSelectedPresetDetail(presetDetail);
+        setSelectedPresetKey(key || null);
     };
 
     const handleApplyAndBuild = async () => {
@@ -38,7 +44,7 @@ export default function Wizard({ storeSlug, tenantName, presets = {}, questions 
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
-                body: JSON.stringify({ modules: selectedModules }),
+                body: JSON.stringify({ modules: selectedModules, preset_key: selectedPresetKey }),
             });
         } catch (e) {
             console.error(e);
