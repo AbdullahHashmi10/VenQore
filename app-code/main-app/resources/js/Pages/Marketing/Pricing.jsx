@@ -364,10 +364,10 @@ export default function Pricing({ plans = [] }) {
 
  const FULL_FEATURE_LIST = {
  starter: {
- totalIncluded: 18,
- totalSuite: 32,
- ratioLabel: '18 of 32 Features Included',
- categorizedFeatures: [
+  totalIncluded: 20,
+  totalSuite: 32,
+  ratioLabel: '20 of 32 Features Included',
+  categorizedFeatures: [
  { category: 'Platform Limits', name: '1 Store Location', included: true },
  { category: 'Platform Limits', name: '3 Staff Accounts', included: true },
  { category: 'Platform Limits', name: '1,000 Product SKUs', included: true },
@@ -396,8 +396,8 @@ export default function Pricing({ plans = [] }) {
  { category: 'Reports', name: 'Sales & Purchase Reports', included: true },
  { category: 'Reports', name: 'Profit & Loss Statement (P&L)', included: true },
  { category: 'Reports', name: 'Cash Flow Statement', included: true },
- { category: 'Reports', name: 'Balance Sheet Statement', included: false },
- { category: 'Reports', name: '40-Report Full Analytics Suite', included: false },
+ { category: 'Reports', name: 'Balance Sheet Statement', included: true },
+ { category: 'Reports', name: '40+ Report Full Analytics Suite', included: true },
 
  { category: 'AI & E-Commerce', name: 'Vena AI Support Chat', included: true },
  { category: 'AI & E-Commerce', name: '10 Lifetime Free AI Scans', included: true },
@@ -411,10 +411,10 @@ export default function Pricing({ plans = [] }) {
  ]
  },
  growth: {
- totalIncluded: 26,
- totalSuite: 32,
- ratioLabel: '26 of 32 Features Included',
- categorizedFeatures: [
+  totalIncluded: 27,
+  totalSuite: 32,
+  ratioLabel: '27 of 32 Features Included',
+  categorizedFeatures: [
  { category: 'Platform Limits', name: '3 Store Locations', included: true },
  { category: 'Platform Limits', name: '10 Staff Accounts', included: true },
  { category: 'Platform Limits', name: '10,000 Product SKUs', included: true },
@@ -444,7 +444,7 @@ export default function Pricing({ plans = [] }) {
  { category: 'Reports', name: 'Profit & Loss Statement (P&L)', included: true },
  { category: 'Reports', name: 'Cash Flow Statement', included: true },
  { category: 'Reports', name: 'Balance Sheet Statement', included: true },
- { category: 'Reports', name: '40-Report Full Analytics Suite', included: false },
+ { category: 'Reports', name: '40-Report Full Analytics Suite', included: true },
 
  { category: 'AI & E-Commerce', name: 'Vena AI Support Chat', included: true },
  { category: 'AI & E-Commerce', name: '10 Lifetime Free AI Scans', included: true },
@@ -518,8 +518,8 @@ export default function Pricing({ plans = [] }) {
  iconBg: 'bg-blue-500/10 text-blue-400',
  badgeBg: 'bg-blue-500/10 border-blue-500/20 text-blue-300',
  inheritLabel: null,
- totalIncluded: 18,
- ratioLabel: '18 of 32 Features Included',
+ totalIncluded: 20,
+ ratioLabel: '20 of 32 Features Included',
  includes: getPlanIncludes('starter'),
  excludes: getPlanExcludes('starter'),
  },
@@ -535,8 +535,8 @@ export default function Pricing({ plans = [] }) {
  badgeBg: 'bg-brand-500/10 border-brand-500/20 text-brand-300',
  popular: true,
  inheritLabel: 'Everything in Starter Engine, plus:',
- totalIncluded: 26,
- ratioLabel: '26 of 32 Features Included',
+ totalIncluded: 27,
+ ratioLabel: '27 of 32 Features Included',
  includes: getPlanIncludes('growth'),
  excludes: getPlanExcludes('growth'),
  },
