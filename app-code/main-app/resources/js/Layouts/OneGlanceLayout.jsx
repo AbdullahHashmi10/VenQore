@@ -4,8 +4,6 @@ import SidebarItem from '@/Components/SidebarItem';
 import CommandPalette from '@/Components/CommandPalette';
 import OmniSearch from '@/Components/OmniSearch';
 import AiIsland from '@/Components/AiIsland';
-import AiAssistantModal from '@/Components/AiAssistantModal';
-import FloatingAiBubble from '@/Components/FloatingAiBubble';
 import OnboardingDriver from '@/Components/OnboardingDriver';
 import DemoBanner from '@/Components/DemoBanner';
 import {
@@ -1517,24 +1515,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   <SubscriptionExpiryBanner />
 
   {/* Fullscreen Floating Squeezed AI Island */}
-  {fullScreen && !hideHeader && (
+  {(fullScreen || hideHeader) && (
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-nav pointer-events-none flex items-center justify-center">
           <div className="pointer-events-auto">
-              <AiIsland
-                  compact={true}
-                  onAskAi={(query) => {
-                      setAiModalQuery(query);
-                      setIsAiModalOpen(true);
-                      setIsAiMinimized(false);
-                  }}
-              />
+              <AiIsland compact />
           </div>
       </div>
   )}
 
   {/* Header */}
   {!hideHeader && !fullScreen && (
-  <header className="h-16 px-4 sm:px-8 flex items-center justify-between z-nav relative shrink-0">
+  <header className="h-16 px-6 flex items-center justify-between z-nav relative shrink-0">
   {/* LEFT SECTION */}
   <div className="flex items-center gap-3 text-ink-muted min-w-[100px] z-10">
   <button className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors border border-line"
@@ -1560,13 +1551,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   {/* CENTER SECTION - THE AI ISLAND (Always Dead-Center of the Screen) */}
   <div id="tour-omnisearch" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center justify-center">
       <div className="pointer-events-auto">
-          <AiIsland
-              onAskAi={(query) => {
-                  setAiModalQuery(query);
-                  setIsAiModalOpen(true);
-                  setIsAiMinimized(false);
-              }}
-          />
+          <AiIsland />
       </div>
   </div>
 
@@ -1879,7 +1864,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
  {/* DYNAMIC CONTENT AREA */}
- <div className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-2 sm:px-8 pb-8'}`}>
+ <div className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-6'}`}>
  {children}
  {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
  {showMobileNavBar && (
@@ -1912,30 +1897,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  )
  }
 
- {/* Phase 4: AI Command Center */}
- <AiAssistantModal
- isOpen={isAiModalOpen}
- onClose={() => { setIsAiModalOpen(false); setAiModalQuery(''); }}
- onMinimize={() => {
- setIsAiModalOpen(false);
- setIsAiMinimized(true);
- setAiModalQuery('');
- }}
- initialQuery={aiModalQuery}
- settings={settings}
- store={store}
- />
-
- {isAiMinimized && (
- <FloatingAiBubble
- onClick={() => {
- setIsAiMinimized(false);
- setIsAiModalOpen(true);
- }}
- onClose={() => setIsAiMinimized(false)}
- messageCount={aiMessageCount}
- />
- )}
  </div >
  <PwaInstallPrompt />
  <VersionChecker />

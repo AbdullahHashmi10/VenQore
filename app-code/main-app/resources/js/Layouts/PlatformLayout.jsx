@@ -23,7 +23,6 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
     const [collapsed, setCollapsed] = useState(() => (typeof window !== 'undefined' && localStorage.getItem('vq_sidebar') === '1'));
     const [mobileOpen, setMobileOpen] = useState(false);
     const [paletteOpen, setPaletteOpen] = useState(false);
-    const [notifOpen, setNotifOpen] = useState(false);
 
     useEffect(() => { ensurePlatformStyles(); }, []);
     useEffect(() => { localStorage.setItem('vq_sidebar', collapsed ? '1' : '0'); }, [collapsed]);
@@ -42,7 +41,7 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
 
     // Close mobile drawer on navigation.
     useEffect(() => {
-        const off = router.on('navigate', () => { setMobileOpen(false); setNotifOpen(false); });
+        const off = router.on('navigate', () => { setMobileOpen(false); });
         return off;
     }, []);
 
@@ -79,7 +78,24 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
 
                     {/* Dynamic Island Omni-Search */}
                     <div className="flex-1 flex items-center justify-center max-w-xl">
-                        <AiIsland />
+                        <AiIsland
+                            extraAlerts={[
+                                ...(openErrors ? [{
+                                    id: 'platform-errors',
+                                    severity: 'critical',
+                                    title: `${openErrors} open error${openErrors > 1 ? 's' : ''}`,
+                                    message: 'System health needs attention',
+                                    action_url: resolveHrefName('platform.health.errors'),
+                                }] : []),
+                                ...(newContacts ? [{
+                                    id: 'platform-contacts',
+                                    severity: 'important',
+                                    title: `${newContacts} new contact${newContacts > 1 ? 's' : ''}`,
+                                    message: 'Unread contact submissions',
+                                    action_url: resolveHrefName('platform.health.contacts'),
+                                }] : []),
+                            ]}
+                        />
                     </div>
 
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -88,16 +104,6 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
                             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
 
-                        {/* Notifications */}
-                        <div style={{ position: 'relative' }}>
-                            <button className="vq-press" onClick={() => setNotifOpen((v) => !v)} style={{ ...iconBtn(t), ...(notifCount ? { animation: 'vq-pulse-ring 2.2s infinite' } : {}) }} aria-label="Notifications">
-                                <Bell size={18} />
-                                {notifCount > 0 && (
-                                    <span style={{ position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: BRAND.rose, color: '#fff', fontSize: 9.5, fontWeight: 800, display: 'grid', placeItems: 'center' }}>{notifCount}</span>
-                                )}
-                            </button>
-                            {notifOpen && <NotificationsPanel t={t} openErrors={openErrors} newContacts={newContacts} onClose={() => setNotifOpen(false)} />}
-                        </div>
 
                         {/* Profile */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 8, marginLeft: 2, borderLeft: `1px solid ${t.border}` }}>
@@ -285,31 +291,6 @@ function CommandPalette({ t, onClose }) {
 }
 
 /* ─────────────────────── Notifications ─────────────────────── */
-function NotificationsPanel({ t, openErrors, newContacts, onClose }) {
-    const items = [];
-    if (openErrors) items.push({ icon: AlertTriangle, color: BRAND.rose, title: `${openErrors} open error${openErrors > 1 ? 's' : ''}`, sub: 'System health needs attention', href: resolveHrefName('platform.health.errors') });
-    if (newContacts) items.push({ icon: Mail, color: BRAND.sky, title: `${newContacts} new contact${newContacts > 1 ? 's' : ''}`, sub: 'Unread contact submissions', href: resolveHrefName('platform.health.contacts') });
-    return (
-        <>
-            <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
-            <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 10px)', width: 320, zIndex: 50, background: t.panelSolid, border: `1px solid ${t.border2}`, borderRadius: 16, boxShadow: t.shadow, overflow: 'hidden', animation: 'vq-rise .2s ease both' }}>
-                <div style={{ padding: '13px 16px', borderBottom: `1px solid ${t.border}`, fontSize: 13, fontWeight: 800, color: t.ink }}>Notifications</div>
-                {items.length === 0 ? (
-                    <div style={{ padding: 26, textAlign: 'center', color: t.muted, fontSize: 13 }}>You're all caught up ✨</div>
-                ) : items.map((n, i) => (
-                    <a key={i} href={n.href} style={{ display: 'flex', gap: 12, padding: '13px 16px', textDecoration: 'none', borderBottom: i < items.length - 1 ? `1px solid ${t.rowBorder}` : 'none' }} className="vq-row">
-                        <div style={{ width: 34, height: 34, borderRadius: 9, background: `${n.color}1f`, color: n.color, display: 'grid', placeItems: 'center', flexShrink: 0 }}><n.icon size={16} /></div>
-                        <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: t.ink }}>{n.title}</div>
-                            <div style={{ fontSize: 11.5, color: t.muted }}>{n.sub}</div>
-                        </div>
-                    </a>
-                ))}
-            </div>
-        </>
-    );
-}
-
 function resolveHrefName(name) {
     try { return window.route(name); } catch { return '#'; }
 }

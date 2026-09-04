@@ -1,10 +1,35 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, useMotionValue, useSpring, useReducedMotion } from 'motion/react';
 
 /**
- * SmoothCaretInput — Animated smooth gliding cursor input
- * Inspired by Skiper UI & 21st.dev
+ * SmoothCaretInput — an input whose caret glides to the insertion point.
+ *
+ * The native caret is a 1px hairline that all but vanishes against the island's
+ * dark mesh. This draws its own: a spring-driven bar that travels to wherever
+ * the text cursor lands.
+ *
+ * ── Mechanics, and why these four matter ─────────────────────────────────────
+ * 1. The caret moves on `x` (a transform), not `left`. Animating `left` puts a
+ *    layout pass in every frame of a spring that runs at 60fps while someone is
+ *    typing; a transform is composited and costs nothing.
+ * 2. `selectionchange` on the document, not just keyup/click on the input.
+ *    Arrow keys, drag-select, undo and IME composition all move the caret
+ *    without firing the input's own events, and the caret used to lag behind.
+ * 3. Long values scroll. Once text overruns the field the caret has to be
+ *    pulled back into view with the text, or it parks at the edge and lies.
+ * 4. It re-measures on `document.fonts.ready`. The hidden mirror measures with
+ *    whatever font is resolved at that instant, so before Plus Jakarta Sans
+ *    lands it measures fallback metrics and the caret sits wrong on first
+ *    paint — visible on every cold load.
+ *
+ * The caret is hidden while a range is selected (the selection already shows
+ * where you are) and whenever it scrolls out of the visible track.
+ *
+ * Spring: z = 30 / (2*sqrt(500 * 0.5)) = 0.95 — just shy of critical, so it
+ * arrives fast and doesn't wobble under a fast typist.
  */
+const CARET_SPRING = { stiffness: 500, damping: 30, mass: 0.5 };
+
 export default function SmoothCaretInput({
     type = 'text',
     value = '',
@@ -15,63 +40,125 @@ export default function SmoothCaretInput({
     icon: Icon = null,
     caretColor = 'bg-brand-500',
     disabled = false,
-    autoFocus = false,
     id,
     name,
     required = false,
     ...props
 }) {
     const [isFocused, setIsFocused] = useState(false);
-    const [caretPos, setCaretPos] = useState({ left: 0, top: 0, height: 20 });
     const inputRef = useRef(null);
     const mirrorRef = useRef(null);
     const containerRef = useRef(null);
 
-    const updateCaretPosition = useCallback(() => {
+    const reduced = useReducedMotion();
+    const caretX = useMotionValue(0);
+    const caretOpacity = useMotionValue(0);
+    const [caretHeight, setCaretHeight] = useState(20);
+    const springX = useSpring(caretX, reduced ? { stiffness: 10000, damping: 100, mass: 0.1 } : CARET_SPRING);
+
+    const syncMirror = useCallback(() => {
+        const input = inputRef.current;
+        const mirror = mirrorRef.current;
+        if (!input || !mirror) return null;
+        const cs = window.getComputedStyle(input);
+        mirror.style.font = cs.font;
+        mirror.style.fontFamily = cs.fontFamily;
+        mirror.style.fontSize = cs.fontSize;
+        mirror.style.fontWeight = cs.fontWeight;
+        mirror.style.letterSpacing = cs.letterSpacing;
+        mirror.style.fontFeatureSettings = cs.fontFeatureSettings;
+        return cs;
+    }, []);
+
+    const updateCaret = useCallback(() => {
         const input = inputRef.current;
         const mirror = mirrorRef.current;
         if (!input || !mirror) return;
 
-        const selectionStart = input.selectionStart || 0;
-        const textBeforeCursor = (input.value || '').substring(0, selectionStart);
+        const cs = syncMirror();
+        if (!cs) return;
 
-        const computed = window.getComputedStyle(input);
-        mirror.style.font = computed.font;
-        mirror.style.letterSpacing = computed.letterSpacing;
-        mirror.style.textTransform = computed.textTransform;
-        mirror.textContent = textBeforeCursor;
+        const selStart = input.selectionStart ?? 0;
+        const selEnd = input.selectionEnd ?? 0;
+        const hasSelection = selStart !== selEnd;
+        const caretIndex = hasSelection
+            ? (input.selectionDirection === 'backward' ? selStart : selEnd)
+            : selStart;
 
-        if (textBeforeCursor.endsWith(' ')) {
-            mirror.innerHTML = textBeforeCursor.replace(/ /g, '&nbsp;');
+        const before = (input.value || '').slice(0, caretIndex);
+        mirror.textContent = before;
+        if (before.endsWith(' ')) mirror.innerHTML = before.replace(/ /g, '&nbsp;');
+
+        const padL = parseFloat(cs.paddingLeft) || 0;
+        const padR = parseFloat(cs.paddingRight) || 0;
+        const absolute = before.length ? mirror.offsetWidth + padL : padL;
+
+        // Keep the caret inside the visible track when the value overruns it.
+        const maxScroll = Math.max(0, input.scrollWidth - input.clientWidth);
+        const visibleRight = input.scrollLeft + input.clientWidth - padR;
+        const visibleLeft = input.scrollLeft + padL;
+        if (absolute > visibleRight) {
+            input.scrollLeft = Math.min(absolute - input.clientWidth + padR, maxScroll);
+        } else if (absolute < visibleLeft) {
+            input.scrollLeft = Math.max(0, absolute - padL);
         }
 
-        const textWidth = mirror.getBoundingClientRect().width;
-        const paddingLeft = parseFloat(computed.paddingLeft) || 0;
-        const scrollLeft = input.scrollLeft || 0;
-        const inputHeight = input.clientHeight;
-        const fontSize = parseFloat(computed.fontSize) || 14;
+        const x = absolute - input.scrollLeft;
+        const minX = padL - 1;
+        const maxX = input.clientWidth - padR;
+        const visible = x >= minX && x <= maxX + 1;
 
-        setCaretPos({
-            left: paddingLeft + textWidth - scrollLeft,
-            top: (inputHeight - fontSize * 1.2) / 2,
-            height: fontSize * 1.2,
-        });
-    }, []);
+        caretX.set(Math.min(Math.max(x, minX), maxX));
+        setCaretHeight(Math.round(parseFloat(cs.fontSize) * 1.15) || 20);
+        caretOpacity.set(isFocused && !disabled && visible && !hasSelection ? 1 : 0);
+    }, [syncMirror, caretX, caretOpacity, isFocused, disabled]);
+
+    const updateRef = useRef(updateCaret);
+    useEffect(() => { updateRef.current = updateCaret; }, [updateCaret]);
+
+    useEffect(() => { updateRef.current(); }, [value, isFocused]);
 
     useEffect(() => {
-        updateCaretPosition();
-    }, [value, isFocused, updateCaretPosition]);
+        const input = inputRef.current;
+        const container = containerRef.current;
+        if (!input || !container) return undefined;
+
+        const refresh = () => { if (document.activeElement === input) updateRef.current(); };
+        const onSelectionChange = () => {
+            if (document.activeElement !== input) return;
+            requestAnimationFrame(refresh);
+        };
+
+        document.addEventListener('selectionchange', onSelectionChange);
+        input.addEventListener('scroll', refresh);
+        const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(refresh) : null;
+        ro?.observe(container);
+
+        // Webfonts land after first paint; the mirror must re-measure when they do.
+        if (document.fonts) {
+            document.fonts.addEventListener?.('loadingdone', refresh);
+            document.fonts.ready?.then(refresh).catch(() => {});
+        }
+        refresh();
+
+        return () => {
+            document.removeEventListener('selectionchange', onSelectionChange);
+            input.removeEventListener('scroll', refresh);
+            ro?.disconnect();
+            document.fonts?.removeEventListener?.('loadingdone', refresh);
+        };
+    }, []);
 
     const handleChange = (e) => {
         onChange?.(e);
-        requestAnimationFrame(updateCaretPosition);
+        requestAnimationFrame(() => updateRef.current());
     };
 
     return (
-        <div
+        <label
             ref={containerRef}
+            htmlFor={id}
             className={`relative flex items-center w-full ${className}`}
-            onClick={() => inputRef.current?.focus()}
         >
             {Icon && (
                 <div className="absolute left-3.5 z-10 text-ink-muted pointer-events-none flex items-center justify-center">
@@ -86,7 +173,6 @@ export default function SmoothCaretInput({
                 aria-hidden="true"
             />
 
-            {/* Actual Input with transparent native caret */}
             <input
                 ref={inputRef}
                 id={id}
@@ -95,18 +181,10 @@ export default function SmoothCaretInput({
                 value={value}
                 required={required}
                 onChange={handleChange}
-                onFocus={() => {
-                    setIsFocused(true);
-                    updateCaretPosition();
-                }}
-                onBlur={() => setIsFocused(false)}
-                onSelect={updateCaretPosition}
-                onKeyUp={updateCaretPosition}
-                onClick={updateCaretPosition}
-                onScroll={updateCaretPosition}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => { setIsFocused(false); caretOpacity.set(0); }}
                 placeholder={placeholder}
                 disabled={disabled}
-                autoFocus={autoFocus}
                 style={{ caretColor: 'transparent' }}
                 className={`w-full bg-surface border border-line rounded-xl py-2.5 ${
                     Icon ? 'pl-10 ' : 'pl-3.5 '
@@ -114,29 +192,16 @@ export default function SmoothCaretInput({
                 {...props}
             />
 
-            {/* Smooth animated caret */}
-            <AnimatePresence>
-                {isFocused && !disabled && (
-                    <motion.div
-                        initial={{ opacity: 0, scaleY: 0.6 }}
-                        animate={{
-                            opacity: 1,
-                            scaleY: 1,
-                            left: caretPos.left,
-                            top: caretPos.top,
-                            height: caretPos.height,
-                        }}
-                        exit={{ opacity: 0, scaleY: 0.6 }}
-                        transition={{
-                            type: 'spring',
-                            stiffness: 550,
-                            damping: 38,
-                            mass: 0.4,
-                        }}
-                        className={`absolute w-[2px] rounded-full pointer-events-none ${caretColor} shadow-[0_0_8px_rgba(11,170,143,0.6)] animate-[pulse_1.2s_ease-in-out_infinite]`}
-                    />
-                )}
-            </AnimatePresence>
-        </div>
+            <motion.div
+                aria-hidden="true"
+                className={`absolute left-0 w-[2px] rounded-full pointer-events-none ${caretColor}`}
+                style={{
+                    x: springX,
+                    opacity: caretOpacity,
+                    height: caretHeight,
+                    boxShadow: '0 0 8px rgba(11,170,143,0.6)',
+                }}
+            />
+        </label>
     );
 }

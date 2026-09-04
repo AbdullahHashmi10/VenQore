@@ -14,16 +14,7 @@ db.version(1).stores({
  messages: '++id, session_uuid, sender_type, sender_name, body, created_at'
 });
 
-/**
- * ChatWidget owns ALL chat truth: session lifecycle, Echo subscriptions, the
- * Dexie cache, Turnstile. Nothing else in the app may re-derive any of it.
- *
- * `embedded` renders only the conversation — no floating bubble, no sidebar,
- * no header — so the Dynamic Island can host it as its Support pane while this
- * file remains the single owner. That is why the island absorbs the chat
- * without copying a line of its transport.
- */
-export default function ChatWidget({ embedded = false }) {
+export default function ChatWidget() {
  const { store, auth, turnstile_site_key } = usePage().props;
  const { url } = usePage();
 
@@ -197,10 +188,10 @@ export default function ChatWidget({ embedded = false }) {
 
  // Auto-start chat session if open/expanded and no session has started yet
  useEffect(() => {
- if ((embedded || isOpen || isExpanded) && !started && !loading && !sessionUuid && store) {
+ if ((isOpen || isExpanded) && !started && !loading && !sessionUuid && store) {
  handleStartSession();
  }
- }, [embedded, isOpen, isExpanded, started, loading, sessionUuid, store]);
+ }, [isOpen, isExpanded, started, loading, sessionUuid, store]);
 
  // ── Fetch vena context ──────────────────────────────────────────────────
  const fetchVenaContext = async () => {
@@ -485,7 +476,7 @@ export default function ChatWidget({ embedded = false }) {
  {!started ? (
  <div className="flex-1 p-8 flex flex-col items-center justify-center relative z-10 text-center space-y-4">
  <Loader2 className="animate-spin text-brand-500" size={32} />
- <p style={{ fontSize: 15 }} className="text-ink-muted font-medium">Connecting to support…</p>
+ <p className="text-xs text-ink-muted font-medium">Connecting to support...</p>
  </div>
  ) : (
  /* Message stream */
@@ -507,14 +498,14 @@ export default function ChatWidget({ embedded = false }) {
 
  return (
  <div key={i} className={`flex ${isVisitor ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-1 duration-fast`}>
- <div style={{ fontSize: 15, lineHeight: 1.5 }} className={`max-w-[78%] rounded-2xl px-4 py-3 shadow-sm ${
+ <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-xs shadow-sm ${
  isVisitor
  ? 'bg-brand-600 text-white rounded-tr-none font-medium'
  : isBot
  ? 'bg-sunken text-ink rounded-tl-none leading-relaxed'
  : 'bg-brand-50 dark:bg-brand-950/20 text-brand-950 dark:text-brand-300 border border-brand-100 dark:border-brand-900 rounded-tl-none leading-relaxed'
  }`}>
- <div style={{ fontSize: 12, letterSpacing: '0.12em', fontWeight: 600 }} className="uppercase mb-1.5 opacity-70 flex items-center gap-1.5">
+ <div className="text-3xs font-bold uppercase tracking-wider mb-1 opacity-70 flex items-center gap-1.5">
  {isBot && <VenaLogo size={12} />}
  {isVisitor ? 'You' : isBot ? 'Vena AI' : 'Support'}
  </div>
@@ -525,9 +516,9 @@ export default function ChatWidget({ embedded = false }) {
  })}
 
  {typing && (
- <div style={{ fontSize: 14 }} className="flex items-center gap-2 text-ink-muted font-medium py-2 animate-pulse">
- <Loader2 size={14} className="animate-spin text-brand-500" />
- <span>Support is typing…</span>
+ <div className="flex items-center gap-1.5 text-2xs text-ink-muted font-medium py-1.5 animate-pulse">
+ <Loader2 size={10} className="animate-spin text-neutral-300" />
+ <span>Support is typing...</span>
  </div>
  )}
  <div ref={messagesEndRef} />
@@ -535,14 +526,11 @@ export default function ChatWidget({ embedded = false }) {
 
  {/* Quick actions — shown until visitor sends their first message */}
  {!messages.some(m => m.sender_type === 'visitor') && (
- <div className="px-6 py-4 shrink-0" style={{ borderTop: '1px solid var(--vq-line-soft)' }}>
- <p style={{ fontSize: 12, letterSpacing: '0.12em', fontWeight: 600 }}
- className="uppercase text-ink-muted mb-2.5">Jump to</p>
- <div className="grid grid-cols-3 gap-3">
- {[['Point of Sale','pos'],['New invoice','create_invoice'],['Expenses','expenses']].map(([label, action]) => (
+ <div className="px-6 py-3 bg-sunken/50 dark:bg-surface border-t border-line shrink-0">
+ <div className="grid grid-cols-3 gap-2">
+ {[['🛒 POS','pos'],['📄 Invoice','create_invoice'],['💸 Expenses','expenses']].map(([label, action]) => (
  <button key={action} onClick={() => executeAction(action)}
- style={{ fontSize: 14, fontWeight: 700, height: 44 }}
- className="px-3 bg-surface border border-line hover:border-brand-300 text-ink flex items-center justify-center transition-all rounded-xl">
+ className="p-2.5 bg-app border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover text-2xs font-bold text-ink flex items-center justify-center gap-1 shadow-sm transition-all duration-normal active:scale-95 rounded-xl">
  {label}
  </button>
  ))}
@@ -551,7 +539,7 @@ export default function ChatWidget({ embedded = false }) {
  )}
 
  {/* Message input */}
- <div className="p-6 shrink-0" style={{ borderTop: '1px solid var(--vq-line-soft)', background: 'var(--vq-surface)' }}>
+ <div className="p-4 border-t border-line bg-white/95 dark:bg-app backdrop-blur shrink-0">
  <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2 relative items-center">
  <input
  type="text"
@@ -635,15 +623,6 @@ export default function ChatWidget({ embedded = false }) {
  );
 
  if (!store) return null;
-
- if (embedded) {
- return (
- <div className="flex flex-col h-full w-full font-sans relative overflow-hidden">
- {renderChatBody()}
- <div ref={turnstileContainerRef} id="turnstile-chat-container" className="hidden" />
- </div>
- );
- }
 
  return (
  <>

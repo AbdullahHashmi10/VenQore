@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { Link, router, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-    Search, Sparkles, X, ArrowRight, ArrowUpRight, Clock, Bell,
-    AlertCircle, AlertTriangle, CheckCircle2, ChevronRight, CornerDownLeft,
-    TrendingUp, Box, ShoppingCart, Users, DollarSign, FileText, Settings,
-    Camera, Mic, Loader2, ShieldCheck, Zap, RotateCcw, Volume2, VolumeX,
-    Check, Sliders, ExternalLink, RefreshCw
+  Search, Sparkles, X, ArrowRight, ArrowUpRight, Clock, Bell, BellOff,
+  AlertCircle, AlertTriangle, CheckCircle2, ChevronRight, CornerDownLeft,
+  TrendingUp, Box, Users, DollarSign, FileText, Camera, Mic, Volume2, VolumeX,
+  MessageSquare, Zap, ScanLine, Inbox,
 } from 'lucide-react';
-import { searchRegistry, getCategoryLabel, CATEGORIES } from '@/Data/AppRegistry';
+import IslandShell from '@/Components/Island/IslandShell';
+import { contentVariants, listVariants, itemVariants, DUR, EASE_OUT } from '@/Components/Island/motion';
+import { ThinkingOrb } from '@/Components/ThinkingOrbs';
+import SmoothCaretInput from '@/Components/SmoothCaretInput';
+import useDictation from '@/Components/Island/useDictation';
+import { buildSuggestionFeed } from '@/Components/Island/suggestions';
+import { searchRegistry } from '@/Data/AppRegistry';
 import SmartCapturePanel from '@/Components/SmartCapturePanel';
+import ChatWidget from '@/Components/ChatWidget';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -18,1051 +23,1177 @@ import { useWorkspace } from '@/Contexts/WorkspaceContext';
 const STORAGE_RECENT_QUERIES = 'venqore_island_recent_queries';
 const STORAGE_SOUND_ENABLED = 'venqore_island_sound_enabled';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Synthesize organic Apple-like acoustic haptics with Web Audio API (Zero assets)
-// ─────────────────────────────────────────────────────────────────────────────
-export const playIslandHaptic = (type = 'pop', soundEnabled = true) => {
-    if (!soundEnabled || typeof window === 'undefined') return;
-    try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        const ctx = new AudioContextClass();
-        if (ctx.state === 'suspended') {
-            ctx.resume();
-        }
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        const now = ctx.currentTime;
+/* ═══════════════════════════════════════════════════════════════════════════
+   VenQore Dynamic Island
 
-        if (type === 'ring' || type === 'alert') {
-            // Pleasant double-bell alert chime
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, now);
-            osc.frequency.exponentialRampToValueAtTime(1175, now + 0.14);
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-            osc.start(now);
-            osc.stop(now + 0.28);
-        } else if (type === 'pop') {
-            // Tactile bubble pop
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(440, now);
-            osc.frequency.exponentialRampToValueAtTime(780, now + 0.08);
-            gain.gain.setValueAtTime(0.10, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-            osc.start(now);
-            osc.stop(now + 0.12);
-        } else if (type === 'click') {
-            // Subtle crisp micro-click
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(360, now);
-            gain.gain.setValueAtTime(0.05, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-            osc.start(now);
-            osc.stop(now + 0.04);
-        } else if (type === 'silent' || type === 'dismiss') {
-            // Low soft descent
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(260, now);
-            osc.frequency.exponentialRampToValueAtTime(130, now + 0.12);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-            osc.start(now);
-            osc.stop(now + 0.15);
-        } else if (type === 'success') {
-            // Bright harmonic chime
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, now); // C5
-            osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
-            osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-            osc.start(now);
-            osc.stop(now + 0.35);
-        }
-    } catch (e) {
-        // Audio context may require explicit user activation on some browsers
-    }
+   One surface. Every AI in the product lives inside it, and it is also the
+   product's notification bar. It never unmounts and never swaps: each state is
+   the same piece of glass at a different size.
+
+   · Island/IslandShell.jsx — why one node, and the morph mechanics
+   · Island/motion.js       — the spring contract
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Type: the V6 scale, not a smaller one ───────────────────────────────────
+   tokens/typography.css was bumped 1–2px on 22 Aug 2026 with an explicit note:
+   "a cashier reads a POS terminal from further away, standing, often over 50,
+   and the 13px caption and 11px eyebrow were the first things people asked to
+   make bigger." The first build of this island used 10–12px throughout, which
+   is below the floor that note establishes. CAPTION (14px) is now the smallest
+   type allowed anywhere in here. */
+const T = {
+  eyebrow: { fontSize: 12, lineHeight: 1.2, letterSpacing: '0.12em', fontWeight: 600, textTransform: 'uppercase' },
+  caption: { fontSize: 14, lineHeight: 1.45 },                 // FLOOR
+  small:   { fontSize: 15, lineHeight: 1.5 },                  // list rows
+  body:    { fontSize: 17, lineHeight: 1.6, letterSpacing: '-0.002em' },
+  h3:      { fontSize: 23, lineHeight: 1.3, letterSpacing: '-0.016em', fontWeight: 700 },
+  metric:  { fontFamily: 'var(--vq-font-numeric)', fontSize: 17, fontVariantNumeric: 'tabular-nums' },
 };
 
-export default function AiIsland({ onAskAi, isAiLoading = false, compact = false }) {
-    const { auth, store, growth_engine, vensynq_enabled } = usePage().props;
-    const { isDark: appearanceIsDark } = useAppearance() || { isDark: true };
-    const { isDarkMode: themeIsDark } = useTheme() || { isDarkMode: true };
-    const isDark = store ? appearanceIsDark : themeIsDark;
-    const { activeInvoices, currentInvoiceId } = useWorkspace() || {};
+/* ── Geometry ────────────────────────────────────────────────────────────────
+   Rest height is 44px, not an arbitrary pill height: --vq-control-md and the
+   header's own h-11 buttons are 44px, so the island sits on the same baseline
+   as the controls opposite it. Symmetry across the top bar comes from sharing
+   one number, not from eyeballing it. */
+const CONTROL_H = 44;
+const MODES = {
+  rest:     { w: 420, h: CONTROL_H },
+  // A bare circle reads as a dot of chrome nobody knows to press. The collapsed
+  // full-screen island is a labelled pill — small enough to ignore over a POS
+  // screen, legible enough to be an offer.
+  orb:      { w: 154, h: CONTROL_H },
+  orbHover: { w: 340, h: CONTROL_H },
+  working:  { w: 340, h: CONTROL_H },
+  alert:    { w: 470, h: 84 },
+  open:     { w: 760, h: 600 },
+};
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Active Island States: 'rest' | 'notification' | 'critical' | 'working' | 'focused'
-    // ─────────────────────────────────────────────────────────────────────────
-    const [islandState, setIslandState] = useState('rest');
-    const [soundEnabled, setSoundEnabled] = useState(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_SOUND_ENABLED);
-            return saved !== null ? saved === 'true' : true;
-        } catch (e) {
-            return true;
-        }
-    });
+/* The nine orb states earn their keep: the orb IS the status readout, so the
+   island never needs a spinner. Each activity gets the animation that depicts it. */
+const ORB_FOR = {
+  idle: 'breathing',
+  search: 'searching',
+  compute: 'solving',
+  sync: 'connecting',
+  chat: 'listening',
+  growth: 'weaving',
+  capture: 'shaping',
+  compose: 'composing',
+};
 
-    const [query, setQuery] = useState('');
-    const [activeTab, setActiveTab] = useState('all'); // 'all' | 'ai' | 'screens' | 'records'
-    const [dbResults, setDbResults] = useState([]);
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [isSearchingDb, setIsSearchingDb] = useState(false);
-    const [aiAnswer, setAiAnswer] = useState(null);
-    const [isAiAnswering, setIsAiAnswering] = useState(false);
-    
-    // Ambient rotating insight ticker
-    const [tickerIndex, setTickerIndex] = useState(0);
-    const [tickerFade, setTickerFade] = useState(true);
+/* One theme system, five identities. Same three-lobe mesh recipe rotated onto
+   each surface's hue (tokens/theme.css), same header band, same row treatment. */
+const TABS = [
+  { id: 'ask',     label: 'Ask Vena', icon: Sparkles,      orb: 'compute', mesh: 'var(--vq-mesh-vena)',    accent: '#59DBC0', sub: 'Ask anything about this store' },
+  { id: 'chat',    label: 'Support',  icon: MessageSquare, orb: 'chat',    mesh: 'var(--vq-mesh-support)', accent: '#8FD9F5', sub: 'Talk to the VenQore team' },
+  { id: 'growth',  label: 'Growth',   icon: Zap,           orb: 'growth',  mesh: 'var(--vq-mesh-growth)',  accent: '#E0B4E0', sub: 'Opportunities found for you' },
+  { id: 'alerts',  label: 'Alerts',   icon: Bell,          orb: 'idle',    mesh: 'var(--vq-mesh-alerts)',  accent: '#FFDD8E', sub: 'Everything needing attention' },
+  { id: 'capture', label: 'Capture',  icon: ScanLine,      orb: 'capture', mesh: 'var(--vq-mesh-capture)', accent: '#93EBD6', sub: 'Scan a document into your records' },
+];
+const TAB = Object.fromEntries(TABS.map(t => [t.id, t]));
 
-    // Live Notifications & Alerts
-    const [notificationsSummary, setNotificationsSummary] = useState({
-        unread_count: 0,
-        critical_count: 0,
-        latest: [],
-    });
-    const [activeNotification, setActiveNotification] = useState(null);
-    const [alertCountdown, setAlertCountdown] = useState(100);
-    const [isHoveringAlert, setIsHoveringAlert] = useState(false);
+const INK = 'rgba(241,245,242,';
 
-    // Smart Capture modal state
-    const [isSmartCaptureOpen, setIsSmartCaptureOpen] = useState(false);
-    const [smartCaptureTab, setSmartCaptureTab] = useState('image');
-
-    // Recent queries
-    const [recentQueries, setRecentQueries] = useState(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_RECENT_QUERIES);
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            return [];
-        }
-    });
-
-    const inputRef = useRef(null);
-    const containerRef = useRef(null);
-
-    const userRole = auth?.user?.role;
-    const userPerms = useMemo(() => auth?.user?.permissions || [], [auth?.user?.permissions]);
-    const isFullAccess = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'platform_admin';
-    const canUseSmartCapture = vensynq_enabled && (isFullAccess || userPerms.some(p => p.startsWith('pos') || p.startsWith('sales') || p.startsWith('purchases')));
-
-    // Save sound toggle
-    const toggleSound = (e) => {
-        e?.stopPropagation();
-        const next = !soundEnabled;
-        setSoundEnabled(next);
-        try {
-            localStorage.setItem(STORAGE_SOUND_ENABLED, String(next));
-        } catch (err) {}
-        if (next) playIslandHaptic('pop', true);
+// ── Synthesised haptics (no assets) ─────────────────────────────────────────
+export const playIslandHaptic = (type = 'pop', soundEnabled = true) => {
+  if (!soundEnabled || typeof window === 'undefined') return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const t = ctx.currentTime;
+    const ramp = (f0, f1, g, dur, wave = 'sine') => {
+      osc.type = wave;
+      osc.frequency.setValueAtTime(f0, t);
+      if (f1) osc.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.55);
+      gain.gain.setValueAtTime(g, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.start(t);
+      osc.stop(t + dur);
     };
+    if (type === 'ring' || type === 'alert') ramp(880, 1175, 0.14, 0.28);
+    else if (type === 'pop') ramp(440, 780, 0.09, 0.12);
+    else if (type === 'click') ramp(360, null, 0.045, 0.04);
+    else if (type === 'dismiss') ramp(260, 130, 0.07, 0.15);
+    else if (type === 'success') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(523.25, t);
+      osc.frequency.setValueAtTime(659.25, t + 0.08);
+      osc.frequency.setValueAtTime(783.99, t + 0.16);
+      gain.gain.setValueAtTime(0.11, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+      osc.start(t);
+      osc.stop(t + 0.35);
+    } else ramp(420, null, 0.04, 0.05);
+  } catch (e) { /* audio needs a user gesture on some browsers */ }
+};
 
-    const openIsland = useCallback(() => {
-        playIslandHaptic('pop', soundEnabled);
-        setIslandState('focused');
-        setTimeout(() => inputRef.current?.focus(), 60);
-    }, [soundEnabled]);
+/** Fire an island alert from anywhere. */
+export const raiseIslandAlert = (detail) => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('venqore-island-alert', { detail }));
+  }
+};
 
-    const closeIsland = useCallback(() => {
-        playIslandHaptic('dismiss', soundEnabled);
-        setIslandState('rest');
-        setQuery('');
-        setDbResults([]);
-        setAiAnswer(null);
-        setIsSearchingDb(false);
-        setIsAiAnswering(false);
-    }, [soundEnabled]);
+/**
+ * One island state's content. Absolutely positioned so that while the shell is
+ * springing between sizes the content never reflows the box it lives in.
+ *
+ * Must live at module scope: declared inside AiIsland it would be a fresh
+ * component type every render, remounting each pass and destroying the exit
+ * animations AnimatePresence exists to run.
+ */
+const Pane = ({ children }) => (
+  <motion.div
+    variants={contentVariants}
+    initial="initial"
+    animate="animate"
+    exit="exit"
+    className="absolute inset-0"
+  >
+    {children}
+  </motion.div>
+);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // 1. Transaction Guard (Never interrupt active cashiers / invoices)
-    // ──────────────────────────────────────────────────────────────────────────
-    const isUserTransacting = useCallback(() => {
-        if (typeof window === 'undefined') return false;
-        const currentPath = window.location.pathname;
-        if (currentPath.includes('/pos') || currentPath.includes('/sales/create') || currentPath.includes('/purchases/create')) {
-            return true;
-        }
-        if (activeInvoices && Object.keys(activeInvoices).length > 0 && currentInvoiceId) {
-            return true;
-        }
-        const activeElem = document.activeElement;
-        if (activeElem && (activeElem.tagName === 'INPUT' || activeElem.tagName === 'TEXTAREA' || activeElem.tagName === 'SELECT')) {
-            if (activeElem.id !== 'ai-island-input') {
-                return true;
-            }
-        }
-        return false;
-    }, [activeInvoices, currentInvoiceId]);
+/** The shared pane chrome every tab wears — mesh ground, orb, title, body. */
+const PaneShell = ({ tab, orbState, paused, right, children, flush = false }) => {
+  const meta = TAB[tab];
+  return (
+    <div
+      className="h-full min-h-0 flex flex-col overflow-hidden"
+      style={{ background: meta.mesh, borderRadius: 20 }}
+    >
+      <div
+        className="flex items-center gap-3 px-4 py-3 shrink-0"
+        style={{ borderBottom: `1px solid ${INK}.08)` }}
+      >
+        <span className="grid place-items-center shrink-0" style={{ width: 30, height: 30 }}>
+          <ThinkingOrb state={orbState || meta.orb} size={28} theme="dark" paused={paused} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block truncate" style={{ ...T.body, fontWeight: 700, color: '#F1F5F2' }}>
+            {meta.label}
+          </span>
+          <span className="block truncate" style={{ ...T.caption, color: `${INK}.60)` }}>
+            {meta.sub}
+          </span>
+        </span>
+        {right}
+      </div>
+      <div className={`flex-1 min-h-0 overflow-y-auto custom-scrollbar ${flush ? '' : 'p-3'}`}>
+        {children}
+      </div>
+    </div>
+  );
+};
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // 2. Fetch Notification Summary & Live Event Subscriptions
-    // ──────────────────────────────────────────────────────────────────────────
-    const triggerNotificationPill = useCallback((notif) => {
-        if (!notif) return;
-        setActiveNotification(notif);
-        setAlertCountdown(100);
-        playIslandHaptic('ring', soundEnabled);
+/**
+ * The suggestion feed — 26 real questions plus whatever this person has
+ * actually searched, which sorts to the top as it accumulates.
+ *
+ * Items stagger in on the V6 60ms step and the scroll container is masked at
+ * both ends, so a long list reads as continuing past the fold rather than
+ * being clipped by it.
+ */
+/* Group headers are resolved outside the component — walking a cursor across
+   the list during render is a mutation React Compiler can't reason about. */
+const withHeaders = (feed) => {
+  let last = null;
+  return feed.map((item) => {
+    const header = item.group === last ? null : item.group;
+    last = item.group;
+    return { ...item, header };
+  });
+};
 
-        if (notif.severity === 'critical') {
-            setIslandState('critical');
-        } else {
-            setIslandState('notification');
-        }
-    }, [soundEnabled]);
-
-    const fetchNotifications = useCallback(() => {
-        if (!store?.slug && !auth?.user) return;
-        window.axios?.get('/api/notifications/summary')
-            .then(res => {
-                if (res.data) {
-                    setNotificationsSummary(res.data);
-                    const topNotif = res.data.latest?.find(n => !n.read_at && (n.severity === 'critical' || n.severity === 'important'));
-                    if (topNotif && !isUserTransacting() && islandState === 'rest') {
-                        triggerNotificationPill(topNotif);
-                    }
-                }
-            })
-            .catch(() => {});
-    }, [store?.slug, auth?.user, isUserTransacting, islandState, triggerNotificationPill]);
-
-    useEffect(() => {
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, 35000); // 35s poll
-        return () => clearInterval(interval);
-    }, [fetchNotifications]);
-
-    // Listen for custom global app alerts (e.g. from POS, Invoicing, Sync)
-    useEffect(() => {
-        const handleCustomAlert = (event) => {
-            if (event.detail && !isUserTransacting() && islandState !== 'focused') {
-                triggerNotificationPill(event.detail);
-            }
-        };
-        const handleSyncEvent = (event) => {
-            if (islandState === 'rest') {
-                setIslandState('working');
-                setTimeout(() => {
-                    setIslandState('rest');
-                }, event.detail?.duration || 2500);
-            }
-        };
-        window.addEventListener('venqore-island-alert', handleCustomAlert);
-        window.addEventListener('venqore-island-sync', handleSyncEvent);
-        return () => {
-            window.removeEventListener('venqore-island-alert', handleCustomAlert);
-            window.removeEventListener('venqore-island-sync', handleSyncEvent);
-        };
-    }, [islandState, isUserTransacting, triggerNotificationPill]);
-
-    // Notification auto-dismiss countdown bar
-    useEffect(() => {
-        let timer;
-        if ((islandState === 'notification' || islandState === 'critical') && !isHoveringAlert) {
-            timer = setInterval(() => {
-                setAlertCountdown((prev) => {
-                    if (prev <= 0) {
-                        clearInterval(timer);
-                        setIslandState('rest');
-                        setActiveNotification(null);
-                        return 100;
-                    }
-                    return prev - 2;
-                });
-            }, 80); // ~4 seconds
-        }
-        return () => clearInterval(timer);
-    }, [islandState, isHoveringAlert]);
-
-    const dismissNotification = (e) => {
-        e?.stopPropagation();
-        playIslandHaptic('dismiss', soundEnabled);
-        setActiveNotification(null);
-        setIslandState('rest');
-    };
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // 3. Rotating Ambient Insights & Tips
-    // ──────────────────────────────────────────────────────────────────────────
-    const ambientInsights = useMemo(() => {
-        const list = [];
-        if (growth_engine?.popup?.description) {
-            list.push(`Growth: ${growth_engine.popup.description}`);
-        } else if (growth_engine?.count > 0) {
-            list.push(`${growth_engine.count} Growth recommendations available`);
-        }
-        list.push('Ask Reckoner AI or search records...');
-        list.push('Try "Sales today", "Low stock", or "Profit this month"');
-        list.push('Press ⌘K / Ctrl+K anytime for Spotlight');
-        return list;
-    }, [growth_engine]);
-
-    useEffect(() => {
-        if (islandState !== 'rest') return;
-        const timer = setInterval(() => {
-            setTickerFade(false);
-            setTimeout(() => {
-                setTickerIndex(prev => (prev + 1) % ambientInsights.length);
-                setTickerFade(true);
-            }, 300);
-        }, 6500);
-        return () => clearInterval(timer);
-    }, [ambientInsights.length, islandState]);
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // 4. Keyboard Shortcuts: ⌘K / Ctrl+K / ESC
-    // ──────────────────────────────────────────────────────────────────────────
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K' || e.key === 'f' || e.key === 'F')) {
-                e.preventDefault();
-                if (islandState === 'focused') {
-                    closeIsland();
-                } else {
-                    openIsland();
-                }
-            }
-            if (e.key === 'Escape' && islandState === 'focused') {
-                closeIsland();
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [islandState, openIsland, closeIsland]);
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // 5. Search & Query Execution
-    // ──────────────────────────────────────────────────────────────────────────
-    const checkPerm = useCallback((required) => {
-        if (userRole === 'platform_admin') return true;
-        if (!required || required.length === 0) return isFullAccess;
-        return required.some(p => userPerms.includes(p));
-    }, [userRole, isFullAccess, userPerms]);
-
-    const getRequiredPerms = useCallback((item) => {
-        if (item.route?.includes('pos')) return ['pos'];
-        if (item.route?.includes('inventory') || item.route?.includes('production')) return ['inventory'];
-        if (item.route?.includes('sales')) return ['sales', 'sales_view'];
-        if (item.route?.includes('reports') || item.route?.includes('finance')) return ['reports', 'finance'];
-        if (item.route?.includes('settings')) return ['settings'];
-        if (item.route?.includes('parties') || item.route?.includes('customer')) return ['customers'];
-        return [];
-    }, []);
-
-    // Derive AppRegistry results automatically without cascading setState
-    const results = useMemo(() => {
-        if (!query || !query.trim()) return [];
-        const q = query.trim();
-        const appResults = searchRegistry(q);
-        return appResults.filter(item => checkPerm(getRequiredPerms(item)));
-    }, [query, checkPerm, getRequiredPerms]);
-
-    const handleQueryChange = (val) => {
-        setQuery(val);
-        if (!val || val.trim().length === 0) {
-            setDbResults([]);
-            setAiAnswer(null);
-        }
-    };
-
-    // Debounced Database Search
-    useEffect(() => {
-        if (!query || query.trim().length < 2 || !store?.slug) {
-            return;
-        }
-
-        const q = query.trim();
-        const timeout = setTimeout(() => {
-            setIsSearchingDb(true);
-            window.axios?.get(route('store.global.search', { store_slug: store.slug }), { params: { query: q } })
-                .then(res => setDbResults(res.data || []))
-                .catch(() => setDbResults([]))
-                .finally(() => setIsSearchingDb(false));
-        }, 240);
-        return () => clearTimeout(timeout);
-    }, [query, store?.slug]);
-
-    const saveRecentQuery = (text) => {
-        if (!text || text.trim().length === 0) return;
-        const updated = [text, ...recentQueries.filter(q => q.toLowerCase() !== text.toLowerCase())].slice(0, 5);
-        setRecentQueries(updated);
-        try {
-            localStorage.setItem(STORAGE_RECENT_QUERIES, JSON.stringify(updated));
-        } catch (e) {}
-    };
-
-    // Execute direct AI query
-    const executeAiQuestion = (questionText) => {
-        if (!store?.slug) return;
-        playIslandHaptic('click', soundEnabled);
-        setIsAiAnswering(true);
-        setAiAnswer(null);
-
-        window.axios?.post(route('store.ai.query', { store_slug: store.slug }), { message: questionText })
-            .then(res => {
-                if (res.data?.response || res.data?.answer || res.data?.summary) {
-                    setAiAnswer({
-                        text: res.data.response || res.data.answer || res.data.summary,
-                        records: res.data.records || [],
-                    });
-                    playIslandHaptic('success', soundEnabled);
-                }
-            })
-            .catch(err => {
-                console.error("AI Island error:", err);
-            })
-            .finally(() => {
-                setIsAiAnswering(false);
-            });
-    };
-
-    const handleQuickPrompt = (promptText) => {
-        setQuery(promptText);
-        saveRecentQuery(promptText);
-        executeAiQuestion(promptText);
-    };
-
-    // Keyboard navigation
-    const totalSelectables = results.length + dbResults.length + (query.length > 2 ? 1 : 0);
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            playIslandHaptic('click', soundEnabled);
-            setSelectedIndex(prev => (prev + 1) % Math.max(1, totalSelectables));
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            playIslandHaptic('click', soundEnabled);
-            setSelectedIndex(prev => (prev - 1 + totalSelectables) % Math.max(1, totalSelectables));
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (aiAnswer) return;
-            if (selectedIndex === 0 && query.length > 2 && results.length === 0 && dbResults.length === 0) {
-                handleQuickPrompt(query);
-                return;
-            }
-            if (selectedIndex < results.length) {
-                navigateToItem(results[selectedIndex]);
-            } else if (dbResults[selectedIndex - results.length]) {
-                const dbItem = dbResults[selectedIndex - results.length];
-                if (dbItem.url) {
-                    playIslandHaptic('pop', soundEnabled);
-                    router.visit(dbItem.url);
-                    closeIsland();
-                }
-            } else if (query.length > 2) {
-                handleQuickPrompt(query);
-            }
-        }
-    };
-
-    const navigateToItem = (item) => {
-        try {
-            playIslandHaptic('pop', soundEnabled);
-            const routeName = item.route.startsWith('store.') ? item.route : `store.${item.route}`;
-            const url = route(routeName, { ...item.queryParams, store_slug: store?.slug });
-            router.visit(url);
-            closeIsland();
-        } catch (e) {
-            console.warn('Route not found:', item.route);
-            closeIsland();
-        }
-    };
-
-    // Close on click outside
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (containerRef.current && !containerRef.current.contains(e.target)) {
-                if (islandState === 'focused') {
-                    closeIsland();
-                }
-            }
-        };
-        if (islandState === 'focused') {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [islandState, closeIsland]);
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Authentic Apple Dynamic Island Dimensions & Spring Styling
-    // ──────────────────────────────────────────────────────────────────────────
-    const getIslandStyle = () => {
-        if (compact) {
-            return {
-                width: '180px',
-                height: '36px',
-                borderRadius: '9999px',
-            };
-        }
-        switch (islandState) {
-            case 'notification':
-            case 'critical':
-                return {
-                    width: 'min(440px, 92vw)',
-                    height: '72px',
-                    borderRadius: '26px',
-                };
-            case 'working':
-                return {
-                    width: '280px',
-                    height: '38px',
-                    borderRadius: '9999px',
-                };
-            case 'rest':
-            default:
-                return {
-                    width: 'min(380px, 86vw)',
-                    height: '38px',
-                    borderRadius: '9999px',
-                };
-        }
-    };
-
-    const islandDims = getIslandStyle();
-
-    return (
-        <div ref={containerRef} className="relative flex items-center justify-center select-none">
-            {/* ═══════════════════════════════════════════════════════════════════════ */}
-            {/* 1. HERO DYNAMIC ISLAND CUTOUT (Deep Obsidian Glass with Apple Spring)   */}
-            {/* ═══════════════════════════════════════════════════════════════════════ */}
-            {islandState !== 'focused' && (
-                <button
-                    type="button"
-                    onClick={openIsland}
-                    onMouseEnter={() => setIsHoveringAlert(true)}
-                    onMouseLeave={() => setIsHoveringAlert(false)}
-                    style={{
-                        width: islandDims.width,
-                        height: islandDims.height,
-                        borderRadius: islandDims.borderRadius,
-                        transition: 'all 460ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    }}
-                    className={`group relative flex items-center justify-between cursor-pointer overflow-hidden backdrop-blur-2xl bg-[#06080c]/95 text-white border border-white/[0.12] ring-1 ring-black/80 shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.18)] hover:border-white/[0.22] hover:shadow-[0_14px_45px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.25)] transition-all outline-none focus:outline-none ${
-                        islandState === 'critical'
-                            ? 'ring-2 ring-red-500/50 border-red-500/40 bg-[#120507]/95'
-                            : islandState === 'notification'
-                            ? 'ring-2 ring-amber-500/40 border-amber-500/30 bg-[#0e0a05]/95'
-                            : ''
-                    }`}
+const SuggestionList = ({ feed, onPick, accent = '#59DBC0' }) => {
+  const rows = withHeaders(feed);
+  return (
+    <div
+      className="h-full min-h-0 overflow-y-auto custom-scrollbar"
+      style={{
+        maskImage: 'linear-gradient(to bottom, transparent, #000 14px, #000 calc(100% - 14px), transparent)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000 14px, #000 calc(100% - 14px), transparent)',
+      }}
+    >
+      <motion.div variants={listVariants} initial="initial" animate="animate" className="space-y-1.5 py-2">
+        {rows.map((item, i) => {
+          const header = item.header;
+          return (
+            <React.Fragment key={`${item.groupId}-${item.prompt}-${i}`}>
+              {header && (
+                <motion.p
+                  variants={itemVariants}
+                  className="px-1 pt-2 pb-1"
+                  style={{ ...T.eyebrow, color: `${INK}.42)` }}
                 >
-                    {/* Subtle Front Camera Iris Dot */}
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#15171e] ring-1 ring-white/10 pointer-events-none opacity-40 group-hover:opacity-70 transition-opacity" />
+                  {header}
+                </motion.p>
+              )}
+              <motion.button
+                variants={itemVariants}
+                type="button"
+                onClick={() => onPick(item.prompt)}
+                whileHover={{ x: 3 }}
+                transition={{ type: 'spring', stiffness: 520, damping: 34 }}
+                className="w-full flex items-center gap-3 p-3 rounded-2xl text-left group"
+                style={{ background: `${INK}.05)` }}
+              >
+                <span
+                  className="grid place-items-center shrink-0 rounded-xl"
+                  style={{ width: 32, height: 32, background: `${INK}.06)`, color: accent }}
+                >
+                  {item.recent ? <Clock size={15} /> : <Search size={15} />}
+                </span>
+                <span className="flex-1 min-w-0 truncate" style={{ ...T.small, fontWeight: 600, color: `${INK}.9)` }}>
+                  {item.label}
+                </span>
+                <ArrowRight size={15} className="opacity-0 group-hover:opacity-100 shrink-0" style={{ color: accent }} />
+              </motion.button>
+            </React.Fragment>
+          );
+        })}
+      </motion.div>
+    </div>
+  );
+};
 
-                    {/* ── STATE: REST / IDLE PILL ── */}
-                    {islandState === 'rest' && (
-                        <div className="w-full h-full flex items-center justify-between px-3.5 animate-in fade-in duration-300">
-                            {/* Left: Glowing Pulse Dot & Brand */}
-                            <div className="flex items-center gap-2 shrink-0">
-                                <div className="relative flex items-center justify-center">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span className="absolute w-3.5 h-3.5 rounded-full bg-emerald-400/20 animate-ping" />
-                                </div>
-                                <span className="text-[11px] font-bold tracking-tight text-white/90">
-                                    {compact ? 'VenQore' : 'VenQore AI'}
-                                </span>
-                            </div>
+export default function AiIsland({
+  onAskAi,
+  isAiLoading = false,
+  compact = false,      // full-screen pages: orb-only until hovered
+  extraAlerts = [],
+}) {
+  const { auth, store, growth_engine, vensynq_enabled } = usePage().props;
+  const { isDark: appearanceIsDark } = useAppearance() || { isDark: true };
+  const { isDarkMode: themeIsDark } = useTheme() || { isDarkMode: true };
+  const isDark = store ? appearanceIsDark : themeIsDark;
+  const { activeInvoices, currentInvoiceId } = useWorkspace() || {};
 
-                            {/* Middle: Rotating Ambient Ticker */}
-                            {!compact && (
-                                <div className="flex-1 min-w-0 px-2.5 overflow-hidden text-left">
-                                    <p
-                                        className={`text-[11px] text-neutral-300 font-medium truncate transition-all duration-300 ${
-                                            tickerFade ? 'opacity-90 translate-y-0' : 'opacity-0 -translate-y-1'
-                                        }`}
-                                    >
-                                        {ambientInsights[tickerIndex]}
-                                    </p>
-                                </div>
-                            )}
+  // mode: 'rest' | 'working' | 'alert' | 'open'
+  const [mode, setMode] = useState('rest');
+  const [tab, setTab] = useState('ask');
+  const [activity, setActivity] = useState('idle');
+  const [workingLabel, setWorkingLabel] = useState('');
+  const [hovered, setHovered] = useState(false);
+  const [captureTab, setCaptureTab] = useState('image');
 
-                            {/* Right: Shortcut Badge / Unread Dot */}
-                            <div className="flex items-center gap-1.5 mr-4 shrink-0">
-                                {notificationsSummary.unread_count > 0 && (
-                                    <span className="flex items-center justify-center h-4 px-1.5 text-[9px] font-bold bg-amber-500 text-black rounded-full shadow-sm animate-pulse">
-                                        {notificationsSummary.unread_count}
-                                    </span>
-                                )}
-                                <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-white/10 text-neutral-400 border border-white/5">
-                                    ⌘K
-                                </kbd>
-                            </div>
-                        </div>
-                    )}
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try {
+      const v = localStorage.getItem(STORAGE_SOUND_ENABLED);
+      return v !== null ? v === 'true' : true;
+    } catch { return true; }
+  });
 
-                    {/* ── STATE: WORKING / SYNCING ── */}
-                    {islandState === 'working' && (
-                        <div className="w-full h-full flex items-center justify-between px-3.5 animate-in fade-in duration-200">
-                            <div className="flex items-center gap-2">
-                                <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
-                                <span className="text-xs font-semibold text-white">Reckoner Synchronizing...</span>
-                            </div>
-                            <div className="flex items-end gap-0.5 h-3 mr-4">
-                                <span className="w-0.5 h-3 bg-emerald-400 rounded-full animate-pulse" />
-                                <span className="w-0.5 h-2 bg-emerald-400 rounded-full animate-bounce" />
-                                <span className="w-0.5 h-3.5 bg-emerald-400 rounded-full animate-pulse" />
-                            </div>
-                        </div>
-                    )}
+  const [query, setQuery] = useState('');
+  const [dbResults, setDbResults] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isSearchingDb, setIsSearchingDb] = useState(false);
+  const [aiAnswer, setAiAnswer] = useState(null);
+  const [isAiAnswering, setIsAiAnswering] = useState(false);
 
-                    {/* ── STATE: NOTIFICATION / ALERT MORPH ── */}
-                    {(islandState === 'notification' || islandState === 'critical') && (
-                        <section
-                            aria-label="Notification alert"
-                            className="w-full h-full px-3.5 py-2 flex flex-col justify-between animate-in fade-in duration-200"
+  const [tickerIndex, setTickerIndex] = useState(0);
+  const [notifications, setNotifications] = useState({ unread_count: 0, critical_count: 0, latest: [] });
+  const [activeNotification, setActiveNotification] = useState(null);
+  const [alertCountdown, setAlertCountdown] = useState(100);
+  const [isHoveringAlert, setIsHoveringAlert] = useState(false);
+
+  const [recentQueries, setRecentQueries] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_RECENT_QUERIES) || '[]'); }
+    catch { return []; }
+  });
+
+  const [orbPaused, setOrbPaused] = useState(
+    () => typeof window !== 'undefined' &&
+      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)
+  );
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const sync = () => setOrbPaused(Boolean(mq?.matches) || document.hidden);
+    document.addEventListener('visibilitychange', sync);
+    mq?.addEventListener?.('change', sync);
+    return () => {
+      document.removeEventListener('visibilitychange', sync);
+      mq?.removeEventListener?.('change', sync);
+    };
+  }, []);
+
+  const [vw, setVw] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
+  const [vh, setVh] = useState(typeof window !== 'undefined' ? window.innerHeight : 900);
+  useEffect(() => {
+    const onResize = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const isOpen = mode === 'open';
+
+  const userRole = auth?.user?.role;
+  const userPerms = useMemo(() => auth?.user?.permissions || [], [auth?.user?.permissions]);
+  const isFullAccess = ['owner', 'admin', 'manager', 'platform_admin'].includes(userRole);
+  const canUseSmartCapture = vensynq_enabled && (isFullAccess || userPerms.some(p => /^(pos|sales|purchases)/.test(p)));
+
+  // ── Geometry ──────────────────────────────────────────────────────────────
+  // Capture hosts the full AI Scan workflow, so it takes 80% of the viewport;
+  // every other open state is the standard hub.
+  const target = useMemo(() => {
+    if (mode === 'open') {
+      if (tab === 'capture') {
+        // AI Scan is a full workflow — intake, review, post. At 80% it still
+        // scrolled; it gets the room a document actually needs.
+        return { w: Math.min(vw * 0.92, 1480), h: vh * 0.92 };
+      }
+      return MODES.open;
+    }
+    if (mode === 'rest' && compact) return hovered ? MODES.orbHover : MODES.orb;
+    return MODES[mode] || MODES.rest;
+  }, [mode, tab, compact, hovered, vw, vh]);
+
+  const width = Math.min(target.w, vw - 48);   // --vq-gutter on both sides
+  const height = Math.min(target.h, vh - 88);
+  const restBase = compact ? MODES.orb : MODES.rest;
+  const restWidth = Math.min(restBase.w, vw - 48);
+  const restHeight = restBase.h;
+
+  const tone = mode === 'alert'
+    ? (activeNotification?.severity === 'critical' ? 'danger' : 'warning')
+    : (isOpen || mode === 'working') ? 'accent' : 'neutral';
+
+  // ── Sound ─────────────────────────────────────────────────────────────────
+  const haptic = useCallback((t) => playIslandHaptic(t, soundEnabled), [soundEnabled]);
+  const toggleSound = (e) => {
+    e?.stopPropagation();
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    try { localStorage.setItem(STORAGE_SOUND_ENABLED, String(next)); } catch {}
+    if (next) playIslandHaptic('pop', true);
+  };
+
+  // ── Open / close ──────────────────────────────────────────────────────────
+  const openIsland = useCallback((nextTab) => {
+    haptic('pop');
+    if (nextTab) setTab(nextTab);
+    setMode('open');
+    setTimeout(() => document.getElementById('ai-island-input')?.focus(), 240);
+  }, [haptic]);
+
+  const closeIsland = useCallback(() => {
+    haptic('dismiss');
+    setMode('rest');
+    setQuery('');
+    setDbResults([]);
+    setAiAnswer(null);
+    setIsSearchingDb(false);
+    setIsAiAnswering(false);
+    setActivity('idle');
+  }, [haptic]);
+
+  const openCapture = useCallback((which = 'image') => {
+    haptic('pop');
+    setCaptureTab(which);
+    setTab('capture');
+    setMode('open');
+  }, [haptic]);
+
+  // ── Never interrupt a cashier mid-transaction ─────────────────────────────
+  const isUserTransacting = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    const p = window.location.pathname;
+    if (/\/(pos|sales\/create|purchases\/create)/.test(p)) return true;
+    if (activeInvoices && Object.keys(activeInvoices).length > 0 && currentInvoiceId) return true;
+    const el = document.activeElement;
+    if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) && el.id !== 'ai-island-input') return true;
+    return false;
+  }, [activeInvoices, currentInvoiceId]);
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+  const raiseAlert = useCallback((n) => {
+    if (!n) return;
+    setActiveNotification(n);
+    setAlertCountdown(100);
+    haptic('ring');
+    setMode('alert');
+  }, [haptic]);
+
+  const fetchNotifications = useCallback(() => {
+    if (!store?.slug && !auth?.user) return;
+    window.axios?.get('/api/notifications/summary')
+      .then(res => {
+        if (!res.data) return;
+        setNotifications(res.data);
+        const top = res.data.latest?.find(n => !n.read_at && ['critical', 'important'].includes(n.severity));
+        if (top && !isUserTransacting() && mode === 'rest') raiseAlert(top);
+      })
+      .catch(() => {});
+  }, [store?.slug, auth?.user, isUserTransacting, mode, raiseAlert]);
+
+  useEffect(() => {
+    fetchNotifications();
+    const i = setInterval(fetchNotifications, 35000);
+    return () => clearInterval(i);
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    const onAlert = (e) => {
+      if (e.detail && !isUserTransacting() && mode !== 'open') raiseAlert(e.detail);
+    };
+    const onSync = (e) => {
+      if (mode !== 'rest') return;
+      setActivity(e.detail?.activity || 'sync');
+      setWorkingLabel(e.detail?.label || 'Syncing with Reckoner');
+      setMode('working');
+      setTimeout(() => { setMode('rest'); setActivity('idle'); }, e.detail?.duration || 2500);
+    };
+    window.addEventListener('venqore-island-alert', onAlert);
+    window.addEventListener('venqore-island-sync', onSync);
+    return () => {
+      window.removeEventListener('venqore-island-alert', onAlert);
+      window.removeEventListener('venqore-island-sync', onSync);
+    };
+  }, [mode, isUserTransacting, raiseAlert]);
+
+  useEffect(() => {
+    let t;
+    if (mode === 'alert' && !isHoveringAlert) {
+      t = setInterval(() => {
+        setAlertCountdown(prev => {
+          if (prev <= 0) {
+            clearInterval(t);
+            setMode('rest');
+            setActiveNotification(null);
+            return 100;
+          }
+          return prev - 2;
+        });
+      }, 80);
+    }
+    return () => clearInterval(t);
+  }, [mode, isHoveringAlert]);
+
+  const dismissAlert = (e) => {
+    e?.stopPropagation();
+    haptic('dismiss');
+    setActiveNotification(null);
+    setMode('rest');
+  };
+
+  // ── Ambient ticker ────────────────────────────────────────────────────────
+  const ambient = useMemo(() => {
+    const l = [];
+    if (growth_engine?.popup?.description) l.push(growth_engine.popup.description);
+    else if (growth_engine?.count > 0) l.push(`${growth_engine.count} growth recommendations ready`);
+    l.push('Ask Vena anything about your store');
+    l.push('Try "sales today", "low stock", "profit this month"');
+    return l;
+  }, [growth_engine]);
+
+  useEffect(() => {
+    if (mode !== 'rest') return;
+    const i = setInterval(() => setTickerIndex(p => (p + 1) % ambient.length), 6500);
+    return () => clearInterval(i);
+  }, [ambient.length, mode]);
+
+  // ── Keyboard ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && /^[kKfF]$/.test(e.key)) {
+        e.preventDefault();
+        if (isOpen) closeIsland(); else openIsland('ask');
+      }
+      if (e.key === 'Escape' && isOpen) closeIsland();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, openIsland, closeIsland]);
+
+  // ── Search ────────────────────────────────────────────────────────────────
+  const checkPerm = useCallback((req) => {
+    if (userRole === 'platform_admin') return true;
+    if (!req || req.length === 0) return isFullAccess;
+    return req.some(p => userPerms.includes(p));
+  }, [userRole, isFullAccess, userPerms]);
+
+  const getRequiredPerms = useCallback((item) => {
+    const r = item.route || '';
+    if (r.includes('pos')) return ['pos'];
+    if (/inventory|production/.test(r)) return ['inventory'];
+    if (r.includes('sales')) return ['sales', 'sales_view'];
+    if (/reports|finance/.test(r)) return ['reports', 'finance'];
+    if (r.includes('settings')) return ['settings'];
+    if (/parties|customer/.test(r)) return ['customers'];
+    return [];
+  }, []);
+
+  const results = useMemo(() => {
+    if (!query?.trim()) return [];
+    return searchRegistry(query.trim()).filter(i => checkPerm(getRequiredPerms(i)));
+  }, [query, checkPerm, getRequiredPerms]);
+
+  useEffect(() => {
+    if (!query || query.trim().length < 2 || !store?.slug) return;
+    const q = query.trim();
+    const t = setTimeout(() => {
+      setActivity('search');
+      setIsSearchingDb(true);
+      window.axios?.get(route('store.global.search', { store_slug: store.slug }), { params: { query: q } })
+        .then(res => setDbResults(res.data || []))
+        .catch(() => setDbResults([]))
+        .finally(() => { setIsSearchingDb(false); setActivity('idle'); });
+    }, 240);
+    return () => clearTimeout(t);
+  }, [query, store?.slug]);
+
+  const saveRecent = (text) => {
+    if (!text?.trim()) return;
+    const next = [text, ...recentQueries.filter(q => q.toLowerCase() !== text.toLowerCase())].slice(0, 6);
+    setRecentQueries(next);
+    try { localStorage.setItem(STORAGE_RECENT_QUERIES, JSON.stringify(next)); } catch {}
+  };
+
+  const askVena = (text) => {
+    if (!store?.slug || !text?.trim()) return;
+    haptic('click');
+    setIsAiAnswering(true);
+    setActivity('compute');
+    setAiAnswer(null);
+    saveRecent(text);
+    if (onAskAi) onAskAi(text);
+    window.axios?.post(route('store.ai.query', { store_slug: store.slug }), { message: text })
+      .then(res => {
+        const d = res.data || {};
+        const body = d.response || d.answer || d.summary;
+        if (body) {
+          setAiAnswer({ text: body, records: d.records || [] });
+          haptic('success');
+        }
+      })
+      .catch(err => console.error('Island AI error:', err))
+      .finally(() => { setIsAiAnswering(false); setActivity('idle'); });
+  };
+
+  const navigateToItem = (item) => {
+    try {
+      haptic('pop');
+      const name = item.route.startsWith('store.') ? item.route : `store.${item.route}`;
+      router.visit(route(name, { ...item.queryParams, store_slug: store?.slug }));
+      closeIsland();
+    } catch {
+      closeIsland();
+    }
+  };
+
+  const totalSelectable = results.length + dbResults.length;
+  const onInputKey = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault(); haptic('click');
+      setSelectedIndex(p => (p + 1) % Math.max(1, totalSelectable));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault(); haptic('click');
+      setSelectedIndex(p => (p - 1 + totalSelectable) % Math.max(1, totalSelectable));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (results[selectedIndex]) return navigateToItem(results[selectedIndex]);
+      const db = dbResults[selectedIndex - results.length];
+      if (db?.url) { haptic('pop'); router.visit(db.url); return closeIsland(); }
+      if (query.trim().length > 1) askVena(query.trim());
+    }
+  };
+
+  // Mic means the same thing everywhere in the island: speak instead of type.
+  const dictation = useDictation({
+    locale: store?.locale,
+    onText: setQuery,
+    onFinal: (text) => { if (text?.trim()) saveRecent(text.trim()); },
+  });
+
+  const startDictation = useCallback(() => {
+    haptic('click');
+    if (mode !== 'open' || tab !== 'ask') { setTab('ask'); setMode('open'); }
+    setTimeout(() => dictation.toggle(query), mode === 'open' ? 0 : 260);
+  }, [dictation, haptic, mode, tab, query]);
+
+  const suggestionFeed = useMemo(() => buildSuggestionFeed(recentQueries), [recentQueries]);
+
+  const busy = isAiAnswering || isSearchingDb || isAiLoading;
+  const orbState = dictation.listening
+    ? ORB_FOR.chat
+    : ORB_FOR[busy ? (isAiAnswering ? 'compute' : 'search') : activity] || ORB_FOR.idle;
+
+  const allAlerts = useMemo(
+    () => [...(extraAlerts || []), ...(notifications.latest || [])],
+    [extraAlerts, notifications.latest]
+  );
+  const unread = (notifications.unread_count || 0) + (extraAlerts?.length || 0);
+
+  const badge = unread > 0 && (
+    <motion.span
+      initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 600, damping: 24 }}
+      className="grid place-items-center shrink-0"
+      style={{ ...T.caption, fontWeight: 700, height: 22, minWidth: 22, padding: '0 7px',
+               borderRadius: 999, background: '#23C4A6', color: '#062421' }}
+    >
+      {unread > 99 ? '99+' : unread}
+    </motion.span>
+  );
+
+  const iconBtn = (onClick, title, children, accent) => (
+    <button
+      type="button" onClick={onClick} title={title} aria-label={title}
+      className="grid place-items-center shrink-0 rounded-xl"
+      style={{ width: 34, height: 34, color: accent || `${INK}.6)`,
+               background: `${INK}.06)`, transition: 'background 120ms var(--vq-ease-out)' }}
+    >
+      {children}
+    </button>
+  );
+
+  return (
+    <>
+      <IslandShell
+        width={width}
+        height={height}
+        restWidth={restWidth}
+        restHeight={restHeight}
+        isOpen={isOpen}
+        isAlert={mode === 'alert'}
+        tone={tone}
+        sheen={!isOpen}
+        onScrimClick={closeIsland}
+        onHoverChange={setHovered}
+        slotClassName="shrink-0"
+        ariaLabel="VenQore AI and notifications"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+
+          {/* ── REST ─────────────────────────────────────────────────────── */}
+          {mode === 'rest' && (
+            <Pane key="rest">
+              <div
+                className="w-full h-full flex items-center gap-2"
+                style={{ padding: compact && !hovered ? '0 14px' : '0 8px 0 14px' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => openIsland('ask')}
+                  className="flex-1 min-w-0 h-full flex items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#23C4A6]/60 rounded-xl"
+                  aria-label="Open VenQore AI"
+                >
+                  <span className="shrink-0 grid place-items-center" style={{ width: 26, height: 26 }}>
+                    <ThinkingOrb state={orbState} size={24} theme="dark" paused={orbPaused} />
+                  </span>
+
+                  {compact ? (
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={hovered ? 'open' : 'idle'}
+                        initial={{ opacity: 0, y: 5, filter: 'blur(3px)' }}
+                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
+                        transition={{ duration: DUR.d2, ease: EASE_OUT }}
+                        className="flex-1 min-w-0 truncate"
+                        style={{ ...T.small, fontWeight: 600, color: `${INK}${hovered ? '.72)' : '.88)'}` }}
+                      >
+                        {hovered ? 'Ask Vena anything, or scan a document' : 'Ask Vena'}
+                      </motion.span>
+                    </AnimatePresence>
+                  ) : (
+                    <span className="flex-1 min-w-0 overflow-hidden">
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={tickerIndex}
+                          initial={{ opacity: 0, y: 7, filter: 'blur(3px)' }}
+                          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                          exit={{ opacity: 0, y: -7, filter: 'blur(3px)' }}
+                          transition={{ duration: DUR.d3, ease: EASE_OUT }}
+                          className="block truncate"
+                          style={{ ...T.small, color: `${INK}.78)` }}
                         >
-                            <div className="flex items-center justify-between gap-3">
-                                {/* Left Icon */}
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                    <div
-                                        className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-md ${
-                                            islandState === 'critical'
-                                                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                        }`}
-                                    >
-                                        {islandState === 'critical' ? (
-                                            <AlertCircle className="w-4 h-4 animate-pulse" />
-                                        ) : (
-                                            <AlertTriangle className="w-4 h-4" />
-                                        )}
-                                    </div>
-                                    <div className="leading-tight text-left min-w-0">
-                                        <p className="text-xs font-bold text-white tracking-tight flex items-center gap-1.5 truncate">
-                                            {activeNotification?.title || (islandState === 'critical' ? 'Critical Alert' : 'System Alert')}
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
-                                        </p>
-                                        <p className="text-[11px] text-neutral-300 truncate max-w-[220px] sm:max-w-[260px]">
-                                            {activeNotification?.message || activeNotification?.desc || 'Action required in your store.'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Right Actions */}
-                                <div className="flex items-center gap-1.5 mr-4 shrink-0">
-                                    {activeNotification?.action_url ? (
-                                        <Link
-                                            href={activeNotification.action_url}
-                                            onClick={() => setIslandState('rest')}
-                                            className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-semibold text-white transition-all active:scale-95"
-                                        >
-                                            {activeNotification.action_text || 'View'}
-                                        </Link>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={openIsland}
-                                            className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-semibold text-white transition-all active:scale-95"
-                                        >
-                                            Review
-                                        </button>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={dismissNotification}
-                                        className="p-1 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-                                        title="Dismiss Alert"
-                                    >
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Linear Auto-dismiss Progress Bar */}
-                            <div className="w-full h-0.5 bg-white/10 rounded-full overflow-hidden mt-1">
-                                <div
-                                    className={`h-full transition-all duration-100 ease-linear ${
-                                        islandState === 'critical' ? 'bg-red-400' : 'bg-amber-400'
-                                    }`}
-                                    style={{ width: `${alertCountdown}%` }}
-                                />
-                            </div>
-                        </section>
-                    )}
+                          {ambient[tickerIndex]}
+                        </motion.span>
+                      </AnimatePresence>
+                    </span>
+                  )}
                 </button>
-            )}
 
-            {/* ═══════════════════════════════════════════════════════════════════════ */}
-            {/* 2. FOCUSED EXPANDED OVERLAY (Mounted via Portal for crisp layering)     */}
-            {/* ═══════════════════════════════════════════════════════════════════════ */}
-            {typeof document !== 'undefined' && createPortal(
-                <AnimatePresence>
-                    {islandState === 'focused' && (
-                        <div className="fixed inset-0 z-[99999] flex items-start justify-center pt-3 px-3 sm:px-4 select-none">
-                            {/* Backdrop Blur Overlay */}
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.18 }}
-                                onClick={closeIsland}
-                                className="fixed inset-0 bg-black/65 backdrop-blur-md"
-                            />
+                {/* Mic and camera live on the pill itself: the two fastest ways
+                    in are speaking and scanning, and burying them behind an
+                    expand made you open the hub to reach a shortcut. */}
+                <AnimatePresence initial={false}>
+                  {!(compact && !hovered) && (
+                    <motion.span
+                      key="pill-actions"
+                      initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                      animate={{ opacity: 1, scale: 1, width: 'auto' }}
+                      exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                      transition={{ duration: DUR.d2, ease: EASE_OUT }}
+                      className="flex items-center gap-1.5 shrink-0 overflow-hidden"
+                    >
+                      {badge}
+                      {dictation.supported && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); startDictation(); }}
+                          className="grid place-items-center shrink-0 rounded-xl"
+                          style={{
+                            width: 32, height: 32,
+                            background: dictation.listening ? '#23C4A6' : `${INK}.07)`,
+                            color: dictation.listening ? '#062421' : `${INK}.62)`,
+                            transition: 'background 120ms var(--vq-ease-out), color 120ms var(--vq-ease-out)',
+                          }}
+                          title="Speak your question"
+                          aria-label="Speak your question"
+                        >
+                          <Mic size={16} />
+                        </button>
+                      )}
+                      {canUseSmartCapture && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); openCapture('image'); }}
+                          className="grid place-items-center shrink-0 rounded-xl"
+                          style={{ width: 32, height: 32, background: `${INK}.07)`, color: `${INK}.62)` }}
+                          title="Scan a document"
+                          aria-label="Scan a document"
+                        >
+                          <Camera size={16} />
+                        </button>
+                      )}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+            </Pane>
+          )}
 
-                            {/* Expanded Island Spotlight Card */}
-                            <motion.div
-                                initial={{ opacity: 0, y: -26, scale: 0.93 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -18, scale: 0.94 }}
-                                transition={{ type: 'spring', stiffness: 480, damping: 34, mass: 0.75 }}
-                                className="relative w-full max-w-2xl rounded-3xl border border-white/[0.12] bg-[#07090e]/95 text-white shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.1)] overflow-hidden z-10 backdrop-blur-2xl"
-                            >
-                                {/* Top Search Input Bar */}
-                                <div className="relative flex items-center px-4 py-3.5 border-b border-white/10 bg-white/[0.02]">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white shrink-0 mr-3 shadow-md shadow-indigo-500/30">
-                                        {isAiAnswering || isSearchingDb ? (
-                                            <Loader2 size={15} className="animate-spin" />
-                                        ) : (
-                                            <Sparkles size={15} className="animate-pulse" />
-                                        )}
-                                    </div>
+          {/* ── WORKING ──────────────────────────────────────────────────── */}
+          {mode === 'working' && (
+            <Pane key="working">
+              <div className="w-full h-full flex items-center gap-3 px-4">
+                <span className="shrink-0 grid place-items-center" style={{ width: 26, height: 26 }}>
+                  <ThinkingOrb state={ORB_FOR[activity] || 'connecting'} size={24} theme="dark" paused={orbPaused} />
+                </span>
+                <span className="flex-1 truncate" style={{ ...T.small, fontWeight: 600, color: `${INK}.92)` }}>
+                  {workingLabel || 'Working'}
+                </span>
+              </div>
+            </Pane>
+          )}
 
-                                    <input
-                                        id="ai-island-input"
-                                        ref={inputRef}
-                                        type="text"
-                                        value={query}
-                                        onChange={(e) => handleQueryChange(e.target.value)}
-                                        onKeyDown={handleKeyDown}
-                                        placeholder="Ask Reckoner AI (e.g. sales today, net profit, stock) or search screens & records..."
-                                        className="flex-1 bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-sm font-medium h-9 text-white placeholder:text-neutral-400"
-                                        autoComplete="off"
-                                    />
+          {/* ── ALERT ────────────────────────────────────────────────────── */}
+          {mode === 'alert' && (
+            <Pane key="alert">
+              <div
+                className="w-full h-full flex flex-col justify-between px-4 py-3"
+                onMouseEnter={() => setIsHoveringAlert(true)}
+                onMouseLeave={() => setIsHoveringAlert(false)}
+              >
+                <div className="flex items-center gap-3">
+                  <motion.span
+                    initial={{ scale: 0.6, rotate: -12 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 26 }}
+                    className="grid place-items-center shrink-0 rounded-2xl"
+                    style={{
+                      width: 38, height: 38,
+                      background: activeNotification?.severity === 'critical' ? 'rgba(255,138,107,.16)' : 'rgba(255,205,91,.16)',
+                      color: activeNotification?.severity === 'critical' ? '#FFAE96' : '#FFDD8E',
+                    }}
+                  >
+                    {activeNotification?.severity === 'critical'
+                      ? <AlertCircle size={19} />
+                      : <AlertTriangle size={19} />}
+                  </motion.span>
 
-                                    <div className="flex items-center gap-1.5 ml-2">
-                                        {/* Smart Scan Trigger (Camera) */}
-                                        {canUseSmartCapture && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    playIslandHaptic('pop', soundEnabled);
-                                                    setSmartCaptureTab('image');
-                                                    setIsSmartCaptureOpen(true);
-                                                }}
-                                                className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
-                                                title="AI Smart Scan (Invoice / Barcode / Receipt)"
-                                            >
-                                                <Camera size={16} />
-                                            </button>
-                                        )}
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate" style={{ ...T.small, fontWeight: 700, color: '#F1F5F2' }}>
+                      {activeNotification?.title || 'Store alert'}
+                    </p>
+                    <p className="truncate" style={{ ...T.caption, color: `${INK}.65)` }}>
+                      {activeNotification?.message || activeNotification?.desc || 'Action required in your store.'}
+                    </p>
+                  </div>
 
-                                        {/* Sound Toggle */}
-                                        <button
-                                            type="button"
-                                            onClick={toggleSound}
-                                            className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
-                                            title={soundEnabled ? 'Mute Sounds' : 'Enable Sounds'}
-                                        >
-                                            {soundEnabled ? <Volume2 size={16} className="text-emerald-400" /> : <VolumeX size={16} />}
-                                        </button>
-
-                                        {query.length > 0 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    handleQueryChange('');
-                                                    setAiAnswer(null);
-                                                    playIslandHaptic('click', soundEnabled);
-                                                }}
-                                                className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
-                                            >
-                                                <X size={15} />
-                                            </button>
-                                        )}
-
-                                        <button
-                                            type="button"
-                                            onClick={closeIsland}
-                                            className="px-2 py-1 text-3xs font-mono font-semibold rounded-md bg-white/10 text-neutral-400 hover:text-white hover:bg-white/20 transition-colors"
-                                        >
-                                            ESC
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Loading / Computing Shimmer Line */}
-                                {(isAiAnswering || isSearchingDb) && (
-                                    <div className="h-0.5 w-full bg-neutral-800 overflow-hidden">
-                                        <div className="h-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-[shimmer_1.4s_infinite] w-full" />
-                                    </div>
-                                )}
-
-                                {/* Category Tabs Filter Bar */}
-                                {query && (
-                                    <div className="flex items-center gap-1.5 px-4 py-2 border-b border-white/5 bg-black/20 text-xs font-semibold">
-                                        {[
-                                            { id: 'all', label: 'All Results' },
-                                            { id: 'ai', label: 'Reckoner AI' },
-                                            { id: 'screens', label: `Screens (${results.length})` },
-                                            { id: 'records', label: `Records (${dbResults.length})` },
-                                        ].map(tab => (
-                                            <button
-                                                type="button"
-                                                key={tab.id}
-                                                onClick={() => {
-                                                    setActiveTab(tab.id);
-                                                    playIslandHaptic('click', soundEnabled);
-                                                }}
-                                                className={`px-2.5 py-1 rounded-lg text-3xs uppercase tracking-wider transition-all ${
-                                                    activeTab === tab.id
-                                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                                                }`}
-                                            >
-                                                {tab.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Main Results & Intelligence Body */}
-                                <div className="max-h-[460px] overflow-y-auto custom-scrollbar p-3 space-y-3.5">
-                                    {/* ── 1. AI Answer Box ── */}
-                                    {aiAnswer && (
-                                        <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-white">
-                                            <div className="flex items-center justify-between mb-2 pb-2 border-b border-emerald-500/20">
-                                                <div className="flex items-center gap-2 font-bold text-emerald-400">
-                                                    <Sparkles size={15} />
-                                                    <span>Reckoner Intelligence Response</span>
-                                                </div>
-                                                <span className="text-3xs font-mono text-emerald-400/80">Real-time DB Sync</span>
-                                            </div>
-                                            <p className="whitespace-pre-line leading-relaxed text-neutral-200">{aiAnswer.text}</p>
-                                        </div>
-                                    )}
-
-                                    {/* ── 2. If Query is Empty: Quick Suggested Prompts, Recents & Growth Engine ── */}
-                                    {!query && (
-                                        <div className="space-y-4 py-1">
-                                            {/* Quick Reckoner Calculations */}
-                                            <div>
-                                                <p className="px-2 mb-2 text-3xs font-bold uppercase tracking-wider text-neutral-400">
-                                                    Instant Reckoner Calculations
-                                                </p>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                                    {[
-                                                        { label: "Today's Sales Summary", prompt: "sales today", icon: DollarSign },
-                                                        { label: 'Net Profit This Month', prompt: 'profit this month', icon: TrendingUp },
-                                                        { label: 'Low Stock Alert Items', prompt: 'low stock', icon: Box },
-                                                        { label: 'Customer Receivables Total', prompt: 'receivables', icon: Users },
-                                                    ].map((item, idx) => {
-                                                        const Icon = item.icon;
-                                                        return (
-                                                            <button
-                                                                type="button"
-                                                                key={idx}
-                                                                onClick={() => handleQuickPrompt(item.prompt)}
-                                                                className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] text-left transition-colors text-xs font-semibold group text-neutral-200 border border-white/[0.04]"
-                                                            >
-                                                                <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20">
-                                                                    <Icon size={14} />
-                                                                </div>
-                                                                <span className="flex-1 truncate">{item.label}</span>
-                                                                <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-
-                                            {/* Recent Queries */}
-                                            {recentQueries.length > 0 && (
-                                                <div>
-                                                    <div className="flex items-center justify-between px-2 mb-1.5">
-                                                        <p className="text-3xs font-bold uppercase tracking-wider text-neutral-400">
-                                                            Recent Searches
-                                                        </p>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setRecentQueries([]);
-                                                                localStorage.removeItem(STORAGE_RECENT_QUERIES);
-                                                            }}
-                                                            className="text-3xs text-neutral-500 hover:text-neutral-300"
-                                                        >
-                                                            Clear
-                                                        </button>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-1.5 px-2">
-                                                        {recentQueries.map((rq, idx) => (
-                                                            <button
-                                                                type="button"
-                                                                key={idx}
-                                                                onClick={() => handleQuickPrompt(rq)}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-xs text-neutral-300 hover:text-white transition-colors border border-white/5"
-                                                            >
-                                                                <Clock size={12} className="text-neutral-500" />
-                                                                <span>{rq}</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Growth Engine Opportunities */}
-                                            {growth_engine?.count > 0 && (
-                                                <div className="p-3 rounded-2xl bg-purple-950/20 border border-purple-500/20">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
-                                                            <Zap size={14} className="text-amber-400" />
-                                                            <span>Growth Engine Opportunities</span>
-                                                        </div>
-                                                        <Link
-                                                            href={route('store.growth-engine.index', { store_slug: store?.slug })}
-                                                            onClick={closeIsland}
-                                                            className="text-3xs text-purple-300 hover:underline flex items-center gap-0.5 font-bold"
-                                                        >
-                                                            View All <ArrowUpRight size={10} />
-                                                        </Link>
-                                                    </div>
-                                                    <p className="text-xs text-neutral-300">
-                                                        {growth_engine?.popup?.description || `${growth_engine.count} high-impact recommendations ready for review.`}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* ── 3. If Query is Present: AI Prompt + Registry + Database Results ── */}
-                                    {query && (
-                                        <div className="space-y-3">
-                                            {/* Ask Reckoner AI Prompt Banner */}
-                                            {!aiAnswer && (activeTab === 'all' || activeTab === 'ai') && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleQuickPrompt(query)}
-                                                    className="w-full flex items-center gap-3 p-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-left transition-colors text-xs font-semibold text-emerald-300 group"
-                                                >
-                                                    <div className="p-2 rounded-xl bg-emerald-500 text-black shadow-md shadow-emerald-500/30">
-                                                        <Sparkles size={16} />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-bold text-white truncate">Ask Reckoner AI: "{query}"</p>
-                                                        <p className="text-3xs text-neutral-400">Compute metrics, summarize trends or query database</p>
-                                                    </div>
-                                                    <CornerDownLeft size={14} className="text-emerald-400 group-hover:translate-x-0.5 transition-transform" />
-                                                </button>
-                                            )}
-
-                                            {/* App Screens from AppRegistry */}
-                                            {(activeTab === 'all' || activeTab === 'screens') && results.length > 0 && (
-                                                <div>
-                                                    <p className="px-2 mb-1.5 text-3xs font-bold uppercase tracking-wider text-neutral-400">
-                                                        Screens & Features ({results.length})
-                                                    </p>
-                                                    <div className="space-y-1">
-                                                        {results.slice(0, 6).map((item, idx) => {
-                                                            const Icon = item.icon || FileText;
-                                                            const isSelected = selectedIndex === idx;
-                                                            return (
-                                                                <button
-                                                                    type="button"
-                                                                    key={item.id || idx}
-                                                                    onClick={() => navigateToItem(item)}
-                                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all text-xs font-semibold ${
-                                                                        isSelected
-                                                                            ? 'bg-emerald-600 text-white shadow-md'
-                                                                            : 'hover:bg-white/10 text-neutral-200'
-                                                                    }`}
-                                                                >
-                                                                    <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/5 text-neutral-300'}`}>
-                                                                        <Icon size={14} />
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="truncate font-bold">{item.title}</p>
-                                                                        <p className={`text-3xs truncate ${isSelected ? 'text-white/80' : 'text-neutral-400'}`}>{item.subtitle}</p>
-                                                                    </div>
-                                                                    <ChevronRight size={14} className="opacity-60" />
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Database Records */}
-                                            {(activeTab === 'all' || activeTab === 'records') && dbResults.length > 0 && (
-                                                <div>
-                                                    <p className="px-2 mb-1.5 text-3xs font-bold uppercase tracking-wider text-neutral-400">
-                                                        Database Records ({dbResults.length})
-                                                    </p>
-                                                    <div className="space-y-1">
-                                                        {dbResults.slice(0, 6).map((item, idx) => {
-                                                            const isSelected = selectedIndex === results.length + idx;
-                                                            return (
-                                                                <a
-                                                                    key={idx}
-                                                                    href={item.url}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        if (item.url) {
-                                                                            playIslandHaptic('pop', soundEnabled);
-                                                                            router.visit(item.url);
-                                                                            closeIsland();
-                                                                        }
-                                                                    }}
-                                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all text-xs font-semibold ${
-                                                                        isSelected
-                                                                            ? 'bg-emerald-600 text-white shadow-md'
-                                                                            : 'hover:bg-white/10 text-neutral-200'
-                                                                    }`}
-                                                                >
-                                                                    <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/5 text-neutral-300'}`}>
-                                                                        <Box size={14} />
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="truncate font-bold">{item.title || item.name}</p>
-                                                                        <p className={`text-3xs truncate ${isSelected ? 'text-white/80' : 'text-neutral-400'}`}>{item.type || 'Record'}</p>
-                                                                    </div>
-                                                                    <ArrowUpRight size={14} className="opacity-60" />
-                                                                </a>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {results.length === 0 && dbResults.length === 0 && !aiAnswer && !isAiAnswering && !isSearchingDb && (
-                                                <div className="p-6 text-center text-neutral-400 text-xs">
-                                                    <p>No direct screens or database matches found.</p>
-                                                    <p className="text-3xs mt-1 text-neutral-500">Press Enter or click above to compute with Reckoner AI.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Footer / Keyboard Shortcuts */}
-                                <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/10 bg-black/40 text-3xs text-neutral-400">
-                                    <div className="flex items-center gap-3">
-                                        <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded font-mono text-neutral-300">↑↓</kbd> Navigate</span>
-                                        <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded font-mono text-neutral-300">↵</kbd> Select</span>
-                                        <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded font-mono text-neutral-300">ESC</kbd> Close</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                        <span className="font-mono text-4xs uppercase tracking-widest text-neutral-400">VenQore Dynamic Island</span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {activeNotification?.action_url ? (
+                      <Link
+                        href={activeNotification.action_url}
+                        onClick={() => setMode('rest')}
+                        className="rounded-xl"
+                        style={{ ...T.caption, fontWeight: 700, padding: '8px 14px', background: '#23C4A6', color: '#062421' }}
+                      >
+                        {activeNotification.action_text || 'View'}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openIsland('alerts')}
+                        className="rounded-xl"
+                        style={{ ...T.caption, fontWeight: 700, padding: '8px 14px', background: '#23C4A6', color: '#062421' }}
+                      >
+                        Review
+                      </button>
                     )}
-                </AnimatePresence>,
-                document.body
-            )}
+                    <button
+                      type="button" onClick={dismissAlert}
+                      className="grid place-items-center rounded-lg"
+                      style={{ width: 30, height: 30, color: `${INK}.55)` }}
+                      aria-label="Dismiss alert"
+                    >
+                      <X size={17} />
+                    </button>
+                  </div>
+                </div>
 
-            {/* Smart Capture Intake Panel */}
-            {canUseSmartCapture && (
-                <SmartCapturePanel
-                    isOpen={isSmartCaptureOpen}
-                    onClose={() => setIsSmartCaptureOpen(false)}
-                    initialTab={smartCaptureTab}
-                />
-            )}
-        </div>
-    );
+                <div className="w-full rounded-full overflow-hidden" style={{ height: 3, background: `${INK}.12)` }}>
+                  <motion.div
+                    className="h-full rounded-full"
+                    animate={{ width: `${alertCountdown}%` }}
+                    transition={{ duration: 0.08, ease: 'linear' }}
+                    style={{ background: activeNotification?.severity === 'critical' ? '#FF8A6B' : '#FFCD5B' }}
+                  />
+                </div>
+              </div>
+            </Pane>
+          )}
+
+          {/* ── OPEN HUB ─────────────────────────────────────────────────── */}
+          {mode === 'open' && (
+            <Pane key="open">
+              <div className="w-full h-full flex flex-col">
+
+                {/* Tab rail. The active pill is a shared layoutId, so it SLIDES
+                    between tabs rather than cross-fading. */}
+                <div className="flex items-center gap-2 px-4 pt-4 pb-3 shrink-0">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto custom-scrollbar">
+                    {TABS.map((t) => {
+                      const Icon = t.icon;
+                      const active = tab === t.id;
+                      const count = t.id === 'alerts' ? unread
+                                  : t.id === 'growth' ? (growth_engine?.count || 0) : 0;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => { setTab(t.id); haptic('click'); }}
+                          className="relative flex items-center gap-2 rounded-xl shrink-0"
+                          style={{ ...T.caption, fontWeight: 700, padding: '9px 14px',
+                                   color: active ? '#062421' : `${INK}.66)` }}
+                        >
+                          {active && (
+                            <motion.span
+                              layoutId="island-tab"
+                              className="absolute inset-0 rounded-xl"
+                              style={{ background: '#23C4A6' }}
+                              transition={{ type: 'spring', stiffness: 480, damping: 36 }}
+                            />
+                          )}
+                          <span className="relative flex items-center gap-2">
+                            <Icon size={15} />
+                            <span>{t.label}</span>
+                            {count > 0 && (
+                              <span
+                                className="rounded-full"
+                                style={{ ...T.eyebrow, letterSpacing: 0, padding: '1px 6px',
+                                  background: active ? 'rgba(6,36,33,.22)' : 'rgba(35,196,166,.22)',
+                                  color: active ? '#062421' : '#59DBC0' }}
+                              >
+                                {count}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {iconBtn(toggleSound, soundEnabled ? 'Mute island sounds' : 'Enable island sounds',
+                    soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />)}
+                  <button
+                    type="button" onClick={closeIsland}
+                    className="rounded-xl shrink-0"
+                    style={{ ...T.caption, fontWeight: 700, padding: '8px 13px',
+                             background: `${INK}.08)`, color: `${INK}.65)` }}
+                  >
+                    ESC
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 min-h-0 px-4 pb-4">
+                  <AnimatePresence mode="wait" initial={false}>
+
+                    {/* ── ASK VENA ─────────────────────────────────────── */}
+                    {tab === 'ask' && (
+                      <motion.div key="ask" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
+                        <PaneShell
+                          tab="ask" orbState={orbState} paused={orbPaused} flush
+                          right={
+                            <span className="flex items-center gap-2">
+                              {canUseSmartCapture && iconBtn(() => openCapture('image'), 'Scan a document', <Camera size={17} />, '#93EBD6')}
+                              {canUseSmartCapture && iconBtn(() => openCapture('audio'), 'Speak a transaction', <Mic size={17} />, '#93EBD6')}
+                            </span>
+                          }
+                        >
+                          <div className="flex flex-col h-full min-h-0">
+                            {/* Search bar. The native caret is a 1px hairline
+                                that disappears against the mesh — SmoothCaretInput
+                                (already in the repo, unused until now) draws a
+                                spring-driven caret that glides to the insertion
+                                point and glows enough to find. */}
+                            <div className="flex items-center gap-3 px-4 shrink-0"
+                                 style={{ height: 60, borderBottom: `1px solid ${INK}.08)` }}>
+                              <Search size={19} style={{ color: `${INK}.5)`, flex: 'none' }} />
+                              <SmoothCaretInput
+                                id="ai-island-input"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={onInputKey}
+                                placeholder={dictation.listening ? 'Listening…' : 'Ask Vena, or search screens and records…'}
+                                autoComplete="off"
+                                caretColor="bg-[#23C4A6]"
+                                className="flex-1 min-w-0"
+                                inputClassName="!bg-transparent !border-0 !rounded-none !px-0 !py-0 !text-[17px] !leading-[1.6] !font-medium !text-[#F1F5F2] placeholder:!text-[rgba(241,245,242,0.42)] focus:!ring-0 focus:!border-transparent"
+                              />
+                              {dictation.supported && (
+                                <button
+                                  type="button"
+                                  onClick={() => dictation.toggle(query)}
+                                  className="grid place-items-center shrink-0 rounded-xl"
+                                  style={{
+                                    width: 36, height: 36,
+                                    background: dictation.listening ? '#23C4A6' : `${INK}.06)`,
+                                    color: dictation.listening ? '#062421' : `${INK}.62)`,
+                                    transition: 'background 120ms var(--vq-ease-out), color 120ms var(--vq-ease-out)',
+                                  }}
+                                  title={dictation.listening ? 'Stop listening' : 'Speak your question'}
+                                  aria-label={dictation.listening ? 'Stop listening' : 'Speak your question'}
+                                >
+                                  {dictation.listening
+                                    ? <motion.span
+                                        animate={{ scale: [1, 1.18, 1] }}
+                                        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+                                        className="grid place-items-center"
+                                      ><Mic size={17} /></motion.span>
+                                    : <Mic size={17} />}
+                                </button>
+                              )}
+                              {query && (
+                                <button type="button" onClick={() => { setQuery(''); setAiAnswer(null); }}
+                                        className="grid place-items-center shrink-0"
+                                        style={{ width: 30, height: 30, color: `${INK}.5)` }}
+                                        aria-label="Clear search">
+                                  <X size={18} />
+                                </button>
+                              )}
+                            </div>
+
+                            <div className="relative flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 space-y-2.5">
+                              {aiAnswer && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: DUR.d3, ease: EASE_OUT }}
+                                  className="p-4 rounded-2xl"
+                                  style={{ background: 'rgba(35,196,166,.12)', boxShadow: 'inset 0 0 0 1px rgba(35,196,166,.28)' }}
+                                >
+                                  <p className="flex items-center gap-2 mb-2" style={{ ...T.eyebrow, color: '#59DBC0' }}>
+                                    <Sparkles size={14} /> Vena
+                                  </p>
+                                  <p className="whitespace-pre-line" style={{ ...T.small, color: `${INK}.94)` }}>{aiAnswer.text}</p>
+                                </motion.div>
+                              )}
+
+                              {query && !aiAnswer && (
+                                <button type="button" onClick={() => askVena(query)}
+                                  className="w-full flex items-center gap-3 p-3 rounded-2xl text-left"
+                                  style={{ background: 'rgba(35,196,166,.12)', boxShadow: 'inset 0 0 0 1px rgba(35,196,166,.3)' }}>
+                                  <span className="p-2 rounded-xl shrink-0" style={{ background: '#23C4A6', color: '#062421' }}>
+                                    <Sparkles size={16} />
+                                  </span>
+                                  <span className="flex-1 min-w-0">
+                                    <span className="block truncate" style={{ ...T.small, fontWeight: 700, color: '#F1F5F2' }}>Ask Vena: “{query}”</span>
+                                    <span className="block" style={{ ...T.caption, color: `${INK}.6)` }}>Computes against live store data</span>
+                                  </span>
+                                  <CornerDownLeft size={16} style={{ color: '#59DBC0' }} />
+                                </button>
+                              )}
+
+                              {!query && !aiAnswer && (
+                                <div className="absolute inset-0 px-3 pb-3 pt-1">
+                                  <SuggestionList
+                                    feed={suggestionFeed}
+                                    onPick={(prompt) => { setQuery(prompt); askVena(prompt); }}
+                                  />
+                                </div>
+                              )}
+
+                              {results.slice(0, 6).map((item, i) => {
+                                const Icon = item.icon || FileText;
+                                const sel = selectedIndex === i;
+                                return (
+                                  <button key={item.id || i} type="button" onClick={() => navigateToItem(item)}
+                                    className="w-full flex items-center gap-3 p-3 rounded-2xl text-left"
+                                    style={{ background: sel ? '#23C4A6' : `${INK}.05)`,
+                                             color: sel ? '#062421' : `${INK}.9)` }}>
+                                    <Icon size={16} className="shrink-0" />
+                                    <span className="flex-1 min-w-0 truncate" style={{ ...T.small, fontWeight: 600 }}>{item.title}</span>
+                                    <ChevronRight size={15} className="opacity-60" />
+                                  </button>
+                                );
+                              })}
+
+                              {dbResults.slice(0, 6).map((item, i) => {
+                                const sel = selectedIndex === results.length + i;
+                                return (
+                                  <button key={i} type="button"
+                                    onClick={() => { if (item.url) { haptic('pop'); router.visit(item.url); closeIsland(); } }}
+                                    className="w-full flex items-center gap-3 p-3 rounded-2xl text-left"
+                                    style={{ background: sel ? '#23C4A6' : `${INK}.05)`,
+                                             color: sel ? '#062421' : `${INK}.9)` }}>
+                                    <Box size={16} className="shrink-0" />
+                                    <span className="flex-1 min-w-0 truncate" style={{ ...T.small, fontWeight: 600 }}>{item.title || item.name}</span>
+                                    <ArrowUpRight size={15} className="opacity-60" />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </PaneShell>
+                      </motion.div>
+                    )}
+
+                    {/* ── SUPPORT ──────────────────────────────────────── */}
+                    {tab === 'chat' && (
+                      <motion.div key="chat" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
+                        <PaneShell tab="chat" orbState="listening" paused={orbPaused} flush>
+                          <div className="h-full min-h-0 overflow-hidden" style={{ background: 'var(--vq-surface)' }}>
+                            <ChatWidget embedded />
+                          </div>
+                        </PaneShell>
+                      </motion.div>
+                    )}
+
+                    {/* ── GROWTH ───────────────────────────────────────── */}
+                    {tab === 'growth' && (
+                      <motion.div key="growth" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
+                        <PaneShell tab="growth" orbState="weaving" paused={orbPaused}>
+                          {growth_engine?.count > 0 ? (
+                            <motion.div variants={listVariants} initial="initial" animate="animate" className="space-y-3">
+                              <motion.div variants={itemVariants} className="p-4 rounded-2xl"
+                                style={{ background: `${INK}.06)`, boxShadow: 'inset 0 0 0 1px rgba(224,180,224,.22)' }}>
+                                <p className="flex items-center gap-2 mb-1.5" style={{ ...T.body, fontWeight: 700, color: '#E0B4E0' }}>
+                                  <Zap size={18} /> {growth_engine.count} opportunities
+                                </p>
+                                <p style={{ ...T.small, color: `${INK}.82)` }}>
+                                  {growth_engine?.popup?.description || 'High-impact recommendations ready for review.'}
+                                </p>
+                              </motion.div>
+                              <motion.div variants={itemVariants}>
+                                <Link href={route('store.growth-engine.index', { store_slug: store?.slug })} onClick={closeIsland}
+                                  className="w-full flex items-center justify-center gap-2 rounded-2xl"
+                                  style={{ ...T.small, fontWeight: 700, padding: '13px 16px', background: '#23C4A6', color: '#062421' }}>
+                                  Open Growth Engine <ArrowUpRight size={16} />
+                                </Link>
+                              </motion.div>
+                            </motion.div>
+                          ) : (
+                            <div className="h-full grid place-items-center text-center px-6">
+                              <div>
+                                <div className="mx-auto mb-3 grid place-items-center" style={{ width: 64, height: 64 }}>
+                                  <ThinkingOrb state="weaving" size={60} theme="dark" paused={orbPaused} />
+                                </div>
+                                <p style={{ ...T.body, fontWeight: 700, color: `${INK}.88)` }}>Growth Engine is watching</p>
+                                <p style={{ ...T.small, color: `${INK}.58)`, marginTop: 4 }}>New opportunities appear here as they are found.</p>
+                              </div>
+                            </div>
+                          )}
+                        </PaneShell>
+                      </motion.div>
+                    )}
+
+                    {/* ── ALERTS ───────────────────────────────────────── */}
+                    {tab === 'alerts' && (
+                      <motion.div key="alerts" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
+                        <PaneShell tab="alerts" orbState={unread > 0 ? 'searching' : 'breathing'} paused={orbPaused}>
+                          {allAlerts.length ? (
+                            <motion.div variants={listVariants} initial="initial" animate="animate" className="space-y-2">
+                              {allAlerts.map((n, i) => (
+                                <motion.div key={n.id || i} variants={itemVariants}
+                                  className="flex items-start gap-3 p-3 rounded-2xl"
+                                  style={{ background: `${INK}.06)` }}>
+                                  <span className="mt-0.5 shrink-0" style={{ color: n.severity === 'critical' ? '#FFAE96' : n.severity === 'important' ? '#FFDD8E' : '#59DBC0' }}>
+                                    {n.severity === 'critical' ? <AlertCircle size={18} />
+                                      : n.severity === 'important' ? <AlertTriangle size={18} />
+                                      : <CheckCircle2 size={18} />}
+                                  </span>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="truncate" style={{ ...T.small, fontWeight: 700, color: '#F1F5F2' }}>{n.title}</p>
+                                    <p style={{ ...T.caption, color: `${INK}.65)` }}>{n.message || n.desc}</p>
+                                  </div>
+                                  {n.action_url && (
+                                    <Link href={n.action_url} onClick={closeIsland} className="shrink-0"
+                                      style={{ ...T.caption, fontWeight: 700, color: '#59DBC0' }}>
+                                      View
+                                    </Link>
+                                  )}
+                                </motion.div>
+                              ))}
+                            </motion.div>
+                          ) : (
+                            <div className="h-full grid place-items-center text-center px-6">
+                              <div>
+                                <BellOff size={30} className="mx-auto mb-3" style={{ color: `${INK}.32)` }} />
+                                <p style={{ ...T.body, fontWeight: 700, color: `${INK}.82)` }}>All clear</p>
+                                <p style={{ ...T.small, color: `${INK}.55)`, marginTop: 4 }}>Nothing needs your attention.</p>
+                              </div>
+                            </div>
+                          )}
+                        </PaneShell>
+                      </motion.div>
+                    )}
+
+                    {/* ── CAPTURE ──────────────────────────────────────────
+                        AI Scan renders INSIDE the island. It used to portal
+                        itself at z-toast (900) while the island owns z-command
+                        (1000), so its popup opened underneath — the bug you
+                        saw. Hosting it here removes the stacking question
+                        entirely rather than fighting the ladder. */}
+                    {tab === 'capture' && (
+                      <motion.div key="capture" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
+                        <PaneShell tab="capture" orbState="shaping" paused={orbPaused} flush>
+                          {canUseSmartCapture ? (
+                            <div className="h-full min-h-0 overflow-hidden" style={{ background: 'var(--vq-surface)' }}>
+                              <SmartCapturePanel
+                                embedded
+                                isOpen
+                                initialTab={captureTab}
+                                onClose={() => setTab('ask')}
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-full grid place-items-center text-center px-6">
+                              <div>
+                                <Inbox size={30} className="mx-auto mb-3" style={{ color: `${INK}.32)` }} />
+                                <p style={{ ...T.body, fontWeight: 700, color: `${INK}.82)` }}>Smart Capture is not enabled</p>
+                                <p style={{ ...T.small, color: `${INK}.55)`, marginTop: 4 }}>Enable VenSynQ to scan documents into your records.</p>
+                              </div>
+                            </div>
+                          )}
+                        </PaneShell>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </Pane>
+          )}
+        </AnimatePresence>
+      </IslandShell>
+    </>
+  );
 }

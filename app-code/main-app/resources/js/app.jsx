@@ -33,8 +33,16 @@ createInertiaApp({
         ).catch((error) => {
             const errStr = String(error || '');
             if (errStr.includes('Failed to fetch dynamically imported module') || error?.message?.includes('Failed to fetch dynamically imported module')) {
-                console.warn('[Vite] Dynamic import failed. Forcing reload to get latest assets.');
-                window.location.reload();
+                const now = Date.now();
+                const lastReload = parseInt(sessionStorage.getItem('last_vite_reload') || '0', 10);
+                if (now - lastReload > 15000) {
+                    sessionStorage.setItem('last_vite_reload', String(now));
+                    console.warn('[Vite] Dynamic import failed. Forcing single reload to get latest assets.');
+                    window.location.reload();
+                    return;
+                } else {
+                    console.error('[Vite] Repeated dynamic import failure detected. Suppressing reload loop.');
+                }
             }
             throw error;
         }).then((module) => {
@@ -111,9 +119,17 @@ createInertiaApp({
     },
 });
 
-window.addEventListener('vite:preloadError', () => {
-    console.warn('[Vite] Preload error detected. Forcing reload.');
-    window.location.reload();
+window.addEventListener('vite:preloadError', (event) => {
+    event?.preventDefault?.();
+    const now = Date.now();
+    const lastReload = parseInt(sessionStorage.getItem('last_vite_reload') || '0', 10);
+    if (now - lastReload > 15000) {
+        sessionStorage.setItem('last_vite_reload', String(now));
+        console.warn('[Vite] Preload error detected. Forcing single reload.');
+        window.location.reload();
+    } else {
+        console.error('[Vite] Repeated preload errors detected. Suppressing auto-reload loop.');
+    }
 });
 
 // Global window error listener for non-React errors
@@ -140,8 +156,15 @@ window.onunhandledrejection = function (event) {
     try {
         const reasonStr = String(event.reason || '');
         if (reasonStr.includes('Failed to fetch dynamically imported module') || event.reason?.message?.includes('Failed to fetch dynamically imported module')) {
-            console.warn('[Vite] Unhandled rejection: Dynamic import failed. Forcing reload.');
-            window.location.reload();
+            const now = Date.now();
+            const lastReload = parseInt(sessionStorage.getItem('last_vite_reload') || '0', 10);
+            if (now - lastReload > 15000) {
+                sessionStorage.setItem('last_vite_reload', String(now));
+                console.warn('[Vite] Unhandled rejection: Dynamic import failed. Forcing single reload.');
+                window.location.reload();
+            } else {
+                console.error('[Vite] Repeated dynamic import failures detected. Suppressing reload loop.');
+            }
             return;
         }
 

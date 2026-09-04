@@ -12,7 +12,6 @@ import KeyboardShortcutsModal from '@/Components/KeyboardShortcutsModal';
 import { usePage } from '@inertiajs/react';
 import { ThemeProvider } from '@/Contexts/ThemeContext';
 import { AppearanceProvider } from '@/Contexts/AppearanceContext';
-import ChatWidget from '@/Components/ChatWidget';
 
 export default function GlobalProviderLayout({ children }) {
  const { props } = usePage();
@@ -97,10 +96,11 @@ function InnerGlobalLayout({ children, settings }) {
  const pollInterval = setInterval(() => {
  fetch('/up', { method: 'GET', cache: 'no-store' })
  .then(res => {
- if (res.status === 200 || res.status === 204 || res.status === 404) {
- clearInterval(pollInterval);
- window.location.reload();
- }
+ 				if (res.status === 200 || res.status === 204) {
+					clearInterval(pollInterval);
+					setShowUpdateOverlay(false);
+					window.location.reload();
+				}
  })
  .catch(() => {
  // Ignore network failures while server is offline/restarting
@@ -271,8 +271,6 @@ function InnerGlobalLayout({ children, settings }) {
  )}
 
  <GlobalDialogOverride />
- {/* Vena — only shown on allowlisted idle/exploratory pages */}
- {showVena && <ChatWidget />}
  </AlertProvider>
  </AttendanceProvider>
  </WorkspaceProvider>

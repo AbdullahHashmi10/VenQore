@@ -170,7 +170,14 @@
   --vq-rail-w-min: 76px;
   --vq-topbar-h: 68px;
   --vq-page-max: 1240px;
-  --vq-gutter: 20px;      /* gap between dashboard cards */
+  --vq-gutter: 24px;      /* Layout Law v2.0 §1 — GUTTER, both axes.
+                             Was 20px here, a pre-v2.0 copy that never got
+                             updated when the token moved to 24. That made the
+                             height formula 12 lines below FALSE: it reads
+                             height(n) = n*64 + (n-1)*24, but a 20px gap gave a
+                             2-row card 148px instead of 152 and a 6-row card
+                             484 instead of 504. Restoring 24 fixes the card
+                             heights and the page's right margin together. */
   --vq-section-y: 112px;  /* marketing section rhythm */
 
   /* Stacking ladder — these twelve are the only legal z-index values. */

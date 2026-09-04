@@ -19,7 +19,7 @@ import { preprocessImage } from '@/lib/imagePreprocess';
  *          proposal, pre-invoice, pre-purchase, recurring invoice, purchase return)
  *          — created new, or appended to an existing open/draft document.
  */
-export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image' }) {
+export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image', embedded = false }) {
     const { store, pricing } = usePage().props;
     const aiTiers = pricing?.ai_tiers || {};
     const [activeTab, setActiveTab] = useState(initialTab);
@@ -1204,9 +1204,10 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
     if (typeof document === 'undefined') return null;
 
-    return createPortal(
-        <div className="fixed inset-0 z-toast flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-in fade-in duration-normal font-sans">
-            <div className="w-full max-w-4xl bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative">
+    const captureBody = (
+            <div className={embedded
+                ? "w-full h-full bg-surface flex flex-col overflow-hidden relative font-sans"
+                : "w-full max-w-4xl bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative"}>
                 {/* glow blobs */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
@@ -1214,7 +1215,10 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 {showSettings && renderSettingsDrawer()}
                 {renderForkDialog()}
 
-                {/* Header */}
+                {/* Header — hidden when the island hosts this panel: it already
+                    carries the Capture title, and the settings/close buttons belong to a
+                    dialog this is no longer. */}
+                {!embedded && (<>
                 <div className="p-6 bg-neutral-900 text-white shrink-0 flex items-center justify-between border-b border-neutral-800 relative z-10">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-brand-600/30 border border-brand-500/30 flex items-center justify-center text-brand-400">
@@ -1253,7 +1257,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             <X size={16} />
                         </button>
                     </div>
-                </div>
+                </div></>)}
 
                 {/* Main Body */}
                 <div className="flex-1 overflow-hidden flex flex-col relative z-10">
@@ -1550,7 +1554,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             )}
 
                             {/* Items */}
-                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                                 {error && (
                                     <div className="mb-4 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-2xl text-rose-850 dark:text-rose-300 text-xs font-bold flex items-start gap-2">
                                         <AlertTriangle size={16} className="text-rose-500 mt-0.5 shrink-0" />
@@ -1764,24 +1768,43 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     ) : (
                         /* INTAKE */
                         <div className="flex-1 flex flex-col overflow-hidden">
-                            {/* Tabs */}
-                            <div className="flex border-b border-line bg-sunken/50 dark:bg-app">
-                                {[
-                                    { key: 'image', icon: Camera, label: 'Photos / PDF' },
-                                    { key: 'audio', icon: Mic, label: 'Voice Memo' },
-                                    { key: 'text', icon: Type, label: 'Text' },
-                                ].map(tab => (
-                                    <button
-                                        key={tab.key}
-                                        onClick={() => { setActiveTab(tab.key); setError(null); }}
-                                        className={`flex-1 py-4 text-center text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 border-b-2 transition-all ${activeTab === tab.key
-                                            ? 'border-brand-500 text-brand-500 bg-surface'
-                                            : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
-                                    >
-                                        <tab.icon size={14} />
-                                        {tab.label}
-                                    </button>
-                                ))}
+                            {/* Tabs — V6 segmented control. Type is on the 14px
+                                caption floor, controls are 40px, and the active
+                                segment lifts on elev-1 rather than an underline. */}
+                            <div className="flex items-center justify-between gap-4 px-6 pt-5 pb-4 shrink-0"
+                                 style={{ borderBottom: '1px solid var(--vq-line-soft)' }}>
+                                <div className="inline-flex items-center gap-1 p-1 rounded-2xl"
+                                     style={{ background: 'var(--vq-sunken)' }}>
+                                    {[
+                                        { key: 'image', icon: Camera, label: 'Photos / PDF' },
+                                        { key: 'audio', icon: Mic, label: 'Voice Memo' },
+                                        { key: 'text', icon: Type, label: 'Text' },
+                                    ].map(tab => {
+                                        const on = activeTab === tab.key;
+                                        return (
+                                            <button
+                                                key={tab.key}
+                                                onClick={() => { setActiveTab(tab.key); setError(null); }}
+                                                className="flex items-center gap-2 rounded-xl transition-all"
+                                                style={{
+                                                    fontSize: 14, lineHeight: 1.45, fontWeight: 700,
+                                                    height: 40, padding: '0 16px',
+                                                    background: on ? 'var(--vq-surface)' : 'transparent',
+                                                    color: on ? 'var(--vq-accent-text)' : 'var(--vq-text-2)',
+                                                    boxShadow: on ? 'var(--vq-elev-1)' : 'none',
+                                                }}
+                                            >
+                                                <tab.icon size={16} />
+                                                {tab.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {(ctx?.entitlement?.mode === 'managed' || ctx?.entitlement?.mode === 'free') && ctx?.entitlement?.scans_limit > 0 && (
+                                    <span style={{ fontSize: 14, color: 'var(--vq-text-3)', fontFamily: 'var(--vq-font-numeric)' }}>
+                                        {ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans
+                                    </span>
+                                )}
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
@@ -2005,6 +2028,14 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     )}
                 </div>
             </div>
+    );
+
+    // Hosted inside the island: no portal, no scrim, no z-index to lose.
+    if (embedded) return captureBody;
+
+    return createPortal(
+        <div className="fixed inset-0 z-toast flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-in fade-in duration-normal font-sans">
+            {captureBody}
         </div>,
         document.body
     );

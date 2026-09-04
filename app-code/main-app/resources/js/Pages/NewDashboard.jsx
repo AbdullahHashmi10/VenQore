@@ -416,11 +416,14 @@ function queueLiveReadings(cards, onComplete) {
     chunks.push(requests.slice(i, i + 24));
   }
 
+  let hasNewData = false;
+
   Promise.allSettled(chunks.map(chunk =>
     axios.post("/api/reckoner/read", {
       requests: chunk.map(r => ({ key: r.key, period: r.period }))
-    }).then(res => {
+    }, { _skipGlobalErrorHandler: true }).then(res => {
       const items = res?.data?.data || [];
+      const handledKeys = new Set();
       items.forEach((item, idx) => {
         if (item && item.key) {
           const req = chunk[idx] || chunk.find(r => r.key === item.key);
@@ -428,15 +431,38 @@ function queueLiveReadings(cards, onComplete) {
           const uiP = req?.uiPeriod || "Month";
           LIVE_RECKONER_DATA[`${item.key}|${perKey}`] = item;
           LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
+          if (req?.reqKey) handledKeys.add(req.reqKey);
+          hasNewData = true;
         }
       });
-    }).catch(() => {})
-    .finally(() => {
+      // Mark missing items in this chunk as empty so they won't re-request endlessly
+      chunk.forEach(r => {
+        if (!handledKeys.has(r.reqKey)) {
+          LIVE_RECKONER_DATA[r.reqKey] = { key: r.key, empty: true };
+          LIVE_RECKONER_DATA[`${r.key}|${r.period}`] = { key: r.key, empty: true };
+        }
+      });
+    }).catch(() => {
+      // Mark chunk as handled on error/offline to prevent infinite loops
+      chunk.forEach(r => {
+        LIVE_RECKONER_DATA[r.reqKey] = LIVE_RECKONER_DATA[r.reqKey] || { key: r.key, error: true };
+        LIVE_RECKONER_DATA[`${r.key}|${r.period}`] = LIVE_RECKONER_DATA[`${r.key}|${r.period}`] || { key: r.key, error: true };
+      });
+    }).finally(() => {
       chunk.forEach(r => PENDING_RECKONER_REQUESTS.delete(r.reqKey));
     })
   )).then(() => {
-    if (typeof window !== "undefined" && window.VenQoreCards && window.VenQoreCards.draw) {
-      window.VenQoreCards.draw();
+    if (hasNewData) {
+      // Update charts and values safely on existing board without full destructive DOM wipe
+      const board = document.getElementById("board");
+      if (board) {
+        board.querySelectorAll(".vqc").forEach(el => {
+          const c = cardOf(el.dataset.id);
+          const host = el.querySelector(".vqc-host");
+          if (c && host) mountChart(host, c);
+        });
+        fitValues(board);
+      }
     }
     if (onComplete) onComplete();
   });

@@ -50,6 +50,38 @@
   --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%),
                   radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%); /* @kind color */
   --vq-grad-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%); /* @kind color */
+
+  /* Mesh grounds — from the V6 COMPLETE standalone, which shipped --vq-grad-mesh
+     but never had it copied into this file. The four variants below are the same
+     three-lobe recipe rotated onto each island surface's hue, so the panes read
+     as one system with their own identity rather than five different designs. */
+  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
+                  radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
+                  radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+                  #0A0B0F; /* @kind color */
+
+  /* Island pane grounds — same lobes, dialled back so 15px body text keeps its
+     contrast against them. */
+  --vq-mesh-vena:    radial-gradient(52% 62% at 16% 10%, rgba(35,196,166,.30), transparent 68%),
+                     radial-gradient(46% 54% at 84% 80%, rgba(7,107,94,.34), transparent 66%),
+                     radial-gradient(38% 42% at 62% 26%, rgba(93,165,176,.14), transparent 70%),
+                     #0A0F0E; /* @kind color */
+  --vq-mesh-support: radial-gradient(52% 62% at 16% 10%, rgba(85,196,236,.26), transparent 68%),
+                     radial-gradient(46% 54% at 84% 80%, rgba(27,112,150,.34), transparent 66%),
+                     radial-gradient(38% 42% at 62% 26%, rgba(35,196,166,.12), transparent 70%),
+                     #080E12; /* @kind color */
+  --vq-mesh-growth:  radial-gradient(52% 62% at 16% 10%, rgba(224,180,224,.24), transparent 68%),
+                     radial-gradient(46% 54% at 84% 80%, rgba(118,72,140,.34), transparent 66%),
+                     radial-gradient(38% 42% at 62% 26%, rgba(35,196,166,.12), transparent 70%),
+                     #0C0A11; /* @kind color */
+  --vq-mesh-alerts:  radial-gradient(52% 62% at 16% 10%, rgba(255,205,91,.22), transparent 68%),
+                     radial-gradient(46% 54% at 84% 80%, rgba(166,105,10,.30), transparent 66%),
+                     radial-gradient(38% 42% at 62% 26%, rgba(255,138,107,.14), transparent 70%),
+                     #110D08; /* @kind color */
+  --vq-mesh-capture: radial-gradient(52% 62% at 16% 10%, rgba(35,196,166,.24), transparent 68%),
+                     radial-gradient(46% 54% at 84% 80%, rgba(11,58,53,.40), transparent 66%),
+                     radial-gradient(38% 42% at 62% 26%, rgba(255,205,91,.10), transparent 70%),
+                     #080D0C; /* @kind color */
 }
 
 /* ── Semantic layer — DARK ────────────────────────────────────────────────
