@@ -752,11 +752,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Staff Attendance': 'staff_attendance',
 	};
 	const enabledModuleSet = Array.isArray(props?.modules) ? new Set(props.modules) : null;
+	const derivedNavRoutes = Array.isArray(props?.nav) ? new Set(props.nav.map(n => n.route)) : null;
 	const subitemModuleVisible = (item) => {
-		if (!enabledModuleSet) return true; // no module context — never hide
 		const label = typeof item === 'string' ? item : item?.label;
 		const owner = SUBITEM_MODULE[label];
-		return !owner || enabledModuleSet.has(owner);
+		if (owner && enabledModuleSet && !enabledModuleSet.has(owner)) {
+			return false;
+		}
+		return true;
 	};
 
 	const appMenuItems = appMenuItemsRaw

@@ -533,7 +533,8 @@ class DashboardController extends Controller
         'user_id'      => auth()->id(),
     ]);
 
-    return Inertia::render('Dashboard', [
+    return Inertia::render('NewDashboard', [
+        'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
         'revenue'            => $performance['Month']['sales'] ?? 0.0,
         'performance'        => $performance,
         'outstanding'        => $outstanding,

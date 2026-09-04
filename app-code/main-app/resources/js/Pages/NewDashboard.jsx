@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
+import axios from 'axios';
 import './NewDashboard.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 
@@ -364,7 +365,83 @@ function abbrNum(n){
 function unitPrefix(unit){ return unit === "currency" ? "Rs " : ""; }
 function unitSuffix(unit){ return unit === "percent" ? "%" : ""; }
 
-/* ── deterministic demo values, seeded from the reading key ────────────── */
+/* ── live reckoner integration & deterministic fallback ─────────────── */
+const LIVE_RECKONER_DATA = {};
+const PENDING_RECKONER_REQUESTS = new Set();
+let RECKONER_FETCH_TIMER = null;
+
+function toReckonerPeriod(period) {
+  const map = {
+    Today: "today",
+    Week: "this_week",
+    Month: "this_month",
+    Quarter: "this_quarter",
+    Year: "this_year",
+  };
+  return map[period] || "this_month";
+}
+
+function queueLiveReadings(cards, onComplete) {
+  if (!cards || !cards.length || typeof window === "undefined" || typeof axios === "undefined") return;
+  const requests = [];
+  cards.forEach(c => {
+    if (!c || c.type) return;
+    const uiPer = c.period || "Month";
+    const reckPer = toReckonerPeriod(uiPer);
+    const reqKey = `${c.key}|${uiPer}`;
+    const mappedKey = `${c.key}|${reckPer}`;
+    if (!PENDING_RECKONER_REQUESTS.has(reqKey) && !LIVE_RECKONER_DATA[reqKey] && !LIVE_RECKONER_DATA[mappedKey]) {
+      PENDING_RECKONER_REQUESTS.add(reqKey);
+      requests.push({ key: c.key, period: reckPer, reqKey, uiPeriod: uiPer });
+    }
+    if (Array.isArray(c.extraKeys)) {
+      c.extraKeys.forEach(ek => {
+        const ekReqKey = `${ek}|${uiPer}`;
+        const ekMappedKey = `${ek}|${reckPer}`;
+        if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && !LIVE_RECKONER_DATA[ekReqKey] && !LIVE_RECKONER_DATA[ekMappedKey]) {
+          PENDING_RECKONER_REQUESTS.add(ekReqKey);
+          requests.push({ key: ek, period: reckPer, reqKey: ekReqKey, uiPeriod: uiPer });
+        }
+      });
+    }
+  });
+
+  if (!requests.length) {
+    if (onComplete) onComplete();
+    return;
+  }
+
+  const chunks = [];
+  for (let i = 0; i < requests.length; i += 24) {
+    chunks.push(requests.slice(i, i + 24));
+  }
+
+  Promise.allSettled(chunks.map(chunk =>
+    axios.post("/api/reckoner/read", {
+      requests: chunk.map(r => ({ key: r.key, period: r.period }))
+    }).then(res => {
+      const items = res?.data?.data || [];
+      items.forEach((item, idx) => {
+        if (item && item.key) {
+          const req = chunk[idx] || chunk.find(r => r.key === item.key);
+          const perKey = item.period?.key || req?.period || "today";
+          const uiP = req?.uiPeriod || "Month";
+          LIVE_RECKONER_DATA[`${item.key}|${perKey}`] = item;
+          LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
+        }
+      });
+    }).catch(() => {})
+    .finally(() => {
+      chunk.forEach(r => PENDING_RECKONER_REQUESTS.delete(r.reqKey));
+    })
+  )).then(() => {
+    if (typeof window !== "undefined" && window.VenQoreCards && window.VenQoreCards.draw) {
+      window.VenQoreCards.draw();
+    }
+    if (onComplete) onComplete();
+  });
+}
+
 function seed(str){
   let h = 2166136261;
   for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -374,9 +451,45 @@ function seed(str){
    is meaningless if the data can only ever be positive */
 const SIGNED = /profit|net_|cash_flow|margin|variance/;
 
-/** A plausible business series: a base level, a trend, weekly seasonality, noise. */
+/** A plausible business series: uses real Reckoner data when available, with seeded fallback. */
 function valuesFor(key, period, unit){
-  const { n, grain } = PERIOD[period];
+  const { n, grain } = PERIOD[period] || PERIOD.Month;
+  const reqKey = `${key}|${period}`;
+  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`];
+
+  if (live && live.ok && live.data !== undefined && live.data !== null) {
+    if (live.data.series && Array.isArray(live.data.series)) {
+      const pts = live.data.series.map(pt => (typeof pt.y === 'number' ? pt.y : typeof pt.value === 'number' ? pt.value : 0));
+      if (pts.length > 0) {
+        if (pts.length === n) return pts;
+        if (pts.length < n) {
+          const pad = new Array(n - pts.length).fill(0);
+          return [...pad, ...pts];
+        }
+        return pts.slice(-n);
+      }
+      return new Array(n).fill(0);
+    }
+    if (Array.isArray(live.data) && (live.data.length === 0 || typeof live.data[0] === 'number')) {
+      if (live.data.length === 0) return new Array(n).fill(0);
+      if (live.data.length >= n) return live.data.slice(-n);
+      const pad = new Array(n - live.data.length).fill(live.data[0] || 0);
+      return [...pad, ...live.data];
+    }
+    if (typeof live.data === 'number') {
+      return new Array(n).fill(live.data);
+    }
+    if (typeof live.data === 'object' && live.data.current !== undefined) {
+      const curr = Number(live.data.current) || 0;
+      const prev = Number(live.data.previous) || curr;
+      const out = [];
+      for (let i = 0; i < n; i++) {
+        out.push(prev + (curr - prev) * (i / Math.max(1, n - 1)));
+      }
+      return out;
+    }
+  }
+
   const r = seed(key + "|" + period);
   const base = unit === "percent" ? 20 + r() * 45
              : unit === "currency" ? 40000 + r() * 900000
@@ -416,8 +529,25 @@ function buildSeries(keys, period){
 
 /** Category breakdown for pie / ring / funnel / bar-ranking. */
 function buildParts(key, period, names){
-  const r = seed(key + "|parts|" + period);
+  const reqKey = `${key}|${period}`;
+  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`];
   const rd = readingOf(key);
+
+  if (live && live.ok && live.data) {
+    const rawItems = live.data.slices || live.data.rows || (Array.isArray(live.data) ? live.data : null);
+    if (Array.isArray(rawItems) && rawItems.length > 0) {
+      const list = rawItems.map((item, i) => ({
+        name: item.name || item.label || item.day || `Item ${i + 1}`,
+        value: typeof item.value === 'number' ? item.value : typeof item.total === 'number' ? item.total : Number(item.val || item.sales || item.count || 0),
+        color: `var(--vq-series-${(i%8)+1})`,
+      }));
+      list.sort((a, b) => b.value - a.value);
+      const total = Number(live.data.total) || list.reduce((s, x) => s + (x.value || 0), 0) || 1;
+      return { parts: list, total, unit: rd?.unit || 'currency' };
+    }
+  }
+
+  const r = seed(key + "|parts|" + period);
   const rawNames = (Array.isArray(names) && names.length > 0)
     ? names
     : ((Array.isArray(rd?.rowNames) && rd.rowNames.length > 0)
@@ -1130,13 +1260,48 @@ function mountScatter(host, card){
 function mountHeatmap(host, card){
   const { W: HW, H: HH } = hostDimensions(host, card);
   const rd = readingOf(card.key);
+  const reqKey = `${card.key}|${card.period}`;
+  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
+  const variant = card.variant || "square";
+
+  if (live && live.ok && live.data && Array.isArray(live.data.rows) && live.data.rows.length > 0) {
+    const dayShorts = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const fullDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const hours = [9, 12, 15, 18];
+    const hourLabels = ["09h", "12h", "15h", "18h"];
+    
+    const matrix = hourLabels.map((hl, hIdx) => {
+      const targetHour = hours[hIdx];
+      return dayShorts.map((ds, dIdx) => {
+        const fullDay = fullDays[dIdx];
+        const match = live.data.rows.find(r => (r.day === fullDay || r.day === ds) && (Math.abs(r.hour - targetHour) <= 1 || r.hour === targetHour));
+        return match ? (match.sales || match.count || 0) : 0;
+      });
+    });
+    const mx = Math.max(1, ...matrix.flat());
+    const cells = matrix.flatMap((row, ri) => row.map((v, ci) => {
+      const lvl = Math.min(4, Math.floor(v / mx * 5));
+      const d = (ri * dayShorts.length + ci) * 11;
+      if (variant === "dots") return `<span class="ck-hd2" style="--d:${d}ms"><i style="transform:scale(${(0.3+v/mx*0.7).toFixed(2)});background:var(--vq-seq-${lvl+1})"></i>
+        <span class="ck-hint">${hourLabels[ri]} · ${dayShorts[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
+      return `<span class="ck-hc ${variant==="rounded"?"is-round":""}" style="background:var(--vq-seq-${lvl+1});--d:${d}ms">
+        <span class="ck-hint">${hourLabels[ri]} · ${dayShorts[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
+    })).join("");
+
+    host.innerHTML = `<div class="ck-hm" style="--c:${dayShorts.length}">
+      <div class="ck-hm-x"><span></span>${dayShorts.map(c=>`<b>${c}</b>`).join("")}</div>
+      <div class="ck-hm-b"><div class="ck-hm-y">${hourLabels.map(x=>`<b>${x}</b>`).join("")}</div>
+      <div class="ck-hm-g">${cells}</div></div>
+      <div class="ck-hm-l"><span>Low</span>${[1,2,3,4,5].map(i=>`<i style="background:var(--vq-seq-${i})"></i>`).join("")}<span>High</span></div></div>`;
+    return;
+  }
+
   const r = seed(card.key + "|hm" + card.period);
   const cols = card.period === "Today"
     ? ["09","11","13","15","17","19"] : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   const rows = card.period === "Today" ? ["Mon","Tue","Wed","Thu"] : ["09h","12h","15h","18h"];
   const grid = rows.map(() => cols.map(() => Math.round(r()*100)));
   const mx = Math.max(...grid.flat()) || 1;
-  const variant = card.variant || "square";
   const cells = grid.flatMap((row, ri) => row.map((v, ci) => {
     const lvl = Math.min(4, Math.floor(v/mx*5));
     const d = (ri*cols.length+ci)*11;
@@ -1169,11 +1334,26 @@ function mountTable(host, card){
 
 function mountFeed(host, card){
   const { H } = hostDimensions(host, card);
+  const reqKey = `${card.key}|${card.period}`;
+  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
+  const capacity = Math.max(2, Math.floor((H - 4) / 38));
+  const bars = card.variant === "bars";
+
+  if (live && live.ok && live.data && Array.isArray(live.data.items) && live.data.items.length > 0) {
+    const items = live.data.items.slice(0, Math.min(6, capacity));
+    host.innerHTML = `<div class="ck-tb ${bars ? "is-bars" : ""}">${items.map((item, i) => `
+      <div class="ck-tr" style="--d:${i*45}ms">
+        ${bars ? "" : `<span class="ck-fd" style="background:var(--vq-series-${(i%8)+1})"></span>`}
+        <span class="ck-tn">${esc(item.subtitle ? `${item.title} (${item.subtitle})` : item.title)}</span>
+        <span class="ck-tt">${esc(item.at || '')}</span>
+        <b class="ck-tv">${esc(item.value || '')}</b>
+      </div>`).join("")}</div>`;
+    return;
+  }
+
   const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
   const times = timeline(card.period).slice(-6).reverse();
-  const capacity = Math.max(2, Math.floor((H - 4) / 38));
   const rows = pd.parts.slice(0, Math.min(6, capacity)), mx = (rows[0]?.value || 1);
-  const bars = card.variant === "bars";
   host.innerHTML = `<div class="ck-tb ${bars ? "is-bars" : ""}">${rows.map((p,i) => `
     <div class="ck-tr" style="--d:${i*45}ms">
       ${bars ? "" : `<span class="ck-fd" style="background:${p?.color || "var(--vq-series-1)"}"></span>`}
@@ -1811,10 +1991,50 @@ function addCard(key, opts = {}){
 /* ── card face ─────────────────────────────────────────────────────────── */
 function headlineOf(card){
   const rd = readingOf(card.key);
+  const reqKey = `${card.key}|${card.period}`;
+  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
+  const times = timeline(card.period), grain = PERIOD[card.period].grain;
+
+  if (live && live.ok && live.data !== undefined && live.data !== null) {
+    let last = 0;
+    let prev = 0;
+    let hasDelta = false;
+
+    if (typeof live.data === 'number') {
+      last = live.data;
+    } else if (typeof live.data === 'object') {
+      if (live.data.current !== undefined) {
+        last = Number(live.data.current) || 0;
+        prev = Number(live.data.previous) || 0;
+        hasDelta = true;
+      } else if (live.data.total !== undefined) {
+        last = Number(live.data.total) || 0;
+      } else if (live.data.series && Array.isArray(live.data.series) && live.data.series.length > 0) {
+        const s = live.data.series;
+        last = Number(s[s.length - 1]?.y ?? s[s.length - 1]?.value ?? 0);
+        if (s.length > 1) {
+          prev = Number(s[s.length - 2]?.y ?? s[s.length - 2]?.value ?? 0);
+          hasDelta = true;
+        }
+      } else if (Array.isArray(live.data.slices) && live.data.slices.length > 0) {
+        last = live.data.slices.reduce((acc, x) => acc + Number(x.value || 0), 0);
+      }
+    }
+
+    const pct = (hasDelta && prev !== 0) ? ((last - prev) / Math.abs(prev)) * 100 : (live.data?.delta_pct ?? 0);
+    const dir = pct >= 0 ? "up" : "down";
+
+    return {
+      value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
+      valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
+      dir, pct: Math.abs(pct).toFixed(1) + "%",
+      when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
+    };
+  }
+
   const vals = valuesFor(card.key, card.period, rd.unit);
   const last = vals[vals.length - 1], prev = vals[vals.length - 2] ?? last;
   const pct = prev ? ((last - prev) / prev) * 100 : 0;
-  const times = timeline(card.period), grain = PERIOD[card.period].grain;
   return {
     value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
     valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
@@ -2393,6 +2613,10 @@ function draw(){
   fitValues(board);
   renderLibrary();
   persistBoard();
+  clearTimeout(RECKONER_FETCH_TIMER);
+  RECKONER_FETCH_TIMER = setTimeout(() => {
+    queueLiveReadings(CARDS);
+  }, 40);
 }
 /* Re-measure on resize. When the grid changes column count the cards have to
    be re-laid, not just re-drawn — a 12-wide board card is an 8-wide one at
@@ -2425,6 +2649,7 @@ function wirePeriod(el, c){
     e.stopPropagation();
     c.period = b.dataset.p;
     close();
+    queueLiveReadings([c]);
     /* redraw just this card so the rest of the board stays put */
     const host = el.querySelector(".vqc-host");
     el.querySelector(".vqc-per-b").childNodes[0].nodeValue = c.period + " ";
@@ -2893,6 +3118,32 @@ function boot(presetId){
       draw();
     } else {
       applyPreset(DEFAULT_PRESET);
+      if (typeof axios !== 'undefined') {
+        axios.get('/api/dashboards').then(res => {
+          const list = res?.data?.data || [];
+          if (Array.isArray(list) && list.length > 0) {
+            const activeBoard = list.find(b => b.is_default) || list[0];
+            if (activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
+              const backendCards = activeBoard.cards.map(bc => ({
+                id: bc.id || newId(),
+                key: bc.reading_key || bc.key,
+                chart: bc.style || bc.chart,
+                period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_year' ? 'Year' : 'Month',
+                w: bc.w,
+                h: bc.h,
+                gx: bc.x,
+                gy: bc.y,
+                cat: bc.cat || 'C4',
+                fit: bc.fit || 0,
+                type: bc.type,
+                variant: bc.variant || defaultVariant(bc.style || 'area'),
+              }));
+              CARDS = availableCards(backendCards).map(normaliseCard);
+              draw();
+            }
+          }
+        }).catch(() => {});
+      }
     }
   }
   PERSIST_ON = true;
