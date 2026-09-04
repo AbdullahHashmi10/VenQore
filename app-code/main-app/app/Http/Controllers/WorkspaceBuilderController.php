@@ -279,6 +279,23 @@ class WorkspaceBuilderController extends Controller
                 'Selected during workspace provisioning.'
             );
 
+            // 5. Seed the first dashboard board now, business_type-keyed
+            // (config/dashboard_presets.php), so the reveal after signup is
+            // already theirs rather than an empty board that only appears
+            // once something calls GET /api/dashboards — see
+            // Api\DashboardController::createDefaultDashboard()'s own note.
+            // Bind current.tenant the way TenantMiddleware would on a real
+            // request, since Reckoner/permission checks read it. Never lets
+            // a seeding hiccup break account creation — fails open, same as
+            // every other secondary write in this pipeline.
+            try {
+                app()->instance('current.tenant', $tenant);
+                app(\App\Http\Controllers\Api\DashboardController::class)
+                    ->createDefaultDashboard($user, $tenant);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
             DB::commit();
 
             // Log user in

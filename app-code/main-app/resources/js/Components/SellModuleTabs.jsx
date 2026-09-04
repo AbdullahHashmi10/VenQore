@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { useTerms } from '@/lib/terms';
 import FeatureLockBadge from '@/Components/FeatureLockBadge';
 import {
     Plus,
@@ -13,6 +14,7 @@ import {
 
 export default function SellModuleTabs({ activeTab }) {
     const { store } = usePage().props;
+    const { tp } = useTerms();
     // Helper to safely get route
     const getRoute = (name, params = {}) => {
         try {
@@ -28,8 +30,8 @@ export default function SellModuleTabs({ activeTab }) {
             label: 'Transactions',
             icon: ClipboardList,
             items: [
-                { id: 'orders', label: 'All Sales Orders', href: getRoute('store.sales.index'), icon: ClipboardList },
-                { id: 'pre-sales', label: 'Quotations / Pre-Sales', href: getRoute('store.pre-sales.index'), icon: ClipboardList },
+                { id: 'orders', label: `All Sales ${tp('order', 'Orders')}`, href: getRoute('store.sales.index'), icon: ClipboardList },
+                { id: 'pre-sales', label: `${tp('quotation', 'Quotations')} / Pre-Sales`, href: getRoute('store.pre-sales.index'), icon: ClipboardList },
                 { id: 'proposals', label: 'Proposals', href: getRoute('store.proposals.index'), icon: FileText }
             ]
         },

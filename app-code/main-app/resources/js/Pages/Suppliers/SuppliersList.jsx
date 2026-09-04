@@ -3,11 +3,13 @@ import { usePage, Head, useForm, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import { useTerms } from '@/lib/terms';
 import { Truck, Plus, Search, Phone, Mail, MapPin, Edit, Trash2 } from 'lucide-react';
 import axios from 'axios';
 
 export default function SuppliersIndex({ suppliers }) {
     const { store } = usePage().props;
+    const { tp } = useTerms();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -143,7 +145,7 @@ export default function SuppliersIndex({ suppliers }) {
                                 <Truck size={24} />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-ink">Suppliers</h2>
+                                <h2 className="text-2xl font-bold text-ink">{tp('supplier', 'Suppliers')}</h2>
                                 <p className="text-ink-muted">Manage your vendor relationships.</p>
                             </div>
                         </div>

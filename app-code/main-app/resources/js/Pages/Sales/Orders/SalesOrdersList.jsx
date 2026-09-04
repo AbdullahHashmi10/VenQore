@@ -10,9 +10,11 @@ import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButto
 import { ClipboardList, Plus, Clock, CheckCircle, XCircle, Package, Truck } from 'lucide-react';
 import axios from 'axios';
 import SellModuleTabs from '@/Components/SellModuleTabs';
+import { useTerms } from '@/lib/terms';
 
 export default function SalesOrdersIndex({ orders = [], stats = {}, customers = [] }) {
     const { store } = usePage().props;
+    const { tp } = useTerms();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filters, setFilters] = useState({});
     const [formData, setFormData] = useState({
@@ -161,12 +163,12 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
 
                 <div className="pb-8 h-full flex flex-col gap-6 overflow-auto">
                     <PageHeader
-                        title="Sales Orders"
+                        title={`Sales ${tp('order', 'Orders')}`}
                         subtitle="Manage customer orders before invoicing"
                         icon={ClipboardList}
                         breadcrumbs={[
                             { label: 'Sales' },
-                            { label: 'Orders' }
+                            { label: tp('order', 'Orders') }
                         ]}
                         actions={
                             <button

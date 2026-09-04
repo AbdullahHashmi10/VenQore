@@ -624,7 +624,14 @@ class DashboardController extends Controller
      * Internal Helpers
      * ------------------------------------------------------------------ */
 
-    private function createDefaultDashboard(User $user, Tenant $tenant): Dashboard
+    /**
+     * Public on purpose: WorkspaceBuilderController::provision() calls this
+     * directly at signup so a brand-new tenant's first dashboard is already
+     * theirs (business_type-keyed, via presetBoard() below) instead of an
+     * empty board that only appears once something happens to hit
+     * GET /api/dashboards — which nothing in resources/js currently does.
+     */
+    public function createDefaultDashboard(User $user, Tenant $tenant): Dashboard
     {
         return DB::transaction(function () use ($user, $tenant) {
             $dashboard = Dashboard::create([

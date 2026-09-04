@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { useTerms } from '@/lib/terms';
 import {
     Users,
     UserCheck,
@@ -14,6 +15,7 @@ import {
 
 export default function ContactsModuleTabs({ activeTab }) {
     const { store } = usePage().props;
+    const { tp } = useTerms();
     // Helper to safely get route
     const getRoute = (name, params = {}) => {
         try {
@@ -30,8 +32,8 @@ export default function ContactsModuleTabs({ activeTab }) {
             label: 'Partners',
             icon: Handshake,
             items: [
-                { id: 'customers', label: 'Customers', href: getRoute('parties.index', { type: 'customer' }), icon: Users },
-                { id: 'suppliers', label: 'Suppliers', href: getRoute('parties.index', { type: 'supplier' }), icon: Briefcase },
+                { id: 'customers', label: tp('customer', 'Customers'), href: getRoute('parties.index', { type: 'customer' }), icon: Users },
+                { id: 'suppliers', label: tp('supplier', 'Suppliers'), href: getRoute('parties.index', { type: 'supplier' }), icon: Briefcase },
                 { id: 'all', label: 'All Parties', href: getRoute('parties.index'), icon: Users },
                 { id: 'ledgers', label: 'Ledgers', href: getRoute('parties.ledgers'), icon: FileText }
             ]
