@@ -36,8 +36,9 @@ class DashboardSanitizerTest extends TestCase
         $this->assertSame('sales.revenue', $item['reading_key']);
         $this->assertSame('today', $item['period']);
         $this->assertSame('stat', $item['chart']);
-        $this->assertSame('4x4', $item['size']);
-        $this->assertSame(11, $item['x']); // clamped
+        $this->assertSame('C4', $item['category']);
+        $this->assertSame('full', $item['fit']);
+        $this->assertSame(8, $item['x']); // clamped to 12-column grid (12 - 4 = 8)
         $this->assertSame(500, $item['y']); // clamped
         $this->assertSame(4, $item['w']); // derived from 4x4 w=4
         $this->assertSame(4, $item['h']); // derived from 4x4 h=4
