@@ -16,7 +16,14 @@ Yes. Unreservedly. This is not the same idea I pushed back on earlier, and the d
 **"Is calculator.php / the Financial Bible correct?"**
 Partly, and less than it appears. It is more careful than most files of its kind — it already survived one audit round and carries a self-check that closed a prior finding. But it is **structurally incapable** of catching the class of error you are most exposed to. Six of its nine transaction types replay journal entries you hand-wrote into `spec.yaml` rather than deriving them. Ten of your seventeen engines are outside its reach entirely. And the tax path your POS actually runs in production — inclusive pricing — has zero coverage in it.
 
-**The single most important instruction in this document:** fix the oracle *before* you build Qore. Refactoring 238 controllers behind a ruler you cannot trust is how a codebase ends up computing wrong numbers with total architectural confidence. Ruler first. Always.
+**And a third question got asked later: is the legacy code gone?**
+No. It is not gone, and the machinery built to retire it is inert. The purchase cutover switches are read by zero application code. The guard test that was supposed to enforce the purchase-island doctrine does not exist — `tests/tests/Feature/Golden/` is an empty directory. Thirty-eight files still reference the legacy `invoices` island. And **seven of the eight documents `CLAUDE.md` instructs an agent to read first do not exist anywhere in the repository**, including the one marked "**Start here.**" Full evidence in Part VIII.
+
+**The single most important instruction in this document changed because of that finding.** It was: fix the oracle before you build Qore. It is now:
+
+> **Make the map match the territory first. Then fix the oracle. Then build Qore.**
+
+You cannot put a wall around a system when two purchase paths exist and nothing in the code says which one is authoritative. Wall it now and the ambiguity is sealed inside permanently. And every coding-agent session you run today begins by reading a constitution that points at seven files which are not there — which is a very good explanation for drift you have been fighting by hand.
 
 ---
 
@@ -76,18 +83,113 @@ Qore is **one package with two ports and no side doors.** Every state change in 
 
 Nothing about the engines' internals changes in phase one. What changes is that they stop being public.
 
-## 2.2 The chip, made literal
+## 2.2 Your two drawings
+
+Picture 1 is the repository as measured: brains that do not know about each other, with arrows entering from every side. That is literally what §1.2 counts — 52 files, 21 of them controllers, poking whichever engine they like.
+
+Picture 2 adds three things to what I originally specified. One was already the design, and **two are improvements I did not have.**
+
+| Your addition | Verdict |
+|---|---|
+| A wall with exactly two gates | Already the design. Unchanged. |
+| **The cores wired to each other** | Right instinct, wrong shape — §2.3 |
+| **A brain sitting on each gate** | **Better than what I specified.** Adopted — §2.4 |
+
+### The chip, made literal
 
 | Your analogy | Qore component | Job |
 |---|---|---|
-| Package pin-out | `Qore.php` | Two public methods. That is the entire external surface. |
-| Bus controller / MMU | `Qore/Gates/` | Address translation and protection — nothing reaches a core unvalidated, untenanted, unlogged |
+| Package pin-out | `Qore.php` | Two public methods. The entire external surface. |
+| Inbound gate-brain | `Qore/Intake/` | Sorts, filters, routes — decides which cores run, in what order |
+| Outbound gate-brain | `Qore/Composer/` | Shapes results: separate or combined, per what the caller asked for |
+| Bus controller / MMU | `Qore/Gates/` | Protection — nothing reaches a core unvalidated, untenanted, unlogged |
 | Word format / ALU | `Qore/Money/` | One money type, one rounding policy, fixed for the whole chip |
-| CPU / GPU / NPU dies | `Qore/Cores/` | Specialised, isolated, no direct pin access |
+| CPU / GPU / NPU dies | `Qore/Cores/` | Specialised, wired downward only (§2.3) |
 | Instruction set | `Qore/Registry/` | Command → handler, metric → source |
-| ECC | `InvariantGate` | Catches corruption *before* commit, not in a nightly reconciliation job |
+| ECC | `InvariantGate` | Catches corruption *before* commit, not in a nightly repair job |
 
-## 2.3 Directory
+## 2.3 Interconnection — yes, but strictly one-way
+
+Your drawing wires the cores into a mesh. The instinct is correct: `SaleService` genuinely does need FIFO cost from `FifoService`, and `GrowthEngine` genuinely does need readings from the Reckoner. Isolated cores that cannot consult each other would force you to duplicate logic, which is the disease you are trying to cure.
+
+But a mesh permits cycles, and **in a financial engine a cycle is not a hang — it is a wrong number that looks right**, because something consumes a half-computed value and posts it to the ledger. You would never see it fail; you would see it settle on a plausible figure.
+
+Keep the wiring. Make it a one-way ladder.
+
+```
+  Layer 4   Intelligence (AiGateway)   ·   Growth (Profit, Cashflow, Inventory, Customer)
+                                │
+  Layer 3   Insight (Reckoner + Sources + FinancialReporting)
+                                │
+  Layer 2   Trade (Sale, Purchase, Payment, Reversal)  ·  Production  ·  Ops
+                                │
+  Layer 1   Party      ·      Inventory (Fifo, Uom)      ·      Tax
+                                │
+  Layer 0   Ledger (Accounting)          ← depends on nothing
+```
+
+> **The rule:** a core may call any core in a **strictly lower** layer. Never sideways within its own layer. Never upward.
+
+Every real case you described is allowed by this: Trade → Inventory, Trade → Tax, Trade → Ledger, Insight → Ledger, Growth → Insight. What it forbids is the class of edge that causes silent corruption: Ledger asking Trade, or Tax asking Sale.
+
+If a lower core appears to need something from a higher one, the boundary is drawn in the wrong place. Move the logic up a layer — do not add the edge.
+
+One test enforces the whole ladder:
+
+```php
+test('cores only call downward')
+    ->expect('App\Qore\Cores')
+    ->toRespectLayering(LayerMap::LADDER);   // 0 ← 1 ← 2 ← 3 ← 4
+```
+
+## 2.4 The two gate-brains
+
+This is your improvement, and it is a real one.
+
+My original gates were a linear pipeline of validators — check tenant, check permission, check money type, pass through. Yours do more: the inbound brain **decides where things go**, the outbound brain **decides what shape comes back**. That matters more than it sounds. Without it, every caller still has to know which cores it needs — the POS would have to know a sale touches Trade, then Inventory, then Tax, then Ledger. Knowing that is precisely the coupling the wall exists to remove.
+
+Adopted, with names.
+
+### Intake — the inbound brain
+
+```
+request  →  identify (user / AI agent / job / webhook)
+         →  resolve tenant, permissions, plan capability
+         →  validate against the command contract
+         →  normalise every money value to Money
+         →  PLAN: which cores, in what order, with what inputs
+         →  execute the plan inside one transaction
+         →  prove the invariants before commit
+```
+
+The plan is the new part. A `RecordSale` command produces a declarative plan — reserve stock, consume FIFO layers, compute tax, post the journal, refresh the party snapshot — that the Intake executes and logs. The caller supplied a sale. It never named a single core.
+
+### Composer — the outbound brain
+
+```
+core results  +  the caller's declared shape
+              →  select fields
+              →  combine or keep separate
+              →  apply units, currency, locale, rounding presentation
+              →  attach provenance (which metric, which period, which source)
+              →  return
+```
+
+Your "separate or combined as per need" lives here. A POS screen, a PDF invoice, a CSV export, a dashboard tile and the AI Copilot all ask for the same underlying figures in five different shapes. Today each caller hand-assembles its own; under Qore the Composer owns it.
+
+**You already have the seed of this.** `ReckonerShape.php` and `ReckonerCharts.php` are a Composer for the read side, restricted to dashboards. Promote and generalise them rather than starting fresh.
+
+### One correction, and it is not optional
+
+> **Both gate-brains must be deterministic rule engines. Never LLMs.**
+
+The word "brain" is doing double duty in your drawing, and you have AI on your mind — `AiGateway`, `GrowthEngine`, four sub-brains. If a language model decides where a financial command routes, the same sale can route two different ways on two different runs. You lose reproducibility, you lose the ability to prove any number, and the golden audit stops meaning anything at all, because you can no longer replay a scenario and expect the same result.
+
+Intake plans by **registry lookup and declarative rules**. Composer projects by **declared shape**. Both are boring, both are unit-testable, both return the same answer every time.
+
+AI stays *outside* the wall, as a caller like every other caller. It may **ask** Qore for numbers. It may **propose** a command for a human or a policy to approve. It never **is** a gate.
+
+## 2.5 Directory
 
 ```
 app/Qore/
@@ -95,8 +197,17 @@ app/Qore/
   Contracts/
     Command.php             ← marker: a write
     Query.php               ← marker: a read
+    Shape.php               ← what shape the caller wants back
     Receipt.php             ← what a write returns (ids, postings, invariant proof)
     Answer.php              ← what a read returns (value, unit, period, provenance)
+  Intake/                   ← inbound gate-brain
+    Router.php              ← command/query → which cores
+    Planner.php             ← → execution plan (ordered, declarative)
+    Plan.php
+  Composer/                 ← outbound gate-brain
+    Projector.php           ← core results → the caller's shape
+    Combiner.php            ← separate vs merged
+    Provenance.php          ← which metric, which period, which source
   Money/
     Money.php               ← integer minor units. No float crosses this boundary.
     Rounding.php            ← ONE policy, named and versioned
@@ -128,7 +239,7 @@ app/Qore/
     MetricMap.php           ← ReckonerRegistry, promoted
 ```
 
-## 2.4 The two ports
+## 2.6 The two ports
 
 ```php
 final class Qore
@@ -147,7 +258,7 @@ Two rules follow, and they are the whole design:
 
 > **Read rule.** No code outside `app/Qore/Cores/` may compute a financial figure. Every number is `Qore::ask()`, and a metric that does not exist in `MetricMap` is added there, never inlined at the call site.
 
-## 2.5 The gate that does not exist today
+## 2.7 The gate that does not exist today
 
 `InvariantGate` is the piece with no current equivalent, and it is the one that will earn its keep fastest. It runs as a **post-condition inside the transaction**, before commit. If any assertion fails, the whole command rolls back and is logged as a defect rather than persisted as corruption.
 
@@ -164,7 +275,7 @@ Two rules follow, and they are the whole design:
 
 Today these are checked, when they are checked at all, by console commands run after the fact — `AuditFinancialIntegrity`, `LedgerTruthAuditCommand`, `ReconcileInventoryGl`, `RecalculateAccountBalances`. The existence of a `RecalculateAccountBalances` command is itself the diagnosis: balances are expected to drift, so a repair tool was built. With `InvariantGate`, drift cannot be committed in the first place, and that command becomes a migration tool rather than a maintenance one.
 
-## 2.6 Enforcement — the part that makes this real
+## 2.8 Enforcement — the part that makes this real
 
 Every previous "single source of truth" doctrine in this codebase failed for the same reason: it was a *convention*. Fifty-two files referencing `journal_items` is what conventions produce. Qore only works if the leak is **mechanically impossible to add**.
 
@@ -200,25 +311,27 @@ Plus one line in CI, which costs nothing and catches everything the static analy
 
 Add violations to an explicit allow-list file as you migrate, and delete entries from it as each is fixed. The list only ever shrinks. When it hits zero, delete the file and the membrane is sealed.
 
-## 2.7 Migration — strangler fig, never big bang
+## 2.9 Migration — strangler fig, never big bang
 
 With 238 controllers, a rewrite-then-switch takes months and lands on top of a launch. Do this instead:
+
+**Phase −1 — Make the map match the territory.** Resolve the legacy purchase island one way or the other, and rewrite `CLAUDE.md` so it describes the repo that exists (Part VIII). Nothing can be walled in while two purchase paths are live and undeclared.
 
 **Phase 0 — Freeze the ruler.** Fix the oracle (Part III). Nothing else starts until `php calculator.php --check` is trustworthy.
 
 **Phase 1 — Qore as pass-through.** Build `Qore.php`, the contracts, and the registry. `Qore::do()` does nothing but forward to the existing engine. Zero gates, zero behaviour change. Golden verify must produce **byte-identical** output. Ship it.
 
-**Phase 2 — Gates, one at a time.** Add each gate behind a feature flag, in this order: `TenantGate` → `ContractGate` → `IdempotencyGate` → `AuditGate` → `PermissionGate` → `CapabilityGate` → `InvariantGate`. After each, run golden verify. Identical numbers, or revert.
+**Phase 2 — Gates and gate-brains, one at a time.** Add each behind a feature flag, in this order: `TenantGate` → `ContractGate` → `IdempotencyGate` → `AuditGate` → `PermissionGate` → `CapabilityGate` → `Intake.Planner` → `Composer.Projector` → `InvariantGate`. After each, run golden verify. Identical numbers, or revert.
 
 **Phase 3 — Controllers in waves.** Highest-value money paths first: POS sale → purchase bill → payment → expense → reports → dashboards → imports → admin. Each wave: swap the call, golden verify, ship. Remove the corresponding entries from the CI allow-list as you go.
 
 **Phase 4 — Seal.** Allow-list empty, architecture tests on, build fails on any new leak.
 
-**Phase 5 — Money migration.** Float → integer minor units, on its own, last, with a full before/after diff of every account balance signed off by a human. See §2.8.
+**Phase 5 — Money migration.** Float → integer minor units, on its own, last, with a full before/after diff of every account balance signed off by a human. See §2.10.
 
 **The rule that makes all of this safe:** at every step, golden verify must return the same numbers as the step before. If a number moves, you have either found a real bug (log it, celebrate, then fix it deliberately) or introduced one (revert immediately). There is no third possibility, and no step where "close enough" is acceptable.
 
-## 2.8 One warning about money
+## 2.10 One warning about money
 
 Converting float → integer minor units **will change some totals by 0.01**. That is the point — the old value was wrong — but it means this change can never be smuggled inside a refactor, because it breaks the "numbers must not move" rule that keeps every other phase safe.
 
@@ -425,7 +538,7 @@ Two of these lines are decisions you have not consciously made yet, and both are
 
 Stop hand-writing examples. Generate them.
 
-Build a transaction fuzzer that produces valid-but-adversarial sequences — random quantities, prices, discounts, tax rates and modes, payment splits, returns, reversals, backdated entries, boundary amounts — then run every invariant from §2.5 after **every single transaction**, not just at the end.
+Build a transaction fuzzer that produces valid-but-adversarial sequences — random quantities, prices, discounts, tax rates and modes, payment splits, returns, reversals, backdated entries, boundary amounts — then run every invariant from §2.7 after **every single transaction**, not just at the end.
 
 ```
 for 10,000 random sequences of 1..200 transactions:
@@ -454,19 +567,47 @@ A drift that appears on 3 March and self-corrects by 31 December is currently in
 
 `manifest.yaml` gets a checksum and is committed. Any code change that moves any number fails the build until a human reviews the diff and signs it. That is the mechanism that stops silent drift permanently — and it is the only one that survives you being busy.
 
+## 4.7 Stopping the oracle from falling behind again — you already solved this
+
+Your concern is that the calculator is frozen at an old version of the product and does not know the things you have added since. That is exactly right, and Part III B-1 measures it: ten of seventeen engines, invisible.
+
+But adding the missing scenarios by hand only fixes it *today*. In six months you will add three more engines and the oracle will be behind again, because nothing forces it forward.
+
+**You have already invented the solution once.** Your Reckoner laws — L1 tenant isolation through L8 registry contract — iterate the entire registry, which is why `CLAUDE.md` can honestly say *"Adding a reading requires zero new test code."* Coverage cannot fall behind because the test walks the registry rather than a hand-written list.
+
+Apply the same trick to the oracle:
+
+```php
+test('every command has a golden scenario')
+    ->expect(CommandMap::all())
+    ->each->toHaveScenarioIn('verification/golden_company/spec.yaml');
+
+test('every registered metric is reproduced by the oracle')
+    ->expect(MetricMap::all())
+    ->each->toBeDerivableBy(GoldenOracle::class);
+```
+
+Now adding `ManufactureBatch` to the command registry **fails the build** until someone writes a manufacturing scenario into the spec. The oracle is dragged forward by the same act that extends the product, and "it doesn't know the new things" stops being possible rather than being fixed once.
+
+This is the single change that converts the oracle from something you maintain into something that maintains itself.
+
 ---
 
 # PART V — SEQUENCING
 
 ```
+Phase −1  Map = territory        Resolve the purchase island; rewrite CLAUDE.md
+   │                             You cannot wall in an undeclared ambiguity
+   ▼
 Phase 0   Fix the ruler          A-1..A-9, spec becomes input-only, doctrine.yaml
    │                             Nothing else starts until --check is trustworthy
    ▼
 Phase 1   Qore pass-through      Two ports, contracts, registry. No gates.
    │                             Golden verify: byte-identical.
    ▼
-Phase 2   Gates, one at a time   Tenant → Contract → Idempotency → Audit
-   │                             → Permission → Capability → Invariant
+Phase 2   Gates + gate-brains    Tenant → Contract → Idempotency → Audit
+   │                             → Permission → Capability → Intake.Planner
+   │                             → Composer.Projector → Invariant
    ▼
 Phase 3   Controllers in waves   POS → purchase → payment → expense
    │                             → reports → dashboards → imports → admin
@@ -485,11 +626,15 @@ Phase 5   Integer money          Alone. Last. Full balance diff, human sign-off.
 
 Done properly, everything above is two to four months of solo work. You have a launch. So here is the version that captures most of the value in about two weeks, and leaves every door open.
 
+### 0 · Fix the constitution — one day
+
+Rewrite `CLAUDE.md` so it describes the repo that exists (Part VIII). Delete the seven references to files that are gone, delete the `App\Services\V3\PurchaseService` claim, and state plainly which purchase path is authoritative today. This is one day, it costs nothing, and until it is done every agent session you run starts by improvising around a missing map.
+
 ### 1 · Stop the bleeding — one day
 
 - Set both balance tolerances to the same value. Oracle `0.005` → `0.001` to match production (A-5).
 - Fix the float equality at `TaxService.php:60` (A-3). One line, real bug, ships today.
-- Add the CI grep from §2.6 with a generated allow-list of today's 52 files. It cannot fix what exists, but **no new leak can ever be added**, and the list only shrinks from here.
+- Add the CI grep from §2.8 with a generated allow-list of today's 52 files. It cannot fix what exists, but **no new leak can ever be added**, and the list only shrinks from here.
 
 ### 2 · Make the oracle a real witness — three to five days
 
@@ -502,7 +647,7 @@ After this, a green audit means something it does not mean today.
 ### 3 · Build Qore as a facade — one week
 
 - `Qore.php` with the two ports, forwarding straight to existing engines.
-- The four architecture tests from §2.6, switched on.
+- The four architecture tests from §2.8 plus the layering test from §2.3, switched on.
 - Migrate only the POS sale path and the main dashboard as proof.
 
 Then migrate the remaining controllers opportunistically — whenever you touch one for another reason, move it behind Qore and delete its allow-list entry. The membrane closes gradually and for free, instead of requiring a project.
@@ -519,6 +664,10 @@ Estimates are in **focused working days** for one developer working the way you 
 
 | Phase | Work | Days |
 |---|---|---|
+| **−1** | Map = territory | **6–11** |
+| | └ Rewrite `CLAUDE.md` against the repo that exists | 1 |
+| | └ Decide the purchase island: complete the cutover, or revert and delete it | 4–8 |
+| | └ Write the guard test that was documented but never existed | 1–2 |
 | **0** | Fix the ruler | **10–15** |
 | | └ Tolerance alignment + float equality fix | 0.5 |
 | | └ Derive the six transcribed types; strip the spec | 4–6 |
@@ -529,26 +678,30 @@ Estimates are in **focused working days** for one developer working the way you 
 | | └ `symfony/yaml` swap | 0.5 |
 | | └ `doctrine.yaml` + wire both sides to read it | 2–3 |
 | **1** | Qore pass-through: ports, contracts, registry, architecture tests | **5–8** |
-| **2** | Gates, one at a time | **20–25** |
+| **2** | Gates + gate-brains, one at a time | **28–35** |
 | | └ Tenant · Idempotency · Audit · Permission · Capability | 9–11 |
 | | └ ContractGate — typed DTOs for ~40–60 commands | *5–8* |
+| | └ Intake: Router + Planner | 4–6 |
+| | └ Composer: Projector + Combiner (promote `ReckonerShape`) | 4–5 |
+| | └ Core layering — enforce the ladder, break upward edges | 2 |
 | | └ InvariantGate | 4–5 |
 | **3** | Controllers in waves (~40–60 financial-surface files) | **20–30** |
 | **4** | Seal — allow-list to zero, tests enforcing | **2–3** |
 | **5** | Integer money: value object, schema, engines, balance diff | **15** |
 | **6** | v4 extras: fuzzer, 10 uncovered engines, differential runner | **20–25** |
-| | **Total** | **≈ 92–121 days** |
+| | **Total** | **≈ 106–144 days** |
 
-**Roughly four to six months of focused work.** In calendar terms alongside a launch, sales, and support: realistically six to nine months.
+**Roughly five to seven months of focused work.** In calendar terms alongside a launch, sales, and support: realistically seven to ten months.
 
 ## The two-week version
 
 | Step | Work | Days |
 |---|---|---|
+| 0 | Fix the constitution — `CLAUDE.md` matches the repo | **1** |
 | 1 | Stop the bleeding — tolerances, float equality bug, CI allow-list | **1** |
 | 2 | Oracle becomes a real witness — derive six types, inclusive tax, FIFO ordering | **3–5** |
 | 3 | Qore facade — two ports, architecture tests, POS + dashboard migrated as proof | **5** |
-| | **Total** | **≈ 10 days** |
+| | **Total** | **≈ 12 days** |
 
 Ten days buys you: a ledger no new code can reach around, a green audit that actually means something, and a membrane that closes gradually and free of charge as you touch controllers for other reasons. That is the large majority of the risk reduction for roughly a tenth of the effort.
 
@@ -561,6 +714,87 @@ Three items scale with surface area not yet fully inventoried, and they are wher
 - **Phase 5 money migration (15 days).** The only phase that changes production numbers, so it carries a testing and rollback burden the others do not. Treat 15 as a floor.
 
 Phases 0 and 1 are the reliable ones. They touch code you already understand, and neither can move a production number.
+
+---
+
+# PART VIII — LEGACY STATUS
+
+**Short answer: it is not gone, and the machinery built to retire it is inert.**
+
+## 8.1 The purchase island is still live, in dual-write, with the switch off
+
+| Setting | Value | Meaning |
+|---|---|---|
+| `purchase_shadow_write` | `true` (default) | Legacy rows are still being written in parallel |
+| `purchase_cutover` | `false` (default) | Nobody is on V3 purchases |
+| `purchase_cutover_tenants` | empty | No pilot tenant either |
+
+So the migration is parked exactly halfway: writing to both, reading from legacy.
+
+**And the switches are dead.** `grep` across `app/`, `routes/` and `config/` finds `purchase_cutover` and `purchase_shadow_write` **only in `config/venqore.php` itself.** No application code reads either one. Setting `VENQORE_PURCHASE_CUTOVER=true` today would change nothing at all — the flag has no consumer.
+
+That is the worst of the three possible states. A finished migration is fine. An unstarted one is fine. A half-finished one whose control switch does nothing is a permanent ambiguity about which table is authoritative, and it is the reason Qore cannot start until this is resolved: **wall it in now and you seal the ambiguity inside forever.**
+
+## 8.2 The guard that was supposed to prevent this does not exist
+
+`CLAUDE.md` states:
+
+> `tests/tests/Feature/Golden/PurchaseIslandGuardTest.php` enforces all of the above — both writes and reads. If it fails, fix the code — not the test.
+
+`tests/tests/Feature/Golden/` **is an empty directory.** There is no guard test. The doctrine has been enforced by nothing since it was written.
+
+## 8.3 Thirty-eight files still reference the legacy island
+
+Including nine live controllers — `BillingController`, `EInvoicingController`, `GrowthEngineController`, `InvoiceReminderController`, `RecurringInvoiceController`, `ReportController`, `SearchController`, `TransactionController`, `VenSynQController` — plus six models (`Allocation`, `Party`, `ServiceJob`, `StoreCredit`, `LoyaltyPoint`, `InvoiceItem`), `CashflowBrain`, and seven migration/reconciliation commands still registered.
+
+**One important caveat before you delete anything:** the `invoices` table is doing double duty. The `Invoice` model carries a `type` column, `is_jit`, `jit_sale_id` and `channel_order_id`, and there is a live recurring-billing feature (`GenerateRecurringInvoices`, `RecurringInvoiceController`, `InvoiceReminderController`, `EInvoicingController`). So `invoices` is **not** purely the legacy purchase island — part of it is a current feature.
+
+Separate the two before touching either. Deleting on the assumption that `invoices` = legacy would take out recurring billing.
+
+Also note `Invoice::$fillable` contains `paid_amount`, and the model computes `getPaidAmountAttribute()` from the `payments` relation — while `CLAUDE.md` says *"`paid_amount` is never stored. It is derived from the ledger."* That is three sources for one number: a writable column, a payments sum, and the ledger.
+
+## 8.4 The constitution points at files that do not exist
+
+This is the finding with the widest blast radius, because `CLAUDE.md` is what every coding agent reads first.
+
+| Document `CLAUDE.md` tells agents to read | Actually present? |
+|---|---|
+| `PHASE_0_STATUS.md` — *"**Start here.**"* | **missing** |
+| `V6_ROLLOUT_AUDIT_AND_PLAN.md` — *"Read before touching any styling"* | **missing** |
+| `VENQORE_LAYOUT_LAW.md` — *"Outranks DESIGN-RULES on any geometry number"* | **missing** |
+| `VENQORE_TECHNICAL_BUILD_PLAN_V4.md` — *"the authoritative technical plan"* | **missing** |
+| `VENQORE_PRICING_AND_STRATEGY.md` | **missing** |
+| `V3_CONSOLIDATION_PLAN.md` | **missing** |
+| `VENQORE_CARD_BUILDER_BUILD_SPEC.md` | **missing** |
+| `DESIGN-RULES.md` | present |
+
+Not moved — searched five levels deep across `app-code/`, not found anywhere. The V6 token folder `extras/Design System/VenQore Design System/tokens/` that the design-precedence section calls *"the only place a value may be typed"* is also gone.
+
+And `CLAUDE.md` contradicts itself on the purchase engine: one section names `App\Services\V3\PurchaseService` as *"the only engine that may create, edit, void, receive or return a purchase"*; another names `App\Engines\PurchaseService`. **`app/Services/V3/` does not exist.** Only the Engines class is real.
+
+Every agent session you start therefore begins by looking for seven missing documents, finding a contradiction about the purchase engine, and improvising. If you have been wondering why agent work drifts from your intent, this is a sufficient explanation on its own — and it is a one-day fix.
+
+## 8.5 Dead weight
+
+| Path | Size | Note |
+|---|---|---|
+| `scratch/` | 40 MB | |
+| `_to_delete/` | 1.3 MB | `Pos.legacy.jsx`, `dead-chart-kit`, `newpos-superseded` |
+| `_to_delete_venqore_pages{,_v2,_v3}.tgz` | — | three generations |
+| `DESIGN-RULES.v2.0.superseded.md` | 31 KB | marked *"do not read, do not follow"*, still sitting there |
+| `VYB Restore/`, `temp_extract/`, `temp_xlsx_extract/` | ~600 KB | |
+| `tests_hidden/` | empty | |
+
+Harmless to run, but they are noise an agent has to filter on every search, and `_to_delete` containing a `Pos.legacy.jsx` next to a live `Pos.jsx` is an invitation to edit the wrong file.
+
+## 8.6 What Phase −1 actually has to decide
+
+One question, and only you can answer it: **is the V3 purchase migration going to be completed, or reverted?**
+
+- **Complete it** — wire the cutover flags to real code, run `purchases:reconcile --baseline`, migrate, run `purchases:drift-check` clean for seven days, flip, then delete the legacy read paths. Four to eight days.
+- **Revert it** — declare `invoices` authoritative for purchases, delete the `purchases`/`purchase_items` tables and the seven migration commands, and remove the whole section from `CLAUDE.md`. Faster, but it discards work and leaves the schema you wanted to escape.
+
+Either is defensible. **Staying where you are is not**, because Qore's wall would enclose a system with two purchase paths and no statement of which one is true — and every number the oracle checks afterwards would inherit that ambiguity.
 
 ---
 
@@ -586,3 +820,7 @@ Phases 0 and 1 are the reliable ones. They touch code you already understand, an
 | Non-engine journal writes | `app/Console/Commands/MigrateV3Ledger.php` | 307, 399, 417 |
 | Raw ledger SQL in reports | `app/Http/Controllers/ReportController.php` | 142–157, 295–329, 358–373 |
 | Live route audit | `verification/discrepancy_report.md` | summary table |
+| Dead cutover switches | `config/venqore.php` | 21, 43, 49 — no consumer in `app/` |
+| Missing guard test | `tests/tests/Feature/Golden/` | empty directory |
+| `paid_amount` writable + derived | `app/Models/Invoice.php` | 17, 28–34 |
+| Superseded design doc retained | `DESIGN-RULES.v2.0.superseded.md` | 31 KB at repo root |

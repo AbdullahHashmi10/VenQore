@@ -712,12 +712,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	};
 
 	// ── Module-aware sub-items ──────────────────────────────────────────────
-	// Maps leaf navigation items to their owning module.
+	// Maps leaf navigation items to their owning module and route.
 	// When a module is turned off for the active tenant, its sub-item is removed.
 	// When all sub-items in a top-level group are gone, the entire group hides.
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
-		'Quotations / Pre-Sales': 'quotations',
+		'Quotations / Pre-Sales': 'pre_sales',
 		'Proposals': 'b2b_proposals',
 		'Returns History': 'sales_returns',
 		'Invoice Reminders': 'recurring_invoices',
@@ -751,14 +751,65 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'WooCommerce Sync': 'marketplace_sync',
 		'Staff Attendance': 'staff_attendance',
 	};
+
+	const SUBITEM_ROUTES = {
+		'Orders': ['store.sales-orders.index', 'store.sales.index'],
+		'Quotations / Pre-Sales': ['store.pre-sales.index', 'store.quotations.index'],
+		'Proposals': ['store.proposals.index'],
+		'Returns History': ['store.returns-history.index'],
+		'Invoice Reminders': ['store.recurring-invoices.index'],
+		'Recurring Invoices': ['store.recurring-invoices.index'],
+		'Purchases': ['store.purchases.index'],
+		'Purchase Orders': ['store.purchase-orders.index'],
+		'Purchase Returns': ['store.debit-notes.index'],
+		'Products': ['store.inventory.index'],
+		'Categories': ['store.inventory.index'],
+		'Attributes': ['store.inventory.index'],
+		'Labels': ['store.labels.index'],
+		'Stock Levels': ['store.inventory.dashboard'],
+		'Stock Operations': ['store.inventory.dashboard'],
+		'Stock Transfers': ['store.stock-transfers.index'],
+		'Stock Audit': ['store.stock-takes.index'],
+		'Batch Tracking': ['store.batches.index'],
+		'Serial Tracking': ['store.serials.index'],
+		'Production': ['store.production.index'],
+		'Cookbook': ['store.cookbook.index'],
+		'Customers': ['store.customers.index'],
+		'Suppliers': ['store.suppliers.index'],
+		'Parties': ['store.parties.ledger'],
+		'Payments': ['store.payments.index'],
+		'Expenses': ['store.expenses.index'],
+		'To Receive': ['store.parties.ledger'],
+		'To Pay': ['store.parties.ledger'],
+		'Fund Management': ['store.funds.index', 'store.bank-accounts.index'],
+		'Bank Accounts': ['store.bank-accounts.index'],
+		'Bank Reconciliation': ['store.bank-reconciliation.index'],
+		'VenSynQ': ['store.vensynq.index'],
+		'WooCommerce Sync': ['store.vensynq.index', 'store.woocommerce.index'],
+	};
+
 	const enabledModuleSet = Array.isArray(props?.modules) ? new Set(props.modules) : null;
 	const derivedNavRoutes = Array.isArray(props?.nav) ? new Set(props.nav.map(n => n.route)) : null;
+
 	const subitemModuleVisible = (item) => {
 		const label = typeof item === 'string' ? item : item?.label;
+		if (!label) return true;
+
+		// 1. Module key check against enabledModuleSet
 		const owner = SUBITEM_MODULE[label];
 		if (owner && enabledModuleSet && !enabledModuleSet.has(owner)) {
 			return false;
 		}
+
+		// 2. Dual check: route check against derivedNavRoutes
+		const routes = SUBITEM_ROUTES[label];
+		if (routes && derivedNavRoutes && derivedNavRoutes.size > 0) {
+			const routePresent = routes.some(r => derivedNavRoutes.has(r));
+			if (!routePresent) {
+				return false;
+			}
+		}
+
 		return true;
 	};
 
