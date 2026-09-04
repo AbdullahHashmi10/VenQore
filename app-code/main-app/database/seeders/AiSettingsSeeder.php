@@ -14,6 +14,8 @@ class AiSettingsSeeder extends Seeder
             'ai_tier' => 'free', // free, trial, paid
             'ai_usage_limit' => '50', // queries per month
             'ai_restricted_roles' => json_encode(['cashier', 'stock_manager']), // Roles NOT allowed to use AI
+            'ai_model' => 'gemini-2.5-flash-lite',
+            'ai_provider' => 'gemini',
         ];
 
         foreach ($settings as $key => $value) {

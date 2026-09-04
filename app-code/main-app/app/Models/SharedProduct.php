@@ -31,6 +31,11 @@ class SharedProduct extends Model
         return $this->hasMany(SharedProductAlias::class);
     }
 
+    public function contributions(): HasMany
+    {
+        return $this->hasMany(SharedProductContribution::class, 'shared_product_id');
+    }
+
     public function scopePublished($query)
     {
         return $query->where('is_published', true);

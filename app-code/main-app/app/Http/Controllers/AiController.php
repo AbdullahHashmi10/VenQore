@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use App\Models\Setting;
+use App\Models\Expense;
+use App\Models\Party;
 use App\Models\Product;
 use App\Models\Sale;
-use App\Models\Invoice;
-use App\Models\Party;
-use App\Models\Expense;
+use App\Reckoner\Reckoner;
+use App\Reckoner\ReckonerRequest;
+use App\Services\Ai\AiGateway;
+use App\Services\Ai\AiRequest;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Setting;
 
 class AiController extends Controller
 {
@@ -25,6 +27,12 @@ class AiController extends Controller
 
         $userQuery = $request->input('query');
         Log::info("AI Assistant Query: {$userQuery}");
+
+        try {
+            $this->checkAccess();
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 403);
+        }
 
         // Local SQL intent matching (T1-10) — 0 LLM cost for standard reports
         $lowerQuery = mb_strtolower(trim($userQuery));
@@ -44,84 +52,57 @@ class AiController extends Controller
             }
         }
 
-        try {
-            $this->checkAccess();
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 403);
-        }
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $user   = auth()->user();
 
         // ── AI monetization gate ─────────────────────────────────────────────
-        // Asking the AI questions requires the AI add-on: managed usage bought
-        // from us (metered), or the BYOK unlock + the store's own API key.
-        // Plain database search (global-search route) stays free and unaffected.
-        $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
-        $rateCheck = $rateLimiter->tryAcquire('paid_key:query');
-        if (!$rateCheck['ok']) {
-            return response()->json([
-                'error' => 'AI Assistant is experiencing high traffic. Please wait a few seconds and try again.'
-            ], 429);
-        }
+        $tools        = $this->getToolDefinitions();
+        $toolExecutor = fn (string $name, array $args) => $this->executeFunction($name, $args);
 
-        $entitlement = app(\App\Services\SmartCapture\AiEntitlementService::class);
-        $check = $entitlement->checkQuery();
-        if (!$check['allowed']) {
-            return response()->json([
-                'success' => false,
-                'code'    => 'ai_locked',
-                'reason'  => $check['reason'],
-                'message' => $entitlement->lockMessage($check, 'AI Search'),
-            ], 402);
-        }
+        $systemPrompt = 'You are a helpful POS assistant. Today: ' . Carbon::today()->format('Y-m-d') . '. '
+            . 'When the user asks about data, call the appropriate tool. Respond clearly and concisely.';
 
-        if (!Schema::hasTable('settings')) {
-             return response()->json(['error' => 'System not installed.'], 503);
-        }
+        $aiRequest = AiRequest::for('query')
+            ->tenant($tenant)
+            ->user($user)
+            ->input($userQuery)
+            ->systemPrompt($systemPrompt)
+            ->tools($tools, $toolExecutor);
 
-        $apiKey = Setting::where('key', 'openai_api_key')->value('value');
-        $model = Setting::where('key', 'ai_model')->value('value') ?? 'gpt-4o';
-        $provider = Setting::where('key', 'ai_provider')->value('value') ?? 'openai';
+        /** @var AiGateway $gateway */
+        $gateway = app(AiGateway::class);
+        $result  = $gateway->resolve($aiRequest);
 
-        // Fallback: reuse the store's AI Scan BYOK key (Gemini/OpenAI only), then the platform key for managed tenants.
-        if (!$apiKey) {
-            $scanProvider = \App\Helpers\SettingsHelper::get('smartcapture_provider', 'gemini');
-            $scanKey = \App\Helpers\SettingsHelper::get('smartcapture_api_key');
-            if ($scanKey && in_array($scanProvider, ['gemini', 'openai'])) {
-                $apiKey = $scanKey;
-                $provider = $scanProvider;
-                $model = \App\Helpers\SettingsHelper::get('smartcapture_model') ?: ($scanProvider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini');
-            } elseif ($check['mode'] === 'managed') {
-                $apiKey = config('smartcapture.gemini_key') ?: env('GEMINI_API_KEY');
-                if ($apiKey) {
-                    $provider = 'gemini';
-                    $model = config('smartcapture.model', 'gemini-2.5-flash');
-                }
-            }
-        }
+        if (!$result->ok) {
+            $code = $result->failureCode ?? 'error';
 
-        if (!$apiKey) {
-            return response()->json([
-                'error' => 'API Key missing. Please configure your AI settings.'
-            ], 400);
-        }
-
-        try {
-            if ($provider === 'gemini') {
-                $response = $this->handleGemini($apiKey, $model, $userQuery);
-            } else {
-                $response = $this->handleOpenAI($apiKey, $model, $userQuery);
+            if ($code === 'rate_limited') {
+                return response()->json([
+                    'error' => 'AI Assistant is experiencing high traffic. Please wait a few seconds and try again.',
+                ], 429);
             }
 
-            // Meter managed usage only on success (BYOK is never metered)
-            if (method_exists($response, 'getStatusCode') && $response->getStatusCode() === 200) {
-                $entitlement->recordQuery($check['mode']);
+            if (in_array($code, ['not_allowed', 'spend_capped', 'plan_locked'], true)) {
+                return response()->json([
+                    'success' => false,
+                    'code'    => 'ai_locked',
+                    'reason'  => $code,
+                    'message' => $result->errorMessage ?? 'AI Assistant is not available.',
+                ], 402);
             }
 
-            return $response;
-        } catch (\Exception $e) {
-            Log::error($e);
-            $rawBody = ($e instanceof \Illuminate\Http\Client\RequestException) ? $e->response->body() : '';
-            return $this->formatAiError($e, $model, $rawBody);
+            if ($code === 'no_key') {
+                return response()->json([
+                    'error' => 'API Key missing. Please configure your AI settings.',
+                ], 400);
+            }
+
+            return response()->json([
+                'error' => $result->errorMessage ?? 'AI request failed.',
+            ], 500);
         }
+
+        return response()->json(['answer' => $result->value, 'type' => 'ai_response']);
     }
 
     private function checkAccess()
@@ -148,346 +129,21 @@ class AiController extends Controller
         // if ($used >= $limit) throw ...
     }
 
+    /**
+     * Test AI connection — delegates to AiGateway (which delegates to the provider).
+     * Replaces the old inline Gemini/OpenAI HTTP blocks.
+     */
     public function testConnection(Request $request)
     {
-        $apiKey = $request->input('api_key');
-        $provider = $request->input('provider');
-        $inputModel = $request->input('model', 'gpt-4o');
+        $apiKey   = $request->input('api_key');
+        $provider = $request->input('provider', 'gemini');
+        $model    = $request->input('model', 'gemini-2.5-flash-lite');
 
-        if ($provider === 'gemini') {
-            // Expanded Fallback Strategy (2026 Active Models)
-            $modelsToTry = array_unique([
-                $inputModel,
-                'gemini-2.5-flash',
-                'gemini-2.5-flash-lite',
-                'gemini-3.5-flash',
-                'gemini-3-flash',
-                'gemini-2.5-pro',
-                'gemini-2.0-flash',
-                'gemini-2.0-flash-lite'
-            ]);
+        /** @var AiGateway $gateway */
+        $gateway = app(AiGateway::class);
+        $result  = $gateway->testConnection($provider, $apiKey, $model);
 
-            $firstError = null;
-            $rawErrorBody = "";
-
-            foreach ($modelsToTry as $model) {
-                try {
-                    $response = Http::post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
-                        'contents' => [['parts' => [['text' => "Say 'Hello'"]]]]
-                    ])->throw();
-
-                    // Success!
-                    $message = "Connection verified successfully!";
-                    $suggestedModel = null;
-
-                    if ($model !== $inputModel) {
-                        $message = "Connection Verified! We automatically switched to '$model' as it is compatible with your key.";
-                        $suggestedModel = $model;
-                    }
-
-                    return response()->json([
-                        'success' => true,
-                        'message' => $message,
-                        'suggested_model' => $suggestedModel
-                    ]);
-
-                } catch (\Exception $e) {
-                    if (!$firstError) {
-                        $firstError = $e;
-                        // Capture raw response if possible for debugging
-                        if ($e instanceof \Illuminate\Http\Client\RequestException) {
-                            $rawErrorBody = $e->response->body();
-                        }
-                    }
-
-                    // Critical auth errors - stop immediately
-                    if (str_contains($e->getMessage(), '401') || str_contains($e->getMessage(), '403')) {
-                        return response()->json(['success' => false, 'message' => "Access denied. Your API Key is invalid."], 400);
-                    }
-                }
-            }
-
-            // All failed
-            // Try to auto-discover via ListModels API (The Ultimate Fallback)
-            try {
-                $listResponse = Http::get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}")->throw();
-                $available = $listResponse->json()['models'] ?? [];
-
-                // Sort by preference (flash > pro) to pick best available
-                usort($available, function ($a, $b) {
-                    return str_contains($a['name'], 'flash') ? -1 : 1;
-                });
-
-                foreach ($available as $m) {
-                    if (in_array('generateContent', $m['supportedGenerationMethods'] ?? [])) {
-                        $actualName = str_replace('models/', '', $m['name']);
-
-                        return response()->json([
-                            'success' => true,
-                            'message' => "Connection Verified! We auto-discovered '{$actualName}' on your account.",
-                            'suggested_model' => $actualName
-                        ]);
-                    }
-                }
-            } catch (\Exception $listErr) {
-                // Ignore list error
-            }
-
-            return $this->formatAiError($firstError, $inputModel, $rawErrorBody);
-
-        } else {
-            // OpenAI check
-            try {
-                $response = Http::withToken($apiKey)->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => $inputModel,
-                    'messages' => [['role' => 'user', 'content' => "Say 'Hello'"]],
-                    'max_tokens' => 5
-                ])->throw();
-
-                return response()->json(['success' => true, 'message' => 'Connection verified successfully!']);
-            } catch (\Exception $e) {
-                return $this->formatAiError($e, $inputModel);
-            }
-        }
-    }
-
-    private function formatAiError($e, $model, $rawBody = '')
-    {
-        $msg = $e->getMessage();
-        $friendly = "Connection failed.";
-
-        // 1. Check for Billing/Payment issues (Common 403/400)
-        $lowerMsg = strtolower($msg);
-        $lowerBody = strtolower($rawBody);
-
-        if (
-            str_contains($lowerMsg, 'billing') || str_contains($lowerBody, 'billing') ||
-            str_contains($lowerMsg, 'enable billing') || str_contains($lowerBody, 'enable billing')
-        ) {
-            return response()->json(['success' => false, 'message' => "⚠️ Billing Required: Please set up a payment method in your Google Cloud Console to use this model."], 400);
-        }
-
-        if (str_contains($lowerMsg, 'location') || str_contains($lowerBody, 'location')) {
-            return response()->json(['success' => false, 'message' => "🌍 Location Error: Gemini API is not available in your region or your project location setting is incorrect."], 400);
-        }
-
-        // 2. Standard Errors
-        if (str_contains($msg, '404')) {
-            $friendly = "The selected AI Model ($model) was not found (404).";
-            if ($rawBody) {
-                $decoded = json_decode($rawBody, true);
-                if (isset($decoded['error']['message'])) {
-                    $friendly .= " Google Error: " . $decoded['error']['message'];
-                }
-            }
-        } elseif (str_contains($msg, '401') || str_contains($msg, '403')) {
-            $friendly = "Access denied (401/403). Your API Key is invalid, or the 'Generative Language API' is not enabled in your console.";
-        } elseif (str_contains($msg, '429')) {
-            $friendly = "Quota Exceeded (429). You have hit your usage limit. Check your Google Cloud Quotas.";
-        } elseif (str_contains($msg, '400') && str_contains($msg, 'API key')) {
-            $friendly = "The API Key format is incorrect. Please ensure you copied the full key.";
-        } else {
-            // 3. Fallback for Unknown Errors
-            // "Please contact VenQore Support"
-            $friendly = "System Error: " . $e->getMessage() . ". If this persists, please contact VenQore Support.";
-        }
-        return response()->json(['success' => false, 'message' => $friendly], 400);
-    }
-
-    // ==========================================
-    // OPENAI HANDLER
-    // ==========================================
-    private function handleOpenAI($apiKey, $model, $userQuery)
-    {
-        $tools = $this->getOpenAiTools();
-
-        // 1. Initial Call
-        $response = Http::withToken($apiKey)->post('https://api.openai.com/v1/chat/completions', [
-            'model' => $model,
-            'messages' => [
-                ['role' => 'system', 'content' => 'You are a helpful POS assistant. Today: ' . Carbon::today()->format('Y-m-d') . '.'],
-                ['role' => 'user', 'content' => $userQuery]
-            ],
-            'tools' => $tools,
-            'tool_choice' => 'auto'
-        ])->throw();
-
-        $data = $response->json();
-        $message = $data['choices'][0]['message'];
-
-        if (isset($message['tool_calls'])) {
-            $toolCalls = $message['tool_calls'];
-            $toolOutputs = [];
-
-            foreach ($toolCalls as $toolCall) {
-                $functionName = $toolCall['function']['name'];
-                $args = json_decode($toolCall['function']['arguments'], true);
-                try {
-                    $result = $this->executeFunction($functionName, $args);
-                } catch (\Exception $e) {
-                    $result = json_encode(['error' => 'Tool failed: ' . $e->getMessage()]);
-                }
-
-                $toolOutputs[] = [
-                    'tool_call_id' => $toolCall['id'],
-                    'role' => 'tool',
-                    'name' => $functionName,
-                    'content' => $result
-                ];
-            }
-
-            // 2. Follow-up Call
-            $finalResponse = Http::withToken($apiKey)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => $model,
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-                    ['role' => 'user', 'content' => $userQuery],
-                    $message,
-                    ...$toolOutputs
-                ]
-            ])->throw();
-
-            return response()->json([
-                'answer' => $finalResponse['choices'][0]['message']['content'],
-                'type' => 'ai_response'
-            ]);
-        }
-
-        return response()->json(['answer' => $message['content'], 'type' => 'ai_response']);
-    }
-
-    // ==========================================
-    // GEMINI HANDLER
-    // ==========================================
-    private function handleGemini($apiKey, $preferredModel, $userQuery)
-    {
-        // 1. Define the fallback list (2026 Active Models)
-        $modelsToTry = array_unique([
-            $preferredModel,
-            'gemini-2.5-flash',
-            'gemini-2.5-flash-lite',
-            'gemini-3.5-flash',
-            'gemini-3-flash',
-            'gemini-2.5-pro',
-            'gemini-2.0-flash',
-            'gemini-2.0-flash-lite'
-        ]);
-
-        $lastException = null;
-
-        foreach ($modelsToTry as $model) {
-            try {
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-                $tools = $this->getGeminiTools();
-
-                // 2. Initial Call
-                $payload = [
-                    'contents' => [
-                        ['parts' => [['text' => "You are a POS assistant. Today: " . Carbon::today()->format('Y-m-d') . ". User asks: " . $userQuery]]]
-                    ],
-                    'tools' => [['function_declarations' => $tools]]
-                ];
-
-                try {
-                    $response = Http::post($url, $payload)->throw();
-                } catch (\Exception $toolError) {
-                    // Fallback: Try WITHOUT tools (if tools caused the crash)
-                    if (isset($payload['tools'])) {
-                        unset($payload['tools']);
-                        $response = Http::post($url, $payload)->throw();
-                        // If we are here, it worked without tools!
-                        $data = $response->json();
-                        $answer = $data['candidates'][0]['content']['parts'][0]['text'] ?? "I couldn't answer that.";
-                        return response()->json([
-                            'answer' => $answer . "\n\n(Note: I couldn't access live business data due to a temporary connection issue, so this is a general answer.)",
-                            'type' => 'ai_response'
-                        ]);
-                    }
-                    throw $toolError;
-                }
-
-                $data = $response->json();
-
-                // IF WE GET HERE, THE MODEL WORKED. PROCESS RESPONSE.
-                $part = $data['candidates'][0]['content']['parts'][0] ?? [];
-
-                if (isset($part['functionCall'])) {
-                    $functionCall = $part['functionCall'];
-                    $functionName = $functionCall['name'];
-                    $args = $functionCall['args'];
-
-                    try {
-                        $result = $this->executeFunction($functionName, $args);
-                    } catch (\Exception $e) {
-                        $result = json_encode(['error' => 'Tool failed: ' . $e->getMessage()]);
-                    }
-
-                    // Follow-up Call
-                    $history = [
-                        ['role' => 'user', 'parts' => [['text' => $userQuery]]],
-                        ['role' => 'model', 'parts' => [['functionCall' => $functionCall]]],
-                        ['role' => 'function', 'parts' => [['functionResponse' => ['name' => $functionName, 'response' => ['content' => $result]]]]]
-                    ];
-
-                    $finalPayload = [
-                        'contents' => $history,
-                        'tools' => [['function_declarations' => $tools]]
-                    ];
-
-                    $finalResponse = Http::post($url, $finalPayload)->throw();
-                    $finalData = $finalResponse->json();
-
-                    $answer = $finalData['candidates'][0]['content']['parts'][0]['text'] ?? "I processed the data but couldn't generate a summary.";
-                    try {
-                        $promptTokens = (int) ($finalData['usageMetadata']['promptTokenCount'] ?? 0);
-                        $outputTokens = (int) ($finalData['usageMetadata']['candidatesTokenCount'] ?? 0);
-                        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-                        app(\App\Services\Ai\AiUsageRecorder::class)->record([
-                            'tenant_id'       => $tenant?->id,
-                            'feature'         => 'query',
-                            'provider'        => 'gemini',
-                            'model'           => $model,
-                            'key_mode'        => 'platform_paid',
-                            'input_type'      => 'text',
-                            'prompt_tokens'   => $promptTokens,
-                            'output_tokens'   => $outputTokens,
-                            'success'         => true,
-                        ]);
-                    } catch (\Throwable $te) {}
-                    return response()->json(['answer' => $answer, 'type' => 'ai_response']);
-                }
-
-                $answer = $part['text'] ?? "I couldn't understand that.";
-                try {
-                    $promptTokens = (int) ($data['usageMetadata']['promptTokenCount'] ?? 0);
-                    $outputTokens = (int) ($data['usageMetadata']['candidatesTokenCount'] ?? 0);
-                    $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-                    app(\App\Services\Ai\AiUsageRecorder::class)->record([
-                        'tenant_id'       => $tenant?->id,
-                        'feature'         => 'query',
-                        'provider'        => 'gemini',
-                        'model'           => $model,
-                        'key_mode'        => 'platform_paid',
-                        'input_type'      => 'text',
-                        'prompt_tokens'   => $promptTokens,
-                        'output_tokens'   => $outputTokens,
-                        'success'         => true,
-                    ]);
-                } catch (\Throwable $te) {}
-                return response()->json(['answer' => $answer, 'type' => 'ai_response']);
-
-            } catch (\Exception $e) {
-                // If 404, try the next model. If 401 (Auth), stop.
-                if (str_contains($e->getMessage(), '401') || str_contains($e->getMessage(), '403')) {
-                    throw $e;
-                }
-                $lastException = $e;
-                continue; // Try next model
-            }
-        }
-
-        // If all models failed
-        throw $lastException;
+        return response()->json($result, $result['success'] ? 200 : 400);
     }
 
     // ==========================================
@@ -511,21 +167,30 @@ class AiController extends Controller
         }
     }
 
+    // ==========================================
+    // OMNISEARCH TOOL EXECUTOR
+    // All 8 data tools below delegate to Reckoner::read() — no ad-hoc SQL.
+    // ==========================================
+
     private function executeFunction($name, $args)
     {
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $user   = auth()->user();
+        $reckoner = app(Reckoner::class);
+
         if ($name === 'get_sales_summary') {
             $this->checkAuthPermission('sales_view');
             $startDate = $args['start_date'];
             $endDate   = $args['end_date'];
-            $frs = app(\App\Services\FinancialReportingService::class);
 
             if (!empty($args['product_name'])) {
+                // Per-product is not a Reckoner reading yet — keep FinancialReportingService path.
                 $prod = Product::where('name', 'like', '%' . $args['product_name'] . '%')->first();
                 if (!$prod) {
                     return json_encode(['error' => "Product '{$args['product_name']}' not found."]);
                 }
-                // C3.2b: per-product NET revenue from the one engine (FIFO, returns-netted).
-                $row = $frs->getGrossProfitByProduct($startDate, $endDate)
+                $frs  = app(\App\Services\FinancialReportingService::class);
+                $row  = $frs->getGrossProfitByProduct($startDate, $endDate)
                            ->firstWhere('product_id', $prod->id);
                 $total = $row ? (float) $row['net_revenue'] : 0.0;
                 $count = Sale::query()
@@ -536,13 +201,17 @@ class AiController extends Controller
                 return json_encode(['total_amount' => $total, 'transaction_count' => $count]);
             }
 
-            // C3.2b: period NET revenue from the one engine (same as P&L & dashboard).
-            $total = (float) $frs->getProfitAndLoss($startDate, $endDate)['revenue'];
+            // Reckoner: sales.revenue for the custom date range.
+            $rReq  = new ReckonerRequest('sales.revenue', 'custom', ['from' => $startDate, 'to' => $endDate]);
+            $rResult = $reckoner->read($rReq, $user, $tenant);
+            $revenue = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
+
             $count = Sale::query()
                 ->whereIn('status', ['posted', 'partially_returned', 'returned'])
                 ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
                 ->count();
-            return json_encode(['total_amount' => $total, 'transaction_count' => $count]);
+
+            return json_encode(['total_amount' => $revenue, 'transaction_count' => $count]);
         }
 
         if ($name === 'get_stock_level') {
@@ -564,84 +233,101 @@ class AiController extends Controller
             $this->checkAuthPermission('finance');
             $startDate = $args['start_date'];
             $endDate   = $args['end_date'];
+            $custom    = ['from' => $startDate, 'to' => $endDate];
 
-            // C3.2b: AI reads the ONE engine — identical to the P&L report & dashboard.
-            $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startDate, $endDate);
+            // Reckoner: finance.net_profit, finance.gross_profit, finance.expenses_total
+            $requests = [
+                new ReckonerRequest('finance.net_profit', 'custom', $custom),
+                new ReckonerRequest('sales.revenue', 'custom', $custom),
+                new ReckonerRequest('finance.expenses_total', 'custom', $custom),
+                new ReckonerRequest('sales.gross_margin_pct', 'custom', $custom),
+            ];
+            $results = $reckoner->readMany($requests, $user, $tenant);
 
-            $revenue = (float) $pl['revenue'];
-            $cost    = (float) $pl['total_expenses']; // cogs + operating expenses
-            $profit  = (float) $pl['net_profit'];     // revenue - cost
-            $margin  = $revenue > 0 ? round(($profit / $revenue) * 100, 2) : 0;
+            $profitResult  = array_values($results)[0] ?? null;
+            $revenueResult = array_values($results)[1] ?? null;
+            $expenseResult = array_values($results)[2] ?? null;
+            $marginResult  = array_values($results)[3] ?? null;
+
+            $profit  = $profitResult?->ok  ? (float) ($profitResult->payload['value']  ?? 0) : 0.0;
+            $revenue = $revenueResult?->ok ? (float) ($revenueResult->payload['value'] ?? 0) : 0.0;
+            $cost    = $expenseResult?->ok ? (float) ($expenseResult->payload['value'] ?? 0) : 0.0;
+            $margin  = $marginResult?->ok  ? (float) ($marginResult->payload['value']  ?? 0) : ($revenue > 0 ? round(($profit / $revenue) * 100, 2) : 0);
 
             return json_encode([
-                'revenue' => $revenue,
-                'cost' => $cost,
-                'profit' => $profit,
-                'margin_percentage' => $margin
+                'revenue'           => $revenue,
+                'cost'              => $cost,
+                'profit'            => $profit,
+                'margin_percentage' => $margin,
             ]);
         }
 
         if ($name === 'get_expense_summary') {
             $this->checkAuthPermission('finance');
+            $startDate = $args['start_date'];
+            $endDate   = $args['end_date'];
+            $custom    = ['from' => $startDate, 'to' => $endDate];
 
-            // C3.2f: authoritative operating expenses come from the ONE engine (journal opex,
-            // COGS excluded) — identical to the P&L "operating expenses" line.
-            $frs = app(\App\Services\FinancialReportingService::class);
-            $operatingExpenses = (float) $frs->getProfitAndLoss($args['start_date'], $args['end_date'])['operating_expenses'];
+            // Reckoner headline: finance.expenses_total (operating expenses, journal-authoritative).
+            $rReq   = new ReckonerRequest('finance.expenses_total', 'custom', $custom);
+            $rResult = $reckoner->read($rReq, $user, $tenant);
+            $operatingExpenses = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
 
-            // Supplementary detail from the Expense table (NOT authoritative; for category breakdown).
-            $query = Expense::whereBetween('date', [$args['start_date'], $args['end_date']]);
+            // Reckoner breakdown: finance.expenses_by_category (list shape).
+            $catReq    = new ReckonerRequest('finance.expenses_by_category', 'custom', $custom);
+            $catResult = $reckoner->read($catReq, $user, $tenant);
+            $byCategory = $catResult->ok ? ($catResult->payload['value'] ?? []) : [];
+
+            // Category filter applied client-side (Reckoner returns the full breakdown).
             if (!empty($args['category'])) {
-                $query->where('category', 'like', '%' . $args['category'] . '%');
+                $filter = mb_strtolower($args['category']);
+                $byCategory = array_values(array_filter($byCategory, function ($item) use ($filter) {
+                    return str_contains(mb_strtolower($item['category'] ?? $item['name'] ?? ''), $filter);
+                }));
             }
-            $expenseTableTotal = (float) $query->sum('amount');
-            $count = $query->count();
-            $byCategory = Expense::whereBetween('date', [$args['start_date'], $args['end_date']])
-                ->select('category', DB::raw('SUM(amount) as total'))
-                ->groupBy('category')
-                ->get();
 
             return json_encode([
-                // Authoritative headline (matches the P&L card):
-                'total_expenses'       => $operatingExpenses,
-                'operating_expenses'   => $operatingExpenses,
-                // Supplementary (Expense-table view):
-                'expense_table_total'  => $expenseTableTotal,
-                'expense_count'        => $count,
-                'by_category'          => $byCategory,
+                'total_expenses'     => $operatingExpenses,
+                'operating_expenses' => $operatingExpenses,
+                'by_category'        => $byCategory,
             ]);
         }
 
         if ($name === 'get_top_products') {
             $this->checkAuthPermission('reports');
-            $limit = $args['limit'] ?? 5;
+            $limit     = (int) ($args['limit'] ?? 5);
+            $startDate = $args['start_date'];
+            $endDate   = $args['end_date'];
+            $custom    = ['from' => $startDate, 'to' => $endDate];
 
-            // C3.2e: top products from the ONE engine (FIFO, returns-netted) — identical to the
-            // item-wise report. Already sorted by net_revenue DESC; just take the top N.
-            $frs = app(\App\Services\FinancialReportingService::class);
-            $topProducts = $frs->getGrossProfitByProduct($args['start_date'], $args['end_date'])
-                ->take($limit)
-                ->map(fn ($row) => [
-                    'name'           => $row['name'],
-                    'total_quantity' => (float) $row['quantity'],
-                    'total_revenue'  => (float) $row['net_revenue'],
-                    'gross_profit'   => (float) $row['gross_profit'],
-                ])
-                ->values();
+            // Reckoner: sales.top_products (list shape).
+            $rReq    = new ReckonerRequest('sales.top_products', 'custom', $custom);
+            $rResult = $reckoner->read($rReq, $user, $tenant);
 
-            return json_encode(['top_products' => $topProducts]);
+            $rows = $rResult->ok ? ($rResult->payload['value'] ?? []) : [];
+            $top  = array_slice($rows, 0, $limit);
+
+            return json_encode(['top_products' => $top]);
         }
-
 
         if ($name === 'get_purchase_summary') {
             $this->checkAuthPermission('purchases');
-            // V3: purchases live in `purchases` (date -> purchase_date, total_amount -> total).
-            $total = \App\Models\Purchase::where('workflow_status', '!=', 'cancelled')
-                ->whereBetween('purchase_date', [$args['start_date'], $args['end_date']])
-                ->sum('total');
-            $count = \App\Models\Purchase::where('workflow_status', '!=', 'cancelled')
-                ->whereBetween('purchase_date', [$args['start_date'], $args['end_date']])
-                ->count();
+            $startDate = $args['start_date'];
+            $endDate   = $args['end_date'];
+            $custom    = ['from' => $startDate, 'to' => $endDate];
+
+            // Reckoner: purchasing.spend + purchasing.count
+            $requests = [
+                new ReckonerRequest('purchasing.spend', 'custom', $custom),
+                new ReckonerRequest('purchasing.count', 'custom', $custom),
+            ];
+            $results = $reckoner->readMany($requests, $user, $tenant);
+
+            $spendResult = array_values($results)[0] ?? null;
+            $countResult = array_values($results)[1] ?? null;
+
+            $total = $spendResult?->ok ? (float) ($spendResult->payload['value'] ?? 0) : 0.0;
+            $count = $countResult?->ok ? (int) ($countResult->payload['value'] ?? 0)   : 0;
 
             return json_encode(['total_purchases' => $total, 'purchase_count' => $count]);
         }
@@ -657,27 +343,25 @@ class AiController extends Controller
             return json_encode(['party_name' => $party->name, 'balance' => $balance, 'type' => $party->type ?? 'customer']);
         }
 
-        // Cash Reconciliation Helper - analyzes transactions to find discrepancies
+        // Cash Reconciliation Helper — analyzes transactions to find discrepancies.
+        // (No Reckoner reading for discrepancy analysis — structural query only.)
         if ($name === 'analyze_cash_discrepancy') {
             $this->checkAuthPermission('finance');
 
             $discrepancy = (float) ($args['discrepancy_amount'] ?? 0);
-            $isShort = ($args['is_short'] ?? true); // true = physical < system, false = physical > system
+            $isShort = ($args['is_short'] ?? true);
             $days = 7;
             $startDate = Carbon::now()->subDays($days)->startOfDay();
             $endDate = Carbon::now()->endOfDay();
 
-            // Get cash account
-            $cashAccount = \App\Models\Account::where('code', '1000')->first();
+            $cashAccount  = \App\Models\Account::where('code', '1000')->first();
             $systemBalance = $cashAccount ? (float) $cashAccount->balance : 0;
 
-            // Gather recent activity
             $recentSales = Sale::whereBetween('created_at', [$startDate, $endDate])
                 ->where('payment_method', 'cash')
                 ->select('id', 'total', 'created_at')
                 ->get();
 
-            // V3: purchases live in `purchases` (total_amount -> total).
             $recentPurchases = \App\Models\Purchase::where('workflow_status', '!=', 'cancelled')
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->select('id', 'total', 'created_at', 'notes')
@@ -691,322 +375,196 @@ class AiController extends Controller
                 ->select('id', 'type', 'amount', 'reason', 'created_at')
                 ->get();
 
-            // Build suggestions based on discrepancy type
             $suggestions = [];
 
             if ($isShort) {
-                // Physical cash is LESS than system - money went out but wasn't recorded
                 $suggestions[] = [
                     'category' => 'Unrecorded Cash Expense',
                     'hint' => 'Did you pay for something with cash (supplies, food, transport) without recording it?',
                     'recent_expenses_count' => $recentExpenses->count(),
-                    'recent_expense_total' => $recentExpenses->sum('amount')
+                    'recent_expense_total' => $recentExpenses->sum('amount'),
                 ];
                 $suggestions[] = [
                     'category' => 'Delivery/Tip Payment',
                     'hint' => 'Did you give cash tip or delivery fee to anyone?',
-                    'check' => 'Check if any deliveries were made without logging cash paid to driver.'
+                    'check' => 'Check if any deliveries were made without logging cash paid to driver.',
                 ];
                 $suggestions[] = [
                     'category' => 'Charity/Donation',
                     'hint' => 'Did you give small charity or donation that wasn\'t recorded?',
-                    'common_amounts' => [100, 200, 500]
+                    'common_amounts' => [100, 200, 500],
                 ];
                 $suggestions[] = [
                     'category' => 'Change Given Incorrectly',
                     'hint' => 'Did you accidentally give extra change to a customer?',
-                    'check' => 'Review cash sales from today.'
+                    'check' => 'Review cash sales from today.',
                 ];
                 $suggestions[] = [
                     'category' => 'Petty Cash Purchase',
                     'hint' => 'Was cash taken for a small business purchase?',
-                    'recent_purchases_count' => $recentPurchases->count()
+                    'recent_purchases_count' => $recentPurchases->count(),
                 ];
             } else {
-                // Physical cash is MORE than system - money came in but wasn't recorded
                 $suggestions[] = [
                     'category' => 'Unrecorded Cash Sale',
                     'hint' => 'Did someone pay cash for a sale that wasn\'t entered in POS?',
-                    'recent_sales_count' => $recentSales->count()
+                    'recent_sales_count' => $recentSales->count(),
                 ];
                 $suggestions[] = [
                     'category' => 'Refund Not Given',
                     'hint' => 'Was a refund supposed to be given but customer didn\'t collect?',
-                    'check' => 'Check for any pending refunds.'
+                    'check' => 'Check for any pending refunds.',
                 ];
                 $suggestions[] = [
                     'category' => 'Prepayment/Advance',
                     'hint' => 'Did a customer give advance payment that wasn\'t recorded?',
-                    'check' => 'Check if any customer made advance booking.'
+                    'check' => 'Check if any customer made advance booking.',
                 ];
             }
 
             return json_encode([
                 'system_balance' => $systemBalance,
-                'discrepancy' => $discrepancy,
-                'type' => $isShort ? 'short' : 'over',
+                'discrepancy'    => $discrepancy,
+                'type'           => $isShort ? 'short' : 'over',
                 'analysis_period' => "{$days} days",
-                'suggestions' => $suggestions,
+                'suggestions'    => $suggestions,
                 'recent_activity' => [
-                    'cash_sales' => $recentSales->count(),
-                    'cash_sales_total' => $recentSales->sum('net_sales'),
-                    'purchases' => $recentPurchases->count(),
-                    'expenses' => $recentExpenses->count(),
-                    'fund_transactions' => $fundTransactions->count()
+                    'cash_sales'        => $recentSales->count(),
+                    'cash_sales_total'  => $recentSales->sum('net_sales'),
+                    'purchases'         => $recentPurchases->count(),
+                    'expenses'          => $recentExpenses->count(),
+                    'fund_transactions' => $fundTransactions->count(),
                 ],
                 'recommendation' => $isShort
                     ? "You are short Rs {$discrepancy}. Check the suggestions above. If you can't find the source, use 'Adjust Balance' in Fund Management to correct it."
-                    : "You have Rs {$discrepancy} extra. This might be an unrecorded sale. If you can't identify it, adjust the balance."
+                    : "You have Rs {$discrepancy} extra. This might be an unrecorded sale. If you can't identify it, adjust the balance.",
             ]);
         }
 
         return json_encode(['error' => 'Unknown function']);
     }
 
-    private function getOpenAiTools()
+    /**
+     * Unified tool definition list (provider-agnostic — AiGateway formats for each provider).
+     * Gemini uses `function_declarations` directly; OpenAI wraps each in `{'type':'function','function':{...}}`.
+     * AiGateway / providers handle this translation.
+     */
+    private function getToolDefinitions(): array
     {
         return [
             [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'get_sales_summary',
-                    'description' => 'Get sales total and count for date range',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'product_name' => ['type' => 'string', 'description' => 'Optional product filter']
-                        ],
-                        'required' => ['start_date', 'end_date']
-                    ]
-                ]
-            ],
-            [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'get_stock_level',
-                    'description' => 'Get stock quantity for a product',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'product_name' => ['type' => 'string']
-                        ],
-                        'required' => ['product_name']
-                    ]
-                ]
-            ],
-            [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'get_profit_summary',
-                    'description' => 'Get profit, revenue, cost and margin for date range',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD']
-                        ],
-                        'required' => ['start_date', 'end_date']
-                    ]
-                ]
-            ],
-            [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'get_expense_summary',
-                    'description' => 'Get expense total and breakdown by category',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'category' => ['type' => 'string', 'description' => 'Optional category filter']
-                        ],
-                        'required' => ['start_date', 'end_date']
-                    ]
-                ]
-            ],
-            [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'get_top_products',
-                    'description' => 'Get best selling products by revenue',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'limit' => ['type' => 'integer', 'description' => 'Number of products to return, default 5']
-                        ],
-                        'required' => ['start_date', 'end_date']
-                    ]
-                ]
-            ],
-            [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'get_purchase_summary',
-                    'description' => 'Get purchase total and count for date range',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                            'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD']
-                        ],
-                        'required' => ['start_date', 'end_date']
-                    ]
-                ]
-            ],
-            [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'get_party_balance',
-                    'description' => 'Get balance owed by or to a customer/supplier',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'party_name' => ['type' => 'string']
-                        ],
-                        'required' => ['party_name']
-                    ]
-                ]
-            ],
-            [
-                'type' => 'function',
-                'function' => [
-                    'name' => 'analyze_cash_discrepancy',
-                    'description' => 'Help user find why their physical cash doesn\'t match the system balance. Analyzes recent transactions to suggest possible causes.',
-                    'parameters' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'discrepancy_amount' => ['type' => 'number', 'description' => 'The difference between physical count and system balance'],
-                            'is_short' => ['type' => 'boolean', 'description' => 'True if physical cash is LESS than system (short), false if MORE (over)']
-                        ],
-                        'required' => ['discrepancy_amount', 'is_short']
-                    ]
-                ]
-            ]
-        ];
-    }
-
-    private function getGeminiTools()
-    {
-        // Gemini uses 'function_declarations' directly
-        return [
-            [
-                'name' => 'get_sales_summary',
+                'name'        => 'get_sales_summary',
                 'description' => 'Get sales total and count for date range',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
-                        'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'product_name' => ['type' => 'string', 'description' => 'Optional product filter']
+                        'start_date'   => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
+                        'end_date'     => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
+                        'product_name' => ['type' => 'string', 'description' => 'Optional product filter'],
                     ],
-                    'required' => ['start_date', 'end_date']
-                ]
+                    'required' => ['start_date', 'end_date'],
+                ],
             ],
             [
-                'name' => 'get_stock_level',
+                'name'        => 'get_stock_level',
                 'description' => 'Get stock quantity for a product',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
-                        'product_name' => ['type' => 'string']
+                        'product_name' => ['type' => 'string'],
                     ],
-                    'required' => ['product_name']
-                ]
+                    'required' => ['product_name'],
+                ],
             ],
             [
-                'name' => 'get_profit_summary',
+                'name'        => 'get_profit_summary',
                 'description' => 'Get profit, revenue, cost and margin for date range',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
                         'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD']
+                        'end_date'   => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
                     ],
-                    'required' => ['start_date', 'end_date']
-                ]
+                    'required' => ['start_date', 'end_date'],
+                ],
             ],
             [
-                'name' => 'get_expense_summary',
+                'name'        => 'get_expense_summary',
                 'description' => 'Get expense total and breakdown by category',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
                         'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'category' => ['type' => 'string', 'description' => 'Optional category filter']
+                        'end_date'   => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
+                        'category'   => ['type' => 'string', 'description' => 'Optional category filter'],
                     ],
-                    'required' => ['start_date', 'end_date']
-                ]
+                    'required' => ['start_date', 'end_date'],
+                ],
             ],
             [
-                'name' => 'get_top_products',
+                'name'        => 'get_top_products',
                 'description' => 'Get best selling products by revenue',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
                         'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'limit' => ['type' => 'integer', 'description' => 'Number of products to return, default 5']
+                        'end_date'   => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
+                        'limit'      => ['type' => 'integer', 'description' => 'Number of products to return, default 5'],
                     ],
-                    'required' => ['start_date', 'end_date']
-                ]
+                    'required' => ['start_date', 'end_date'],
+                ],
             ],
             [
-                'name' => 'get_purchase_summary',
+                'name'        => 'get_purchase_summary',
                 'description' => 'Get purchase total and count for date range',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
                         'start_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-                        'end_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD']
+                        'end_date'   => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
                     ],
-                    'required' => ['start_date', 'end_date']
-                ]
+                    'required' => ['start_date', 'end_date'],
+                ],
             ],
             [
-                'name' => 'get_party_balance',
+                'name'        => 'get_party_balance',
                 'description' => 'Get balance owed by or to a customer/supplier',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
-                        'party_name' => ['type' => 'string']
+                        'party_name' => ['type' => 'string'],
                     ],
-                    'required' => ['party_name']
-                ]
+                    'required' => ['party_name'],
+                ],
             ],
             [
-                'name' => 'analyze_cash_discrepancy',
+                'name'        => 'analyze_cash_discrepancy',
                 'description' => 'Help user find why their physical cash doesn\'t match the system balance. Analyzes recent transactions to suggest possible causes.',
-                'parameters' => [
-                    'type' => 'object',
+                'parameters'  => [
+                    'type'       => 'object',
                     'properties' => [
                         'discrepancy_amount' => ['type' => 'number', 'description' => 'The difference between physical count and system balance'],
-                        'is_short' => ['type' => 'boolean', 'description' => 'True if physical cash is LESS than system (short), false if MORE (over)']
+                        'is_short'           => ['type' => 'boolean', 'description' => 'True if physical cash is LESS than system (short), false if MORE (over)'],
                     ],
-                    'required' => ['discrepancy_amount', 'is_short']
-                ]
-            ]
+                    'required' => ['discrepancy_amount', 'is_short'],
+                ],
+            ],
         ];
     }
 
     public function recommendations(Request $request)
     {
         $productId = $request->query('product_id');
-        $limit = $request->query('limit', 5);
+        $limit     = $request->query('limit', 5);
 
         $tenantId = app('current.tenant')->id;
 
         $recommendations = DB::table('sale_items as a')
-            ->join('sale_items as b', function($join) use ($tenantId) {
+            ->join('sale_items as b', function ($join) use ($tenantId) {
                 $join->on('a.sale_id', '=', 'b.sale_id')
                      ->where('b.tenant_id', '=', $tenantId);
             })
-            ->join('products as p', function($join) use ($tenantId) {
+            ->join('products as p', function ($join) use ($tenantId) {
                 $join->on('b.product_id', '=', 'p.id')
                      ->where('p.tenant_id', '=', $tenantId);
             })
@@ -1028,11 +586,11 @@ class AiController extends Controller
         $tenantId = app('current.tenant')->id;
 
         $products = DB::table('products as p')
-            ->leftJoin('stocks as s', function($join) use ($tenantId) {
+            ->leftJoin('stocks as s', function ($join) use ($tenantId) {
                 $join->on('p.id', '=', 's.product_id')
                      ->where('s.tenant_id', '=', $tenantId);
             })
-            ->leftJoin('sale_items as si', function($join) use ($tenantId) {
+            ->leftJoin('sale_items as si', function ($join) use ($tenantId) {
                 $join->on('p.id', '=', 'si.product_id')
                      ->where('si.created_at', '>=', now()->subDays(30))
                      ->where('si.tenant_id', '=', $tenantId);
@@ -1043,10 +601,10 @@ class AiController extends Controller
             ->get()
             ->map(function ($p) use ($leadTime) {
                 $p->reorder_threshold = round($p->avg_daily_sales * $leadTime, 2);
-                $p->should_reorder = $p->current_stock <= $p->reorder_threshold;
+                $p->should_reorder    = $p->current_stock <= $p->reorder_threshold;
                 return $p;
             })
-            ->filter(fn($p) => $p->should_reorder)
+            ->filter(fn ($p) => $p->should_reorder)
             ->values();
 
         return response()->json(['status' => 'success', 'data' => $products]);
@@ -1056,7 +614,7 @@ class AiController extends Controller
     {
         $daysToProject = (int) $request->query('days', 30);
         $daysToProject = max(1, min(90, $daysToProject));
-        $tenantId = app('current.tenant')->id;
+        $tenantId      = app('current.tenant')->id;
 
         $movements = DB::table('journal_items as ji')
             ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
@@ -1068,7 +626,7 @@ class AiController extends Controller
             ->groupBy('je.date')
             ->get();
 
-        $totalNet = $movements->sum('daily_net');
+        $totalNet    = $movements->sum('daily_net');
         $avgDailyNet = round($totalNet / 30.0, 2);
 
         $currentCash = DB::table('journal_items as ji')
@@ -1081,25 +639,30 @@ class AiController extends Controller
         $forecast = [];
         for ($i = 1; $i <= $daysToProject; $i++) {
             $forecast[] = [
-                'date' => now()->addDays($i)->toDateString(),
-                'projected_net_change' => round($avgDailyNet * $i, 2),
-                'projected_balance' => round($currentCash + ($avgDailyNet * $i), 2)
+                'date'                  => now()->addDays($i)->toDateString(),
+                'projected_net_change'  => round($avgDailyNet * $i, 2),
+                'projected_balance'     => round($currentCash + ($avgDailyNet * $i), 2),
             ];
         }
 
         return response()->json([
-            'status' => 'success',
+            'status'          => 'success',
             'current_balance' => round($currentCash, 2),
-            'avg_daily_net' => $avgDailyNet,
-            'forecast' => $forecast
+            'avg_daily_net'   => $avgDailyNet,
+            'forecast'        => $forecast,
         ]);
     }
 
     /**
      * Resolves local SQL queries for predefined AI reporting intents (T1-10).
+     * These are zero-LLM-cost shortcuts for common phrased questions.
+     * Uses Reckoner for receivables/payables instead of inline journal SQL.
      */
     private function resolveSqlIntentReport(string $intent): array
     {
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $user   = auth()->user();
+
         return match ($intent) {
             'sales_today' => [
                 'summary' => 'Today\'s Sales: ' . Sale::whereDate('created_at', today())->count() . ' transactions totaling PKR ' . number_format((float) Sale::whereDate('created_at', today())->sum('total'), 2),
@@ -1109,42 +672,30 @@ class AiController extends Controller
                 'summary' => 'Low Stock Items: ' . Product::whereColumn('stock_quantity', '<=', 'alert_quantity')->count() . ' products requiring reorder.',
                 'records' => Product::whereColumn('stock_quantity', '<=', 'alert_quantity')->take(10)->get(['id', 'name', 'stock_quantity', 'alert_quantity'])->toArray(),
             ],
-            'receivables' => (function () {
-                $tenantId = app('current.tenant')->id;
-                $rows = DB::table('journal_items as ji')
-                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
-                    ->join('accounts as a', 'ji.account_id', '=', 'a.id')
-                    ->join('parties as p', 'ji.party_id', '=', 'p.id')
-                    ->where('je.tenant_id', $tenantId)
-                    ->where('je.is_reversed', 0)
-                    ->where('a.code', '1200')
-                    ->groupBy('p.id', 'p.name')
-                    ->havingRaw('SUM(ji.debit) - SUM(ji.credit) > 0')
-                    ->selectRaw('p.id, p.name, (SUM(ji.debit) - SUM(ji.credit)) as current_balance')
-                    ->get();
-                $sum = $rows->sum('current_balance');
+            'receivables' => (function () use ($tenant, $user) {
+                if (!$tenant || !$user) {
+                    return ['summary' => 'No store context.', 'records' => []];
+                }
+                $reckoner = app(Reckoner::class);
+                $rReq = new ReckonerRequest('finance.receivables', 'today');
+                $rResult = $reckoner->read($rReq, $user, $tenant);
+                $sum = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
                 return [
-                    'summary' => 'Pending Customer Receivables: PKR ' . number_format((float) $sum, 2) . ' across ' . $rows->count() . ' customers.',
-                    'records' => $rows->take(10)->map(fn($r) => (array)$r)->toArray(),
+                    'summary' => 'Pending Customer Receivables: PKR ' . number_format($sum, 2),
+                    'records' => [],
                 ];
             })(),
-            'payables' => (function () {
-                $tenantId = app('current.tenant')->id;
-                $rows = DB::table('journal_items as ji')
-                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
-                    ->join('accounts as a', 'ji.account_id', '=', 'a.id')
-                    ->join('parties as p', 'ji.party_id', '=', 'p.id')
-                    ->where('je.tenant_id', $tenantId)
-                    ->where('je.is_reversed', 0)
-                    ->where('a.code', '2000')
-                    ->groupBy('p.id', 'p.name')
-                    ->havingRaw('SUM(ji.credit) - SUM(ji.debit) > 0')
-                    ->selectRaw('p.id, p.name, (SUM(ji.credit) - SUM(ji.debit)) as current_balance')
-                    ->get();
-                $sum = $rows->sum('current_balance');
+            'payables' => (function () use ($tenant, $user) {
+                if (!$tenant || !$user) {
+                    return ['summary' => 'No store context.', 'records' => []];
+                }
+                $reckoner = app(Reckoner::class);
+                $rReq = new ReckonerRequest('finance.payables', 'today');
+                $rResult = $reckoner->read($rReq, $user, $tenant);
+                $sum = $rResult->ok ? (float) ($rResult->payload['value'] ?? 0) : 0.0;
                 return [
-                    'summary' => 'Pending Supplier Payables: PKR ' . number_format((float) $sum, 2) . ' across ' . $rows->count() . ' suppliers.',
-                    'records' => $rows->take(10)->map(fn($r) => (array)$r)->toArray(),
+                    'summary' => 'Pending Supplier Payables: PKR ' . number_format($sum, 2),
+                    'records' => [],
                 ];
             })(),
             'top_sellers' => [

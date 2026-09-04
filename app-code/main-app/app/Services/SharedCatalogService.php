@@ -29,7 +29,7 @@ class SharedCatalogService
      */
     public function contribute(?Tenant $tenant, string $barcode, array $data): bool
     {
-        if ($tenant && (bool) $tenant->shared_catalog_opt_out) {
+        if (!$tenant || (bool) $tenant->shared_catalog_opt_out) {
             return false;
         }
 
@@ -40,10 +40,13 @@ class SharedCatalogService
             return false;
         }
 
+        $salt = (string) (config('app.shared_catalog_salt') ?: (config('app.key') ?: 'venqore_shared_catalog_salt'));
+        $tenantHash = hash_hmac('sha256', (string) $tenant->id, $salt);
+
         $product = SharedProduct::where('barcode', $cleanBarcode)->first();
 
         if (!$product) {
-            SharedProduct::create([
+            $product = SharedProduct::create([
                 'barcode'        => $cleanBarcode,
                 'canonical_name' => $cleanName,
                 'brand'          => $data['brand'] ?? null,
@@ -53,14 +56,19 @@ class SharedCatalogService
                 'confirmations'  => 1,
                 'is_published'   => false,
             ]);
-            return true;
         }
 
-        $newConfirmations = $product->confirmations + 1;
-        $isPublished      = $newConfirmations >= 3;
+        \App\Models\SharedProductContribution::firstOrCreate([
+            'shared_product_id' => $product->id,
+            'tenant_hash'       => $tenantHash,
+        ]);
+
+        $distinctCount = \App\Models\SharedProductContribution::where('shared_product_id', $product->id)->count();
+        $threshold = (int) config('smartcapture.shared_catalog_threshold', 3);
+        $isPublished = $distinctCount >= $threshold;
 
         $product->update([
-            'confirmations' => $newConfirmations,
+            'confirmations' => $distinctCount,
             'is_published'  => $isPublished || $product->is_published,
         ]);
 

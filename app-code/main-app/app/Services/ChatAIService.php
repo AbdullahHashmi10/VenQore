@@ -19,183 +19,52 @@ class ChatAIService
      */
     public function respond(array $history, string $newMessage, array $venaContext = []): array
     {
-        // 1. Get API Key & Track Source
-        $apiKey = null;
-        $apiKeyType = 'env';
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
 
-        if (app()->bound('current.tenant')) {
-            $tenant = app('current.tenant');
-            $tenantSettings = \App\Models\Setting::withoutGlobalScopes()
-                ->where('tenant_id', $tenant->id)
-                ->pluck('value', 'key');
-            
-            if ($tenantSettings->get('chatbot_api_key')) {
-                $apiKey = $tenantSettings->get('chatbot_api_key');
-                $apiKeyType = 'tenant';
-            } elseif ($tenantSettings->get('openai_api_key')) {
-                $apiKey = $tenantSettings->get('openai_api_key');
-                $apiKeyType = 'tenant';
-            }
-        }
-
-        if (!$apiKey) {
-            $globalSettings = \Illuminate\Support\Facades\Cache::remember('settings:global', 300, function () {
-                return \App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
-            });
-
-            if (!empty($globalSettings['chatbot_api_key'])) {
-                $apiKey = $globalSettings['chatbot_api_key'];
-                $apiKeyType = 'global';
-            } elseif (!empty($globalSettings['openai_api_key'])) {
-                $apiKey = $globalSettings['openai_api_key'];
-                $apiKeyType = 'global';
-            }
-        }
-
-        if (!$apiKey) {
-            $apiKey = env('GEMINI_API_KEY')
-                ?? env('CHATBOT_API_KEY')
-                ?? env('OPENAI_API_KEY');
-            $apiKeyType = 'env';
-        }
-
-        if (!$apiKey) {
-            throw new \Exception("AI API Key is not configured.");
-        }
-
-        // 2. Build system prompt with all rules baked in
+        // 1. Build system prompt with all rules baked in
         $systemPrompt = $this->buildSystemPrompt($venaContext, $newMessage);
 
-        // Append store-owner custom rules at highest priority (overrides everything above)
         $customRules = SettingsHelper::get('chatbot_custom_rules');
         if ($customRules) {
             $systemPrompt .= "\n\n[CRITICAL STORE-SPECIFIC RULES — ALWAYS FOLLOW THESE ABOVE EVERYTHING ELSE]\n" . $customRules . "\n";
         }
 
-        // 3. Build Gemini multi-turn conversation contents from message history
-        // History is already limited to the last 15 messages by ChatRoutingService.
-        // Each session's history is strictly scoped by session_uuid (FK on chat_messages → chat_sessions).
-        $contents = [];
-
-        // Build Gemini multi-turn contents, merging consecutive same-role messages.
-        // Gemini requires strictly alternating user/model turns. Back-to-back bot messages
-        // (e.g. welcome message + AI reply) or multiple visitor messages without a reply
-        // will cause the model to hallucinate context from general training data.
+        // 2. Format history turns
+        $conversationTurns = [];
         foreach ($history as $msg) {
-            // Skip system messages — they are not part of the AI conversation turn
             if ($msg['sender_type'] === 'system') {
                 continue;
             }
-
-            $role = ($msg['sender_type'] === 'visitor') ? 'user' : 'model';
-            $text = $msg['body'];
-
-            if (!empty($contents) && $contents[count($contents) - 1]['role'] === $role) {
-                // Same role as previous turn — merge by appending text
-                $contents[count($contents) - 1]['parts'][] = ['text' => $text];
-            } else {
-                $contents[] = [
-                    'role'  => $role,
-                    'parts' => [['text' => $text]],
-                ];
-            }
+            $role = ($msg['sender_type'] === 'visitor') ? 'Visitor' : 'Assistant';
+            $conversationTurns[] = "{$role}: {$msg['body']}";
         }
 
-        // Gemini requires the first turn to be from 'user'. If history starts with a model
-        // message (e.g. welcome bot message before the visitor spoke), drop it.
-        if (!empty($contents) && $contents[0]['role'] === 'model') {
-            array_shift($contents);
-        }
+        $inputPrompt = !empty($conversationTurns)
+            ? implode("\n", $conversationTurns) . "\nVisitor: {$newMessage}"
+            : "Visitor: {$newMessage}";
 
-        // 4. Append the new incoming visitor message as the latest user turn
-        $contents[] = [
-            'role'  => 'user',
-            'parts' => [['text' => $newMessage]],
-        ];
-
-        // 5. Call Gemini API — try models newest-first, fall through on failure
-        $modelsToTry    = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
-        $lastException  = null;
-
-        foreach ($modelsToTry as $model) {
-            try {
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-
-                $response = Http::timeout(15)->post($url, [
-                    'system_instruction' => [
-                        'parts' => [['text' => $systemPrompt]],
-                    ],
-                    'contents'         => $contents,
-                    'generationConfig' => [
-                        'temperature'     => 0.35,
-                        'maxOutputTokens' => 800,
-                        'topP'            => 0.85,
-                        'topK'            => 40,
-                    ],
-                    'safetySettings' => [
-                        ['category' => 'HARM_CATEGORY_HARASSMENT',        'threshold' => 'BLOCK_ONLY_HIGH'],
-                        ['category' => 'HARM_CATEGORY_HATE_SPEECH',       'threshold' => 'BLOCK_ONLY_HIGH'],
-                        ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                        ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                    ],
-                ]);
-
-                if ($response->failed()) {
-                    throw new \Exception(
-                        "Gemini API request failed [{$response->status()}]: " . $response->body()
-                    );
-                }
-
-                $data  = $response->json();
-                $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
-
-                if ($reply) {
-                    try {
-                        $promptTokens = (int) ($data['usageMetadata']['promptTokenCount'] ?? 0);
-                        $outputTokens = (int) ($data['usageMetadata']['candidatesTokenCount'] ?? 0);
-                        $cachedTokens = (int) ($data['usageMetadata']['cachedContentTokenCount'] ?? 0);
-                        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-
-                        app(\App\Services\Ai\AiUsageRecorder::class)->record([
-                            'tenant_id'       => $tenant?->id,
-                            'feature'         => 'visitor_chat',
-                            'provider'        => 'gemini',
-                            'model'           => $model,
-                            'key_mode'        => $apiKeyType ?? 'platform_paid',
-                            'input_type'      => 'text',
-                            'prompt_tokens'   => $promptTokens,
-                            'output_tokens'   => $outputTokens,
-                            'cached_tokens'   => $cachedTokens,
-                            'success'         => true,
-                        ]);
-                    } catch (\Throwable $e) {
-                        Log::warning('Failed to record ChatAIService ai_usage_event: ' . $e->getMessage());
-                    }
-
-                    $costUsd = app(\App\Services\Ai\AiUsageRecorder::class)->calculateCost($model, $promptTokens, $outputTokens, $cachedTokens);
-
-                    return [
-                        'text'         => trim($reply),
-                        'usage'        => $data['usageMetadata'] ?? null,
-                        'model'        => $model,
-                        'cost_usd'     => $costUsd,
-                        'api_key_type' => $apiKeyType,
-                    ];
-                }
-
-                throw new \Exception("Empty response from Gemini candidate parts.");
-
-            } catch (\Exception $e) {
-                $lastException = $e;
-                Log::warning("ChatAIService: Model [{$model}] failed — " . $e->getMessage());
-                continue;
-            }
-        }
-
-        // All models failed — throw so ChatRoutingService falls back to human agent silently
-        throw new \Exception(
-            "All Gemini models failed. Last error: " . ($lastException ? $lastException->getMessage() : 'unknown')
+        // 3. Resolve via AiGateway
+        $result = app(\App\Services\Ai\AiGateway::class)->resolve(
+            \App\Services\Ai\AiRequest::for('visitor_chat')
+                ->tenant($tenant)
+                ->systemPrompt($systemPrompt)
+                ->prompt($inputPrompt)
         );
+
+        if (!$result->ok) {
+            throw new \Exception("AI Chat failed: " . ($result->errorMessage ?? $result->failureCode));
+        }
+
+        return [
+            'text'         => trim((string) $result->value),
+            'usage'        => [
+                'promptTokenCount'     => $result->promptTokens,
+                'candidatesTokenCount' => $result->outputTokens,
+            ],
+            'model'        => $result->model,
+            'cost_usd'     => $result->costUsd,
+            'api_key_type' => $result->keyMode ?? 'platform_paid',
+        ];
     }
 
     /**
@@ -203,44 +72,26 @@ class ChatAIService
      */
     public function classifyCategory(string $question): string
     {
-        $apiKey = SettingsHelper::get('chatbot_api_key') 
-            ?? SettingsHelper::get('openai_api_key')
-            ?? env('GEMINI_API_KEY')
-            ?? env('CHATBOT_API_KEY')
-            ?? env('OPENAI_API_KEY');
-        if (!$apiKey) {
-            return 'general';
-        }
-
-        $modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
         $prompt = "You are a support classifier. Analyze the customer support question below and classify it into exactly one of these categories: 'general', 'billing', 'checkout', 'features', 'bug'. Return ONLY the category name in lowercase with no other text, spaces, or formatting.\n\nQuestion: \"{$question}\"";
 
-        foreach ($modelsToTry as $model) {
-            try {
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+        try {
+            $result = app(\App\Services\Ai\AiGateway::class)->resolve(
+                \App\Services\Ai\AiRequest::for('visitor_chat')
+                    ->tenant($tenant)
+                    ->prompt($prompt)
+                    ->temperature(0.1)
+                    ->maxOutputTokens(10)
+            );
 
-                $response = \Illuminate\Support\Facades\Http::timeout(6)->post($url, [
-                    'contents' => [
-                        [
-                            'role' => 'user',
-                            'parts' => [['text' => $prompt]]
-                        ]
-                    ],
-                    'generationConfig' => [
-                        'temperature' => 0.1,
-                        'maxOutputTokens' => 10,
-                    ]
-                ]);
-
-                if ($response->successful()) {
-                    $category = trim(strtolower($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? ''));
-                    if (in_array($category, ['general', 'billing', 'checkout', 'features', 'bug'])) {
-                        return $category;
-                    }
+            if ($result->ok) {
+                $category = trim(strtolower((string) $result->value));
+                if (in_array($category, ['general', 'billing', 'checkout', 'features', 'bug'], true)) {
+                    return $category;
                 }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::warning("Gemini classification with {$model} failed: " . $e->getMessage());
             }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Chat category classification failed: " . $e->getMessage());
         }
 
         return 'general';

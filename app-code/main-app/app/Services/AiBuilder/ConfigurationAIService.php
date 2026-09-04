@@ -95,6 +95,7 @@ class ConfigurationAIService
             $response = $this->call(
                 system: $this->systemPrompt(),
                 user: $this->userPrompt($answers),
+                tenant: $tenant,
             );
 
             $proposal = $this->validator->validate($response['content'] ?? null, $tenant);
@@ -304,56 +305,33 @@ class ConfigurationAIService
      *
      * @return array{content: ?string, model: string, prompt_tokens: int, output_tokens: int}
      */
-    protected function call(string $system, string $user): array
+    protected function call(string $system, string $user, ?Tenant $tenant = null): array
     {
         if (app()->environment('testing') || config('ai_builder.limits.mock_in_ci', true) && app()->runningUnitTests()) {
             throw new \RuntimeException('AI transport must be mocked in tests. Bind a fake ConfigurationAIService.');
         }
 
-        $apiKey = config('smartcapture.gemini_key') ?: config('smartcapture.api_key');
+        $result = app(\App\Services\Ai\AiGateway::class)->resolve(
+            \App\Services\Ai\AiRequest::for('config_ai')
+                ->tenant($tenant)
+                ->systemPrompt($system)
+                ->prompt($user)
+                ->expects(\App\Services\Ai\AiSchema::jsonObject())
+        );
 
-        if (empty($apiKey)) {
-            throw new \RuntimeException('No platform Gemini key configured (GEMINI_API_KEY / SMART_CAPTURE_API_KEY).');
-        }
-
-        $model = config('ai_builder.prompt.model', 'gemini-2.0-flash');
-
-        $response = Http::timeout((int) config('ai_builder.limits.request_timeout_seconds', 20))
-            ->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-                [
-                    'contents'         => [['role' => 'user', 'parts' => [['text' => $user]]]],
-                    'systemInstruction' => ['parts' => [['text' => $system]]],
-                    'generationConfig' => [
-                        'temperature'      => 0.2,
-                        'responseMimeType' => 'application/json',
-                    ],
-                ]
-            );
-
-        if ($response->failed()) {
+        if (!$result->ok) {
             throw new \RuntimeException(
-                "Gemini request failed ({$response->status()}): ".$response->body()
+                "Gemini request failed ({$result->failureCode}): " . ($result->errorMessage ?? 'Unknown error')
             );
         }
 
-        $json = $response->json();
-
-        if (empty($json['candidates'])) {
-            $blockReason = $json['promptFeedback']['blockReason'] ?? 'unknown';
-            throw new \RuntimeException("Gemini returned no candidates (reason: {$blockReason}).");
-        }
-
-        $text = collect($json['candidates'][0]['content']['parts'] ?? [])
-            ->pluck('text')
-            ->filter()
-            ->implode('');
+        $text = is_string($result->value) ? $result->value : json_encode($result->value);
 
         return [
             'content'       => $text !== '' ? $text : null,
-            'model'         => $model,
-            'prompt_tokens' => (int) ($json['usageMetadata']['promptTokenCount'] ?? 0),
-            'output_tokens' => (int) ($json['usageMetadata']['candidatesTokenCount'] ?? 0),
+            'model'         => $result->model ?? 'gemini-2.5-flash-lite',
+            'prompt_tokens' => $result->promptTokens,
+            'output_tokens' => $result->outputTokens,
         ];
     }
 

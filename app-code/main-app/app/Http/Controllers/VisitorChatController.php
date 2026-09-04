@@ -158,23 +158,24 @@ class VisitorChatController extends Controller
 
         $body = $request->input('body');
 
-        // 1. Rate Limiter (T0-7) — bucket visitor_chat
+        // 1. Rate Limiter (T0-7 & FIX-2) — bucket visitor_chat:tenant_id
         $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
-        $rateCheck = $rateLimiter->tryAcquire('visitor_chat');
+        $rateCheck = $rateLimiter->tryAcquire("visitor_chat:{$tenant->id}");
         if (!$rateCheck['ok']) {
             return response()->json([
                 'error' => 'Visitor chat is busy right now. Please wait a few seconds and try again.'
             ], 429);
         }
 
-        // 2. Spend Guard Pre-Check (T0-0 A3 & Fix 1) — realistic estimate ($0.001 per query)
-        $estimatedCost = 0.001;
+        // 2. Spend Guard Pre-Check (T0-0 A3 & FIX-2 & FIX-3)
+        $estimatedCost = (float) config('ai_limits.features.visitor_chat.estimated_cost', 0.0010);
+        $spendCap = (float) config('ai_limits.features.visitor_chat.spend_cap', 3.00);
         $spendGuard = app(\App\Services\Ai\AiSpendGuard::class);
-        if (!$spendGuard->checkAndRecord('visitor_chat', $estimatedCost, 3.00)) {
+        if (!$spendGuard->checkAndRecord("visitor_chat:{$tenant->id}", $estimatedCost, $spendCap)) {
             $alertKey = 'visitor_chat_spend_alert_' . today()->toDateString();
             if (!\Illuminate\Support\Facades\Cache::has($alertKey)) {
                 \Illuminate\Support\Facades\Cache::put($alertKey, true, 86400);
-                \Illuminate\Support\Facades\Log::emergency("ALERT: Visitor chat daily spend cap ($3.00) tripped. Switching to email capture fallback.");
+                \Illuminate\Support\Facades\Log::emergency("ALERT: Visitor chat daily spend cap ($spendCap) tripped for tenant {$tenant->id}. Switching to email capture fallback.");
             }
 
             $fallbackMsg = \App\Models\ChatMessage::create([

@@ -141,6 +141,7 @@ Route::get('/new-dashboard', function () {
     return Inertia::render('NewDashboard', [
         'store' => ['name' => 'VenQore Enterprise Store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
         'auth' => ['user' => ['name' => 'Store Owner', 'role' => 'admin']],
+        'readings' => \App\Reckoner\ReckonerRegistry::v6Catalog(),
     ]);
 })->name('new-dashboard');
 
@@ -1081,7 +1082,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'parkBill'])->name('sales.park');
 
         Route::name('store.')->group(function () {
-    Route::get('/new-dashboard', fn() => Inertia::render('NewDashboard'))->name('new-dashboard');
+    Route::get('/new-dashboard', fn() => Inertia::render('NewDashboard', [
+        'readings' => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+    ]))->name('new-dashboard');
     Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug]));
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/onboarding/step', function ($store_slug) {

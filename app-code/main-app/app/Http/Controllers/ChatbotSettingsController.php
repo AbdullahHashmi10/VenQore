@@ -101,48 +101,18 @@ class ChatbotSettingsController extends Controller
 
         $apiKey = $request->input('api_key');
 
-        $modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
-        $lastError = null;
-        $success = false;
+        $result = app(\App\Services\Ai\AiGateway::class)->testConnection('gemini', $apiKey, 'gemini-2.5-flash-lite');
 
-        foreach ($modelsToTry as $model) {
-            try {
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-                $response = \Illuminate\Support\Facades\Http::timeout(8)
-                    ->post($url, [
-                        'contents' => [
-                            [
-                                'role' => 'user',
-                                'parts' => [
-                                    ['text' => 'Ping']
-                                ]
-                            ]
-                        ]
-                    ]);
-
-                if ($response->successful()) {
-                    $success = true;
-                    break;
-                }
-
-                $errorData = $response->json();
-                $lastError = $errorData['error']['message'] ?? 'API connection failed with status code ' . $response->status();
-            } catch (\Exception $e) {
-                $lastError = $e->getMessage();
-            }
-        }
-
-        if ($success) {
+        if ($result['success']) {
             return response()->json([
                 'success' => true,
-                'message' => 'Connection verified successfully!',
+                'message' => $result['message'] ?? 'Connection verified successfully!',
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => $lastError ?? 'Verification failed.',
+            'message' => $result['message'] ?? 'Connection test failed.',
         ], 400);
     }
 }
-

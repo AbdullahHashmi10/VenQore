@@ -108,30 +108,12 @@ class StoreChatbotSettingsController extends Controller
 
         $apiKey = $request->input('api_key');
 
-        $modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
-        $lastError = null;
+        $result = app(\App\Services\Ai\AiGateway::class)->testConnection('gemini', $apiKey, 'gemini-2.5-flash-lite');
 
-        foreach ($modelsToTry as $model) {
-            try {
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-                $response = \Illuminate\Support\Facades\Http::timeout(8)
-                    ->post($url, [
-                        'contents' => [
-                            ['role' => 'user', 'parts' => [['text' => 'Ping']]]
-                        ]
-                    ]);
-
-                if ($response->successful()) {
-                    return response()->json(['success' => true, 'message' => 'Connection verified successfully!']);
-                }
-
-                $errorData = $response->json();
-                $lastError = $errorData['error']['message'] ?? 'API returned status ' . $response->status();
-            } catch (\Exception $e) {
-                $lastError = $e->getMessage();
-            }
+        if ($result['success']) {
+            return response()->json(['success' => true, 'message' => $result['message'] ?? 'Connection verified successfully!']);
         }
 
-        return response()->json(['success' => false, 'message' => $lastError ?? 'Verification failed.'], 400);
+        return response()->json(['success' => false, 'message' => $result['message'] ?? 'Verification failed.'], 400);
     }
 }

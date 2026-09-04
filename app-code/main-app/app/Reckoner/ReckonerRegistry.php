@@ -1296,6 +1296,54 @@ final class ReckonerRegistry
         return array_key_exists($key, self::all());
     }
 
+    public static function scopeOf(string $key): ?string
+    {
+        return self::find($key)['scope'] ?? null;
+    }
+
+    /**
+     * Generate the V6 Dashboard reading catalog from ReckonerRegistry.
+     * Guaranteed that every reading emitted here has a verified calculation implementation.
+     */
+    public static function v6Catalog(bool $includePlatform = false): array
+    {
+        $catalog = [];
+        foreach (self::all() as $key => $def) {
+            if (!$includePlatform && ($def['scope'] ?? 'tenant') === 'platform') {
+                continue;
+            }
+
+            $domain = $def['domain'] ?? 'operations';
+            $area = match ($domain) {
+                'sales' => 'Sales',
+                'finance', 'tax' => 'Finance',
+                'inventory', 'production' => 'Inventory',
+                'purchasing' => 'Purchasing',
+                default => 'Operations',
+            };
+
+            $module = $def['module'] ?? self::MODULE_MAP[$key] ?? ucfirst($domain);
+            if (is_array($module)) {
+                $module = ucfirst($module[0] ?? $domain);
+            }
+
+            $catalog[] = [
+                'key' => $key,
+                'label' => $def['label'],
+                'shape' => strtoupper($def['shape']->value),
+                'unit' => $def['unit'],
+                'area' => $area,
+                'module' => is_string($module) ? ucfirst($module) : ucfirst($domain),
+                'short' => $def['generic'] ?? $def['label'],
+                'extra' => in_array($key, self::NEW_KEYS, true),
+                'desc' => $def['description'] ?? '',
+                'rowNames' => [],
+                'sliceNames' => [],
+            ];
+        }
+        return $catalog;
+    }
+
     /** For tests: reset the static cache between fixtures. */
     public static function clearCache(): void
     {

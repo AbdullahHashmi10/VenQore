@@ -19,7 +19,36 @@ class AiRateLimiter
                 ->first();
 
             if (!$row) {
-                return ['ok' => true];
+                $feature = explode(':', $bucketKey)[0] ?? 'default';
+                $config = config("ai_limits.features.{$feature}") ?? config('ai_limits.default', [
+                    'capacity'       => 10,
+                    'refill_per_sec' => 0.5,
+                    'day_limit'      => 100,
+                ]);
+
+                $capacity = (float) ($config['capacity'] ?? 10);
+                $refillPerSec = (float) ($config['refill_per_sec'] ?? 0.5);
+                $dayLimit = (int) ($config['day_limit'] ?? 100);
+                $now = microtime(true);
+                $todayStr = today()->toDateString();
+
+                DB::table('ai_rate_buckets')->insertOrIgnore([
+                    'bucket_key'     => $bucketKey,
+                    'tokens'         => $capacity,
+                    'capacity'       => $capacity,
+                    'refill_per_sec' => $refillPerSec,
+                    'last_refill_at' => $now,
+                    'day_count'      => 0,
+                    'day_limit'      => $dayLimit,
+                    'day_date'       => $todayStr,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+
+                $row = DB::table('ai_rate_buckets')
+                    ->where('bucket_key', $bucketKey)
+                    ->lockForUpdate()
+                    ->first();
             }
 
             $now = microtime(true);

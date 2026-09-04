@@ -346,9 +346,9 @@ class ReckonerRegistryTest extends TestCase
 
     public function test_registry_has_expected_key_count(): void
     {
-        // Phase 1 + Phase 2 (scalar/status) = 34. Added 12 Phase B2 shapes = 46 total.
+        // 46 base/shapes + plan.usage_summary + sales.live_feed = 48 total.
         $this->assertCount(
-            46,
+            48,
             $this->registry,
             'Registry key count changed unexpectedly. Update this test if you intentionally added or removed a key.'
         );

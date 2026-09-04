@@ -249,9 +249,9 @@ class SmartCaptureController extends Controller
                 default => max(1, $pdfMetaPages),
             };
 
-            // ── T2-3: Rate limiter check & hybrid async dispatch ─────────────
+            // ── T2-3: Rate limiter check & hybrid async dispatch (FIX-2 & FIX-3) ──
             $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
-            $acquireKey  = 'paid_key:scan';
+            $acquireKey  = "scan:{$tenant->id}";
             $acquire     = $rateLimiter->tryAcquire($acquireKey, 1);
 
             if (!$acquire['ok'] && ($acquire['wait_ms'] ?? 0) > 8000) {
@@ -271,6 +271,22 @@ class SmartCaptureController extends Controller
                     'job_id'  => $jobId,
                     'message' => 'High rate-limit wait time. Extraction queued in background.',
                 ], 202);
+            }
+
+            // FIX-3: Spend cap check on expensive scan path
+            $spendGuard = app(\App\Services\Ai\AiSpendGuard::class);
+            $estimatedScanCost = (float) config('ai_limits.features.scan.estimated_cost', 0.0050);
+            $scanCap = (float) config('ai_limits.features.scan.spend_cap', 5.00);
+
+            if (($check['mode'] ?? 'managed') === 'managed') {
+                if (!$spendGuard->checkAndRecord("scan:{$tenant->id}", $estimatedScanCost, $scanCap)) {
+                    $lock->release();
+                    return response()->json([
+                        'success' => false,
+                        'code'    => 'spend_cap_exceeded',
+                        'message' => 'Daily AI scan spend limit reached for this store. Please try again tomorrow.',
+                    ], 429);
+                }
             }
 
             // ── Content Payload Deduplication (T0-6 rest) ───────────────────
@@ -373,6 +389,12 @@ class SmartCaptureController extends Controller
                     'entitlement_mode'   => $check['mode'],
                 ]
             );
+
+            // Reconcile spend guard estimate vs actual
+            $actualScanCost = (float) ($rawResult['cost_usd'] ?? $estimatedScanCost);
+            if (($check['mode'] ?? 'managed') === 'managed') {
+                $spendGuard->reconcile("scan:{$tenant->id}", $estimatedScanCost, $actualScanCost);
+            }
 
             // ── Resolve action intent ────────────────────────────────────────
             $resolvedAction = $this->intentResolverService->resolve($rawResult['action'] ?? 'sale');
@@ -577,6 +599,9 @@ class SmartCaptureController extends Controller
                 ], 500);
             }
         } catch (AiRateLimitException $e) {
+            if (isset($spendGuard) && ($check['mode'] ?? 'managed') === 'managed') {
+                $spendGuard->reconcile("scan:{$tenant->id}", $estimatedScanCost, 0.0);
+            }
             // Never retried server-side — the user gets a countdown instead.
             return response()->json([
                 'success'     => false,
@@ -586,6 +611,9 @@ class SmartCaptureController extends Controller
                 'message'     => $e->getMessage(),
             ], 429);
         } catch (\Exception $e) {
+            if (isset($spendGuard) && ($check['mode'] ?? 'managed') === 'managed') {
+                $spendGuard->reconcile("scan:{$tenant->id}", $estimatedScanCost, 0.0);
+            }
             Log::error('SmartCapture extraction failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,

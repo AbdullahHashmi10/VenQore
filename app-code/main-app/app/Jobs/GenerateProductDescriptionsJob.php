@@ -4,12 +4,14 @@ namespace App\Jobs;
 
 use App\Models\Product;
 use App\Models\Tenant;
+use App\Services\Ai\AiGateway;
+use App\Services\Ai\AiRequest;
+use App\Services\Ai\AiSchema;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class GenerateProductDescriptionsJob implements ShouldQueue
@@ -31,6 +33,8 @@ class GenerateProductDescriptionsJob implements ShouldQueue
             return;
         }
 
+        app()->instance('current.tenant', $tenant);
+
         $products = Product::where('tenant_id', $this->tenantId)
             ->whereIn('id', array_slice($this->productIds, 0, 20))
             ->get();
@@ -39,14 +43,25 @@ class GenerateProductDescriptionsJob implements ShouldQueue
             return;
         }
 
-        $apiKey = config('smartcapture.gemini_key') ?? config('services.gemini.key') ?? env('GEMINI_API_KEY');
+        // Fast-fail if tenant has neither entitlement nor BYOK
+        $byokKey = \App\Models\Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->whereIn('key', ['smartcapture_api_key', 'chatbot_api_key', 'openai_api_key'])
+            ->whereNotNull('value')
+            ->where('value', '!=', '')
+            ->value('value');
 
-        if (empty($apiKey)) {
-            Log::error("GenerateProductDescriptionsJob: Aborted for tenant {$this->tenantId}. GEMINI_API_KEY is not configured.");
+        $isEntitled = !empty($byokKey)
+            || in_array($tenant->ai_status ?? 'none', ['managed', 'staff'], true)
+            || (($tenant->ai_descriptions_balance ?? 0) > 0);
+
+        if (!$isEntitled) {
+            Log::warning("GenerateProductDescriptionsJob: Aborted for tenant {$this->tenantId}. No AI entitlement and no BYOK key.");
             return;
         }
 
         $successfulGenerations = 0;
+        $gateway = app(AiGateway::class);
 
         foreach ($products as $product) {
             try {
@@ -55,36 +70,29 @@ class GenerateProductDescriptionsJob implements ShouldQueue
                     . "Existing Description: {$product->description}\n"
                     . "Return ONLY valid JSON with keys: ai_title, ai_description_short, ai_description_long, ai_tags (comma separated).";
 
-                $res = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={$apiKey}", [
-                        'contents' => [
-                            ['parts' => [['text' => $prompt]]],
-                        ],
-                        'generationConfig' => [
-                            'temperature'      => 0.4,
-                            'responseMimeType' => 'application/json',
-                        ],
-                    ]);
+                $result = $gateway->resolve(
+                    AiRequest::for('catalog')
+                        ->tenant($tenant)
+                        ->prompt($prompt)
+                        ->expects(AiSchema::catalogCopy())
+                );
 
-                if ($res->successful()) {
-                    $rawJson = $res->json('candidates.0.content.parts.0.text');
-                    $parsed  = json_decode($rawJson, true);
-                    if (is_array($parsed) && !empty($parsed['ai_title'])) {
-                        $product->update([
-                            'ai_title'             => $parsed['ai_title'],
-                            'ai_description_short' => $parsed['ai_description_short'] ?? null,
-                            'ai_description_long'  => $parsed['ai_description_long'] ?? null,
-                            'ai_tags'              => $parsed['ai_tags'] ?? null,
-                        ]);
-                        $successfulGenerations++;
-                    } else {
-                        Log::error("GenerateProductDescriptionsJob: Invalid JSON structure returned for product {$product->id}");
-                    }
+                if ($result->ok && is_array($result->value) && !empty($result->value['ai_title'])) {
+                    $product->update([
+                        'ai_title'             => $result->value['ai_title'],
+                        'ai_description_short' => $result->value['ai_description_short'] ?? null,
+                        'ai_description_long'  => $result->value['ai_description_long'] ?? null,
+                        'ai_tags'              => $result->value['ai_tags'] ?? null,
+                    ]);
+                    $successfulGenerations++;
                 } else {
-                    Log::error("GenerateProductDescriptionsJob: Gemini API HTTP error {$res->status()} for product {$product->id}");
+                    Log::warning("GenerateProductDescriptionsJob: Failed for product {$product->id}: " . ($result->errorMessage ?? $result->failureCode));
+                    if (in_array($result->failureCode, ['no_key', 'spend_capped', 'not_allowed', 'rate_limited'], true)) {
+                        break;
+                    }
                 }
             } catch (\Throwable $e) {
-                Log::error("GenerateProductDescriptionsJob: API exception for product {$product->id}: " . $e->getMessage());
+                Log::error("GenerateProductDescriptionsJob: Exception for product {$product->id}: " . $e->getMessage());
             }
         }
 
