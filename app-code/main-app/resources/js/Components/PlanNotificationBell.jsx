@@ -34,7 +34,7 @@ export default function PlanNotificationBell({ storeSlug }) {
     const fetchNotifications = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`/s/${storeSlug}/notifications/plan/unread`);
+            const res = await axios.get(`/s/${storeSlug}/notifications/plan/unread`, { _skipGlobalErrorHandler: true });
             setNotifications(res.data);
         } catch (e) {
             // Silent fail — bell is non-critical
@@ -60,13 +60,17 @@ export default function PlanNotificationBell({ storeSlug }) {
     }, []);
 
     const markRead = async (id) => {
-        await axios.post(`/s/${storeSlug}/notifications/plan/${id}/read`);
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        try {
+            await axios.post(`/s/${storeSlug}/notifications/plan/${id}/read`, {}, { _skipGlobalErrorHandler: true });
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        } catch {}
     };
 
     const markAllRead = async () => {
-        await axios.post(`/s/${storeSlug}/notifications/plan/mark-all-read`);
-        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        try {
+            await axios.post(`/s/${storeSlug}/notifications/plan/mark-all-read`, {}, { _skipGlobalErrorHandler: true });
+            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        } catch {}
     };
 
     return (

@@ -91,25 +91,27 @@ class GlobalErrorBoundary extends React.Component {
                                 </button>
                             </div>
 
-                            {/* Technical Details (Hidden by default or subtle) */}
-                            <div className="mt-12 pt-8 border-t border-line w-full text-left">
-                                <details className="group">
-                                    <summary className="list-none cursor-pointer text-xs text-ink-muted font-mono hover:text-ink-secondary dark:hover:text-neutral-300 transition-colors flex items-center gap-2 justify-center">
-                                        <span>View Technical Details</span>
-                                        <span className="group-open:rotate-180 transition-transform">▼</span>
-                                    </summary>
-                                    <div className="mt-4 p-4 bg-app rounded-xl border border-line overflow-x-auto">
-                                        <pre className="text-2xs text-red-500 font-mono whitespace-pre-wrap">
-                                            {this.state.error && this.state.error.toString()}
-                                            <br />
-                                            {this.state.errorInfo && this.state.errorInfo.componentStack}
-                                        </pre>
-                                    </div>
-                                </details>
-                            </div>
+                            {/* Technical Details (Visible ONLY in development mode) */}
+                            {import.meta.env.DEV && (
+                                <div className="mt-12 pt-8 border-t border-line w-full text-left">
+                                    <details className="group">
+                                        <summary className="list-none cursor-pointer text-xs text-ink-muted font-mono hover:text-ink-secondary dark:hover:text-neutral-300 transition-colors flex items-center gap-2 justify-center">
+                                            <span>View Technical Details (Dev Only)</span>
+                                            <span className="group-open:rotate-180 transition-transform">▼</span>
+                                        </summary>
+                                        <div className="mt-4 p-4 bg-app rounded-xl border border-line overflow-x-auto">
+                                            <pre className="text-2xs text-red-500 font-mono whitespace-pre-wrap">
+                                                {this.state.error && this.state.error.toString()}
+                                                <br />
+                                                {this.state.errorInfo && this.state.errorInfo.componentStack}
+                                            </pre>
+                                        </div>
+                                    </details>
+                                </div>
+                            )}
 
                             <p className="mt-8 text-xs text-neutral-300 dark:text-ink-secondary font-mono">
-                                Error Reference: {Date.now().toString(36).toUpperCase()}
+                                Reference: {Date.now().toString(36).toUpperCase()}
                             </p>
                         </div>
                     </div>

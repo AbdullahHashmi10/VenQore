@@ -282,12 +282,16 @@ return Application::configure(basePath: dirname(__DIR__))
                  try {
                      return response()->view('errors.500', [], 500);
                  } catch (\Throwable $nestedException) {
+                     $details = ! app()->environment('production')
+                         ? "<p style='color:#94a3b8;font-size:0.875rem;margin-top:2rem;'>Original error: " . htmlspecialchars($e->getMessage()) . "</p>" .
+                           "<p style='color:#94a3b8;font-size:0.875rem;'>Secondary error: " . htmlspecialchars($nestedException->getMessage()) . "</p>"
+                         : "<p style='color:#94a3b8;font-size:0.875rem;margin-top:2rem;'>Our engineering team has been notified and is working on a fix.</p>";
+
                      return response(
                          "<html><body style='font-family:sans-serif;padding:2rem;text-align:center;background:#0f172a;color:#f8fafc;'>" .
                          "<h2 style='color:#ef4444;'>DATABASE CONNECTION ERROR</h2>" .
-                         "<p>VenQore could not connect to the database and could not render the 500 page.</p>" .
-                         "<p style='color:#94a3b8;font-size:0.875rem;margin-top:2rem;'>Original error: " . htmlspecialchars($e->getMessage()) . "</p>" .
-                         "<p style='color:#94a3b8;font-size:0.875rem;'>Secondary error: " . htmlspecialchars($nestedException->getMessage()) . "</p>" .
+                         "<p>VenQore could not connect to the database. Please try refreshing the page in a few moments.</p>" .
+                         $details .
                          "</body></html>", 
                          500
                      );
@@ -305,12 +309,16 @@ return Application::configure(basePath: dirname(__DIR__))
                  try {
                      return response()->view('errors.500', [], 500);
                  } catch (\Throwable $nestedException) {
+                     $details = ! app()->environment('production')
+                         ? "<p style='color:#94a3b8;font-size:0.875rem;margin-top:2rem;'>Original error: " . htmlspecialchars($e->getMessage()) . "</p>" .
+                           "<p style='color:#94a3b8;font-size:0.875rem;'>Secondary error: " . htmlspecialchars($nestedException->getMessage()) . "</p>"
+                         : "<p style='color:#94a3b8;font-size:0.875rem;margin-top:2rem;'>Our engineering team has been notified and is working on a fix.</p>";
+
                      return response(
                          "<html><body style='font-family:sans-serif;padding:2rem;text-align:center;background:#0f172a;color:#f8fafc;'>" .
-                         "<h2 style='color:#ef4444;'>CRITICAL SYSTEM ERROR</h2>" .
-                         "<p>VenQore encountered a critical error and could not render the 500 page.</p>" .
-                         "<p style='color:#94a3b8;font-size:0.875rem;margin-top:2rem;'>Original error: " . htmlspecialchars($e->getMessage()) . "</p>" .
-                         "<p style='color:#94a3b8;font-size:0.875rem;'>Secondary error: " . htmlspecialchars($nestedException->getMessage()) . "</p>" .
+                         "<h2 style='color:#ef4444;'>SYSTEM ERROR</h2>" .
+                         "<p>VenQore encountered an unexpected error. Please try refreshing the page in a few moments.</p>" .
+                         $details .
                          "</body></html>", 
                          500
                      );

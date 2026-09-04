@@ -98,13 +98,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  noise that makes people stop reading a menu. */
  const serviceMode = settings?.service_mode || 'counter';
 
- // Global Toast State
- const [toasts, setToasts] = useState([]);
- const addToast = (message, type = 'info') => {
- const id = Date.now() + Math.random().toString(36).substr(2, 9);
- setToasts(prev => [...prev, { id, message, type }]);
- };
- const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+    // Global Toast State
+    const [toasts, setToasts] = useState([]);
+    const addToast = (message, type = 'info') => {
+        if (!message || typeof message !== 'string') return;
+        const id = Date.now() + Math.random().toString(36).substr(2, 9);
+        setToasts(prev => {
+            // Deduplicate: ignore if identical message and type already in view
+            if (prev.some(t => t.message === message && t.type === type)) {
+                return prev;
+            }
+            const updated = [...prev, { id, message, type }];
+            // Cap at 3 visible toasts to keep UI clean and prevent screen crowding
+            return updated.length > 3 ? updated.slice(updated.length - 3) : updated;
+        });
+    };
+    const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
  // Activity Hub Modal State
  const [isActivityHubModalOpen, setIsActivityHubModalOpen] = useState(false);

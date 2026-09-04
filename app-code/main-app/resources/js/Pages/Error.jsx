@@ -74,7 +74,9 @@ export default function Error({ status = 500, message }) {
 
                         {/* Message */}
                         <p className="text-ink-muted text-base mb-8 max-w-sm mx-auto leading-relaxed">
-                            {message || 'An unexpected error occurred. Your data is safe.'}
+                            {status === 500
+                                ? 'Our systems encountered an unexpected issue. We have been notified and are working on a fix.'
+                                : (message || 'An unexpected error occurred. Your data is safe.')}
                         </p>
 
                         {/* Actions */}

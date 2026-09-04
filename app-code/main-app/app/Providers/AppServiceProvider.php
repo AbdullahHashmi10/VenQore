@@ -66,9 +66,11 @@ class AppServiceProvider extends ServiceProvider
         // 4. Phase 1.7: Tenant-aware Rate Limiting
         // Limits are per-tenant (not per-IP) so one bad actor can't hurt others.
         RateLimiter::for('api', function (Request $request) {
-            $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : $request->ip();
-            $key = app()->bound('current.tenant') ? 'tenant:' . $tenantId : 'ip:' . $tenantId;
-            return Limit::perMinute(120)->by($key)->response(function () {
+            $tenantId = app()->bound('current.tenant')
+                ? app('current.tenant')->id
+                : ($request->user()?->current_store_id ?? $request->user()?->id ?? $request->ip());
+            $key = 'api:' . $tenantId;
+            return Limit::perMinute(300)->by($key)->response(function () {
                 return response()->json([
                     'message'     => 'Too many requests. Please slow down.',
                     'retry_after' => 60,

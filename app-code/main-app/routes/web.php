@@ -2061,7 +2061,7 @@ Route::middleware(['auth', 'throttle:api'])->get(
 // problems report) — ReckonerController itself checks
 // app()->bound('current.tenant') and returns 400 rather than assume it, so
 // this route fails safely either way.
-Route::middleware(['auth', 'throttle:api', \App\Http\Middleware\ApiTenantResolver::class])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\ApiTenantResolver::class, 'throttle:api'])->group(function () {
     Route::get('/api/reckoner/catalogue', [\App\Http\Controllers\Api\ReckonerController::class, 'catalogue'])
         ->name('api.reckoner.catalogue');
     Route::post('/api/reckoner/read', [\App\Http\Controllers\Api\ReckonerController::class, 'read'])

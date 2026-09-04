@@ -142,11 +142,29 @@ window.axios.interceptors.response.use(
             }
         }
 
-        // Dispatch error toast for failed requests with error messages (EXCLUDING 419)
-        const isGrowthEngine = error.config?.url && error.config.url.includes('growth-engine');
-        if (error.response && error.response.data && error.response.status !== 419 && !isGrowthEngine) {
+        // Handle 429 (Rate Limit / Too Many Requests)
+        // Throttles notification to at most once per 10s to prevent toast storms from parallel requests
+        if (error.response && error.response.status === 429) {
+            const now = Date.now();
+            if (!window.__last429Toast || now - window.__last429Toast > 10000) {
+                window.__last429Toast = now;
+                window.dispatchEvent(new CustomEvent('amd:toast', {
+                    detail: { message: 'Too many requests. Please wait a moment and try again.', type: 'warning' }
+                }));
+            }
+            return Promise.reject(error);
+        }
 
-            const errorMsg = error.response.data.message || error.response.data.error;
+        // Dispatch error toast for failed requests with error messages (EXCLUDING 419 & 429)
+        const isGrowthEngine = error.config?.url && error.config.url.includes('growth-engine');
+        if (error.response && error.response.data && error.response.status !== 419 && error.response.status !== 429 && !isGrowthEngine) {
+            let errorMsg = error.response.data.message || error.response.data.error;
+
+            // In production, mask raw 500 server stack traces/SQL dumps with a friendly message
+            if (error.response.status >= 500 && !import.meta.env.DEV) {
+                errorMsg = 'We encountered an unexpected issue. Our team is working on it.';
+            }
+
             if (errorMsg && typeof errorMsg === 'string') {
                 window.dispatchEvent(new CustomEvent('amd:toast', {
                     detail: { message: errorMsg, type: 'error' }
@@ -164,7 +182,7 @@ window.axios.interceptors.response.use(
                 detail: {
                     message: isOffline
                         ? 'Connection lost. Please check your internet.'
-                        : 'Server encountered an unexpected error.'
+                        : 'We encountered an unexpected issue. Our team is working on it.'
                 }
             }));
         }
