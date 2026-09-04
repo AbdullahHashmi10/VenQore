@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Head, router, Link, usePage } from '@inertiajs/react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { useTerms } from '@/lib/terms';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import ProductModal from '@/Components/ProductModal';
 import ProductTourGuide from '@/Components/ProductTourGuide';
@@ -30,6 +31,7 @@ import {
 import PasscodeModal from '@/Components/PasscodeModal';
 
 export default function Inventory({ products: serverProducts, filters, stats, warehouses, categories, attributes }) {
+    const { t, tp } = useTerms();
     const { flash, store } = usePage().props;
 
     // Infinite Scroll State
@@ -366,7 +368,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                 <div className="md:hidden flex flex-col gap-0 bg-surface rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center justify-between px-3 py-2">
                         <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
-                            Product <span className="text-brand-600">Inventory</span>
+                            {t('product', 'Product')} <span className="text-brand-600">Inventory</span>
                         </h1>
                         <div className="flex items-center gap-1">
                             <button
@@ -422,7 +424,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                 <div className="hidden md:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Product <span className="text-brand-600">Inventory</span>
+                            {t('product', 'Product')} <span className="text-brand-600">Inventory</span>
                         </h1>
                         <div className="h-4 w-px bg-sunken mx-1"></div>
                         <span className="text-2xs font-bold uppercase rounded-full bg-sunken text-ink-muted px-2.5 py-1">List View</span>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { useTerms } from '@/lib/terms';
 import {
     Plus,
     Search,
@@ -34,6 +35,7 @@ import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
 
 export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {} }) {
+    const { t, tp } = useTerms();
     const { store, vensynq_enabled } = usePage().props;
     // Infinite Scroll State
     const [allPurchases, setAllPurchases] = useState(purchases.data || []);
@@ -346,7 +348,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Purchase <span className="text-brand-600 dark:text-brand-400">Transactions</span>
+                            {t('purchase', 'Purchase')} <span className="text-brand-600 dark:text-brand-400">Transactions</span>
                         </h1>
                         <div className="h-4 w-px bg-line mx-1"></div>
                         <button

@@ -180,7 +180,8 @@ const Card3D = ({ report }) => {
 
 export default function ReportsHub() {
     const {
-        store
+        store,
+        hiddenReports = []
     } = usePage().props;
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -199,6 +200,7 @@ export default function ReportsHub() {
                     longDescription: 'View a comprehensive and detailed log of every sales invoice generated. This report allows you to filter by specific date ranges, customers, or payment statuses to accurately track your revenue trends over time.',
                     icon: TrendingUp,
                     color: 'text-emerald-500',
+                    visible: !hiddenReports.includes('sales'),
                     href: route("store.reports.sales", {
                         store_slug: store.slug
                     })
@@ -209,6 +211,7 @@ export default function ReportsHub() {
                     longDescription: 'Deep dive into your sales data with interactive visual charts and graphs. This tool helps you understand complex revenue trends, identify your peak selling hours, and measure overall business growth metrics at a glance.',
                     icon: BarChart3,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('analytics'),
                     href: route("store.reports.analytics", {
                         store_slug: store.slug
                     })
@@ -219,6 +222,7 @@ export default function ReportsHub() {
                     longDescription: 'The ultimate financial health check for your business. This statement summarizes all income minus expenses to clearly reveal your net profit or loss for any selected period, ensuring you stay profitable.',
                     icon: BarChart2,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('profit-loss'),
                     href: route("store.reports.profit-loss", {
                         store_slug: store.slug
                     })
@@ -229,6 +233,7 @@ export default function ReportsHub() {
                     longDescription: 'Analyze exactly which products are driving your bottom line. See the specific profit margin earned on each item sold to help you optimize your inventory mix and focus on high-yield products.',
                     icon: TrendingUp,
                     color: 'text-emerald-400',
+                    visible: !hiddenReports.includes('item-wise-profit'),
                     href: route("store.reports.item-wise-profit", {
                         store_slug: store.slug
                     })
@@ -239,6 +244,7 @@ export default function ReportsHub() {
                     longDescription: 'Granular profit tracking for every single invoice. See exactly how much money you made on each specific sale after costs, helping you identify which transactions are most valuable to your business.',
                     icon: FileText,
                     color: 'text-blue-500',
+                    visible: !hiddenReports.includes('bill-wise-profit'),
                     href: route("store.reports.bill-wise-profit", {
                         store_slug: store.slug
                     })
@@ -249,6 +255,7 @@ export default function ReportsHub() {
                     longDescription: 'Monitor how much potential revenue is being forgone through discounts. Identify which customers are receiving the most concessions and adjust your pricing strategy to maximize earnings.',
                     icon: Percent,
                     color: 'text-rose-500',
+                    visible: !hiddenReports.includes('discount'),
                     href: route("store.reports.discount", {
                         store_slug: store.slug
                     })
@@ -259,6 +266,7 @@ export default function ReportsHub() {
                     longDescription: 'Essential cash flow forecasting tool. Quickly see which customers owe you money and how long their invoices have been outstanding, helping you prioritize collections and maintain liquidity.',
                     icon: Clock,
                     color: 'text-orange-500',
+                    visible: !hiddenReports.includes('sale-aging'),
                     href: route("store.reports.sale-aging", {
                         store_slug: store.slug
                     })
@@ -269,6 +277,7 @@ export default function ReportsHub() {
                     longDescription: 'Monitor all open sales orders that are currently pending. Track orders that are yet to be converted into final invoices or delivered, ensuring no customer request falls through the cracks.',
                     icon: ShoppingCart,
                     color: 'text-cyan-500',
+                    visible: !hiddenReports.includes('sale-orders'),
                     href: route("store.reports.sale-orders", {
                         store_slug: store.slug
                     })
@@ -279,6 +288,7 @@ export default function ReportsHub() {
                     longDescription: 'See exactly what specific products are currently on order across all clients. This helps drastically with procurement planning and ensuring you have enough stock to fulfill pending commitments.',
                     icon: Package,
                     color: 'text-brand-400',
+                    visible: !hiddenReports.includes('sale-order-items'),
                     href: route("store.reports.sale-order-items", {
                         store_slug: store.slug
                     })
@@ -295,6 +305,7 @@ export default function ReportsHub() {
                     longDescription: 'A comprehensive history of all your purchases. Track every supplier bill, cost, and procurement date in one place to better understand your spending habits and supplier relationships.',
                     icon: ShoppingCart,
                     color: 'text-amber-500',
+                    visible: !hiddenReports.includes('purchases'),
                     href: route("store.reports.purchases", {
                         store_slug: store.slug
                     })
@@ -305,6 +316,7 @@ export default function ReportsHub() {
                     longDescription: 'Track all stock returns and debit notes sent to suppliers. Monitor refund progress, return reasons, and adjust accounts payable accordingly.',
                     icon: PackageMinus,
                     color: 'text-rose-500',
+                    visible: !hiddenReports.includes('purchase-returns'),
                     href: route("store.reports.purchase-returns", {
                         store_slug: store.slug
                     })
@@ -315,6 +327,7 @@ export default function ReportsHub() {
                     longDescription: 'Calculate the total financial worth of your current stock based on cost price. This report provides a crucial figure for your balance sheet and helps you understand exactly how much capital is tied up in inventory.',
                     icon: Package,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('stock-valuation'),
                     href: route("store.reports.stock-valuation", {
                         store_slug: store.slug
                     })
@@ -325,6 +338,7 @@ export default function ReportsHub() {
                     longDescription: 'A critical alert system for your inventory. Get a list of items running low to help you reorder in time, preventing stockouts and ensuring you never miss a sale due to missing products.',
                     icon: AlertTriangle,
                     color: 'text-red-500',
+                    visible: !hiddenReports.includes('low-stock'),
                     href: route("store.reports.low-stock", {
                         store_slug: store.slug
                     })
@@ -335,6 +349,7 @@ export default function ReportsHub() {
                     longDescription: 'A detailed history of every single stock addition, deduction, or transfer. This provides complete traceability for every item, helping you identify shrinkage or tracking errors immediately.',
                     icon: History,
                     color: 'text-blue-500',
+                    visible: !hiddenReports.includes('movement-history'),
                     href: route("store.reports.movement-history", {
                         store_slug: store.slug
                     })
@@ -345,6 +360,7 @@ export default function ReportsHub() {
                     longDescription: 'Identify old stock that has been sitting in your warehouse for too long. Clearing out slow-moving inventory releases cash and makes room for more profitable, fast-moving items.',
                     icon: Hourglass,
                     color: 'text-orange-500',
+                    visible: !hiddenReports.includes('stock-aging'),
                     href: route("store.reports.stock-aging", {
                         store_slug: store.slug
                     })
@@ -355,6 +371,7 @@ export default function ReportsHub() {
                     longDescription: 'See the distribution of your inventory value across different product categories. This high-level view helps you decide which categories warrant more investment and which are overstocked.',
                     icon: Layers,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('stock-summary-by-category'),
                     href: route("store.reports.stock-summary-by-category", {
                         store_slug: store.slug
                     })
@@ -365,6 +382,7 @@ export default function ReportsHub() {
                     longDescription: 'View full specifications and configuration details for every item in your system. This master data view is essential for auditing product settings, prices, and tax configurations.',
                     icon: Box,
                     color: 'text-ink-muted',
+                    visible: !hiddenReports.includes('item-detail'),
                     href: route("store.reports.item-detail", {
                         store_slug: store.slug
                     })
@@ -375,6 +393,7 @@ export default function ReportsHub() {
                     longDescription: 'Monitor batches that are nearing their expiration date. This report helps you proactively discount or clear out perishable goods before they spoil, significantly reducing wastage and loss.',
                     icon: AlertTriangle,
                     color: 'text-orange-500',
+                    visible: !hiddenReports.includes('expiry'),
                     href: route("store.reports.expiry", {
                         store_slug: store.slug
                     })
@@ -385,6 +404,7 @@ export default function ReportsHub() {
                     longDescription: 'Go back in time and view the exact quantity and asset value of your inventory as of any specific date. Crucial for matching past accounting balances and financial reconciliation.',
                     icon: History,
                     color: 'text-brand-400',
+                    visible: !hiddenReports.includes('point-in-time-inventory'),
                     href: route("store.reports.point-in-time-inventory", {
                         store_slug: store.slug
                     })
@@ -401,6 +421,7 @@ export default function ReportsHub() {
                     longDescription: 'Your primary financial position snapshot. View your assets, liabilities, and equity at a specific point in time to understand the overall financial stability and net worth of your business.',
                     icon: Scale,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('balance-sheet'),
                     href: route("store.reports.balance-sheet", {
                         store_slug: store.slug
                     })
@@ -411,6 +432,7 @@ export default function ReportsHub() {
                     longDescription: 'A summary of all ledger account balances to ensure debits equal credits. This is a fundamental accounting report used to verify the mathematical accuracy of your bookkeeping before creating financial statements.',
                     icon: Scale,
                     color: 'text-blue-500',
+                    visible: !hiddenReports.includes('trial-balance'),
                     href: route("store.reports.trial-balance", {
                         store_slug: store.slug
                     })
@@ -421,6 +443,7 @@ export default function ReportsHub() {
                     longDescription: 'Track the actual movement of cash in and out of your business. This report is vital for understanding your liquidity and ensuring you have enough cash on hand to meet immediate obligations.',
                     icon: RefreshCw,
                     color: 'text-emerald-500',
+                    visible: !hiddenReports.includes('cash-flow'),
                     href: route("store.reports.cash-flow", {
                         store_slug: store.slug
                     })
@@ -431,6 +454,7 @@ export default function ReportsHub() {
                     longDescription: 'View all recorded bank transactions to match with your actual bank feed. Regular reconciliation ensures your system records match the bank\'s records, catching errors or unauthorized transactions early.',
                     icon: Landmark,
                     color: 'text-blue-400',
+                    visible: !hiddenReports.includes('bank-statement'),
                     href: route("store.reports.bank-statement", {
                         store_slug: store.slug
                     })
@@ -441,6 +465,7 @@ export default function ReportsHub() {
                     longDescription: 'A detailed list of all business expenses. Use this to audit your spending, find areas to cut costs, and ensure all tax-deductible expenses are correctly recorded for your filings.',
                     icon: CreditCard,
                     color: 'text-rose-500',
+                    visible: !hiddenReports.includes('expenses'),
                     href: route("store.reports.expenses", {
                         store_slug: store.slug
                     })
@@ -451,6 +476,7 @@ export default function ReportsHub() {
                     longDescription: 'A visual breakdown of where your money is going (e.g., Rent, Utilities, Salaries). This helps you identify which specific operational areas are consuming the most budget.',
                     icon: PieChart,
                     color: 'text-rose-400',
+                    visible: !hiddenReports.includes('expense-by-category'),
                     href: route("store.reports.expense-by-category", {
                         store_slug: store.slug
                     })
@@ -461,6 +487,7 @@ export default function ReportsHub() {
                     longDescription: 'Compare Total Output Tax (collected from sales) against Input Tax (paid on purchases) to accurately calculate your final tax liability. Essential for preparing your tax returns.',
                     icon: Landmark,
                     color: 'text-amber-500',
+                    visible: !hiddenReports.includes('tax'),
                     href: route("store.reports.tax", {
                         store_slug: store.slug
                     })
@@ -471,6 +498,7 @@ export default function ReportsHub() {
                     longDescription: 'View sales and purchases grouped by specific tax percentages (e.g., 5%, 12%, 18%). This granular view helps you ensure you are applying the correct tax rates across different product lines.',
                     icon: Hash,
                     color: 'text-amber-400',
+                    visible: !hiddenReports.includes('tax-rate'),
                     href: route("store.reports.tax-rate", {
                         store_slug: store.slug
                     })
@@ -481,6 +509,7 @@ export default function ReportsHub() {
                     longDescription: 'A secure vault displaying 7 vital daily store metrics (Sales, Purchases, Stock, Payables, Receivables, Cash, Expenses) with daily inline memos. Access is protected by an authorization passcode.',
                     icon: Activity,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('owner-daily-pulse'),
                     href: route("store.reports.owner-daily-pulse", {
                         store_slug: store.slug
                     })
@@ -505,6 +534,7 @@ export default function ReportsHub() {
                     longDescription: 'View the raw double-entry accounting records for full transparency. This report allows accountants to inspect the debit and credit side of every single transaction in the system.',
                     icon: BookOpen,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('account-ledger'),
                     href: route("store.reports.account-ledger", {
                         store_slug: store.slug
                     })
@@ -515,6 +545,7 @@ export default function ReportsHub() {
                     longDescription: 'A chronological list of all transactions recorded on a specific day. Useful for verifying the day\'s work and ensuring all manual entries have been correctly logged before closing.',
                     icon: Calendar,
                     color: 'text-cyan-500',
+                    visible: !hiddenReports.includes('day-book'),
                     href: route("store.reports.day-book", {
                         store_slug: store.slug
                     })
@@ -525,6 +556,7 @@ export default function ReportsHub() {
                     longDescription: 'A complete master list of every financial event entered in the system. Use this when searching for a specific transaction across all modules, regardless of type or date.',
                     icon: Activity,
                     color: 'text-ink-muted',
+                    visible: !hiddenReports.includes('transactions'),
                     href: route("store.reports.transactions", {
                         store_slug: store.slug
                     })
@@ -541,6 +573,7 @@ export default function ReportsHub() {
                     longDescription: 'A complete directory list of all customers and suppliers with their contact info. Use this to manage your address book and quickly access details for any business partner.',
                     icon: Users,
                     color: 'text-ink-muted',
+                    visible: !hiddenReports.includes('all-parties'),
                     href: route("store.reports.all-parties", {
                         store_slug: store.slug
                     })
@@ -551,6 +584,7 @@ export default function ReportsHub() {
                     longDescription: 'A detailed statement of account transactions for any specific party. Send this to customers to show their opening balance, invoices, payments, and current outstanding dues.',
                     icon: Users,
                     color: 'text-cyan-500',
+                    visible: !hiddenReports.includes('party-statement'),
                     href: route("store.reports.party-statement", {
                         store_slug: store.slug
                     })
@@ -561,6 +595,7 @@ export default function ReportsHub() {
                     longDescription: 'See which clients are generating the most profit for your business. This helps you identify your VIP customers and focus your relationship management efforts where they matter most.',
                     icon: BarChart3,
                     color: 'text-emerald-500',
+                    visible: !hiddenReports.includes('party-wise-profit-loss'),
                     href: route("store.reports.party-wise-profit-loss", {
                         store_slug: store.slug
                     })
@@ -571,6 +606,7 @@ export default function ReportsHub() {
                     longDescription: 'View the total turnover (sales and purchases) associated with each party. This metric helps you identify your largest trading partners by volume, unrelated to profitability.',
                     icon: ArrowLeftRight,
                     color: 'text-blue-500',
+                    visible: !hiddenReports.includes('sale-purchase-by-party'),
                     href: route("store.reports.sale-purchase-by-party", {
                         store_slug: store.slug
                     })
@@ -581,6 +617,7 @@ export default function ReportsHub() {
                     longDescription: 'Analyze what specific items a particular customer buys frequently. This insight allows you to create targeted offers and anticipate their needs before they even ask.',
                     icon: UserPlus,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('item-report-by-party'),
                     href: route("store.reports.item-report-by-party", {
                         store_slug: store.slug
                     })
@@ -591,6 +628,7 @@ export default function ReportsHub() {
                     longDescription: 'Reverse analysis to see which customers are buying a specific product. If you have a surplus of an item, use this report to find customers who have bought it before and offer a deal.',
                     icon: PackageSearch,
                     color: 'text-brand-500',
+                    visible: !hiddenReports.includes('party-report-by-item'),
                     href: route("store.reports.party-report-by-item", {
                         store_slug: store.slug
                     })
@@ -601,6 +639,7 @@ export default function ReportsHub() {
                     longDescription: 'Monitor outstanding loans and current balances. Keep track of principal and interest to ensure you are meeting your repayment obligations or collecting what is owed to you.',
                     icon: Landmark,
                     color: 'text-red-500',
+                    visible: !hiddenReports.includes('loan-statement'),
                     href: route("store.reports.loan-statement", {
                         store_slug: store.slug
                     })
@@ -611,6 +650,7 @@ export default function ReportsHub() {
                     longDescription: 'Deep dive into customer metrics, customer lifetime value, ordering frequency, average order values, and churn indicators to optimize your sales and marketing strategies.',
                     icon: Users2,
                     color: 'text-emerald-500',
+                    visible: !hiddenReports.includes('customer-insights'),
                     href: route("store.reports.customer-insights", {
                         store_slug: store.slug
                     })
@@ -621,6 +661,7 @@ export default function ReportsHub() {
                     longDescription: 'Analyze supplier performance, purchase volumes, product costs, lead times, and outstanding payables to make informed procurement decisions and negotiate better terms.',
                     icon: Landmark,
                     color: 'text-blue-500',
+                    visible: !hiddenReports.includes('supplier-insights'),
                     href: route("store.reports.supplier-insights", {
                         store_slug: store.slug
                     })
@@ -629,12 +670,22 @@ export default function ReportsHub() {
         }
     ], [store?.slug]);
 
+    // Module visibility: a report whose owning module is off is dropped
+    // entirely here rather than shown locked, matching ReportsNavigation.jsx's
+    // curated links — the plan-tier lock below (Card3D's allowed_reports) is a
+    // separate, paid-upgrade concept and must not be reused for a free toggle.
+    const visibleGroups = useMemo(() => {
+        return reportGroups
+            .map(group => ({ ...group, reports: group.reports.filter(r => r.visible !== false) }))
+            .filter(group => group.reports.length > 0);
+    }, [reportGroups]);
+
     // Search Filtering
     const filteredGroups = useMemo(() => {
-        if (!searchTerm) return reportGroups;
+        if (!searchTerm) return visibleGroups;
         const lowerSearch = searchTerm.toLowerCase();
 
-        return reportGroups.map(group => {
+        return visibleGroups.map(group => {
             const matchingReports = group.reports.filter(report =>
                 report.title.toLowerCase().includes(lowerSearch) ||
                 report.description.toLowerCase().includes(lowerSearch) ||
@@ -642,7 +693,7 @@ export default function ReportsHub() {
             );
             return { ...group, reports: matchingReports };
         }).filter(group => group.reports.length > 0);
-    }, [searchTerm, reportGroups]);
+    }, [searchTerm, visibleGroups]);
 
     return (
         <ReportsLayout title="Reports Hub" showSidebar={false}>

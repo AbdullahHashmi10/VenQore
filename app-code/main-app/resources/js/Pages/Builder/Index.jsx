@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import {
     Sparkles, ArrowRight, Check, X, AlertTriangle, Loader2,
@@ -200,6 +200,13 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
                             </span>
                         )}
                     </p>
+                    <Link
+                        href={route('store.onboarding.v2', routeArgs())}
+                        className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-brand-600 hover:text-brand-700"
+                    >
+                        <Sparkles size={14} />
+                        Run the guided setup wizard again
+                    </Link>
                 </div>
 
                 {highlightMod && !moduleState[highlightMod.key] && (

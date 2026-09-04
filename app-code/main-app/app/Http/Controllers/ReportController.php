@@ -88,7 +88,23 @@ class ReportController extends Controller
 
     public function index()
     {
-        return Inertia::render('Reports/ReportsHub');
+        // Reports whose owning module is off are dropped from the hub
+        // entirely (ReportsHub.jsx filters on this), mirroring the same
+        // ReportModuleMap::OWNERS the route gate already enforces — a
+        // report link that would just bounce to the builder is worse than
+        // no link. visibleFor() only walks known OWNERS keys, so the
+        // "hidden" set is the complement within that keyset, not its
+        // inverse over all keys — anything ReportModuleMap has never heard
+        // of stays visible (fail open).
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $hiddenReports = array_values(array_diff(
+            array_keys(\App\Support\ReportModuleMap::OWNERS),
+            \App\Support\ReportModuleMap::visibleFor($tenant)
+        ));
+
+        return Inertia::render('Reports/ReportsHub', [
+            'hiddenReports' => $hiddenReports,
+        ]);
     }
 
     public function dashboard()

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { useTerms } from '@/lib/terms';
 import { formatCurrency, formatDate, formatTime } from '@/Utils/format';
 import {
  Plus,
@@ -66,6 +67,7 @@ const EbayLogo = ({ size = 12 }) => {
 };
 
 export default function SalesIndex({ sales, filters, stats }) {
+ const { t, tp } = useTerms();
  const { auth, flash, store, vensynq_enabled } = usePage().props;
  const isSuperAdmin = auth.user?.role === 'platform_admin' || auth.user?.role === 'admin' || auth.user?.role === 'owner';
 
@@ -385,7 +387,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  {/* Left: Title + Filter Pills */}
  <div className="flex items-center gap-2 flex-wrap">
  <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- Sales <span className="text-brand-600">Transactions</span>
+ {tp('sale', 'Sales')} <span className="text-brand-600">Transactions</span>
  </h1>
  <div className="h-4 w-px bg-sunken mx-1"></div>
  <button
@@ -451,7 +453,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
  <div className="flex items-center justify-between w-full">
  <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
- Sales <span className="text-brand-600">Transactions</span>
+ {tp('sale', 'Sales')} <span className="text-brand-600">Transactions</span>
  </h1>
  <div className="flex items-center gap-1">
  {/* Button 1: Search Toggle */}

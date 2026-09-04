@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { useTerms } from '@/lib/terms';
 import {
     List,
     CreditCard,
@@ -20,6 +21,7 @@ import {
 
 export default function MoneyModuleTabs({ activeTab, className = '' }) {
     const { store } = usePage().props;
+    const { t, tp } = useTerms();
     // Helper to safely get route
     const getRoute = (name, params = {}) => {
         try {
@@ -35,8 +37,8 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             label: 'Cash Flow',
             icon: Repeat,
             items: [
-                { id: 'payments', label: 'Payments', href: getRoute('payments.index'), icon: ArrowRight },
-                { id: 'expenses', label: 'Expenses', href: getRoute('expenses.index'), icon: CreditCard },
+                { id: 'payments', label: tp('payment', 'Payments'), href: getRoute('payments.index'), icon: ArrowRight },
+                { id: 'expenses', label: tp('expense', 'Expenses'), href: getRoute('expenses.index'), icon: CreditCard },
                 { id: 'receivables', label: 'To Receive', href: getRoute('finance.receivables'), icon: TrendingUp },
                 { id: 'payables', label: 'To Pay', href: getRoute('finance.payables'), icon: TrendingDown },
                 { id: 'all', label: 'All Transactions', href: getRoute('transactions.index'), icon: List },
@@ -53,7 +55,7 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             ]
         },
 
-    ], []);
+    ], [tp]);
 
     // Determine initial group based on activeTab
     const [activeGroup, setActiveGroup] = useState(() => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { useTerms } from '@/lib/terms';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import ConfirmModal from '@/Components/ConfirmModal';
@@ -232,6 +233,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
  );
 }
 export default function ExpensesIndex({ expenses = [], categories = [], stats = {}, bankAccounts = [], cashBalance = 0, filters = {} }) {
+ const { t, tp } = useTerms();
  const {
  store
  } = usePage().props;
@@ -755,7 +757,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  {/* Title row + icon buttons */}
  <div className="flex items-center justify-between px-3 py-2">
  <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
- Expenses <span className="text-rose-600">Transactions</span>
+ {tp('expense', 'Expenses')} <span className="text-rose-600">Transactions</span>
  </h1>
  <div className="flex items-center gap-1">
  <button

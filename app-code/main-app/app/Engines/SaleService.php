@@ -85,6 +85,10 @@ class SaleService
         }
 
         return DB::transaction(function () use ($data) {
+            $data['customer_id']    = $data['customer_id'] ?? $data['party_id'] ?? null;
+            $data['payment_method'] = $data['payment_method'] ?? 'cash';
+            $data['warehouse_id']   = $data['warehouse_id'] ?? DB::table('warehouses')->where('tenant_id', $this->tenantId)->value('id');
+            $data['sale_date']      = $data['sale_date'] ?? now()->toDateString();
 
             $saleId        = Str::uuid()->toString();
             $invoiceNumber = \App\Services\SequenceService::generateTransactionNumber('SAL');
@@ -140,10 +144,11 @@ class SaleService
                     $lineCogs = 0.00;
                 } else {
                     // UOM conversion: sale qty → base qty for FIFO
+                    $saleUom = $item['sale_uom'] ?? DB::table('products')->where('id', $item['product_id'])->value('base_unit') ?? 'pcs';
                     $baseQty = $this->uom->toBaseQty(
                         $item['product_id'],
                         $qty,
-                        $item['sale_uom']
+                        $saleUom
                     );
 
                     // FIFO deduction — returns array of batch deductions
@@ -151,7 +156,7 @@ class SaleService
                         productId:   $item['product_id'],
                         warehouseId: $data['warehouse_id'],
                         qty:         $baseQty,
-                        saleUom:     $item['sale_uom']
+                        saleUom:     $saleUom
                     );
                     $lineCogs = array_sum(array_column($deductions, 'total_cost'));
                 }

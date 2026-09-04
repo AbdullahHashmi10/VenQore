@@ -111,7 +111,7 @@ class ServiceBillingService
             JobEvent::create([
                 'job_id'  => $job->id,
                 'type'    => 'invoiced',
-                'body'    => "Job invoiced as {$sale->invoice_number}.",
+                'body'    => "Job invoiced as " . ($sale->reference_number ?? $sale->invoice_number ?? $sale->id) . ".",
                 'user_id' => auth()->id(),
             ]);
 

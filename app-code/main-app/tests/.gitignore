@@ -17,6 +17,7 @@ tests/Unit/*
 !tests/Feature/
 tests/Feature/*
 !tests/Feature/Reckoner/
+!tests/Feature/Module/
 reports/*.json
 reports/*.xml
 reports/coverage/
