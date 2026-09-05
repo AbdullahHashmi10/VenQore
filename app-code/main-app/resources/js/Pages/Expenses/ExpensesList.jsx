@@ -123,7 +123,7 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
  )}
 
  {open && results.length > 0 && (
- <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-2xl z-sticky max-h-52 overflow-auto" style={{ background: vq.slate[800] }}>
+ <div className="absolute top-full left-0 right-0 mt-1 rounded-[14px] border border-white/10 shadow-2xl z-sticky max-h-52 overflow-auto" style={{ background: vq.slate[800] }}>
  {results.map(party => {
  const bal = parseFloat(party.current_balance || 0);
  const settled = Math.abs(bal) < 0.01;
@@ -153,7 +153,7 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
  )}
 
  {open && results.length === 0 && !searching && query && (
- <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-xl z-sticky px-4 py-4 text-center text-sm text-ink-muted" style={{ background: vq.slate[800] }}>
+ <div className="absolute top-full left-0 right-0 mt-1 rounded-[14px] border border-white/10 shadow-xl z-sticky px-4 py-4 text-center text-sm text-ink-muted" style={{ background: vq.slate[800] }}>
  No results for "{query}"
  </div>
  )}
@@ -189,7 +189,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
  </button>
 
  {open && (
- <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border border-white/10 z-drawer py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: vq.slate[800] }}>
+ <div className="absolute top-full left-0 right-0 mt-1 rounded-[14px] shadow-2xl border border-white/10 z-drawer py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: vq.slate[800] }}>
  <button
  type="button"
  onClick={() => { onChange(''); setOpen(false); }}

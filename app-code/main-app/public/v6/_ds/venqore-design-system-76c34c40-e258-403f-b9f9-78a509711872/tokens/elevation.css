@@ -1,0 +1,13 @@
+/* Two-part shadows: a tight contact shadow plus a wide soft bloom. Neutral,
+   never teal-tinted — except --vq-glow-accent, which is the one deliberate
+   coloured light in the system (primary buttons and the active KPI card). */
+:root {
+  --vq-elev-0: none;
+  --vq-elev-1: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+  --vq-elev-2: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+  --vq-elev-3: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+  --vq-elev-inset: inset 0 1px 0 rgb(255 255 255 / .55);
+  --vq-glow-accent: 0 6px 20px -6px rgb(11 170 143 / .55);
+  --vq-glow-accent-strong: 0 10px 32px -8px rgb(11 170 143 / .70);
+  --vq-ring-focus: 0 0 0 4px rgb(35 196 166 / .30);
+}

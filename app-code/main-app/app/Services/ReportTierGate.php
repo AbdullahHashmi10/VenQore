@@ -28,11 +28,24 @@ class ReportTierGate
             }
         }
 
+        // The public pricing table publishes "Reports — All 33" as a universal
+        // row: every subscription plan sees every report, and the tiers
+        // differentiate on seats, branches, AI allowance and five feature rows
+        // instead. config/report_tiers.php is kept intact so re-gating is a
+        // one-line change here if that ever changes.
+        //
+        // 'counter' was also missing entirely, so every report check on the
+        // entry tier fell through to the "unrecognized tier, failing open"
+        // branch and logged an error on each request.
         $map = [
-            'ltd_1' => 'starter',
-            'ltd_2' => 'growth',
-            'ltd_3' => 'business',
-            'trial' => 'starter',
+            'ltd_1'    => 'starter',
+            'ltd_2'    => 'growth',
+            'ltd_3'    => 'business',
+            'trial'    => 'business',
+            'counter'  => 'business',
+            'starter'  => 'business',
+            'growth'   => 'business',
+            'business' => 'business',
         ];
 
         return $map[$plan] ?? $plan;

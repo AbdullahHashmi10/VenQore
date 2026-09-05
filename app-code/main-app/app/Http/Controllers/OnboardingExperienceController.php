@@ -20,9 +20,21 @@ class OnboardingExperienceController extends Controller
         $aiBuilderConfig = config('ai_builder', []);
 
         $presets = $aiBuilderConfig['presets'] ?? [];
-        // The discovery question set lives under 'discovery' in config/ai_builder.php
-        // — 'questions' was never a real key there, so this prop always arrived empty.
-        $questions = $aiBuilderConfig['discovery'] ?? [];
+
+        // The full live catalogue, in the same shape the public builder gets, so
+        // both screens can run the same proposal component. Before this, the
+        // in-app proposal could only REMOVE modules — there was no list of
+        // inactive ones to add from, which made "add anything you like" false.
+        $allModules = collect($modulesConfig)
+            ->filter(fn ($m) => ($m['status'] ?? null) === 'live')
+            ->map(fn ($m, $key) => [
+                'key'         => $key,
+                'label'       => $m['label'] ?? ucfirst(str_replace('_', ' ', $key)),
+                'description' => $m['description'] ?? '',
+                'requires'    => array_values($m['requires'] ?? []),
+                'icon'        => $m['nav'][0]['icon'] ?? null,
+            ])
+            ->values();
 
         return Inertia::render('Onboarding/Wizard', [
             'storeSlug'    => $tenant->slug,
@@ -31,7 +43,15 @@ class OnboardingExperienceController extends Controller
             'modules'      => $modulesConfig,
             'qore'         => $qoreConfig,
             'presets'      => $presets,
-            'questions'    => $questions,
+            'allModules'   => $allModules,
+
+            // The question set itself. Previously this prop was called
+            // 'questions' and read config('ai_builder.questions'), a key that has
+            // never existed — so it arrived empty every time and the wizard
+            // rendered three hard-coded dropdowns instead, two of which the
+            // server did not even validate.
+            'discovery'    => app(\App\Services\AiBuilder\DiscoveryResolver::class)->questionSet(),
+            'recommended'  => app(\App\Services\AiBuilder\DiscoveryResolver::class)->recommendations(),
         ]);
     }
 
@@ -40,8 +60,11 @@ class OnboardingExperienceController extends Controller
      */
     public function aiDiscovery(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'prompt'     => 'nullable|string|max:1000',
+            // Question key => option key, or an ARRAY of them for a multi.
+            // DiscoveryResolver normalises both and drops anything that is not
+            // a real option on a visible question.
             'answers'    => 'nullable|array',
             'industry'   => 'nullable|string',
         ]);
@@ -65,11 +88,23 @@ class OnboardingExperienceController extends Controller
 
         $chosenPreset = $presets[$matchedKey] ?? reset($presets);
 
+        // Same resolver, same config, same arithmetic as the public builder and
+        // as the client. Three places used to decide this independently; now
+        // none of them decides it, they all ask.
+        $answers  = (array) ($validated['answers'] ?? []);
+        $resolver = app(\App\Services\AiBuilder\DiscoveryResolver::class);
+        $modules  = $resolver->merge(
+            $chosenPreset['modules'] ?? ['products', 'pos', 'inventory', 'expenses', 'reports'],
+            $answers,
+        );
+
         return response()->json([
-            'success'      => true,
-            'preset_key'   => $matchedKey,
-            'preset'       => $chosenPreset,
-            'suggested_modules' => $chosenPreset['modules'] ?? ['products', 'pos', 'inventory', 'expenses', 'reports'],
+            'success'           => true,
+            'preset_key'        => $matchedKey,
+            'preset'            => $chosenPreset,
+            'suggested_modules' => $modules,
+            'headline'          => $resolver->headline($answers),
+            'recommended'       => $resolver->recommendations(),
         ]);
     }
 

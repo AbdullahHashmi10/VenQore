@@ -533,6 +533,26 @@ class DashboardController extends Controller
         'user_id'      => auth()->id(),
     ]);
 
+    $charityToday = (float) \App\Models\Expense::whereDate('date', \Carbon\Carbon::today())
+        ->whereHas('expenseCategory', function ($q) {
+            $q->where('name', 'Charity/Donations');
+        })
+        ->sum('amount');
+
+    $charityMonth = (float) \App\Models\Expense::whereMonth('date', \Carbon\Carbon::now()->month)
+        ->whereYear('date', \Carbon\Carbon::now()->year)
+        ->whereHas('expenseCategory', function ($q) {
+            $q->where('name', 'Charity/Donations');
+        })
+        ->sum('amount');
+
+    $charityStats = [
+        'today'          => $charityToday,
+        'month'          => $charityMonth,
+        'default_amount' => (float)(\App\Models\Setting::where('key', 'charity_default_amount')->value('value') ?? 10),
+        'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
+    ];
+
     return Inertia::render('NewDashboard', [
         'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
         'revenue'            => $performance['Month']['sales'] ?? 0.0,
@@ -549,6 +569,7 @@ class DashboardController extends Controller
         'cashAccounts'       => $cashAccounts,
         'cashData'           => $cashData,
         'inventoryValue'     => $inventoryValue,
+        'charityStats'       => $charityStats,
         'aiRecommendations'  => AiRecommendation::active()->latest()->take(5)->get()->map(function($r) {
             return [
                 'id' => $r->id,

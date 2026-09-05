@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -305,13 +305,13 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  <div className="relative">
  <button
  onClick={() => setShowSettings(!showSettings)}
- className={`p-2.5 rounded-xl border transition-all ${showSettings ? 'bg-brand-50 border-brand-200 text-brand-600' : 'bg-white border-line text-ink-muted hover:text-brand-600'}`}
+ className={`p-2.5 rounded-[14px] border transition-all ${showSettings ? 'bg-brand-50 border-brand-200 text-brand-600' : 'bg-white border-line text-ink-muted hover:text-brand-600'}`}
  >
  <Settings size={18} />
  </button>
 
  {showSettings && (
- <div className="absolute top-full right-0 mt-2 w-56 bg-surface rounded-xl shadow-xl border border-line z-50 p-2 animate-in fade-in zoom-in-95 duration-fast origin-top-right">
+ <div className="absolute top-full right-0 mt-2 w-56 bg-surface rounded-[14px] shadow-xl border border-line z-50 p-2 animate-in fade-in zoom-in-95 duration-fast origin-top-right">
  <div className="text-xs font-bold text-ink-muted px-2 py-1 uppercase tracking-wider mb-1">View Options</div>
  {[
  { key: 'showPrepTime', label: 'Prep Time' },

@@ -284,7 +284,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                                     <MoreVertical size={16} />
                                                 </button>
                                                 {activeActionMenu === account.id && (
-                                                    <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+                                                    <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
                                                         <button
                                                             onClick={() => { handleEdit(account); setActiveActionMenu(null); }}
                                                             className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"

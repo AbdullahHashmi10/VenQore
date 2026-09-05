@@ -140,6 +140,18 @@ export default function DocumentShell({
                         <button type="button" className="vqdoc-icon" title="Screen settings" onClick={() => setSettingsOpen(true)}>
                             <Settings size={17} />
                         </button>
+                        <button
+                            type="button"
+                            className="vqdoc-icon hover:!bg-red-50 dark:hover:!bg-red-950/40 hover:!text-red-600 dark:hover:!text-red-400 hover:!border-red-300 transition-colors"
+                            title="Close and go back"
+                            aria-label="Close and go back"
+                            onClick={() => {
+                                if (window.history.length > 1) window.history.back();
+                                else window.location.href = '/dashboard';
+                            }}
+                        >
+                            <X size={18} />
+                        </button>
                     </div>
                 </header>
 

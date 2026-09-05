@@ -72,6 +72,18 @@ class GoogleAuthController extends Controller
                 return $redirect;
             }
 
+            // 3d. Pending workspace builder from BuildWorkspace page
+            if (session()->has('pending_workspace_builder')) {
+                $builderData = (array) session()->pull('pending_workspace_builder');
+                $tenant = app(\App\Http\Controllers\WorkspaceBuilderController::class)
+                    ->provisionForUser($user, $builderData);
+                if ($tenant) {
+                    return redirect()->route('store.dashboard', [
+                        'store_slug' => $tenant->slug
+                    ]);
+                }
+            }
+
             // 4. Multi-tenant routing (see AuthenticatedSessionController logic)
             $memberships = $user->activeMemberships()
                 ->with('tenant')

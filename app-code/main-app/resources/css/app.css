@@ -175,10 +175,24 @@
 
     html[data-vq-shell="marketing"],
     html[data-vq-shell="marketing"] body,
-    html[data-vq-shell="marketing"] #app {
+    html[data-vq-shell="marketing"] #app,
+    html[data-vq-shell="workspace-builder"],
+    html[data-vq-shell="workspace-builder"] body,
+    html[data-vq-shell="workspace-builder"] #app,
+    /* "builder" is the shared onboarding shell — Components/Builder/BuilderShell.jsx.
+       It backs the public /build-workspace flow AND the in-app onboarding wizard,
+       both of which are full-page takeovers that scroll as documents, not as the
+       POS's internally-scrolling panes. Miss this and the page renders correctly
+       and simply refuses to scroll, which is exactly how it shipped the first
+       time: the old page used "workspace-builder" and the new shell used a name
+       that was not on this list. */
+    html[data-vq-shell="builder"],
+    html[data-vq-shell="builder"] body,
+    html[data-vq-shell="builder"] #app {
         height: auto;
         min-height: 100%;
-        overflow: visible;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
 
     /* Webkit Browsers (Chrome, Safari, Edge) */

@@ -136,7 +136,7 @@ export default function PrintButton({
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-xl shadow-xl border border-line overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-fast">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-[14px] shadow-xl border border-line overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-fast">
                     <div className="p-1">
                         {/* Regular Print Option */}
                         {showRegular && (

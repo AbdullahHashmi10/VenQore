@@ -43,8 +43,9 @@ class VisitorChatController extends Controller
         }
 
         // ── Turnstile Verification (T0-0) ──────────────────────────────────
+        // Only enforce Turnstile CAPTCHA for unauthenticated public storefront visitors
         $turnstileSecret = config('services.cloudflare.turnstile_secret_key');
-        if (!empty($turnstileSecret)) {
+        if (!auth()->check() && !empty($turnstileSecret)) {
             $token = $request->input('turnstile_token');
             if (empty($token)) {
                 return response()->json([
@@ -70,7 +71,8 @@ class VisitorChatController extends Controller
         }
 
         // ── Plan Gate: Live Chat Widget ──────────────────────────────────
-        if (app()->bound('current.tenant')) {
+        // Storefront live chat widget is gated by plan; internal authenticated app users are never blocked from support
+        if (!auth()->check() && app()->bound('current.tenant')) {
             PlanGate::enforce('live_chat_widget');
         }
 

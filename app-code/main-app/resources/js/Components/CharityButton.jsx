@@ -16,10 +16,23 @@ export default function CharityButton({ showLabel = false }) {
     const [customAmount, setCustomAmount] = useState('');
     const holdTimer = useRef(null);
     const inputRef = useRef(null);
+    const editBoxRef = useRef(null);
 
     useEffect(() => {
         fetchStats();
     }, []);
+
+    useEffect(() => {
+        if (!showEdit) return;
+        const handleClickOutside = (e) => {
+            if (editBoxRef.current && !editBoxRef.current.contains(e.target)) {
+                setShowEdit(false);
+                setCustomAmount(stats.default_amount?.toString() || '10');
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showEdit, stats.default_amount]);
 
     const fetchStats = async () => {
         try {
@@ -127,7 +140,7 @@ export default function CharityButton({ showLabel = false }) {
                 <div className="relative">
                     {buttonContent}
                     {showEdit && (
-                        <div className="absolute top-full right-0 mt-2 bg-surface rounded-xl shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
+                        <div ref={editBoxRef} className="absolute top-full right-0 mt-2 bg-surface rounded-[14px] shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
                             <label className="text-xs font-bold text-ink-muted mb-1 block">
                                 Amount ({store?.currency_symbol || 'Rs'})
                             </label>
@@ -171,7 +184,7 @@ export default function CharityButton({ showLabel = false }) {
         <div className="relative">
             {buttonContent}
             {showEdit && (
-                <div className="absolute top-full left-0 mt-2 bg-surface rounded-xl shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
+                <div ref={editBoxRef} className="absolute top-full left-0 mt-2 bg-surface rounded-[14px] shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
                     <label className="text-xs font-bold text-ink-muted mb-1 block">
                         Amount ({store?.currency_symbol || 'Rs'})
                     </label>

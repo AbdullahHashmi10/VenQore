@@ -37,11 +37,11 @@ return [
     'counter' => [
         'transactions_per_month' => null,
         'locations'    => 1,
-        'sku_limit'    => 500,
+        'sku_limit'    => 2000,
         'staff_limit'  => 2,
         'woocommerce'  => false,
         'api_access'   => false,
-        'reports'      => 'basic',
+        'reports'      => 'advanced',
         'growth_engine'=> false,
         'multi_branch' => false,
         'owners_daily_pulse' => false,
@@ -54,22 +54,25 @@ return [
         'fund_management'    => false,
         'loyalty_points'     => false,
         'digital_gift_cards' => false,
-        'report_profit_loss' => false,
-        'discount_report'    => false,
-        'cash_flow_report'   => false,
-        'stock_valuation'    => false,
-        // 2026-08-08: Explicitly disabled for Counter plan because the tier does not include the bookkeeping/ledgers module.
-        'outstanding_balance_grid' => false,
+        // 2026-09-04: Counter is NOT a crippled edition. The pricing table marks
+        // the ledger and every financial report as included at every tier, and the
+        // page argues the point explicitly. Enforcement follows the promise.
+        'report_profit_loss' => true,
+        'discount_report'    => true,
+        'cash_flow_report'   => true,
+        'stock_valuation'    => true,
+        'outstanding_balance_grid' => true,
+        'live_chat_widget'   => true,
     ],
 
     'starter' => [
         'transactions_per_month' => null,   // unlimited (subscriptions uncapped — 2026-07-03 decision)
         'locations'    => 1,
-        'sku_limit'    => 1000,
+        'sku_limit'    => 5000,
         'staff_limit'  => 3,
         'woocommerce'  => false,
         'api_access'   => false,
-        'reports'      => 'basic',
+        'reports'      => 'advanced',
         'growth_engine'=> false,
         'multi_branch' => false,
         'owners_daily_pulse' => false,      // Growth+ (matches seeder)
@@ -83,12 +86,13 @@ return [
         'loyalty_points'     => false,
         'digital_gift_cards' => false,
         'report_profit_loss' => true,       // Starter includes P&L (2026-07-03 — the activation hook)
+        'live_chat_widget'   => true,
     ],
 
     'growth' => [
         'transactions_per_month' => null,   // unlimited
         'locations'    => 3,
-        'sku_limit'    => 10000,            // matches seeder (was wrongly null/unlimited)
+        'sku_limit'    => 20000,            // matches the published pricing table
         'staff_limit'  => 10,
         'woocommerce'  => false,
         'api_access'   => false,
@@ -107,6 +111,7 @@ return [
         'digital_gift_cards' => false,
         'report_profit_loss' => true,
         'bulk_upload'        => true,
+        'live_chat_widget'   => true,
     ],
 
     'business' => [
@@ -131,6 +136,7 @@ return [
         'digital_gift_cards' => true,
         'report_profit_loss' => true,
         'bulk_upload'        => true,
+        'live_chat_widget'   => true,
     ],
 
     // ── AppSumo LTD Plans (Phase 7) — mirror seeder: ltd_1=starter, ltd_2=growth,
@@ -144,7 +150,7 @@ return [
         'staff_limit'  => 3,
         'woocommerce'  => false,
         'api_access'   => false,
-        'reports'      => 'basic',
+        'reports'      => 'advanced',
         'growth_engine'=> false,
         'multi_branch' => false,
         'owners_daily_pulse' => false,
@@ -161,6 +167,7 @@ return [
         'bill_of_materials'  => false,
         'ltd'          => true,
         'hosted_until' => '+2 years',
+        'live_chat_widget'   => true,
     ],
 
     'ltd_2' => [
@@ -188,6 +195,7 @@ return [
         'bill_of_materials'  => true,
         'ltd'          => true,
         'hosted_until' => '+2 years',
+        'live_chat_widget'   => true,
     ],
 
     'ltd_3' => [
@@ -215,5 +223,6 @@ return [
         'bill_of_materials'  => true,
         'ltd'          => true,
         'hosted_until' => '+2 years',
+        'live_chat_widget'   => true,
     ],
 ];

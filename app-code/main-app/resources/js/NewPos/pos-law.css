@@ -32,10 +32,10 @@
    Values only, all of them derived from the law's constants or the V6 tokens.
    -------------------------------------------------------------------------- */
 .vq-term {
-    --vq-gutter: 12px;
-    --vq-margin: 12px;
-    --vq-pad: 12px;
-    --vq-bar-h: 56px;
+    --vq-gutter: 16px;
+    --vq-margin: 16px 24px;
+    --vq-pad: 16px;
+    --vq-bar-h: 44px;
     --vq-dock-h: 0px;
     --vq-catband-h: 0px;
 
@@ -48,35 +48,22 @@
        layout engine is handed a box divided by the same number — so raising it
        demotes a pane that no longer fits rather than clipping its contents.
        Deliberately NOT a transform: a scaled transform blurs text and lies to
-       every measurement the engine makes. */
-    --vq-ui-scale: 1;
-    --vq-t-xs: calc(12px * var(--vq-ui-scale));
-    --vq-t-sm: calc(13px * var(--vq-ui-scale));
-    --vq-t-md: calc(15px * var(--vq-ui-scale));
-    --vq-t-lg: calc(17px * var(--vq-ui-scale));
-    --vq-t-num: calc(21px * var(--vq-ui-scale));
-    --vq-t-total: calc(30px * var(--vq-ui-scale));
-
-    --vq-touch: calc(44px * var(--vq-ui-scale));   /* nothing on a register is shorter */
-    --vq-line-h: calc(56px * var(--vq-ui-scale));  /* LAW.terminal.cart_line */
-    --vq-r: var(--vq-radius-lg, 14px);
+       every measurement the layout engine makes. */
+    --vq-t-xs:   calc(10.5px * var(--vq-ui-scale, 1));
+    --vq-t-sm:   calc(12px * var(--vq-ui-scale, 1));
+    --vq-t-md:   calc(13.5px * var(--vq-ui-scale, 1));
+    --vq-t-lg:   calc(15.5px * var(--vq-ui-scale, 1));
+    --vq-t-xl:   calc(18px * var(--vq-ui-scale, 1));
+    --vq-t-hero: calc(26px * var(--vq-ui-scale, 1));
 }
 
-/* Senior mode. It is a TYPE and TARGET change, not a zoom: zooming a fixed
-   height terminal just pushes the total off the bottom of the screen, which
-   is exactly what the old `transform: scale()` approach did. Here the ramp
-   grows, the touch targets grow, and the engine re-composes around the
-   larger floors on the next measurement — so a pane demotes to a button
-   rather than crushing its contents. */
-.vq-term[data-senior='1'] {
-    --vq-t-xs: calc(14px * var(--vq-ui-scale));
-    --vq-t-sm: calc(15px * var(--vq-ui-scale));
-    --vq-t-md: calc(17px * var(--vq-ui-scale));
-    --vq-t-lg: calc(20px * var(--vq-ui-scale));
-    --vq-t-num: calc(25px * var(--vq-ui-scale));
-    --vq-t-total: calc(36px * var(--vq-ui-scale));
-    --vq-touch: calc(52px * var(--vq-ui-scale));
-    --vq-line-h: calc(68px * var(--vq-ui-scale));
+.vq-term[data-senior="1"] {
+    --vq-t-xs:   13px;
+    --vq-t-sm:   15px;
+    --vq-t-md:   17px;
+    --vq-t-lg:   20px;
+    --vq-t-xl:   23px;
+    --vq-t-hero: 32px;
 }
 
 /* --------------------------------------------------------------------------
@@ -98,6 +85,7 @@
 
 .vq-term-bar {
     min-height: var(--vq-bar-h);
+    height: var(--vq-bar-h);
     display: flex;
     align-items: center;
     gap: 10px;

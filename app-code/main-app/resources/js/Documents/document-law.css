@@ -341,7 +341,7 @@ html.dark .vqdoc::before {
     padding: calc(5px * var(--d-scale));
     background: var(--vq-raised);
     border: 1px solid var(--vq-line);
-    border-radius: var(--vq-r-md);
+    border-radius: var(--vq-r-dropdown, 14px);
     box-shadow: var(--vq-elev-3);
     font-family: var(--vq-font-sans);
     animation: vqdoc-menu-in 140ms cubic-bezier(.22, 1, .36, 1) both;
@@ -423,7 +423,7 @@ html.dark /* ── THE DROPDOWN ───────────────�
     padding: calc(5px * var(--d-scale));
     background: var(--vq-raised);
     border: 1px solid var(--vq-line);
-    border-radius: var(--vq-r-md);
+    border-radius: var(--vq-r-dropdown, 14px);
     box-shadow: var(--vq-elev-3);
     font-family: var(--vq-font-sans);
     animation: vqdoc-menu-in 140ms cubic-bezier(.22, 1, .36, 1) both;
@@ -1122,7 +1122,7 @@ select.vqdoc-in {
     padding: calc(5px * var(--d-scale));
     background: var(--vq-raised);
     border: 1px solid var(--vq-line);
-    border-radius: var(--vq-r-md);
+    border-radius: var(--vq-r-dropdown, 14px);
     box-shadow: var(--vq-elev-3);
     font-family: var(--vq-font-sans);
     animation: vqdoc-menu-in 140ms cubic-bezier(.22, 1, .36, 1) both;

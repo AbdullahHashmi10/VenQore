@@ -196,7 +196,7 @@ export const CustomerSearchWidget = ({
  )}
 
  {showCustomerDropdown && customerResults.length > 0 && (
- <div className="absolute top-full left-0 right-0 mt-3 bg-surface rounded-2xl shadow-2xl border border-line z-50 max-h-80 overflow-y-auto p-3 animate-in fade-in slide-in-from-top-2 duration-normal">
+ <div className="absolute top-full left-0 right-0 mt-3 bg-surface rounded-[14px] shadow-2xl border border-line z-50 max-h-80 overflow-y-auto p-3 animate-in fade-in slide-in-from-top-2 duration-normal">
  {customerResults.map(c => (
  <div
  key={c.id}
@@ -223,7 +223,7 @@ export const CustomerSearchWidget = ({
  </div>
  )}
  {showCustomerDropdown && customerResults.length === 0 && customerSearch.length >= 2 && (
- <div className="absolute top-full left-0 right-0 mt-3 bg-surface rounded-2xl shadow-2xl border border-line z-50 p-3 animate-in fade-in slide-in-from-top-2 duration-normal">
+ <div className="absolute top-full left-0 right-0 mt-3 bg-surface rounded-[14px] shadow-2xl border border-line z-50 p-3 animate-in fade-in slide-in-from-top-2 duration-normal">
  <div
  onClick={() => { setShowCustomerDropdown(false); setIsPartyModalOpen(true); }}
  className="p-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl cursor-pointer transition-colors flex items-center gap-3 text-emerald-600 dark:text-emerald-400 font-bold"
@@ -345,7 +345,7 @@ export const TextSizeSelector = ({ textSize, setTextSize, showTextSizeMenu, setS
  </button>
 
  {showTextSizeMenu && (
- <div className="absolute top-full mt-2 right-0 w-32 bg-surface rounded-xl shadow-xl border border-line z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+ <div className="absolute top-full mt-2 right-0 w-32 bg-surface rounded-[14px] shadow-xl border border-line z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
  {[1, 2, 3, 4, 5].map((size) => (
  <button
  key={size}
@@ -466,7 +466,7 @@ export const QuickEntryRow = ({
  />
  </div>
  {quickResults.length > 0 && (
- <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-xl shadow-xl border border-brand-100 dark:border-brand-900/30 z-50 max-h-60 overflow-y-auto p-2">
+ <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-[14px] shadow-xl border border-brand-100 dark:border-brand-900/30 z-50 max-h-60 overflow-y-auto p-2">
  {quickResults.map((p, pIdx) => (
  <div
  key={p.id}
@@ -513,7 +513,7 @@ export const QuickEntryRow = ({
  )}
  {/* Show Create Option if No Results */}
  {quickEntry.name.length >= 2 && quickResults.length === 0 && (
- <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-xl shadow-xl border border-brand-100 dark:border-brand-900/30 z-50 p-2">
+ <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-[14px] shadow-xl border border-brand-100 dark:border-brand-900/30 z-50 p-2">
  <div
  onClick={() => {
  setProductModalMode('create');
@@ -695,7 +695,7 @@ export const ItemRow = ({
  </button>
  )}
  {activeItemIndex === idx && productResults.length > 0 && (
- <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-xl shadow-2xl border border-line z-50 max-h-72 overflow-y-auto p-2">
+ <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-[14px] shadow-2xl border border-line z-50 max-h-72 overflow-y-auto p-2">
  {productResults.map(p => (
  <div
  key={p.id}
@@ -743,7 +743,7 @@ export const ItemRow = ({
  </div>
  )}
  {activeItemIndex === idx && productResults.length === 0 && item.name && item.name.length >= 2 && !item.product && (
- <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-xl shadow-2xl border border-line z-50 p-2">
+ <div className="absolute top-full left-0 right-0 mt-2 bg-surface rounded-[14px] shadow-2xl border border-line z-50 p-2">
  <div
  onClick={(e) => {
  e.stopPropagation();

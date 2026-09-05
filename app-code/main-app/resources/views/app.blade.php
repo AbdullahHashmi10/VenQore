@@ -154,14 +154,7 @@
     @if (!isset($page))
         <div id="app"></div>
     @else
-        <div id="app" data-page="{{ json_encode($page) }}">
-            <div style="display: flex; height: 100vh; align-items: center; justify-content: center; font-family: sans-serif; color: #666; background-color: #f8fafc;">
-                <div style="text-align: center;">
-                    <h2 style="margin-bottom: 0.5rem; color: #0f172a;">Starting Application...</h2>
-                    <p style="margin-top: 0;">If this screen doesn't disappear, <a href="javascript:window.location.reload()" style="color: #3b82f6; text-decoration: none;">refresh the page</a>.</p>
-                </div>
-            </div>
-        </div>
+        <div id="app" data-page="{{ json_encode($page) }}"></div>
     @endif
 </body>
 

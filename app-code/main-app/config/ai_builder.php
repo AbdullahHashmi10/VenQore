@@ -119,6 +119,11 @@ return [
     */
 
     'discovery' => [
+
+        /*
+        | Q1 — the sentence. Captured on the landing page, so the builder never
+        | asks for it a second time.
+        */
         [
             'key'      => 'what',
             'type'     => 'text',
@@ -126,40 +131,433 @@ return [
             'hint'     => 'A sentence is enough. "I run a bakery and take wedding orders."',
             'weight'   => 'This single answer drives most of the result.',
         ],
+
+        /*
+        | Q2 — WHAT the money is for. Multi, because most businesses are more
+        | than one of these, and forcing a single answer throws away the mix
+        | that actually decides the build. A cafe that also sells wholesale bags
+        | of beans is a different system from one that does not.
+        */
         [
-            'key'      => 'stock',
-            'type'     => 'choice',
-            'question' => 'Do you keep physical stock?',
-            'options'  => ['yes' => 'Yes', 'no' => 'No', 'some' => 'Some'],
-            'implies'  => ['yes' => ['inventory'], 'some' => ['inventory'], 'no' => []],
+            'key'       => 'sells',
+            'type'      => 'multi',
+            'question'  => 'What do people pay you for?',
+            'hint'      => 'Pick everything that applies — most businesses are more than one.',
+            'icon'      => 'Wallet',
+            'options'   => [
+                'goods'     => 'Things I buy in and resell',
+                'made'      => 'Things I make or prepare myself',
+                'time'      => 'My time or expertise',
+                'jobs'      => 'Work on the customer’s own item',
+                'recurring' => 'Something ongoing they pay for regularly',
+            ],
+            'implies'   => [
+                'goods'     => ['products'],
+                'made'      => ['products', 'cookbook', 'production_runs'],
+                'time'      => ['invoicing'],
+                'jobs'      => ['invoicing', 'customers'],
+                'recurring' => ['recurring_invoices', 'customers'],
+            ],
+            'option_meta' => [
+                'goods'     => ['icon' => 'Package', 'hint' => 'Stock in, stock out'],
+                'made'      => ['icon' => 'ChefHat', 'hint' => 'Cooked, built, mixed or assembled'],
+                'time'      => ['icon' => 'Timer',   'hint' => 'Hours, sessions, consulting'],
+                'jobs'      => ['icon' => 'Wrench',  'hint' => 'Repairs, servicing, alterations'],
+                'recurring' => ['icon' => 'Repeat',  'hint' => 'Retainers, plans, rent, memberships'],
+            ],
         ],
+
+        /*
+        | Q3 — HOW the order arrives. Multi. This replaces "do you sell in person
+        | or online", which presupposed selling and had an obvious answer in most
+        | trades. Channel mix is the strongest signal for the sales half of the
+        | build and nobody can guess it from the sentence alone.
+        */
         [
-            'key'      => 'make',
-            'type'     => 'choice',
-            'question' => 'Do you make or assemble anything yourself?',
-            'options'  => ['yes' => 'Yes', 'no' => 'No'],
-            'implies'  => ['yes' => ['cookbook'], 'no' => []],
+            'key'       => 'channels',
+            'type'      => 'multi',
+            'question'  => 'How does an order usually reach you?',
+            'hint'      => 'Every way that happens in a normal week.',
+            'icon'      => 'Route',
+            'options'   => [
+                'walkin'  => 'Someone walks up to a counter',
+                'seated'  => 'They sit down, or book a slot',
+                'message' => 'Phone, WhatsApp or a message',
+                'online'  => 'An online store or marketplace',
+                'account' => 'Regular business accounts order from us',
+            ],
+            'implies'   => [
+                'walkin'  => ['pos', 'cash_register'],
+                'seated'  => ['table_service', 'pos'],
+                'message' => ['sales_orders', 'invoicing'],
+                'online'  => ['marketplace_sync', 'invoicing'],
+                'account' => ['b2b_proposals', 'customers', 'pricing_tiers'],
+            ],
+            'option_meta' => [
+                'walkin'  => ['icon' => 'ScanBarcode',   'hint' => 'Shop floor, till, front desk'],
+                'seated'  => ['icon' => 'ConciergeBell', 'hint' => 'Tables, chairs, appointments'],
+                'message' => ['icon' => 'MessageSquare', 'hint' => 'Orders that arrive as text'],
+                'online'  => ['icon' => 'Globe',         'hint' => 'Your own site, or a marketplace'],
+                'account' => ['icon' => 'Building2',     'hint' => 'Trade customers on their own prices'],
+            ],
         ],
+
+        /*
+        | Q4 — HOW MUCH stock. Not "do you keep stock", which is a yes for most
+        | trades and tells us nothing. The SCALE decides whether this is one
+        | inventory switch or the whole warehouse group.
+        */
         [
-            'key'      => 'where',
-            'type'     => 'choice',
-            'question' => 'Do you sell in person, online, or both?',
-            'options'  => ['person' => 'In person', 'online' => 'Online', 'both' => 'Both'],
-            'implies'  => ['person' => ['pos'], 'online' => ['invoicing'], 'both' => ['pos']],
+            'key'       => 'stock',
+            'type'      => 'choice',
+            'question'  => 'How much stock do you have to keep track of?',
+            'hint'      => 'Anything you count, store, or run out of at the wrong moment.',
+            'icon'      => 'Boxes',
+            'options'   => [
+                'none'      => 'None to speak of',
+                'supplies'  => 'Just supplies and consumables',
+                'catalogue' => 'A real catalogue of items',
+                'deep'      => 'Thousands of lines, maybe several locations',
+            ],
+            'implies'   => [
+                'none'      => [],
+                'supplies'  => ['inventory'],
+                'catalogue' => ['inventory', 'products', 'barcodes_labels'],
+                'deep'      => ['inventory', 'products', 'barcodes_labels', 'multi_location', 'stock_takes', 'stock_transfers'],
+            ],
+            'option_meta' => [
+                'none'      => ['icon' => 'Wind',         'hint' => 'Nothing sits on a shelf'],
+                'supplies'  => ['icon' => 'PackageOpen',  'hint' => 'Things you use up, not things you sell'],
+                'catalogue' => ['icon' => 'PackageCheck', 'hint' => 'Items with prices, counted regularly'],
+                'deep'      => ['icon' => 'Factory',      'hint' => 'Depth, branches, or a godown'],
+            ],
         ],
+
+        /*
+        | Q5 — FOLLOW-UP on Q4, asked only of someone carrying a real catalogue,
+        | because these four modules are meaningless otherwise. This is where a
+        | pharmacy and a phone shop stop looking alike: both answered
+        | "catalogue", and only this question separates expiry dates from IMEIs.
+        */
         [
-            'key'      => 'credit',
-            'type'     => 'choice',
-            'question' => 'Do customers ever pay later, on khata or credit?',
-            'options'  => ['yes' => 'Yes', 'no' => 'No'],
-            'implies'  => ['yes' => ['customers', 'khata_credit'], 'no' => []],
+            'key'       => 'stock_traits',
+            'type'      => 'multi',
+            'question'  => 'Anything special about how you have to track it?',
+            'hint'      => 'These are the things that go wrong quietly when a system cannot hold them.',
+            'icon'      => 'ClipboardList',
+            'show_if'   => ['stock' => ['catalogue', 'deep']],
+            'optional'  => true,
+            'options'   => [
+                'expiry'   => 'Batches or expiry dates',
+                'serial'   => 'Serial or IMEI numbers',
+                'variants' => 'Sizes, colours or other variants',
+                'measure'  => 'Sold by weight, length or volume',
+            ],
+            'implies'   => [
+                'expiry'   => ['batches_expiry'],
+                'serial'   => ['serials'],
+                'variants' => ['variants'],
+                'measure'  => ['units_of_measure'],
+            ],
+            'option_meta' => [
+                'expiry'   => ['icon' => 'Refrigerator', 'hint' => 'Food, medicine, chemicals, cosmetics'],
+                'serial'   => ['icon' => 'Hash',         'hint' => 'Each unit is individually identifiable'],
+                'variants' => ['icon' => 'Palette',      'hint' => 'One product, many versions'],
+                'measure'  => ['icon' => 'Scale',        'hint' => 'Metres, kilos, litres — not just "each"'],
+            ],
         ],
+
+        /*
+        | Q6 — the buying side. Asked only of someone who holds stock or makes
+        | something, because a consultant does not buy stock in and should never
+        | see this.
+        */
         [
-            'key'      => 'people',
-            'type'     => 'choice',
-            'question' => 'How many people will use this?',
-            'options'  => ['1' => 'Just me', '2-5' => '2-5', '6-20' => '6-20', '20+' => 'More than 20'],
-            'implies'  => ['1' => [], '2-5' => ['staff_attendance'], '6-20' => ['staff_attendance'], '20+' => ['staff_attendance']],
+            'key'       => 'buying',
+            'type'      => 'choice',
+            'question'  => 'Do you buy stock or materials in?',
+            'hint'      => 'The things you pay for so you have something to sell.',
+            'icon'      => 'Truck',
+            'show_if'   => [
+                'stock' => ['supplies', 'catalogue', 'deep'],
+                'sells' => ['goods', 'made'],
+            ],
+            'show_if_mode' => 'any',
+            'options'   => [
+                'regular'    => 'Yes, from suppliers I use again and again',
+                'occasional' => 'Yes, wherever is cheapest at the time',
+                'no'         => 'No, nothing comes in',
+            ],
+            'implies'   => [
+                'regular'    => ['suppliers', 'purchases'],
+                'occasional' => ['purchases'],
+                'no'         => [],
+            ],
+            'option_meta' => [
+                'regular'    => ['icon' => 'Factory',     'hint' => 'The same names every month'],
+                'occasional' => ['icon' => 'ShoppingCart', 'hint' => 'Whoever has it in stock'],
+                'no'         => ['icon' => 'Wind',        'hint' => 'Nothing to buy in'],
+            ],
+        ],
+
+        /*
+        | Q7 — FOLLOW-UP on Q6, and the one place this flow openly offers
+        | something rather than deducing it.
+        |
+        | Everything here is free on every plan, and none of it is guessable from
+        | a sentence: whether someone WANTS to track supplier balances is a
+        | preference, not a fact about their trade. So it is asked plainly, with
+        | the reassurance shown under the options — including an explicit "just
+        | log it as an expense" out, because pushing full purchase tracking onto
+        | a two-person shop that does not want it is how onboarding produces a
+        | system nobody uses.
+        */
+        [
+            'key'          => 'buying_depth',
+            'type'         => 'multi',
+            'question'     => 'Anything there you would like to stay on top of?',
+            'hint'         => 'Pick what would actually help. Skipping is a fine answer.',
+            'icon'         => 'ClipboardList',
+            'show_if'      => ['buying' => ['regular', 'occasional']],
+            'optional'     => true,
+            'reassurance'  => 'All of these are included on every plan, and you can switch any of them on later. Nothing here costs extra.',
+            'options'      => [
+                'owed'    => 'What I still owe suppliers',
+                'orders'  => 'Orders placed but not yet arrived',
+                'returns' => 'Sending faulty stock back',
+                'simple'  => 'Nothing fancy — just log it as an expense',
+            ],
+            'implies'      => [
+                'owed'    => ['payments', 'suppliers'],
+                'orders'  => ['purchase_orders'],
+                'returns' => ['purchase_returns'],
+                'simple'  => ['expenses'],
+            ],
+            'option_meta'  => [
+                'owed'    => ['icon' => 'Coins',        'hint' => 'Supplier balances and due dates'],
+                'orders'  => ['icon' => 'ClipboardList', 'hint' => 'Know what is still on the way'],
+                'returns' => ['icon' => 'Repeat',       'hint' => 'Credit notes that reach the ledger'],
+                'simple'  => ['icon' => 'Receipt',      'hint' => 'One line, one amount, done'],
+            ],
+        ],
+
+        /*
+        | Q8 — money that has not arrived yet. Single, because the FREQUENCY is
+        | the answer: "regularly" is a different product from "now and then".
+        */
+        [
+            'key'       => 'credit',
+            'type'      => 'choice',
+            'question'  => 'Do people ever pay you after they have taken the goods?',
+            'hint'      => 'Khata, 30-day terms, running tabs, part payments, deposits.',
+            'icon'      => 'HandCoins',
+            'options'   => [
+                'often'     => 'Regularly — it is how we work',
+                'sometimes' => 'Now and then, for people we know',
+                'never'     => 'No, we are paid before they leave',
+            ],
+            'implies'   => [
+                'often'     => ['customers', 'khata_credit', 'payments'],
+                'sometimes' => ['customers', 'khata_credit'],
+                'never'     => [],
+            ],
+            'option_meta' => [
+                'often'     => ['icon' => 'NotebookTabs', 'hint' => 'Balances you have to chase'],
+                'sometimes' => ['icon' => 'NotebookPen',  'hint' => 'The occasional tab'],
+                'never'     => ['icon' => 'BadgeCheck',   'hint' => 'Settled at the point of sale'],
+            ],
+        ],
+
+        /*
+        | Q9 — FOLLOW-UP, and deliberately asked ONLY of the people who said
+        | nobody pays late. Anyone who answered "often" or "sometimes" already
+        | has customers switched on, so asking them would be the flow not
+        | listening — which is the single fastest way to make a short set of
+        | questions feel like a form.
+        */
+        [
+            'key'       => 'repeat_customers',
+            'type'      => 'choice',
+            'question'  => 'Do the same faces come back?',
+            'hint'      => 'Paid up front is not the same as a stranger every time.',
+            'icon'      => 'Users',
+            'show_if'   => ['credit' => ['never']],
+            'options'   => [
+                'known'   => 'Yes, and I would like to know who they are',
+                'untrack' => 'Yes, but I do not need records on them',
+                'oneoff'  => 'Mostly one-off',
+            ],
+            'implies'   => [
+                'known'   => ['customers', 'loyalty_gift'],
+                'untrack' => [],
+                'oneoff'  => [],
+            ],
+            'option_meta' => [
+                'known'   => ['icon' => 'NotebookTabs', 'hint' => 'History, preferences, rewards'],
+                'untrack' => ['icon' => 'Users',        'hint' => 'Keep it anonymous and fast'],
+                'oneoff'  => ['icon' => 'Wind',         'hint' => 'Passing trade'],
+            ],
+        ],
+
+        /*
+        | Q10 — headcount. Cheap, and it gates the follow-up below.
+        */
+        [
+            'key'       => 'people',
+            'type'      => 'choice',
+            'question'  => 'How many people will use this?',
+            'hint'      => 'Everyone who will log in, not only full-time staff.',
+            'icon'      => 'Users',
+            'options'   => [
+                '1'    => 'Just me',
+                '2-5'  => '2 to 5',
+                '6-20' => '6 to 20',
+                '20+'  => 'More than 20',
+            ],
+            'implies'   => [
+                '1'    => [],
+                '2-5'  => ['staff_attendance'],
+                '6-20' => ['staff_attendance'],
+                '20+'  => ['staff_attendance'],
+            ],
+            'option_meta' => [
+                '1'    => ['icon' => 'User',       'hint' => 'Solo for now'],
+                '2-5'  => ['icon' => 'Users',      'hint' => 'A small team'],
+                '6-20' => ['icon' => 'UsersRound', 'hint' => 'Shifts and roles'],
+                '20+'  => ['icon' => 'Building2',  'hint' => 'Departments, or several sites'],
+            ],
+        ],
+
+        /*
+        | Q11 — FOLLOW-UP on Q10, skipped entirely for a solo operator because
+        | there is nobody to describe. Roles are the highest-value answer in the
+        | set for anyone with staff: they decide the permission shape and half
+        | the back-office modules, and no sentence typed on a landing page will
+        | ever contain them.
+        */
+        [
+            'key'       => 'roles',
+            'type'      => 'multi',
+            'question'  => 'Who are they?',
+            'hint'      => 'The jobs people actually do. It decides what each of them sees.',
+            'icon'      => 'UsersRound',
+            'show_if'   => ['people' => ['2-5', '6-20', '20+']],
+            'optional'  => true,
+            'options'   => [
+                'counter' => 'Counter or floor staff',
+                'manager' => 'Managers who need to see how it is going',
+                'books'   => 'Someone who does the books',
+                'buyer'   => 'Someone who does the buying',
+                'field'   => 'People out on deliveries or jobs',
+            ],
+            'implies'   => [
+                'counter' => ['pos', 'park_recall', 'staff_attendance'],
+                'manager' => ['reports', 'staff_attendance'],
+                'books'   => ['accounting_workspace', 'bank_accounts', 'payments'],
+                'buyer'   => ['purchases', 'purchase_orders', 'suppliers'],
+                'field'   => ['sales_orders'],
+            ],
+            'option_meta' => [
+                'counter' => ['icon' => 'ScanBarcode', 'hint' => 'They ring things up'],
+                'manager' => ['icon' => 'ChartLine',   'hint' => 'They want the numbers'],
+                'books'   => ['icon' => 'Calculator',  'hint' => 'Ledger, bank, reconciliation'],
+                'buyer'   => ['icon' => 'Truck',       'hint' => 'Suppliers, orders, receiving'],
+                'field'   => ['icon' => 'MapPin',      'hint' => 'Away from the counter'],
+            ],
+        ],
+
+        /*
+        | Q12 — the answer the reveal is written around, and the highest-value
+        | one on its own.
+        |
+        | Three jobs, in order of value:
+        |   1. It keys the reveal headline, so the proposal reads as a fix for a
+        |      stated problem instead of a list of modules nobody asked for by
+        |      name.
+        |   2. It keys the tenant's first dashboard board, so the empty state
+        |      opens on the thing they said hurt.
+        |   3. It writes to feature_demand alongside 'landing_page', which is the
+        |      closest thing this product has to a free research panel.
+        |
+        | Multi, not single — reversed 2026-09-05. The original brief for this
+        | question was "the one thing", on the theory that forcing a single pick
+        | is what makes the answer honest. In practice several people run into
+        | this screen already carrying two or three of these at once — chasing
+        | dues AND never sure of the margin is an ordinary Tuesday for a lot of
+        | small businesses — and a single-select control simply would not let
+        | them say so. Letting people pick more than one does not make the
+        | question decorative: `implies` still only adds real modules, and the
+        | headline still resolves off whichever one they picked first, so the
+        | proposal keeps a single throughline even when the answer is plural.
+        | Still deliberately industry-neutral — a salon, a freelancer, a
+        | wholesaler and a repair workshop must each see themselves in these four
+        | without a fifth being added. The moment this list needs an
+        | industry-specific option, it has stopped being this question.
+        */
+        [
+            'key'      => 'fix',
+            'type'     => 'multi',
+            'question' => 'What do you most want to fix?',
+            'hint'     => 'Pick everything that stings. It decides what your dashboard opens on.',
+            'icon'     => 'Target',
+            'options'  => [
+                'profit' => 'I never really know my profit',
+                'stock'  => 'My counts are always wrong',
+                'dues'   => 'Chasing what people owe me',
+                'admin'  => 'Too much of this is manual',
+            ],
+            'implies'  => [
+                'profit' => ['reports', 'ai_insights'],
+                'stock'  => ['inventory', 'stock_takes'],
+                'dues'   => ['customers', 'khata_credit', 'payments'],
+                'admin'  => ['expenses', 'recurring_invoices'],
+            ],
+            'option_meta' => [
+                'profit' => ['icon' => 'TrendingUp', 'hint' => 'Real margin after cost, tax and discount'],
+                'stock'  => ['icon' => 'PackageX',   'hint' => 'What the shelf says vs what the system says'],
+                'dues'   => ['icon' => 'Clock',      'hint' => 'Who owes what, and since when'],
+                'admin'  => ['icon' => 'FileStack',  'hint' => 'Re-typing the same thing twice'],
+            ],
+            'headline' => [
+                'profit' => 'Built so you always know your real profit.',
+                'stock'  => 'Built so your counts stop drifting.',
+                'dues'   => 'Built so nothing owed gets forgotten.',
+                'admin'  => 'Built so you stop typing things twice.',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3b. THE HOUSE RECOMMENDATIONS
+    |--------------------------------------------------------------------------
+    | A small set added to EVERY proposal regardless of the answers, shown in
+    | their own band, ticked, labelled as ours, and removable in one tap.
+    |
+    | The labelling is the whole point and is not negotiable. Silently padding a
+    | proposal with modules nobody asked for is precisely the failure this flow
+    | was rebuilt to fix — it makes the result feel assigned rather than earned,
+    | and the moment a user notices something they did not ask for, they stop
+    | trusting the parts they DID ask for. Shown and named, the same three
+    | modules read as advice from someone who has seen a thousand of these.
+    |
+    | Keep this list SHORT and keep every entry defensible to a sceptic. Three
+    | is about the limit; at five it stops reading as advice and starts reading
+    | as an upsell, even though none of it costs anything.
+    |
+    | 'why' is shown to the user verbatim. If you cannot write a one-line reason
+    | a shopkeeper would accept, the module does not belong in this list.
+    */
+
+    'recommended' => [
+        'reports' => [
+            'why' => 'You cannot fix what you cannot see. Free on every plan.',
+        ],
+        'expenses' => [
+            'why' => 'Sales alone are not profit. This is the other half of the number.',
+        ],
+        'ai_insights' => [
+            'why' => 'Tells you what changed this week without you going looking.',
         ],
     ],
 

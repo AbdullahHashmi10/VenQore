@@ -469,7 +469,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <MoreVertical size={16} />
  </button>
  {activeActionMenu === row.id && (
- <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+ <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <div className="py-1">
  <Link href={route("store.sales.show", [store.slug, row.id])} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
  <Eye size={14} /> View Details

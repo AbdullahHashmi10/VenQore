@@ -1032,7 +1032,7 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                                 <ChevronDown size={16} />
                                             </button>
                                             {openMenu === inv.id && (
-                                                <div className="absolute right-0 top-10 z-30 w-48 bg-surface border border-line rounded-2xl shadow-2xl py-2 overflow-hidden">
+                                                <div className="absolute right-0 top-10 z-30 w-48 bg-surface border border-line rounded-[14px] shadow-2xl py-2 overflow-hidden">
                                                     {/* WhatsApp */}
                                                     <button onClick={() => { onWhatsApp(inv); setOpenMenu(null); }}
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
@@ -1635,7 +1635,7 @@ function MembersTable({ users, store }) {
                                                         {openMenu === user.id && (
                                                             <>
                                                                 <div className="fixed inset-0 z-20" onClick={() => setOpenMenu(null)} />
-                                                                <div className="absolute right-0 top-10 z-30 w-48 bg-surface border border-line rounded-2xl shadow-2xl py-2 overflow-hidden text-left">
+                                                                <div className="absolute right-0 top-10 z-30 w-48 bg-surface border border-line rounded-[14px] shadow-2xl py-2 overflow-hidden text-left">
                                                                     <button onClick={() => { setEditingMember(user); setOpenMenu(null); }}
                                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                                                         <Edit3 size={14} className="text-brand-500" /> Edit Role & Access

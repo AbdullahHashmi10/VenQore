@@ -39,7 +39,7 @@ const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
  ];
 
  return (
- <div className="absolute top-full mt-2 right-0 w-64 bg-surface rounded-2xl shadow-2xl border border-line p-2 z-50 animate-in fade-in slide-in-from-top-4 duration-normal">
+ <div className="absolute top-full mt-2 right-0 w-64 bg-surface rounded-[14px] shadow-2xl border border-line p-2 z-50 animate-in fade-in slide-in-from-top-4 duration-normal">
  <div className="flex justify-between items-center px-3 py-2 border-b border-line mb-2">
  <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Quick Actions</span>
  <button onClick={onClose} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200"><X size={14} /></button>
@@ -213,13 +213,13 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  <div className="relative" ref={settingsRef}>
  <button
  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
- className={`p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm ${isSettingsOpen ? 'bg-white/20' : ''}`}
+ className={`p-2 bg-white/5 hover:bg-white/10 rounded-[14px] transition-colors backdrop-blur-sm ${isSettingsOpen ? 'bg-white/20' : ''}`}
  >
  <MoreHorizontal size={20} className="text-neutral-300" />
  </button>
 
  {isSettingsOpen && (
- <div className="absolute top-12 right-0 w-48 bg-neutral-800 rounded-xl shadow-xl border border-neutral-700 p-1 z-50 animate-in fade-in zoom-in-95 duration-normal">
+ <div className="absolute top-12 right-0 w-48 bg-neutral-800 rounded-[14px] shadow-xl border border-neutral-700 p-1 z-50 animate-in fade-in zoom-in-95 duration-normal">
  <button className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-interactive-hover hover:text-white rounded-lg transition-colors">View Profile</button>
  <button className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-interactive-hover hover:text-white rounded-lg transition-colors">Account Settings</button>
  <div className="h-px bg-neutral-700 my-1"></div>

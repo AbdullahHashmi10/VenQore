@@ -19,7 +19,7 @@ use Inertia\Inertia;
 
 
 // ── V6 Public Production Pages ──────────────────────────────────────────
-Route::get('/features', fn() => response()->file(public_path('v6/features.html')))->name('marketing.features');
+Route::get('/features', fn() => \App\Http\Controllers\Marketing\V6PageController::render('features'))->name('marketing.features');
 Route::get('/features/{slug}', [\App\Http\Controllers\Marketing\FeaturesController::class, 'show'])->name('marketing.features.show');
 
 Route::get('/roadmap', [\App\Http\Controllers\Marketing\RoadmapController::class, 'index'])->name('marketing.roadmap');
@@ -27,7 +27,7 @@ Route::get('/solutions', [\App\Http\Controllers\Marketing\SolutionsController::c
 Route::get('/solutions/{slug}', [\App\Http\Controllers\Marketing\SolutionsController::class, 'show'])->name('marketing.solutions.show');
 Route::get('/compare', [\App\Http\Controllers\Marketing\CompareController::class, 'index'])->name('marketing.compare.index');
 Route::get('/compare/{slug}', [\App\Http\Controllers\Marketing\CompareController::class, 'show'])->name('marketing.compare.show');
-Route::get('/pricing', fn() => response()->file(public_path('v6/pricing.html')))->name('marketing.pricing');
+Route::get('/pricing', fn() => \App\Http\Controllers\Marketing\V6PageController::render('pricing'))->name('marketing.pricing');
 Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $request) {
     $request->validate(['country' => 'required|string|size:2']);
     $country = strtoupper($request->country);
@@ -40,36 +40,26 @@ Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $re
     
     return back()->with('success', 'Region updated successfully.');
 })->name('marketing.pricing.override');
-Route::get('/about',    fn() => response()->file(public_path('v6/about.html')))->name('marketing.about');
-Route::get('/contact',  fn() => response()->file(public_path('v6/contact.html')))->name('marketing.contact');
-Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->name('marketing.contact.submit');
+Route::get('/about',    fn() => \App\Http\Controllers\Marketing\V6PageController::render('about'))->name('marketing.about');
+Route::get('/contact',  fn() => \App\Http\Controllers\Marketing\V6PageController::render('contact'))->name('marketing.contact');
+Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware('throttle:10,1')->name('marketing.contact.submit');
 
 // Coming-soon product lines & V6 product showcases
-Route::get('/vensynq', fn() => response()->file(public_path('v6/vensynq.html')))->name('marketing.vensynq');
-Route::get('/smartcapture', fn() => response()->file(public_path('v6/smartcapture.html')))->name('marketing.smartcapture');
-Route::get('/documents', fn() => response()->file(public_path('v6/documents.html')))->name('marketing.documents');
-Route::get('/reckoner', fn() => response()->file(public_path('v6/reckoner.html')))->name('marketing.reckoner');
-Route::get('/ledger', fn() => response()->file(public_path('v6/ledger.html')))->name('marketing.ledger');
-Route::get('/blueprint', fn() => response()->file(public_path('v6/blueprint.html')))->name('marketing.blueprint');
-Route::get('/onboarding', fn() => response()->file(public_path('v6/onboarding.html')))->name('marketing.onboarding');
-Route::get('/dashboard-preview', fn() => response()->file(public_path('v6/dashboard.html')))->name('marketing.dashboard-preview');
+Route::get('/vensynq', fn() => \App\Http\Controllers\Marketing\V6PageController::render('vensynq'))->name('marketing.vensynq');
+Route::get('/smartcapture', fn() => \App\Http\Controllers\Marketing\V6PageController::render('smartcapture'))->name('marketing.smartcapture');
+Route::get('/documents', fn() => \App\Http\Controllers\Marketing\V6PageController::render('documents'))->name('marketing.documents');
+Route::get('/reckoner', fn() => \App\Http\Controllers\Marketing\V6PageController::render('reckoner'))->name('marketing.reckoner');
+Route::get('/ledger', fn() => \App\Http\Controllers\Marketing\V6PageController::render('ledger'))->name('marketing.ledger');
+Route::get('/blueprint', fn() => \App\Http\Controllers\Marketing\V6PageController::render('blueprint'))->name('marketing.blueprint');
+Route::get('/onboarding', fn() => \App\Http\Controllers\Marketing\V6PageController::render('onboarding'))->name('marketing.onboarding');
+Route::get('/dashboard-preview', fn() => \App\Http\Controllers\Marketing\V6PageController::render('dashboard'))->name('marketing.dashboard-preview');
 
 // ── V6 Static Page & Direct .html Dispatcher ────────────────────────────
-Route::get('/v6/{page?}', function (?string $page = 'index') {
-    $page = preg_replace('/[^a-z0-9\-]/', '', strtolower($page));
-    $file = public_path("v6/{$page}.html");
-    abort_unless(is_file($file), 404);
-    return response()->file($file);
-})->where('page', '[A-Za-z0-9\-]+')->name('v6.page');
+Route::get('/v6/{page?}', fn (?string $page = 'index') => \App\Http\Controllers\Marketing\V6PageController::render($page ?? 'index'))
+    ->where('page', '[A-Za-z0-9\-]+')->name('v6.page');
 
-Route::get('/{page}.html', function (string $page) {
-    $cleanPage = preg_replace('/[^a-z0-9\-]/', '', strtolower($page));
-    $file = public_path("v6/{$cleanPage}.html");
-    if (is_file($file)) {
-        return response()->file($file);
-    }
-    abort(404);
-})->where('page', '[A-Za-z0-9\-]+');
+Route::get('/{page}.html', fn (string $page) => \App\Http\Controllers\Marketing\V6PageController::render($page))
+    ->where('page', '[A-Za-z0-9\-]+');
 
 // ── Legacy Marketing Pages (Comparison Routes) ───────────────────────────
 Route::prefix('legacy')->group(function () {
@@ -104,7 +94,7 @@ Route::prefix('legacy')->group(function () {
 
 // Newsletter subscription
 Route::get('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'index'])->name('marketing.newsletter');
-Route::post('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'store'])->name('marketing.newsletter.submit');
+Route::post('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'store'])->middleware('throttle:10,1')->name('marketing.newsletter.submit');
 
 // Digital products list page
 Route::get('/digital-products', [\App\Http\Controllers\Marketing\DigitalProductsPublicController::class, 'index'])->name('marketing.digital-products');
@@ -121,6 +111,11 @@ Route::get('/docs/{slug}', [\App\Http\Controllers\Marketing\DocsController::clas
 
 // Public preview route for Liquid Next Dashboard
 Route::get('/next-dashboard', function () {
+    // Design preview only — never a public page in production. It renders a
+    // fabricated "Enterprise Store" with hard-coded revenue figures, which is
+    // not something a visitor or a crawler should ever be shown.
+    abort_if(app()->environment('production') && ! auth()->user()?->is_platform_admin, 404);
+
     return Inertia::render('Next/Dashboard', [
         'store' => ['name' => 'Demo Enterprise Store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
         'auth' => ['user' => ['name' => 'Demo Admin', 'role' => 'admin']],
@@ -138,6 +133,11 @@ Route::get('/next-dashboard', function () {
 
 // VenQore New Dashboard with Live Card Builder (v6)
 Route::get('/new-dashboard', function () {
+    // Design preview only — never a public page in production. It renders a
+    // fabricated "Enterprise Store" with hard-coded revenue figures, which is
+    // not something a visitor or a crawler should ever be shown.
+    abort_if(app()->environment('production') && ! auth()->user()?->is_platform_admin, 404);
+
     return Inertia::render('NewDashboard', [
         'store' => ['name' => 'VenQore Enterprise Store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
         'auth' => ['user' => ['name' => 'Store Owner', 'role' => 'admin']],
@@ -406,6 +406,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::c
     Route::post('/account/passcode', [ProfileController::class, 'updatePasscode'])->name('account.passcode');
     Route::post('/account/security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'updateSecurityPin'])->name('account.security-pin');
     Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
+
+    // Notifications summary global auth endpoint (AI Island / Header)
+    Route::get('/api/notifications/summary', [\App\Http\Controllers\NotificationController::class, 'summary'])->name('global.notifications.summary');
 });
 
 // ── Store Context Routes ─────────────────────────────────────────────────
@@ -868,7 +871,7 @@ Route::get('/', function () {
 
     // 4. Show the new V6 landing page to unauthenticated visitors
     // (Legacy landing page remains available at /legacy or /legacy/landing)
-    return response()->file(public_path('v6/index.html'));
+    return \App\Http\Controllers\Marketing\V6PageController::render('index');
 })->name('welcome');
 
 
@@ -884,6 +887,7 @@ Route::get('/welcome-splash', function () {
 // mass tenant creation.
 Route::get('/build-workspace', [\App\Http\Controllers\WorkspaceBuilderController::class, 'show'])->name('workspace.build');
 Route::post('/workspace/analyze', [\App\Http\Controllers\WorkspaceBuilderController::class, 'analyze'])->middleware('throttle:30,1')->name('workspace.analyze');
+Route::post('/workspace/prepare-google', [\App\Http\Controllers\WorkspaceBuilderController::class, 'prepareGoogle'])->middleware('throttle:30,1')->name('workspace.prepare-google');
 Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware('throttle:5,1')->name('workspace.provision');
 Route::post('/workspace/demand-log', [\App\Http\Controllers\WorkspaceBuilderController::class, 'logDemand'])->middleware('throttle:10,1')->name('workspace.demand');
 
@@ -1083,9 +1087,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'parkBill'])->name('sales.park');
 
         Route::name('store.')->group(function () {
-    Route::get('/new-dashboard', fn() => Inertia::render('NewDashboard', [
-        'readings' => \App\Reckoner\ReckonerRegistry::v6Catalog(),
-    ]))->name('new-dashboard');
+    Route::get('/new-dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('new-dashboard');
     Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug]));
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/onboarding/step', function ($store_slug) {

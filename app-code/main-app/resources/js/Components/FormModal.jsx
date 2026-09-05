@@ -385,7 +385,7 @@ export function FormSelect({
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute z-drawer w-full mt-3 bg-surface border-2 border-line rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] max-h-[400px] overflow-hidden animate-in fade-in slide-in-from-top-4 flex flex-col">
+                <div className="absolute z-drawer w-full mt-3 bg-surface border-2 border-line rounded-[14px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] max-h-[400px] overflow-hidden animate-in fade-in slide-in-from-top-4 flex flex-col">
 
                     {/* Search Bar */}
                     {searchable && (
@@ -398,7 +398,7 @@ export function FormSelect({
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     placeholder="Type to search or create..."
-                                    className="w-full pl-11 pr-4 py-3 rounded-2xl bg-surface border-2 border-line text-base font-bold outline-none focus:border-brand-500 transition-all"
+                                    className="w-full pl-11 pr-4 py-3 rounded-[10px] bg-surface border-2 border-line text-base font-bold outline-none focus:border-brand-500 transition-all"
                                     onClick={(e) => e.stopPropagation()}
                                 />
                             </div>

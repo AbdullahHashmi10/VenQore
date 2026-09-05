@@ -47,6 +47,10 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
         // Resolve new plan
         $plan = $tenant->plan;
         
+        $counterVariants = [
+            (string) config('services.lemon_squeezy.counter_variant_id'),
+            (string) config('services.lemon_squeezy.counter_annual_variant_id'),
+        ];
         $starterVariants = [
             (string) config('services.lemon_squeezy.starter_variant_id'),
             (string) config('services.lemon_squeezy.starter_annual_variant_id'),
@@ -69,7 +73,9 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
             (string) config('services.lemon_squeezy.business_ltd_variant_id'),
         ];
 
-        if (in_array($variantId, array_filter($starterVariants))) {
+        if (in_array($variantId, array_filter($counterVariants))) {
+            $plan = 'counter';
+        } elseif (in_array($variantId, array_filter($starterVariants))) {
             $plan = 'starter';
         } elseif (in_array($variantId, array_filter($growthVariants))) {
             $plan = 'growth';
@@ -86,6 +92,14 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
         app()->instance('current.tenant', $tenant);
 
         $tenant->update(['plan' => $plan, 'status' => $status]);
+
+        // A plan change moves the AI ceiling with it — the allowance is part of
+        // what the plan is sold as, not a separate add-on.
+        try {
+            \App\Services\PlanAiAllowance::applyTo($tenant, $plan);
+        } catch (\Throwable $e) {
+            Log::warning("PlanAiAllowance failed for tenant {$tenant->id}: " . $e->getMessage());
+        }
 
         Log::info("Tenant {$tenant->slug} updated: plan={$plan}, status={$status}");
     }

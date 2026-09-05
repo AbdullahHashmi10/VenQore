@@ -1960,7 +1960,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -2332,7 +2332,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    drew the board flush against the sidebar. */
 .vq-canvas {
   width: 100%; max-width: 100%;
-  padding: 24px 24px 48px;
+  padding: 24px;
   box-sizing: border-box;
 }
 

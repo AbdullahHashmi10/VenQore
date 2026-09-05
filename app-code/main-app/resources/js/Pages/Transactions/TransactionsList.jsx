@@ -443,8 +443,8 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                                 <MoreVertical size={14} />
                                                             </button>
                                                             {activeActionMenu === row.id && (
-                                                                <div className="absolute right-0 top-full mt-1 w-40 bg-surface rounded-lg shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
-                                                                    <button className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-xs font-medium flex items-center gap-2 text-ink-secondary">
+                                                                <div className="absolute right-0 top-full mt-1 w-40 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+                                                                    <button className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-xs font-medium flex items-center gap-2 text-ink-secondary">
                                                                         <Eye size={12} /> View Details
                                                                     </button>
                                                                     <button className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-xs font-medium flex items-center gap-2 text-ink-secondary">
@@ -521,7 +521,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                 >
                                                     <MoreVertical size={12} />
                                                     {activeActionMenu === row.id && (
-                                                        <div className="absolute right-0 top-full mt-1 w-36 bg-surface rounded-lg shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+                                                        <div className="absolute right-0 top-full mt-1 w-36 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
                                                             <button className="w-full text-left px-2 py-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-2xs font-medium flex items-center gap-1.5 text-ink-secondary">
                                                                 <Eye size={10} /> View Details
                                                             </button>

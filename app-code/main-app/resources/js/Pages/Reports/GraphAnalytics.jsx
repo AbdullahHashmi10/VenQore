@@ -104,7 +104,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
 
                             {/* Module Dropdown */}
                             {isModuleMenuOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-normal">
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-normal">
                                     {modules.map((m) => (
                                         <button
                                             key={m.id}

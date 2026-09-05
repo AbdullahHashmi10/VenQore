@@ -120,7 +120,7 @@ export default function StoreSwitcher() {
 
  {/* Dropdown */}
  {open && (
- <div className="absolute left-0 right-0 mt-1 z-50 rounded-xl border border-white/12 bg-neutral-900/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-fast">
+ <div className="absolute left-0 right-0 mt-1 z-50 rounded-[14px] border border-white/12 bg-neutral-900/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-fast">
 
  {/* Header */}
  <div className="px-3 py-2 border-b border-white/8">

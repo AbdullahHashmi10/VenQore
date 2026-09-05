@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePage, router } from '@inertiajs/react';
-import { MessageSquare, X, Send, Sparkles, ArrowRight, Loader2, Play, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, ArrowRight, Loader2, Play, Maximize2, Minimize2, RotateCcw, AlertCircle } from 'lucide-react';
 import VenaLogo from '@/Components/VenaLogo';
 import axios from 'axios';
 import Echo from 'laravel-echo';
@@ -133,6 +133,7 @@ export default function ChatWidget({ embedded = false }) {
  const [sending, setSending] = useState(false);
  const [typing, setTyping] = useState(false);
  const [confirmNewChat, setConfirmNewChat] = useState(false); // confirm before resetting
+ const [connectionError, setConnectionError] = useState(null); // connection failure feedback
 
  // Form inputs
  const [visitorName, setVisitorName] = useState(auth?.user?.name || 'Guest');
@@ -215,19 +216,29 @@ export default function ChatWidget({ embedded = false }) {
  // ── Restore existing session ────────────────────────────────────────────
  const restoreSession = async () => {
  setLoading(true);
+ setConnectionError(null);
  try {
  const cachedMsgs = await db.messages.where('session_uuid').equals(sessionUuid).sortBy('created_at');
- if (cachedMsgs.length > 0) { setMessages(cachedMsgs); setStarted(true); }
+ if (cachedMsgs.length > 0) {
+ setMessages(cachedMsgs);
+ setStarted(true);
+ }
 
  const res = await axios.post(`/api/${store.slug}/chatbot/session`, { session_uuid: sessionUuid });
  const data = res.data;
+
+ // Sync updated session_uuid if changed
+ if (data.session_uuid && data.session_uuid !== sessionUuid) {
+ setSessionUuid(data.session_uuid);
+ localStorage.setItem(`vq_chat_uuid_${store?.id}`, data.session_uuid);
+ }
+
  setSessionStatus(data.status);
  setVisitorName(data.visitor_name);
  setVisitorEmail(data.visitor_email);
 
  if (data.messages?.length > 0) {
  setMessages(data.messages);
- setStarted(true);
  await db.transaction('rw', db.messages, async () => {
  await db.messages.where('session_uuid').equals(sessionUuid).delete();
  await db.messages.bulkAdd(data.messages.map(m => ({
@@ -240,11 +251,16 @@ export default function ChatWidget({ embedded = false }) {
  });
  }
 
- initializeEcho(sessionUuid);
+ // Mark started so the UI leaves "Connecting to support..."
+ setStarted(true);
+ initializeEcho(data.session_uuid || sessionUuid);
  fetchVenaContext();
  } catch (err) {
- console.error('Failed to sync chat session:', err);
- setStarted(true);
+ console.warn('Failed to restore chat session, auto-healing with fresh session:', err);
+ // Auto-heal stale or invalid session from localStorage
+ localStorage.removeItem(`vq_chat_uuid_${store?.id}`);
+ setSessionUuid(null);
+ await handleStartSession();
  } finally {
  setLoading(false);
  }
@@ -254,6 +270,7 @@ export default function ChatWidget({ embedded = false }) {
  const handleStartSession = async (e) => {
  if (e) e.preventDefault();
  setLoading(true);
+ setConnectionError(null);
  try {
  const name = auth?.user?.name || 'Guest';
  const email = auth?.user?.email || null;
@@ -276,12 +293,13 @@ export default function ChatWidget({ embedded = false }) {
  updated_at: new Date().toISOString()
  });
 
- setMessages([]);
+ setMessages(data.messages || []);
  setStarted(true);
  initializeEcho(data.session_uuid);
  fetchVenaContext();
  } catch (err) {
  console.error('Failed to start session:', err);
+ setConnectionError(err?.response?.data?.error || err?.message || 'Unable to connect to support.');
  } finally {
  setLoading(false);
  }
@@ -290,6 +308,7 @@ export default function ChatWidget({ embedded = false }) {
  // ── New Chat ────────────────────────────────────────────────────────────
  const handleNewChat = () => {
  setConfirmNewChat(false);
+ setConnectionError(null);
  // Clear Echo subscriptions
  if (activeChannel.current) {
  activeChannel.current
@@ -461,8 +480,10 @@ export default function ChatWidget({ embedded = false }) {
  if (textBefore) result.push(<span key={lastIndex} className="whitespace-pre-wrap">{textBefore}</span>);
  result.push(
  <button key={match.index} onClick={() => executeAction(match[2])}
- className="inline-flex items-center gap-1.5 px-3 py-1.5 my-1 mx-0.5 bg-surface text-brand-600 dark:bg-surface dark:text-brand-400 border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-xs font-bold shadow-sm transition-all duration-normal">
- <Play size={10} className="fill-brand-600 dark:fill-brand-400 stroke-none" />
+ className={embedded
+ ? "inline-flex items-center gap-1.5 px-3 py-1.5 my-1 mx-0.5 bg-white/10 text-[#93ebd6] border border-white/15 hover:bg-white/15 rounded-lg text-xs font-bold shadow-sm transition-all"
+ : "inline-flex items-center gap-1.5 px-3 py-1.5 my-1 mx-0.5 bg-surface text-brand-600 dark:bg-surface dark:text-brand-400 border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-xs font-bold shadow-sm transition-all duration-normal"}>
+ <Play size={10} className={embedded ? "fill-[#23C4A6] stroke-none" : "fill-brand-600 dark:fill-brand-400 stroke-none"} />
  {match[1]}
  </button>
  );
@@ -484,18 +505,46 @@ export default function ChatWidget({ embedded = false }) {
  <>
  {!started ? (
  <div className="flex-1 p-8 flex flex-col items-center justify-center relative z-10 text-center space-y-4">
- <Loader2 className="animate-spin text-brand-500" size={32} />
- <p style={{ fontSize: 15 }} className="text-ink-muted font-medium">Connecting to support…</p>
+ {connectionError ? (
+ <>
+ <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-1 ${
+ embedded ? 'bg-rose-500/15 border border-rose-500/30 text-rose-300' : 'bg-rose-50 border border-rose-200 text-rose-500'
+ }`}>
+ <AlertCircle size={22} />
+ </div>
+ <p className={`text-sm font-semibold max-w-[260px] ${embedded ? 'text-rose-200' : 'text-rose-600'}`}>
+ {connectionError}
+ </p>
+ <button
+ type="button"
+ onClick={() => handleStartSession()}
+ className={`px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 ${
+ embedded
+ ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10 shadow-sm'
+ : 'bg-brand-600 hover:bg-brand-700 text-white shadow-md'
+ }`}>
+ <RotateCcw size={13} />
+ Retry Connection
+ </button>
+ </>
+ ) : (
+ <>
+ <Loader2 className={`animate-spin ${embedded ? 'text-[#23C4A6]' : 'text-brand-500'}`} size={32} />
+ <p style={{ fontSize: 15 }} className={embedded ? "text-white/70 font-medium" : "text-ink-muted font-medium"}>
+ Connecting to support…
+ </p>
+ </>
+ )}
  </div>
  ) : (
  /* Message stream */
  <div className="flex-1 flex flex-col overflow-hidden relative z-10">
  <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
  {messages.length === 0 && (
- <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-2 opacity-60">
- <Sparkles size={24} className="text-brand-500 animate-pulse" />
- <h5 className="text-xs font-bold text-ink-secondary dark:text-ink">Start a Conversation</h5>
- <p className="text-2xs text-ink-muted max-w-[200px]">Send a message and our support team will reply instantly.</p>
+ <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-2 opacity-70">
+ <Sparkles size={24} className={embedded ? "text-[#23C4A6] animate-pulse" : "text-brand-500 animate-pulse"} />
+ <h5 className={`text-xs font-bold ${embedded ? 'text-white' : 'text-ink-secondary dark:text-ink'}`}>Start a Conversation</h5>
+ <p className={`text-2xs max-w-[200px] ${embedded ? 'text-white/60' : 'text-ink-muted'}`}>Send a message and our support team will reply instantly.</p>
  </div>
  )}
  {messages.map((m, i) => {
@@ -509,9 +558,15 @@ export default function ChatWidget({ embedded = false }) {
  <div key={i} className={`flex ${isVisitor ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-1 duration-fast`}>
  <div style={{ fontSize: 15, lineHeight: 1.5 }} className={`max-w-[78%] rounded-2xl px-4 py-3 shadow-sm ${
  isVisitor
- ? 'bg-brand-600 text-white rounded-tr-none font-medium'
+ ? embedded
+ ? 'bg-gradient-to-r from-[#23C4A6] to-[#1da58c] text-[#062421] font-semibold rounded-tr-none shadow-md shadow-[#23C4A6]/20'
+ : 'bg-brand-600 text-white rounded-tr-none font-medium'
  : isBot
- ? 'bg-sunken text-ink rounded-tl-none leading-relaxed'
+ ? embedded
+ ? 'bg-white/[0.08] text-white/90 border border-white/10 rounded-tl-none leading-relaxed backdrop-blur-md'
+ : 'bg-sunken text-ink rounded-tl-none leading-relaxed'
+ : embedded
+ ? 'bg-emerald-500/15 text-emerald-200 border border-emerald-500/30 rounded-tl-none leading-relaxed'
  : 'bg-brand-50 dark:bg-brand-950/20 text-brand-950 dark:text-brand-300 border border-brand-100 dark:border-brand-900 rounded-tl-none leading-relaxed'
  }`}>
  <div style={{ fontSize: 12, letterSpacing: '0.12em', fontWeight: 600 }} className="uppercase mb-1.5 opacity-70 flex items-center gap-1.5">
@@ -525,8 +580,10 @@ export default function ChatWidget({ embedded = false }) {
  })}
 
  {typing && (
- <div style={{ fontSize: 14 }} className="flex items-center gap-2 text-ink-muted font-medium py-2 animate-pulse">
- <Loader2 size={14} className="animate-spin text-brand-500" />
+ <div style={{ fontSize: 14 }} className={`flex items-center gap-2 font-medium py-2 animate-pulse ${
+ embedded ? 'text-white/60' : 'text-ink-muted'
+ }`}>
+ <Loader2 size={14} className={`animate-spin ${embedded ? 'text-[#23C4A6]' : 'text-brand-500'}`} />
  <span>Support is typing…</span>
  </div>
  )}
@@ -535,14 +592,16 @@ export default function ChatWidget({ embedded = false }) {
 
  {/* Quick actions — shown until visitor sends their first message */}
  {!messages.some(m => m.sender_type === 'visitor') && (
- <div className="px-6 py-4 shrink-0" style={{ borderTop: '1px solid var(--vq-line-soft)' }}>
+ <div className="px-6 py-4 shrink-0" style={{ borderTop: embedded ? '1px solid rgba(255,255,255,0.08)' : '1px solid var(--vq-line-soft)' }}>
  <p style={{ fontSize: 12, letterSpacing: '0.12em', fontWeight: 600 }}
- className="uppercase text-ink-muted mb-2.5">Jump to</p>
+ className={`uppercase mb-2.5 ${embedded ? 'text-white/50' : 'text-ink-muted'}`}>Jump to</p>
  <div className="grid grid-cols-3 gap-3">
  {[['Point of Sale','pos'],['New invoice','create_invoice'],['Expenses','expenses']].map(([label, action]) => (
  <button key={action} onClick={() => executeAction(action)}
  style={{ fontSize: 14, fontWeight: 700, height: 44 }}
- className="px-3 bg-surface border border-line hover:border-brand-300 text-ink flex items-center justify-center transition-all rounded-xl">
+ className={embedded
+ ? "px-3 bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-[#23C4A6]/40 text-white/90 flex items-center justify-center transition-all rounded-xl shadow-sm backdrop-blur-sm"
+ : "px-3 bg-surface border border-line hover:border-brand-300 text-ink flex items-center justify-center transition-all rounded-xl"}>
  {label}
  </button>
  ))}
@@ -551,18 +610,26 @@ export default function ChatWidget({ embedded = false }) {
  )}
 
  {/* Message input */}
- <div className="p-6 shrink-0" style={{ borderTop: '1px solid var(--vq-line-soft)', background: 'var(--vq-surface)' }}>
+ <div className="p-6 shrink-0" style={{
+ borderTop: embedded ? '1px solid rgba(255,255,255,0.08)' : '1px solid var(--vq-line-soft)',
+ background: embedded ? 'transparent' : 'var(--vq-surface)'
+ }}>
  <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2 relative items-center">
  <input
  type="text"
  value={messageText}
  onChange={(e) => { setMessageText(e.target.value); handleVisitorTyping(e.target.value.length > 0); }}
- className="flex-1 pl-4 pr-12 py-3 bg-app border border-line rounded-2xl text-xs outline-none focus:ring-2 focus:ring-brand-500 text-ink transition-all font-sans placeholder-slate-400"
+ className={embedded
+ ? "flex-1 pl-4 pr-12 py-3 bg-white/[0.06] border border-white/10 hover:border-white/20 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-[#23C4A6]/50 focus:border-[#23C4A6] text-white transition-all font-sans placeholder-white/30"
+ : "flex-1 pl-4 pr-12 py-3 bg-app border border-line rounded-2xl text-xs outline-none focus:ring-2 focus:ring-brand-500 text-ink transition-all font-sans placeholder-slate-400"}
  placeholder="Type your message here..."
  disabled={sending}
  />
  <button type="submit" disabled={!messageText.trim() || sending}
- className="absolute right-1.5 p-2 bg-brand-600 hover:bg-brand-700 active:scale-90 text-white rounded-xl transition-all shadow-md disabled:opacity-30 disabled:hover:bg-brand-600 disabled:active:scale-100 flex items-center justify-center">
+ className={embedded
+ ? "absolute right-1.5 p-2 bg-[#23C4A6] hover:bg-[#20b297] active:scale-90 text-[#062421] font-bold rounded-xl transition-all shadow-md disabled:opacity-30 disabled:hover:bg-[#23C4A6] disabled:active:scale-100 flex items-center justify-center"
+ : "absolute right-1.5 p-2 bg-brand-600 hover:bg-brand-700 active:scale-90 text-white rounded-xl transition-all shadow-md disabled:opacity-30 disabled:hover:bg-brand-600 disabled:active:scale-100 flex items-center justify-center"}
+ >
  <Send size={14} />
  </button>
  </form>

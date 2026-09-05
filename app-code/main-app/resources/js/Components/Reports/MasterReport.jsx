@@ -210,7 +210,7 @@ const MasterReport = ({
                                     onBlur={() => setTimeout(() => setIsOpen(false), 200)}
                                 />
                                 {isOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-2 bg-surface rounded-xl shadow-xl border border-line max-h-60 overflow-y-auto custom-scrollbar p-1">
+                                    <div className="absolute top-full left-0 w-full mt-2 bg-surface rounded-[14px] shadow-xl border border-line max-h-60 overflow-y-auto custom-scrollbar p-1">
                                         {filteredOptions.length > 0 ? filteredOptions.map(opt => (
                                             <button
                                                 key={opt.value}

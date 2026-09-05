@@ -11,7 +11,8 @@ const gradientMapping = {
   teal: 'linear-gradient(135deg, #0baa8f, #076b5e)',
   coral: 'linear-gradient(135deg, #f26a47, #b94526)',
   sky: 'linear-gradient(135deg, #2ba5d1, #1b7096)',
-  lime: 'linear-gradient(135deg, #8ccb2e, #5e8c15)'
+  lime: 'linear-gradient(135deg, #8ccb2e, #5e8c15)',
+  rose: 'linear-gradient(135deg, #f43f5e, #be123c)'
 };
 
 const GlassIcons = ({ items = [], className = '', onActionClick }) => {
@@ -31,9 +32,10 @@ const GlassIcons = ({ items = [], className = '', onActionClick }) => {
           aria-label={item.label}
           type="button"
           onClick={() => {
-            if (item.onClick) item.onClick();
+            if (onActionClick) onActionClick(item);
+            else if (item.action) item.action();
+            else if (item.onClick) item.onClick();
             else if (item.href) window.location.href = item.href;
-            else if (onActionClick) onActionClick(item);
           }}
         >
           <span className="icon-btn__back" style={getBackgroundStyle(item.color)}></span>

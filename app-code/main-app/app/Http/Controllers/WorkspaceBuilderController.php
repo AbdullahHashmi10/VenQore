@@ -24,6 +24,25 @@ class WorkspaceBuilderController extends Controller
         $initialPrompt = $request->query('prompt', '');
         $initialPreset = $request->query('preset', '');
 
+        // The marketing site's "Start building" email capture arrives as
+        // ?email=, so the visitor does not retype what they just gave us.
+        $initialEmail = (string) $request->query('email', '');
+
+        // The pricing page's plan CTAs arrive as ?plan=<slug>. The 14-day trial
+        // is identical whichever plan they clicked, so the choice is remembered
+        // rather than applied — Billing preselects it when they come to pay.
+        $plan = (string) $request->query('plan', '');
+        if ($plan !== '' && array_key_exists($plan, config('pricing.plans', []))) {
+            $request->session()->put('intended_plan', $plan);
+        }
+
+        // Default the currency from where the visitor actually is. The form
+        // used to hard-code PKR for everyone, which is the wrong first
+        // impression for an international launch — and the tenant row defaults
+        // to USD anyway, so the two disagreed.
+        $geo             = app(\App\Services\GeoPricingService::class);
+        $initialCurrency = $geo->getCurrencyInfo($geo->resolveCountry($request))['currency'] ?? 'USD';
+
         $aiBuilderConfig = config('ai_builder', []);
         $presets = $aiBuilderConfig['presets'] ?? [];
 
@@ -36,14 +55,33 @@ class WorkspaceBuilderController extends Controller
                 'key'         => $key,
                 'label'       => $m['label'] ?? ucfirst(str_replace('_', ' ', $key)),
                 'description' => $m['description'] ?? '',
+
+                // `requires` lets the proposal screen LOCK a hard dependency and
+                // say which module needs it, instead of ignoring the click. A
+                // control that silently does nothing reads as broken.
+                'requires'    => array_values($m['requires'] ?? []),
+
+                // The registry already names a glyph for the nav entry. Reusing
+                // it means the icon beside a module is the same one the user
+                // will see in the sidebar ten minutes later.
+                'icon'        => $m['nav'][0]['icon'] ?? null,
             ])
             ->values();
 
         return Inertia::render('Workspace/BuildWorkspace', [
-            'initialPrompt' => $initialPrompt,
-            'initialPreset' => $initialPreset,
-            'presets'       => $presets,
-            'allModules'    => $allModules,
+            'initialPrompt'   => $initialPrompt,
+            'initialPreset'   => $initialPreset,
+            'initialEmail'    => $initialEmail,
+            'initialCurrency' => $initialCurrency,
+            'presets'         => $presets,
+            'allModules'      => $allModules,
+
+            // The discovery questions, whole, straight from the config. The page
+            // renders whatever is in here — question text, option labels, order,
+            // glyphs and the implies maps — and restates none of it. Adding a
+            // seventh question is a config edit and nothing else.
+            'discovery'       => app(\App\Services\AiBuilder\DiscoveryResolver::class)->questionSet(),
+            'recommended'     => app(\App\Services\AiBuilder\DiscoveryResolver::class)->recommendations(),
         ]);
     }
 
@@ -52,10 +90,17 @@ class WorkspaceBuilderController extends Controller
      */
     public function analyze(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'prompt'   => 'nullable|string|max:1000',
             'preset'   => 'nullable|string',
             'industry' => 'nullable|string',
+
+            // Discovery answers: question key => option key, or an ARRAY of
+            // option keys for a multi-select question. Validated loosely on
+            // purpose — DiscoveryResolver normalises both shapes and drops
+            // anything that is not a real option on a visible question, so the
+            // strictness that matters lives in one place rather than two.
+            'answers'   => 'nullable|array',
         ]);
 
         $prompt = strtolower($request->input('prompt', ''));
@@ -92,6 +137,14 @@ class WorkspaceBuilderController extends Controller
             'modules'     => ['products', 'pos', 'inventory', 'expenses', 'reports'],
         ];
 
+        // The answers only ever ADD to the preset, and DiscoveryResolver drops
+        // anything that is not a live module in config/modules.php. The client
+        // applies the same map from the same config, so the stack the visitor
+        // watched being built is the stack that arrives here.
+        $answers  = (array) ($validated['answers'] ?? []);
+        $resolver = app(\App\Services\AiBuilder\DiscoveryResolver::class);
+        $modules  = $resolver->merge($preset['modules'] ?? [], $answers);
+
         // Map technical module keys into friendly user capabilities
         $capabilitiesMap = [
             'pos'              => ['label' => 'Point of Sale Counter', 'icon' => 'pos', 'desc' => 'Fast checkout & cash register'],
@@ -112,7 +165,7 @@ class WorkspaceBuilderController extends Controller
         ];
 
         $suggestedCapabilities = [];
-        foreach ($preset['modules'] as $modKey) {
+        foreach ($modules as $modKey) {
             if (isset($capabilitiesMap[$modKey])) {
                 $suggestedCapabilities[] = array_merge(['key' => $modKey], $capabilitiesMap[$modKey]);
             } else {
@@ -131,8 +184,17 @@ class WorkspaceBuilderController extends Controller
             'preset_label'       => $preset['label'] ?? 'Custom Workspace',
             'preset_description' => $preset['description'] ?? 'Tailored workspace built for your operational needs.',
             'prompt'             => $request->input('prompt', ''),
-            'modules'            => $preset['modules'],
+            'modules'            => $modules,
             'capabilities'       => $suggestedCapabilities,
+
+            // Written from the answer to the "what do you most want to fix"
+            // question, so the proposal is headed with the visitor's own stated
+            // problem rather than a module count.
+            'headline'           => $resolver->headline($answers),
+
+            // Shown in their own labelled band on the proposal. Never folded
+            // silently into `modules` — see config/ai_builder.php §3b.
+            'recommended'        => $resolver->recommendations(),
         ]);
     }
 
@@ -172,6 +234,116 @@ class WorkspaceBuilderController extends Controller
     }
 
     /**
+     * Prepare Google OAuth signup by saving pending workspace configuration into session.
+     */
+    public function prepareGoogle(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'business_name' => 'nullable|string|max:255',
+            'currency'      => 'nullable|string|max:10',
+            'phone'         => 'nullable|string|max:30',
+            'modules'       => 'nullable|array',
+            'preset_key'    => 'nullable|string|max:64',
+        ]);
+
+        $request->session()->put('pending_workspace_builder', [
+            'business_name' => $validated['business_name'] ?? 'My Business',
+            'currency'      => $validated['currency'] ?? 'USD',
+            'phone'         => $validated['phone'] ?? null,
+            'modules'       => $validated['modules'] ?? [],
+            'preset_key'    => $validated['preset_key'] ?? null,
+        ]);
+
+        return response()->json([
+            'success'  => true,
+            'auth_url' => route('auth.google'),
+        ]);
+    }
+
+    /**
+     * Internal helper to provision a tenant workspace for a given user.
+     */
+    public function provisionForUser(User $user, array $data): ?Tenant
+    {
+        $name = !empty($data['business_name']) ? (string) $data['business_name'] : 'My Business';
+        $slug = Str::slug($name) . '-' . Str::random(4);
+
+        DB::beginTransaction();
+        try {
+            $presetKey = $data['preset_key'] ?? null;
+            $presets = config('ai_builder.presets', []);
+            $businessType = ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by']))
+                ? $presetKey
+                : null;
+
+            $currencyCode   = strtoupper((string) ($data['currency'] ?? 'USD')) ?: 'USD';
+            $currencySymbol = $currencyCode === 'PKR' ? 'Rs' : '$';
+
+            $tenant = Tenant::create([
+                'name'            => $name,
+                'slug'            => $slug,
+                'phone'           => $data['phone'] ?? null,
+                'currency_code'   => $currencyCode,
+                'currency_symbol' => $currencySymbol,
+                'plan'            => 'trial',
+                'status'          => 'trial',
+                'trial_ends_at'   => now()->addDays(14),
+                'setup_completed' => true,
+                'onboarding_step' => 'completed',
+                'business_type'   => $businessType,
+            ]);
+
+            try {
+                \App\Services\PlanAiAllowance::applyTo($tenant, 'trial');
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            TenantUser::create([
+                'tenant_id'    => $tenant->id,
+                'user_id'      => $user->id,
+                'role'         => 'owner',
+                'status'       => 'active',
+                'display_name' => $user->name,
+            ]);
+
+            $user->update(['last_store_id' => $tenant->id]);
+
+            $requestedModules = array_values(array_intersect(
+                $data['modules'] ?? [],
+                array_keys(config('modules', []))
+            ));
+
+            if ($requestedModules === []) {
+                $requestedModules = ['products', 'pos', 'inventory', 'expenses', 'reports'];
+            }
+
+            app(\App\Services\AiBuilder\ApplyConfigurationService::class)->apply(
+                $tenant,
+                ['modules' => $requestedModules],
+                'preset',
+                'Selected during workspace provisioning.'
+            );
+
+            try {
+                app()->instance('current.tenant', $tenant);
+                app(\App\Http\Controllers\Api\DashboardController::class)
+                    ->createDefaultDashboard($user, $tenant);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            DB::commit();
+            return $tenant;
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return null;
+        }
+    }
+
+    /**
      * Provision tenant workspace and register/log in user.
      */
     public function provision(Request $request): JsonResponse
@@ -196,7 +368,6 @@ class WorkspaceBuilderController extends Controller
         ]);
 
         $name = $request->input('business_name');
-        $slug = Str::slug($name) . '-' . Str::random(4);
         $email = strtolower($request->input('email'));
         $password = $request->input('password');
 
@@ -211,9 +382,7 @@ class WorkspaceBuilderController extends Controller
             ], 409);
         }
 
-        DB::beginTransaction();
         try {
-            // 1. Create or retrieve User
             $user = $existingUser;
             if (!$user) {
                 $user = User::create([
@@ -223,80 +392,20 @@ class WorkspaceBuilderController extends Controller
                 ]);
             }
 
-            // 2. Create Tenant — starts as an actual 14-day trial, not a
-            //    permanent free account. ProcessExpiredTrials / SendTrialWarnings
-            //    both filter on status='trial' + trial_ends_at, so both must be
-            //    set here or those commands never match this tenant.
-            // Only a real, shippable preset key becomes business_type — a preset
-            // that has drifted from the registry, or 'retail_shop' guessed by
-            // guessPreset() and never confirmed, still lands here correctly
-            // since both are real config('ai_builder.presets') keys.
-            $presetKey = $request->input('preset_key');
-            $presets = config('ai_builder.presets', []);
-            $businessType = ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by']))
-                ? $presetKey
-                : null;
-
-            $tenant = Tenant::create([
-                'name'            => $name,
-                'slug'            => $slug,
-                'phone'           => $request->input('phone'),
-                'plan'            => 'trial',
-                'status'          => 'trial',
-                'trial_ends_at'   => now()->addDays(14),
-                'setup_completed' => true,
-                'onboarding_step' => 'completed',
-                'business_type'   => $businessType,
+            $tenant = $this->provisionForUser($user, [
+                'business_name' => $name,
+                'currency'      => $request->input('currency'),
+                'phone'         => $request->input('phone'),
+                'modules'       => $request->input('modules', []),
+                'preset_key'    => $request->input('preset_key'),
             ]);
 
-            // 3. Attach TenantUser pivot
-            TenantUser::create([
-                'tenant_id'    => $tenant->id,
-                'user_id'      => $user->id,
-                'role'         => 'owner',
-                'status'       => 'active',
-                'display_name' => $user->name,
-            ]);
-
-            $user->update(['last_store_id' => $tenant->id]);
-
-            // 4. Initialize modules via the single-writer pipeline (validates,
-            //    resolves dependencies, writes the FULL registry row set — see
-            //    ApplyConfigurationService for why this must be the only writer).
-            $requestedModules = array_values(array_intersect(
-                $request->input('modules', []),
-                array_keys(config('modules', []))
-            ));
-
-            if ($requestedModules === []) {
-                $requestedModules = ['products', 'pos', 'inventory', 'expenses', 'reports'];
+            if (!$tenant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Workspace provisioning failed. Please try again.',
+                ], 500);
             }
-
-            app(\App\Services\AiBuilder\ApplyConfigurationService::class)->apply(
-                $tenant,
-                ['modules' => $requestedModules],
-                'preset',
-                'Selected during workspace provisioning.'
-            );
-
-            // 5. Seed the first dashboard board now, business_type-keyed
-            // (config/dashboard_presets.php), so the reveal after signup is
-            // already theirs rather than an empty board that only appears
-            // once something calls GET /api/dashboards — see
-            // Api\DashboardController::createDefaultDashboard()'s own note.
-            // Bind current.tenant the way TenantMiddleware would on a real
-            // request, since Reckoner/permission checks read it. Never lets
-            // a seeding hiccup break account creation — fails open, same as
-            // every other secondary write in this pipeline.
-            try {
-                app()->instance('current.tenant', $tenant);
-                app(\App\Http\Controllers\Api\DashboardController::class)
-                    ->createDefaultDashboard($user, $tenant);
-            } catch (\Throwable $e) {
-                report($e);
-            }
-
-            DB::commit();
 
             // Log user in
             Auth::login($user, true);
@@ -308,7 +417,6 @@ class WorkspaceBuilderController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Workspace provisioning failed: ' . $e->getMessage(),

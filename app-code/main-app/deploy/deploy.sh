@@ -63,9 +63,26 @@ echo "⚡ Building frontend assets..."
 $NPM ci --prefer-offline
 $NPM run build
 
+# Vite's dev-server marker must never survive on a server. While it exists,
+# every asset URL points at http://127.0.0.1:5173 and the whole app renders
+# blank. `npm run build` does not remove it, and it is easy to pull in.
+rm -f "$APP_DIR/public/hot"
+
 # ── 5. Run database migrations ────────────────────────────────────
 echo "🗄️  Running migrations..."
 $ARTISAN migrate --force
+
+# ── 5b. Re-seed the plan/feature matrix ──────────────────────────
+# plan_limits is the runtime source of truth for every price-page promise
+# (SKU caps, seats, branches, AI allowance, which features each tier gets).
+# Migrations do not touch it, so without this step a pricing change ships to
+# the website while the app still enforces the old numbers. The seeder is
+# idempotent (updateOrInsert) and safe to run on every deploy.
+$ARTISAN db:seed --class=Database\\Seeders\\PlanFeatureMatrixSeeder --force
+
+# Plan limits are memoised for 5 minutes; drop the cache so the new matrix is
+# live immediately rather than at the end of the window.
+$ARTISAN cache:clear
 
 # ── 6. Clear and re-warm caches ───────────────────────────────────
 echo "♻️  Clearing caches..."

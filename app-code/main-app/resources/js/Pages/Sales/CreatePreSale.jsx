@@ -1139,7 +1139,7 @@ const CreatePreSale = ({ sale }) => {
  </button>
 
  {showTextSizeMenu && (
- <div className="absolute top-full mt-2 right-0 w-32 bg-surface rounded-xl shadow-xl border border-line z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+ <div className="absolute top-full mt-2 right-0 w-32 bg-surface rounded-[14px] shadow-xl border border-line z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
  {[1, 2, 3, 4, 5].map((size) => (
  <button
  key={size}

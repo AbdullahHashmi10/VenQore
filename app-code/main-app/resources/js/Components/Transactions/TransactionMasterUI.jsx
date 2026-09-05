@@ -603,7 +603,7 @@ export const SharePopup = ({ isOpen, onEmailClick, onWhatsAppClick }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+        <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
             <ActionMenuItem icon={Mail} label="Email" onClick={onEmailClick} />
             <ActionMenuItem icon={MessageCircle} label="WhatsApp" onClick={onWhatsAppClick} />
         </div>
@@ -629,7 +629,7 @@ export const RowActionMenu = ({
     if (!isOpen) return null;
 
     return (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
             <div className="py-1">
                 <ActionMenuItem icon={Edit} label="View/Edit" onClick={onEdit} />
                 {onReturn && <ActionMenuItem icon={RefreshCcw} label="Convert To Return" onClick={onReturn} />}

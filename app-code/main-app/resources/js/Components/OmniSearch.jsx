@@ -289,7 +289,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
  {/* Dropdown Results */}
  {isOpen && (
- <div className="fixed top-16 left-4 right-4 sm:absolute sm:top-full sm:left-0 sm:right-auto sm:w-[500px] mt-3 max-h-[50vh] sm:max-h-[75vh] overflow-hidden bg-white/95 dark:bg-app backdrop-blur-2xl rounded-2xl border border-line shadow-2xl shadow-black/20 dark:shadow-black/50 animate-in fade-in zoom-in-95 duration-fast flex flex-col">
+ <div className="fixed top-16 left-4 right-4 sm:absolute sm:top-full sm:left-0 sm:right-auto sm:w-[500px] mt-3 max-h-[50vh] sm:max-h-[75vh] overflow-hidden bg-white/95 dark:bg-app backdrop-blur-2xl rounded-[14px] border border-line shadow-2xl shadow-black/20 dark:shadow-black/50 animate-in fade-in zoom-in-95 duration-fast flex flex-col">
  {/* Header/Gradient Line */}
  <div className="h-1 bg-gradient-brand opacity-50" />
 

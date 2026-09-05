@@ -539,7 +539,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  <CornerUpRight size={16} />
  </button>
  {activeSharePopup === row.id && (
- <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+ <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm"><Mail size={14} className="text-red-500" /> Email</button>
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm"><MessageCircle size={14} className="text-green-500" /> WhatsApp</button>
  </div>
@@ -550,7 +550,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  <MoreVertical size={16} />
  </button>
  {activeActionMenu === row.id && (
- <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+ <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <div className="py-1">
  <Link href={route('store.proposals.show', { store_slug: store?.slug, proposal: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Eye size={14} /> View</Link>
  {row.status !== 'converted' && (

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="canonical" href="https://venqore.com/dashboard-preview">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>The dashboard — 108 readings that assemble themselves | VenQore</title>
+<meta name="description" content="Pick what you want to know and the card decides its own size. 108 readings across five areas, 21 chart types, 18 verified size fits, and three server-side gates on every card.">
+<meta property="og:title" content="The dashboard — 108 readings that assemble themselves | VenQore">
+<meta property="og:description" content="Pick what you want to know and the card decides its own size. 108 readings across five areas, 21 chart types, 18 verified size fits, and three server-side gates on every card.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VenQore">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0BAA8F">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="assets/venqore.css">
+<script>
+/* Theme before paint — no flash. */
+(function(){try{var r=document.documentElement,t=r.getAttribute('data-theme')||localStorage.getItem('vq-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',t);r.classList.toggle('dark',t==='dark');}catch(e){}})();
+</script>
+
+</head>
+<body>
+
+
+  <a class="vq-skip" href="#main">Skip to content</a>
+  <header class="vq-header" data-header>
+    <div class="vq-header__inner">
+      <a class="vq-brand" href="/" aria-label="VenQore home">
+        <img src="assets/logo.png" alt="" width="30" height="30">
+        <span class="vq-brand__word">VenQore</span>
+      </a>
+
+      <nav class="vq-nav" aria-label="Main">
+        <ul class="vq-nav__list">
+          <li class="vq-nav__item">
+            <a href="/blueprint" class="vq-nav__link" aria-current="page">Product <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:660px">
+              <div class="vq-mega__grid" style="grid-template-columns:1fr 1fr 1fr">
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Build</span>
+                  <a class="vq-mega__link" href="/blueprint"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
+                  <a class="vq-mega__link" href="/onboarding"><b>See a build</b><span>Four minutes, start to live.</span></a>
+                  <a class="vq-mega__link" href="#assemble"><b>Watch it assemble</b><span>46 modules in, only yours out.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Run</span>
+                  <a class="vq-mega__link" href="/pos.html"><b>The register</b><span>A till you compose yourself.</span></a>
+                  <a class="vq-mega__link" href="/documents"><b>Documents</b><span>Thirteen types, one editor.</span></a>
+                  <a class="vq-mega__link" href="/vensynq"><b>VenSynQ</b><span>Sell in five places, count once.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <span class="vq-eyebrow vq-eyebrow--accent">Know</span>
+                  <a class="vq-mega__link" href="/dashboard-preview"><b>The dashboard</b><span>108 readings, self-assembling.</span></a>
+                  <a class="vq-mega__link" href="/reckoner"><b>The Reckoner</b><span>One place a number is defined.</span></a>
+                  <a class="vq-mega__link" href="/ledger"><b>Core Ledger</b><span>One engine. Every number.</span></a>
+                </div>
+              </div>
+              <div class="vq-mega__foot">
+                <a class="vq-link" href="/smartcapture">SmartCapture — a photo in, a posted transaction out <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              </div>
+            </div>
+          </li>
+          <li class="vq-nav__item">
+            <a href="#presets" class="vq-nav__link">Solutions <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:420px">
+              <div class="vq-mega__grid">
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="#presets"><b>Retail shop</b><span>Fast checkout, real margins.</span></a>
+                  <a class="vq-mega__link" href="#presets"><b>Wholesale &amp; distribution</b><span>Credit terms and price tiers.</span></a>
+                  <a class="vq-mega__link" href="#presets"><b>Pharmacy</b><span>Batch and expiry that hold the line.</span></a>
+                </div>
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="#presets"><b>Restaurant &amp; café</b><span>Recipes that draw down ingredients.</span></a>
+                  <a class="vq-mega__link" href="#presets"><b>Hardware &amp; auto parts</b><span>Deep catalogues, real costing.</span></a>
+                  <a class="vq-mega__link" href="#presets"><b>Multi-branch</b><span>One truth across every location.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="vq-nav__item"><a href="/features" class="vq-nav__link">Features</a></li>
+          <li class="vq-nav__item"><a href="/pricing" class="vq-nav__link">Pricing</a></li>
+          <li class="vq-nav__item">
+            <a href="/about" class="vq-nav__link">Company <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div class="vq-mega" style="min-width:320px">
+              <div class="vq-mega__grid" style="grid-template-columns:1fr">
+                <div class="vq-mega__col">
+                  <a class="vq-mega__link" href="/about"><b>About</b><span>Built on a shop counter in Okara.</span></a>
+                  <a class="vq-mega__link" href="/ledger"><b>How we prove it</b><span>The checks we publish.</span></a>
+                  <a class="vq-mega__link" href="/contact"><b>Contact</b><span>A person answers this one.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <div class="vq-header__actions">
+        <button class="vq-theme-btn" data-theme-toggle type="button" aria-label="Switch theme">
+          <span class="vq-icon-sun"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span class="vq-icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        </button>
+        <a href="/login" class="vq-nav__link">Sign in</a>
+        <a href="/build-workspace" class="vq-btn vq-btn--primary">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+      </div>
+      <button class="vq-burger" type="button" data-menu-open aria-label="Open menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+    </div>
+  </header>
+  <div class="vq-mobile" data-menu hidden>
+    <button class="vq-burger" type="button" data-menu-close aria-label="Close menu"
+            style="position:absolute;top:24px;right:20px"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <a href="/blueprint">Blueprint</a>
+    <a href="/pos.html">The register</a>
+    <a href="/documents">Documents</a>
+    <a href="/dashboard-preview">Dashboard</a>
+    <a href="/smartcapture">SmartCapture</a>
+    <a href="/reckoner">The Reckoner</a>
+    <a href="/ledger">Core Ledger</a>
+    <a href="/vensynq">VenSynQ</a>
+    <a href="/features">Features</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <div class="vq-mobile__actions">
+      <a href="/login" class="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Sign in</a>
+      <a href="/build-workspace" class="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+    </div>
+  </div>
+<main id="main">
+
+<section class="vq-section" style="padding-top:clamp(140px,15vw,200px);padding-bottom:clamp(48px,6vw,72px)">
+  <div class="vq-amb"><span class="vq-amb__aurora" style="opacity:.30"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div style="max-width:820px">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">The dashboard</span>
+      <h1 class="vq-display vq-mt-4">Your dashboard is <em class="vq-italic">assembled</em>, not chosen.</h1>
+      <p class="vq-lede vq-mt-6">108 readings, five areas, twenty-one chart types and eighteen size fits. You pick what you want to know — never what shape it should be — and the card works out the smallest size it can be read at.</p>
+      <div class="vq-row vq-wrap vq-gap-3 vq-mt-8"><a class="vq-btn vq-btn--primary vq-btn--lg" href="/build-workspace">Start building <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+        <a class="vq-btn vq-btn--secondary vq-btn--lg" href="/reckoner">Where the numbers come from</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="vq-section" style="padding-top:0">
+  <div class="vq-container vq-container--wide">
+    <div class="vq-demo vq-reveal" data-builder>
+      <div class="vq-demo__bar">
+        <div class="vq-demo__dots"><i></i><i></i><i></i></div>
+        <div class="vq-demo__url"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> app.venqore.com/dashboard</div>
+        <span class="vq-demo__live">Live · try it</span>
+      </div>
+      <div class="vq-build">
+        <div class="vq-build__board" data-builder-board></div>
+        <div class="vq-build__lib">
+          <div class="vq-row" style="justify-content:space-between;margin-bottom:var(--vq-space-3)">
+            <span class="vq-eyebrow vq-eyebrow--accent">Add a reading</span>
+            <span class="vq-caption vq-num" data-builder-count></span>
+          </div>
+          <div class="vq-build__search"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search 108 readings…</div>
+          <div class="vq-build__list" data-builder-list></div>
+        </div>
+      </div>
+    </div>
+    <p class="vq-caption vq-center vq-mt-4" style="max-width:none">
+      A sample of the registry. Tap a reading to put it on the board — the card picks its own size, and the headline metric takes the accent fill.
+    </p>
+  </div>
+</section>
+
+<section class="vq-section vq-section--alt">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">108 readings</span>
+      <h2 class="vq-display">Everything a trading business is judged by.</h2>
+      <p class="vq-lede">Grouped by the part of the business it belongs to, not by which screen it happens to live on.</p>
+    </div>
+    <div class="vq-grid vq-grid--2">
+      
+      <article class="vq-card vq-card--xl vq-reveal vq-card--accent">
+        <div class="vq-row" style="justify-content:space-between;align-items:baseline">
+          <h3 class="vq-h3">Sales</h3>
+          <span class="vq-stat__value vq-stat__value--sm" style="font-size:26px">32</span>
+        </div>
+        <p class="vq-tile__body vq-mt-3">Revenue, payment split, top products, top customers, basket size, discount given, return rate, funnel, by hour and day, by channel, by region, live feed…</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-reveal">
+        <div class="vq-row" style="justify-content:space-between;align-items:baseline">
+          <h3 class="vq-h3">Finance</h3>
+          <span class="vq-stat__value vq-stat__value--sm" style="font-size:26px">28</span>
+        </div>
+        <p class="vq-tile__body vq-mt-3">Profit trend, cash in vs out, receivables ageing, books balanced, cash runway, days sales outstanding, days payable outstanding, quick ratio, expense ratio, tax liability…</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-reveal">
+        <div class="vq-row" style="justify-content:space-between;align-items:baseline">
+          <h3 class="vq-h3">Inventory</h3>
+          <span class="vq-stat__value vq-stat__value--sm" style="font-size:26px">26</span>
+        </div>
+        <p class="vq-tile__body vq-mt-3">Stock value, low stock, out of stock, turnover, days of cover, sell-through, dead stock, expiring in 30 days, batch tracking, serial lifecycle, stock by warehouse…</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-reveal">
+        <div class="vq-row" style="justify-content:space-between;align-items:baseline">
+          <h3 class="vq-h3">Purchasing</h3>
+          <span class="vq-stat__value vq-stat__value--sm" style="font-size:26px">11</span>
+        </div>
+        <p class="vq-tile__body vq-mt-3">Spend trend, spend by supplier, supplier concentration, average lead time, on-time delivery, purchase orders pending and received, debit notes and open credits.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-reveal">
+        <div class="vq-row" style="justify-content:space-between;align-items:baseline">
+          <h3 class="vq-h3">Operations</h3>
+          <span class="vq-stat__value vq-stat__value--sm" style="font-size:26px">11</span>
+        </div>
+        <p class="vq-tile__body vq-mt-3">Staff present and absent, hours today, attendance rate, sales per staff member, new vs returning, customer retention, open tickets, plan usage.</p>
+      </article>
+      <article class="vq-card vq-card--xl vq-reveal">
+        <h3 class="vq-h3">And the multiplier</h3>
+        <p class="vq-tile__body vq-mt-3">Every reading resolves over eighteen period windows, most with a comparison window behind it.
+          That is <b style="color:var(--vq-text)">1,944 distinct figures</b> before anyone picks a chart type or a size.</p>
+        <a class="vq-link vq-mt-4" href="/reckoner">How the periods work <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="vq-section">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal">
+      <span class="vq-eyebrow">The rule that makes it work</span>
+      <h2 class="vq-display">No card can clip its own content.</h2>
+      <p class="vq-lede">Every card declares the smallest size it can still be read at. Sizes below that floor are not
+        offered — they render disabled with the reason. A bar chart cannot be placed in a tile, and a tile is not
+        allowed to pretend it is a chart.</p>
+    </div>
+    <div class="vq-table-wrap vq-reveal">
+      <table class="vq-table">
+        <thead><tr><th style="width:90px">Category</th><th style="width:120px">Name</th><th>Holds</th><th>Legal fits (columns × rows)</th></tr></thead>
+        <tbody>
+        <tr><td class="vq-table__row-head vq-num">C1</td><td>Tile</td>
+          <td class="vq-text-2">A single glyph and a number. No chart host at all.</td><td class="vq-num vq-text-2">2×1 · 1×1</td></tr><tr><td class="vq-table__row-head vq-num">C2</td><td>Strip</td>
+          <td class="vq-text-2">One KPI on one line — label left, value right.</td><td class="vq-num vq-text-2">4×1 · 3×2</td></tr><tr><td class="vq-table__row-head vq-num">C3</td><td>Metric</td>
+          <td class="vq-text-2">A KPI with a delta, a sparkline or a comparison.</td><td class="vq-num vq-text-2">4×3 · 3×2 · 2×2 · 2×3</td></tr><tr><td class="vq-table__row-head vq-num">C4</td><td>Panel</td>
+          <td class="vq-text-2">A ranked list, a breakdown, a small chart, a table excerpt.</td><td class="vq-num vq-text-2">4×4 · 3×4 · 3×5 · 2×6</td></tr><tr><td class="vq-table__row-head vq-num">C5</td><td>Board</td>
+          <td class="vq-text-2">A full chart, multi-series, a wide table.</td><td class="vq-num vq-text-2">6×6 · 5×7 · 4×8</td></tr><tr><td class="vq-table__row-head vq-num">C6</td><td>Canvas</td>
+          <td class="vq-text-2">A hero chart, a P&amp;L, a cohort grid, a map.</td><td class="vq-num vq-text-2">8×8 · 6×10 · 4×12</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="vq-grid vq-grid--4 vq-mt-10">
+      
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">18 fits, all verified</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">18 of 18 render at exact geometry, with zero ladder mismatches across 292 catalogue cards and all ten roles.</p></div>
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">A card widens before it degrades</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">It only drops to a leaner fit when widening is exhausted — and then it re-lays its inside rather than shrinking the type.</p></div>
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">Numbers step down, never clip</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">Currency drops first, then decimals, then magnitude. The exact value is always one hover away.</p></div>
+      <div class="vq-reveal"><h3 class="vq-small" style="font-weight:var(--vq-fw-semi)">Exactly one filled card</h3>
+      <p class="vq-caption vq-mt-2" style="max-width:none">One card on the board carries the accent fill, and it is the headline metric. Two is a fail. Zero is a fail.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="vq-section vq-band-dark">
+  <div class="vq-amb"><span class="vq-amb__beams"><i></i><i></i><i></i></span><span class="vq-amb__grain"></span></div>
+  <div class="vq-container" style="position:relative">
+    <div class="vq-grid vq-grid--2" style="gap:var(--vq-space-16)">
+      <div class="vq-reveal">
+        <span class="vq-eyebrow">Who sees what</span>
+        <h2 class="vq-display vq-mt-4">A cashier is never offered the P&amp;L.</h2>
+        <p class="vq-lede vq-mt-6">Three independent gates decide whether a card is even in the picker, and all three are
+          enforced on the server. A card you are not entitled to does not render blank — it is not there.</p>
+        <ul class="vq-stack vq-gap-5 vq-mt-8">
+          <li class="vq-row vq-gap-3" style="align-items:flex-start">
+            <span style="color:var(--vq-teal-300);flex:none;margin-top:2px"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <div><b class="vq-body" style="color:#fff;font-weight:var(--vq-fw-semi)">Permission</b>
+            <p class="vq-small vq-mt-1" style="max-width:none">Your role. A cashier sees eight cards; a store owner sees eighty-five.</p></div></li><li class="vq-row vq-gap-3" style="align-items:flex-start">
+            <span style="color:var(--vq-teal-300);flex:none;margin-top:2px"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <div><b class="vq-body" style="color:#fff;font-weight:var(--vq-fw-semi)">Plan feature</b>
+            <p class="vq-small vq-mt-1" style="max-width:none">Production, stock valuation and channel cards appear when your plan includes them.</p></div></li><li class="vq-row vq-gap-3" style="align-items:flex-start">
+            <span style="color:var(--vq-teal-300);flex:none;margin-top:2px"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <div><b class="vq-body" style="color:#fff;font-weight:var(--vq-fw-semi)">Capability</b>
+            <p class="vq-small vq-mt-1" style="max-width:none">A cached probe of what your business actually records. No products yet means no stock cards — not empty ones.</p></div></li>
+        </ul>
+        <p class="vq-small vq-mt-8" style="max-width:52ch">
+          A metric that fails any gate executes zero database queries. And a card the platform knows cannot work is never
+          offered at all — an option that always renders "not available" is worse than an option that does not exist.
+        </p>
+      </div>
+      <div class="vq-reveal">
+        <div class="vq-card vq-card--xl">
+          <span class="vq-eyebrow">Cards visible, by role</span>
+          <div class="vq-rank vq-mt-5">
+            <div class="vq-rank__row"><span class="vq-rank__name">Store owner</span>
+                <span class="vq-rank__val">85</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:100%;width:100%"></span></span></div><div class="vq-rank__row"><span class="vq-rank__name">General manager</span>
+                <span class="vq-rank__val">78</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:92%;width:92%"></span></span></div><div class="vq-rank__row"><span class="vq-rank__name">Internal accountant</span>
+                <span class="vq-rank__val">36</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:42%;width:42%"></span></span></div><div class="vq-rank__row"><span class="vq-rank__name">Inventory manager</span>
+                <span class="vq-rank__val">26</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:31%;width:31%"></span></span></div><div class="vq-rank__row"><span class="vq-rank__name">External auditor</span>
+                <span class="vq-rank__val">25</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:29%;width:29%"></span></span></div><div class="vq-rank__row"><span class="vq-rank__name">Shift manager</span>
+                <span class="vq-rank__val">19</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:22%;width:22%"></span></span></div><div class="vq-rank__row"><span class="vq-rank__name">Cashier</span>
+                <span class="vq-rank__val">8</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:9%;width:9%"></span></span></div><div class="vq-rank__row"><span class="vq-rank__name">Purchasing agent</span>
+                <span class="vq-rank__val">7</span>
+                <span class="vq-rank__track"><span class="vq-rank__fill" style="--w:8%;width:8%"></span></span></div>
+          </div>
+          <p class="vq-caption vq-mt-6" style="max-width:none">Ten roles ship out of the box. 292 card placements across
+            all of them, and every one of those placements is checked before it renders.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+  <footer class="vq-footer">
+    <div class="footer-bg"></div>
+    
+    <div class="vq-container" style="position:relative;z-index:10;padding-bottom:var(--vq-space-16)">
+      <div class="mesh-gradient-card" style="border-radius:var(--vq-r-2xl);padding:clamp(32px,5vw,56px);border:1px solid rgb(255 255 255 / .10);box-shadow:var(--vq-elev-3)">
+        <div style="max-width:36rem">
+          <h2 class="vq-h2" style="color:#fff">Describe your business. See what it becomes.</h2>
+          <p class="vq-lede vq-mt-3" style="color:rgb(255 255 255 / .74)">Free to try. No card. You'll see your whole system before you decide anything.</p>
+          <form class="vq-row vq-wrap vq-gap-3 vq-mt-8" data-waitlist style="max-width:520px">
+            <input type="email" class="vq-input" required placeholder="you@company.com" aria-label="Work email"
+                   style="flex:1 1 240px;background:rgb(0 0 0 / .35);border-color:rgb(255 255 255 / .16);color:#fff">
+            <button type="submit" class="vq-btn vq-btn--lg vq-btn--light">Start building</button>
+          </form>
+          <p class="vq-caption vq-mt-4" style="color:rgb(255 255 255 / .55)">Takes about four minutes. Nothing goes live until you approve it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="vq-container" style="position:relative;z-index:10;padding-bottom:var(--vq-space-20)">
+      <div style="display:flex;flex-direction:column;gap:var(--vq-space-12)" class="vq-foot-cols">
+        <div style="display:grid;gap:var(--vq-space-8);grid-template-columns:repeat(auto-fit,minmax(150px,1fr));flex:1">
+          <div>
+            <h3 class="vq-footer__head">Product</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/blueprint">Blueprint</a></li>
+              <li><a href="/pos.html">The register</a></li>
+              <li><a href="/documents">Documents</a></li>
+              <li><a href="/dashboard-preview">Dashboard</a></li>
+              <li><a href="/smartcapture">SmartCapture</a></li>
+              <li><a href="/reckoner">The Reckoner</a></li>
+              <li><a href="/ledger">Core Ledger</a></li>
+              <li><a href="/vensynq">VenSynQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Company</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/blog">Blog</a></li>
+              <li><a href="/roadmap">Roadmap</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Resources</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/docs">Documentation</a></li>
+              <li><a href="/help">Help centre</a></li>
+              <li><a href="/onboarding">See a build</a></li>
+              <li><a href="/login">Sign in</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Social</h3>
+            <div style="margin-top:var(--vq-space-4);display:flex;gap:var(--vq-space-3)">
+              <a class="vq-footer__social" href="#" aria-label="Facebook"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="X"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="LinkedIn"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:var(--vq-space-12);padding-top:var(--vq-space-8);border-top:1px solid rgb(255 255 255 / .08);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vq-space-4);padding-bottom:14vw">
+        <p class="vq-small" style="color:var(--vq-ink-500);max-width:none">© 2026 VenQore, Inc. The AI ERP builder.</p>
+        <div style="display:flex;gap:var(--vq-space-6)">
+          <a class="vq-small" href="/terms">Terms</a>
+          <a class="vq-small" href="/privacy">Privacy</a>
+          <a class="vq-small" href="/privacy#cookies">Cookies</a>
+        </div>
+      </div>
+
+      <div class="watermark-wrapper"><span>VenQore</span></div>
+    </div>
+  </footer>
+<script src="assets/venqore.js" defer></script>
+<script src="assets/demos.js" defer></script>
+
+<script src="/v6/assets/venqore-forms.js" defer></script>
+</body>
+</html>

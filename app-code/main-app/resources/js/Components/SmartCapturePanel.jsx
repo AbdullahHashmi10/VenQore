@@ -10,6 +10,7 @@ import {
 import axios from 'axios';
 import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
 import { preprocessImage } from '@/lib/imagePreprocess';
+import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 
 /**
  * SmartCapturePanel — the "AI Scan" intake panel.
@@ -23,6 +24,11 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     const { store, pricing } = usePage().props;
     const aiTiers = pricing?.ai_tiers || {};
     const [activeTab, setActiveTab] = useState(initialTab);
+
+    useEffect(() => {
+        if (initialTab) setActiveTab(initialTab);
+    }, [initialTab]);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -734,11 +740,11 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         const usagePercent = (pagesLimit > 0) ? Math.min(100, Math.round((pagesUsed / pagesLimit) * 100)) : 0;
 
         return (
-            <div className="mb-6 space-y-4 text-left bg-neutral-900/40 backdrop-blur-md p-5 rounded-2xl border border-white/5 relative z-20 font-sans shadow-xl">
+            <div className="mb-6 space-y-4 text-left bg-white/[0.03] backdrop-blur-md p-5 rounded-2xl border border-white/[0.08] relative z-20 font-sans shadow-lg">
                 {/* Quota Warning & Block Banners (T2-4) */}
                 {pagesLimit > 0 && usagePercent >= 80 && (
                     <div className={`p-3.5 rounded-2xl text-xs font-medium flex items-center justify-between gap-3 border ${usagePercent >= 100
-                        ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
                         : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
                         <div className="flex items-center gap-2">
                             <AlertTriangle size={16} className="shrink-0" />
@@ -751,7 +757,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         <button
                             type="button"
                             onClick={openSettings}
-                            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-2xs font-bold whitespace-nowrap"
+                            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-2xs font-bold whitespace-nowrap text-white transition-colors"
                         >
                             BYOK / Upgrade
                         </button>
@@ -760,165 +766,171 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                 {/* Create new vs append */}
                 <div className="flex gap-2">
-                <button
-                    type="button"
-                    onClick={() => setAppendMode(false)}
-                    className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${!appendMode
-                        ? 'bg-brand-600 border-brand-600 text-white shadow-md '
-                        : 'bg-surface border-line text-ink-secondary'}`}
-                >
-                    <FilePlus2 size={14} />
-                    Create New Document
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setAppendMode(true)}
-                    className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${appendMode
-                        ? 'bg-brand-600 border-brand-600 text-white shadow-md '
-                        : 'bg-surface border-line text-ink-secondary'}`}
-                >
-                    <Layers size={14} />
-                    Add to Existing Document
-                </button>
-            </div>
-
-            {appendMode ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block ml-1">Document Type</label>
-                        <CustomSelect
-                            value={appendDocType}
-                            onChange={e => { setAppendDocType(e.target.value); setAppendDocId(''); }}
-                            options={[
-                                { value: 'pre_invoice', label: 'Sales Order (Pre-Invoice)' },
-                                { value: 'pre_purchase', label: 'Purchase Order (Pre-Purchase)' },
-                                { value: 'proposal', label: 'Proposal / Quote' },
-                                { value: 'recurring_invoice', label: 'Recurring Invoice' }
-                            ]}
-                        />
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block ml-1">Target Document</label>
-                        <CustomSelect
-                            value={appendDocId}
-                            onChange={e => setAppendDocId(e.target.value)}
-                            placeholder="-- Select an open document --"
-                            options={[
-                                { value: '', label: '-- Select an open document --' },
-                                ...openDocs.map(doc => ({
-                                    value: doc.id,
-                                    label: `${doc.reference || doc.id?.slice(0, 8)} — ${doc.party || 'No party'}${doc.total !== undefined && doc.total !== null ? ` — ${parseFloat(doc.total).toFixed(2)}` : ''} (${doc.status})`
-                                }))
-                            ]}
-                        />
-                        {openDocs.length === 0 && (
-                            <p className="text-2xs text-amber-500 font-semibold ml-1">No open documents of this type found.</p>
-                        )}
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setAppendMode(false)}
+                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${!appendMode
+                            ? 'bg-[#23C4A6] border-[#23C4A6] text-[#062421] shadow-[0_2px_12px_rgba(35,196,166,0.25)]'
+                            : 'bg-white/[0.04] border-white/[0.08] text-[rgba(241,245,242,0.7)] hover:text-white hover:bg-white/[0.08]'}`}
+                    >
+                        <FilePlus2 size={14} />
+                        Create New Document
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setAppendMode(true)}
+                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${appendMode
+                            ? 'bg-[#23C4A6] border-[#23C4A6] text-[#062421] shadow-[0_2px_12px_rgba(35,196,166,0.25)]'
+                            : 'bg-white/[0.04] border-white/[0.08] text-[rgba(241,245,242,0.7)] hover:text-white hover:bg-white/[0.08]'}`}
+                    >
+                        <Layers size={14} />
+                        Add to Existing Document
+                    </button>
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Asked up front, not at the end. Telling the AI whose
-                        document this is stops it inventing a party from a
-                        letterhead, and the user is never surprised by the
-                        question after the scan has already run. */}
-                    <div className="space-y-1.5 md:col-span-2">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block ml-1">
-                            Who is this document for? <span className="normal-case font-bold text-ink-muted">(optional — helps the AI a lot)</span>
-                        </label>
-                        <div className="flex gap-2">
+
+                {appendMode ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-append-doc-type" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">Document Type</label>
                             <CustomSelect
-                                value={capturePartySide}
-                                onChange={e => { setCapturePartySide(e.target.value); setCapturePartyId(''); }}
-                                className="min-w-[120px]"
+                                id="capture-append-doc-type"
+                                value={appendDocType}
+                                onChange={e => { setAppendDocType(e.target.value); setAppendDocId(''); }}
                                 options={[
-                                    { value: 'customer', label: 'Customer' },
-                                    { value: 'supplier', label: 'Supplier' }
-                                ]}
-                            />
-                            <CustomSelect
-                                value={capturePartyId}
-                                onChange={e => setCapturePartyId(e.target.value)}
-                                placeholder="Let the AI read it from the document"
-                                className="flex-1"
-                                options={[
-                                    { value: '', label: 'Let the AI read it from the document' },
-                                    ...((capturePartySide === 'supplier'
-                                        ? (ctx?.parties?.suppliers || [])
-                                        : (ctx?.parties?.customers || [])
-                                    ).map(p => ({ value: p.id, label: p.name })))
+                                    { value: 'pre_invoice', label: 'Sales Order (Pre-Invoice)' },
+                                    { value: 'pre_purchase', label: 'Purchase Order (Pre-Purchase)' },
+                                    { value: 'proposal', label: 'Proposal / Quote' },
+                                    { value: 'recurring_invoice', label: 'Recurring Invoice' }
                                 ]}
                             />
                         </div>
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-append-doc-id" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">Target Document</label>
+                            <CustomSelect
+                                id="capture-append-doc-id"
+                                value={appendDocId}
+                                onChange={e => setAppendDocId(e.target.value)}
+                                placeholder="-- Select an open document --"
+                                options={[
+                                    { value: '', label: '-- Select an open document --' },
+                                    ...openDocs.map(doc => ({
+                                        value: doc.id,
+                                        label: `${doc.reference || doc.id?.slice(0, 8)} — ${doc.party || 'No party'}${doc.total !== undefined && doc.total !== null ? ` — ${parseFloat(doc.total).toFixed(2)}` : ''} (${doc.status})`
+                                    }))
+                                ]}
+                            />
+                            {openDocs.length === 0 && (
+                                <p className="text-2xs text-amber-400 font-semibold ml-1">No open documents of this type found.</p>
+                            )}
+                        </div>
                     </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Asked up front, not at the end. Telling the AI whose
+                            document this is stops it inventing a party from a
+                            letterhead, and the user is never surprised by the
+                            question after the scan has already run. */}
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label htmlFor="capture-party-select" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">
+                                Who is this document for? <span className="normal-case font-bold text-[rgba(241,245,242,0.4)]">(optional — helps the AI a lot)</span>
+                            </label>
+                            <div className="flex gap-2">
+                                <CustomSelect
+                                    id="capture-party-side"
+                                    value={capturePartySide}
+                                    onChange={e => { setCapturePartySide(e.target.value); setCapturePartyId(''); }}
+                                    className="w-36 shrink-0"
+                                    options={[
+                                        { value: 'customer', label: 'Customer' },
+                                        { value: 'supplier', label: 'Supplier' }
+                                    ]}
+                                />
+                                <CustomSelect
+                                    id="capture-party-select"
+                                    value={capturePartyId}
+                                    onChange={e => setCapturePartyId(e.target.value)}
+                                    placeholder="Let the AI read it from the document"
+                                    className="flex-1"
+                                    options={[
+                                        { value: '', label: 'Let the AI read it from the document' },
+                                        ...((capturePartySide === 'supplier'
+                                            ? (ctx?.parties?.suppliers || [])
+                                            : (ctx?.parties?.customers || [])
+                                        ).map(p => ({ value: p.id, label: p.name })))
+                                    ]}
+                                />
+                            </div>
+                        </div>
 
-                    <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block ml-1">What would you like to create?</label>
-                        <CustomSelect
-                            value={targetType}
-                            onChange={e => setTargetType(e.target.value)}
-                            placeholder="No Preference (Auto-Detect)"
-                            options={[
-                                { value: '', label: 'No Preference (Auto-Detect)' },
-                                {
-                                    groupLabel: 'Editable afterwards — safest',
-                                    options: [
-                                        { value: 'pre_invoice', label: 'Pre-Sale (Sales Order)' },
-                                        { value: 'pre_purchase', label: 'Purchase Order' },
-                                        { value: 'proposal', label: 'Proposal / Quote' },
-                                        { value: 'recurring_invoice', label: 'Recurring Invoice' }
-                                    ]
-                                },
-                                {
-                                    groupLabel: 'Final — cannot be edited once posted',
-                                    options: [
-                                        { value: 'sale', label: 'Sales Invoice' },
-                                        { value: 'purchase', label: 'Purchase Bill' },
-                                        { value: 'expense', label: 'Operating Expense' },
-                                        { value: 'return', label: 'Sales Return' },
-                                        { value: 'purchase_return', label: 'Purchase Return (Debit Note)' }
-                                    ]
-                                }
-                            ]}
-                        />
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-target-type" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">What would you like to create?</label>
+                            <CustomSelect
+                                id="capture-target-type"
+                                value={targetType}
+                                onChange={e => setTargetType(e.target.value)}
+                                placeholder="No Preference (Auto-Detect)"
+                                options={[
+                                    { value: '', label: 'No Preference (Auto-Detect)' },
+                                    {
+                                        groupLabel: 'Editable afterwards — safest',
+                                        options: [
+                                            { value: 'pre_invoice', label: 'Pre-Sale (Sales Order)' },
+                                            { value: 'pre_purchase', label: 'Purchase Order' },
+                                            { value: 'proposal', label: 'Proposal / Quote' },
+                                            { value: 'recurring_invoice', label: 'Recurring Invoice' }
+                                        ]
+                                    },
+                                    {
+                                        groupLabel: 'Final — cannot be edited once posted',
+                                        options: [
+                                            { value: 'sale', label: 'Sales Invoice' },
+                                            { value: 'purchase', label: 'Purchase Bill' },
+                                            { value: 'expense', label: 'Operating Expense' },
+                                            { value: 'return', label: 'Sales Return' },
+                                            { value: 'purchase_return', label: 'Purchase Return (Debit Note)' }
+                                        ]
+                                    }
+                                ]}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-custom-commands" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">Text Commands / Instructions (Optional)</label>
+                            <input
+                                id="capture-custom-commands"
+                                type="text"
+                                value={customCommand}
+                                onChange={e => setCustomCommand(e.target.value)}
+                                placeholder="e.g. 'Use wholesale prices', 'Skip tax'"
+                                className="w-full px-4 py-2.5 bg-white/[0.05] border border-white/[0.12] focus:border-teal-400/50 focus:ring-1 focus:ring-teal-400/20 rounded-xl text-xs outline-none text-[#F1F5F2] placeholder:text-white/30 font-medium transition-colors"
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block ml-1">Text Commands / Instructions (Optional)</label>
-                        <input
-                            type="text"
-                            value={customCommand}
-                            onChange={e => setCustomCommand(e.target.value)}
-                            placeholder="e.g. 'Use wholesale prices', 'Skip tax'"
-                            className="w-full px-4 py-2.5 bg-surface border border-line rounded-xl text-xs outline-none text-ink font-medium"
-                        />
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
+                )}
+            </div>
+        );
+    };
 
     // ── Settings drawer UI ───────────────────────────────────────────────────
     const renderSettingsDrawer = () => (
-        <div className="absolute inset-0 z-50 flex justify-end bg-neutral-950/60 backdrop-blur-sm animate-in fade-in duration-fast" onClick={() => setShowSettings(false)}>
-            <div className="w-full max-w-md h-full bg-surface border-l border-line p-6 overflow-y-auto animate-in slide-in-from-right duration-normal" onClick={e => e.stopPropagation()}>
+        <div className="absolute inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-md animate-in fade-in duration-fast" onClick={() => setShowSettings(false)}>
+            <div className="w-full max-w-md h-full bg-[#0D1412] border-l border-white/10 p-6 overflow-y-auto animate-in slide-in-from-right duration-normal text-[#F1F5F2]" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
-                        <KeyRound size={18} className="text-brand-500" />
-                        <h3 className="text-base font-bold text-ink">AI Settings (Bring Your Own Key)</h3>
+                        <KeyRound size={18} className="text-[#23C4A6]" />
+                        <h3 className="text-base font-bold text-[#F1F5F2]">AI Settings (Bring Your Own Key)</h3>
                     </div>
-                    <button onClick={() => setShowSettings(false)} className="w-8 h-8 rounded-lg bg-sunken flex items-center justify-center text-ink-muted hover:text-ink-secondary dark:hover:text-white">
+                    <button onClick={() => setShowSettings(false)} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
                         <X size={14} />
                     </button>
                 </div>
 
-                <p className="text-xs text-ink-muted mb-6 leading-relaxed">
+                <p className="text-xs text-[rgba(241,245,242,0.6)] mb-6 leading-relaxed">
                     Use your own API key from any major AI provider. Your key is stored only for this store and is never shared with other stores.
                 </p>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block mb-1.5">Provider</label>
+                        <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block mb-1.5">Provider</label>
                         <CustomSelect
                             value={settingsForm.provider}
                             onChange={e => setSettingsForm(f => ({ ...f, provider: e.target.value, model: '' }))}
@@ -928,7 +940,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             }))}
                         />
                         {providerCaps[settingsForm.provider] && (
-                            <p className="text-2xs text-ink-muted mt-1.5 ml-1">
+                            <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-1.5 ml-1">
                                 Supports: {['image', 'audio', 'text'].filter(t => providerCaps[settingsForm.provider][t]).map(t => t === 'image' ? 'Photos' : t === 'audio' ? 'Voice' : 'Text').join(', ')}
                                 {!providerCaps[settingsForm.provider].image && ' — no photo scanning!'}
                             </p>
@@ -936,24 +948,24 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     </div>
 
                     <div>
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block mb-1.5">API Key</label>
+                        <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block mb-1.5">API Key</label>
                         <input
                             type="text"
                             value={settingsForm.api_key}
                             onChange={e => setSettingsForm(f => ({ ...f, api_key: e.target.value }))}
                             placeholder="Paste your API key"
-                            className="w-full px-4 py-2.5 bg-surface border border-line rounded-xl text-xs font-mono outline-none text-ink"
+                            className="w-full px-4 py-2.5 bg-white/[0.05] border border-white/[0.12] focus:border-teal-400/50 rounded-xl text-xs font-mono outline-none text-[#F1F5F2] placeholder:text-white/30"
                         />
                     </div>
 
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Model (optional)</label>
+                            <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)]">Model (optional)</label>
                             <button
                                 type="button"
                                 onClick={discoverModels}
                                 disabled={modelsBusy}
-                                className="text-2xs font-bold uppercase tracking-wider text-brand-500 hover:text-brand-400 flex items-center gap-1 disabled:opacity-40"
+                                className="text-2xs font-bold uppercase tracking-wider text-[#23C4A6] hover:text-[#2dd4bf] flex items-center gap-1 disabled:opacity-40"
                             >
                                 {modelsBusy ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
                                 Load available models
@@ -978,18 +990,18 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 value={settingsForm.model}
                                 onChange={e => setSettingsForm(f => ({ ...f, model: e.target.value }))}
                                 placeholder={settings?.default_models?.[settingsForm.provider] || 'Default model'}
-                                className="w-full px-4 py-2.5 bg-surface border border-line rounded-xl text-xs font-mono outline-none text-ink"
+                                className="w-full px-4 py-2.5 bg-white/[0.05] border border-white/[0.12] focus:border-teal-400/50 rounded-xl text-xs font-mono outline-none text-[#F1F5F2] placeholder:text-white/30"
                             />
                         )}
 
-                        <p className="text-2xs text-ink-muted mt-1.5 ml-1 leading-relaxed">
+                        <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-1.5 ml-1 leading-relaxed">
                             Leave empty for the recommended default. Newer Flash models read handwriting better and
                             usually cost less — press "Load available models" to see what your key can use.
                         </p>
                     </div>
 
                     {settingsMsg && (
-                        <div className={`p-3 rounded-xl text-xs font-bold ${settingsMsg.ok ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
+                        <div className={`p-3 rounded-xl text-xs font-bold ${settingsMsg.ok ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
                             {settingsMsg.text}
                         </div>
                     )}
@@ -998,7 +1010,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         <button
                             onClick={testSettings}
                             disabled={settingsBusy}
-                            className="flex-1 px-4 py-2.5 border border-line rounded-xl text-xs font-bold text-ink-secondary hover:bg-sunken dark:hover:bg-interactive-hover transition-all flex items-center justify-center gap-1.5 disabled:opacity-40"
+                            className="flex-1 px-4 py-2.5 border border-white/15 hover:bg-white/10 rounded-xl text-xs font-bold text-white transition-all flex items-center justify-center gap-1.5 disabled:opacity-40"
                         >
                             {settingsBusy ? <Loader2 className="animate-spin" size={14} /> : <TestTube2 size={14} />}
                             Test Connection
@@ -1006,7 +1018,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         <button
                             onClick={saveSettings}
                             disabled={settingsBusy}
-                            className="flex-1 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-40"
+                            className="flex-1 px-4 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all disabled:opacity-40"
                         >
                             Save Settings
                         </button>
@@ -1028,22 +1040,22 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
         return (
             <div
-                className="absolute inset-0 z-sticky flex items-center justify-center bg-neutral-950/70 backdrop-blur-sm p-6 animate-in fade-in duration-fast"
+                className="absolute inset-0 z-sticky flex items-center justify-center bg-black/75 backdrop-blur-md p-6 animate-in fade-in duration-fast"
                 onClick={() => !confirming && setForkDialog(null)}
             >
                 <div
-                    className="w-full max-w-lg bg-surface border border-line rounded-2xl p-7 shadow-2xl animate-in zoom-in-95 duration-normal"
+                    className="w-full max-w-lg bg-[#0D1412] border border-white/10 rounded-2xl p-7 shadow-2xl animate-in zoom-in-95 duration-normal text-[#F1F5F2]"
                     onClick={e => e.stopPropagation()}
                 >
                     <div className="flex items-start gap-3 mb-4">
-                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
                             <Lock size={20} />
                         </div>
                         <div>
-                            <h3 className="text-base font-bold text-ink tracking-tight">
+                            <h3 className="text-base font-bold text-[#F1F5F2] tracking-tight">
                                 A {label} cannot be edited later
                             </h3>
-                            <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+                            <p className="text-xs text-[rgba(241,245,242,0.6)] mt-1 leading-relaxed">
                                 Once posted it becomes a permanent accounting record. Fixing a mistake then means
                                 issuing a return or credit note — you cannot simply change it.
                             </p>
@@ -1051,18 +1063,18 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     </div>
 
                     {canHandoff ? (
-                        <p className="text-xs text-ink-muted leading-relaxed mb-5 bg-app border border-line rounded-2xl p-4">
-                            Choosing <span className="font-bold text-ink-secondary dark:text-ink">Continue</span> takes you
+                        <p className="text-xs text-[rgba(241,245,242,0.7)] leading-relaxed mb-5 bg-white/[0.03] border border-white/10 rounded-2xl p-4">
+                            Choosing <span className="font-bold text-[#F1F5F2]">Continue</span> takes you
                             to the {label} screen with everything already filled in from this scan. Nothing is saved until
                             you press Save there, so you get one last look at every line.
                         </p>
                     ) : (
-                        <label className="flex items-start gap-2.5 text-xs text-ink-secondary leading-relaxed mb-5 bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 cursor-pointer">
+                        <label className="flex items-start gap-2.5 text-xs text-[rgba(241,245,242,0.8)] leading-relaxed mb-5 bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={acknowledgeLocked}
                                 onChange={e => setAcknowledgeLocked(e.target.checked)}
-                                className="mt-0.5 w-4 h-4 rounded accent-brand-600 shrink-0"
+                                className="mt-0.5 w-4 h-4 rounded accent-[#23C4A6] shrink-0"
                             />
                             <span>
                                 There is no draft version of a {label}, so this will post straight to your ledger.
@@ -1076,7 +1088,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             <button
                                 onClick={() => handleConfirmTransaction({ resolved: true, mode: 'handoff' })}
                                 disabled={confirming}
-                                className="w-full px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
+                                className="w-full px-5 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
                             >
                                 {confirming ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={14} />}
                                 Continue — review on the {label} screen
@@ -1087,7 +1099,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             <button
                                 onClick={() => handleConfirmTransaction({ resolved: true, overrideAction: draftAction, mode: 'create' })}
                                 disabled={confirming}
-                                className="w-full px-5 py-3 bg-surface border border-line rounded-xl text-xs font-bold text-ink-secondary dark:text-ink hover:border-brand-400 transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
+                                className="w-full px-5 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-[#F1F5F2] hover:border-teal-400/40 transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
                             >
                                 <FilePlus2 size={14} />
                                 Make a {draftLabel} instead — I can still change it
@@ -1098,7 +1110,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             <button
                                 onClick={() => handleConfirmTransaction({ resolved: true, mode: 'create', acknowledgeLocked: true })}
                                 disabled={confirming || !acknowledgeLocked}
-                                className="w-full px-5 py-3 bg-sunken dark:bg-brand-600 hover:bg-interactive-hover dark:hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all active:scale-[0.99] disabled:opacity-30"
+                                className="w-full px-5 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-[0.99] disabled:opacity-30"
                             >
                                 {confirming ? 'Posting…' : `Post this ${label} now`}
                             </button>
@@ -1107,7 +1119,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         <button
                             onClick={() => setForkDialog(null)}
                             disabled={confirming}
-                            className="w-full px-5 py-2.5 text-xs font-bold text-ink-muted hover:text-ink dark:hover:text-white transition-colors disabled:opacity-40"
+                            className="w-full px-5 py-2.5 text-xs font-bold text-[rgba(241,245,242,0.5)] hover:text-white transition-colors disabled:opacity-40"
                         >
                             No, take me back to the review
                         </button>
@@ -1119,29 +1131,29 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
     // ── Locked screen ────────────────────────────────────────────────────────
     const renderLocked = () => (
-        <div className="flex-1 flex flex-col justify-center p-8 overflow-y-auto max-h-full">
+        <div className="flex-1 flex flex-col justify-center p-8 overflow-y-auto max-h-full text-[#F1F5F2]">
             <div className="flex flex-col items-center text-center mb-6">
-                <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-500 mb-3 shrink-0">
+                <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-3 shrink-0">
                     <Lock size={28} />
                 </div>
-                <h3 className="text-lg font-bold text-ink tracking-tight">AI Scan is Locked</h3>
-                <p className="text-xs text-ink-muted mt-2 max-w-md leading-relaxed">
+                <h3 className="text-lg font-bold text-[#F1F5F2] tracking-tight">AI Scan is Locked</h3>
+                <p className="text-xs text-[rgba(241,245,242,0.6)] mt-2 max-w-md leading-relaxed">
                     {ctx?.entitlement?.message || 'AI Scan requires the AI add-on. Every store gets 10 free credits to test out the capabilities.'}
                 </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto w-full">
                 {/* Option 1: BYOK */}
-                <div className="p-5 rounded-2xl bg-surface dark:bg-white/[0.02] border border-line dark:border-white/[0.05] hover:border-line dark:hover:border-white/10 transition-all flex flex-col justify-between text-left">
+                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between text-left">
                     <div>
                         <div className="flex justify-between items-start mb-3">
-                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/25">
                                 BYOK Lifetime
                             </span>
-                            <div className="text-lg font-bold text-ink">$5 <span className="text-2xs font-normal text-ink-muted">once</span></div>
+                            <div className="text-lg font-bold text-[#F1F5F2]">$5 <span className="text-2xs font-normal text-[rgba(241,245,242,0.5)]">once</span></div>
                         </div>
-                        <h5 className="text-xs font-bold text-ink mb-1.5">Bring Your Own Key</h5>
-                        <p className="text-2xs text-ink-muted leading-relaxed">
+                        <h5 className="text-xs font-bold text-[#F1F5F2] mb-1.5">Bring Your Own Key</h5>
+                        <p className="text-2xs text-[rgba(241,245,242,0.55)] leading-relaxed">
                             Provide your own Gemini, OpenAI, Claude, or DeepSeek API key. Bypass platform fees forever.
                         </p>
                     </div>
@@ -1149,7 +1161,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         {ctx?.entitlement?.reason === 'no_key' ? (
                             <button
                                 onClick={openSettings}
-                                className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                                className="w-full py-2 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-lg text-2xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
                             >
                                 <KeyRound size={12} /> Configure API Key
                             </button>
@@ -1157,7 +1169,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             <button
                                 onClick={() => handlePurchaseAddon('ai_byok')}
                                 disabled={isPurchasingAddon !== null}
-                                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-void-950 rounded-lg text-2xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                                className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-2xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
                             >
                                 {isPurchasingAddon === 'ai_byok' ? <Loader2 size={12} className="animate-spin" /> : 'Buy BYOK Unlock'}
                             </button>
@@ -1166,16 +1178,16 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 </div>
 
                 {/* Option 2: Managed Plans */}
-                <div className="md:col-span-2 p-5 rounded-2xl bg-surface dark:bg-white/[0.02] border border-line dark:border-white/[0.05] hover:border-line dark:hover:border-white/10 transition-all flex flex-col justify-between text-left">
+                <div className="md:col-span-2 p-5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between text-left">
                     <div>
                         <div className="flex justify-between items-start mb-3">
-                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-[#23C4A6]/15 text-[#93EBD6] border border-[#23C4A6]/25">
                                 Managed API
                             </span>
-                            <span className="text-2xs text-ink-muted">Monthly Tiers</span>
+                            <span className="text-2xs text-[rgba(241,245,242,0.5)]">Monthly Tiers</span>
                         </div>
-                        <h5 className="text-xs font-bold text-ink mb-1.5">Managed AI Subscriptions</h5>
-                        <p className="text-2xs text-ink-muted leading-relaxed mb-3">
+                        <h5 className="text-xs font-bold text-[#F1F5F2] mb-1.5">Managed AI Subscriptions</h5>
+                        <p className="text-2xs text-[rgba(241,245,242,0.55)] leading-relaxed mb-3">
                             No API keys or developer setup needed. Access our premium high-speed models instantly. Select a volume:
                         </p>
 
@@ -1184,13 +1196,13 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <div
                                     key={key}
                                     onClick={() => handlePurchaseAddon(`ai_${key}`)}
-                                    className="p-2.5 rounded-lg bg-white dark:bg-white/[0.01] border border-line dark:border-white/[0.04] hover:border-brand-500/30 hover:bg-brand-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
+                                    className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:border-teal-400/40 hover:bg-teal-400/[0.05] cursor-pointer transition-all flex flex-col justify-between group"
                                 >
                                     <div className="flex justify-between items-center mb-0.5">
-                                        <span className="text-1xs font-bold text-ink group-hover:text-brand-400 transition-colors">AI {tier.name || key.toUpperCase()}</span>
-                                        <span className="text-1xs font-bold text-brand-500">${tier.price_monthly}</span>
+                                        <span className="text-1xs font-bold text-[#F1F5F2] group-hover:text-[#93EBD6] transition-colors">AI {tier.name || key.toUpperCase()}</span>
+                                        <span className="text-1xs font-bold text-[#23C4A6]">${tier.price_monthly}</span>
                                     </div>
-                                    <div className="text-4xs text-ink-muted">
+                                    <div className="text-4xs text-[rgba(241,245,242,0.45)]">
                                         {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
                                     </div>
                                 </div>
@@ -1205,12 +1217,15 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     if (typeof document === 'undefined') return null;
 
     const captureBody = (
-            <div className={embedded
-                ? "w-full h-full bg-surface flex flex-col overflow-hidden relative font-sans"
-                : "w-full max-w-4xl bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative"}>
+            <div
+                className={embedded
+                    ? "w-full h-full bg-transparent flex flex-col overflow-hidden relative font-sans text-[#F1F5F2]"
+                    : "w-full max-w-4xl border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative font-sans text-[#F1F5F2]"}
+                style={embedded ? {} : { background: 'var(--vq-mesh-capture, #080D0C)' }}
+            >
                 {/* glow blobs */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute top-0 right-0 w-96 h-96 bg-[#23C4A6]/5 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#23C4A6]/5 rounded-full blur-[100px] pointer-events-none" />
 
                 {showSettings && renderSettingsDrawer()}
                 {renderForkDialog()}
@@ -1219,21 +1234,21 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     carries the Capture title, and the settings/close buttons belong to a
                     dialog this is no longer. */}
                 {!embedded && (<>
-                <div className="p-6 bg-neutral-900 text-white shrink-0 flex items-center justify-between border-b border-neutral-800 relative z-10">
+                <div className="p-6 bg-black/40 text-[#F1F5F2] shrink-0 flex items-center justify-between border-b border-white/10 relative z-10 backdrop-blur-md">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-brand-600/30 border border-brand-500/30 flex items-center justify-center text-brand-400">
+                        <div className="w-10 h-10 rounded-2xl bg-[#23C4A6]/20 border border-[#23C4A6]/30 flex items-center justify-center text-[#93EBD6]">
                             <Sparkles size={20} className="animate-pulse" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold tracking-tight">AI Scan</h2>
-                            <p className="text-2xs text-brand-300 font-bold uppercase tracking-wider mt-0.5 flex flex-wrap items-center gap-x-2">
+                            <h2 className="text-lg font-bold tracking-tight text-[#F1F5F2]">AI Scan</h2>
+                            <p className="text-2xs text-[#93EBD6] font-bold uppercase tracking-wider mt-0.5 flex flex-wrap items-center gap-x-2">
                                 <span>AI-Powered Transaction Entry</span>
                                 {(ctx?.entitlement?.mode === 'managed' || ctx?.entitlement?.mode === 'free') && ctx?.entitlement?.scans_limit > 0 && (
-                                    <span className="text-ink-muted normal-case">({ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans used)</span>
+                                    <span className="text-[rgba(241,245,242,0.6)] normal-case">({ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans used)</span>
                                 )}
                                 {ctx?.learning?.total > 0 && (
                                     <span
-                                        className="text-brand-300 normal-case flex items-center gap-1"
+                                        className="text-[#93EBD6] normal-case flex items-center gap-1"
                                         title="Corrections your team has made. AI Scan reuses them automatically."
                                     >
                                         <Brain size={11} /> {ctx.learning.total} learned
@@ -1244,15 +1259,17 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     </div>
                     <div className="flex items-center gap-2">
                         <button
+                            type="button"
                             onClick={openSettings}
                             title="AI Settings (BYOK)"
-                            className="w-9 h-9 rounded-xl bg-neutral-800/60 hover:bg-interactive-hover border border-neutral-700/55 flex items-center justify-center text-ink-muted hover:text-white transition-all active:scale-95"
+                            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-[rgba(241,245,242,0.65)] hover:text-white transition-all active:scale-95"
                         >
                             <Settings2 size={16} />
                         </button>
                         <button
+                            type="button"
                             onClick={onClose}
-                            className="w-9 h-9 rounded-xl bg-neutral-800/60 hover:bg-interactive-hover border border-neutral-700/55 flex items-center justify-center text-ink-muted hover:text-white transition-all active:scale-95"
+                            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-[rgba(241,245,242,0.65)] hover:text-white transition-all active:scale-95"
                         >
                             <X size={16} />
                         </button>
@@ -1263,43 +1280,45 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 <div className="flex-1 overflow-hidden flex flex-col relative z-10">
                     {ctxLoading && !ctx ? (
                         <div className="flex-1 flex items-center justify-center">
-                            <Loader2 className="animate-spin text-brand-500" size={28} />
+                            <Loader2 className="animate-spin text-[#23C4A6]" size={28} />
                         </div>
                     ) : locked && !extractedData && !successData ? (
                         renderLocked()
                     ) : rateLimit && !extractedData && !successData ? (
                         /* RATE LIMITED — we wait, we never auto-retry */
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-normal">
-                            <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-500 mb-5">
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-normal text-[#F1F5F2]">
+                            <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-5">
                                 <Clock size={30} />
                             </div>
-                            <h3 className="text-lg font-bold text-ink tracking-tight">
+                            <h3 className="text-lg font-bold text-[#F1F5F2] tracking-tight">
                                 {rateLimit.daily ? 'Daily AI quota reached' : 'Sending a little too fast'}
                             </h3>
-                            <p className="text-xs text-ink-muted mt-2 max-w-sm leading-relaxed">{rateLimit.message}</p>
+                            <p className="text-xs text-[rgba(241,245,242,0.6)] mt-2 max-w-sm leading-relaxed">{rateLimit.message}</p>
 
                             {!rateLimit.daily && (
                                 <div className="mt-6 flex flex-col items-center gap-2">
-                                    <div className="text-4xl font-bold text-ink tabular-nums">{rateLimit.seconds}s</div>
-                                    <p className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Ready again shortly</p>
+                                    <div className="text-4xl font-bold text-[#F1F5F2] tabular-nums">{rateLimit.seconds}s</div>
+                                    <p className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)]">Ready again shortly</p>
                                 </div>
                             )}
 
-                            <p className="text-2xs text-ink-muted mt-6 max-w-sm leading-relaxed">
+                            <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-6 max-w-sm leading-relaxed">
                                 Your document is still here — nothing was lost, and no request was wasted.
                                 We never retry automatically, because that is what burns through a free-tier key.
                             </p>
 
                             <div className="mt-6 flex gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => setRateLimit(null)}
-                                    className="px-6 py-2.5 border border-line rounded-xl text-xs font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95"
+                                    className="px-6 py-2.5 border border-white/15 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all active:scale-95"
                                 >
                                     Back to my document
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={openSettings}
-                                    className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5"
+                                    className="px-6 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5"
                                 >
                                     <KeyRound size={13} /> Use a different key
                                 </button>
@@ -1307,53 +1326,53 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </div>
                     ) : successData ? (
                         /* SUCCESS STATE */
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-slow">
-                            <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 shadow-inner animate-bounce">
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-slow text-[#F1F5F2]">
+                            <div className="w-20 h-20 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 shadow-inner animate-bounce">
                                 <CheckCircle2 size={44} />
                             </div>
-                            <h3 className="text-2xl font-bold text-ink tracking-tight">
+                            <h3 className="text-2xl font-bold text-[#F1F5F2] tracking-tight">
                                 {successData.appended ? 'Items Added!' : 'Transaction Created!'}
                             </h3>
-                            <p className="text-sm text-ink-muted mt-2 max-w-sm">
+                            <p className="text-sm text-[rgba(241,245,242,0.65)] mt-2 max-w-sm">
                                 {successData.message || `Structured ${successData.type} transaction successfully processed.`}
                             </p>
 
-                            <div className="mt-8 bg-app p-6 rounded-2xl border border-line dark:border-line max-w-sm w-full space-y-2">
-                                <div className="flex justify-between text-xs font-semibold text-ink-muted">
+                            <div className="mt-8 bg-white/[0.03] p-6 rounded-2xl border border-white/10 max-w-sm w-full space-y-2 text-left">
+                                <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
                                     <span>Type:</span>
-                                    <span className="text-ink uppercase font-bold">{successData.type?.replace(/_/g, ' ')}</span>
+                                    <span className="text-[#F1F5F2] uppercase font-bold">{successData.type?.replace(/_/g, ' ')}</span>
                                 </div>
-                                <div className="flex justify-between text-xs font-semibold text-ink-muted">
+                                <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
                                     <span>Reference:</span>
-                                    <span className="text-ink font-mono">{successData.reference}</span>
+                                    <span className="text-[#F1F5F2] font-mono">{successData.reference}</span>
                                 </div>
                                 {successData.appended ? (
-                                    <div className="flex justify-between text-xs font-semibold text-ink-muted">
+                                    <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
                                         <span>Lines Added:</span>
-                                        <span className="text-ink font-bold">{successData.appended}</span>
+                                        <span className="text-[#F1F5F2] font-bold">{successData.appended}</span>
                                     </div>
                                 ) : null}
-                                <div className="flex justify-between text-xs font-semibold text-ink-muted">
+                                <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
                                     <span>Total:</span>
-                                    <span className="text-ink font-bold">Rs. {Math.abs(successData.total || 0).toFixed(2)}</span>
+                                    <span className="text-[#23C4A6] font-bold" style={{ fontFamily: 'var(--vq-font-numeric)' }}>Rs. {Math.abs(successData.total || 0).toFixed(2)}</span>
                                 </div>
                             </div>
 
                             {/* New catalogue products should never appear silently */}
                             {successData.createdProducts?.length > 0 && (
-                                <div className="mt-5 max-w-sm w-full text-left bg-brand-500/5 border border-brand-500/20 rounded-2xl p-4">
-                                    <p className="text-2xs font-bold uppercase tracking-wider text-brand-500 mb-2 flex items-center gap-1.5">
+                                <div className="mt-5 max-w-sm w-full text-left bg-white/[0.03] border border-[#23C4A6]/25 rounded-2xl p-4">
+                                    <p className="text-2xs font-bold uppercase tracking-wider text-[#23C4A6] mb-2 flex items-center gap-1.5">
                                         <Plus size={11} />
                                         {successData.createdProducts.length} new product{successData.createdProducts.length > 1 ? 's' : ''} added to your catalogue
                                     </p>
                                     <ul className="space-y-1">
                                         {successData.createdProducts.map(p => (
-                                            <li key={p.id} className="text-1xs text-ink-secondary font-semibold">
-                                                {p.name} <span className="text-ink-muted font-mono">({p.sku})</span>
+                                            <li key={p.id} className="text-1xs text-[rgba(241,245,242,0.8)] font-semibold">
+                                                {p.name} <span className="text-[rgba(241,245,242,0.45)] font-mono">({p.sku})</span>
                                             </li>
                                         ))}
                                     </ul>
-                                    <p className="text-2xs text-ink-muted mt-2 leading-relaxed">
+                                    <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-2 leading-relaxed">
                                         Check the spelling — a misread name creates a near-duplicate that splits your reports.
                                         You can find these under Products, filtered by "created by AI Scan".
                                     </p>
@@ -1362,14 +1381,16 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             <div className="mt-8 flex gap-4">
                                 <button
+                                    type="button"
                                     onClick={resetAll}
-                                    className="px-6 py-3 border border-line rounded-xl text-xs font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95"
+                                    className="px-6 py-3 border border-white/15 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all active:scale-95"
                                 >
                                     Scan Another
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={navigateToSuccessDoc}
-                                    className="px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-1.5"
+                                    className="px-8 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-1.5"
                                 >
                                     <span>View Document</span>
                                     <ChevronRight size={14} />
@@ -1380,11 +1401,11 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         /* AI REVIEW & CONFIRMATION */
                         <div className="flex-1 flex flex-col overflow-hidden animate-in fade-in duration-normal">
                             {/* Settings strip */}
-                            <div className="px-8 py-4 bg-app border-b border-line flex flex-wrap items-end gap-5 justify-between">
+                            <div className="px-8 py-4 bg-white/[0.03] border-b border-white/[0.08] backdrop-blur-md flex flex-wrap items-end gap-5 justify-between">
                                 <div className="flex flex-wrap items-end gap-5">
                                     {/* Action Intent */}
                                     <div>
-                                        <label className="block text-3xs font-bold uppercase text-ink-muted mb-1">Transaction Intent</label>
+                                        <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">Transaction Intent</label>
                                         <CustomSelect
                                             value={extractedData.action}
                                             onChange={(e) => {
@@ -1411,8 +1432,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     {/* Party or Expense Category — explicit, user-confirmed */}
                                     {isExpense ? (
                                         <div>
-                                            <label className="block text-3xs font-bold uppercase text-ink-muted mb-1">
-                                                Expense Category <span className="text-rose-500">*</span>
+                                            <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">
+                                                Expense Category <span className="text-rose-400">*</span>
                                             </label>
                                             <CustomSelect
                                                 value={selectedCategoryId}
@@ -1429,16 +1450,16 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 ]}
                                             />
                                             {extractedData.expense_category && (
-                                                <p className="text-3xs text-brand-400 font-bold mt-0.5">AI suggested: {extractedData.expense_category}</p>
+                                                <p className="text-3xs text-[#23C4A6] font-bold mt-1">AI suggested: {extractedData.expense_category}</p>
                                             )}
                                         </div>
                                     ) : (
                                         <div>
-                                            <label className="block text-3xs font-bold uppercase text-ink-muted mb-1">
-                                                {partyType === 'supplier' ? 'Supplier' : 'Customer'} <span className="text-rose-500">*</span>
+                                            <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">
+                                                {partyType === 'supplier' ? 'Supplier' : 'Customer'} <span className="text-rose-400">*</span>
                                             </label>
                                             <div className="flex items-center gap-1.5 font-sans">
-                                                <User size={12} className="text-ink-muted" />
+                                                <User size={12} className="text-[rgba(241,245,242,0.45)]" />
                                                 <CustomSelect
                                                     value={selectedPartyId}
                                                     onChange={(e) => setSelectedPartyId(e.target.value)}
@@ -1466,7 +1487,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 />
                                             </div>
                                             {extractedData.party && (
-                                                <p className="text-3xs text-brand-400 font-bold mt-0.5">AI read: "{extractedData.party}"</p>
+                                                <p className="text-3xs text-[#23C4A6] font-bold mt-1">AI read: "{extractedData.party}"</p>
                                             )}
                                         </div>
                                     )}
@@ -1474,7 +1495,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                                 {/* Payment Method */}
                                 <div>
-                                    <label className="block text-3xs font-bold uppercase text-ink-muted mb-1">Payment Method</label>
+                                    <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">Payment Method</label>
                                     <div className="flex gap-1.5">
                                         {(isExpense ? ['cash', 'bank'] : ['cash', 'credit', 'bank']).map((method) => (
                                             <button
@@ -1482,8 +1503,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 type="button"
                                                 onClick={() => setPaymentMethod(method)}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all border ${paymentMethod === method
-                                                    ? 'bg-neutral-900 border-neutral-900 dark:bg-brand-600 dark:border-brand-600 text-white font-bold'
-                                                    : 'bg-surface border-line text-ink-secondary'}`}
+                                                    ? 'bg-[#23C4A6] border-[#23C4A6] text-[#062421] shadow-[0_0_10px_rgba(35,196,166,0.3)]'
+                                                    : 'bg-white/[0.04] border-white/[0.08] text-[rgba(241,245,242,0.7)] hover:bg-white/[0.08] hover:text-[#F1F5F2]'}`}
                                             >
                                                 {method}
                                             </button>
@@ -1494,7 +1515,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Append banner */}
                             {appendMode && appendDocId && (
-                                <div className="px-8 py-2.5 bg-brand-500/10 border-b border-brand-500/20 flex items-center gap-2 text-xs font-bold text-brand-500">
+                                <div className="px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
                                     <Layers size={13} />
                                     Items will be ADDED to the selected existing {appendDocType.replace(/_/g, ' ')} — no new document will be created.
                                 </div>
@@ -1502,7 +1523,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Wrong side of the ledger — they picked a customer but this is a supplier bill */}
                             {extractedData.party_preselected?.type_mismatch && (
-                                <div className="px-8 py-2.5 bg-rose-500/10 border-b border-rose-500/20 flex items-center gap-2 text-xs font-bold text-rose-500">
+                                <div className="px-8 py-2.5 bg-rose-500/10 border-b border-rose-500/20 flex items-center gap-2 text-xs font-bold text-rose-400">
                                     <AlertTriangle size={13} />
                                     You chose the {extractedData.party_preselected.type} "{extractedData.party_preselected.name}",
                                     but this looks like a {partyType} document. Pick the right {partyType} below.
@@ -1511,7 +1532,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* What pressing the button will actually do */}
                             {!isAppending && currentPolicy?.locking && (
-                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500">
+                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
                                     <Lock size={13} />
                                     {currentPolicy.handoff_url
                                         ? `A ${currentPolicy.label} cannot be edited once posted — you will get a final review on the ${currentPolicy.label} screen before anything is saved.`
@@ -1521,7 +1542,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Learning banner — shows the memory paying off */}
                             {extractedData.meta?.learned_lines > 0 && (
-                                <div className="px-8 py-2.5 bg-brand-500/10 border-b border-brand-500/20 flex items-center gap-2 text-xs font-bold text-brand-500">
+                                <div className="px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
                                     <Brain size={13} />
                                     {extractedData.meta.learned_lines} line{extractedData.meta.learned_lines > 1 ? 's were' : ' was'} matched
                                     from what your store taught AI Scan previously — already filled in below.
@@ -1530,7 +1551,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Low-legibility warning */}
                             {typeof extractedData.document_confidence === 'number' && extractedData.document_confidence < 70 && (
-                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500">
+                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
                                     <Eye size={13} />
                                     This document was hard to read ({extractedData.document_confidence}% legible).
                                     Check the amber and red lines carefully before posting.
@@ -1539,12 +1560,12 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Extracted meta */}
                             {(extractedData.date || extractedData.reference || extractedData.notes || extractedData.meta) && (
-                                <div className="px-8 py-2 border-b border-line flex flex-wrap items-center gap-4 text-2xs font-semibold text-ink-muted">
-                                    {extractedData.date && <span>Date read: <span className="text-ink-secondary">{extractedData.date}</span></span>}
-                                    {extractedData.reference && <span>Ref: <span className="text-ink-secondary font-mono">{extractedData.reference}</span></span>}
-                                    {extractedData.notes && <span className="truncate max-w-md">Notes: <span className="text-ink-secondary">{extractedData.notes}</span></span>}
+                                <div className="px-8 py-2.5 border-b border-white/[0.08] bg-black/20 flex flex-wrap items-center gap-4 text-2xs font-semibold text-[rgba(241,245,242,0.5)]">
+                                    {extractedData.date && <span>Date read: <span className="text-[#F1F5F2] font-semibold">{extractedData.date}</span></span>}
+                                    {extractedData.reference && <span>Ref: <span className="text-[#F1F5F2] font-mono">{extractedData.reference}</span></span>}
+                                    {extractedData.notes && <span className="truncate max-w-md">Notes: <span className="text-[#F1F5F2]">{extractedData.notes}</span></span>}
                                     {extractedData.meta?.api_requests ? (
-                                        <span className="ml-auto flex items-center gap-1 text-emerald-500" title="One scan costs exactly one AI request">
+                                        <span className="ml-auto flex items-center gap-1 text-[#23C4A6]" title="One scan costs exactly one AI request">
                                             <Zap size={11} />
                                             {extractedData.meta.api_requests} API request{extractedData.meta.api_requests > 1 ? 's' : ''}
                                             {extractedData.meta.model ? ` · ${extractedData.meta.model}` : ''}
@@ -1556,8 +1577,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             {/* Items */}
                             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                                 {error && (
-                                    <div className="mb-4 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-2xl text-rose-850 dark:text-rose-300 text-xs font-bold flex items-start gap-2">
-                                        <AlertTriangle size={16} className="text-rose-500 mt-0.5 shrink-0" />
+                                    <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs font-bold flex items-start gap-2">
+                                        <AlertTriangle size={16} className="text-rose-400 mt-0.5 shrink-0" />
                                         <span>{error}</span>
                                     </div>
                                 )}
@@ -1575,30 +1596,30 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                         return (
                                             <div
                                                 key={idx}
-                                                className={`p-4 rounded-2xl border transition-all flex flex-col gap-3 ${isLearned ? 'bg-brand-500/5 border-brand-500/25' :
-                                                    isNew ? 'bg-brand-500/5 border-brand-500/20' :
-                                                        isHigh ? 'bg-emerald-500/5 border-emerald-500/10' :
-                                                            isMedium ? 'bg-amber-500/5 border-amber-500/10' :
-                                                                'bg-rose-500/5 border-rose-500/10'}`}
+                                                className={`p-4 rounded-2xl border backdrop-blur-sm transition-all flex flex-col gap-3 ${isLearned ? 'bg-[#23C4A6]/[0.04] border-[#23C4A6]/30' :
+                                                    isNew ? 'bg-sky-500/[0.04] border-sky-500/30' :
+                                                        isHigh ? 'bg-emerald-500/[0.03] border-emerald-500/20' :
+                                                            isMedium ? 'bg-amber-500/[0.03] border-amber-500/20' :
+                                                                'bg-rose-500/[0.03] border-rose-500/20'}`}
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex-1">
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider">AI read: "{item.raw_name}"</span>
+                                                            <span className="text-2xs font-bold text-[rgba(241,245,242,0.55)] uppercase tracking-wider">AI read: <span className="text-[#F1F5F2]">"{item.raw_name}"</span></span>
                                                             {unclearReading && (
-                                                                <span className="px-1.5 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-500 border border-amber-500/25 flex items-center gap-1">
+                                                                <span className="px-1.5 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
                                                                     <Eye size={9} /> Check this reading
                                                                 </span>
                                                             )}
                                                         </div>
                                                         {isLearned && item.match_reason && (
-                                                            <span className="text-2xs font-bold text-brand-500 flex items-center gap-1 mt-0.5">
+                                                            <span className="text-2xs font-bold text-[#23C4A6] flex items-center gap-1 mt-0.5">
                                                                 <Brain size={10} /> Remembered — {item.match_reason}
                                                             </span>
                                                         )}
 
                                                         {!isExpense ? (
-                                                            <div className="mt-1.5 space-y-2">
+                                                            <div className="mt-2 space-y-2">
                                                                 <CustomSelect
                                                                     value={isNew ? '__create_new__' : (item.product_id || '')}
                                                                     onChange={(e) => handleProductPick(idx, e.target.value)}
@@ -1617,82 +1638,84 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                 />
 
                                                                 {isNew && (
-                                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-white/60 dark:bg-surface rounded-xl border border-brand-500/20">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 bg-black/30 rounded-xl border border-white/10">
                                                                         <div className="sm:col-span-3">
-                                                                            <label className="block text-3xs font-bold text-brand-400 uppercase">New Product Name</label>
+                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">New Product Name</label>
                                                                             <input
                                                                                 type="text"
                                                                                 value={item.create_new.name}
                                                                                 onChange={(e) => handleItemChange(idx, 'create_new', { ...item.create_new, name: e.target.value })}
-                                                                                className="w-full mt-0.5 px-2 py-1 bg-surface border border-line rounded-lg text-xs font-bold outline-none"
+                                                                                className="w-full mt-1 px-2.5 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label className="block text-3xs font-bold text-brand-400 uppercase">Sale Price</label>
+                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">Sale Price</label>
                                                                             <input
                                                                                 type="number" min="0" step="any"
                                                                                 value={item.create_new.price}
                                                                                 onChange={(e) => handleItemChange(idx, 'create_new', { ...item.create_new, price: e.target.value })}
-                                                                                className="w-full mt-0.5 px-2 py-1 bg-surface border border-line rounded-lg text-xs font-bold outline-none"
+                                                                                className="w-full mt-1 px-2.5 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label className="block text-3xs font-bold text-brand-400 uppercase">Cost Price</label>
+                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">Cost Price</label>
                                                                             <input
                                                                                 type="number" min="0" step="any"
                                                                                 value={item.create_new.cost_price}
                                                                                 onChange={(e) => handleItemChange(idx, 'create_new', { ...item.create_new, cost_price: e.target.value })}
-                                                                                className="w-full mt-0.5 px-2 py-1 bg-surface border border-line rounded-lg text-xs font-bold outline-none"
+                                                                                className="w-full mt-1 px-2.5 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
                                                                             />
                                                                         </div>
                                                                     </div>
                                                                 )}
 
                                                                 {!isNew && (!item.candidates || item.candidates.length === 0) && (
-                                                                    <span className="text-rose-500 text-xs font-bold flex items-center gap-1">
+                                                                    <span className="text-rose-400 text-xs font-bold flex items-center gap-1 mt-1">
                                                                         <AlertTriangle size={12} />
                                                                         No matches found — use "Create as NEW product".
                                                                     </span>
                                                                 )}
                                                             </div>
                                                         ) : (
-                                                            <p className="mt-1 text-xs font-bold text-ink-secondary dark:text-ink">{item.raw_name}</p>
+                                                            <p className="mt-1 text-xs font-bold text-[#F1F5F2]">{item.raw_name}</p>
                                                         )}
                                                     </div>
 
                                                     <div className="flex items-center gap-3 shrink-0">
                                                         <div>
-                                                            <label className="block text-3xs font-bold text-ink-muted uppercase">Quantity</label>
+                                                            <label className="block text-3xs font-bold text-[rgba(241,245,242,0.5)] uppercase">Quantity</label>
                                                             <input
                                                                 type="number"
                                                                 value={item.qty}
                                                                 onChange={(e) => handleItemChange(idx, 'qty', e.target.value)}
-                                                                className="w-20 px-2 py-1 bg-surface border border-line rounded-lg text-xs font-bold text-center outline-none"
+                                                                className="w-20 px-2 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-center text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
                                                                 min="0.0001" step="any"
+                                                                style={{ fontFamily: 'var(--vq-font-numeric)' }}
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-3xs font-bold text-ink-muted uppercase">Unit Price</label>
+                                                            <label className="block text-3xs font-bold text-[rgba(241,245,242,0.5)] uppercase">Unit Price</label>
                                                             <input
                                                                 type="number"
                                                                 value={item.unit_price ?? 0}
                                                                 onChange={(e) => handleItemChange(idx, 'unit_price', e.target.value)}
-                                                                className="w-24 px-2 py-1 bg-surface border border-line rounded-lg text-xs font-bold text-center outline-none"
+                                                                className="w-24 px-2 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-center text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
                                                                 min="0" step="any"
+                                                                style={{ fontFamily: 'var(--vq-font-numeric)' }}
                                                             />
                                                         </div>
                                                         <div className="pt-4 flex items-center gap-2">
-                                                            <span className={`px-2 py-1 text-4xs font-bold uppercase rounded-full ${isLearned ? 'bg-brand-500/15 text-brand-600' :
-                                                                isNew ? 'bg-brand-100 text-brand-700' :
-                                                                    isHigh ? 'bg-emerald-100 text-emerald-700' :
-                                                                        isMedium ? 'bg-amber-100 text-amber-700' :
-                                                                            'bg-rose-150 text-rose-700'}`}>
+                                                            <span className={`px-2 py-1 text-4xs font-bold uppercase rounded-full border ${isLearned ? 'bg-[#23C4A6]/15 text-[#23C4A6] border-[#23C4A6]/30' :
+                                                                isNew ? 'bg-sky-500/15 text-sky-300 border-sky-500/30' :
+                                                                    isHigh ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                                                                        isMedium ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' :
+                                                                            'bg-rose-500/15 text-rose-300 border-rose-500/30'}`}>
                                                                 {isLearned ? 'Learned' : isNew ? 'New Product' : `${item.confidence}% Match`}
                                                             </span>
                                                             <button
                                                                 onClick={() => removeItem(idx)}
                                                                 title="Remove line"
-                                                                className="w-7 h-7 rounded-lg bg-surface border border-line flex items-center justify-center text-ink-muted hover:text-rose-500 hover:border-rose-300 transition-all"
+                                                                className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center text-[rgba(241,245,242,0.5)] hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10 transition-all"
                                                             >
                                                                 <Trash2 size={12} />
                                                             </button>
@@ -1706,16 +1729,16 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             </div>
 
                             {/* Footer */}
-                            <div className="p-6 border-t border-line shrink-0 flex items-center justify-between bg-sunken/40 dark:bg-app backdrop-blur-md">
+                            <div className="p-6 border-t border-white/[0.08] shrink-0 flex items-center justify-between bg-black/40 backdrop-blur-md">
                                 <div className="text-sm">
-                                    <span className="text-ink-muted font-medium">Estimated Gross:</span>{''}
-                                    <span className="font-bold text-ink text-base">Rs. {calculateGrossTotal()}</span>
+                                    <span className="text-[rgba(241,245,242,0.5)] font-medium">Estimated Gross:</span>
+                                    <span className="font-bold text-[#F1F5F2] text-base ml-1.5" style={{ fontFamily: 'var(--vq-font-numeric)' }}>Rs. {calculateGrossTotal()}</span>
                                     {!partyReady ? (
-                                        <span className="block text-2xs text-rose-500 font-bold mt-0.5">
+                                        <span className="block text-2xs text-rose-400 font-bold mt-0.5">
                                             {isExpense ? 'Select an expense category to continue.' : `Select the ${partyType} to continue.`}
                                         </span>
                                     ) : (
-                                        <span className="block text-2xs text-brand-500 font-bold mt-0.5 flex items-center gap-1">
+                                        <span className="block text-2xs text-[#23C4A6] font-bold mt-0.5 flex items-center gap-1">
                                             <Brain size={10} /> Your choices here are remembered for this store — next scan will fill them in for you.
                                         </span>
                                     )}
@@ -1724,14 +1747,14 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => { setExtractedData(null); setError(null); }}
-                                        className="px-6 py-2.5 border border-line rounded-xl text-xs font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95"
+                                        className="px-6 py-2.5 border border-white/15 rounded-xl text-xs font-bold text-[rgba(241,245,242,0.8)] hover:bg-white/10 transition-all active:scale-95"
                                     >
                                         Re-Intake
                                     </button>
                                     <button
                                         onClick={() => handleConfirmTransaction()}
                                         disabled={confirming || !itemsReady || !partyReady || !appendReady}
-                                        className="px-8 py-2.5 bg-sunken hover:bg-interactive-hover dark:bg-brand-600 dark:hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 disabled:opacity-30"
+                                        className="px-8 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all active:scale-95 disabled:opacity-30 disabled:shadow-none"
                                     >
                                         {confirming ? (
                                             <div className="flex items-center gap-1.5">
@@ -1756,25 +1779,20 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     ) : loading ? (
                         /* LOADING */
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-normal">
-                            <div className="relative w-20 h-20 mb-6 flex items-center justify-center">
-                                <div className="absolute w-16 h-16 rounded-full border-4 border-brand-500/10 border-t-indigo-600 border-r-indigo-600 animate-spin" />
-                                <Sparkles className="text-brand-500 animate-pulse" size={24} />
+                            <div className="relative mb-6 flex items-center justify-center">
+                                <ThinkingOrb state="shaping" size={68} theme="dark" />
                             </div>
-                            <h3 className="text-lg font-bold text-ink tracking-tight">AI Intake in Progress...</h3>
-                            <p className="text-xs text-ink-muted mt-2 max-w-[280px] leading-relaxed">
+                            <h3 className="text-lg font-bold text-[#F1F5F2] tracking-tight">AI Intake in Progress...</h3>
+                            <p className="text-xs text-[rgba(241,245,242,0.6)] mt-2 max-w-[320px] leading-relaxed">
                                 Reading your {activeTab === 'image' ? `document (${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''})` : activeTab === 'audio' ? 'voice memo' : 'text'} and matching items against your catalog...
                             </p>
                         </div>
                     ) : (
                         /* INTAKE */
                         <div className="flex-1 flex flex-col overflow-hidden">
-                            {/* Tabs — V6 segmented control. Type is on the 14px
-                                caption floor, controls are 40px, and the active
-                                segment lifts on elev-1 rather than an underline. */}
-                            <div className="flex items-center justify-between gap-4 px-6 pt-5 pb-4 shrink-0"
-                                 style={{ borderBottom: '1px solid var(--vq-line-soft)' }}>
-                                <div className="inline-flex items-center gap-1 p-1 rounded-2xl"
-                                     style={{ background: 'var(--vq-sunken)' }}>
+                            {/* Tabs — V6 dark glass segmented control */}
+                            <div className="flex items-center justify-between gap-4 px-8 pt-5 pb-4 shrink-0 border-b border-white/[0.08]">
+                                <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
                                     {[
                                         { key: 'image', icon: Camera, label: 'Photos / PDF' },
                                         { key: 'audio', icon: Mic, label: 'Voice Memo' },
@@ -1785,23 +1803,20 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 key={tab.key}
                                                 onClick={() => { setActiveTab(tab.key); setError(null); }}
-                                                className="flex items-center gap-2 rounded-xl transition-all"
-                                                style={{
-                                                    fontSize: 14, lineHeight: 1.45, fontWeight: 700,
-                                                    height: 40, padding: '0 16px',
-                                                    background: on ? 'var(--vq-surface)' : 'transparent',
-                                                    color: on ? 'var(--vq-accent-text)' : 'var(--vq-text-2)',
-                                                    boxShadow: on ? 'var(--vq-elev-1)' : 'none',
-                                                }}
+                                                className={`flex items-center gap-2 rounded-xl transition-all h-10 px-4 text-xs font-bold ${
+                                                    on
+                                                        ? 'bg-[#23C4A6]/15 text-[#93EBD6] border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.2)]'
+                                                        : 'text-[rgba(241,245,242,0.6)] hover:text-[#F1F5F2] hover:bg-white/[0.03] border border-transparent'
+                                                }`}
                                             >
-                                                <tab.icon size={16} />
-                                                {tab.label}
+                                                <tab.icon size={15} />
+                                                <span>{tab.label}</span>
                                             </button>
                                         );
                                     })}
                                 </div>
                                 {(ctx?.entitlement?.mode === 'managed' || ctx?.entitlement?.mode === 'free') && ctx?.entitlement?.scans_limit > 0 && (
-                                    <span style={{ fontSize: 14, color: 'var(--vq-text-3)', fontFamily: 'var(--vq-font-numeric)' }}>
+                                    <span className="text-xs text-[rgba(241,245,242,0.55)] px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08]" style={{ fontFamily: 'var(--vq-font-numeric)' }}>
                                         {ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans
                                     </span>
                                 )}
@@ -1809,8 +1824,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                                 {error && (
-                                    <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-2xl text-rose-850 dark:text-rose-300 text-xs font-bold flex items-start gap-2 animate-in slide-in-from-top-2">
-                                        <AlertTriangle size={16} className="text-rose-500 mt-0.5 shrink-0" />
+                                    <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs font-bold flex items-start gap-2 animate-in slide-in-from-top-2">
+                                        <AlertTriangle size={16} className="text-rose-400 mt-0.5 shrink-0" />
                                         <span>{error}</span>
                                     </div>
                                 )}
@@ -1825,29 +1840,29 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             onDragOver={handleDrag}
                                             onDragLeave={handleDrag}
                                             onDrop={handleDrop}
-                                            className={`flex-1 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 transition-all min-h-[240px] ${dragActive
-                                                ? 'border-brand-500 bg-brand-500/5 scale-[0.99]'
+                                            className={`flex-1 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-8 transition-all min-h-[260px] ${dragActive
+                                                ? 'border-[#23C4A6] bg-[#23C4A6]/10 scale-[0.99]'
                                                 : selectedFiles.length > 0
-                                                    ? 'border-line dark:border-line bg-sunken/50 dark:bg-app'
-                                                    : 'border-line hover:border-line dark:hover:border-line-strong'}`}
+                                                    ? 'border-white/15 bg-black/20 backdrop-blur-sm'
+                                                    : 'border-white/15 hover:border-[#23C4A6]/50 bg-white/[0.02] hover:bg-white/[0.04]'}`}
                                         >
                                             {selectedFiles.length > 0 ? (
                                                 <div className="w-full">
                                                     <div className="flex flex-wrap gap-3 justify-center">
                                                         {selectedFiles.map((entry, idx) => (
-                                                            <div key={idx} className="relative w-28 h-28 rounded-2xl overflow-hidden border border-line bg-surface flex items-center justify-center">
+                                                            <div key={idx} className="relative w-28 h-28 rounded-2xl overflow-hidden border border-white/15 bg-black/30 flex items-center justify-center shadow-md">
                                                                 {entry.preview ? (
                                                                     <img src={entry.preview} alt={`Page ${idx + 1}`} className="w-full h-full object-cover" />
                                                                 ) : (
-                                                                    <div className="text-center px-1">
-                                                                        <FileText className="text-brand-500 mx-auto" size={26} />
-                                                                        <p className="text-4xs font-bold text-ink-muted mt-1 truncate max-w-[96px]">{entry.file.name}</p>
+                                                                    <div className="text-center px-2">
+                                                                        <FileText className="text-[#23C4A6] mx-auto mb-1" size={26} />
+                                                                        <p className="text-4xs font-bold text-[rgba(241,245,242,0.7)] truncate max-w-[96px]">{entry.file.name}</p>
                                                                     </div>
                                                                 )}
-                                                                <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white text-4xs font-bold rounded-md">{idx + 1}</span>
+                                                                <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-black/70 border border-white/10 text-white text-4xs font-bold rounded-md">{idx + 1}</span>
                                                                 <button
                                                                     onClick={() => removeFile(idx)}
-                                                                    className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center"
+                                                                    className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/70 hover:bg-rose-600 text-white rounded-full flex items-center justify-center transition-colors"
                                                                 >
                                                                     <X size={10} />
                                                                 </button>
@@ -1855,26 +1870,28 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                         ))}
 
                                                         {selectedFiles.length < maxFiles && (
-                                                            <label htmlFor="capture-file-picker" className="w-28 h-28 rounded-2xl border-2 border-dashed border-line dark:border-line flex flex-col items-center justify-center text-ink-muted hover:text-brand-500 hover:border-brand-400 cursor-pointer transition-all">
+                                                            <label htmlFor="capture-file-picker" className="w-28 h-28 rounded-2xl border-2 border-dashed border-white/20 hover:border-[#23C4A6]/60 flex flex-col items-center justify-center text-[rgba(241,245,242,0.6)] hover:text-[#23C4A6] cursor-pointer transition-all bg-white/[0.02]">
                                                                 <Plus size={22} />
                                                                 <span className="text-3xs font-bold mt-1">Add More</span>
                                                             </label>
                                                         )}
                                                     </div>
-                                                    <p className="text-center text-2xs text-ink-muted font-semibold mt-4">
+                                                    <p className="text-center text-2xs text-[rgba(241,245,242,0.5)] font-semibold mt-4">
                                                         {selectedFiles.length}/{maxFiles} files — multiple photos are treated as pages of ONE document.
                                                     </p>
                                                 </div>
                                             ) : (
                                                 <div className="text-center max-w-xs">
-                                                    <Upload className="text-ink-muted mx-auto mb-4" size={40} />
-                                                    <p className="text-sm font-bold text-ink">Upload invoice / receipt / handwritten note</p>
-                                                    <p className="text-xs text-ink-muted mt-1.5 leading-relaxed">
+                                                    <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[#23C4A6] mx-auto mb-4 shadow-[0_0_15px_rgba(35,196,166,0.15)]">
+                                                        <Upload size={28} />
+                                                    </div>
+                                                    <p className="text-sm font-bold text-[#F1F5F2]">Upload invoice / receipt / handwritten note</p>
+                                                    <p className="text-xs text-[rgba(241,245,242,0.6)] mt-1.5 leading-relaxed">
                                                         Drag & drop up to {maxFiles} photos or PDFs (printed OR handwritten), or click to browse. Long receipt? Snap it in sections.
                                                     </p>
                                                     <label
                                                         htmlFor="capture-file-picker"
-                                                        className="mt-6 inline-block px-5 py-2.5 bg-neutral-900 text-white dark:bg-surface dark:hover:bg-interactive-hover hover:bg-interactive-hover rounded-xl text-xs font-bold cursor-pointer transition-all active:scale-95 shadow"
+                                                        className="mt-6 inline-block px-6 py-2.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/15 text-[#F1F5F2] rounded-xl text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-md"
                                                     >
                                                         Browse Files
                                                     </label>
@@ -1894,7 +1911,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={selectedFiles.length === 0 || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30"
+                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
                                             >
                                                 {loading ? 'Scanning…' : `Scan ${selectedFiles.length || ''} ${selectedFiles.length === 1 ? 'page' : 'pages'} — 1 AI request`}
                                             </button>
@@ -1903,24 +1920,24 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 ) : activeTab === 'audio' ? (
                                     /* VOICE TAB — record OR upload */
                                     <div className="flex-1 flex flex-col justify-between min-h-[300px]">
-                                        <div className="flex-1 border border-line rounded-2xl flex flex-col items-center justify-center p-8 bg-surface/20 dark:bg-app">
+                                        <div className="flex-1 border border-white/10 rounded-2xl flex flex-col items-center justify-center p-8 bg-white/[0.02] backdrop-blur-sm">
                                             {audioBlob ? (
                                                 <div className="text-center">
-                                                    <div className="w-16 h-16 bg-brand-500/10 border border-brand-500/20 rounded-2xl flex items-center justify-center text-brand-400 mx-auto mb-4 animate-pulse">
-                                                        <Mic size={32} />
+                                                    <div className="w-16 h-16 bg-[#23C4A6]/10 border border-[#23C4A6]/25 rounded-2xl flex items-center justify-center text-[#23C4A6] mx-auto mb-4 animate-pulse shadow-[0_0_15px_rgba(35,196,166,0.2)]">
+                                                        <Mic size={30} />
                                                     </div>
-                                                    <p className="text-sm font-bold text-ink">
+                                                    <p className="text-sm font-bold text-[#F1F5F2]">
                                                         {audioSource === 'uploaded' ? 'Audio File Ready' : 'Voice Memo Recorded'}
                                                     </p>
-                                                    <p className="text-2xs text-ink-muted mt-1">
+                                                    <p className="text-2xs text-[rgba(241,245,242,0.6)] mt-1">
                                                         {audioSource === 'uploaded' && audioBlob.name ? audioBlob.name : 'Audio capture ready for analysis'}
                                                     </p>
 
-                                                    <audio src={URL.createObjectURL(audioBlob)} controls className="mt-4 mx-auto max-w-[240px] h-9" />
+                                                    <audio src={URL.createObjectURL(audioBlob)} controls className="mt-4 mx-auto max-w-[260px] h-9" />
 
                                                     <button
                                                         onClick={() => { setAudioBlob(null); setAudioSource(null); }}
-                                                        className="mt-6 px-4 py-2 border border-line rounded-xl text-2xs font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all"
+                                                        className="mt-6 px-4 py-2 border border-rose-500/30 rounded-xl text-2xs font-bold text-rose-300 hover:bg-rose-500/10 transition-all"
                                                     >
                                                         Delete Audio
                                                     </button>
@@ -1930,43 +1947,43 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                     <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
                                                         <div className="absolute w-20 h-20 bg-rose-500/20 rounded-full animate-ping opacity-60" />
                                                         <div className="absolute w-16 h-16 bg-rose-500/30 rounded-full animate-pulse" />
-                                                        <div className="w-12 h-12 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-lg relative z-20">
+                                                        <div className="w-12 h-12 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-[0_0_15px_rgba(244,63,94,0.4)] relative z-20">
                                                             <div className="w-4 h-4 bg-white rounded-sm" />
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <p className="text-lg font-bold text-rose-500 tracking-tight">{formatTime(recordingTime)}</p>
-                                                        <p className="text-xs text-ink-muted mt-1.5">Microphone active. Speak transaction items...</p>
+                                                        <p className="text-lg font-bold text-rose-400 tracking-tight" style={{ fontFamily: 'var(--vq-font-numeric)' }}>{formatTime(recordingTime)}</p>
+                                                        <p className="text-xs text-[rgba(241,245,242,0.6)] mt-1.5">Microphone active. Speak transaction items...</p>
                                                     </div>
                                                     <button
                                                         onClick={stopRecording}
-                                                        className="px-6 py-2 bg-neutral-900 text-white rounded-xl text-xs font-bold hover:bg-interactive-hover transition-all active:scale-95"
+                                                        className="px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95"
                                                     >
                                                         Stop Recording
                                                     </button>
                                                 </div>
                                             ) : (
                                                 <div className="text-center max-w-sm space-y-4">
-                                                    <div className="w-14 h-14 bg-sunken rounded-2xl flex items-center justify-center text-ink-muted mx-auto">
-                                                        <Mic size={24} />
+                                                    <div className="w-16 h-16 bg-white/[0.04] border border-white/10 rounded-2xl flex items-center justify-center text-[#23C4A6] mx-auto shadow-[0_0_15px_rgba(35,196,166,0.15)]">
+                                                        <Mic size={26} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold text-ink">Voice memo</p>
-                                                        <p className="text-xs text-ink-muted leading-relaxed mt-1">
+                                                        <p className="text-sm font-bold text-[#F1F5F2]">Voice memo</p>
+                                                        <p className="text-xs text-[rgba(241,245,242,0.6)] leading-relaxed mt-1">
                                                             Record now, or upload an existing audio file (e.g. "Invoice received from Vendor XYZ: 10 Cokes, 3 units of Pepsi")
                                                         </p>
                                                     </div>
-                                                    <div className="flex items-center justify-center gap-3">
+                                                    <div className="flex items-center justify-center gap-3 pt-2">
                                                         <button
                                                             onClick={startRecording}
-                                                            className="px-5 py-3 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700 transition-all active:scale-95 shadow-md flex items-center gap-1.5"
+                                                            className="px-5 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-95 shadow-[0_0_15px_rgba(35,196,166,0.3)] flex items-center gap-1.5"
                                                         >
                                                             <Mic size={14} />
                                                             <span>Start Recording</span>
                                                         </button>
                                                         <label
                                                             htmlFor="capture-audio-picker"
-                                                            className="px-5 py-3 border border-line rounded-xl text-xs font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
+                                                            className="px-5 py-3 border border-white/15 bg-white/[0.04] rounded-xl text-xs font-bold text-[#F1F5F2] hover:bg-white/[0.08] cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
                                                         >
                                                             <Upload size={14} />
                                                             <span>Upload Audio</span>
@@ -1987,7 +2004,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={!audioBlob || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30"
+                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
                                             >
                                                 Proceed to Extract
                                             </button>
@@ -1996,8 +2013,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 ) : (
                                     /* TEXT TAB */
                                     <div className="flex-1 flex flex-col justify-between min-h-[300px]">
-                                        <div className="flex-1 border border-line rounded-2xl p-5 bg-surface/20 dark:bg-app flex flex-col">
-                                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block mb-2 ml-1">
+                                        <div className="flex-1 border border-white/10 rounded-2xl p-6 bg-white/[0.02] backdrop-blur-sm flex flex-col">
+                                            <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.55)] block mb-2.5">
                                                 Type or paste your transaction text
                                             </label>
                                             <textarea
@@ -2005,9 +2022,9 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 onChange={e => setTextInput(e.target.value)}
                                                 placeholder={"e.g.\nBought from Ali Traders:\n10 x Coca Cola 1.5L @ 180\n5 x Lays Masala @ 50\n2 cartons Nestle Water"}
                                                 maxLength={20000}
-                                                className="flex-1 min-h-[180px] w-full p-4 bg-surface border border-line rounded-2xl text-sm text-ink outline-none resize-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 font-medium leading-relaxed"
+                                                className="flex-1 min-h-[180px] w-full p-4 bg-black/25 border border-white/10 rounded-2xl text-sm text-[#F1F5F2] placeholder-[rgba(241,245,242,0.3)] outline-none resize-none focus:ring-2 focus:ring-[#23C4A6]/30 focus:border-[#23C4A6]/60 font-medium leading-relaxed"
                                             />
-                                            <p className="text-2xs text-ink-muted font-semibold mt-2 ml-1">
+                                            <p className="text-2xs text-[rgba(241,245,242,0.5)] font-semibold mt-2.5">
                                                 Works with item lists, copied invoices, WhatsApp order messages — any language.
                                             </p>
                                         </div>
@@ -2016,7 +2033,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={!textInput.trim() || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-lg transition-all disabled:opacity-30"
+                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
                                             >
                                                 Proceed to Extract
                                             </button>
@@ -2130,67 +2147,69 @@ function CustomSelect({
                 disabled={disabled}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 onKeyDown={handleKeyDown}
-                className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 bg-surface border rounded-xl text-xs font-semibold text-ink transition-all text-left outline-none focus:ring-2 focus:ring-brand-500/50 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white/[0.04] hover:bg-white/[0.07] border rounded-xl text-xs font-semibold text-[#F1F5F2] transition-all text-left outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
                     isError
-                        ? 'border-rose-500 dark:border-rose-500/50'
-                        : 'border-line hover:border-line dark:hover:border-line-strong'
+                        ? 'border-rose-500/60'
+                        : isOpen
+                        ? 'border-[#23C4A6]/60 bg-white/[0.08] shadow-[0_0_12px_rgba(35,196,166,0.15)] ring-1 ring-[#23C4A6]/30'
+                        : 'border-white/10 hover:border-white/20'
                 }`}
             >
                 <div className="flex-1 truncate">
                     {selectedOption ? (
                         <div className="flex items-center gap-1.5 truncate">
-                            {selectedOption.learned && <Brain size={12} className="text-brand-400 shrink-0" />}
+                            {selectedOption.learned && <Brain size={12} className="text-[#23C4A6] shrink-0" />}
                             <span className="truncate">{selectedOption.label}</span>
                             {selectedOption.confidence !== undefined && (
-                                <span className="text-3xs bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded font-bold shrink-0">
+                                <span className="text-3xs bg-[#23C4A6]/15 text-[#23C4A6] border border-[#23C4A6]/30 px-1 py-0.5 rounded font-bold shrink-0">
                                     {selectedOption.confidence}%
                                 </span>
                             )}
                             {selectedOption.sku && (
-                                <span className="text-3xs text-ink-muted font-mono shrink-0">
+                                <span className="text-3xs text-[rgba(241,245,242,0.45)] font-mono shrink-0">
                                     (SKU: {selectedOption.sku})
                                 </span>
                             )}
                         </div>
                     ) : (
-                        <span className="text-ink-muted font-normal">{placeholder}</span>
+                        <span className="text-[rgba(241,245,242,0.4)] font-normal">{placeholder}</span>
                     )}
                 </div>
-                <ChevronDown size={14} className={`text-ink-muted transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-[rgba(241,245,242,0.5)] transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-[#23C4A6]' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 left-0 mt-1.5 min-w-[220px] max-h-72 bg-neutral-900/95 dark:bg-app border border-line rounded-2xl shadow-xl backdrop-blur-lg overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-1 duration-fast">
+                <div className="absolute left-0 mt-1.5 min-w-full w-max max-w-[340px] max-h-72 bg-[#0c1412]/95 border border-white/15 rounded-[14px] shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(35,196,166,0.06)] backdrop-blur-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-1.5">
                     {totalOptionsCount > searchThreshold && (
-                        <div className="p-2 border-b border-line flex items-center gap-2 bg-neutral-900/50 dark:bg-black/20">
-                            <Search size={12} className="text-ink-muted shrink-0" />
+                        <div className="p-2 mb-1 border border-white/10 rounded-[10px] flex items-center gap-2 bg-white/[0.04]">
+                            <Search size={12} className="text-[rgba(241,245,242,0.45)] shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Search..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                className="w-full bg-transparent border-0 p-0 text-xs text-white placeholder-slate-500 focus:ring-0 outline-none"
+                                className="w-full bg-transparent border-0 p-0 text-xs text-[#F1F5F2] placeholder-[rgba(241,245,242,0.4)] focus:ring-0 outline-none"
                                 autoFocus
                             />
                             {search && (
-                                <button type="button" onClick={() => setSearch('')} className="text-ink-muted hover:text-white">
+                                <button type="button" onClick={() => setSearch('')} className="text-[rgba(241,245,242,0.5)] hover:text-white transition-colors">
                                     <X size={10} />
                                 </button>
                             )}
                         </div>
                     )}
-                    <div className="overflow-y-auto flex-1 py-1 max-h-56 scrollbar-thin scrollbar-thumb-slate-700">
+                    <div className="overflow-y-auto flex-1 max-h-56 space-y-0.5 scrollbar-thin scrollbar-thumb-white/10 pr-0.5">
                         {filteredOptions.length === 0 ? (
-                            <div className="px-3 py-4 text-center text-xs text-ink-muted">No results found</div>
+                            <div className="px-3 py-4 text-center text-xs text-[rgba(241,245,242,0.45)]">No results found</div>
                         ) : (
                             filteredOptions.map((opt, groupIdx) => {
                                 if (opt.groupLabel) {
                                     return (
-                                        <div key={groupIdx} className="mb-2 last:mb-0">
-                                            <div className="px-3 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted bg-neutral-800/25 dark:bg-app">
+                                        <div key={groupIdx} className="mb-1.5 last:mb-0">
+                                            <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.4)]">
                                                 {opt.groupLabel}
                                             </div>
-                                            <div className="mt-1 space-y-0.5">
+                                            <div className="mt-0.5 space-y-0.5">
                                                 {(opt.options || []).map((subOpt) => {
                                                     const isSelected = String(subOpt.value) === String(value);
                                                     const isOptDisabled = disabledOptions.includes(subOpt.value) || subOpt.disabled;
@@ -2206,25 +2225,25 @@ function CustomSelect({
                                                                     setSearch('');
                                                                 }
                                                             }}
-                                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left transition-all ${
+                                                            className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
                                                                 isSelected
-                                                                    ? 'bg-brand-600 text-white font-bold'
-                                                                    : 'text-ink-faint hover:bg-interactive-hover hover:text-white'
+                                                                    ? 'bg-[#23C4A6]/15 text-[#93EBD6] font-bold border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.1)]'
+                                                                    : 'text-[rgba(241,245,242,0.85)] hover:bg-white/[0.07] hover:text-white border border-transparent'
                                                             } ${isOptDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                                                         >
-                                                            <div className="flex flex-col gap-0.5 truncate">
+                                                            <div className="flex flex-col gap-0.5 truncate mr-2">
                                                                 <div className="flex items-center gap-1.5 truncate">
-                                                                    {subOpt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-brand-400'} />}
+                                                                    {subOpt.learned && <Brain size={11} className={isSelected ? 'text-[#93EBD6]' : 'text-[#23C4A6]'} />}
                                                                     <span className="truncate">{subOpt.label}</span>
                                                                     {subOpt.confidence !== undefined && (
-                                                                        <span className={`text-3xs px-1 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                                                        <span className={`text-3xs px-1.5 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-[#23C4A6]/25 text-[#93EBD6]' : 'bg-[#23C4A6]/15 text-[#23C4A6]'}`}>
                                                                             {subOpt.confidence}%
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                {subOpt.subtext && <span className={`text-2xs ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{subOpt.subtext}</span>}
+                                                                {subOpt.subtext && <span className={`text-2xs ${isSelected ? 'text-[#93EBD6]/70' : 'text-[rgba(241,245,242,0.5)]'}`}>{subOpt.subtext}</span>}
                                                             </div>
-                                                            {isSelected && <Check size={12} className="shrink-0 ml-2" />}
+                                                            {isSelected && <Check size={13} className="shrink-0 text-[#23C4A6]" />}
                                                         </button>
                                                     );
                                                 })}
@@ -2246,25 +2265,25 @@ function CustomSelect({
                                                     setSearch('');
                                                 }
                                             }}
-                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left transition-all ${
+                                            className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
                                                 isSelected
-                                                    ? 'bg-brand-600 text-white font-bold'
-                                                    : 'text-ink-faint hover:bg-interactive-hover hover:text-white'
+                                                    ? 'bg-[#23C4A6]/15 text-[#93EBD6] font-bold border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.1)]'
+                                                    : 'text-[rgba(241,245,242,0.85)] hover:bg-white/[0.07] hover:text-white border border-transparent'
                                             } ${isOptDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                                         >
-                                            <div className="flex flex-col gap-0.5 truncate">
+                                            <div className="flex flex-col gap-0.5 truncate mr-2">
                                                 <div className="flex items-center gap-1.5 truncate">
-                                                    {opt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-brand-400'} />}
+                                                    {opt.learned && <Brain size={11} className={isSelected ? 'text-[#93EBD6]' : 'text-[#23C4A6]'} />}
                                                     <span className="truncate">{opt.label}</span>
                                                     {opt.confidence !== undefined && (
-                                                        <span className={`text-3xs px-1 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                                        <span className={`text-3xs px-1.5 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-[#23C4A6]/25 text-[#93EBD6]' : 'bg-[#23C4A6]/15 text-[#23C4A6]'}`}>
                                                             {opt.confidence}%
                                                         </span>
                                                     )}
                                                 </div>
-                                                {opt.subtext && <span className={`text-2xs ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{opt.subtext}</span>}
+                                                {opt.subtext && <span className={`text-2xs ${isSelected ? 'text-[#93EBD6]/70' : 'text-[rgba(241,245,242,0.5)]'}`}>{opt.subtext}</span>}
                                             </div>
-                                            {isSelected && <Check size={12} className="shrink-0 ml-2" />}
+                                            {isSelected && <Check size={13} className="shrink-0 text-[#23C4A6]" />}
                                         </button>
                                     );
                                 }

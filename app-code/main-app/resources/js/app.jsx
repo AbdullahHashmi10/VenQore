@@ -104,13 +104,11 @@ createInertiaApp({
             </GlobalErrorBoundary>
         );
 
-        const isSSR = el.hasChildNodes() && !el.innerHTML.includes('Starting Application');
+        const isSSR = el.hasChildNodes();
 
         if (isSSR) {
             hydrateRoot(el, appElement);
         } else {
-            // Clear the static fallback loading screen
-            el.innerHTML = '';
             createRoot(el).render(appElement);
         }
     },

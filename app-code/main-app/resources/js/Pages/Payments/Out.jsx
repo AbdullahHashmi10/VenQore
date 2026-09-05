@@ -140,7 +140,7 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
             )}
 
             {open && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-line rounded-xl shadow-2xl z-50 max-h-56 overflow-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-line rounded-[14px] shadow-2xl z-50 max-h-56 overflow-auto">
                     {results.map(party => {
                         const bal = parseFloat(party.current_balance || 0);
                         const dir = party.balance_direction || (bal > 0 ? 'To Receive' : bal < 0 ? 'To Pay' : 'Settled');
@@ -174,7 +174,7 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
             )}
 
             {open && results.length === 0 && !loading && query && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-line rounded-xl shadow-xl z-50 px-4 py-5 text-center">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-line rounded-[14px] shadow-xl z-50 px-4 py-5 text-center">
                     <p className="text-sm font-medium text-ink-secondary">No contacts found for "{query}"</p>
                     <p className="text-xs text-ink-muted mt-0.5">Try a different name or phone number</p>
                 </div>

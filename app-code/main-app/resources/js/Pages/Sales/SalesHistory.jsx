@@ -718,7 +718,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <CornerUpRight size={16} />
  </button>
  {activeSharePopup === row.id && (
- <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+ <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm"><Mail size={14} className="text-red-500" /> Email</button>
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm"><MessageCircle size={14} className="text-green-500" /> WhatsApp</button>
  </div>
@@ -730,7 +730,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <MoreVertical size={16} />
  </button>
  {activeActionMenu === row.id && (
- <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+ <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <div className="py-1">
  {/* 1. View/Edit - CONDITIONAL REDIRECT */}
  {row.source === 'pos' ? (
@@ -930,7 +930,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <CornerUpRight size={16} />
  </button>
  {activeSharePopup === row.id && (
- <div className="absolute right-0 bottom-full mb-2 w-40 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+ <div className="absolute right-0 bottom-full mb-2 w-40 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm">
  <Mail size={14} className="text-red-500" /> Email
  </button>
@@ -948,7 +948,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <MoreVertical size={16} />
  </button>
  {activeActionMenu === row.id && (
- <div className="absolute right-0 bottom-full mb-2 w-64 bg-surface rounded-xl shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
+ <div className="absolute right-0 bottom-full mb-2 w-64 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <div className="py-1">
  {row.source === 'pos' ? (
  <a href={route('store.pos', { store_slug: store?.slug }) + '?recall=' + row.id} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">

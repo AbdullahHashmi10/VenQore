@@ -187,7 +187,7 @@ const PaymentModal = ({
                                         </div>
 
                                         {activeMethodDropdownIndex === index && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 bg-surface rounded-xl shadow-2xl border border-line overflow-hidden z-drawer animate-in slide-in-from-top-2 duration-normal max-h-48 overflow-y-auto">
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-surface rounded-[14px] shadow-2xl border border-line overflow-hidden z-drawer animate-in slide-in-from-top-2 duration-normal max-h-48 overflow-y-auto">
                                                 {paymentMethods.map(method => (
                                                     <button
                                                         key={method.id}
@@ -234,7 +234,7 @@ const PaymentModal = ({
                                              </button>
 
                                              {activeAccountDropdownIndex === index && (
-                                                 <div className="absolute top-full left-0 right-0 mt-0.5 bg-surface rounded-lg shadow-xl border border-line overflow-hidden z-drawer animate-in slide-in-from-top-1 duration-fast max-h-32 overflow-y-auto">
+                                                 <div className="absolute top-full left-0 right-0 mt-0.5 bg-surface rounded-[14px] shadow-xl border border-line overflow-hidden z-drawer animate-in slide-in-from-top-1 duration-fast max-h-32 overflow-y-auto">
                                                      {bankAccounts.map(acc => (
                                                          <button
                                                              key={acc.id}

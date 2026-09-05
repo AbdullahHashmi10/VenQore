@@ -473,8 +473,8 @@ const SmartCombobox = ({
  <div
  ref={popRef}
  className={portal
- ? 'fixed bg-surface border border-line rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-fast'
- : `absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-surface border border-line rounded-2xl shadow-2xl z-drawer animate-in fade-in zoom-in-95 duration-fast`}
+ ? 'fixed bg-surface border border-line rounded-[14px] shadow-2xl animate-in fade-in zoom-in-95 duration-fast'
+ : `absolute ${openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} left-1/2 -translate-x-1/2 min-w-full w-max max-w-[350px] bg-surface border border-line rounded-[14px] shadow-2xl z-drawer animate-in fade-in zoom-in-95 duration-fast`}
  style={portal && anchor ? {
  left: anchor.left + anchor.width / 2,
  transform: 'translateX(-50%)',

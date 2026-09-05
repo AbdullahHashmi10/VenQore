@@ -24,6 +24,7 @@
   --vq-r-xs: 14px;
   --vq-r-sm: 14px;
   --vq-r-md: 14px;   /* BASE */
+  --vq-r-dropdown: 14px; /* dropdown menus, selects, comboboxes, popovers — strict 14px rule */
   --vq-r-lg: 14px;
   --vq-r-xl: 14px;
   --vq-r-2xl: 14px;

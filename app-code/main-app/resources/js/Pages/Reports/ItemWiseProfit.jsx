@@ -680,7 +680,7 @@ function ProductMultiSelect({ allProducts, selected, onToggle }) {
                 <ChevronDown size={12} />
             </button>
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-72 bg-surface rounded-xl shadow-xl border border-line z-30 overflow-hidden">
+                <div className="absolute top-full left-0 mt-2 w-72 bg-surface rounded-[14px] shadow-xl border border-line z-30 overflow-hidden">
                     <div className="p-2 border-b border-line">
                         <input
                             type="text"

@@ -100,7 +100,7 @@ export default function TerminalStatusBadge() {
                 leaveFrom="transform scale-100 opacity-100"
                 leaveTo="transform scale-95 opacity-0"
             >
-                <Popover.Panel className="absolute z-50 mt-2 bg-surface rounded-xl shadow-xl border border-line p-3 w-48 right-0">
+                <Popover.Panel className="absolute z-50 mt-2 bg-surface rounded-[14px] shadow-xl border border-line p-3 w-48 right-0">
                     <div className="space-y-2">
                         <div className="text-xs font-bold text-ink-secondary dark:text-ink border-b border-line pb-1">
                             {terminal.name}

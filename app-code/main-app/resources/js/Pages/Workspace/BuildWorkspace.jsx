@@ -1,585 +1,1037 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║  BuildWorkspace — the public builder. Landing sentence in, system out.    ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
+ *
+ * WHAT CHANGED AND WHY
+ *
+ * This screen used to open on `step: 'result'` with `isAnalyzing: true`. One
+ * sentence typed on the landing page went in, and a finished architecture came
+ * out with no questions in between. It read as a guess, because it was one —
+ * and the two follow-up dropdowns further in (sales method, team size) were not
+ * even validated server-side, so answering them changed nothing at all.
+ *
+ * The replacement asks six questions before the reveal. That is more friction
+ * on paper and less in practice, for one reason: every answer visibly moves the
+ * panel on the right. Friction the user can see paying off is not friction; it
+ * is the thing that makes the result feel earned rather than assigned. The rule
+ * that keeps it honest lives in the config — a question that cannot move the
+ * stack does not get asked.
+ *
+ * ── This flow is not for one industry ──────────────────────────────────────
+ * Fifteen presets ship in `config/ai_builder.php` — pharmacy, salon, freelancer,
+ * wholesale, repair workshop, multi-branch retail and the rest. Nothing on this
+ * screen is written for retail or for food. The questions are the ones a
+ * consultant would ask any business in any trade (do you hold stock, do you make
+ * anything, where does money change hands, do people pay late, how many of you
+ * are there), and the reveal is written from whichever preset matched. If a
+ * question ever needs an industry-specific option, that is the signal it has
+ * become the wrong question.
+ *
+ * ── Contracts kept exactly ─────────────────────────────────────────────────
+ *   workspace.analyze   { prompt, preset, answers? } -> preset + modules + capabilities
+ *   workspace.demand    { prompt, email, source }
+ *   workspace.provision { business_name, currency, phone, email, password,
+ *                         modules, preset_key }
+ * `answers` is additive and optional: the server applies the same `implies` map
+ * this page does, so the two agree, and an older server simply ignores it.
+ */
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { ThinkingOrb } from '@/Components/ThinkingOrbs/ThinkingOrb';
-import { Sparkles, ArrowRight, ArrowLeft, Check, CheckCircle2, Shield, Plus, Trash2, Globe, Building2, Phone, Mail, Lock, Bot, Rocket, Layers } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import {
+    ArrowRight, Building2, Check, ChevronDown, Globe, Lock, Mail, Phone, Rocket,
+    Send, ShieldCheck, Sparkles, Wand2,
+} from 'lucide-react';
+import { ThinkingOrb } from '@/Components/ThinkingOrbs';
+import {
+    BuilderShell,
+    HandoffTips,
+    LiveStack,
+    ModuleGrid,
+    QuestionStep,
+    RecommendedBand,
+    StackPill,
+    useDiscovery,
+    useSessionState,
+} from '@/Components/Builder';
 
-export default function BuildWorkspace({ initialPrompt = '', initialPreset = '', presets = {}, allModules = [] }) {
- const [step, setStep] = useState('result'); // 'result' | 'identity' | 'building' | 'account'
- const [prompt, setPrompt] = useState(initialPrompt);
- const [presetKey, setPresetKey] = useState(initialPreset);
- const [isAnalyzing, setIsAnalyzing] = useState(true);
+/* Every in-progress attempt in this tab shares one slot. A visitor who leaves
+   mid-flow and comes back to /build-workspace — browser back, a closed tab
+   reopened, a bookmark — gets the same attempt back rather than starting over,
+   which a plain useState cannot do: any of those is a real page visit, and
+   Inertia rebuilds this component from nothing when one happens. See
+   useSessionState and useDiscovery's storageKey for the mechanism. */
+const STORAGE_KEY = 'vq-build-workspace';
 
- const [presetLabel, setPresetLabel] = useState('Custom Workspace');
- const [presetDesc, setPresetDesc] = useState('Tailored workspace built for your operational needs.');
- const [activeModules, setActiveModules] = useState(['products', 'pos', 'inventory', 'expenses', 'reports']);
- const [capabilities, setCapabilities] = useState([]);
- const [showAllFeatures, setShowAllFeatures] = useState(false);
+const CURRENCY_LIST = [
+    { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+    { code: 'PKR', symbol: '₨', name: 'Pakistani Rupee', flag: '🇵🇰' },
+    { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
+    { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+    { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+    { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal', flag: '🇸🇦' },
+    { code: 'CAD', symbol: '$', name: 'Canadian Dollar', flag: '🇨🇦' },
+    { code: 'AUD', symbol: '$', name: 'Australian Dollar', flag: '🇦🇺' },
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
+];
 
- // Demand Log state
- const [showDemandInput, setShowDemandInput] = useState(false);
- const [demandText, setDemandText] = useState('');
- const [demandEmail, setDemandEmail] = useState('');
- const [isSendingDemand, setIsSendingDemand] = useState(false);
- const [demandSubmitted, setDemandSubmitted] = useState(false);
+/**
+ * Example sentences for the free-text step. Deliberately spread across five
+ * unrelated trades — a visitor who runs a salon should not have to translate a
+ * grocery example into their own words to understand what the box wants.
+ */
+const EXAMPLES = [
+    'I run a grocery store with two counters and sell on credit.',
+    'Salon with four chairs, we book appointments and sell products.',
+    'I am a freelance designer invoicing clients monthly.',
+    'Wholesale distributor, 30-day terms, deliveries to shops.',
+    'Phone repair shop — parts, jobs and walk-in sales.',
+];
 
- // Identity Inputs
- const [businessName, setBusinessName] = useState('');
- const [currency, setCurrency] = useState('PKR');
- const [phone, setPhone] = useState('');
+const csrf = () =>
+    document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
- // Account Inputs
- const [email, setEmail] = useState('');
- const [password, setPassword] = useState('');
- const [isProvisioning, setIsProvisioning] = useState(false);
- const [buildStepIndex, setBuildStepIndex] = useState(0);
+const postJson = async (url, body) => {
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrf(),
+        },
+        body: JSON.stringify(body),
+    });
+    return res.json();
+};
 
- // Initial analysis on mount
- useEffect(() => {
- analyzePrompt(initialPrompt, initialPreset);
- }, []);
+export default function BuildWorkspace({
+    initialPrompt = '',
+    initialPreset = '',
+    initialEmail = '',
+    initialCurrency = 'USD',
+    allModules = [],
+    discovery = [],
+    recommended = {},
+}) {
 
- const analyzePrompt = async (p, pr) => {
- setIsAnalyzing(true);
- try {
- const res = await fetch(route('workspace.analyze'), {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json',
- 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
- },
- body: JSON.stringify({ prompt: p, preset: pr }),
- });
- const data = await res.json();
- if (data.success) {
- setPresetLabel(data.preset_label);
- if (data.preset_description) setPresetDesc(data.preset_description);
- if (data.prompt) setPrompt(data.prompt);
- setActiveModules(data.modules);
- setCapabilities(data.capabilities);
- }
- } catch (e) {
- console.error(e);
- } finally {
- setIsAnalyzing(false);
- }
- };
+    /* ── Phase machine ─────────────────────────────────────────────────────
+       'intent' is skipped when the landing hero already captured a sentence,
+       which is the common path. Asking someone to describe their business a
+       second time is the fastest way to make a flow feel like paperwork.
 
- const handleSendDemand = async () => {
- if (!demandText.trim()) return;
- setIsSendingDemand(true);
- try {
- const res = await fetch(route('workspace.demand'), {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json',
- 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
- },
- body: JSON.stringify({
- prompt: demandText,
- email: demandEmail || null,
- source: 'build_workspace',
- }),
- });
- const data = await res.json();
- if (data.success) {
- setDemandSubmitted(true);
- }
- } catch (err) {
- console.error(err);
- } finally {
- setIsSendingDemand(false);
- }
- };
+       Everything below that a returning visit should restore lives in
+       sessionStorage via useSessionState, not plain useState — see the note
+       by STORAGE_KEY above. Session state hydrates synchronously from the
+       initialiser, so there is no flash of the wrong phase on remount. */
+    const [rawPhase, setPhase] = useSessionState(
+        `${STORAGE_KEY}:phase`,
+        initialPrompt ? 'questions' : 'intent',
+    );
+    const [qIndex, setQIndex] = useSessionState(`${STORAGE_KEY}:qIndex`, 0);
 
- const toggleModule = (modKey) => {
- if (activeModules.includes(modKey)) {
- setActiveModules(activeModules.filter(m => m !== modKey));
- } else {
- setActiveModules([...activeModules, modKey]);
- }
- };
+    const [prompt, setPrompt] = useSessionState(`${STORAGE_KEY}:prompt`, initialPrompt);
+    const [presetKey, setPresetKey] = useSessionState(`${STORAGE_KEY}:presetKey`, initialPreset);
+    const [presetLabel, setPresetLabel] = useSessionState(`${STORAGE_KEY}:presetLabel`, '');
+    const [presetDesc, setPresetDesc] = useSessionState(`${STORAGE_KEY}:presetDesc`, '');
+    const [baseModules, setBaseModules] = useSessionState(`${STORAGE_KEY}:baseModules`, []);
+    const [capabilities, setCapabilities] = useSessionState(`${STORAGE_KEY}:capabilities`, []);
+    const [analysed, setAnalysed] = useState(false);
 
- // "Identity" now leads straight to the account form — the "we're building
- // while you fill this in" moment was fake (a 4.4s setInterval with zero
- // backend work happening underneath it). The real provisioning request is
- // now what the building screen actually waits on: it starts as soon as
- // account details are submitted, and the screen doesn't advance until the
- // request resolves. The step labels are cosmetic pacing during a real
- // network call, not a countdown to nothing.
- const handleProvision = async (e) => {
- e.preventDefault();
- setStep('building');
- setIsProvisioning(true);
- setBuildStepIndex(0);
+    const legalKeys = useMemo(() => allModules.map((m) => m.key), [allModules]);
 
- // Cosmetic pacing for the real request in flight — cleared as soon as
- // the actual response comes back, whichever happens first.
- let idx = 0;
- const pacer = setInterval(() => {
- idx = Math.min(idx + 1, 2); // hold at step 3 of 4 until the request actually finishes
- setBuildStepIndex(idx);
- }, 900);
+    const {
+        questions, answers, answer, commitMulti, modules: proposedModules,
+        attribution, headline, forget: forgetAnswers,
+    } = useDiscovery(discovery, baseModules, legalKeys, STORAGE_KEY);
 
- try {
- const res = await fetch(route('workspace.provision'), {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json',
- 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
- },
- body: JSON.stringify({
- business_name: businessName || 'My Business',
- currency,
- phone,
- email,
- password,
- modules: activeModules,
- preset_key: presetKey || null,
- }),
- });
- const data = await res.json();
- clearInterval(pacer);
+    /* The user's own edits on the reveal screen override the proposal. Until
+       they touch it, the proposal flows straight through. */
+    const [edited, setEdited] = useSessionState(`${STORAGE_KEY}:edited`, null);
+    const activeModules = edited ?? proposedModules;
 
- if (data.success && data.redirect) {
- setBuildStepIndex(3);
- setTimeout(() => {
- window.location.href = data.redirect;
- }, 500);
- } else {
- alert(data.message || 'Provisioning error');
- setIsProvisioning(false);
- setStep('account');
- }
- } catch (err) {
- clearInterval(pacer);
- console.error(err);
- setIsProvisioning(false);
- setStep('account');
- }
- };
+    /* A finished attempt should not greet the next visitor to this tab with
+       someone else's half-built workspace. Everything under STORAGE_KEY is
+       cleared the moment provisioning actually succeeds — see `provision`. */
+    const forgetAttempt = () => {
+        forgetAnswers();
+        [
+            'phase', 'qIndex', 'prompt', 'presetKey', 'presetLabel',
+            'presetDesc', 'baseModules', 'capabilities', 'edited',
+        ].forEach((slot) => {
+            try {
+                window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
+            } catch (e) {
+                /* nothing to clean up */
+            }
+        });
+    };
 
- return (
- <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-brand-500 selection:text-white flex flex-col justify-between p-4 md:p-8 relative overflow-hidden">
- <Head title="Build Your Workspace — VenQore" />
+    const [lastAnswer, setLastAnswer] = useState(null);
 
- {/* Ambient Background Lighting */}
- <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-600/10 rounded-full blur-[140px] pointer-events-none" />
- <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[140px] pointer-events-none" />
+    /* Derived, not synced. An empty discovery config must never strand anyone on
+       a blank screen, but reaching for an effect to correct the phase costs a
+       second render and a frame of the wrong UI. Deriving it means the bad state
+       never exists in the first place. */
+    const phase =
+        rawPhase === 'questions' && questions.length === 0 ? 'reveal' : rawPhase;
 
- {/* Top Navigation */}
- <header className="w-full max-w-5xl mx-auto flex items-center justify-between py-3 border-b border-neutral-800/80 mb-8 relative z-20">
- <div className="flex items-center gap-3">
- <div className="p-2 bg-brand-500/10 border border-brand-500/30 rounded-xl">
- <ThinkingOrb state="breathing" size={24} theme="dark" />
- </div>
- <span className="font-bold text-lg tracking-tight text-white">
- VenQore <span className="text-brand-400 font-mono text-xs font-normal ml-1">Workspace Builder</span>
- </span>
- </div>
+    /* Identity + account */
+    const [businessName, setBusinessName] = useState('');
+    const [currency, setCurrency] = useState(initialCurrency || 'USD');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState(initialEmail || '');
+    const [password, setPassword] = useState('');
+    const [provisionError, setProvisionError] = useState('');
+    const [buildIndex, setBuildIndex] = useState(0);
+    const [googleBusy, setGoogleBusy] = useState(false);
 
- <div className="flex items-center gap-2 text-xs font-semibold text-ink-muted">
- <Shield size={14} className="text-emerald-400" />
- <span>The Qore Ledger Verified</span>
- </div>
- </header>
+    /* Demand log */
+    const [demandOpen, setDemandOpen] = useState(false);
+    const [demandText, setDemandText] = useState('');
+    const [demandSent, setDemandSent] = useState(false);
+    const [demandBusy, setDemandBusy] = useState(false);
 
- {/* Main Stage */}
- <main className="relative z-10 my-auto py-4 w-full max-w-4xl mx-auto">
- {/* ── STEP 1: AI Result ("We built this for you") ────────────── */}
- {step === 'result' && (
- <div className="space-y-8 animate-fadeIn">
- <div className="text-center space-y-3">
- <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-500/10 border border-brand-500/30 rounded-full text-brand-300 text-xs font-medium shadow-xl">
- <Bot size={14} />
- <span>AI Workspace Architecture</span>
- </div>
- <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
- We Built This Setup For Your Business
- </h1>
- {prompt ? (
- <div className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900/90 border border-brand-500/30 rounded-2xl text-xs text-neutral-300 max-w-xl mx-auto shadow-inner">
- <span className="text-brand-400 font-semibold shrink-0">Tailored to:</span>
- <span className="italic text-neutral-100 truncate">“{prompt}”</span>
- </div>
- ) : (
- <p className="text-ink-muted text-sm max-w-lg mx-auto">
- Based on your requirements, VenQore configured this workspace with zero feature paywalls.
- </p>
- )}
- </div>
+    const promptRef = useRef(null);
 
- {/* Capability Stack Cards */}
- {isAnalyzing ? (
- <div className="py-12 text-center space-y-4">
- <div className="flex justify-center">
- <ThinkingOrb state="solving" size={80} theme="dark" />
- </div>
- <p className="text-ink-muted text-xs font-mono">Analyzing requirements & assembling workspace...</p>
- </div>
- ) : (
- <div className="p-6 md:p-8 bg-neutral-900/80 border border-neutral-800 rounded-2xl space-y-6 shadow-2xl backdrop-blur-2xl">
- <div className="flex items-center justify-between">
- <div>
- <div className="flex items-center gap-2">
- <span className="text-2xs font-mono uppercase tracking-wider px-2 py-0.5 bg-brand-500/20 text-brand-300 border border-brand-500/30 rounded-md">Matched Preset</span>
- <h3 className="text-xl font-bold text-white">{presetLabel}</h3>
- </div>
- <p className="text-xs text-ink-muted mt-1">{presetDesc}</p>
- </div>
- <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold rounded-full">
- All Included ($0 Fee)
- </span>
- </div>
+    /* ── Analysis ──────────────────────────────────────────────────────────
+       Runs once, as soon as there is a sentence to run it on. It resolves the
+       preset in the background WHILE the visitor answers questions, so the
+       reveal has nothing to wait for. */
+    const analyse = async (text, preset) => {
+        try {
+            const data = await postJson(route('workspace.analyze'), {
+                prompt: text,
+                preset,
+                answers,
+            });
+            if (!data?.success) return;
+            setPresetKey(data.preset_key || '');
+            setPresetLabel(data.preset_label || '');
+            setPresetDesc(data.preset_description || '');
+            setBaseModules(data.modules || []);
+            setCapabilities(data.capabilities || []);
+        } catch (e) {
+            /* A failed match is not a dead end — the questions still build a
+               stack on their own, and the reveal renders from that. */
+        } finally {
+            setAnalysed(true);
+        }
+    };
 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
- {capabilities.map((cap) => {
- const isSelected = activeModules.includes(cap.key);
- return (
- <div
- key={cap.key}
- onClick={() => toggleModule(cap.key)}
- className={`cursor-pointer p-4 rounded-2xl border transition-all flex items-center justify-between ${
- isSelected
- ? 'bg-neutral-950/90 border-brand-500/50 text-white shadow-lg'
- : 'bg-neutral-950/40 border-neutral-800/80 text-ink-muted opacity-50'
- }`}
- >
- <div className="flex items-center gap-3">
- <div className={`p-2 rounded-xl border ${
- isSelected ? 'bg-brand-500/10 border-brand-500/30 text-brand-400' : 'bg-neutral-800 border-neutral-700'
- }`}>
- <Layers size={18} />
- </div>
- <div>
- <h4 className="text-xs font-bold">{cap.label}</h4>
- <p className="text-1xs text-ink-muted">{cap.desc}</p>
- </div>
- </div>
- <div className={`p-1 rounded-full ${isSelected ? 'bg-emerald-500 text-white' : 'border border-neutral-700'}`}>
- <Check size={12} />
- </div>
- </div>
- );
- })}
- </div>
+    useEffect(() => {
+        /* Skip re-analysing on a restored attempt — a returning visit already
+           has a resolved preset in sessionStorage (or is mid-questions with
+           none yet, which is also fine), and re-running this would overwrite
+           it with a fresh match built from an empty `answers` object, quietly
+           undoing whatever the questions had already found. */
+        if (analysed || presetKey || baseModules.length) {
+            setAnalysed(true);
+            return;
+        }
+        if (initialPrompt || initialPreset) analyse(initialPrompt, initialPreset);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
- {/* Add more features — browse the full catalog, not just toggle
- off what was suggested */}
- <div className="pt-1">
- <button
- type="button"
- onClick={() => setShowAllFeatures(v => !v)}
- className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 hover:text-white py-2 px-1 transition-colors"
- >
- <span className="flex items-center gap-1.5">
- <Plus size={14} className={showAllFeatures ? 'rotate-45 transition-transform' : 'transition-transform'} />
- Want to add more features?
- </span>
- <span className="text-ink-muted font-normal">{allModules.length} available</span>
- </button>
+    /* Provisioning pacer — cosmetic only; the redirect is driven by the
+       response, never by this timer. */
+    useEffect(() => {
+        if (phase !== 'building') return;
+        const t = window.setInterval(
+            () => setBuildIndex((i) => Math.min(i + 1, 2)),
+            900,
+        );
+        return () => window.clearInterval(t);
+    }, [phase]);
 
- {showAllFeatures && (
- <div className="mt-2 p-4 bg-neutral-950/60 border border-neutral-800 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-2 max-h-72 overflow-y-auto">
- {allModules.map((mod) => {
- const isSelected = activeModules.includes(mod.key);
- return (
- <div
- key={mod.key}
- onClick={() => toggleModule(mod.key)}
- className={`cursor-pointer p-3 rounded-xl border transition-all flex items-center justify-between gap-2 ${
- isSelected
- ? 'bg-brand-500/10 border-brand-500/40 text-white'
- : 'bg-neutral-900/60 border-neutral-800 text-ink-muted hover:border-line-strong'
- }`}
- >
- <div className="min-w-0">
- <h4 className="text-xs font-bold truncate">{mod.label}</h4>
- {mod.description && (
- <p className="text-2xs text-ink-muted truncate">{mod.description}</p>
- )}
- </div>
- <div className={`shrink-0 p-1 rounded-full ${isSelected ? 'bg-emerald-500 text-white' : 'border border-neutral-700'}`}>
- <Check size={11} />
- </div>
- </div>
- );
- })}
- </div>
- )}
- </div>
+    /* The house recommendations, resolved against the live registry. They are
+       already inside `modules` (the server merges them), but they are pulled out
+       here so the proposal can show them in their own labelled band. Padding a
+       proposal with modules nobody asked for is only acceptable if you say so —
+       see config/ai_builder.php §3b. */
+    const recommendedList = useMemo(
+        () =>
+            Object.entries(recommended || [])
+                .map(([key, meta]) => {
+                    const mod = allModules.find((m) => m.key === key);
+                    return mod ? { ...mod, why: meta.why } : null;
+                })
+                .filter(Boolean),
+        [recommended, allModules],
+    );
 
- {/* Demand Log Section */}
- <div className="pt-2 border-t border-neutral-800/80">
- {!showDemandInput ? (
- <button
- type="button"
- onClick={() => setShowDemandInput(true)}
- className="text-2xs text-ink-muted hover:text-brand-400 font-medium transition-colors flex items-center gap-1 mx-auto"
- >
- <span>Not quite right? Tell us your exact business workflow</span>
- <ArrowRight size={11} />
- </button>
- ) : (
- <div className="p-4 bg-neutral-950/80 border border-neutral-800 rounded-2xl space-y-3 animate-fadeIn">
- <div className="flex items-center justify-between">
- <span className="text-xs font-bold text-neutral-200">What specific workflow or features do you need?</span>
- <button
- type="button"
- onClick={() => setShowDemandInput(false)}
- className="text-ink-muted hover:text-white text-xs px-1"
- >
- ✕
- </button>
- </div>
- {demandSubmitted ? (
- <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
- <CheckCircle2 size={16} />
- <span>Thank you! Your request has been logged. Our engineering team reviews all incoming workflow needs.</span>
- </div>
- ) : (
- <div className="space-y-2">
- <textarea
- rows={2}
- value={demandText}
- onChange={(e) => setDemandText(e.target.value)}
- placeholder="e.g., We need multi-warehouse stock transfer approvals and custom warranty cards..."
- className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
- />
- <div className="flex items-center justify-between gap-2">
- <input
- type="email"
- value={demandEmail}
- onChange={(e) => setDemandEmail(e.target.value)}
- placeholder="Your email (optional, for updates)"
- className="flex-1 px-3 py-1.5 bg-neutral-900 border border-neutral-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
- />
- <button
- type="button"
- disabled={isSendingDemand || !demandText.trim()}
- onClick={handleSendDemand}
- className="px-4 py-1.5 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all"
- >
- {isSendingDemand ? 'Sending...' : 'Submit to Roadmap'}
- </button>
- </div>
- </div>
- )}
- </div>
- )}
- </div>
+    /* Shown once. The band owns them, so the main grid does not repeat them. */
+    const gridCatalogue = useMemo(
+        () => allModules.filter((m) => !recommended?.[m.key]),
+        [allModules, recommended],
+    );
 
- <div className="pt-2 flex items-center justify-between text-xs text-ink-muted">
- <span className="text-brand-400 font-mono">✨ You can change these anytime with zero data loss.</span>
- <button
- onClick={() => setStep('identity')}
- className="py-3 px-6 bg-gradient-brand text-white font-bold rounded-xl shadow-lg flex items-center gap-2 transition-all"
- >
- <span>Continue to Identity</span>
- <ArrowRight size={16} />
- </button>
- </div>
- </div>
- )}
- </div>
- )}
+    const catalogueByKey = useMemo(() => {
+        const map = {};
+        for (const m of allModules) map[m.key] = m;
+        for (const c of capabilities) {
+            map[c.key] = {
+                ...map[c.key],
+                ...c,
+                description: c.desc || map[c.key]?.description,
+            };
+        }
+        return map;
+    }, [allModules, capabilities]);
 
- {/* ── STEP 2: Business Identity (3 Fields) ──────────────────── */}
- {step === 'identity' && (
- <div className="space-y-8 animate-fadeIn max-w-xl mx-auto">
- <div className="text-center space-y-2">
- <h2 className="text-3xl font-bold text-white tracking-tight">Let's Make It Yours</h2>
- <p className="text-ink-muted text-xs md:text-sm">
- Enter your business details to personalize your workspace.
- </p>
- </div>
+    /* Hard dependencies of what is currently on. Registry-driven: a module with
+       no `requires` never locks anything. */
+    const locked = useMemo(() => {
+        const out = {};
+        for (const key of activeModules) {
+            const reqs = catalogueByKey[key]?.requires || [];
+            for (const dep of reqs) {
+                if (activeModules.includes(dep)) {
+                    out[dep] = `Required by ${catalogueByKey[key]?.label || key}`;
+                }
+            }
+        }
+        return out;
+    }, [activeModules, catalogueByKey]);
 
- <div className="p-6 md:p-8 bg-neutral-900/80 border border-neutral-800 rounded-2xl space-y-5 shadow-2xl backdrop-blur-2xl">
- <div className="space-y-1.5">
- <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
- Business Name *
- </label>
- <div className="relative">
- <input
- type="text"
- value={businessName}
- onChange={(e) => setBusinessName(e.target.value)}
- placeholder="e.g. Hashmi Mart"
- className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 transition-all pl-10"
- />
- <Building2 size={16} className="absolute left-3.5 top-3.5 text-ink-muted" />
- </div>
- </div>
+    const handleAnswer = (questionKey, optionKey, opts) => {
+        answer(questionKey, optionKey, opts);
+        /* Re-answering re-opens the proposal. Without this, someone who edited
+           the stack on the reveal screen and then went back to change an answer
+           would watch their new answer do nothing at all — the exact failure
+           this whole redesign exists to remove. */
+        setEdited(null);
+        const q = questions.find((x) => x.key === questionKey);
+        setLastAnswer({
+            questionKey,
+            optionLabel: q?.options?.[optionKey] || '',
+            at: Date.now(),
+        });
+    };
 
- <div className="space-y-1.5">
- <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
- Base Currency *
- </label>
- <div className="relative">
- <select
- value={currency}
- onChange={(e) => setCurrency(e.target.value)}
- className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700/80 rounded-2xl text-white text-sm focus:outline-none focus:border-brand-500 transition-all pl-10 appearance-none cursor-pointer"
- >
- <option value="PKR">PKR ₨ — Pakistani Rupee</option>
- <option value="USD">USD $ — US Dollar</option>
- <option value="AED">AED — UAE Dirham</option>
- <option value="EUR">EUR € — Euro</option>
- </select>
- <Globe size={16} className="absolute left-3.5 top-3.5 text-ink-muted" />
- </div>
- </div>
+    const advance = () => {
+        setQIndex((i) => {
+            if (i + 1 >= questions.length) {
+                setPhase('reveal');
+                return i;
+            }
+            return i + 1;
+        });
+    };
 
- <div className="space-y-1.5">
- <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider flex items-center justify-between">
- <span>Phone Number</span>
- <span className="text-ink-muted text-2xs lowercase font-normal">Optional</span>
- </label>
- <div className="relative">
- <input
- type="text"
- value={phone}
- onChange={(e) => setPhone(e.target.value)}
- placeholder="e.g. +92 300 1234567"
- className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 transition-all pl-10"
- />
- <Phone size={16} className="absolute left-3.5 top-3.5 text-ink-muted" />
- </div>
- </div>
+    /* Multi questions do not auto-advance — the user is not finished until they
+       say so. Continue also RECORDS the answer even when nothing was ticked, so
+       "none of these" is a real answer rather than an unanswered question. */
+    const continueFromMulti = () => {
+        const q = questions[qIndex];
+        if (q) commitMulti(q.key);
+        advance();
+    };
 
- <div className="pt-2 flex items-center justify-between">
- <button
- onClick={() => setStep('result')}
- className="text-xs text-ink-muted hover:text-white font-semibold flex items-center gap-1.5"
- >
- <ArrowLeft size={14} />
- <span>Back</span>
- </button>
+    const startFromPrompt = () => {
+        if (!prompt.trim()) {
+            promptRef.current?.focus();
+            return;
+        }
+        analyse(prompt, '');
+        setPhase(questions.length ? 'questions' : 'reveal');
+    };
 
- <button
- onClick={() => setStep('account')}
- className="py-3.5 px-6 bg-gradient-brand text-white font-bold text-sm rounded-2xl shadow-xl flex items-center gap-2 transition-all"
- >
- <Rocket size={18} />
- <span>Continue to Account →</span>
- </button>
- </div>
- </div>
- </div>
- )}
+    const toggleModule = (key) => {
+        const current = activeModules;
+        setEdited(
+            current.includes(key)
+                ? current.filter((k) => k !== key)
+                : [...current, key],
+        );
+    };
 
- {/* ── STEP 3: Emotional 3D Build Animation ───────────────────── */}
- {step === 'building' && (
- <div className="py-8 space-y-8 animate-fadeIn text-center max-w-xl mx-auto">
- <div className="flex justify-center relative">
- <div className="p-6 bg-neutral-900/90 border border-neutral-700/80 rounded-full shadow-2xl backdrop-blur-2xl">
- <ThinkingOrb state="connecting" size={110} theme="dark" />
- </div>
- </div>
+    const sendDemand = async () => {
+        if (!demandText.trim()) return;
+        setDemandBusy(true);
+        try {
+            const data = await postJson(route('workspace.demand'), {
+                prompt: demandText,
+                email: email || null,
+                source: 'build_workspace',
+            });
+            if (data?.success) setDemandSent(true);
+        } catch (e) {
+            /* Losing a demand note must never block signup. */
+        } finally {
+            setDemandBusy(false);
+        }
+    };
 
- <div className="space-y-2">
- <h2 className="text-3xl font-bold text-white tracking-tight">Constructing Your Workspace</h2>
- <p className="text-ink-muted text-xs">Assembling your verified architecture on The Qore ledger...</p>
- </div>
+    const provision = async (e) => {
+        e.preventDefault();
+        setProvisionError('');
+        setPhase('building');
+        setBuildIndex(0);
+        try {
+            const data = await postJson(route('workspace.provision'), {
+                business_name: businessName || 'My Business',
+                currency,
+                phone,
+                email,
+                password,
+                modules: activeModules,
+                preset_key: presetKey || null,
+            });
+            if (data?.success && data.redirect) {
+                setBuildIndex(3);
+                /* The workspace exists now — nothing left in this tab's
+                   storage should outlive it. */
+                forgetAttempt();
+                window.setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 520);
+                return;
+            }
+            setProvisionError(data?.message || 'We could not finish that. Please try again.');
+            setPhase('account');
+        } catch (err) {
+            setProvisionError('Network problem — nothing was created. Please try again.');
+            setPhase('account');
+        }
+    };
 
- <div className="p-6 bg-neutral-900/80 border border-neutral-800 rounded-2xl space-y-3 text-left shadow-2xl">
- {[
- 'Understanding your business requirements',
- 'Setting up your workspace & modules',
- 'Connecting data engine & ledger sequences',
- 'Personalizing your dashboard',
- ].map((stTitle, idx) => {
- const isDone = idx <= buildStepIndex;
- return (
- <div
- key={idx}
- className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
- isDone ? 'bg-brand-500/10 border-brand-500/30 text-white' : 'opacity-40 border-transparent text-ink-muted'
- }`}
- >
- <CheckCircle2 size={18} className={isDone ? 'text-emerald-400' : 'text-ink-secondary'} />
- <span className="text-xs font-semibold">{stTitle}</span>
- </div>
- );
- })}
- </div>
- </div>
- )}
+    const handleGoogleSignUp = async () => {
+        setGoogleBusy(true);
+        setProvisionError('');
+        try {
+            const data = await postJson(route('workspace.prepare-google'), {
+                business_name: businessName || 'My Business',
+                currency,
+                phone,
+                modules: activeModules,
+                preset_key: presetKey || null,
+            });
+            if (data?.auth_url) {
+                forgetAttempt();
+                window.location.href = data.auth_url;
+                return;
+            }
+            window.location.href = route('auth.google');
+        } catch (e) {
+            window.location.href = route('auth.google');
+        }
+    };
 
- {/* ── STEP 4: Account Registration ("Save to Enter") ──────────── */}
- {step === 'account' && (
- <div className="space-y-8 animate-fadeIn max-w-md mx-auto">
- <div className="text-center space-y-2">
- <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-300 text-xs font-semibold">
- <CheckCircle2 size={14} />
- <span>Almost there — one last step</span>
- </div>
- <h2 className="text-3xl font-bold text-white tracking-tight">Save Your Workspace</h2>
- <p className="text-ink-muted text-xs">Create your account credentials — we'll build your workspace as soon as you submit.</p>
- </div>
+    /* ── Progress ──────────────────────────────────────────────────────────
+       Honest totals. The rail counts the screens that actually exist for this
+       visitor, so someone who arrived with a sentence sees a shorter flow than
+       someone who did not — because they have one. */
+    const hasIntent = !initialPrompt;
+    const totalSteps = (hasIntent ? 1 : 0) + questions.length + 3;
+    const stepNow =
+        phase === 'intent'
+            ? 1
+            : phase === 'questions'
+              ? (hasIntent ? 1 : 0) + qIndex + 1
+              : phase === 'reveal'
+                ? (hasIntent ? 1 : 0) + questions.length + 1
+                : phase === 'identity'
+                  ? (hasIntent ? 1 : 0) + questions.length + 2
+                  : totalSteps;
 
- <form onSubmit={handleProvision} className="p-6 md:p-8 bg-neutral-900/80 border border-neutral-800 rounded-2xl space-y-4 shadow-2xl backdrop-blur-2xl">
- <div className="space-y-1">
- <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
- Account Email *
- </label>
- <div className="relative">
- <input
- type="email"
- required
- value={email}
- onChange={(e) => setEmail(e.target.value)}
- placeholder="owner@yourbusiness.com"
- className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 transition-all pl-10"
- />
- <Mail size={16} className="absolute left-3.5 top-3.5 text-ink-muted" />
- </div>
- </div>
+    const backTarget = () => {
+        if (phase === 'questions' && qIndex > 0) return () => setQIndex((i) => i - 1);
+        if (phase === 'questions' && hasIntent) return () => setPhase('intent');
+        if (phase === 'reveal' && questions.length) {
+            return () => {
+                setPhase('questions');
+                setQIndex(questions.length - 1);
+            };
+        }
+        if (phase === 'identity') return () => setPhase('reveal');
+        if (phase === 'account') return () => setPhase('identity');
+        return null;
+    };
 
- <div className="space-y-1">
- <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider">
- Password *
- </label>
- <div className="relative">
- <input
- type="password"
- required
- minLength={8}
- value={password}
- onChange={(e) => setPassword(e.target.value)}
- placeholder="••••••••••••"
- className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 transition-all pl-10"
- />
- <Lock size={16} className="absolute left-3.5 top-3.5 text-ink-muted" />
- </div>
- </div>
 
- <button
- type="submit"
- disabled={isProvisioning}
- className="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-brand-600 hover:from-emerald-400 hover:to-brand-500 text-white font-bold text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all transform active:scale-98 mt-2"
- >
- {isProvisioning ? (
- <span>Entering Workspace...</span>
- ) : (
- <>
- <Rocket size={18} />
- <span>Save & Enter Workspace →</span>
- </>
- )}
- </button>
- </form>
- </div>
- )}
- </main>
+    /* One orb, four moods, matching what the flow is actually doing. It is the
+       same component Vena wears inside the product, so the thing thinking during
+       setup is visibly the thing that will be thinking afterwards. */
+    const orbState =
+        phase === 'building'
+            ? 'solving'
+            : phase === 'reveal' || phase === 'proposal'
+              ? 'shaping'
+              : phase === 'questions'
+                ? 'listening'
+                : 'breathing';
 
- {/* Footer */}
- <footer className="w-full max-w-5xl mx-auto text-center py-4 border-t border-neutral-900 text-ink-muted text-xs flex items-center justify-between relative z-20">
- <span>© 2026 VenQore ERP. All rights reserved.</span>
- <span className="font-mono text-ink-muted">The Qore Ledger Verified</span>
- </footer>
- </div>
- );
+
+    /* The module the most recent answer pulled in — what the phone pill names. */
+    const lastAdded = useMemo(() => {
+        if (!lastAnswer) return null;
+        const mine = activeModules.filter(
+            (k) => attribution[k] === lastAnswer.questionKey,
+        );
+        return mine.length ? mine[mine.length - 1] : null;
+    }, [lastAnswer, activeModules, attribution]);
+
+    const showStack = phase === 'questions' || phase === 'reveal';
+
+    return (
+        <>
+            <Head title="Build your VenQore workspace" />
+            <BuilderShell
+                step={stepNow}
+                total={phase === 'building' ? 0 : totalSteps}
+                eyebrow={presetLabel || 'Your ERP, built by AI'}
+                orbState={orbState}
+                onBack={phase === 'building' ? null : backTarget()}
+                wide={showStack}
+                footer={
+                    <span className="flex items-center gap-1.5">
+                        <ShieldCheck size={12} className="text-accent-text" />
+                        No card required · 14-day trial
+                    </span>
+                }
+            >
+                <div
+                    className={
+                        showStack
+                            ? 'grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:gap-10'
+                            : ''
+                    }
+                >
+                    <div className="min-w-0">
+                        {/* Phone: the panel compressed to the two parts that
+                            carry the payoff. See StackPill. */}
+                        {showStack && (
+                            <StackPill
+                                modules={activeModules}
+                                catalogue={catalogueByKey}
+                                justAdded={lastAdded}
+                                className="mb-5 lg:hidden"
+                            />
+                        )}
+
+                        <AnimatePresence mode="wait">
+                            {/* ─── 1. Free text, only when the hero did not capture it ─── */}
+                            {phase === 'intent' && (
+                                <motion.div
+                                    key="intent"
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -12 }}
+                                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                                    className="mx-auto max-w-2xl"
+                                >
+                                    <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+                                        Tell us what your business does.
+                                    </h1>
+                                    <p className="mt-3 text-base leading-relaxed text-ink-secondary">
+                                        One sentence in your own words. This does most of
+                                        the work &mdash; the questions after it are quick.
+                                    </p>
+
+                                    <textarea
+                                        ref={promptRef}
+                                        rows={3}
+                                        value={prompt}
+                                        onChange={(e) => setPrompt(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                                                startFromPrompt();
+                                            }
+                                        }}
+                                        placeholder="We sell…"
+                                        className="mt-6 w-full resize-none rounded-lg border border-line bg-surface p-4 text-base text-ink shadow-sm placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                    />
+
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {EXAMPLES.map((ex) => (
+                                            <button
+                                                key={ex}
+                                                type="button"
+                                                onClick={() => setPrompt(ex)}
+                                                className="rounded-full border border-line bg-surface px-3 py-1.5 text-2xs text-ink-secondary transition-colors duration-fast ease-standard hover:border-accent hover:bg-accent-quiet hover:text-accent-text"
+                                            >
+                                                {ex.length > 42 ? `${ex.slice(0, 40)}…` : ex}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={startFromPrompt}
+                                        className="mt-7 inline-flex h-12 items-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                    >
+                                        <Wand2 size={16} />
+                                        Start building
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </motion.div>
+                            )}
+
+                            {/* ─── 2. The questions ─────────────────────────────────── */}
+                            {phase === 'questions' && questions[qIndex] && (
+                                <QuestionStep
+                                    key={questions[qIndex].key}
+                                    question={questions[qIndex]}
+                                    value={answers[questions[qIndex].key]}
+                                    onAnswer={handleAnswer}
+                                    onContinue={continueFromMulti}
+                                    autoAdvance={advance}
+                                />
+                            )}
+
+                            {/* ─── 3. The reveal ────────────────────────────────────── */}
+                            {phase === 'reveal' && (
+                                <motion.div
+                                    key="reveal"
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -12 }}
+                                    transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+                                >
+                                    <span className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent-quiet px-3 py-1 text-3xs font-bold uppercase tracking-widest text-accent-text">
+                                        <Sparkles size={12} />
+                                        {presetLabel || 'Your workspace'}
+                                    </span>
+
+                                    <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+                                        {headline || 'Your system is ready to build.'}
+                                    </h1>
+                                    <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-secondary">
+                                        {presetDesc ||
+                                            'Everything below is switched on for you. Add or remove anything — nothing here costs extra.'}
+                                    </p>
+
+                                    {recommendedList.length > 0 && (
+                                        <RecommendedBand
+                                            items={recommendedList}
+                                            active={activeModules}
+                                            onToggle={toggleModule}
+                                        />
+                                    )}
+
+                                    <div className="mt-7">
+                                        <div className="mb-3 flex items-baseline justify-between gap-4">
+                                            <h2 className="text-sm font-semibold text-ink">
+                                                What your workspace can do
+                                            </h2>
+                                            <span className="text-2xs text-ink-muted">
+                                                Tap to add or remove
+                                            </span>
+                                        </div>
+                                        <ModuleGrid
+                                            catalogue={gridCatalogue}
+                                            active={activeModules}
+                                            locked={locked}
+                                            onToggle={toggleModule}
+                                        />
+                                    </div>
+
+                                    {/* Demand log — the roadmap and the warm list, in one box. */}
+                                    <div className="mt-6 rounded-lg border border-line bg-surface p-5">
+                                        {demandSent ? (
+                                            <p className="flex items-center gap-2 text-sm text-ink">
+                                                <Check size={15} className="text-accent-text" />
+                                                Noted — thank you. We read every one of these.
+                                            </p>
+                                        ) : demandOpen ? (
+                                            <div className="flex flex-col gap-3 sm:flex-row">
+                                                <input
+                                                    type="text"
+                                                    value={demandText}
+                                                    onChange={(e) => setDemandText(e.target.value)}
+                                                    placeholder="What does your business need that you don't see?"
+                                                    className="h-11 flex-1 rounded-md border border-line bg-app px-3.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    disabled={demandBusy}
+                                                    onClick={sendDemand}
+                                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-line bg-sunken px-4 text-xs font-semibold text-ink transition-colors duration-fast ease-standard hover:bg-interactive-hover"
+                                                >
+                                                    <Send size={14} />
+                                                    Send
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => setDemandOpen(true)}
+                                                className="text-xs font-semibold text-accent-text underline-offset-4 hover:underline"
+                                            >
+                                                Something missing for your line of work? Tell us →
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setPhase('identity')}
+                                        className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:w-auto"
+                                    >
+                                        <Rocket size={16} />
+                                        Build this workspace
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </motion.div>
+                            )}
+
+                            {/* ─── 4. Identity ──────────────────────────────────────── */}
+                            {phase === 'identity' && (
+                                <motion.div
+                                    key="identity"
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -12 }}
+                                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                                    className="mx-auto max-w-xl"
+                                >
+                                    <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight text-ink">
+                                        Let&rsquo;s name it.
+                                    </h1>
+                                    <p className="mt-3 text-base text-ink-secondary">
+                                        This is what prints on receipts and invoices. You can
+                                        change all of it later.
+                                    </p>
+
+                                    <div className="mt-7 space-y-4">
+                                        <Field label="Business name" icon={Building2}>
+                                            <input
+                                                type="text"
+                                                value={businessName}
+                                                onChange={(e) => setBusinessName(e.target.value)}
+                                                placeholder="e.g. Rahman Trading Co."
+                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                            />
+                                        </Field>
+
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <CurrencyDropdown
+                                                value={currency}
+                                                onChange={setCurrency}
+                                            />
+
+                                            <Field label="Phone (optional)" icon={Phone}>
+                                                <input
+                                                    type="tel"
+                                                    value={phone}
+                                                    onChange={(e) => setPhone(e.target.value)}
+                                                    placeholder="For receipts"
+                                                    className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                                />
+                                            </Field>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setPhase('account')}
+                                        className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                    >
+                                        Continue
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </motion.div>
+                            )}
+
+                            {/* ─── 5. Account ───────────────────────────────────────── */}
+                            {phase === 'account' && (
+                                <motion.form
+                                    key="account"
+                                    onSubmit={provision}
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -12 }}
+                                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                                    className="mx-auto max-w-xl"
+                                >
+                                    <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight text-ink">
+                                        Save your workspace.
+                                    </h1>
+                                    <p className="mt-3 text-base text-ink-secondary">
+                                        {activeModules.length} modules, configured. Create a
+                                        login and it is yours.
+                                    </p>
+
+                                    <div className="mt-7 space-y-4">
+                                        <button
+                                            type="button"
+                                            disabled={googleBusy}
+                                            onClick={handleGoogleSignUp}
+                                            className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition-all duration-fast hover:bg-interactive-hover hover:border-line-strong active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                        >
+                                            <GoogleMark />
+                                            <span>{googleBusy ? 'Connecting to Google…' : 'Continue with Google'}</span>
+                                        </button>
+
+                                        <div className="relative flex items-center py-2">
+                                            <div className="w-full border-t border-line" />
+                                            <span className="absolute left-1/2 -translate-x-1/2 bg-app px-3 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+                                                or continue with email
+                                            </span>
+                                        </div>
+
+                                        <Field label="Email" icon={Mail}>
+                                            <input
+                                                type="email"
+                                                required
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                autoComplete="email"
+                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                            />
+                                        </Field>
+                                        <Field label="Password" icon={Lock}>
+                                            <input
+                                                type="password"
+                                                required
+                                                minLength={8}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                autoComplete="new-password"
+                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                            />
+                                        </Field>
+                                    </div>
+
+                                    {provisionError && (
+                                        <p className="mt-4 rounded-md border border-danger-300 bg-danger-50 px-4 py-3 text-xs text-danger-700">
+                                            {provisionError}
+                                        </p>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                    >
+                                        <Rocket size={16} />
+                                        Create my workspace
+                                    </button>
+                                </motion.form>
+                            )}
+
+                            {/* ─── 6. Building ──────────────────────────────────────── */}
+                            {phase === 'building' && (
+                                <motion.div
+                                    key="building"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="mx-auto max-w-md text-center"
+                                >
+                                    <div className="mx-auto flex h-20 w-20 items-center justify-center">
+                                        <ThinkingOrb
+                                            state="solving"
+                                            size={80}
+                                            aria-label="Building your workspace"
+                                        />
+                                    </div>
+                                    <h2 className="mt-6 font-display text-2xl font-semibold text-ink">
+                                        Building your workspace
+                                    </h2>
+                                    <ul className="mt-6 space-y-2.5 text-left">
+                                        {[
+                                            'Opening your ledger',
+                                            'Switching on your modules',
+                                            'Naming things the way you do',
+                                            'Ready',
+                                        ].map((label, i) => (
+                                            <li
+                                                key={label}
+                                                className={`flex items-center gap-3 rounded-md border px-4 py-3 text-sm transition-colors duration-slow ease-standard ${
+                                                    i <= buildIndex
+                                                        ? 'border-accent bg-accent-quiet text-ink'
+                                                        : 'border-line bg-surface text-ink-faint'
+                                                }`}
+                                            >
+                                                <span
+                                                    className={`flex h-5 w-5 items-center justify-center rounded-full ${
+                                                        i <= buildIndex
+                                                            ? 'bg-accent-fill text-accent-on'
+                                                            : 'bg-sunken'
+                                                    }`}
+                                                >
+                                                    {i <= buildIndex && (
+                                                        <Check size={11} strokeWidth={3} />
+                                                    )}
+                                                </span>
+                                                {label}
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    {/* The one moment a user is both committed
+                                        and idle. Spending it on a spinner is a
+                                        waste of the best teaching slot in the
+                                        product. */}
+                                    <HandoffTips className="mt-8" />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* The panel that makes the questions worth asking. */}
+                    {showStack && (
+                        <div className="sticky top-6 hidden max-h-[calc(100vh-3rem)] flex-col gap-3.5 lg:flex">
+                            <LiveStack
+                                modules={activeModules}
+                                catalogue={catalogueByKey}
+                                attribution={attribution}
+                                lastAnswer={lastAnswer}
+                                className="max-h-[68vh]"
+                            />
+                            {phase === 'reveal' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setPhase('identity')}
+                                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-all duration-normal ease-standard hover:bg-accent-fill-hover hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                    >
+                                        <Rocket size={16} />
+                                        Build this workspace
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </BuilderShell>
+        </>
+    );
+}
+
+/** Custom styled currency dropdown. */
+function CurrencyDropdown({ value, onChange }) {
+    const [open, setOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    const selectedCurrency = useMemo(() => {
+        return CURRENCY_LIST.find((c) => c.code === value) || {
+            code: value || 'USD',
+            symbol: '$',
+            name: value || 'US Dollar',
+            flag: '🌐',
+        };
+    }, [value]);
+
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        }
+        if (open) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [open]);
+
+    return (
+        <div ref={containerRef} className="relative block">
+            <span className="mb-1.5 block text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+                Currency
+            </span>
+            <button
+                type="button"
+                onClick={() => setOpen((prev) => !prev)}
+                className={`relative flex h-12 w-full items-center justify-between rounded-md border bg-surface px-3.5 text-left text-sm text-ink transition-colors duration-fast focus:outline-none focus:ring-2 focus:ring-focus ${
+                    open ? 'border-accent ring-2 ring-focus' : 'border-line hover:border-line-strong'
+                }`}
+                aria-expanded={open}
+                aria-haspopup="listbox"
+            >
+                <span className="flex items-center gap-2.5 truncate">
+                    <span className="text-base leading-none">{selectedCurrency.flag}</span>
+                    <span className="font-semibold text-ink">{selectedCurrency.code}</span>
+                    <span className="text-xs text-ink-secondary">({selectedCurrency.symbol})</span>
+                    <span className="hidden truncate text-xs text-ink-muted sm:inline">
+                        — {selectedCurrency.name}
+                    </span>
+                </span>
+                <ChevronDown
+                    size={16}
+                    className={`shrink-0 text-ink-muted transition-transform duration-fast ${
+                        open ? 'rotate-180 text-ink' : ''
+                    }`}
+                />
+            </button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                        className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-60 overflow-y-auto rounded-lg border border-line bg-surface p-1.5 shadow-xl"
+                        role="listbox"
+                    >
+                        {CURRENCY_LIST.map((c) => {
+                            const isSelected = c.code === selectedCurrency.code;
+                            return (
+                                <button
+                                    key={c.code}
+                                    type="button"
+                                    onClick={() => {
+                                        onChange(c.code);
+                                        setOpen(false);
+                                    }}
+                                    className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-xs transition-colors duration-fast ${
+                                        isSelected
+                                            ? 'bg-accent-quiet font-semibold text-accent-text'
+                                            : 'text-ink hover:bg-surface-raised'
+                                    }`}
+                                    role="option"
+                                    aria-selected={isSelected}
+                                >
+                                    <span className="flex items-center gap-2.5 truncate">
+                                        <span className="text-sm leading-none">{c.flag}</span>
+                                        <span className="font-semibold">{c.code}</span>
+                                        <span className="text-2xs text-ink-muted">({c.symbol})</span>
+                                        <span className="truncate text-ink-secondary">{c.name}</span>
+                                    </span>
+                                    {isSelected && <Check size={14} className="shrink-0 text-accent-text" />}
+                                </button>
+                            );
+                        })}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+/** Google's mark with official colours. */
+function GoogleMark() {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+        </svg>
+    );
+}
+
+/** Labelled control with a leading glyph. */
+function Field({ label, icon: Icon, children }) {
+    return (
+        <label className="block">
+            <span className="mb-1.5 block text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+                {label}
+            </span>
+            <span className="relative block">
+                <Icon
+                    size={16}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint"
+                />
+                {children}
+            </span>
+        </label>
+    );
 }

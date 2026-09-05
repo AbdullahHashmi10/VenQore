@@ -446,7 +446,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                                                                     </button>
 
                                                                     {activeActionMenu === row.id && (
-                                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-xl shadow-xl border border-line z-50 animate-in zoom-in-95 p-1">
+                                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line z-50 animate-in zoom-in-95 p-1">
                                                                             <button
                                                                                 onClick={() => handleEdit(row)}
                                                                                 className="w-full text-left px-3 py-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg flex items-center gap-2 text-sm text-ink-secondary"

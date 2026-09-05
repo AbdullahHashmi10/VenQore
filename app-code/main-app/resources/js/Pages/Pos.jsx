@@ -32,6 +32,8 @@ import {
     Warehouse,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
+    ChevronUp,
     History,
     ArrowLeft,
     LayoutGrid,
@@ -358,6 +360,8 @@ const POSInterface = ({
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [selectedBankAccountId, setSelectedBankAccountId] = useState(bankAccounts.length > 0 ? bankAccounts[0].id : null);
     const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
+    const [warehouseDropdownOpen, setWarehouseDropdownOpen] = useState(false);
+    const warehouseDropdownRef = useRef(null);
     const [taxDropdownOpen, setTaxDropdownOpen] = useState(false);
     const [bankAccountDropdownOpen, setBankAccountDropdownOpen] = useState(false);
     const [showQuickAccountModal, setShowQuickAccountModal] = useState(false);
@@ -3001,6 +3005,9 @@ const POSInterface = ({
             if (recentDropdownRef.current && !recentDropdownRef.current.contains(event.target)) {
                 setShowRecentInvoices(false);
             }
+            if (warehouseDropdownRef.current && !warehouseDropdownRef.current.contains(event.target)) {
+                setWarehouseDropdownOpen(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -4053,7 +4060,7 @@ const POSInterface = ({
                         </span>
                     </button>
                     {paymentDropdownOpen && (
-                        <div className="absolute top-full right-0 mt-1 w-48 bg-surface rounded-xl shadow-2xl border border-line overflow-hidden z-sticky py-1">
+                        <div className="absolute top-full right-0 mt-1 w-48 bg-surface rounded-[14px] shadow-2xl border border-line overflow-hidden z-sticky py-1">
                             {['cash', 'credit', 'bank', 'card', 'online'].map(method => {
                                 if (method === 'credit' && (!activeSale.customer || !modulesEnabled.has('khata_credit'))) return null;
                                 return (
@@ -4093,36 +4100,60 @@ const POSInterface = ({
                 shop gets nothing, because a select with one option is a
                 control that only costs attention. */}
             {warehouses.length > 1 && (
-                <div className="relative">
+                <div className="relative" ref={warehouseDropdownRef}>
                     <label
-                        htmlFor="pos-warehouse"
                         className="text-xs uppercase font-bold text-ink-muted block mb-1 tracking-wider"
                     >
                         Location
                     </label>
-                    <div className="relative">
-                        <Warehouse
-                            size={16}
-                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-600 dark:text-brand-400 pointer-events-none"
-                        />
-                        <select
-                            id="pos-warehouse"
-                            value={selectedWarehouseId ?? ''}
-                            onChange={e => setSelectedWarehouseId(e.target.value ? Number(e.target.value) : null)}
-                            className="w-full h-12 pl-10 pr-9 rounded-2xl bg-surface border border-line/80 shadow-xs
-                                       text-sm font-bold text-ink appearance-none cursor-pointer
-                                       hover:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40
-                                       transition-colors"
-                        >
-                            {warehouses.map(w => (
-                                <option key={w.id} value={w.id}>{w.name}</option>
-                            ))}
-                        </select>
-                        <ChevronRight
+                    <button
+                        type="button"
+                        onClick={() => setWarehouseDropdownOpen(!warehouseDropdownOpen)}
+                        className={`w-full h-12 px-3.5 rounded-xl bg-surface border transition-all flex items-center justify-between shadow-xs ${warehouseDropdownOpen
+                            ? 'border-brand-500 ring-2 ring-brand-500/20'
+                            : 'border-line/80 hover:border-brand-300'}`}
+                    >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <Warehouse
+                                size={16}
+                                className="text-brand-600 dark:text-brand-400 shrink-0"
+                            />
+                            <span className="text-sm font-bold text-ink truncate">
+                                {warehouses.find(w => String(w.id) === String(selectedWarehouseId))?.name || 'Select Location'}
+                            </span>
+                        </div>
+                        <ChevronDown
                             size={15}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 rotate-90 text-ink-muted pointer-events-none"
+                            className={`text-ink-muted shrink-0 transition-transform ${warehouseDropdownOpen ? 'rotate-180 text-brand-600' : ''}`}
                         />
-                    </div>
+                    </button>
+
+                    {warehouseDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1.5 bg-surface rounded-[14px] shadow-2xl border border-line overflow-hidden z-sticky py-1 animate-in fade-in zoom-in-95 duration-fast">
+                            {warehouses.map(w => {
+                                const isSelected = String(w.id) === String(selectedWarehouseId);
+                                return (
+                                    <button
+                                        key={w.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedWarehouseId(Number(w.id));
+                                            setWarehouseDropdownOpen(false);
+                                        }}
+                                        className={`w-full text-left px-3.5 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer flex items-center justify-between ${isSelected
+                                            ? 'text-brand-600 bg-brand-50 dark:bg-brand-950/30'
+                                            : 'text-ink-secondary hover:bg-interactive-hover'}`}
+                                    >
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <Warehouse size={15} className={isSelected ? 'text-brand-600' : 'text-ink-muted'} />
+                                            <span className="truncate">{w.name}</span>
+                                        </div>
+                                        {isSelected && <Check size={16} className="shrink-0 text-brand-600" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -4169,7 +4200,7 @@ const POSInterface = ({
                                         </span>
                                     </button>
                                     {taxDropdownOpen && (
-                                        <span className="absolute right-0 bottom-full mb-1 w-48 bg-surface text-ink rounded-xl shadow-2xl border border-line overflow-hidden z-sticky block py-1">
+                                        <span className="absolute right-0 bottom-full mb-1 w-48 bg-surface text-ink rounded-[14px] shadow-2xl border border-line overflow-hidden z-sticky block py-1">
                                             <button
                                                 type="button"
                                                 onClick={() => { updateActiveSale({ taxRate: 0 }); setTaxDropdownOpen(false); }}
@@ -4666,20 +4697,12 @@ const POSInterface = ({
                         Rank-2 navigation and rank-3 read-outs. Nothing that
                         is part of taking money lives up here. */}
                     <div className="vq-term-bar">
-                        <Link
-                            href={route('store.dashboard', { store_slug: store?.slug })}
-                            className="w-11 h-11 rounded-xl bg-surface hover:bg-brand-50 text-ink-secondary hover:text-brand-600 flex items-center justify-center transition-all border border-line hover:border-brand-300 shadow-xs shrink-0 cursor-pointer"
-                            title="Leave the register"
-                        >
-                            <ArrowLeft size={17} />
-                        </Link>
-
-                        <div className="flex items-end gap-1.5 overflow-x-auto scrollbar-none flex-1 min-w-0">
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0">
                             {sales.map((sale, saleIndex) => (
                                 <div
                                     key={sale.id}
                                     onClick={() => setActiveSaleId(sale.id)}
-                                    className={`group relative min-w-[140px] max-w-[220px] h-10 px-3.5 rounded-xl flex items-center justify-between gap-2 cursor-pointer transition-all border shrink-0 ${
+                                    className={`group relative min-w-[140px] max-w-[220px] h-11 px-3.5 rounded-xl flex items-center justify-between gap-2 cursor-pointer transition-all border shrink-0 ${
                                         activeSaleId === sale.id
                                             ? 'bg-surface text-brand-700 dark:text-brand-300 font-bold border-brand-500/40 shadow-xs ring-2 ring-brand-500/10'
                                             : 'bg-surface/60 hover:bg-surface text-ink-muted hover:text-ink border-line/60 hover:border-line shadow-xs'
@@ -4866,21 +4889,35 @@ const POSInterface = ({
                                             onClick={() => openSettings('hardware')}
                                             className={`h-11 px-3 rounded-xl flex items-center gap-2 transition-all border shadow-xs shrink-0 cursor-pointer
                                                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
-                                                printerState === 'ready'
-                                                    ? 'bg-surface border-line text-emerald-700 dark:text-emerald-400 hover:border-emerald-300'
-                                                    : printerState === 'no-printer'
-                                                        ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-900/60 text-amber-700 dark:text-amber-400'
-                                                        : 'bg-surface border-line text-ink-faint hover:border-line-strong'
+                                                printerReady
+                                                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+                                                    : 'bg-surface hover:bg-interactive-hover border-line text-ink-muted hover:text-ink'
                                             }`}
-                                            title={printerLabel}
-                                            aria-label={printerLabel}
+                                            title={printerReady ? `${printerCount} printer${printerCount === 1 ? '' : 's'} connected` : 'Printer disconnected — click to configure'}
+                                            aria-label={printerReady ? `${printerCount} printer${printerCount === 1 ? '' : 's'} connected` : 'Printer disconnected — click to configure'}
                                         >
-                                            <Printer size={16} />
-                                            {printerState === 'ready' && printerCount > 1 && (
-                                                <span className="vq-num text-2xs font-bold">{printerCount}</span>
+                                            {printerReady ? (
+                                                <Printer size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                            ) : (
+                                                <span className="relative inline-flex items-center justify-center shrink-0 w-4 h-4">
+                                                    <Printer size={16} className="text-ink-muted/50 dark:text-ink-muted/50 shrink-0" />
+                                                    <svg
+                                                        viewBox="0 0 24 24"
+                                                        width="18"
+                                                        height="18"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        strokeWidth="2.5"
+                                                        strokeLinecap="round"
+                                                        className="absolute inset-0 -top-0.5 -left-0.5 text-red-500 pointer-events-none"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <line x1="4" y1="4" x2="20" y2="20" />
+                                                    </svg>
+                                                </span>
                                             )}
-                                            {printerState === 'no-printer' && (
-                                                <AlertTriangle size={12} className="shrink-0" />
+                                            {printerReady && printerCount > 1 && (
+                                                <span className="vq-num text-2xs font-bold text-emerald-700 dark:text-emerald-300">{printerCount}</span>
                                             )}
                                         </button>
                                     )}
@@ -4908,6 +4945,15 @@ const POSInterface = ({
                             >
                                 <Settings size={17} />
                             </button>
+
+                            <Link
+                                href={route('store.dashboard', { store_slug: store?.slug })}
+                                className="w-11 h-11 rounded-xl bg-surface hover:bg-red-50 dark:hover:bg-red-950/40 text-ink-secondary hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-all border border-line hover:border-red-300 shadow-xs shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                                title="Close register and return to dashboard"
+                                aria-label="Close register and return to dashboard"
+                            >
+                                <X size={18} />
+                            </Link>
                         </div>
                     </div>
 

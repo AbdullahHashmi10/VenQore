@@ -752,5 +752,31 @@
         "desc": "Total refunded monetary amount for returns within the period.",
         "rowNames": [],
         "sliceNames": []
+    },
+    {
+        "key": "charity.today_total",
+        "label": "Charity Today",
+        "shape": "SCALAR",
+        "unit": "currency",
+        "area": "Finance",
+        "module": "Charity",
+        "short": "Charity Today",
+        "extra": false,
+        "desc": "Total donations recorded today for charity.",
+        "rowNames": [],
+        "sliceNames": []
+    },
+    {
+        "key": "charity.month_total",
+        "label": "Charity This Month",
+        "shape": "SCALAR",
+        "unit": "currency",
+        "area": "Finance",
+        "module": "Charity",
+        "short": "Charity Month",
+        "extra": false,
+        "desc": "Total donations recorded this month for charity.",
+        "rowNames": [],
+        "sliceNames": []
     }
 ]

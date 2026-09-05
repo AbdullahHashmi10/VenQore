@@ -761,6 +761,8 @@ radius `--vq-r-md`, 8px gap. Active = `--vq-accent-quiet` background + 3px
 `--vq-text-2` at 500. Hover = **background and colour only, never a transform**.
 Collapsed tooltips **portalled to body** at `z-tooltip`.
 
+**Dropdown / Popover** — corner radius strictly `--vq-r-md` (14px / `rounded-[14px]`). Never 20px, 28px, 36px or `rounded-2xl` — chunky rounded corners on dropdown menus are explicitly prohibited. Elevation 3 (`shadow-xl`), `z-dropdown`, auto-closes on outside click or touch.
+
 **Modal** — radius `--vq-r-xl` (28px), elevation 3, `z-modal`, scrim
 `--vq-scrim` at `z-modal` − 1. Max-width 560 confirm / 720 form / 960 data. Focus
 trapped, Escape closes, focus returns to the trigger. Destructive confirms name

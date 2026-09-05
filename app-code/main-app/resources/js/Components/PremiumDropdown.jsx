@@ -63,7 +63,7 @@ const PremiumDropdown = ({ value, options, onChange, className = "" }) => {
             {isOpen && createPortal(
                 <div
                     ref={portalRef}
-                    className="fixed mt-2 w-32 origin-top-right rounded-2xl bg-surface shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-command overflow-hidden animate-in fade-in zoom-in-95 duration-normal"
+                    className="fixed mt-2 w-32 origin-top-right rounded-[14px] bg-surface shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-command overflow-hidden animate-in fade-in zoom-in-95 duration-normal"
                     style={{
                         top: coords.top,
                         left: coords.left + coords.width - 128, // Align right (w-32 = 128px)

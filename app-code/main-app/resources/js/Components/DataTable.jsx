@@ -289,7 +289,7 @@ export default function DataTable({
                                                         className="fixed inset-0 z-10"
                                                         onClick={() => setActiveDropdown(null)}
                                                     />
-                                                    <div className="absolute right-4 top-full mt-1 bg-surface rounded-xl shadow-xl border border-line py-1 z-20 min-w-[140px]">
+                                                    <div className="absolute right-4 top-full mt-1 bg-surface rounded-[14px] shadow-xl border border-line py-1 z-20 min-w-[140px]">
                                                         {onView && (
                                                             <button
                                                                 onClick={() => { onView(row); setActiveDropdown(null); }}

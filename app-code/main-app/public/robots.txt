@@ -17,6 +17,15 @@ Disallow: /VenQore-login
 Disallow: /staff-login
 Disallow: /redeem
 Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /build-workspace
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
 
 # AI / LLM crawlers — deliberately allowed (GEO/AEO decision, 2026-07-03)
 User-agent: GPTBot

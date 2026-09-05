@@ -422,7 +422,8 @@ export default function AiIsland({
 
   const fetchNotifications = useCallback(() => {
     if (!store?.slug && !auth?.user) return;
-    window.axios?.get('/api/notifications/summary')
+    const summaryUrl = store?.slug ? `/s/${store.slug}/api/notifications/summary` : '/api/notifications/summary';
+    window.axios?.get(summaryUrl)
       .then(res => {
         if (!res.data) return;
         setNotifications(res.data);
@@ -1071,7 +1072,7 @@ export default function AiIsland({
                     {tab === 'chat' && (
                       <motion.div key="chat" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
                         <PaneShell tab="chat" orbState="listening" paused={orbPaused} flush>
-                          <div className="h-full min-h-0 overflow-hidden" style={{ background: 'var(--vq-surface)' }}>
+                          <div className="h-full min-h-0 overflow-hidden bg-transparent">
                             <ChatWidget embedded />
                           </div>
                         </PaneShell>
@@ -1167,7 +1168,7 @@ export default function AiIsland({
                       <motion.div key="capture" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
                         <PaneShell tab="capture" orbState="shaping" paused={orbPaused} flush>
                           {canUseSmartCapture ? (
-                            <div className="h-full min-h-0 overflow-hidden" style={{ background: 'var(--vq-surface)' }}>
+                            <div className="h-full min-h-0 overflow-hidden bg-transparent">
                               <SmartCapturePanel
                                 embedded
                                 isOpen

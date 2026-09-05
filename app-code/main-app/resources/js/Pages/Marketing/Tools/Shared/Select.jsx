@@ -78,7 +78,7 @@ export default function Select({ value, onChange, options = [], className = '' }
             {open && (
                 <div
                     role="listbox"
-                    className="absolute z-50 mt-2 w-full max-h-72 overflow-y-auto rounded-xl bg-white dark:bg-[#0d0b1c] border border-line dark:border-white/10 shadow-xl shadow-neutral-900/10 dark:shadow-black/40 py-1.5"
+                    className="absolute z-50 mt-2 w-full max-h-72 overflow-y-auto rounded-[14px] bg-white dark:bg-[#0d0b1c] border border-line dark:border-white/10 shadow-xl shadow-neutral-900/10 dark:shadow-black/40 py-1.5"
                 >
                     {grouped.map((group, gi) => (
                         <div key={gi}>

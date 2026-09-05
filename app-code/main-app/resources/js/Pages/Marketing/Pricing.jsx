@@ -370,7 +370,7 @@ export default function Pricing({ plans = [] }) {
   categorizedFeatures: [
  { category: 'Platform Limits', name: '1 Store Location', included: true },
  { category: 'Platform Limits', name: '3 Staff Accounts', included: true },
- { category: 'Platform Limits', name: '1,000 Product SKUs', included: true },
+ { category: 'Platform Limits', name: '5,000 Product SKUs', included: true },
  { category: 'Platform Limits', name: '14-Day Free Trial', included: true },
  { category: 'Platform Limits', name: 'Multi-Branch Sync', included: false },
 
@@ -417,7 +417,7 @@ export default function Pricing({ plans = [] }) {
   categorizedFeatures: [
  { category: 'Platform Limits', name: '3 Store Locations', included: true },
  { category: 'Platform Limits', name: '10 Staff Accounts', included: true },
- { category: 'Platform Limits', name: '10,000 Product SKUs', included: true },
+ { category: 'Platform Limits', name: '20,000 Product SKUs', included: true },
  { category: 'Platform Limits', name: '14-Day Free Trial', included: true },
  { category: 'Platform Limits', name: '3-Store Multi-Branch Sync', included: true },
 

@@ -182,7 +182,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'low_stock_alerts'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'imei_lifecycle'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'uom_converter'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'sku_limit'                  => ['trial' => '50', 'starter' => '1000', 'growth' => '10000', 'business' => '50000'],
+            'sku_limit'                  => ['trial' => '20000', 'starter' => '5000', 'growth' => '20000', 'business' => '50000'],
 
             // Group 6 — E-Commerce & VenSynQ
             'vensync_command'            => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
@@ -223,7 +223,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'petty_cash'                 => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
 
             // Group 8 — Report Factory (40 Reports)
-            'reports'                    => ['trial' => 'basic', 'starter' => 'basic', 'growth' => 'advanced', 'business' => 'advanced'],
+            'reports'                    => ['trial' => 'advanced', 'starter' => 'advanced', 'growth' => 'advanced', 'business' => 'advanced'],
             'report_sales_summary'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'report_low_stock'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'report_expenses_directory'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
@@ -231,23 +231,23 @@ class PlanFeatureMatrixSeeder extends Seeder
             'report_cash_flow'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'report_stock_valuation'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'report_purchases'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_daily_sales_trend'   => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_day_book'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_tax_compliance'      => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_general_discount'    => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_bank_statements'     => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_account_ledger'      => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_stock_aging'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_expiring_soon'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'report_daily_sales_trend'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_day_book'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_tax_compliance'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_general_discount'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_bank_statements'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_account_ledger'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_stock_aging'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_expiring_soon'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'report_profit_loss'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_trial_balance'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
+            'report_trial_balance'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             // Launch gap found 2026-08-07: these 3 keys are used by routes/web.php
             // (plan.feature:discount_report / cash_flow_report / stock_valuation)
             // but were never seeded here, so featureOn()'s fail-closed default
             // locked them for EVERY plan including business/ltd_3. Tiered to match
             // similar-weight report keys above (report_account_ledger/report_stock_aging).
-            'discount_report'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'cash_flow_report'           => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'discount_report'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'cash_flow_report'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'stock_valuation'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'point_in_time_inventory'    => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'customer_insights'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
@@ -257,26 +257,26 @@ class PlanFeatureMatrixSeeder extends Seeder
             // DIFFERENT, separate SuperAdmin-only toggle (see featureGroups.js)
             // with no route wired to it — not a duplicate, don't merge these.
             'stock_aging'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_transactions_history'=> ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_item_profit'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_bill_profitability'  => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_graph_analytics'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_loan_statement'      => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_sales_aging'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_sales_orders_status' => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_party_profitability' => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'report_expense_by_category' => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_expense_by_item'     => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_stock_by_category'   => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_sales_by_party'      => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_sales_by_category'   => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_category_pl'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_item_discounting'    => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_sales_order_items'   => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_sales_party_group'   => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_item_by_party'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_party_by_item'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_tax_rate_breakdown'  => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'report_transactions_history'=> ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_item_profit'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_bill_profitability'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_graph_analytics'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_loan_statement'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_sales_aging'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_sales_orders_status' => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_party_profitability' => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_expense_by_category' => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_expense_by_item'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_stock_by_category'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_sales_by_party'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_sales_by_category'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_category_pl'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_item_discounting'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_sales_order_items'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_sales_party_group'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_item_by_party'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_party_by_item'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'report_tax_rate_breakdown'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
 
             // Group 9 — Platform HQ & Infrastructure
             'ai_assistant'               => ['trial' => '1', 'starter' => '0', 'growth' => '1', 'business' => '1'],
@@ -311,20 +311,20 @@ class PlanFeatureMatrixSeeder extends Seeder
             // unlock) — purchasable with ANY base plan, included in NONE. Plan default
             // is therefore '0' everywhere; the add-on purchase / BYOK activation must
             // write a tenant_plan_overrides row (smart_capture='1') for that tenant.
-            'smart_capture'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'smart_capture'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'smart_capture_limit'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_pages_limit'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'ai_pages_limit'             => ['trial' => '60', 'starter' => '20', 'growth' => '60', 'business' => '150'],
             'growth_engine'              => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'], // Enabled on Growth & Business (Phase 1 change - 2026-08-08)
             'ai_churn_predictions'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_revenue_forecasting'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_outreach_copy'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_queries_limit'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'ai_queries_limit'           => ['trial' => '400', 'starter' => '100', 'growth' => '400', 'business' => '1000'],
             'ai_outreach_limit'          => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'owners_daily_pulse'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'bulk_upload'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
 
             // Group 11 — Live Chat & Customer Engagement
-            'live_chat_widget'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'live_chat_widget'           => ['trial' => '1', 'counter' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'ai_bot_handoff'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'canned_responses'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_copilot_suggestions'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
@@ -359,6 +359,10 @@ class PlanFeatureMatrixSeeder extends Seeder
                     // Resolve values for LTD plans from their equivalents:
                     // ltd_1 = starter, ltd_2 = growth, ltd_3 = business
                     $baseSlug = $slug;
+                    // The pricing page sells the trial as "14 days, the full
+                    // product". Resolving it to Growth makes that true; the
+                    // 'trial' column left in the matrix above is now unused.
+                    if ($slug === 'trial')  $baseSlug = 'growth';
                     if ($slug === 'ltd_1') $baseSlug = 'starter';
                     if ($slug === 'ltd_2') $baseSlug = 'growth';
                     if ($slug === 'ltd_3') $baseSlug = 'business';
@@ -370,23 +374,27 @@ class PlanFeatureMatrixSeeder extends Seeder
 
                     // Specific Counter plan overrides
                     if ($slug === 'counter') {
+                        // Mirrors the "no" cells of the public pricing table exactly.
+                        // Counter is deliberately NOT a crippled edition: the ledger,
+                        // every financial report, purchasing, suppliers, expenses and
+                        // the party khata are all included, because the page promises
+                        // them and the whole positioning rests on it. Counter differs
+                        // by seats, branches, AI allowance and these five rows only.
                         $counterDisabledKeys = [
-                            'customer_khata', 'supplier_khata', 'unified_party_ledger',
-                            'aged_receivables', 'aged_payables', 'double_entry_ledger',
-                            'purchase_orders', 'purchase_returns', 'suppliers_directory',
-                            'expense_manager', 'report_profit_loss', 'report_trial_balance',
-                            'report_party_statement', 'customer_statements', 'supplier_statements',
-                            'debit_credit_notes', 'outstanding_balance_grid', 'payment_due_dates',
-                            'woocommerce', 'api_access', 'production', 'bill_of_materials',
+                            'multi_branch',
+                            'production', 'bill_of_materials',
                             'loyalty_points', 'digital_gift_cards', 'marketing_campaigns',
-                            'white_label', 'recurring_invoices', 'fund_management', 'bank_reconciliation',
-                            'e_invoicing'
+                            'api_access', 'white_label',
+                            'woocommerce',
+                            // Not advertised at any tier below Growth.
+                            'recurring_invoices', 'fund_management', 'bank_reconciliation',
+                            'e_invoicing',
                         ];
 
                         if (in_array($key, $counterDisabledKeys, true)) {
                             $val = '0';
                         }
-                        if ($key === 'sku_limit') $val = '500';
+                        if ($key === 'sku_limit') $val = '2000';
                         if ($key === 'staff_limit') $val = '2';
                         if ($key === 'location_limit' || $key === 'locations') $val = '1';
                         if ($key === 'ai_pages_limit') $val = '10';

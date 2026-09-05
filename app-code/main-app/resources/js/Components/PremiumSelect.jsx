@@ -86,7 +86,7 @@ const PremiumSelect = ({
             {isOpen && createPortal(
                 <div
                     ref={portalRef}
-                    className="fixed mt-2 bg-surface rounded-2xl shadow-2xl border border-line z-command overflow-hidden animate-in fade-in zoom-in-95 duration-normal"
+                    className="fixed mt-2 bg-surface rounded-[14px] shadow-2xl border border-line z-command overflow-hidden animate-in fade-in zoom-in-95 duration-normal"
                     style={{
                         top: coords.top,
                         left: coords.left,

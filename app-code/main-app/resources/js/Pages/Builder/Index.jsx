@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -9,6 +10,11 @@ import {
 import Toggle from '@/Components/Toggle';
 
 const GROUP_ORDER = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+/* The same spring the onboarding builder uses, so a module switched on here
+   lands exactly the way it lands during setup. `--vq-ease-spring` overshoots;
+   these numbers are tuned to sit in the same place. */
+const SPRING = { type: 'spring', stiffness: 400, damping: 34, mass: 0.8 };
 
 /*
 |==============================================================================
@@ -23,6 +29,7 @@ const GROUP_ORDER = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 */
 export default function BuilderIndex({ modules = [], groupLabels = {}, highlight = null, businessType = null }) {
     const { store } = usePage().props;
+    const still = useReducedMotion();
 
     const [moduleState, setModuleState] = useState(() =>
         Object.fromEntries(modules.map((m) => [m.key, !!m.enabled]))
@@ -144,7 +151,7 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
         } catch (e) {
             const resp = e?.response?.data;
             if (resp?.reason === 'questions_pending') {
-                setPreview((p) => ({ ...(p || {}), questions: resp.questions }));
+                setPreview((p) => ({ ...p, questions: resp.questions }));
                 setError('Answer the question below, then save again.');
             } else if (resp?.reason === 'disable_blocked') {
                 setError(resp.message);
@@ -230,11 +237,15 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
 
                 {/* Plain-language box */}
                 <div className="p-5 rounded-xl border border-line bg-sunken">
-                    <label className="block text-sm font-bold text-ink-secondary mb-2">
+                    <label
+                        htmlFor="vq-builder-modify"
+                        className="block text-sm font-bold text-ink-secondary mb-2"
+                    >
                         Or just tell it what you want
                     </label>
                     <form onSubmit={submitModify} className="flex gap-2">
                         <input
+                            id="vq-builder-modify"
                             type="text"
                             value={modifyText}
                             onChange={(e) => setModifyText(e.target.value)}
@@ -331,13 +342,26 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
                                 </h2>
                             </div>
                             <div className="divide-y divide-line">
-                                {byGroup[g].map((m) => {
+                                {byGroup[g].map((m, mi) => {
                                     const enabled = !!moduleState[m.key];
                                     const isHighlighted = highlight === m.key;
                                     return (
-                                        <div
+                                        <motion.div
                                             key={m.key}
-                                            className={`px-5 ${isHighlighted ? 'ring-2 ring-inset ring-brand-500 bg-brand-500/5' : ''}`}
+                                            initial={still ? false : { opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{
+                                                duration: 0.26,
+                                                delay: Math.min(mi, 10) * 0.02,
+                                                ease: [0.22, 1, 0.36, 1],
+                                            }}
+                                            className={`px-5 transition-colors duration-normal ease-standard ${
+                                                isHighlighted
+                                                    ? 'ring-2 ring-inset ring-brand-500 bg-brand-500/5'
+                                                    : enabled
+                                                      ? 'bg-accent-quiet/40'
+                                                      : ''
+                                            }`}
                                         >
                                             <Toggle
                                                 enabled={enabled}
@@ -346,7 +370,7 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
                                                 description={m.description}
                                                 disabled={busy}
                                             />
-                                        </div>
+                                        </motion.div>
                                     );
                                 })}
                             </div>
@@ -356,8 +380,15 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
             </div>
 
             {/* Save bar */}
+            <AnimatePresence>
             {dirty && (
-                <div className="fixed bottom-0 left-0 right-0 lg:left-72 z-40 border-t border-line bg-surface/95 backdrop-blur px-6 py-4 flex items-center justify-between gap-4 shadow-2xl">
+                <motion.div
+                    initial={still ? { opacity: 0 } : { y: '100%' }}
+                    animate={still ? { opacity: 1 } : { y: 0 }}
+                    exit={still ? { opacity: 0 } : { y: '100%' }}
+                    transition={SPRING}
+                    className="fixed bottom-0 left-0 right-0 lg:left-72 z-40 border-t border-line bg-surface/95 backdrop-blur px-6 py-4 flex items-center justify-between gap-4 shadow-2xl"
+                >
                     <div className="text-sm text-ink-secondary">
                         {addedEntries.length > 0 && (
                             <span>
@@ -385,13 +416,24 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
                             Save changes
                         </button>
                     </div>
-                </div>
+                </motion.div>
             )}
+            </AnimatePresence>
 
             {/* Data-at-stake confirmation */}
             {pendingDisable && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-                    <div className="w-full max-w-md rounded-2xl bg-surface border border-line shadow-2xl p-6 space-y-4">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.18 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim"
+                >
+                    <motion.div
+                        initial={still ? false : { opacity: 0, scale: 0.96, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={SPRING}
+                        className="w-full max-w-md rounded-2xl bg-surface border border-line shadow-2xl p-6 space-y-4"
+                    >
                         <div className="flex items-center gap-2 text-amber-600">
                             <MinusCircle size={20} />
                             <h3 className="font-bold text-ink">Turn off {pendingDisable.module.label}?</h3>
@@ -441,8 +483,8 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
                                 Turn it off
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             )}
         </OneGlanceLayout>
     );

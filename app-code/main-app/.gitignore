@@ -15,6 +15,17 @@ node_modules/
 .env
 .env.backup
 .env.production
+
+# 2026-09-04 — every env-shaped file, whatever the suffix.
+# .env.local.backup and .env.dev.backup were TRACKED, and the first one carried
+# a live Laravel APP_KEY, Google OAuth client secret, Lemon Squeezy API key and
+# webhook signing secret. Ignoring them here does not remove them from history:
+#   git rm --cached .env.local.backup .env.dev.backup
+# and rotate every credential they contained.
+.env.*
+!.env.example
+!.env.production.example
+!.env.ci
 # Prepared environment files (contain live secrets — copy to .env, never commit)
 deploy/env/*.env
 *.log
@@ -60,6 +71,13 @@ php_files_in_zip.txt
 zip_contents.txt
 
 /public/build
+
+# Vite's dev-server marker. It is TRACKED in git as of 2026-09-04 and contains
+# http://127.0.0.1:5173 — if it reaches the server, Laravel's @vite helper points
+# every asset at that address and the entire application renders blank for every
+# visitor. Untrack it as well as ignoring it:
+#   git rm --cached public/hot
+/public/hot
 
 
 # Session-2 hygiene (2026-07-03): never ship editor/backup artifacts

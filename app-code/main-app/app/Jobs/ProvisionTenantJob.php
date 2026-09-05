@@ -454,6 +454,17 @@ class ProvisionTenantJob implements ShouldQueue
                 TenantDefaultSeeder::seedFor($tenant);
             }
 
+            // ── Grant the plan's advertised AI allowance ────────────
+            // Buying a plan used to write nothing to the tenant's AI columns,
+            // so a paying customer stayed on the 10-scan free allowance.
+            if ($tenant) {
+                try {
+                    \App\Services\PlanAiAllowance::applyTo($tenant, $plan);
+                } catch (\Throwable $e) {
+                    Log::warning("ProvisionTenantJob: AI allowance failed for tenant {$tenant->id}: " . $e->getMessage());
+                }
+            }
+
             if ($user && $tenant) {
                 // ── Create and consume the license ──────────────────────
                 StoreLicense::create([
@@ -498,6 +509,17 @@ class ProvisionTenantJob implements ShouldQueue
     private function resolvePlan(mixed $variantId, ?string $productName = null): string
     {
         $variantIdStr = $variantId !== null ? (string)$variantId : '';
+
+        // Counter variants (Monthly, Annual). Without this branch the $18 entry
+        // tier — the headline price on the pricing page — fell through to the
+        // 'starter' default and was provisioned on the wrong plan.
+        $counterVariants = [
+            (string) config('services.lemon_squeezy.counter_variant_id'),
+            (string) config('services.lemon_squeezy.counter_annual_variant_id'),
+        ];
+        if (in_array($variantIdStr, array_filter($counterVariants))) {
+            return 'counter';
+        }
 
         // Starter variants (Monthly, Annual)
         $starterVariants = [

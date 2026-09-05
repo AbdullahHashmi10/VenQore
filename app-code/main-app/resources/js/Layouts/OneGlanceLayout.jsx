@@ -61,7 +61,8 @@ import {
  Store,
  PenLine,
  PanelRight,
- RotateCcw
+ RotateCcw,
+ HeartHandshake
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -294,9 +295,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
  };
 
- const handleToggleSidePanel = () => {
- window.dispatchEvent(new CustomEvent('vq:toggle-side-panel'));
- };
+  const handleToggleSidePanel = () => {
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+      window.dispatchEvent(new CustomEvent('vq:open-side-panel'));
+      window.dispatchEvent(new CustomEvent('vq:toggle-side-panel'));
+    } else if (store?.slug) {
+      router.visit(route('store.new-dashboard', { store_slug: store.slug, side_panel: 1 }));
+    } else {
+      router.visit('/new-dashboard?side_panel=1');
+    }
+  };
 
  const handleStartFresh = () => {
  if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
@@ -1126,30 +1134,31 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
  }, [isLargeText, settings?.senior_mode, settings?.ui_scale, posSeniorModeTick]);
 
- useEffect(() => {
- function handleClickOutside(event) {
- // If the element clicked has been removed from the DOM during event propagation,
- // ignore the event so it does not trigger accidental dropdown closures.
- if (!document.body.contains(event.target)) return;
-
- if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
- setIsUserMenuOpen(false);
- }
- if (notificationRef.current && !notificationRef.current.contains(event.target)) {
- setIsNotificationsOpen(false);
- }
- if (growthRef.current && !growthRef.current.contains(event.target)) {
- setIsGrowthOpen(false);
- }
- if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
- setIsMobileMenuOpen(false);
- }
- }
- document.addEventListener("mousedown", handleClickOutside);
- return () => {
- document.removeEventListener("mousedown", handleClickOutside);
- };
- }, [userMenuRef, notificationRef, growthRef, mobileMenuRef]);
+ 	useEffect(() => {
+		function handleClickOutside(event) {
+			if (displayMenuRef.current && !displayMenuRef.current.contains(event.target)) {
+				setIsDisplayMenuOpen(false);
+			}
+			if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+				setIsUserMenuOpen(false);
+			}
+			if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+				setIsNotificationsOpen(false);
+			}
+			if (growthRef.current && !growthRef.current.contains(event.target)) {
+				setIsGrowthOpen(false);
+			}
+			if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+				setIsMobileMenuOpen(false);
+			}
+		}
+		document.addEventListener("mousedown", handleClickOutside);
+		document.addEventListener("touchstart", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+			document.removeEventListener("touchstart", handleClickOutside);
+		};
+	}, []);
 
  return (
  <>
@@ -1364,7 +1373,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  {/* USER MENU POPUP */}
  {isUserMenuOpen && (
- <div className="absolute bottom-20 left-4 w-56 bg-surface rounded-2xl shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+ <div className="absolute bottom-20 left-4 w-56 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
  						{props.auth?.my_stores_count > 1 && (
 							<button
 								onClick={() => {
@@ -1516,7 +1525,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* Fullscreen Floating Squeezed AI Island */}
   {(fullScreen || hideHeader) && (
-      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-nav pointer-events-none flex items-center justify-center">
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-nav pointer-events-none flex items-center justify-center">
           <div className="pointer-events-auto">
               <AiIsland compact />
           </div>
@@ -1594,7 +1603,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
       </button>
 
       {isDisplayMenuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-72 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2.5 space-y-2">
+          <div className="absolute right-0 top-full mt-2 w-72 bg-surface rounded-[14px] shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2.5 space-y-2">
               {/* Theme Selector */}
               <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
                   Theme Appearance
@@ -1661,6 +1670,28 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                   </div>
               </button>
 
+              <button
+                  onClick={() => {
+                      const newValue = (String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? '0' : '1';
+                      router.post(route("store.settings.update", {
+                          store_slug: store.slug
+                      }), {
+                          settings: { ...settings, charity_enabled: newValue }
+                      }, { preserveScroll: true });
+                  }}
+                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true)
+                      ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
+                      : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+              >
+                  <div className="flex items-center gap-2.5">
+                      <HeartHandshake size={16} className="text-rose-500 shrink-0" />
+                      <span className="text-sm font-semibold">Charity Donations</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative transition-colors ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? 'bg-rose-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? 'left-4.5' : 'left-0.5'}`}></div>
+                  </div>
+              </button>
+
               <div className="h-px bg-line my-1" />
 
               {/* Dashboard Layout Actions */}
@@ -1688,6 +1719,28 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
               >
                   <Plus size={16} className="text-emerald-500 shrink-0" />
                   <span className="flex-1 text-left">Add Card</span>
+              </button>
+
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleToggleSidePanel();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+              >
+                  <PanelRight size={16} className="text-indigo-500 shrink-0" />
+                  <span className="flex-1 text-left">Side Panel</span>
+              </button>
+
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleStartFresh();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
+              >
+                  <RotateCcw size={16} className="text-amber-500 shrink-0" />
+                  <span className="flex-1 text-left">Start Fresh…</span>
               </button>
 
               {props.auth?.my_stores_count > 1 && (
@@ -1724,7 +1777,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
       </button>
 
       {isMobileMenuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-2xl shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-[14px] shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
               {/* Store Switcher & Charity Button Row */}
               {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
                   <div className="p-2 border-b border-line flex items-center justify-between gap-3">
@@ -1952,7 +2005,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  {activeDropdown && (
  <>
  <div className="fixed inset-0 z-drawer bg-neutral-900/60 backdrop-blur-xs transition-opacity" onClick={() => setActiveDropdown(null)} />
- <div className="absolute left-3 right-3 bottom-[4.5rem] bg-surface rounded-2xl shadow-2xl border border-line p-3 z-drawer animate-in slide-in-from-bottom-2 duration-normal max-h-[60vh] overflow-y-auto">
+ <div className="absolute left-3 right-3 bottom-[4.5rem] bg-surface rounded-[14px] shadow-2xl border border-line p-3 z-drawer animate-in slide-in-from-bottom-2 duration-normal max-h-[60vh] overflow-y-auto">
  <div className="flex items-center justify-between pb-2 mb-2 border-b border-line">
  <span className="text-2xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">
  {activeDropdown} Options

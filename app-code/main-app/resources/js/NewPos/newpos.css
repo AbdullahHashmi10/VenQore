@@ -526,7 +526,7 @@ html.dark .nqp,
     top: calc(100% + 6px);
     background: var(--vq-raised);
     border: 1px solid var(--vq-line);
-    border-radius: var(--vq-r-lg);
+    border-radius: var(--vq-r-dropdown, 14px);
     box-shadow: var(--vq-elev-3);
     max-height: 340px;
     overflow-y: auto;
