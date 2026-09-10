@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import MarketingLayout, {
     RevealOnScroll, MagneticButton, SectionLabel, GlassCard
 } from '../Shared/MarketingLayout';
-import { Link, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Search, BookOpen, ChevronRight, Menu, X, ArrowRight, HelpCircle,
     FileText, Zap, Compass, Info, CheckCircle2, ShieldCheck, HelpCircle as FaqIcon
@@ -78,8 +78,25 @@ export default function DocsShow({
     const docDescription = currentDoc?.description
         || 'Guides and how-tos for VenQore — setting up your system, the point of sale, inventory, purchasing, documents and the double-entry ledger behind them.';
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'TechArticle',
+        headline: currentDoc?.title || 'VenQore Documentation',
+        description: docDescription,
+        publisher: {
+            '@type': 'Organization',
+            name: 'VenQore',
+            url: 'https://venqore.com'
+        }
+    };
+
     return (
         <MarketingLayout title={docTitle} description={docDescription}>
+            <Head>
+                <script type="application/ld+json">
+                    {JSON.stringify(jsonLd)}
+                </script>
+            </Head>
             <div className="min-h-screen text-ink-muted font-sans relative overflow-hidden pt-24 pb-20">
                 {/* Background glow effects */}
                 <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full bg-brand-500/[0.02] blur-[150px] pointer-events-none" />

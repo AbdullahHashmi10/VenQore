@@ -125,10 +125,15 @@ fi
 # nothing for it, so the style is silently gone and the class list still reads
 # as though it were there. 80 of these were shipping.
 blocking "dangling variant"       '[a-z0-9]-[a-z0-9/.:\[\]%-]+[ \t]+([a-z-]+:)*(hover|focus|active|disabled|checked|group-hover|dark):([ \t]|"|'"'"'|`)'
-# Not a colour rule. A class that does not exist in tailwind.config.js compiles
-# to nothing and the element silently inherits — the single most expensive
-# mistake available here, and it cost two rounds during the rollout.
 blocking "class that cannot exist" '\b(border|divide)-border\b|\bbg-card\b|\btext-primary\b|\btext-secondary\b|\bborder-subtle\b'
+
+# Guard: No public marketing route may serve static HTML or bypass Inertia
+if grep -nE "Route::get\('/(features|pricing|about|contact|vensynq|smartcapture|blueprint|reckoner|ledger|documents|security|onboarding|pos)'" \
+     routes/web.php 2>/dev/null | grep -q "V6PageController\|response()->file"; then
+  bad "no static HTML public routes" "a public marketing route is serving static HTML. See V6_RESTORATION_PLAN.md."
+else
+  ok "no static HTML public routes" "0"
+fi
 
 # ──────────────────────────────────────────────────────────────────────────
 # Offline

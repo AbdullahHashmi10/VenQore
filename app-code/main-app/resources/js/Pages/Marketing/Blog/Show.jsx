@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import MarketingLayout, {
     RevealOnScroll, MagneticButton, SectionLabel
 } from '../Shared/MarketingLayout';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft, ArrowRight, Clock, Tag, Share2,
     ChevronRight, BookOpen
@@ -74,11 +74,38 @@ export default function BlogShow({ post, recentPosts = [] }) {
         return Math.max(1, Math.ceil(wordCount / 200));
     }, [wordCount]);
 
+    const jsonLd = useMemo(() => ({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.excerpt,
+        datePublished: post.date,
+        author: {
+            '@type': 'Person',
+            name: post.author || 'VenQore Editorial'
+        },
+        publisher: {
+            '@type': 'Organization',
+            name: 'VenQore',
+            url: 'https://venqore.com'
+        },
+        mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': typeof window !== 'undefined' ? window.location.href : `https://venqore.com/blog/${post.slug}`
+        }
+    }), [post]);
+
     return (
         <MarketingLayout
             title={`${post.title} — VenQore Blog`}
             description={post.excerpt}
         >
+            <Head>
+                <script type="application/ld+json">
+                    {JSON.stringify(jsonLd)}
+                </script>
+            </Head>
+
             {/* ── 1. ARTICLE HEADER ───────────────────────────── */}
             <section className="relative pt-36 pb-12 px-6 overflow-hidden">
                 {/* Background ambient glow */}
@@ -165,7 +192,7 @@ export default function BlogShow({ post, recentPosts = [] }) {
                                 <img
                                     src={post.image}
                                     alt={post.title}
-                                    className="w-full h-72 md:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-slower"
+                                    className="w-full h-72 md:h-[420px] object-cover object-center group-hover:opacity-90 transition-opacity duration-slower"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-sunken/80 via-sunken/20 to-transparent pointer-events-none" />
                             </div>

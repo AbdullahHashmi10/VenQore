@@ -1749,7 +1749,7 @@ export default function LandingPage() {
                                     },
                                     {
                                         name: 'Scale', price: '$299', suffix: '/mo', badge: 'Enterprise',
-                                        color: 'text-purple-400', border: 'border-purple-500/20', bg: 'bg-purple-500/5',
+                                        color: 'text-brand-400', border: 'border-brand-500/20', bg: 'bg-brand-500/5',
                                         features: ['250,000 SKUs · 25 seats', '20 registers · White-label', '2 channel syncs included', 'Named contact 4-hr SLA'],
                                         cta: 'Start Trial',
                                     },

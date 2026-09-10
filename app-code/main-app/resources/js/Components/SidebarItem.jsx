@@ -303,7 +303,6 @@ export default function SidebarItem({
                             'Serial Tracking': 'store.serials.index',
                             'Debit Notes': 'store.debit-notes.index',
                             'Purchase Returns': 'store.debit-notes.index',
-                            'Staff Attendance': 'store.staff-attendance.index',
                             'Campaigns': 'store.marketing-campaigns.index',
                             'Online Store': 'store.online-store.index',
                             'VenSynQ': 'vensynq.index',

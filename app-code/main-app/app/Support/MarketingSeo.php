@@ -1046,6 +1046,167 @@ class MarketingSeo
                     . '<p><a href="/register">Start 14-Day Free Trial</a> &middot; <a href="/demo">Try Live Demo</a></p>'
                     . $nav . '</main>',
             ],
+
+            'marketing.solutions.index' => [
+                'title' => 'Industry Solutions & Tailored Retail ERP — VenQore',
+                'description' => 'Purpose-built retail and wholesale workflows for pharmacy, grocery, clothing, electronics, wholesale, and multi-store operations.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Industry Solutions</h1>'
+                    . '<p>Workflows configured for your specific industry: Pharmacy, Grocery, Clothing, Electronics, Wholesale, and Multi-Store operations.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.compare.index' => [
+                'title' => 'Compare VenQore with Other POS & ERP Platforms',
+                'description' => 'Side-by-side comparisons of VenQore against Square POS, Vyapar, and traditional retail software. See real pricing math and feature breakdowns.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Compare VenQore</h1>'
+                    . '<p>See why retailers and wholesalers switch to VenQore: zero transaction fees, real double-entry accounting, and offline-first reliability.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.blueprint' => [
+                'title' => 'The VenQore Blueprint — Interactive AI ERP Builder Architecture',
+                'description' => 'Explore the VenQore Blueprint: describe your business model and see the exact compiled schema, modules, registers, and ledger rules generated in real-time.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>The VenQore Blueprint</h1>'
+                    . '<p>Describe your business. VenQore compiles the schema, roles, registers, workflows, and double-entry ledger rules tailored to your exact industry.</p>'
+                    . '<p><a href="/demo">Try Live Demo</a> &middot; <a href="/register">Start Free Trial</a></p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.reckoner' => [
+                'title' => 'VenQore Reckoner — 58 Continuous Business Metrics & Eight Laws',
+                'description' => '58 continuous mathematical readings across margin, revenue, liquidity, inventory velocity, and reconciliation — evaluated deterministically with zero drift.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Reckoner: 58 Continuous Business Readings</h1>'
+                    . '<p>Every business metric calculated deterministically from your underlying immutable ledger. Margin velocity, dead capital, cash burn, and party risk scored continuously.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.ledger' => [
+                'title' => 'The Core Ledger — Financial Correctness & Double-Entry Integrity | VenQore',
+                'description' => 'Every sale, purchase, payment, and transfer in VenQore writes balanced debit/credit entries to an immutable double-entry ledger. Trial balance always zero.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Core Ledger Engine</h1>'
+                    . '<p>Auditor-grade double-entry financial integrity built into every checkout and stock movement. Mathematical correctness enforced on every transaction.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.documents' => [
+                'title' => '13 Verified Business Document Types — VenQore',
+                'description' => 'Standardized, verifiable commercial documents from Invoices and Receipts to Delivery Challans, Credit Notes, and Stock Transfer manifests.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Document Engine: 13 Verifiable Business Documents</h1>'
+                    . '<p>Clean, professional invoices, receipts, purchase orders, credit notes, and delivery notes linked directly to your accounting ledger.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.security' => [
+                'title' => 'Security & Multi-Tenant Isolation Architecture — VenQore',
+                'description' => 'Enterprise-grade security: Tenant-scoped queries on 116 models, 49 granular permissions, encrypted keys, and strict audit logs on every action.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Security &amp; Tenant Isolation</h1>'
+                    . '<p>Multi-tenant architecture with automatic global query scopes, 49 permission nodes, cryptographic authentication, and comprehensive audit trails.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.onboarding' => [
+                'title' => 'Interactive Onboarding & Store Setup — VenQore',
+                'description' => 'Set up your retail operating system in under 4 minutes. Select industry templates, configure registers, and import your product catalog.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Setup &amp; Onboarding Walkthrough</h1>'
+                    . '<p>4 simple steps to assemble your tailored retail management system.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.dashboard-preview' => [
+                'title' => 'Executive Dashboard & Live Card Explorer — VenQore',
+                'description' => 'Preview the VenQore executive dashboard featuring live business intelligence cards, revenue dials, stock health metrics, and ledger reconciliation.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Executive Dashboard Preview</h1>'
+                    . '<p>Real-time analytics and financial intelligence across all sales channels and store locations.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.pos' => [
+                'title' => 'Offline-First POS Register Showcase — VenQore',
+                'description' => 'Explore the VenQore high-speed POS terminal: barcode scanning, offline caching, split payments, WebUSB printing, and instant ledger synchronization.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Point of Sale Terminal Showcase</h1>'
+                    . '<p>High-speed, offline-first register designed for retail, grocery, pharmacy, and wholesale environments.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.vensynq' => [
+                'title' => 'VenSynQ — Multi-Channel E-Commerce & Inventory Sync Engine',
+                'description' => 'Real-time synchronization between physical store POS and online marketplaces (WooCommerce, Amazon, TikTok Shop) with unified stock and accounting.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenSynQ: Multi-Channel Inventory Synchronization</h1>'
+                    . '<p>Never oversell again. Synchronize inventory in real-time across your physical registers and online e-commerce channels.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.smartcapture' => [
+                'title' => 'SmartCapture — AI Bill Scanner & Voice Invoice Extraction | VenQore',
+                'description' => 'Scan paper bills, delivery notes, and voice notes directly into verified purchase orders and ledger entries in seconds.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore SmartCapture: AI Document Intake</h1>'
+                    . '<p>Turn paper receipts, supplier invoices, and voice memos into balanced ledger transactions with zero manual data entry.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.contact' => [
+                'title' => 'Contact Us — VenQore Support & Enterprise Solutions',
+                'description' => 'Get in touch with the VenQore engineering and product team for support, enterprise deployment, or feature inquiries.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Contact VenQore</h1>'
+                    . '<p>Reach out to our team for questions about enterprise deployment, multi-store migration, or product support.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.newsletter' => [
+                'title' => 'VenQore Newsletter — Retail Intelligence & Engineering Updates',
+                'description' => 'Subscribe to the VenQore newsletter for engineering deep-dives, retail profit strategies, and system release notes.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Subscribe to the VenQore Newsletter</h1>'
+                    . '<p>Insights on retail engineering, inventory optimization, and ledger accuracy delivered to your inbox.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.digital-products' => [
+                'title' => 'Digital Products & Downloadable Assets — VenQore',
+                'description' => 'Downloadable retail templates, inventory spreadsheets, and digital assets designed for growing merchants.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Digital Products &amp; Assets</h1>'
+                    . '<p>Free and premium templates for retail businesses, stock counts, and financial analysis.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'marketing.partner-support' => [
+                'title' => 'Partner & Dedicated Support Desk — VenQore',
+                'description' => 'Priority support channel for VenQore certified partners, enterprise clients, and integration engineers.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Partner Support Desk</h1>'
+                    . '<p>Dedicated support and assistance for certified partners and multi-store operators.</p>'
+                    . $nav . '</main>',
+            ],
         ];
     }
 }
