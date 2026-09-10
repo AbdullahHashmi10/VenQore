@@ -1,100 +1,133 @@
 import React from 'react';
-import MarketingLayout, {
-    RevealOnScroll, MagneticButton, SectionLabel
-} from '../Shared/MarketingLayout';
+import MarketingLayout from '../Shared/MarketingLayout';
 import { Link } from '@inertiajs/react';
 import {
-    ArrowRight, Clock, Tag, ChevronRight, BookOpen, Sparkles
+    ArrowRight, Clock, ChevronRight, BookOpen, Sparkles, Tag
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════
-   BLOG INDEX — "The Signal"
-   Visual Concept: An editorial magazine layout. Clean, spacious,
-   typographically driven. Featured article takes full width with
-   dramatic treatment. Grid below is tight and scannable.
+   V6 BLOG INDEX — "The Signal"
+   100% V6 Design System: dark ambient surface, high-contrast Bricolage
+   headings, Plus Jakarta copy, mint accent badges, and clean cards.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const FeaturedPost = ({ post }) => (
-    <RevealOnScroll>
-        <Link href={`/blog/${post.slug}`} className="block group">
-            <div className="relative rounded-2xl bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/[0.06] overflow-hidden hover:border-brand-500/20 hover:bg-white/[0.04] transition-all duration-slower">
-                <div className="grid grid-cols-1 lg:grid-cols-2">
-                    {/* Image / Visual */}
-                    <div className="relative aspect-[16/10] lg:aspect-auto bg-gradient-to-br from-brand-500/10 via-brand-500/5 to-transparent flex items-center justify-center overflow-hidden">
-                        <div className="absolute inset-0 vq-grid-pattern opacity-50" />
-                        <div className="relative text-center p-12">
-                            <div className="text-8xl font-bold text-white/[0.04] font-display tracking-tighter leading-none group-hover:text-white/[0.06] transition-colors duration-slower">01</div>
-                            <BookOpen size={48} className="text-brand-500/20 mx-auto mt-4 group-hover:text-brand-500/30 transition-all duration-slower" />
-                        </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-8 md:p-12 flex flex-col justify-center">
-                        <div className="flex items-center gap-4 mb-6">
-                            <span className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-3xs font-bold tracking-[0.2em] uppercase">
-                                {post.category}
-                            </span>
-                            <span className="text-2xs text-ink-secondary font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                <Clock size={10} /> {post.date}
-                            </span>
-                        </div>
-
-                        <h2 className="text-2xl md:text-3xl font-bold text-ink tracking-tight leading-tight mb-4 font-display group-hover:text-brand-600 dark:group-hover:text-brand-200 transition-colors">
-                            {post.title}
-                        </h2>
-                        <p className="text-ink-muted leading-relaxed mb-8 line-clamp-3">
-                            {post.excerpt}
-                        </p>
-
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs text-ink-secondary font-bold">{post.author}</span>
-                            <span className="text-brand-600 dark:text-brand-400 text-xs font-bold uppercase tracking-[0.15em] flex items-center gap-2 group-hover:gap-3 transition-all">
-                                Read Article <ArrowRight size={13} />
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Link>
-    </RevealOnScroll>
-);
-
-const PostCard = ({ post, index }) => (
-    <RevealOnScroll delay={index * 0.1}>
-        <Link href={`/blog/${post.slug}`} className="block group h-full">
-            <div className="rounded-xl bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/[0.06] overflow-hidden hover:border-brand-500/20 hover:bg-white/[0.04] hover:-translate-y-1 transition-all duration-slower h-full flex flex-col">
-                {/* Visual Header */}
-                <div className="relative aspect-[16/9] bg-gradient-to-br from-brand-500/5 to-brand-500/5 flex items-center justify-center overflow-hidden">
-                    <div className="absolute inset-0 vq-dot-pattern" />
-                    <div className="text-6xl font-bold text-white/[0.03] font-display tracking-tighter group-hover:text-white/[0.05] transition-colors duration-slower">
-                        {String(index + 2).padStart(2, '0')}
-                    </div>
+    <div className="vq-card vq-card--interactive" style={{ padding: '0', overflow: 'hidden', borderRadius: 'var(--vq-r-xl)' }}>
+        <Link href={`/blog/${post.slug}`} className="block" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'stretch' }}>
+                {/* Visual Artwork Banner */}
+                <div style={{
+                    position: 'relative',
+                    minHeight: '280px',
+                    background: 'radial-gradient(circle at 30% 30%, rgba(35, 196, 166, 0.18), transparent 70%), var(--vq-surface-raised)',
+                    borderRight: '1px solid var(--vq-line)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '36px',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{
+                        position: 'absolute',
+                        top: '16px',
+                        left: '20px',
+                        fontFamily: 'var(--vq-font-numeric)',
+                        fontWeight: '800',
+                        fontSize: '72px',
+                        lineHeight: '1',
+                        color: 'rgba(255, 255, 255, 0.04)',
+                        userSelect: 'none'
+                    }}>01</div>
+                    <BookOpen size={48} style={{ color: 'var(--vq-accent)', opacity: 0.85, marginBottom: '16px' }} />
+                    <span className="vq-eyebrow vq-eyebrow--accent" style={{ letterSpacing: '.18em' }}>FEATURED INTELLIGENCE</span>
                 </div>
 
                 {/* Content */}
-                <div className="p-7 flex flex-col flex-1">
-                    <div className="flex items-center gap-3 mb-4">
-                        <span className="px-2.5 py-0.5 rounded-full bg-sunken dark:bg-white/5 text-3xs font-bold text-ink-muted uppercase tracking-widest">
+                <div style={{ padding: 'clamp(28px, 4vw, 44px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <span className="vq-chip" style={{ background: 'rgba(35, 196, 166, 0.12)', borderColor: 'rgba(35, 196, 166, 0.3)', color: 'var(--vq-accent)' }}>
                             {post.category}
                         </span>
-                        <span className="text-2xs text-ink-secondary font-bold">{post.date}</span>
+                        <span style={{ fontSize: '13px', color: 'var(--vq-text-3)', display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--vq-font-numeric)' }}>
+                            <Clock size={13} style={{ color: 'var(--vq-accent)' }} /> {post.date}
+                        </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-ink tracking-tight leading-snug mb-3 font-display group-hover:text-brand-600 dark:group-hover:text-brand-200 transition-colors flex-1">
+                    <h2 className="vq-h2" style={{ margin: '0', color: 'var(--vq-text)', lineHeight: '1.2' }}>
                         {post.title}
-                    </h3>
-                    <p className="text-ink-secondary text-sm leading-relaxed mb-5 line-clamp-2">
+                    </h2>
+
+                    <p className="vq-lede" style={{ margin: '0', color: 'var(--vq-text-2)', fontSize: '15px', lineHeight: '1.6' }}>
                         {post.excerpt}
                     </p>
 
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-line dark:border-white/5">
-                        <span className="text-2xs text-ink-secondary font-bold">{post.author}</span>
-                        <ChevronRight size={14} className="text-ink-secondary group-hover:text-brand-400 group-hover:translate-x-1 transition-all" />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', paddingTop: '16px', borderTop: '1px solid var(--vq-line-soft)' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--vq-text-2)' }}>{post.author}</span>
+                        <span className="vq-link" style={{ fontWeight: '700', letterSpacing: '.04em' }}>
+                            Read Article <ArrowRight size={14} />
+                        </span>
                     </div>
                 </div>
             </div>
         </Link>
-    </RevealOnScroll>
+    </div>
+);
+
+const PostCard = ({ post, index }) => (
+    <div className="vq-card vq-card--interactive" style={{ padding: '0', overflow: 'hidden', borderRadius: 'var(--vq-r-lg)', display: 'flex', flexDirection: 'column' }}>
+        <Link href={`/blog/${post.slug}`} className="block" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* Visual Thumbnail */}
+            <div style={{
+                height: '140px',
+                background: 'radial-gradient(circle at top right, rgba(35, 196, 166, 0.12), transparent 60%), var(--vq-surface-raised)',
+                borderBottom: '1px solid var(--vq-line-soft)',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <span style={{
+                    position: 'absolute',
+                    right: '16px',
+                    bottom: '8px',
+                    fontFamily: 'var(--vq-font-numeric)',
+                    fontWeight: '800',
+                    fontSize: '48px',
+                    color: 'rgba(255, 255, 255, 0.04)',
+                    userSelect: 'none'
+                }}>
+                    {String(index + 2).padStart(2, '0')}
+                </span>
+                <span className="vq-eyebrow" style={{ color: 'var(--vq-text-3)', fontSize: '11px' }}>
+                    {post.category}
+                </span>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: '1', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: 'var(--vq-text-3)', fontFamily: 'var(--vq-font-numeric)' }}>
+                    <span>{post.category}</span>
+                    <span>{post.date}</span>
+                </div>
+
+                <h3 className="vq-h3" style={{ margin: '0', fontSize: '18px', lineHeight: '1.3', color: 'var(--vq-text)', flex: '1' }}>
+                    {post.title}
+                </h3>
+
+                <p style={{ margin: '0', fontSize: '14px', lineHeight: '1.55', color: 'var(--vq-text-2)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {post.excerpt}
+                </p>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--vq-line-soft)' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--vq-text-3)' }}>{post.author}</span>
+                    <span className="vq-link" style={{ fontSize: '13px' }}>
+                        Read <ChevronRight size={14} />
+                    </span>
+                </div>
+            </div>
+        </Link>
+    </div>
 );
 
 export default function BlogIndex({ posts = { data: [] } }) {
@@ -105,33 +138,31 @@ export default function BlogIndex({ posts = { data: [] } }) {
 
     return (
         <MarketingLayout
-            title="Blog — VenQore"
-            description="Insights on financial accuracy, inventory management, and building operations that don't lie about your numbers."
+            title="Blog & Field Guides — VenQore"
+            description="Deep dives into financial accuracy, operational control, and the hidden mechanics that make or break retail & wholesale businesses."
         >
             {/* ── 1. HERO ─────────────────────────────────────── */}
-            <section className="relative pt-40 pb-16 px-6">
-                <div className="max-w-4xl mx-auto text-center">
-                    <RevealOnScroll>
-                        <SectionLabel icon={Sparkles}>The Signal</SectionLabel>
-                    </RevealOnScroll>
-                    <RevealOnScroll delay={0.1}>
-                        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[0.9] mb-6 font-display">
-                            <span className="bg-gradient-to-r from-ink via-ink-secondary to-ink-muted bg-clip-text text-transparent">Ideas That</span>{''}
-                            <span className="bg-gradient-to-r from-brand-400 to-brand-400 bg-clip-text text-transparent vq-text-glow">Matter.</span>
-                        </h1>
-                    </RevealOnScroll>
-                    <RevealOnScroll delay={0.2}>
-                        <p className="text-lg text-ink-muted max-w-xl mx-auto">
-                            Deep dives into financial accuracy, operational control, and the hidden mechanics that make or break a business.
-                        </p>
-                    </RevealOnScroll>
+            <section className="vq-section vq-section--tight" style={{ paddingTop: 'clamp(80px, 10vw, 120px)', textAlign: 'center' }}>
+                <div className="vq-container vq-container--narrow">
+                    <span className="vq-eyebrow vq-eyebrow--accent" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '999px', background: 'var(--vq-accent)', boxShadow: '0 0 8px var(--vq-accent)' }}></span>
+                        THE SIGNAL · VENQORE EDITORIAL
+                    </span>
+
+                    <h1 className="vq-display" style={{ margin: '0 0 16px', fontWeight: '700', letterSpacing: '-0.03em' }}>
+                        Ideas That <span style={{ color: 'var(--vq-accent)', position: 'relative' }}>Matter.</span>
+                    </h1>
+
+                    <p className="vq-lede" style={{ maxWidth: '580px', marginInline: 'auto' }}>
+                        Deep dives into financial accuracy, inventory velocity, and the mathematical laws that ensure your books always balance.
+                    </p>
                 </div>
             </section>
 
             {/* ── 2. FEATURED POST ────────────────────────────── */}
             {featured && (
-                <section className="py-8 px-6">
-                    <div className="max-w-6xl mx-auto">
+                <section style={{ paddingBottom: 'var(--vq-space-12)' }}>
+                    <div className="vq-container">
                         <FeaturedPost post={featured} />
                     </div>
                 </section>
@@ -139,75 +170,44 @@ export default function BlogIndex({ posts = { data: [] } }) {
 
             {/* ── 3. POST GRID ────────────────────────────────── */}
             {rest.length > 0 && (
-                <section className="py-16 px-6">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <section style={{ paddingBottom: 'var(--vq-space-16)' }}>
+                    <div className="vq-container">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                            <span className="vq-kicker">ALL ARTICLES &amp; GUIDES</span>
+                            <span className="vq-caption">{postItems.length} publications</span>
+                        </div>
+
+                        <div className="vq-grid vq-grid--3">
                             {rest.map((post, i) => (
-                                <PostCard key={post.uid || i} post={post} index={i} />
+                                <PostCard key={post.uid || post.slug || i} post={post} index={i} />
                             ))}
                         </div>
                     </div>
                 </section>
             )}
 
+            {/* ── 4. PAGINATION ───────────────────────────────── */}
             {hasPagination && (
-                <nav className="px-6 pb-16" aria-label="Blog pagination">
-                    <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 border-t border-line dark:border-white/[0.06] pt-8">
+                <div className="vq-container" style={{ paddingBottom: 'var(--vq-space-16)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--vq-line)', paddingTop: '24px' }}>
                         {posts.prev_page_url ? (
-                            <Link
-                                href={posts.prev_page_url}
-                                preserveScroll
-                                className="rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand-500/30 hover:text-brand-600 dark:border-white/[0.08] dark:hover:text-brand-400"
-                            >
-                                Previous
+                            <Link href={posts.prev_page_url} preserveScroll className="vq-btn vq-btn--secondary">
+                                &larr; Previous
                             </Link>
                         ) : <span />}
 
-                        <span className="text-xs font-bold uppercase tracking-widest text-ink-muted">
+                        <span className="vq-caption" style={{ fontFamily: 'var(--vq-font-numeric)', fontWeight: '600' }}>
                             Page {posts.current_page} of {posts.last_page}
                         </span>
 
                         {posts.next_page_url ? (
-                            <Link
-                                href={posts.next_page_url}
-                                preserveScroll
-                                className="rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand-500/30 hover:text-brand-600 dark:border-white/[0.08] dark:hover:text-brand-400"
-                            >
-                                Next
+                            <Link href={posts.next_page_url} preserveScroll className="vq-btn vq-btn--secondary">
+                                Next &rarr;
                             </Link>
                         ) : <span />}
                     </div>
-                </nav>
-            )}
-
-            {/* ── 4. NEWSLETTER CTA ──────────────────────────── */}
-            <section className="py-32 px-6">
-                <div className="max-w-3xl mx-auto text-center">
-                    <RevealOnScroll>
-                        <div className="bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/[0.06] rounded-2xl p-12 md:p-16 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand-500/30 to-transparent" />
-
-                            <h2 className="text-3xl md:text-4xl font-bold text-ink tracking-tighter font-display mb-4">
-                                Stay <span className="text-brand-600 dark:text-brand-400">Sharp.</span>
-                            </h2>
-                            <p className="text-ink-muted mb-10 max-w-sm mx-auto">
-                                Get our best thinking on financial accuracy and operational control. No spam. No filler.
-                            </p>
-
-                            <div className="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto">
-                                <input
-                                    type="email"
-                                    placeholder="your@email.com"
-                                    className="flex-1 w-full px-6 py-4 bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.08] rounded-full text-ink text-sm placeholder:text-ink-secondary outline-none focus:border-brand-500/40 transition-colors"
-                                />
-                                <MagneticButton variant="accent" className="whitespace-nowrap w-full sm:w-auto justify-center">
-                                    Subscribe
-                                </MagneticButton>
-                            </div>
-                        </div>
-                    </RevealOnScroll>
                 </div>
-            </section>
+            )}
         </MarketingLayout>
     );
 }

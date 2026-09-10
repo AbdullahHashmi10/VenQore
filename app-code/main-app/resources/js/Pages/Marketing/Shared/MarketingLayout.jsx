@@ -1,28 +1,15 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, MessageCircle, Menu, X, Sun, Moon, ChevronDown } from 'lucide-react';
+import { ArrowRight, MessageCircle, Menu, X, Sun, Moon, ChevronDown, Clock, ArrowLeft } from 'lucide-react';
 import { useTheme } from '@/Contexts/ThemeContext';
 
-import { vq } from '@/theme/runtime';
 /* ═══════════════════════════════════════════════════════════════════════════
-   SHARED MARKETING LAYOUT — Midnight Nebula 2.0 (light/dark aware)
-
-   Header: deliberately minimal. Four grouped entries (Product, Pricing,
-   Resources, Company) instead of ten flat links. Every SEO page the header
-   used to expose is still one click away — it now lives in a dropdown and
-   in the full footer sitemap, so internal link equity is preserved while
-   the chrome stays clean.
-
-   Theme: the toggle lives in the header on every page. First-time visitors
-   get dark on the landing page (the hero is designed for it) and light on
-   every other marketing page; see Contexts/ThemeContext.jsx. Light mode is
-   fully art-directed here — aurora blobs, drifting particles and spotlight
-   all have first-class light values, not just dimmed dark ones.
-
-   All helper exports below are preserved with identical signatures.
+   UNIFIED V6 MARKETING LAYOUT
+   The single master chrome across all public marketing pages, showcases,
+   blog articles, tools, docs, solutions, and legal documents.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Scroll reveal ───────────────────────────────────────────────────────── */
+/* ── Scroll reveal helper ─────────────────────────────────────────────────── */
 export function useScrollReveal(options = {}) {
     const ref = useRef(null);
     const [isVisible, setIsVisible] = useState(false);
@@ -30,8 +17,16 @@ export function useScrollReveal(options = {}) {
         const el = ref.current;
         if (!el) return;
         const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); } },
-            { threshold: options.threshold !== undefined ? options.threshold : 0, rootMargin: options.rootMargin || '0px 0px -50px 0px' }
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(el);
+                }
+            },
+            {
+                threshold: options.threshold !== undefined ? options.threshold : 0,
+                rootMargin: options.rootMargin || '0px 0px -50px 0px'
+            }
         );
         observer.observe(el);
         return () => observer.disconnect();
@@ -42,24 +37,31 @@ export function useScrollReveal(options = {}) {
 export const RevealOnScroll = ({ children, delay = 0, direction = 'up', className = '', as: Tag = 'div' }) => {
     const [ref, isVisible] = useScrollReveal();
     const transforms = {
-        up: 'translateY(40px)', down: 'translateY(-40px)',
-        left: 'translateX(40px)', right: 'translateX(-40px)',
-        scale: 'scale(0.95)', none: 'none',
+        up: 'translateY(32px)',
+        down: 'translateY(-32px)',
+        left: 'translateX(32px)',
+        right: 'translateX(-32px)',
+        scale: 'scale(0.96)',
+        none: 'none',
     };
     return (
-        <Tag ref={ref} className={className} style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? 'none' : transforms[direction],
-            transition: `opacity 0.85s cubic-bezier(0.22,1,0.36,1) ${delay}s, transform 0.85s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
-            willChange: 'opacity, transform',
-        }}>
+        <Tag
+            ref={ref}
+            className={className}
+            style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'none' : transforms[direction],
+                transition: `opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform 0.75s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
+                willChange: 'opacity, transform',
+            }}
+        >
             {children}
         </Tag>
     );
 };
 
 /* ── Animated counter ────────────────────────────────────────────────────── */
-export const AnimatedCounter = ({ end, suffix = '', prefix = '', duration = 2000 }) => {
+export const AnimatedCounter = ({ end, suffix = '', prefix = '', duration = 1800 }) => {
     const [count, setCount] = useState(0);
     const [ref, isVisible] = useScrollReveal();
     const hasAnimated = useRef(false);
@@ -75,10 +77,10 @@ export const AnimatedCounter = ({ end, suffix = '', prefix = '', duration = 2000
         };
         requestAnimationFrame(animate);
     }, [isVisible, end, duration]);
-    return <span ref={ref}>{prefix}{count}{suffix}</span>;
+    return <span ref={ref} className="vq-num">{prefix}{count.toLocaleString()}{suffix}</span>;
 };
 
-/* ── Magnetic button ─────────────────────────────────────────────────────── */
+/* ── V6 Button / Magnetic Button ─────────────────────────────────────────── */
 export const MagneticButton = ({ children, href, className = '', variant = 'primary', ...props }) => {
     const btnRef = useRef(null);
     const handleMouseMove = useCallback((e) => {
@@ -87,208 +89,164 @@ export const MagneticButton = ({ children, href, className = '', variant = 'prim
         const rect = btn.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
-        btn.style.transform = `translate(${x * 0.18}px, ${y * 0.28}px)`;
+        btn.style.transform = `translate(${x * 0.12}px, ${y * 0.18}px)`;
     }, []);
-    const handleMouseLeave = useCallback(() => { if (btnRef.current) btnRef.current.style.transform = ''; }, []);
+    const handleMouseLeave = useCallback(() => {
+        if (btnRef.current) btnRef.current.style.transform = '';
+    }, []);
 
-    const baseClass = variant === 'primary'
-        ? 'px-9 py-4 bg-accent-fill text-accent-on font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-400)/0.55)]'
-        : variant === 'ghost'
-            ? 'px-8 py-4 bg-void-900/[0.04] dark:bg-white/[0.04] border border-void-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md'
-            : 'px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-full shadow-xl ';
+    const variantClass = variant === 'primary' || variant === 'accent'
+        ? 'vq-btn vq-btn--primary'
+        : variant === 'secondary'
+            ? 'vq-btn vq-btn--secondary'
+            : variant === 'ghost'
+                ? 'vq-btn vq-btn--ghost'
+                : 'vq-btn vq-btn--quiet';
 
     const Tag = href ? Link : 'button';
     return (
-        <Tag ref={btnRef} href={href}
-            className={`${baseClass} ${className} inline-flex items-center justify-center gap-2.5 cursor-pointer`}
-            onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
-            style={{ transition: 'transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s ease, background 0.3s ease' }}
-            {...props}>
+        <Tag
+            ref={btnRef}
+            href={href}
+            className={`${variantClass} ${className}`}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            {...props}
+        >
             {children}
         </Tag>
     );
 };
 
-/* ── Section label ───────────────────────────────────────────────────────── */
-// `text` is accepted alongside `children` because seven call sites pass it and
-// were rendering an empty pill. Reading both is one line; chasing the call
-// sites is seven files that will drift again.
+/* ── V6 Section Eyebrow Label ────────────────────────────────────────────── */
 export const SectionLabel = ({ children, text, icon: Icon }) => (
-    <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 dark:border-brand-400/20 text-brand-600 dark:text-brand-300 text-2xs font-bold tracking-[0.3em] uppercase mb-8 backdrop-blur-sm">
-        {Icon && <Icon size={13} />}
+    <span
+        className="vq-eyebrow vq-eyebrow--accent"
+        style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '16px'
+        }}
+    >
+        <span
+            style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '999px',
+                background: 'var(--vq-accent)',
+                boxShadow: '0 0 8px var(--vq-accent)'
+            }}
+        />
         {children ?? text}
-    </div>
+    </span>
 );
 
-/* ── Glass card ──────────────────────────────────────────────────────────── */
-export const GlassCard = ({ children, className = '', hover = true, padding = 'p-8', ...props }) => (
+/* ── V6 Glass Card ───────────────────────────────────────────────────────── */
+export const GlassCard = ({
+    children,
+    className = '',
+    hover = true,
+    padding = 'p-6 sm:p-8',
+    ...props
+}) => (
     <div
-        className={`relative ${padding} rounded-xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/[0.07] backdrop-blur-sm ${hover ? 'hover:bg-interactive-hover/[0.05] dark:hover:bg-white/[0.06] hover:border-brand-500/30 dark:hover:border-brand-500/20 hover:shadow-2xl hover:-translate-y-1' : ''} transition-all duration-slower group ${className}`}
+        className={`vq-card ${hover ? 'vq-card--interactive' : ''} ${className}`}
+        style={{
+            borderRadius: 'var(--vq-r-lg)',
+            background: 'var(--vq-surface)',
+            border: '1px solid var(--vq-line)'
+        }}
         {...props}
     >
         {children}
     </div>
 );
 
-/* ── reduced motion ──────────────────────────────────────────────────────── */
-function useMkRM() {
-    const [r, setR] = useState(false);
-    useEffect(() => {
-        const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-        const on = () => setR(mq.matches); on();
-        mq.addEventListener?.('change', on);
-        return () => mq.removeEventListener?.('change', on);
-    }, []);
-    return r;
-}
-
-/* ── scroll progress bar ─────────────────────────────────────────────────── */
-const MkScrollProgress = () => {
-    const [p, setP] = useState(0);
-    useEffect(() => {
-        const h = () => { const d = document.documentElement; const max = d.scrollHeight - d.clientHeight; setP(max > 0 ? Math.min(1, window.scrollY / max) : 0); };
-        h(); window.addEventListener('scroll', h, { passive: true }); window.addEventListener('resize', h);
-        return () => { window.removeEventListener('scroll', h); window.removeEventListener('resize', h); };
-    }, []);
-    return (
-        <div className="fixed top-0 left-0 right-0 z-sticky h-[2px]">
-            <div className="h-full w-full origin-left bg-gradient-brand transition-transform duration-fast ease-out" style={{ transform: `scaleX(${p})` }} />
-        </div>
-    );
-};
-
-/* ── ambient background (no images — gradient keeps content crisp) ──────────
-   Light mode is art-directed, not a dimmed copy of dark. Dark uses luminous
-   colour on near-black; light uses saturated colour on a warm paper white,
-   with stronger blob alpha (light backgrounds swallow colour, so the same
-   numbers that read as "glow" on black read as "nothing" on white) and a
-   vignette that darkens toward the edges instead of washing out. */
-const MkAmbient = ({ isDarkMode }) => (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0" style={{
-            background: isDarkMode
-                ? 'radial-gradient(120% 95% at 50% -10%, rgb(var(--vq-ramp-teal-950)) 0%, rgb(var(--vq-ramp-ink-950)) 46%, rgb(var(--vq-ramp-ink-950)) 100%)'
-                : 'radial-gradient(125% 100% at 50% -12%, rgb(var(--vq-ramp-teal-50)) 0%, rgb(var(--vq-ramp-ink-50)) 38%, rgb(var(--vq-ramp-ink-50)) 72%, rgb(var(--vq-bg)) 100%)',
-        }} />
-        <div className={`absolute -top-[10%] left-1/2 w-[140vw] h-[85vh] -translate-x-1/2 ${isDarkMode ? 'vqm-beams' : 'vqm-beams-light'}`} />
-        <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vqm-blob" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / ${isDarkMode ? 0.15 : 0.22}), transparent 62%)` }} />
-        <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vqm-blob2" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-400) / ${isDarkMode ? 0.12 : 0.18}), transparent 62%)` }} />
-        <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vqm-blob" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-sky-400) / ${isDarkMode ? 0.07 : 0.14}), transparent 62%)` }} />
-        {!isDarkMode && (
-            <div className="absolute top-[18%] right-[6%] w-[34vw] h-[34vw] rounded-full blur-[200px] vqm-blob2" style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-lime-400) / 0.10), transparent 64%)' }} />
-        )}
-        <div className={`absolute inset-0 vqm-grid ${isDarkMode ? 'opacity-[0.35]' : 'opacity-[0.65]'}`} />
-        <div className="absolute inset-0" style={{
-            background: isDarkMode
-                ? 'radial-gradient(95% 75% at 50% 40%, rgb(var(--vq-ramp-ink-950) / 0) 0%, rgb(var(--vq-ramp-ink-950) / 0.5) 100%)'
-                : 'radial-gradient(100% 80% at 50% 34%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 52%, rgb(var(--vq-ramp-teal-500) / 0.06) 100%)',
-        }} />
-        <div className={`absolute inset-0 vqm-grain ${isDarkMode ? 'opacity-[0.3]' : 'opacity-[0.18]'}`} />
-    </div>
-);
-
-/** `#59dbc0` -> `rgba(89,219,192,` — canvas cannot resolve a CSS custom property. */
-const triplet = (hex) => {
-    const n = parseInt(hex.replace('#', ''), 16);
-    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},`;
-};
-
-/* ── particle field ──────────────────────────────────────────────────────── */
-const MkParticles = ({ isDarkMode }) => {
-    const reduced = useMkRM();
-    const canvasRef = useRef(null);
-    useEffect(() => {
-        if (reduced || window.matchMedia('(pointer: coarse)').matches) return;
-        const canvas = canvasRef.current; if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        let w, h, raf = 0, parts = [], running = true;
-        // Light mode needs deeper, larger, more opaque motes — a 0.3-alpha
-        // indigo dot vanishes on white but glows on black. These are tuned
-        // by eye so both themes read as the same "drifting stars" idea.
-        const COLORS = isDarkMode
-            ? [triplet(vq.teal[300]), triplet(vq.sky[300]), triplet(vq.lime[300])]
-            : [triplet(vq.teal[600]), triplet(vq.sky[600]), triplet(vq.lime[600])];
-        const resize = () => {
-            w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
-            const count = Math.min(60, Math.floor(w / 32));
-            parts = Array.from({ length: count }, () => ({
-                x: Math.random() * w, y: Math.random() * h,
-                r: Math.random() * (isDarkMode ? 1.5 : 1.9) + (isDarkMode ? 0.4 : 0.6),
-                vy: -(Math.random() * 0.2 + 0.05), vx: (Math.random() - 0.5) * 0.1,
-                a: Math.random() * (isDarkMode ? 0.3 : 0.34) + (isDarkMode ? 0.06 : 0.12),
-                c: COLORS[(Math.random() * COLORS.length) | 0], tw: Math.random() * Math.PI * 2,
-            }));
-        };
-        const draw = () => {
-            if (!running) return;
-            ctx.clearRect(0, 0, w, h);
-            for (const p of parts) {
-                p.y += p.vy; p.x += p.vx; p.tw += 0.02;
-                if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
-                if (p.x < -10) p.x = w + 10; else if (p.x > w + 10) p.x = -10;
-                const a = p.a * (0.55 + 0.45 * Math.sin(p.tw));
-                ctx.beginPath(); ctx.fillStyle = p.c + a.toFixed(3) + ')'; ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-            }
-            raf = requestAnimationFrame(draw);
-        };
-        const onVis = () => { running = !document.hidden; if (running) { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); } };
-        resize(); draw();
-        window.addEventListener('resize', resize); document.addEventListener('visibilitychange', onVis);
-        return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVis); };
-    }, [reduced, isDarkMode]);
-    if (reduced) return null;
-    return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 hidden md:block" style={{ opacity: isDarkMode ? 0.5 : 0.7 }} />;
-};
-
-/* ── cursor spotlight ────────────────────────────────────────────────────── */
-const MkSpotlight = ({ isDarkMode }) => {
-    const reduced = useMkRM();
-    const ref = useRef(null);
-    useEffect(() => {
-        if (reduced || window.matchMedia('(pointer: coarse)').matches) return;
-        const el = ref.current; let raf = 0, tx = 0, ty = 0, cx = 0, cy = 0;
-        const move = (e) => { tx = e.clientX; ty = e.clientY; if (!raf) raf = requestAnimationFrame(loop); };
-        const loop = () => {
-            cx += (tx - cx) * 0.12; cy += (ty - cy) * 0.12;
-            if (el) el.style.transform = `translate(${cx}px, ${cy}px)`;
-            raf = Math.abs(tx - cx) > 0.5 || Math.abs(ty - cy) > 0.5 ? requestAnimationFrame(loop) : 0;
-        };
-        window.addEventListener('pointermove', move, { passive: true });
-        return () => { window.removeEventListener('pointermove', move); cancelAnimationFrame(raf); };
-    }, [reduced]);
-    if (reduced) return null;
-    return (
-        <div className="fixed inset-0 pointer-events-none z-base hidden md:block">
-            <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full" style={{ background: `radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / ${isDarkMode ? 0.06 : 0.10}), transparent 60%)` }} />
-        </div>
-    );
-};
-
-/* ── theme toggle switch (matches Profile/Edit.jsx dark-mode toggle) ──────── */
-const ThemeToggle = ({ isDarkMode, onToggle, compact = false }) => (
-    <button
-        type="button"
-        onClick={onToggle}
-        aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-        className={`relative ${compact ? 'w-11 h-6' : 'w-14 h-7'} rounded-full transition-all duration-slow shrink-0 ${isDarkMode ? 'bg-brand-600 shadow-lg ' : 'bg-sunken'}`}
+/* ── V6 Inline Link ──────────────────────────────────────────────────────── */
+export const InlineLink = ({ href, children, className = '' }) => (
+    <Link
+        href={href}
+        className={`font-semibold text-brand-600 dark:text-brand-300 underline decoration-brand-500/30 underline-offset-4 hover:decoration-brand-500 transition-colors ${className}`}
     >
-        <div className={`absolute top-1 ${compact ? 'w-4 h-4' : 'w-5 h-5'} bg-white rounded-full shadow-sm transition-all duration-slow flex items-center justify-center ${isDarkMode ? (compact ? 'left-6' : 'left-8') : 'left-1'}`}>
-            {isDarkMode ? <Moon size={compact ? 10 : 12} className="text-brand-600" /> : <Sun size={compact ? 10 : 12} className="text-amber-500" />}
-        </div>
-    </button>
+        {children}
+    </Link>
 );
 
+/* ── V6 Related Pages ────────────────────────────────────────────────────── */
+export const RelatedPages = ({
+    title = 'Keep exploring',
+    items = [],
+    className = ''
+}) => {
+    if (!items || !items.length) return null;
+    return (
+        <section className={`px-6 pb-24 relative z-10 ${className}`}>
+            <div className="max-w-6xl mx-auto">
+                <div className="flex items-end justify-between gap-4 mb-8">
+                    <h2 className="text-xl sm:text-2xl font-bold text-ink tracking-tight">
+                        {title}
+                    </h2>
+                    <div
+                        className="hidden sm:block flex-1 h-px"
+                        style={{ background: 'var(--vq-line)' }}
+                    />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {items.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className="group vq-card vq-card--interactive p-6 transition-all duration-slow flex flex-col justify-between"
+                            style={{
+                                borderRadius: 'var(--vq-r-lg)',
+                                background: 'var(--vq-surface)',
+                                border: '1px solid var(--vq-line)'
+                            }}
+                        >
+                            <div>
+                                {item.eyebrow && (
+                                    <span
+                                        className="block text-3xs font-bold uppercase tracking-[0.25em] mb-3"
+                                        style={{ color: 'var(--vq-accent)' }}
+                                    >
+                                        {item.eyebrow}
+                                    </span>
+                                )}
+                                <span className="block text-base font-bold text-ink mb-2 leading-snug group-hover:text-brand-500 transition-colors">
+                                    {item.label}
+                                </span>
+                                {item.desc && (
+                                    <span
+                                        className="block text-sm leading-relaxed mb-4"
+                                        style={{ color: 'var(--vq-text-muted)' }}
+                                    >
+                                        {item.desc}
+                                    </span>
+                                )}
+                            </div>
+                            <span
+                                className="inline-flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider group-hover:gap-2.5 transition-all mt-2"
+                                style={{ color: 'var(--vq-accent)' }}
+                            >
+                                Explore <ArrowRight size={12} />
+                            </span>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SITE MAP — single source of truth for header dropdowns, the footer sitemap
-   and the RelatedPages block. Add a marketing page here once and it is
-   automatically reachable and internally linked from every surface.
+   SITE MAP TAXONOMY
    ═══════════════════════════════════════════════════════════════════════════ */
 export const SITE = {
-    /* Build · Run · Know — the three columns of the V6 Product mega-menu. */
     build: [
         { label: 'Blueprint', href: '/blueprint', desc: 'Describe it. Approve the plan.' },
         { label: 'See a build', href: '/onboarding', desc: 'Four minutes, start to live.' },
+        { label: 'Watch it assemble', href: '/features', desc: '140+ modules in, only yours out.' },
     ],
     run: [
         { label: 'The register', href: '/pos', desc: 'A till you compose yourself.' },
@@ -300,15 +258,13 @@ export const SITE = {
         { label: 'The Reckoner', href: '/reckoner', desc: 'One place a number is defined.' },
         { label: 'Core Ledger', href: '/ledger', desc: 'One engine. Every number.' },
     ],
-    /* Industry pages. The V6 static header points these at a #presets anchor
-       that only exists on two pages; here they point at the real routes. */
     solutions: [
-        { label: 'Retail shop', href: '/solutions/electronics-store', desc: 'Fast checkout, real margins.' },
+        { label: 'Grocery & supermarket', href: '/solutions/grocery', desc: 'Fast checkout, real margins.' },
         { label: 'Wholesale & distribution', href: '/solutions/wholesale', desc: 'Credit terms and price tiers.' },
         { label: 'Pharmacy', href: '/solutions/pharmacy', desc: 'Batch and expiry that hold the line.' },
-        { label: 'Grocery', href: '/solutions/grocery', desc: 'Weight, shrink and daily margins.' },
-        { label: 'Clothing', href: '/solutions/clothing', desc: 'Size, colour and season.' },
-        { label: 'Multi-branch', href: '/solutions/multi-store', desc: 'One truth across every location.' },
+        { label: 'Apparel & fashion', href: '/solutions/clothing', desc: 'Size and colour, counted properly.' },
+        { label: 'Electronics & hardware', href: '/solutions/electronics-store', desc: 'Serial and IMEI, tracked to the unit.' },
+        { label: 'Multi-branch chains', href: '/solutions/multi-store', desc: 'One truth across every location.' },
     ],
     compare: [
         { label: 'VenQore vs Square', href: '/compare/venqore-vs-square' },
@@ -317,15 +273,15 @@ export const SITE = {
     ],
     resources: [
         { label: 'Free tools', href: '/tools', desc: 'Invoices, barcodes, calculators.' },
-        { label: 'Documentation', href: '/docs', desc: 'Guides and how-tos.' },
-        { label: 'Help centre', href: '/help', desc: 'Answers, by screen.' },
+        { label: 'Documentation', href: '/docs', desc: 'Guides and technical references.' },
+        { label: 'Help centre', href: '/help', desc: 'Step-by-step feature workflows.' },
         { label: 'Security', href: '/security', desc: 'Isolation, roles and the record.' },
         { label: 'Blog', href: '/blog', desc: 'Retail and accounting playbooks.' },
         { label: 'Roadmap', href: '/roadmap', desc: 'What ships next.' },
         { label: 'Live demo', href: '/demo', desc: 'Try it with sample data.' },
     ],
     company: [
-        { label: 'About', href: '/about', desc: 'Built on a shop counter in Okara.' },
+        { label: 'About', href: '/about', desc: 'Our mission, architecture, and principles.' },
         { label: 'How we prove it', href: '/ledger', desc: 'The checks we publish.' },
         { label: 'Contact', href: '/contact', desc: 'A person answers this one.' },
         { label: 'Partners', href: '/partners', desc: 'Resell and implement.' },
@@ -335,567 +291,671 @@ export const SITE = {
         { label: 'Terms', href: '/terms' },
         { label: 'Privacy', href: '/privacy' },
         { label: 'Cookies', href: '/privacy#cookies' },
-        { label: 'Refunds', href: '/refund-policy' },
+        { label: 'Refund Policy', href: '/refund-policy' },
         { label: 'Known Issues', href: '/known-issues' },
     ],
 };
 
-/* Header groups — the same five the V6 static pages carry, in the same order. */
-const NAV_GROUPS = [
-    {
-        key: 'product',
-        label: 'Product',
-        minWidth: 660,
-        columns: [
-            { heading: 'Build', items: SITE.build },
-            { heading: 'Run', items: SITE.run },
-            { heading: 'Know', items: SITE.know },
-        ],
-        footerLink: { label: 'SmartCapture \u2014 a photo in, a posted transaction out', href: '/smartcapture' },
-    },
-    {
-        key: 'solutions',
-        label: 'Solutions',
-        minWidth: 460,
-        columns: [
-            { heading: 'By industry', items: SITE.solutions.slice(0, 3) },
-            { heading: '\u00a0', items: SITE.solutions.slice(3), footerLink: { label: 'All solutions', href: '/solutions' } },
-        ],
-    },
-    { key: 'features', label: 'Features', href: '/features' },
-    { key: 'pricing', label: 'Pricing', href: '/pricing' },
-    {
-        key: 'resources',
-        label: 'Resources',
-        minWidth: 520,
-        columns: [
-            { heading: 'Learn & use', items: SITE.resources },
-            { heading: 'Compare', items: SITE.compare },
-        ],
-    },
-    {
-        key: 'company',
-        label: 'Company',
-        minWidth: 340,
-        columns: [
-            { heading: 'VenQore', items: SITE.company },
-        ],
-    },
-];
-
-/* ── header dropdown ─────────────────────────────────────────────────────── */
-const NavDropdown = ({ group, isOpen, onOpen, onClose, isActive }) => {
-    const closeTimer = useRef(null);
-
-    const open = () => { clearTimeout(closeTimer.current); onOpen(group.key); };
-    // Small grace period so diagonal mouse travel into the panel doesn't
-    // slam it shut — the classic "menu closes before you reach it" bug.
-    const close = () => { closeTimer.current = setTimeout(onClose, 140); };
-    useEffect(() => () => clearTimeout(closeTimer.current), []);
-
-    return (
-        <div className="relative" onMouseEnter={open} onMouseLeave={close}>
-            <button
-                type="button"
-                onClick={() => (isOpen ? onClose() : onOpen(group.key))}
-                aria-expanded={isOpen}
-                aria-haspopup="true"
-                className={`flex items-center gap-1.5 px-4 py-2 text-1xs font-bold uppercase tracking-[0.18em] rounded-full transition-colors duration-slow ${
-                    isOpen || isActive
-                        ? 'text-ink bg-sunken dark:bg-white/[0.10]'
-                        : 'text-ink-muted hover:text-ink dark:hover:text-white hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.04]'
-                }`}
-            >
-                {group.label}
-                <ChevronDown size={13} className={`transition-transform duration-slow ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            <div
-                className={`absolute left-1/2 -translate-x-1/2 top-full pt-3 transition-all duration-normal ${
-                    isOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-1 pointer-events-none'
-                }`}
-            >
-                <div
-                    style={{ minWidth: group.minWidth || 480 }}
-                    className="max-w-[92vw] p-6 rounded-2xl bg-white/95 dark:bg-void-900/95 backdrop-blur-2xl border border-line dark:border-white/[0.08] shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)] dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
-                    <div className="grid gap-x-6 gap-y-1" style={{ gridTemplateColumns: `repeat(${group.columns.length}, minmax(0,1fr))` }}>
-                        {group.columns.map((col) => (
-                            <div key={col.heading}>
-                                <p className="text-3xs font-bold uppercase tracking-[0.25em] text-ink-muted mb-3 px-3">
-                                    {col.heading}
-                                </p>
-                                <div className="space-y-0.5">
-                                    {col.items.map((item) => (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            onClick={onClose}
-                                            className="block px-3 py-2 rounded-xl hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05] transition-colors group/item"
-                                        >
-                                            <span className="block text-sm font-bold text-ink group-hover/item:text-brand-600 dark:group-hover/item:text-brand-300 transition-colors">
-                                                {item.label}
-                                            </span>
-                                            {item.desc && (
-                                                <span className="block text-2xs text-ink-muted mt-0.5 leading-snug">
-                                                    {item.desc}
-                                                </span>
-                                            )}
-                                        </Link>
-                                    ))}
-                                    {col.footerLink && (
-                                        <Link
-                                            href={col.footerLink.href}
-                                            onClick={onClose}
-                                            className="inline-flex items-center gap-1.5 mt-2 px-3 py-2 text-2xs font-bold uppercase tracking-[0.15em] text-brand-600 dark:text-brand-300 hover:gap-2.5 transition-all"
-                                        >
-                                            {col.footerLink.label} <ArrowRight size={11} />
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    {group.footerLink && (
-                        <div className="mt-4 pt-4 border-t border-line dark:border-white/[0.08]">
-                            <Link
-                                href={group.footerLink.href}
-                                onClick={onClose}
-                                className="inline-flex items-center gap-2 px-3 text-sm font-bold text-brand-600 dark:text-brand-300 hover:gap-3 transition-all"
-                            >
-                                {group.footerLink.label} <ArrowRight size={13} />
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-/* ── mobile accordion group ──────────────────────────────────────────────── */
-const MobileNavGroup = ({ group, onNavigate }) => {
-    const [open, setOpen] = useState(false);
-
-    if (group.href) {
-        return (
-            <Link
-                href={group.href}
-                onClick={onNavigate}
-                className="block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-ink-secondary hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05] transition-colors"
-            >
-                {group.label}
-            </Link>
-        );
-    }
-
-    return (
-        <div>
-            <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                aria-expanded={open}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-ink-secondary hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05] transition-colors"
-            >
-                {group.label}
-                <ChevronDown size={15} className={`transition-transform duration-slow ${open ? 'rotate-180' : ''}`} />
-            </button>
-            <div className={`grid transition-all duration-slow ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                <div className="overflow-hidden">
-                    <div className="pl-3 pb-2 pt-1 space-y-3">
-                        {group.columns.map((col) => (
-                            <div key={col.heading}>
-                                <p className="text-3xs font-bold uppercase tracking-[0.25em] text-ink-muted px-4 mb-1">
-                                    {col.heading}
-                                </p>
-                                {col.items.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        onClick={onNavigate}
-                                        className="block px-4 py-2 rounded-lg text-sm font-medium text-ink-muted hover:text-ink dark:hover:text-white hover:bg-interactive-hover/[0.03] dark:hover:bg-white/[0.04] transition-colors"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
-                                {col.footerLink && (
-                                    <Link
-                                        href={col.footerLink.href}
-                                        onClick={onNavigate}
-                                        className="block px-4 py-2 rounded-lg text-sm font-bold text-brand-600 dark:text-brand-300"
-                                    >
-                                        {col.footerLink.label} →
-                                    </Link>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-/* ── related pages block ─────────────────────────────────────────────────────
-   Drop this in just above the footer on any SEO page to hand the reader
-   (and the crawler) the next three or four logical destinations. */
-export const RelatedPages = ({ title = 'Keep exploring', items = [], className = '' }) => {
-    if (!items.length) return null;
-    return (
-        <section className={`px-6 pb-24 relative z-10 ${className}`}>
-            <div className="max-w-6xl mx-auto">
-                <div className="flex items-end justify-between gap-4 mb-8">
-                    <h2 className="text-xl sm:text-2xl font-bold text-ink tracking-tight">{title}</h2>
-                    <div className="hidden sm:block flex-1 h-px bg-sunken dark:bg-white/[0.08]" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {items.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className="group p-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/[0.07] hover:border-brand-500/30 hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-slow"
-                        >
-                            {item.eyebrow && (
-                                <span className="block text-3xs font-bold uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400 mb-3">
-                                    {item.eyebrow}
-                                </span>
-                            )}
-                            <span className="block text-base font-bold text-ink mb-2 leading-snug">
-                                {item.label}
-                            </span>
-                            {item.desc && (
-                                <span className="block text-sm text-ink-muted leading-relaxed mb-4">
-                                    {item.desc}
-                                </span>
-                            )}
-                            <span className="inline-flex items-center gap-1.5 text-2xs font-bold uppercase tracking-[0.15em] text-ink-secondary group-hover:gap-3 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-all">
-                                Read more <ArrowRight size={11} />
-                            </span>
-                        </Link>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-};
-
-/* ── breadcrumb-free inline link helper ──────────────────────────────────────
-   Use for in-copy contextual links so they are visually consistent site-wide. */
-export const InlineLink = ({ href, children, className = '' }) => (
-    <Link
-        href={href}
-        className={`font-semibold text-brand-600 dark:text-brand-300 underline decoration-brand-500/30 underline-offset-4 hover:decoration-brand-500 transition-colors ${className}`}
-    >
-        {children}
-    </Link>
-);
-
 /* ═══════════════════════════════════════════════════════════════════════════
-   LAYOUT
+   MAIN COMPONENT: MarketingLayout
    ═══════════════════════════════════════════════════════════════════════════ */
-export default function MarketingLayout({ children, title, description }) {
+export default function MarketingLayout({ children, title, description, activeNav = '' }) {
     const { props } = usePage();
-    const settings = props.settings || {};
-    const appName = settings.app_name || 'VenQore';
-    /**
-     * PUBLIC PAGES ONLY. `/images/logo.png` is 668 KB and was being fetched
-     * twice per page (header + footer) on every marketing route — a real LCP
-     * penalty on the exact pages we want Google to like. `/images/venqore-icon.png`
-     * is the same mark at 24 KB.
-     *
-     * A tenant's own uploaded `logo_url` still wins, and the authenticated app,
-     * dashboard, print templates and PWA icons are untouched — they keep using
-     * the original asset.
-     */
-    const logo = settings.logo_url || '/images/venqore-icon.png';
+    const settings = props.global_settings || {};
+    const appName = settings.company_name || 'VenQore';
     const { isDarkMode, toggleTheme } = useTheme();
+    const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [mobileMenu, setMobileMenu] = useState(false);
-    const [openGroup, setOpenGroup] = useState(null);
+    const [scrollProgress, setScrollProgress] = useState(0);
 
+    // Track scroll for sticky header and scroll progress bar
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 40);
+        const handleScroll = () => {
+            const y = window.scrollY;
+            setScrolled(y > 30);
+            const docH = document.documentElement.scrollHeight - window.innerHeight;
+            if (docH > 0) {
+                setScrollProgress(Math.min(100, Math.max(0, (y / docH) * 100)));
+            }
+        };
         window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    /*
-       The authenticated app is a fixed-viewport shell — app.css locks
-       html/body/#app to overflow:hidden so each screen scrolls internally.
-       This is the public site: a normal long page with no internal scroll
-       container. Marking <html> for the lifetime of every marketing page
-       lifts that lock (see app.css) and restores it automatically the
-       moment Inertia navigates back into the authenticated app.
-    */
+    // Set marketing shell attribute so fixed viewports scroll smoothly
     useEffect(() => {
         const html = document.documentElement;
         html.setAttribute('data-vq-shell', 'marketing');
-        return () => html.removeAttribute('data-vq-shell');
+        html.setAttribute('data-vq-theme', 'venqore-v6');
+        return () => {
+            html.removeAttribute('data-vq-shell');
+        };
     }, []);
 
-    // Esc closes any open dropdown; clicking outside the nav does too.
-    useEffect(() => {
-        if (!openGroup) return;
-        const onKey = (e) => { if (e.key === 'Escape') setOpenGroup(null); };
-        const onClick = (e) => { if (!e.target.closest('[data-vq-nav]')) setOpenGroup(null); };
-        document.addEventListener('keydown', onKey);
-        document.addEventListener('click', onClick);
-        return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('click', onClick); };
-    }, [openGroup]);
-
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-
-    // A group is "active" when the current URL lives anywhere inside it.
-    const groupIsActive = (group) => {
-        if (group.href) return currentPath === group.href;
-        const hit = (href) => href && href !== '/' &&
-            (currentPath === href || currentPath.startsWith(href + '/'));
-        return group.columns.some((col) =>
-            col.items.some((i) => hit(i.href)) || (col.footerLink && hit(col.footerLink.href))
-        ) || (group.footerLink && hit(group.footerLink.href));
-    };
-
     return (
-        <div className="vq-site min-h-screen bg-app text-ink font-sans selection:bg-brand-500/30 dark:selection:bg-brand-500/40 overflow-x-clip antialiased transition-colors duration-slow">
+        <div
+            className="vq-site vq-app-body"
+            style={{
+                background: 'var(--vq-bg)',
+                color: 'var(--vq-text)',
+                minHeight: '100vh',
+                overflow: 'visible',
+                position: 'relative'
+            }}
+        >
             <Head>
-                <title>{title || `${appName}`}</title>
+                <title>{title ? `${title} | VenQore` : 'VenQore — The AI ERP Builder for POS, Stock & Accounting'}</title>
                 {description && <meta name="description" content={description} />}
-                <meta name="theme-color" content={isDarkMode ? vq.void[900] : vq.slate[50]} />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+                <link rel="canonical" href={typeof window !== 'undefined' ? window.location.href : 'https://venqore.com'} />
+                <meta property="og:title" content={title || 'VenQore — The AI ERP Builder for POS, Stock & Accounting'} />
+                {description && <meta property="og:description" content={description} />}
+                <meta property="og:image" content="https://venqore.com/images/og/venqore-og.png" />
+                <meta name="twitter:card" content="summary_large_image" />
             </Head>
 
-            <MkScrollProgress />
-            <MkAmbient isDarkMode={isDarkMode} />
-            <MkParticles isDarkMode={isDarkMode} />
-            <MkSpotlight isDarkMode={isDarkMode} />
+            {/*  Ambient background glow mesh  */}
+            <div
+                className="vq-amb"
+                aria-hidden="true"
+                style={{
+                    position: 'fixed',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    zIndex: 0
+                }}
+            />
 
-            {/* Navigation */}
-            <nav data-vq-nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-slower ${scrolled || openGroup ? 'bg-white/80 dark:bg-void-900/80 backdrop-blur-2xl border-b border-line dark:border-white/[0.06] py-3' : 'py-5'}`}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
-                    <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
-                        <img src={logo} alt={appName} width="36" height="36" fetchpriority="high" decoding="async" className="h-8 sm:h-9 w-auto shrink-0 transition-transform duration-slow" />
-                        <span className="font-bold text-ink text-base sm:text-lg uppercase tracking-tighter truncate" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
+            {/*  Top scroll progress bar  */}
+            <div
+                data-prog="1"
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    height: '3px',
+                    width: `${scrollProgress}%`,
+                    background: 'linear-gradient(90deg, #0BAA8F, #59DBC0)',
+                    zIndex: 500,
+                    boxShadow: '0 0 18px rgba(35, 196, 166, 0.6)',
+                    transition: 'width 0.1s linear'
+                }}
+            />
+
+            {/*  Skip to main content for accessibility  */}
+            <a className="vq-skip" href="#main">
+                Skip to content
+            </a>
+
+            {/*  ══════════════════════════════════════════════════════════════
+                 AUTHENTIC V6 MASTER HEADER
+                 ══════════════════════════════════════════════════════════════  */}
+            <header
+                className={`vq-header vq-header--onHero ${scrolled ? 'is-stuck' : ''}`}
+                data-header
+                style={{ zIndex: 300 }}
+            >
+                <div className="vq-header__inner">
+                    <Link className="vq-brand" href="/" aria-label="VenQore home">
+                        <img src="/v6/assets/logo.png" alt="VenQore" width="30" height="30" />
+                        <span className="vq-brand__word">{appName}</span>
                     </Link>
-                    <div className="hidden lg:flex items-center gap-1">
-                        {NAV_GROUPS.map(group => (
-                            group.href ? (
-                                <Link key={group.key} href={group.href}
-                                    className={`px-4 py-2 text-1xs font-bold uppercase tracking-[0.18em] transition-colors duration-slow rounded-full ${currentPath === group.href ? 'text-ink bg-sunken dark:bg-white/[0.10]' : 'text-ink-muted hover:text-ink dark:hover:text-white hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.04]'}`}>
-                                    {group.label}
+
+                    <nav className="vq-nav" aria-label="Main">
+                        <ul className="vq-nav__list">
+                            {/* Product Mega Menu */}
+                            <li className="vq-nav__item">
+                                <Link href="/blueprint" className="vq-nav__link">
+                                    Product
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
                                 </Link>
-                            ) : (
-                                <NavDropdown
-                                    key={group.key}
-                                    group={group}
-                                    isOpen={openGroup === group.key}
-                                    isActive={groupIsActive(group)}
-                                    onOpen={setOpenGroup}
-                                    onClose={() => setOpenGroup(null)}
-                                />
-                            )
-                        ))}
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                        <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />
-                        <Link href="/login" className="hidden sm:block px-5 py-2.5 text-1xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-ink dark:hover:text-white transition-colors">Sign in</Link>
-                        <Link href="/build-workspace" className="group/cta inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-accent-fill text-accent-on rounded-full text-2xs sm:text-1xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">
-                            Start building <ArrowRight size={12} className="transition-transform duration-slow group-hover/cta:translate-x-0.5" />
-                        </Link>
-                        <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-ink-secondary hover:text-ink dark:hover:text-white transition-colors" aria-label="Menu" aria-expanded={mobileMenu}>
-                            {mobileMenu ? <X size={22} /> : <Menu size={22} />}
-                        </button>
-                    </div>
-                </div>
-                <div className={`lg:hidden overflow-hidden transition-all duration-slower ${mobileMenu ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-4 sm:px-6 py-6 space-y-1 max-h-[78vh] overflow-y-auto bg-white/95 dark:bg-void-900/95 backdrop-blur-2xl border-t border-line dark:border-white/[0.06]">
-                        {NAV_GROUPS.map(group => (
-                            <MobileNavGroup key={group.key} group={group} onNavigate={() => setMobileMenu(false)} />
-                        ))}
-                        <div className="pt-3 mt-3 border-t border-line dark:border-white/[0.06] sm:hidden">
-                            <Link href="/login" onClick={() => setMobileMenu(false)}
-                                className="block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-ink-muted hover:text-ink dark:hover:text-white hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.04] transition-colors">
-                                Sign in
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+                                <div className="vq-mega" style={{ minWidth: '660px' }}>
+                                    <div className="vq-mega__grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+                                        <div className="vq-mega__col">
+                                            <span className="vq-eyebrow vq-eyebrow--accent">Build</span>
+                                            {SITE.build.map(item => (
+                                                <Link key={item.href} className="vq-mega__link" href={item.href}>
+                                                    <b>{item.label}</b>
+                                                    <span>{item.desc}</span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                        <div className="vq-mega__col">
+                                            <span className="vq-eyebrow vq-eyebrow--accent">Run</span>
+                                            {SITE.run.map(item => (
+                                                <Link key={item.href} className="vq-mega__link" href={item.href}>
+                                                    <b>{item.label}</b>
+                                                    <span>{item.desc}</span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                        <div className="vq-mega__col">
+                                            <span className="vq-eyebrow vq-eyebrow--accent">Know</span>
+                                            {SITE.know.map(item => (
+                                                <Link key={item.href} className="vq-mega__link" href={item.href}>
+                                                    <b>{item.label}</b>
+                                                    <span>{item.desc}</span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="vq-mega__foot">
+                                        <Link className="vq-link" href="/smartcapture">
+                                            SmartCapture — a photo in, a posted transaction out
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="15"
+                                                height="15"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                aria-hidden="true"
+                                            >
+                                                <path d="M5 12h14" />
+                                                <path d="m12 5 7 7-7 7" />
+                                            </svg>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </li>
 
-            <main className="relative z-10">{children}</main>
+                            {/* Solutions Mega Menu */}
+                            <li className="vq-nav__item">
+                                <Link href="/solutions" className="vq-nav__link">
+                                    Solutions
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                </Link>
+                                <div className="vq-mega" style={{ minWidth: '440px' }}>
+                                    <div className="vq-mega__grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                                        <div className="vq-mega__col">
+                                            {SITE.solutions.slice(0, 3).map(item => (
+                                                <Link key={item.href} className="vq-mega__link" href={item.href}>
+                                                    <b>{item.label}</b>
+                                                    <span>{item.desc}</span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                        <div className="vq-mega__col">
+                                            {SITE.solutions.slice(3, 6).map(item => (
+                                                <Link key={item.href} className="vq-mega__link" href={item.href}>
+                                                    <b>{item.label}</b>
+                                                    <span>{item.desc}</span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="vq-mega__foot">
+                                        <Link className="vq-link" href="/solutions">
+                                            View all industry solutions
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="15"
+                                                height="15"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                aria-hidden="true"
+                                            >
+                                                <path d="M5 12h14" />
+                                                <path d="m12 5 7 7-7 7" />
+                                            </svg>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </li>
 
-            {/* Footer — mirrors public/v6 chrome: four columns, a legal bar,
-                and the oversized wordmark watermark. */}
-            <footer className="relative z-10 overflow-hidden border-t border-line dark:border-white/[0.06] bg-sunken dark:bg-void-950 pt-24">
-                <div className="max-w-7xl mx-auto px-6">
+                            {/* Features */}
+                            <li className="vq-nav__item">
+                                <Link href="/features" className="vq-nav__link">Features</Link>
+                            </li>
 
-                    {/* Closing CTA — the V6 footer opens with the same line */}
-                    <div className="mb-20 max-w-2xl">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-ink tracking-tight" style={{ fontFamily: "'Space Grotesk','Inter',system-ui,sans-serif" }}>
-                            Describe your business. See what it becomes.
-                        </h2>
-                        <p className="mt-4 text-ink-muted leading-relaxed max-w-lg">
-                            Fourteen days at Core level, full access. Your system is built before you decide anything.
-                        </p>
-                        <div className="mt-8 flex flex-wrap gap-3">
-                            <Link href="/build-workspace" className="group/f inline-flex items-center gap-2 px-6 py-3 bg-accent-fill text-accent-on rounded-full text-2xs font-bold uppercase tracking-[0.15em] transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)]">
-                                Start building <ArrowRight size={12} className="transition-transform duration-slow group-hover/f:translate-x-0.5" />
-                            </Link>
-                            <Link href="/demo" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line dark:border-white/12 text-ink-secondary text-2xs font-bold uppercase tracking-[0.15em] hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05] transition-all">
-                                Live demo
-                            </Link>
-                        </div>
-                    </div>
+                            {/* Pricing */}
+                            <li className="vq-nav__item">
+                                <Link href="/pricing" className="vq-nav__link">Pricing</Link>
+                            </li>
 
-                    {/* Sitemap — the header is grouped, so this stays the crawlable map */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10 pt-12 border-t border-line dark:border-white/[0.06]">
-                        {[
-                            { heading: 'Product', links: [...SITE.build, ...SITE.run, ...SITE.know, { label: 'SmartCapture', href: '/smartcapture' }, { label: 'Features', href: '/features' }, { label: 'Pricing', href: '/pricing' }] },
-                            { heading: 'Solutions', links: [...SITE.solutions, { label: 'All solutions', href: '/solutions' }, ...SITE.compare] },
-                            { heading: 'Resources', links: SITE.resources },
-                            { heading: 'Company', links: SITE.company },
-                        ].map(col => (
-                            <div key={col.heading}>
-                                <h3 className="text-2xs font-bold text-ink-secondary uppercase tracking-[0.3em] mb-5">{col.heading}</h3>
-                                <ul className="space-y-3">
-                                    {col.links.map(l => (
-                                        <li key={col.heading + l.href}>
-                                            <Link href={l.href} className="text-sm text-ink-muted hover:text-ink dark:hover:text-white transition-colors font-medium">
-                                                {l.label}
+                            {/* Resources Mega Menu */}
+                            <li className="vq-nav__item">
+                                <Link href="/docs" className="vq-nav__link">
+                                    Resources
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                </Link>
+                                <div className="vq-mega" style={{ minWidth: '420px' }}>
+                                    <div className="vq-mega__grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                                        <div className="vq-mega__col">
+                                            <span className="vq-eyebrow vq-eyebrow--accent">Guides</span>
+                                            <Link className="vq-mega__link" href="/tools">
+                                                <b>Free tools</b>
+                                                <span>Invoices, barcodes, math.</span>
                                             </Link>
-                                        </li>
-                                    ))}
+                                            <Link className="vq-mega__link" href="/docs">
+                                                <b>Documentation</b>
+                                                <span>Guides and technical references.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/help">
+                                                <b>Help centre</b>
+                                                <span>Step-by-step feature workflows.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/security">
+                                                <b>Security</b>
+                                                <span>Isolation and data integrity.</span>
+                                            </Link>
+                                        </div>
+                                        <div className="vq-mega__col">
+                                            <span className="vq-eyebrow vq-eyebrow--accent">Intelligence</span>
+                                            <Link className="vq-mega__link" href="/blog">
+                                                <b>Blog</b>
+                                                <span>Retail & accounting playbooks.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/roadmap">
+                                                <b>Roadmap</b>
+                                                <span>What ships next.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/compare">
+                                                <b>Comparisons</b>
+                                                <span>VenQore vs legacy POS.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/demo">
+                                                <b>Live demo</b>
+                                                <span>Explore pre-loaded system.</span>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+
+                            {/* Company Mega Menu */}
+                            <li className="vq-nav__item">
+                                <Link href="/about" className="vq-nav__link">
+                                    Company
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                </Link>
+                                <div className="vq-mega" style={{ minWidth: '320px' }}>
+                                    <div className="vq-mega__grid" style={{ gridTemplateColumns: '1fr' }}>
+                                        <div className="vq-mega__col">
+                                            <Link className="vq-mega__link" href="/about">
+                                                <b>About</b>
+                                                <span>Our mission, architecture, and principles.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/ledger">
+                                                <b>How we prove it</b>
+                                                <span>The 35,255 correctness checks.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/contact">
+                                                <b>Contact</b>
+                                                <span>A person answers this one.</span>
+                                            </Link>
+                                            <Link className="vq-mega__link" href="/partners">
+                                                <b>Partners</b>
+                                                <span>Resell and implement.</span>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div className="vq-header__actions">
+                        <button
+                            className="vq-theme-btn"
+                            type="button"
+                            onClick={toggleTheme}
+                            aria-label="Switch theme"
+                        >
+                            <span className="vq-icon-sun">
+                                <Sun size={17} />
+                            </span>
+                            <span className="vq-icon-moon">
+                                <Moon size={17} />
+                            </span>
+                        </button>
+                        <Link href="/login" className="vq-nav__link">Sign in</Link>
+                        <Link href="/build-workspace" className="vq-btn vq-btn--primary">
+                            Start building
+                            <span className="vq-btn__arrow">
+                                <ArrowRight size={14} />
+                            </span>
+                        </Link>
+                    </div>
+
+                    <button
+                        className="vq-burger"
+                        type="button"
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        aria-label="Open menu"
+                        aria-expanded={mobileOpen}
+                    >
+                        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
+            </header>
+
+            {/*  Mobile Menu Drawer  */}
+            <div className="vq-mobile" data-menu hidden={!mobileOpen}>
+                <button
+                    className="vq-burger"
+                    type="button"
+                    onClick={() => setMobileOpen(false)}
+                    aria-label="Close menu"
+                    style={{ position: 'absolute', top: '24px', right: '20px' }}
+                >
+                    <X size={24} />
+                </button>
+                <Link href="/blueprint" onClick={() => setMobileOpen(false)}>Blueprint</Link>
+                <Link href="/pos" onClick={() => setMobileOpen(false)}>The register</Link>
+                <Link href="/documents" onClick={() => setMobileOpen(false)}>Documents</Link>
+                <Link href="/dashboard-preview" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                <Link href="/smartcapture" onClick={() => setMobileOpen(false)}>SmartCapture</Link>
+                <Link href="/reckoner" onClick={() => setMobileOpen(false)}>The Reckoner</Link>
+                <Link href="/ledger" onClick={() => setMobileOpen(false)}>Core Ledger</Link>
+                <Link href="/vensynq" onClick={() => setMobileOpen(false)}>VenSynQ</Link>
+                <Link href="/solutions" onClick={() => setMobileOpen(false)}>Solutions</Link>
+                <Link href="/features" onClick={() => setMobileOpen(false)}>Features</Link>
+                <Link href="/pricing" onClick={() => setMobileOpen(false)}>Pricing</Link>
+                <Link href="/tools" onClick={() => setMobileOpen(false)}>Free tools</Link>
+                <Link href="/docs" onClick={() => setMobileOpen(false)}>Documentation</Link>
+                <Link href="/blog" onClick={() => setMobileOpen(false)}>Blog</Link>
+                <Link href="/about" onClick={() => setMobileOpen(false)}>About</Link>
+                <Link href="/contact" onClick={() => setMobileOpen(false)}>Contact</Link>
+                <Link href="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
+                <Link
+                    href="/build-workspace"
+                    className="vq-btn vq-btn--primary"
+                    style={{ marginTop: '16px' }}
+                    onClick={() => setMobileOpen(false)}
+                >
+                    Start building
+                </Link>
+            </div>
+
+            {/*  ══════════════════════════════════════════════════════════════
+                 MAIN CONTENT BODY
+                 ══════════════════════════════════════════════════════════════  */}
+            <main id="main" className="vq-page" style={{ position: 'relative', zIndex: 10, minHeight: '80vh' }}>
+                {children}
+            </main>
+
+            {/*  ══════════════════════════════════════════════════════════════
+                 AUTHENTIC V6 MASTER FOOTER
+                 ══════════════════════════════════════════════════════════════  */}
+            <footer id="start" data-sec="start" className="vq-footer" style={{ position: 'relative', zIndex: 10 }}>
+                <div className="footer-bg" />
+
+                <div
+                    className="vq-container"
+                    style={{
+                        position: 'relative',
+                        zIndex: 10,
+                        paddingBottom: 'var(--vq-space-16)'
+                    }}
+                >
+                    <div
+                        className="mesh-gradient-card"
+                        style={{
+                            borderRadius: 'var(--vq-r-2xl)',
+                            padding: 'clamp(32px,5vw,56px)',
+                            border: '1px solid rgb(255 255 255 / .10)',
+                            boxShadow: 'var(--vq-elev-3)'
+                        }}
+                    >
+                        <div style={{ maxWidth: '36rem' }}>
+                            <h2 className="vq-h2" style={{ color: '#fff' }}>
+                                Describe your business. See what it becomes.
+                            </h2>
+                            <p className="vq-lede vq-mt-3" style={{ color: 'rgb(255 255 255 / .74)' }}>
+                                14-day free trial. Full access. You'll see your whole system before you decide anything.
+                            </p>
+                            <form
+                                className="vq-row vq-wrap vq-gap-3 vq-mt-8"
+                                data-waitlist
+                                style={{ maxWidth: '520px' }}
+                            >
+                                <input
+                                    type="email"
+                                    className="vq-input"
+                                    required
+                                    placeholder="you@company.com"
+                                    aria-label="Work email"
+                                    style={{
+                                        flex: '1 1 240px',
+                                        background: 'rgb(0 0 0 / .35)',
+                                        borderColor: 'rgb(255 255 255 / .16)',
+                                        color: '#fff'
+                                    }}
+                                />
+                                <button type="submit" className="vq-btn vq-btn--lg vq-btn--light">
+                                    Start building
+                                </button>
+                            </form>
+                            <p className="vq-caption vq-mt-4" style={{ color: 'rgb(255 255 255 / .55)' }}>
+                                Takes about four minutes. Nothing goes live until you approve it.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    className="vq-container"
+                    style={{
+                        position: 'relative',
+                        zIndex: 10,
+                        paddingBottom: 'var(--vq-space-8)'
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 'var(--vq-space-12)'
+                        }}
+                        className="vq-foot-cols"
+                    >
+                        <div
+                            style={{
+                                display: 'grid',
+                                gap: 'var(--vq-space-8)',
+                                gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
+                                flex: '1'
+                            }}
+                        >
+                            <div>
+                                <h3 className="vq-footer__head">Product</h3>
+                                <ul
+                                    style={{
+                                        marginTop: 'var(--vq-space-4)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 'var(--vq-space-3)'
+                                    }}
+                                >
+                                    <li><Link href="/blueprint">Blueprint</Link></li>
+                                    <li><Link href="/pos">The register</Link></li>
+                                    <li><Link href="/documents">Documents</Link></li>
+                                    <li><Link href="/dashboard-preview">Dashboard</Link></li>
+                                    <li><Link href="/smartcapture">SmartCapture</Link></li>
+                                    <li><Link href="/reckoner">The Reckoner</Link></li>
+                                    <li><Link href="/ledger">Core Ledger</Link></li>
+                                    <li><Link href="/vensynq">VenSynQ</Link></li>
                                 </ul>
                             </div>
-                        ))}
-                    </div>
-
-                    {/* Legal bar */}
-                    <div className="mt-16 pt-8 border-t border-line dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-4">
-                        <p className="text-sm text-ink-muted">© {new Date().getFullYear()} {appName}, Inc. The AI ERP builder.</p>
-                        <div className="flex flex-wrap gap-6">
-                            {SITE.legal.map(l => (
-                                <Link key={l.href + l.label} href={l.href} className="text-sm text-ink-muted hover:text-ink dark:hover:text-white transition-colors">
-                                    {l.label}
-                                </Link>
-                            ))}
-                            <a href="https://wa.me/923091999489" aria-label="Chat on WhatsApp"
-                               className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink dark:hover:text-white transition-colors">
-                                <MessageCircle size={15} /> WhatsApp
-                            </a>
+                            <div>
+                                <h3 className="vq-footer__head">Solutions</h3>
+                                <ul
+                                    style={{
+                                        marginTop: 'var(--vq-space-4)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 'var(--vq-space-3)'
+                                    }}
+                                >
+                                    <li><Link href="/solutions/grocery">Grocery & Supermarket</Link></li>
+                                    <li><Link href="/solutions/wholesale">Wholesale & Distribution</Link></li>
+                                    <li><Link href="/solutions/pharmacy">Pharmacy</Link></li>
+                                    <li><Link href="/solutions/clothing">Apparel & Fashion</Link></li>
+                                    <li><Link href="/solutions/electronics-store">Electronics & Hardware</Link></li>
+                                    <li><Link href="/solutions/multi-store">Multi-branch Retail</Link></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 className="vq-footer__head">Company</h3>
+                                <ul
+                                    style={{
+                                        marginTop: 'var(--vq-space-4)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 'var(--vq-space-3)'
+                                    }}
+                                >
+                                    <li><Link href="/about">About</Link></li>
+                                    <li><Link href="/contact">Contact</Link></li>
+                                    <li><Link href="/blog">Blog</Link></li>
+                                    <li><Link href="/roadmap">Roadmap</Link></li>
+                                    <li><Link href="/partners">Partners</Link></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 className="vq-footer__head">Resources</h3>
+                                <ul
+                                    style={{
+                                        marginTop: 'var(--vq-space-4)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 'var(--vq-space-3)'
+                                    }}
+                                >
+                                    <li><Link href="/tools">Free Tools</Link></li>
+                                    <li><Link href="/docs">Documentation</Link></li>
+                                    <li><Link href="/help">Help centre</Link></li>
+                                    <li><Link href="/security">Security</Link></li>
+                                    <li><Link href="/onboarding">See a build</Link></li>
+                                    <li><Link href="/login">Sign in</Link></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 className="vq-footer__head">Social</h3>
+                                <div
+                                    style={{
+                                        marginTop: 'var(--vq-space-4)',
+                                        display: 'flex',
+                                        gap: 'var(--vq-space-3)'
+                                    }}
+                                >
+                                    <a
+                                        className="vq-footer__social"
+                                        href="https://wa.me/923091999489"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label="WhatsApp"
+                                        title="WhatsApp: +92 309 1999489"
+                                    >
+                                        <MessageCircle size={18} />
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Wordmark watermark — the V6 footer signature */}
-                    <div aria-hidden="true" className="select-none pointer-events-none pt-14 -mb-[2.5vw]">
-                        <span className="block w-full text-center font-bold leading-[0.8] tracking-tighter text-ink/[0.06] dark:text-white/[0.05]"
-                              style={{ fontFamily: "'Space Grotesk','Inter',system-ui,sans-serif", fontSize: 'clamp(4rem,17vw,16rem)' }}>
-                            {appName}
-                        </span>
+                    <div
+                        style={{
+                            marginTop: 'var(--vq-space-12)',
+                            paddingTop: 'var(--vq-space-8)',
+                            borderTop: '1px solid rgb(255 255 255 / .08)',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 'var(--vq-space-4)',
+                            paddingBottom: 'var(--vq-space-6)'
+                        }}
+                    >
+                        <p
+                            className="vq-small"
+                            style={{
+                                color: 'var(--vq-ink-500)',
+                                maxWidth: 'none'
+                            }}
+                        >
+                            © {new Date().getFullYear()} {appName}, Inc. The AI ERP builder for ERP &amp; POS.
+                        </p>
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: 'var(--vq-space-6)',
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            <Link className="vq-small" href="/terms">Terms</Link>
+                            <Link className="vq-small" href="/privacy">Privacy</Link>
+                            <Link className="vq-small" href="/privacy#cookies">Cookies</Link>
+                            <Link className="vq-small" href="/refund-policy">Refund Policy</Link>
+                            <Link className="vq-small" href="/known-issues">Known Issues</Link>
+                        </div>
+                    </div>
+
+                    <div className="watermark-wrapper">
+                        <span>{appName}</span>
                     </div>
                 </div>
             </footer>
-
-            {/* Motion system */}
-            <style>{`
-                * { font-family: 'Inter','Figtree',system-ui,sans-serif; }
-                h1,h2,h3,h4,h5,h6,.font-display { font-family: 'Space Grotesk','Inter',system-ui,sans-serif; }
-                html { scroll-behavior: smooth; }
-                .tabular-nums { font-variant-numeric: tabular-nums; }
-
-                @keyframes vqm-blob { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(3%,2%) scale(1.06);} }
-                .vqm-blob { animation: vqm-blob 18s ease-in-out infinite; }
-                .vqm-blob2 { animation: vqm-blob 22s ease-in-out infinite 3s; }
-                .vqm-beams {
-                    background: conic-gradient(from 90deg at 50% 0%,
-                        transparent 0deg, rgb(var(--vq-ramp-teal-500) / 0.07) 10deg, transparent 22deg,
-                        transparent 44deg, rgb(var(--vq-ramp-teal-400) / 0.06) 56deg, transparent 70deg,
-                        transparent 104deg, rgb(var(--vq-ramp-teal-500) / 0.05) 118deg, transparent 134deg);
-                    filter: blur(22px); transform-origin: 50% 0%;
-                    animation: vqm-beamspin 26s ease-in-out infinite;
-                }
-                /* Light-mode beams: same sweep, deeper pigment so the shafts
-                   are actually perceivable against a white page. */
-                .vqm-beams-light {
-                    background: conic-gradient(from 90deg at 50% 0%,
-                        transparent 0deg, rgb(var(--vq-ramp-teal-500) / 0.13) 10deg, transparent 22deg,
-                        transparent 44deg, rgb(var(--vq-ramp-teal-400) / 0.11) 56deg, transparent 70deg,
-                        transparent 104deg, rgb(var(--vq-ramp-teal-600) / 0.09) 118deg, transparent 134deg);
-                    filter: blur(26px); transform-origin: 50% 0%;
-                    animation: vqm-beamspin 26s ease-in-out infinite;
-                }
-                @keyframes vqm-beamspin { 0%,100%{transform:translateX(-50%) rotate(-7deg);} 50%{transform:translateX(-50%) rotate(7deg);} }
-                .vqm-grid { background-image:
-                    linear-gradient(rgb(var(--vq-ramp-teal-500) / 0.055) 1px,transparent 1px),
-                    linear-gradient(90deg,rgb(var(--vq-ramp-teal-500) / 0.055) 1px,transparent 1px);
-                    background-size: 64px 64px;
-                    mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 78%);
-                    -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 78%); }
-                .dark .vqm-grid { background-image:
-                    linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),
-                    linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
-                    mask-image: none; -webkit-mask-image: none; }
-                .vqm-grain { background-image: url('/images/noise.svg'); background-repeat: repeat; }
-
-                @keyframes vq-pulse-slow { 0%,100% { opacity:.15; transform:scale(1); } 50% { opacity:.25; transform:scale(1.05); } }
-                .vq-pulse-slow { animation: vq-pulse-slow 12s ease-in-out infinite; }
-                .vq-pulse-slow-delay { animation: vq-pulse-slow 14s ease-in-out infinite 3s; }
-                @keyframes vq-float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
-                .vq-float { animation: vq-float 6s ease-in-out infinite; }
-                .vq-float-delay { animation: vq-float 6s ease-in-out infinite 2s; }
-                @keyframes vq-shimmer { 0% { background-position:-200% center; } 100% { background-position:200% center; } }
-                .vq-shimmer { background-size:200% auto; animation: vq-shimmer 4s linear infinite; }
-                @keyframes vq-blink { 0%,100%{opacity:1;} 50%{opacity:.25;} }
-                .vq-blink { animation: vq-blink 1.6s ease-in-out infinite; }
-                @keyframes vq-border-glow { 0%,100% { border-color: rgb(var(--vq-ramp-teal-500) / 0.1); } 50% { border-color: rgb(var(--vq-ramp-teal-500) / 0.3); } }
-                .vq-border-glow { animation: vq-border-glow 4s ease-in-out infinite; }
-                @keyframes vq-gradient-shift { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
-                .vq-gradient-shift { background-size:200% 200%; animation: vq-gradient-shift 8s ease infinite; }
-
-                /*
-                   V6's identity is one hue — teal, mint-on-pine (see
-                   resources/css/venqore-v6/tokens/colors.css). This used to
-                   be a three-stop indigo/violet/cyan gradient left over from
-                   the pre-V6 "Midnight Nebula" palette; --vq-indigo-* and
-                   --vq-violet-* are old-system aliases that the V6 generator
-                   now points at teal and plum respectively (see
-                   resources/css/theme.generated.css), which is why only part
-                   of this gradient looked "fixed" — indigo landed on brand
-                   teal, violet landed on plum (a real V6 colour, but not this
-                   component's colour), and the #0891b2/#22d3ee cyan stops
-                   were never tokens at all. Single definition now, on-brand
-                   in both modes, no duplicate elsewhere.
-                */
-                .vq-headline-grad {
-                    background: linear-gradient(100deg, rgb(var(--vq-ramp-teal-600)) 0%, rgb(var(--vq-ramp-teal-400)) 50%, rgb(var(--vq-ramp-teal-600)) 100%);
-                    -webkit-background-clip: text; background-clip: text; color: transparent;
-                    background-size: 200% auto; animation: vq-shimmer 6s linear infinite;
-                }
-                .dark .vq-headline-grad {
-                    background: linear-gradient(100deg, rgb(var(--vq-ramp-teal-400)) 0%, rgb(var(--vq-ramp-teal-300)) 50%, rgb(var(--vq-ramp-teal-400)) 100%);
-                    -webkit-background-clip: text; background-clip: text; color: transparent;
-                    background-size: 200% auto;
-                }
-                /* rgba(99,102,241,*) was Tailwind indigo-500 — off-brand. Retinted to V6 teal. */
-                .vq-text-glow { text-shadow: none; }
-                .dark .vq-text-glow { text-shadow: 0 0 80px rgb(var(--vq-ramp-teal-500) / 0.4); }
-                .vq-text-glow-strong { text-shadow: none; }
-                .dark .vq-text-glow-strong { text-shadow: 0 0 120px rgb(var(--vq-ramp-teal-500) / 0.6), 0 0 40px rgb(var(--vq-ramp-teal-500) / 0.2); }
-
-                .no-scrollbar::-webkit-scrollbar { display:none; }
-                .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
-                .vq-grid-pattern { background-image: linear-gradient(rgb(var(--vq-ramp-teal-500) / 0.04) 1px,transparent 1px), linear-gradient(90deg,rgb(var(--vq-ramp-teal-500) / 0.04) 1px,transparent 1px); background-size:60px 60px; }
-                .dark .vq-grid-pattern { background-image: linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px); }
-                .vq-dot-pattern { background-image: radial-gradient(rgb(var(--vq-ramp-teal-500) / 0.08) 1px,transparent 1px); background-size:30px 30px; }
-                .dark .vq-dot-pattern { background-image: radial-gradient(rgba(255,255,255,0.05) 1px,transparent 1px); }
-
-                ::-webkit-scrollbar { width:10px; }
-                ::-webkit-scrollbar-track { background:transparent; }
-                ::-webkit-scrollbar-thumb { background:rgb(var(--vq-ramp-teal-500) / 0.25); border-radius:10px; }
-                ::-webkit-scrollbar-thumb:hover { background:rgb(var(--vq-ramp-teal-500) / 0.4); }
-
-                @media (prefers-reduced-motion: reduce) {
-                    *, *::before, *::after { animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
-                }
-`}</style>
         </div>
     );
 }
