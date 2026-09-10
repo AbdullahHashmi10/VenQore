@@ -80,6 +80,27 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
         return resolveTheme(settings, window.location.pathname);
     });
 
+    /** Explicit user action — this is what gets remembered. */
+    const persist = useCallback((dark) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light');
+        } catch (e) { /* storage unavailable — session-only theme is fine */ }
+    }, []);
+
+    const toggleTheme = useCallback(() => {
+        setIsDarkMode((prev) => {
+            const next = !prev;
+            persist(next);
+            return next;
+        });
+    }, [persist]);
+
+    const setThemeExplicitly = useCallback((dark) => {
+        const next = typeof dark === 'function' ? dark(isDarkMode) : dark;
+        persist(next);
+        setIsDarkMode(next);
+    }, [isDarkMode, persist]);
+
     // Re-evaluate on Inertia navigation. GlobalProviderLayout (and therefore
     // this provider) stays mounted across SPA page changes, so without this
     // the per-path default would only ever apply to the very first page load.
@@ -123,27 +144,6 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
         document.addEventListener('click', handleGlobalThemeToggle);
         return () => document.removeEventListener('click', handleGlobalThemeToggle);
     }, [toggleTheme]);
-
-    /** Explicit user action — this is what gets remembered. */
-    const persist = useCallback((dark) => {
-        try {
-            localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light');
-        } catch (e) { /* storage unavailable — session-only theme is fine */ }
-    }, []);
-
-    const toggleTheme = useCallback(() => {
-        setIsDarkMode((prev) => {
-            const next = !prev;
-            persist(next);
-            return next;
-        });
-    }, [persist]);
-
-    const setThemeExplicitly = useCallback((dark) => {
-        const next = typeof dark === 'function' ? dark(isDarkMode) : dark;
-        persist(next);
-        setIsDarkMode(next);
-    }, [isDarkMode, persist]);
 
     return (
         <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode: setThemeExplicitly, toggleTheme }}>
