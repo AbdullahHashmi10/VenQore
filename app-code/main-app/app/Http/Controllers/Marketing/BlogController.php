@@ -1,6 +1,6 @@
 <?php
 
-namespace AppHttpControllers\Marketing;
+namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Models\BlogPost;
