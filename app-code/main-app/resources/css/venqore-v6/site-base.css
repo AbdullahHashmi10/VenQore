@@ -39,13 +39,16 @@ h1, h2, h3, .vq-display, .vq-hero, .vq-h1, .vq-h2, .vq-h3 {
   text-wrap: balance;
 }
 
-a {
+a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="vq-nav__link"]):not([class*="vq-mega__link"]) {
   color: var(--vq-accent-text);
   text-decoration-color: var(--vq-accent-quiet-line);
   text-underline-offset: 3px;
   transition: color var(--vq-dur-1) var(--vq-ease-out);
 }
-a:hover { color: var(--vq-accent-fill-hover); text-decoration-color: currentColor; }
+a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="vq-nav__link"]):not([class*="vq-mega__link"]):hover {
+  color: var(--vq-accent-fill-hover);
+  text-decoration-color: currentColor;
+}
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--vq-focus);

@@ -199,7 +199,7 @@ export default function SmartCapture() {
     <div className="vq-demo vq-reveal" data-capture>
       <div className="vq-demo__bar">
         <div className="vq-demo__dots"><i></i><i></i><i></i></div>
-        <div className="vq-demo__url"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> app.venqore.com/capture</div>
+        <div className="vq-demo__url"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> www.venqore.com/capture</div>
         <span className="vq-demo__live">Live · try it</span>
       </div>
       <div className="vq-demo__controls">

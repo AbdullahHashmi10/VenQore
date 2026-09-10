@@ -159,7 +159,7 @@ export const ProfitLossDemo = () => {
         { l: 'Net Profit', v: net, c: 'text-emerald-300', ic: Wallet, tone: 'text-emerald-300 bg-emerald-500/15' },
     ];
     return (
-        <DemoFrame title="Profit & Loss" url="app.venqore.com/reports/profit-loss" accent="emerald">
+        <DemoFrame title="Profit & Loss" url="www.venqore.com/reports/profit-loss" accent="emerald">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-emerald-500" />
@@ -257,7 +257,7 @@ export const PosInvoiceDemo = () => {
     const sub = cart.reduce((s, x) => s + x.p * x.q, 0);
     const tax = Math.round(sub * 0.05), total = sub + tax;
     return (
-        <DemoFrame title="POS" url="app.venqore.com/pos" accent="indigo">
+        <DemoFrame title="POS" url="www.venqore.com/pos" accent="indigo">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 {/* product grid */}
                 <div className="lg:col-span-3">
@@ -373,7 +373,7 @@ export const SmartCaptureDemo = () => {
     const run = () => { setPhase('working'); setTimeout(() => setPhase('extracted'), reduced ? 0 : 1900); };
     const total = data.items.reduce((s, x) => s + x.qty * x.price, 0);
     return (
-        <DemoFrame title="Smart Capture" url="app.venqore.com/capture" badge="AI · BYOK" accent="violet">
+        <DemoFrame title="Smart Capture" url="www.venqore.com/capture" badge="AI · BYOK" accent="violet">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-brand-500" />
@@ -484,7 +484,7 @@ export const VenSynQDemo = () => {
     const best = VQ_CHANNELS.reduce((a, b) => (b.net / b.rev > a.net / a.rev ? b : a));
     const maxNet = Math.max(...VQ_CHANNELS.map(c => c.net));
     return (
-        <DemoFrame title="VenSynQ" url="app.venqore.com/vensynq" badge="MULTI-CHANNEL" accent="blue">
+        <DemoFrame title="VenSynQ" url="www.venqore.com/vensynq" badge="MULTI-CHANNEL" accent="blue">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-blue-500" />
@@ -740,7 +740,7 @@ export const GrowthEngineDemo = () => {
     const overall = Math.round((totalHit / totalGraded) * 100);
 
     return (
-        <DemoFrame title="Intelligence Engine" url="app.venqore.com/growth-engine" badge="LIVE DEMO" accent="violet">
+        <DemoFrame title="Intelligence Engine" url="www.venqore.com/growth-engine" badge="LIVE DEMO" accent="violet">
             <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-brand-500" />
@@ -892,7 +892,7 @@ export const CookbookDemo = () => {
     const batchCost = RECIPE.raw.reduce((s, r) => s + r.per * qty * (cost[r.n] || 1), 0);
     const run = () => { setRan(true); setTimeout(() => setRan(false), 2600); };
     return (
-        <DemoFrame title="Cookbook" url="app.venqore.com/cookbook" badge="MANUFACTURING" accent="amber">
+        <DemoFrame title="Cookbook" url="www.venqore.com/cookbook" badge="MANUFACTURING" accent="amber">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-5 rounded-full bg-amber-500" />
